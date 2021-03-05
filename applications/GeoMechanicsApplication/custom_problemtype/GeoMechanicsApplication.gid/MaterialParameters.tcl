@@ -216,60 +216,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 33],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -297,60 +250,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 33],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -382,117 +288,22 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"         :  [lindex [lindex $Groups $i] 99],"
-                puts $FileVar "              \"STATE_VARIABLE_11\"         :  [lindex [lindex $Groups $i] 100],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_12\"         :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"         :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"         :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"         :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"         :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"         :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"         :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"         :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"         :  [lindex [lindex $Groups $i] 109],"
-                puts $FileVar "              \"STATE_VARIABLE_21\"         :  [lindex [lindex $Groups $i] 110],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_22\"         :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"         :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"         :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"         :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"         :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"         :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"         :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"         :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"         :  [lindex [lindex $Groups $i] 119],"
-                puts $FileVar "              \"STATE_VARIABLE_31\"         :  [lindex [lindex $Groups $i] 120],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_32\"         :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"         :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"         :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"         :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"         :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"         :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"         :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"         :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"         :  [lindex [lindex $Groups $i] 129],"
-                puts $FileVar "              \"STATE_VARIABLE_41\"         :  [lindex [lindex $Groups $i] 130],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_42\"         :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"         :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"         :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"         :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"         :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+89}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -521,117 +332,22 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
-                
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"         :  [lindex [lindex $Groups $i] 99],"
-                puts $FileVar "              \"STATE_VARIABLE_11\"         :  [lindex [lindex $Groups $i] 100],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_12\"         :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"         :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"         :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"         :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"         :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"         :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"         :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"         :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"         :  [lindex [lindex $Groups $i] 109],"
-                puts $FileVar "              \"STATE_VARIABLE_21\"         :  [lindex [lindex $Groups $i] 110],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_22\"         :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"         :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"         :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"         :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"         :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"         :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"         :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"         :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"         :  [lindex [lindex $Groups $i] 119],"
-                puts $FileVar "              \"STATE_VARIABLE_31\"         :  [lindex [lindex $Groups $i] 120],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_32\"         :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"         :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"         :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"         :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"         :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"         :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"         :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"         :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"         :  [lindex [lindex $Groups $i] 129],"
-                puts $FileVar "              \"STATE_VARIABLE_41\"         :  [lindex [lindex $Groups $i] 130],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_42\"         :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"         :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"         :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"         :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"         :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+89}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             }
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
@@ -854,60 +570,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 33],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -936,60 +605,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 33],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1022,117 +644,21 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"        :  [lindex [lindex $Groups $i] 99],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_11\"        :  [lindex [lindex $Groups $i] 100],"
-                puts $FileVar "              \"STATE_VARIABLE_12\"        :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"        :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"        :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"        :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"        :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"        :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"        :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"        :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"        :  [lindex [lindex $Groups $i] 109],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_21\"        :  [lindex [lindex $Groups $i] 110],"
-                puts $FileVar "              \"STATE_VARIABLE_22\"        :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"        :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"        :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"        :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"        :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"        :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"        :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"        :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"        :  [lindex [lindex $Groups $i] 119],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_31\"        :  [lindex [lindex $Groups $i] 120],"
-                puts $FileVar "              \"STATE_VARIABLE_32\"        :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"        :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"        :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"        :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"        :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"        :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"        :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"        :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"        :  [lindex [lindex $Groups $i] 129],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_41\"        :  [lindex [lindex $Groups $i] 130],"
-                puts $FileVar "              \"STATE_VARIABLE_42\"        :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"        :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"        :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"        :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"        :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"        :  [lindex [lindex $Groups $i] 136],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"        :  [lindex [lindex $Groups $i] 137],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"        :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"        :  [lindex [lindex $Groups $i] 139],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+89}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
                 incr PropertyId
@@ -1163,119 +689,22 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"        :  [lindex [lindex $Groups $i] 99],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_11\"        :  [lindex [lindex $Groups $i] 100],"
-                puts $FileVar "              \"STATE_VARIABLE_12\"        :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"        :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"        :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"        :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"        :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"        :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"        :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"        :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"        :  [lindex [lindex $Groups $i] 109],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_21\"        :  [lindex [lindex $Groups $i] 110],"
-                puts $FileVar "              \"STATE_VARIABLE_22\"        :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"        :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"        :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"        :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"        :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"        :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"        :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"        :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"        :  [lindex [lindex $Groups $i] 119],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_31\"        :  [lindex [lindex $Groups $i] 120],"
-                puts $FileVar "              \"STATE_VARIABLE_32\"        :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"        :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"        :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"        :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"        :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"        :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"        :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"        :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"        :  [lindex [lindex $Groups $i] 129],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_41\"        :  [lindex [lindex $Groups $i] 130],"
-                puts $FileVar "              \"STATE_VARIABLE_42\"        :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"        :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"        :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"        :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"        :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"        :  [lindex [lindex $Groups $i] 136],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"        :  [lindex [lindex $Groups $i] 137],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"        :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"        :  [lindex [lindex $Groups $i] 139],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+89}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
             }
-
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
@@ -1490,60 +919,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 33],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],
-                "
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1571,60 +953,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 33],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1656,117 +991,22 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],
-                "
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88]"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"         :  [lindex [lindex $Groups $i] 99],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_11\"         :  [lindex [lindex $Groups $i] 100],"
-                puts $FileVar "              \"STATE_VARIABLE_12\"         :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"         :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"         :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"         :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"         :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"         :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"         :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"         :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"         :  [lindex [lindex $Groups $i] 109],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_21\"         :  [lindex [lindex $Groups $i] 110],"
-                puts $FileVar "              \"STATE_VARIABLE_22\"         :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"         :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"         :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"         :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"         :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"         :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"         :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"         :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"         :  [lindex [lindex $Groups $i] 119],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_31\"         :  [lindex [lindex $Groups $i] 120],"
-                puts $FileVar "              \"STATE_VARIABLE_32\"         :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"         :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"         :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"         :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"         :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"         :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"         :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"         :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"         :  [lindex [lindex $Groups $i] 129],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_41\"         :  [lindex [lindex $Groups $i] 130],"
-                puts $FileVar "              \"STATE_VARIABLE_42\"         :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"         :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"         :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"         :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"         :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+89}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1795,117 +1035,22 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 78],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 79],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 88],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+38}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"         :  [lindex [lindex $Groups $i] 99],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_11\"         :  [lindex [lindex $Groups $i] 100],"
-                puts $FileVar "              \"STATE_VARIABLE_12\"         :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"         :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"         :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"         :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"         :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"         :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"         :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"         :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"         :  [lindex [lindex $Groups $i] 109],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_21\"         :  [lindex [lindex $Groups $i] 110],"
-                puts $FileVar "              \"STATE_VARIABLE_22\"         :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"         :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"         :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"         :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"         :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"         :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"         :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"         :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"         :  [lindex [lindex $Groups $i] 119],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_31\"         :  [lindex [lindex $Groups $i] 120],"
-                puts $FileVar "              \"STATE_VARIABLE_32\"         :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"         :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"         :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"         :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"         :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"         :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"         :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"         :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"         :  [lindex [lindex $Groups $i] 129],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_41\"         :  [lindex [lindex $Groups $i] 130],"
-                puts $FileVar "              \"STATE_VARIABLE_42\"         :  [lindex [lindex $Groups $i] 131],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"         :  [lindex [lindex $Groups $i] 132],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"         :  [lindex [lindex $Groups $i] 133],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"         :  [lindex [lindex $Groups $i] 134],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"         :  [lindex [lindex $Groups $i] 135],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 136],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 137],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 138],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 139],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+89}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
             }
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
@@ -2079,69 +1224,21 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 3]\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
-                puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
-                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
 
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 22]\","
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 23],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 24],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 29],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 31],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 32],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 33],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 34],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 35],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 36],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 37],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 38],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 78]"
+                set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+28}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
-                
+                puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
+                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9]"
+
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
                 puts $FileVar "      \}"
@@ -2159,68 +1256,20 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 3]\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
-                puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
-                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
-
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 22]\","
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 23],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 24],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 29],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 31],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 32],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 33],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 34],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 35],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 36],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 37],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 38],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 78]"
-            
+                set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+28}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
+                puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
+                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9]"
+
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
                 puts $FileVar "      \}"
@@ -2237,125 +1286,30 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 3]\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
-                puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
-                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
 
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 25]\","
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 27],"
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 28],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 29],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 31],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 32],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 33],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 34],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 35],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 36],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 37],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 38],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 78],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+28}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 79],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 88],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"         :  [lindex [lindex $Groups $i] 89],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_11\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_12\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"         :  [lindex [lindex $Groups $i] 99],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_21\"         :  [lindex [lindex $Groups $i] 100],"
-                puts $FileVar "              \"STATE_VARIABLE_22\"         :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"         :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"         :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"         :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"         :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"         :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"         :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"         :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"         :  [lindex [lindex $Groups $i] 109],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_31\"         :  [lindex [lindex $Groups $i] 110],"
-                puts $FileVar "              \"STATE_VARIABLE_32\"         :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"         :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"         :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"         :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"         :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"         :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"         :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"         :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"         :  [lindex [lindex $Groups $i] 119],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_41\"         :  [lindex [lindex $Groups $i] 120],"
-                puts $FileVar "              \"STATE_VARIABLE_42\"         :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"         :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"         :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"         :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"         :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 129],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 79]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+79}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
+                puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
+                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9]"
 
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
@@ -2382,118 +1336,22 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 28],"
 
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 29],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 31],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 32],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 33],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 34],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 35],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 36],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 37],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 38],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 46],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 48],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 56],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 58],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 66],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 68],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 76],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 77],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 78],"
+                set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+28}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 79],"
 
-                puts $FileVar "              \"STATE_VARIABLE_1\"         :  [lindex [lindex $Groups $i] 80],"
-                puts $FileVar "              \"STATE_VARIABLE_2\"         :  [lindex [lindex $Groups $i] 81],"
-                puts $FileVar "              \"STATE_VARIABLE_3\"         :  [lindex [lindex $Groups $i] 82],"
-                puts $FileVar "              \"STATE_VARIABLE_4\"         :  [lindex [lindex $Groups $i] 83],"
-                puts $FileVar "              \"STATE_VARIABLE_5\"         :  [lindex [lindex $Groups $i] 84],"
-                puts $FileVar "              \"STATE_VARIABLE_6\"         :  [lindex [lindex $Groups $i] 85],"
-                puts $FileVar "              \"STATE_VARIABLE_7\"         :  [lindex [lindex $Groups $i] 86],"
-                puts $FileVar "              \"STATE_VARIABLE_8\"         :  [lindex [lindex $Groups $i] 87],"
-                puts $FileVar "              \"STATE_VARIABLE_9\"         :  [lindex [lindex $Groups $i] 88],"
-                puts $FileVar "              \"STATE_VARIABLE_10\"         :  [lindex [lindex $Groups $i] 89],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_11\"         :  [lindex [lindex $Groups $i] 90],"
-                puts $FileVar "              \"STATE_VARIABLE_12\"         :  [lindex [lindex $Groups $i] 91],"
-                puts $FileVar "              \"STATE_VARIABLE_13\"         :  [lindex [lindex $Groups $i] 92],"
-                puts $FileVar "              \"STATE_VARIABLE_14\"         :  [lindex [lindex $Groups $i] 93],"
-                puts $FileVar "              \"STATE_VARIABLE_15\"         :  [lindex [lindex $Groups $i] 94],"
-                puts $FileVar "              \"STATE_VARIABLE_16\"         :  [lindex [lindex $Groups $i] 95],"
-                puts $FileVar "              \"STATE_VARIABLE_17\"         :  [lindex [lindex $Groups $i] 96],"
-                puts $FileVar "              \"STATE_VARIABLE_18\"         :  [lindex [lindex $Groups $i] 97],"
-                puts $FileVar "              \"STATE_VARIABLE_19\"         :  [lindex [lindex $Groups $i] 98],"
-                puts $FileVar "              \"STATE_VARIABLE_20\"         :  [lindex [lindex $Groups $i] 99],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_21\"         :  [lindex [lindex $Groups $i] 100],"
-                puts $FileVar "              \"STATE_VARIABLE_22\"         :  [lindex [lindex $Groups $i] 101],"
-                puts $FileVar "              \"STATE_VARIABLE_23\"         :  [lindex [lindex $Groups $i] 102],"
-                puts $FileVar "              \"STATE_VARIABLE_24\"         :  [lindex [lindex $Groups $i] 103],"
-                puts $FileVar "              \"STATE_VARIABLE_25\"         :  [lindex [lindex $Groups $i] 104],"
-                puts $FileVar "              \"STATE_VARIABLE_26\"         :  [lindex [lindex $Groups $i] 105],"
-                puts $FileVar "              \"STATE_VARIABLE_27\"         :  [lindex [lindex $Groups $i] 106],"
-                puts $FileVar "              \"STATE_VARIABLE_28\"         :  [lindex [lindex $Groups $i] 107],"
-                puts $FileVar "              \"STATE_VARIABLE_29\"         :  [lindex [lindex $Groups $i] 108],"
-                puts $FileVar "              \"STATE_VARIABLE_30\"         :  [lindex [lindex $Groups $i] 109],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_31\"         :  [lindex [lindex $Groups $i] 110],"
-                puts $FileVar "              \"STATE_VARIABLE_32\"         :  [lindex [lindex $Groups $i] 111],"
-                puts $FileVar "              \"STATE_VARIABLE_33\"         :  [lindex [lindex $Groups $i] 112],"
-                puts $FileVar "              \"STATE_VARIABLE_34\"         :  [lindex [lindex $Groups $i] 113],"
-                puts $FileVar "              \"STATE_VARIABLE_35\"         :  [lindex [lindex $Groups $i] 114],"
-                puts $FileVar "              \"STATE_VARIABLE_36\"         :  [lindex [lindex $Groups $i] 115],"
-                puts $FileVar "              \"STATE_VARIABLE_37\"         :  [lindex [lindex $Groups $i] 116],"
-                puts $FileVar "              \"STATE_VARIABLE_38\"         :  [lindex [lindex $Groups $i] 117],"
-                puts $FileVar "              \"STATE_VARIABLE_39\"         :  [lindex [lindex $Groups $i] 118],"
-                puts $FileVar "              \"STATE_VARIABLE_40\"         :  [lindex [lindex $Groups $i] 119],"
-                
-                puts $FileVar "              \"STATE_VARIABLE_41\"         :  [lindex [lindex $Groups $i] 120],"
-                puts $FileVar "              \"STATE_VARIABLE_42\"         :  [lindex [lindex $Groups $i] 121],"
-                puts $FileVar "              \"STATE_VARIABLE_43\"         :  [lindex [lindex $Groups $i] 122],"
-                puts $FileVar "              \"STATE_VARIABLE_44\"         :  [lindex [lindex $Groups $i] 123],"
-                puts $FileVar "              \"STATE_VARIABLE_45\"         :  [lindex [lindex $Groups $i] 124],"
-                puts $FileVar "              \"STATE_VARIABLE_46\"         :  [lindex [lindex $Groups $i] 125],"
-                puts $FileVar "              \"STATE_VARIABLE_47\"         :  [lindex [lindex $Groups $i] 126],"
-                puts $FileVar "              \"STATE_VARIABLE_48\"         :  [lindex [lindex $Groups $i] 127],"
-                puts $FileVar "              \"STATE_VARIABLE_49\"         :  [lindex [lindex $Groups $i] 128],"
-                puts $FileVar "              \"STATE_VARIABLE_50\"         :  [lindex [lindex $Groups $i] 129]"
-            
+                set nParameters [expr {[lindex [lindex $Groups $i] 79]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+79}]
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
                 puts $FileVar "      \}"
@@ -2706,6 +1564,18 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             puts $FileVar "          \},"
             puts $FileVar "          \"Variables\": \{"
             puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+
+            puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
+            puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
+            puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
+
+            set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
+            for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                set j [expr {$iParam+1}]
+                set k [expr {$j+26]
+                puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+            }
+
             puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
             puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
             puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
@@ -2713,67 +1583,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
             puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
             puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
-            puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+            puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16]"
 
-            puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
-            puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
-            puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
-
-            puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 27],"
-            puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 28],"
-            puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 29],"
-            puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 30],"
-            puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 31],"
-            puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 32],"
-            puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 33],"
-            puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 34],"
-            puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 35],"
-            puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 36],"
-            
-            puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 37],"
-            puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 38],"
-            puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 39],"
-            puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 40],"
-            puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 41],"
-            puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 42],"
-            puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 43],"
-            puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 44],"
-            puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 45],"
-            puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 46],"
-            
-            puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 47],"
-            puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 48],"
-            puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 49],"
-            puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 50],"
-            puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 51],"
-            puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 52],"
-            puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 53],"
-            puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 54],"
-            puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 55],"
-            puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 56],"
-            
-            puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 57],"
-            puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 58],"
-            puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 59],"
-            puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 60],"
-            puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 61],"
-            puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 62],"
-            puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 63],"
-            puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 64],"
-            puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 65],"
-            puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 66],"
-            
-            puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 67],"
-            puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 68],"
-            puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 69],"
-            puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 70],"
-            puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 71],"
-            puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 72],"
-            puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 73],"
-            puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 74],"
-            puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 75],"
-            puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 76]"
-            
             puts $FileVar "         \},"
             puts $FileVar "         \"Tables\": \{\}"
             puts $FileVar "      \}"
@@ -2859,6 +1670,18 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
+
+                puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
+                puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
+                puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
+
+                set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
+                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                    set j [expr {$iParam+1}]
+                    set k [expr {$j+26}]
+                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                }
+
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
                 puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
                 puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
@@ -2866,77 +1689,15 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
                 puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
                 puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
-                puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16]"
 
-                puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
-                puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
-                puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
-
-                puts $FileVar "              \"PARAMETER_1\"              :  [lindex [lindex $Groups $i] 27],"
-                puts $FileVar "              \"PARAMETER_2\"              :  [lindex [lindex $Groups $i] 28],"
-                puts $FileVar "              \"PARAMETER_3\"              :  [lindex [lindex $Groups $i] 29],"
-                puts $FileVar "              \"PARAMETER_4\"              :  [lindex [lindex $Groups $i] 30],"
-                puts $FileVar "              \"PARAMETER_5\"              :  [lindex [lindex $Groups $i] 31],"
-                puts $FileVar "              \"PARAMETER_6\"              :  [lindex [lindex $Groups $i] 32],"
-                puts $FileVar "              \"PARAMETER_7\"              :  [lindex [lindex $Groups $i] 33],"
-                puts $FileVar "              \"PARAMETER_8\"              :  [lindex [lindex $Groups $i] 34],"
-                puts $FileVar "              \"PARAMETER_9\"              :  [lindex [lindex $Groups $i] 35],"
-                puts $FileVar "              \"PARAMETER_10\"              :  [lindex [lindex $Groups $i] 36],"
-                
-                puts $FileVar "              \"PARAMETER_11\"              :  [lindex [lindex $Groups $i] 37],"
-                puts $FileVar "              \"PARAMETER_12\"              :  [lindex [lindex $Groups $i] 38],"
-                puts $FileVar "              \"PARAMETER_13\"              :  [lindex [lindex $Groups $i] 39],"
-                puts $FileVar "              \"PARAMETER_14\"              :  [lindex [lindex $Groups $i] 40],"
-                puts $FileVar "              \"PARAMETER_15\"              :  [lindex [lindex $Groups $i] 41],"
-                puts $FileVar "              \"PARAMETER_16\"              :  [lindex [lindex $Groups $i] 42],"
-                puts $FileVar "              \"PARAMETER_17\"              :  [lindex [lindex $Groups $i] 43],"
-                puts $FileVar "              \"PARAMETER_18\"              :  [lindex [lindex $Groups $i] 44],"
-                puts $FileVar "              \"PARAMETER_19\"              :  [lindex [lindex $Groups $i] 45],"
-                puts $FileVar "              \"PARAMETER_20\"              :  [lindex [lindex $Groups $i] 46],"
-                
-                puts $FileVar "              \"PARAMETER_21\"              :  [lindex [lindex $Groups $i] 47],"
-                puts $FileVar "              \"PARAMETER_22\"              :  [lindex [lindex $Groups $i] 48],"
-                puts $FileVar "              \"PARAMETER_23\"              :  [lindex [lindex $Groups $i] 49],"
-                puts $FileVar "              \"PARAMETER_24\"              :  [lindex [lindex $Groups $i] 50],"
-                puts $FileVar "              \"PARAMETER_25\"              :  [lindex [lindex $Groups $i] 51],"
-                puts $FileVar "              \"PARAMETER_26\"              :  [lindex [lindex $Groups $i] 52],"
-                puts $FileVar "              \"PARAMETER_27\"              :  [lindex [lindex $Groups $i] 53],"
-                puts $FileVar "              \"PARAMETER_28\"              :  [lindex [lindex $Groups $i] 54],"
-                puts $FileVar "              \"PARAMETER_29\"              :  [lindex [lindex $Groups $i] 55],"
-                puts $FileVar "              \"PARAMETER_30\"              :  [lindex [lindex $Groups $i] 56],"
-                
-                puts $FileVar "              \"PARAMETER_31\"              :  [lindex [lindex $Groups $i] 57],"
-                puts $FileVar "              \"PARAMETER_32\"              :  [lindex [lindex $Groups $i] 58],"
-                puts $FileVar "              \"PARAMETER_33\"              :  [lindex [lindex $Groups $i] 59],"
-                puts $FileVar "              \"PARAMETER_34\"              :  [lindex [lindex $Groups $i] 60],"
-                puts $FileVar "              \"PARAMETER_35\"              :  [lindex [lindex $Groups $i] 61],"
-                puts $FileVar "              \"PARAMETER_36\"              :  [lindex [lindex $Groups $i] 62],"
-                puts $FileVar "              \"PARAMETER_37\"              :  [lindex [lindex $Groups $i] 63],"
-                puts $FileVar "              \"PARAMETER_38\"              :  [lindex [lindex $Groups $i] 64],"
-                puts $FileVar "              \"PARAMETER_39\"              :  [lindex [lindex $Groups $i] 65],"
-                puts $FileVar "              \"PARAMETER_40\"              :  [lindex [lindex $Groups $i] 66],"
-                
-                puts $FileVar "              \"PARAMETER_41\"              :  [lindex [lindex $Groups $i] 67],"
-                puts $FileVar "              \"PARAMETER_42\"              :  [lindex [lindex $Groups $i] 68],"
-                puts $FileVar "              \"PARAMETER_43\"              :  [lindex [lindex $Groups $i] 69],"
-                puts $FileVar "              \"PARAMETER_44\"              :  [lindex [lindex $Groups $i] 70],"
-                puts $FileVar "              \"PARAMETER_45\"              :  [lindex [lindex $Groups $i] 71],"
-                puts $FileVar "              \"PARAMETER_46\"              :  [lindex [lindex $Groups $i] 72],"
-                puts $FileVar "              \"PARAMETER_47\"              :  [lindex [lindex $Groups $i] 73],"
-                puts $FileVar "              \"PARAMETER_48\"              :  [lindex [lindex $Groups $i] 74],"
-                puts $FileVar "              \"PARAMETER_49\"              :  [lindex [lindex $Groups $i] 75],"
-                puts $FileVar "              \"PARAMETER_50\"              :  [lindex [lindex $Groups $i] 76]"
-                
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
                 puts $FileVar "      \}"
             }
         }
-	}
-	
-	
-	
-	
+    }
+
     puts $FileVar "   \}\]"
     puts $FileVar "\}"
 
