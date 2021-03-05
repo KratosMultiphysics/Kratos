@@ -207,7 +207,7 @@ namespace Kratos {
             mDamageEnergyCoeff = 0.0;
         }
         
-        KRATOS_ERROR_IF((mDamageEnergyCoeff > 10.0) || (mDamageEnergyCoeff < 0.0)) << "Damage energy is too big or too low!" << std::endl;
+        KRATOS_ERROR_IF((mDamageEnergyCoeff > 30.0) || (mDamageEnergyCoeff < 0.0)) << "Damage energy is too big or too low!" << std::endl;
 
         if (mDamageEnergyCoeff < 0.0) {
             mDamageEnergyCoeff = 0.0;
