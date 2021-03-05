@@ -400,10 +400,6 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, C
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     pElement->CalculateRightHandSide(RHS, r_current_process_info);
 
-    PrintTestElementInfo(model_part);
-    std::cout.precision(16);
-    KRATOS_WATCH(RHS)
-
     std::vector<double> reference{127.1146544469925,109.025,-85.1375,23.8875,-154.8303022595422,10.56213263248122};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
@@ -544,10 +540,6 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHSCla
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     pElement->CalculateLeftHandSide(LHS, r_current_process_info);
-
-    PrintTestElementInfo(model_part);
-    std::cout.precision(16);
-    KRATOS_WATCH(LHS)
 
     // Check the LHS values
     std::array<double,36> reference{0.4851881876577658,-0.4851881876577658,0,0,0,0,-0.6125,1.225,-0.6125,0.6125,
@@ -698,11 +690,6 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            if(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)) > 1e-10){
-                KRATOS_WATCH(i)
-                KRATOS_WATCH(j)
-                KRATOS_WATCH(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)))
-            }
             KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
         }
     }
@@ -730,11 +717,6 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            if(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)) > 1e-10){
-                KRATOS_WATCH(i)
-                KRATOS_WATCH(j)
-                KRATOS_WATCH(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)))
-            }
             KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
         }
     }
