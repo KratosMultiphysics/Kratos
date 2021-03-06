@@ -138,6 +138,7 @@ void register_feast_eigensystem_solver(pybind11::module& m, const std::string& n
     ;
 }
 
+#if defined USE_EIGEN_SPECTRA
 void register_spectra_sym_g_eigs_shift_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
@@ -152,6 +153,7 @@ void register_spectra_sym_g_eigs_shift_solver(pybind11::module& m, const std::st
         .def(py::init<Parameters>())
     ;
 }
+#endif
 
 void register_base_dense_solver(pybind11::module& m)
 {
