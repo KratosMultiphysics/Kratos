@@ -80,8 +80,7 @@ typedef void(*f_UserMod) (int    *, int     *, int    *,
 SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw()
    : ConstitutiveLaw(),
      mIsModelInitialized(false),
-     mIsUDSMLoaded(false),
-     mHasUMATParameters(false)
+     mIsUDSMLoaded(false)
    {
     KRATOS_TRY;
 
@@ -99,9 +98,7 @@ SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw(const SmallStrainUDSM3DLaw &rOther)
      mStrainVectorFinalized(rOther.mStrainVectorFinalized),
      mIsModelInitialized(rOther.mIsModelInitialized),
      mIsUDSMLoaded(rOther.mIsUDSMLoaded),
-     mHasUMATParameters(rOther.mHasUMATParameters),
      mAttributes(rOther.mAttributes),
-     mMaterialParameters(rOther.mMaterialParameters),
      mStateVariables(rOther.mStateVariables),
      mStateVariablesFinalized(rOther.mStateVariablesFinalized)
 
@@ -141,11 +138,9 @@ SmallStrainUDSM3DLaw &SmallStrainUDSM3DLaw::operator=(SmallStrainUDSM3DLaw const
    ConstitutiveLaw::operator=(rOther);
    this->mIsModelInitialized      = rOther.mIsModelInitialized;
    this->mIsUDSMLoaded            = rOther.mIsUDSMLoaded;
-   this->mHasUMATParameters       = rOther.mHasUMATParameters;
    this->mAttributes              = rOther.mAttributes;
    this->mStateVariables          = rOther.mStateVariables;
    this->mStateVariablesFinalized = rOther.mStateVariablesFinalized;
-   this->mMaterialParameters      = rOther.mMaterialParameters;
    this->mStressVector            = rOther.mStressVector;
    this->mStressVectorFinalized   = rOther.mStressVectorFinalized;
    this->mDeltaStrainVector       = rOther.mDeltaStrainVector;
@@ -287,7 +282,6 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::ResetMaterial()") << std::endl;
 
    // reset state variables
-   SetMaterialParameters(rMaterialProperties);
    SetAttributes(rMaterialProperties);
    ResetStateVariables(rMaterialProperties);
 
@@ -306,42 +300,6 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    mIsModelInitialized = false;
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::ResetMaterial()") << std::endl;
-
-   KRATOS_CATCH(" ");
-}
-
-void SmallStrainUDSM3DLaw::SetMaterialParameters(const Properties &rMaterialProperties)
-{
-   KRATOS_TRY;
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::SetMaterialParameters()") << std::endl;
-
-   if (rMaterialProperties.Has(UMAT_PARAMETERS))
-   {
-      mHasUMATParameters = true;
-   }
-   else
-   {
-      mHasUMATParameters = false;
-      mMaterialParameters.resize(GetNumberOfMaterialParametersFromUDSM(rMaterialProperties));
-
-      for (unsigned int i=0; i < mMaterialParameters.size(); ++i)
-      {
-         std::string parameterName = "PARAMETER_" + std::to_string(i+1);
-
-         const Variable<double> &var = KratosComponents< Variable<double> >::Get(parameterName);
-
-         if (rMaterialProperties.Has(var) == false)
-         {
-            KRATOS_THROW_ERROR(std::invalid_argument, parameterName + 
-                              " is not defined or has an invalid value for property", rMaterialProperties.Id())
-         }
-
-         mMaterialParameters[i] = rMaterialProperties[var];
-   }
-
-   }
-
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetMaterialParameters()") << std::endl;
 
    KRATOS_CATCH(" ");
 }
@@ -394,39 +352,20 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
 
-   if (mHasUMATParameters)
-   {
-      const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-      pUserMod(&IDTask, &modelNumber, &isUndr,
-               &iStep, &iteration, &iElement, &integrationNumber,
-               &X, &Y, &Z,
-               &time, &deltaTime,
-               &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-               mStateVariablesFinalized.data(),
-               mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-               mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
-               &nStateVariables, 
-               &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-               &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-               mProjectDirectory.data(), &nSizeProjectDirectory, 
-               &iAbort);
-   }
-   else
-   {
-      pUserMod(&IDTask, &modelNumber, &isUndr,
-               &iStep, &iteration, &iElement, &integrationNumber,
-               &X, &Y, &Z,
-               &time, &deltaTime,
-               mMaterialParameters.data(), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-               mStateVariablesFinalized.data(),
-               mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-               mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
-               &nStateVariables, 
-               &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-               &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-               mProjectDirectory.data(), &nSizeProjectDirectory, 
-               &iAbort);
-   }
+   const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+   pUserMod(&IDTask, &modelNumber, &isUndr,
+            &iStep, &iteration, &iElement, &integrationNumber,
+            &X, &Y, &Z,
+            &time, &deltaTime,
+            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
+            mStateVariablesFinalized.data(),
+            mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
+            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &nStateVariables, 
+            &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+            &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+            mProjectDirectory.data(), &nSizeProjectDirectory, 
+            &iAbort);
 
    if (iAbort != 0)
    {
@@ -862,68 +801,35 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
    // variable to check if an error happend in the model:
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
-   if (mHasUMATParameters)
+
+   const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+   pUserMod(IDTask, &modelNumber, &isUndr,
+            &iStep, &iteration, &iElement, &integrationNumber,
+            &X, &Y, &Z,
+            &time, &deltaTime,
+            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
+            mStateVariablesFinalized.data(),
+            mDeltaStrainVector.data(), (double **) mMatrixD, &bulkWater,
+            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &nStateVariables, 
+            &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+            &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+            mProjectDirectory.data(), &nSizeProjectDirectory, 
+            &iAbort);
+   if (iAbort != 0)
    {
-      const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-      pUserMod(IDTask, &modelNumber, &isUndr,
-               &iStep, &iteration, &iElement, &integrationNumber,
-               &X, &Y, &Z,
-               &time, &deltaTime,
-               &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-               mStateVariablesFinalized.data(),
-               mDeltaStrainVector.data(), (double **) mMatrixD, &bulkWater,
-               mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
-               &nStateVariables, 
-               &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-               &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-               mProjectDirectory.data(), &nSizeProjectDirectory, 
-               &iAbort);
-      if (iAbort != 0)
-      {
-         KRATOS_INFO("CallUDSM, iAbort !=0")
-                     << " iAbort: " << iAbort
-                     << " the specified UDSM returns an error while call UDSM with IDTASK: " 
-                     << std::to_string(*IDTask) << "." 
-                     << " UDSM: " << rMaterialProperties[UDSM_NAME] 
-                     << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-                     << " Parameters: " << MaterialParameters
-                     << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, 
-                           "the specified UDSM returns an error while call UDSM with IDTASK: " 
-                           + std::to_string(*IDTask) + ". UDSM: ",
-                           rMaterialProperties[UDSM_NAME]);
-      }
-   }
-   else
-   {
-      pUserMod(IDTask, &modelNumber, &isUndr,
-               &iStep, &iteration, &iElement, &integrationNumber,
-               &X, &Y, &Z,
-               &time, &deltaTime,
-               mMaterialParameters.data(), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-               mStateVariablesFinalized.data(),
-               mDeltaStrainVector.data(), (double **) mMatrixD, &bulkWater,
-               mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
-               &nStateVariables, 
-               &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-               &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-               mProjectDirectory.data(), &nSizeProjectDirectory, 
-               &iAbort);
-      if (iAbort != 0)
-      {
-         KRATOS_INFO("CallUDSM, iAbort !=0")
-                     << " iAbort: " << iAbort
-                     << " the specified UDSM returns an error while call UDSM with IDTASK: " 
-                     << std::to_string(*IDTask) << "." 
-                     << " UDSM: " << rMaterialProperties[UDSM_NAME] 
-                     << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-                     << " Parameters: " << mMaterialParameters
-                     << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, 
-                           "the specified UDSM returns an error while call UDSM with IDTASK: " 
-                           + std::to_string(*IDTask) + ". UDSM: ",
-                           rMaterialProperties[UDSM_NAME]);
-      }
+      KRATOS_INFO("CallUDSM, iAbort !=0")
+                  << " iAbort: " << iAbort
+                  << " the specified UDSM returns an error while call UDSM with IDTASK: " 
+                  << std::to_string(*IDTask) << "." 
+                  << " UDSM: " << rMaterialProperties[UDSM_NAME] 
+                  << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
+                  << " Parameters: " << MaterialParameters
+                  << std::endl;
+      KRATOS_THROW_ERROR(std::runtime_error, 
+                        "the specified UDSM returns an error while call UDSM with IDTASK: " 
+                        + std::to_string(*IDTask) + ". UDSM: ",
+                        rMaterialProperties[UDSM_NAME]);
    }
 
 
@@ -963,68 +869,34 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProp
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
 
-   if (mHasUMATParameters)
-   {
-      const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
-      pUserMod(IDTask, &modelNumber, &isUndr,
-               &iStep, &iteration, &iElement, &integrationNumber,
-               &X, &Y, &Z,
-               &time, &deltaTime,
-               &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-               mStateVariablesFinalized.data(),
-               mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-               mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
-               &nStateVariables,
-               &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-               &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-               mProjectDirectory.data(), &nSizeProjectDirectory, 
-               &iAbort);
+   const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+   pUserMod(IDTask, &modelNumber, &isUndr,
+            &iStep, &iteration, &iElement, &integrationNumber,
+            &X, &Y, &Z,
+            &time, &deltaTime,
+            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
+            mStateVariablesFinalized.data(),
+            mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
+            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &nStateVariables,
+            &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+            &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+            mProjectDirectory.data(), &nSizeProjectDirectory, 
+            &iAbort);
 
-      if (iAbort != 0)
-      {
-         KRATOS_INFO("CallUDSM, iAbort !=0")
-                     << " iAbort: " << iAbort
-                     << " the specified UDSM returns an error while call UDSM with IDTASK: "
-                     << std::to_string(*IDTask) << "." 
-                     << " UDSM: " << rMaterialProperties[UDSM_NAME] 
-                     << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-                     << " Parameters: " << MaterialParameters
-                     << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, 
-                           "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(*IDTask) + ". UDSM",
-                           rMaterialProperties[UDSM_NAME]);
-      }
-   }
-   else
+   if (iAbort != 0)
    {
-      pUserMod(IDTask, &modelNumber, &isUndr,
-               &iStep, &iteration, &iElement, &integrationNumber,
-               &X, &Y, &Z,
-               &time, &deltaTime,
-               mMaterialParameters.data(), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-               mStateVariablesFinalized.data(),
-               mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-               mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
-               &nStateVariables,
-               &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
-               &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
-               mProjectDirectory.data(), &nSizeProjectDirectory, 
-               &iAbort);
-
-      if (iAbort != 0)
-      {
-         KRATOS_INFO("CallUDSM, iAbort !=0")
-                     << " iAbort: " << iAbort
-                     << " the specified UDSM returns an error while call UDSM with IDTASK: "
-                     << std::to_string(*IDTask) << "." 
-                     << " UDSM: " << rMaterialProperties[UDSM_NAME] 
-                     << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
-                     << " Parameters: " << mMaterialParameters
-                     << std::endl;
-         KRATOS_THROW_ERROR(std::runtime_error, 
-                           "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(*IDTask) + ". UDSM",
-                           rMaterialProperties[UDSM_NAME]);
-      }
+      KRATOS_INFO("CallUDSM, iAbort !=0")
+                  << " iAbort: " << iAbort
+                  << " the specified UDSM returns an error while call UDSM with IDTASK: "
+                  << std::to_string(*IDTask) << "." 
+                  << " UDSM: " << rMaterialProperties[UDSM_NAME] 
+                  << " UDSM_NUMBER: " << rMaterialProperties[UDSM_NUMBER]
+                  << " Parameters: " << MaterialParameters
+                  << std::endl;
+      KRATOS_THROW_ERROR(std::runtime_error, 
+                        "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(*IDTask) + ". UDSM",
+                        rMaterialProperties[UDSM_NAME]);
    }
 
    // KRATOS_INFO("11-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;

@@ -409,9 +409,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       // Get number of StateVariables
       int GetNumberOfStateVariables() {return mStateVariables.size();}
 
-      // Get number 1 of MaterialParameters
-      int GetNumberOfMaterialParameters() {return mMaterialParameters.size();}
-
       // returns 1 if the stiffness matrix of the material is non symmetric
       int getIsNonSymmetric() {return mAttributes[IS_NON_SYMMETRIC];}
 
@@ -427,10 +424,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       // Get StateVariables 
       const std::vector<double> &GetStateVariables() {return mStateVariables;}
       const std::vector<double> &GetStateVariablesFilalized() {return mStateVariablesFinalized;}
-      
-      // Get material parameters 
-      const std::vector<double> &GetMaterialParameters() {return mMaterialParameters;}
-
 
       ///@}
       ///@name Protected Inquiry
@@ -458,14 +451,11 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
       bool mIsModelInitialized;
       bool mIsUDSMLoaded;
-      bool mHasUMATParameters;
 
       //AttributesUDSM mAttributes;
       array_1d<int, 4> mAttributes;
 
       std::vector<int> mProjectDirectory;
-
-      std::vector<double> mMaterialParameters;
 
       std::vector<double> mStateVariables;
       std::vector<double> mStateVariablesFinalized;
@@ -491,7 +481,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       bool loadUDSMLinux(const Properties& rMaterialProperties);
 
       // Set number of MaterialParameters
-      void SetMaterialParameters(const Properties& rMaterialProperties);
       void CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rValues);
       void CallUDSM(int *IDTask, const Properties& rMaterialProperties);
 
@@ -522,8 +511,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.save("StressVectorFinalized",      mStressVectorFinalized);
          rSerializer.save("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
-         rSerializer.save("MaterialParameters",         mMaterialParameters);
-         rSerializer.save("HasUMATParameters",          mHasUMATParameters);
       }
 
       virtual void load(Serializer& rSerializer) override
@@ -534,8 +521,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.load("StressVectorFinalized",      mStressVectorFinalized);
          rSerializer.load("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.load("StateVariablesFinalized",    mStateVariablesFinalized);
-         rSerializer.load("MaterialParameters",         mMaterialParameters);
-         rSerializer.load("HasUMATParameters",          mHasUMATParameters);
       }
 
       ///@}

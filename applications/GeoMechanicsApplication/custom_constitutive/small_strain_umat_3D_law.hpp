@@ -385,15 +385,9 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       // Get number of StateVariables
       int GetNumberOfStateVariables() {return mStateVariables.size();}
 
-      // Get number 1 of MaterialParameters
-      int GetNumberOfMaterialParameters() {return mMaterialParameters.size();}
-
       // Get StateVariables 
       const std::vector<double> &GetStateVariables() {return mStateVariables;}
       const std::vector<double> &GetStateVariablesFilalized() {return mStateVariablesFinalized;}
-      
-      // Get material parameters 
-      const std::vector<double> &GetMaterialParameters() {return mMaterialParameters;}
 
       int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
@@ -421,12 +415,8 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
       bool mIsModelInitialized;
       bool mIsUMATLoaded;
-      bool mHasUMATParameters;
-
 
       std::vector<int> mProjectDirectory;
-
-      std::vector<double> mMaterialParameters;
 
       std::vector<double> mStateVariables;
       std::vector<double> mStateVariablesFinalized;
@@ -452,7 +442,6 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       bool loadUMATLinux(const Properties& rMaterialProperties);
 
       // Set number of MaterialParameters
-      void SetMaterialParameters(const Properties& rMaterialProperties);
       void CallUMAT( ConstitutiveLaw::Parameters &rValues);
 
       // Set state variables to the initial values
@@ -478,8 +467,6 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
          rSerializer.save("StressVectorFinalized",      mStressVectorFinalized);
          rSerializer.save("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
-         rSerializer.save("MaterialParameters",         mMaterialParameters);
-         rSerializer.save("HasUMATParameters",          mHasUMATParameters);
       }
 
       virtual void load(Serializer& rSerializer) override
@@ -489,8 +476,6 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
          rSerializer.load("StressVectorFinalized",      mStressVectorFinalized);
          rSerializer.load("StrainVectorFinalized",      mStrainVectorFinalized);
          rSerializer.load("StateVariablesFinalized",    mStateVariablesFinalized);
-         rSerializer.load("MaterialParameters",         mMaterialParameters);
-         rSerializer.load("HasUMATParameters",          mHasUMATParameters);
       }
 
       ///@}
