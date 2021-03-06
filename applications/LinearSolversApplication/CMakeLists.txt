@@ -66,9 +66,6 @@ if( USE_EIGEN_FEAST MATCHES ON )
 endif()
 
 if( USE_EIGEN_SPECTRA MATCHES ON )
-    if( USE_EIGEN_MKL MATCHES OFF OR NOT DEFINED USE_EIGEN_MKL )
-        message( FATAL_ERROR "Spectra can only be used with MKL" )
-    endif()
     include_directories(
         SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
     )
