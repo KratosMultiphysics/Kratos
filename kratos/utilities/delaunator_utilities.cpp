@@ -273,10 +273,10 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     // "p" triangulates a Planar Straight Line Graph
     // "z" numbers all items starting from zero (rather than one)
     // "a" imposes a maximum triangle area constrain
-    char* meshing_options;
-    std::string str = AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
-    meshing_options = &str[0];
-    triangulate(meshing_options, &in_mid, &out_mid, &vorout_mid);
+
+    std::string meshing_options =
+        AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
+    triangulate(&meshing_options[0], &in_mid, &out_mid, &vorout_mid);
 
     // Save the obtained connectivities in an output std::vector
     const auto& r_triangles_list = out_mid.trianglelist;
