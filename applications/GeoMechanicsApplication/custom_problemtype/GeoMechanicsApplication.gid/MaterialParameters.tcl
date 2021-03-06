@@ -1572,7 +1572,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
             for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                 set j [expr {$iParam+1}]
-                set k [expr {$j+26]
+                set k [expr {$j+26}]
                 puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
             }
 
