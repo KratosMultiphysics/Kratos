@@ -217,10 +217,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
@@ -251,10 +257,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
@@ -289,10 +301,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
@@ -333,10 +351,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
@@ -571,10 +595,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
@@ -606,10 +636,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
@@ -645,10 +681,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
@@ -690,10 +732,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
@@ -920,10 +968,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUDSM2DPlaneStrainLaw"} {
@@ -954,10 +1008,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 34],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT3DLaw"} {
@@ -992,10 +1052,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
@@ -1036,10 +1102,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 38],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 38]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+38}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
@@ -1230,10 +1302,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 24],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+28}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
@@ -1261,10 +1339,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 24],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+28}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
@@ -1293,10 +1377,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 28],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+28}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 79],"
@@ -1305,7 +1395,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+79}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
                 }
 
                 puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
@@ -1337,10 +1427,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"NUMBER_OF_UMAT_PARAMETERS\":  [lindex [lindex $Groups $i] 28],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 28]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+28}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 79],"
@@ -1570,10 +1666,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
             puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
 
             set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
+            puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
             for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                 set j [expr {$iParam+1}]
                 set k [expr {$j+26}]
-                puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                if {$j eq $nParameters} {
+                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                } else {
+                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                }
             }
 
             puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
@@ -1676,10 +1778,16 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
 
                 set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
+                puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
                 for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+26}]
-                    puts $FileVar "              \"PARAMETER_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nParameters} {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
