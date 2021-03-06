@@ -277,13 +277,19 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
     BoundedMatrixType constitutive_matrix;
     CalculateElasticMatrix(constitutive_matrix, rValues);
     
-    const double denominator = (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) + 
+    double denominator = (inner_prod(plastic_flow, prod(rPDParameters.ConstitutiveMatrix, plastic_flow)) + 
         rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
     
     if (std::abs(denominator) > machine_tolerance)
         rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / denominator;
     else
         rPDParameters.PlasticConsistencyIncrement = 0.0;
+
+    if (rPDParameters.PlasticConsistencyIncrement < machine_tolerance) {
+        denominator = (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) + 
+            rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
+        rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / denominator;
+    }
 
     rPDParameters.PlasticConsistencyIncrement = MacaullyBrackets(rPDParameters.PlasticConsistencyIncrement);
 }
