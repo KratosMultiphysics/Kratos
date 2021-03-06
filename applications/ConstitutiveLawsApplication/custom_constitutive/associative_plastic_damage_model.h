@@ -685,6 +685,11 @@ public:
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
     }
 
+    void CalculateAnalyticalTangentTensor(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rParam
+        );
+
     void CalculateElasticMatrix(
         BoundedMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues

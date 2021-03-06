@@ -101,7 +101,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                // CalculateAnalyticalTangentTensor(rValues, plastic_damage_parameters);
             }
         }
     } // compute stress or constitutive matrix
@@ -158,6 +159,24 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<class TYieldSurfaceType>
+void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangentTensor(
+    ConstitutiveLaw::Parameters& rValues,
+    PlasticDamageParameters &rParam
+    )
+{
+    const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
+    const double g = fracture_energy / rParam.CharacteristicLength;
+    BoundedVectorType plastic_flow = rParam.PlasticFlow;
+    
+    const double denominator = (inner_prod(plastic_flow, prod(rParam.ConstitutiveMatrix, plastic_flow)) +
+        rParam.Slope*inner_prod(rParam.StressVector / g, plastic_flow));
+
+    noalias(rValues.GetConstitutiveMatrix()) = rParam.ConstitutiveMatrix -
+        prod(Matrix(prod(rParam.ConstitutiveMatrix, outer_prod(rParam.PlasticFlow, rParam.PlasticFlow))),
+        rParam.ConstitutiveMatrix) /denominator;
+}
 
 template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticDissipationIncrement(
@@ -274,8 +293,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
     const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
     const double g = fracture_energy / rPDParameters.CharacteristicLength;
     BoundedVectorType plastic_flow = rPDParameters.PlasticFlow;
-    BoundedMatrixType constitutive_matrix;
-    CalculateElasticMatrix(constitutive_matrix, rValues);
     
     double denominator = (inner_prod(plastic_flow, prod(rPDParameters.ConstitutiveMatrix, plastic_flow)) + 
         rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
@@ -286,6 +303,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
         rPDParameters.PlasticConsistencyIncrement = 0.0;
 
     if (rPDParameters.PlasticConsistencyIncrement < machine_tolerance) {
+        BoundedMatrixType constitutive_matrix;
+        CalculateElasticMatrix(constitutive_matrix, rValues);
         denominator = (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) + 
             rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
         rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / denominator;
