@@ -90,7 +90,7 @@ class EigensystemSolver
     {
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
-        using matrix_t = Eigen::MatrixXd;
+        using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
         // --- get settings
 

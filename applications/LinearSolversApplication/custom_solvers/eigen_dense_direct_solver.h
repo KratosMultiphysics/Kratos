@@ -69,7 +69,7 @@ public:
      */
     void InitializeSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> A(rA.data().begin(), rA.size1(), rA.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> A(rA.data().begin(), rA.size1(), rA.size2());
 
         const bool success = m_solver.Compute(A);
 
@@ -119,8 +119,8 @@ public:
         VectorType dummy;
         InitializeSolutionStep(rA, dummy, dummy);
 
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> X(rX.data().begin(), rX.size1(), rX.size2());
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> B(rB.data().begin(), rB.size1(), rB.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> X(rX.data().begin(), rX.size1(), rX.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> B(rB.data().begin(), rB.size1(), rB.size2());
 
         const bool success = m_solver.SolveMultiple(B, X);
 

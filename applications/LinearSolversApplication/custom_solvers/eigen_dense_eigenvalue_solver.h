@@ -73,7 +73,7 @@ public:
         KRATOS_INFO_IF("DenseEigenvalueSolver", mEchoLevel > 0) << "Start"  << std::endl;
 
         using vector_t = Eigen::VectorXd;
-        using matrix_t = Eigen::MatrixXd;
+        using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
         Eigen::Map<matrix_t> A(rA.data().begin(), rA.size1(), rA.size2());
 
