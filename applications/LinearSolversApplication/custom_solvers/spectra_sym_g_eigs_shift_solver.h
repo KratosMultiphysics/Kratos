@@ -64,14 +64,13 @@ class SpectraSymGEigsShiftSolver
 
         mParam.ValidateAndAssignDefaults(default_params);
 
-        // BaseType::SetTolerance(mParam["tolerance"].GetDouble());
         BaseType::SetMaxIterationsNumber(mParam["max_iteration"].GetInt());
     }
 
     ~SpectraSymGEigsShiftSolver() override {}
 
     /**
-     * Solve the generalized eigenvalue problem
+     * Solve the generalized eigenvalue problem of symmetric matrices K and M
      */
     void Solve(
         SparseMatrixType& rK,
@@ -86,8 +85,7 @@ class SpectraSymGEigsShiftSolver
         // --- get settings
 
         const int nroot = mParam["number_of_eigenvalues"].GetInt();
-        // const int max_iteration = BaseType::GetMaxIterationsNumber();
-        // const double tolerance = BaseType::GetTolerance();
+        const int max_iteration = BaseType::GetMaxIterationsNumber();
         const int echo_level = mParam["echo_level"].GetInt();
         const double shift = mParam["shift"].GetDouble();
 
@@ -115,10 +113,9 @@ class SpectraSymGEigsShiftSolver
         Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, nroot, ncv, shift);
 
         eigs.init();
-        const int max_iteration = BaseType::GetMaxIterationsNumber();
-        int nconv = eigs.compute(Spectra::SortRule::LargestAlge, max_iteration);
-        int niter = eigs.num_iterations();
-        int nops = eigs.num_operations();
+        const int nconv = eigs.compute(Spectra::SortRule::LargestAlge, max_iteration);
+        const int niter = eigs.num_iterations();
+        const int nops = eigs.num_operations();
 
         KRATOS_INFO_IF("SpectraSymGEigsShiftSolver:", echo_level > 0) << "nconv = " << nconv << std::endl;
         KRATOS_INFO_IF("SpectraSymGEigsShiftSolver:", echo_level > 0) << "niter = " << niter << std::endl;
