@@ -685,6 +685,36 @@ public:
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
     }
 
+    void CalculateElasticMatrix(
+        BoundedMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues
+        )
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double E = r_material_properties[YOUNG_MODULUS];
+        const double NU = r_material_properties[POISSON_RATIO];
+
+        noalias(rConstitutiveMatrix) = ZeroMatrix(VoigtSize,VoigtSize);
+
+        const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
+        const double c2 = c1 * ( 1 - NU );
+        const double c3 = c1 * NU;
+        const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
+
+        rConstitutiveMatrix( 0, 0 ) = c2;
+        rConstitutiveMatrix( 0, 1 ) = c3;
+        rConstitutiveMatrix( 0, 2 ) = c3;
+        rConstitutiveMatrix( 1, 0 ) = c3;
+        rConstitutiveMatrix( 1, 1 ) = c2;
+        rConstitutiveMatrix( 1, 2 ) = c3;
+        rConstitutiveMatrix( 2, 0 ) = c3;
+        rConstitutiveMatrix( 2, 1 ) = c3;
+        rConstitutiveMatrix( 2, 2 ) = c2;
+        rConstitutiveMatrix( 3, 3 ) = c4;
+        rConstitutiveMatrix( 4, 4 ) = c4;
+        rConstitutiveMatrix( 5, 5 ) = c4;
+    }
+
 protected:
 
     ///@name Protected static Member Variables

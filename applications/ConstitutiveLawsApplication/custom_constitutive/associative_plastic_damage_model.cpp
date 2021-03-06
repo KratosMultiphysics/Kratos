@@ -94,7 +94,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
 
         plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
 
-        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(1.0e-8 * mThreshold)) {
+        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(1.0e-4 * mThreshold)) {
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
         } else {
             IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
@@ -149,7 +149,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 
     plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
 
-    if (plastic_damage_parameters.NonLinearIndicator > std::abs(1.0e-8 * mThreshold)) {
+    if (plastic_damage_parameters.NonLinearIndicator > std::abs(1.0e-4 * mThreshold)) {
         IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
     }
@@ -275,8 +275,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
     const double g = fracture_energy / rPDParameters.CharacteristicLength;
     BoundedVectorType plastic_flow = rPDParameters.PlasticFlow;
     BoundedMatrixType constitutive_matrix;
-    double det = 0.0;
-    MathUtils<double>::InvertMatrix(rPDParameters.ComplianceMatrix, constitutive_matrix, det);
+    CalculateElasticMatrix(constitutive_matrix, rValues);
     
     const double denominator = (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) + 
         rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
@@ -302,7 +301,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     const auto& r_mat_properties = rValues.GetMaterialProperties();
 
     bool is_converged = false;
-    IndexType iteration = 0, max_iter = 100;
+    IndexType iteration = 0, max_iter = 1000;
     while (is_converged == false && iteration <= max_iter) {
         // Evaluate the updated Threshold and slope
         CalculateThresholdAndSlope(rValues, rPDParameters);
@@ -337,7 +336,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateThresholdAndSlope(rValues, rPDParameters);
         rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
         
-        if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-8 * rPDParameters.Threshold)) {
+        if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-4 * rPDParameters.Threshold)) {
             is_converged = true;
         } else {
             iteration++;
