@@ -23,7 +23,7 @@ class EigenDenseHouseholderQRSolver
 {
 public:
     using Scalar = TScalar;
-    using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 
 private:
