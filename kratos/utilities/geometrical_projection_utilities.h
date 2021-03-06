@@ -226,7 +226,7 @@ public:
         else KRATOS_ERROR << "Zero norm normal: X: " << normal[0] << "\tY: " << normal[1] << std::endl;
 
         const array_1d<double,3> vector_points = r_p_a - r_p_c;
-        const double distance = inner_prod(vector_points, normal)/norm_normal;
+        const double distance = inner_prod(vector_points, normal);
         noalias(rPointProjected.Coordinates()) = r_p_c + normal * distance;
 
         return distance;
