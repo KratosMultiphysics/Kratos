@@ -16,7 +16,7 @@ message( "**** configuring KratosLinearSolversApplication ****" )
 ################### PYBIND11
 include(pybind11Tools)
 
-# TODO add_definitions( -DEIGEN_MPL2_ONLY)
+add_definitions( -DEIGEN_MPL2_ONLY)
 
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos

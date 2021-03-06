@@ -13,11 +13,9 @@
 // External includes
 #include <Eigen/Core>
 #include <Spectra/SymGEigsShiftSolver.h>
-#include <Spectra/MatOp/SymShiftInvert.h>
-#include <Spectra/MatOp/SparseSymMatProd.h>
-
-#include <Spectra/SymGEigsSolver.h>
-#include <Spectra/MatOp/SparseCholesky.h>
+#if defined EIGEN_USE_MKL_ALL
+#include "eigen_pardiso_lu_solver.h"
+#endif // defined EIGEN_USE_MKL_ALL
 
 // Project includes
 #include "includes/define.h"
@@ -98,9 +96,8 @@ class SpectraSymGEigsShiftSolver
         UblasWrapper<scalar_t> a_wrapper(rK);
         UblasWrapper<scalar_t> b_wrapper(rM);
 
-        // Spectra needs ColMajor ordering
-        Eigen::SparseMatrix<scalar_t, Eigen::ColMajor, int> a = a_wrapper.matrix();
-        Eigen::SparseMatrix<scalar_t, Eigen::ColMajor, int> b = b_wrapper.matrix();
+        const auto& a = a_wrapper.matrix();
+        const auto& b = b_wrapper.matrix();
 
         // --- timer
         const auto timer = BuiltinTimer();
@@ -109,8 +106,8 @@ class SpectraSymGEigsShiftSolver
 
         // --- calculation
 
-        using OpType = Spectra::SymShiftInvert<scalar_t, Eigen::Sparse, Eigen::Sparse>;
-        using BOpType = Spectra::SparseSymMatProd<scalar_t>;
+        using OpType = OwnSymShiftInvert<scalar_t>;
+        using BOpType = OwnSparseSymMatProd<scalar_t>;
 
         OpType op(a, b);
         BOpType Bop(b);
@@ -184,6 +181,196 @@ class SpectraSymGEigsShiftSolver
     void PrintData(std::ostream &rOStream) const override
     {
     }
+
+private:
+
+    ///
+    /// \ingroup MatOp
+    ///
+    /// This class defines the matrix-vector multiplication operation on a
+    /// sparse real symmetric matrix \f$A\f$, i.e., calculating \f$y=Ax\f$ for any vector
+    /// \f$x\f$. This is adapted from Spectra::OwnSparseSymMatProd
+    ///
+    template <typename Scalar_, typename StorageIndex = int>
+    class OwnSparseSymMatProd
+    {
+    public:
+        ///
+        /// Element type of the matrix.
+        ///
+        using Scalar = Scalar_;
+
+    private:
+        using Index = Eigen::Index;
+        using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using MapConstVec = Eigen::Map<const Vector>;
+        using MapVec = Eigen::Map<Vector>;
+        using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+        using SparseMatrix = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, StorageIndex>;
+        using ConstGenericSparseMatrix = const Eigen::Ref<const SparseMatrix>;
+
+        ConstGenericSparseMatrix m_mat;
+
+    public:
+        ///
+        /// Constructor to create the matrix operation object.
+        ///
+        /// \param mat An **Eigen** sparse matrix object, whose type can be
+        /// `Eigen::SparseMatrix<Scalar, ...>` or its mapped version
+        /// `Eigen::Map<Eigen::SparseMatrix<Scalar, ...> >`.
+        ///
+        OwnSparseSymMatProd(ConstGenericSparseMatrix& mat) :
+            m_mat(mat)
+        {}
+
+        ///
+        /// Return the number of rows of the underlying matrix.
+        ///
+        Index rows() const { return m_mat.rows(); }
+        ///
+        /// Return the number of columns of the underlying matrix.
+        ///
+        Index cols() const { return m_mat.cols(); }
+
+        ///
+        /// Perform the matrix-vector multiplication operation \f$y=Ax\f$.
+        ///
+        /// \param x_in  Pointer to the \f$x\f$ vector.
+        /// \param y_out Pointer to the \f$y\f$ vector.
+        ///
+        // y_out = A * x_in
+        void perform_op(const Scalar* x_in, Scalar* y_out) const
+        {
+            MapConstVec x(x_in, m_mat.cols());
+            MapVec y(y_out, m_mat.rows());
+            y.noalias() = m_mat * x;
+        }
+
+        ///
+        /// Perform the matrix-matrix multiplication operation \f$y=Ax\f$.
+        ///
+        Matrix operator*(const Eigen::Ref<const Matrix>& mat_in) const
+        {
+            return m_mat * mat_in;
+        }
+
+        ///
+        /// Extract (i,j) element of the underlying matrix.
+        ///
+        Scalar operator()(Index i, Index j) const
+        {
+            return m_mat.coeff(i, j);
+        }
+    };
+
+
+
+    ///
+    /// \ingroup MatOp
+    ///
+    /// This class defines matrix operations required by the generalized eigen solver
+    /// in the shift-and-invert mode. Given two symmetric matrices \f$A\f$ and \f$B\f$,
+    /// it solves the linear equation \f$y=(A-\sigma B)^{-1}x\f$, where \f$\sigma\f$ is a real shift.
+    /// This is adapted from Spectra::OwnSymShiftInvert
+    ///
+    /// This class is intended to be used with the SymGEigsShiftSolver generalized eigen solver.
+    ///
+    /// \tparam Scalar_        The element type of the matrices.
+    ///                        Currently supported types are `float`, `double`, and `long double`.
+    /// \tparam StorageIndexA  The storage index type of the \f$A\f$ matrix, only used when \f$A\f$
+    ///                        is a sparse matrix.
+    /// \tparam StorageIndexB  The storage index type of the \f$B\f$ matrix, only used when \f$B\f$
+    ///                        is a sparse matrix.
+    template <typename Scalar_, typename StorageIndexA = int, typename StorageIndexB = int>
+    class OwnSymShiftInvert
+    {
+    public:
+        ///
+        /// Element type of the matrix.
+        ///
+        using Scalar = Scalar_;
+
+    private:
+        using Index = Eigen::Index;
+
+        // type of the A matrix
+        using MatrixA = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, StorageIndexA>;
+
+        // type of the B matrix
+        using MatrixB = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, StorageIndexB>;
+
+        using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using MapConstVec = Eigen::Map<const Vector>;
+        using MapVec = Eigen::Map<Vector>;
+
+        using ResType = MatrixA;
+
+        #if defined EIGEN_USE_MKL_ALL
+        using FacType = Eigen::PardisoLU<ResType>;
+        #else
+        using FacType = Eigen::SparseLU<ResType>;
+        #endif // defined EIGEN_USE_MKL_ALL
+
+        using ConstGenericMatrixA = const Eigen::Ref<const MatrixA>;
+        using ConstGenericMatrixB = const Eigen::Ref<const MatrixB>;
+
+        ConstGenericMatrixA m_matA;
+        ConstGenericMatrixB m_matB;
+        const Index m_n;
+        FacType m_solver;
+
+    public:
+        ///
+        /// Constructor to create the matrix operation object.
+        ///
+        /// \param A A sparse matrix object, whose type can be
+        ///          `Eigen::SparseMatrix<...>`,
+        ///          `Eigen::Map<Eigen::SparseMatrix<...>>`,
+        ///          `Eigen::Ref<Eigen::SparseMatrix<...>>`, etc.
+        /// \param B A sparse matrix object.
+        ///
+        OwnSymShiftInvert(ConstGenericMatrixA& A, ConstGenericMatrixB& B) :
+            m_matA(A), m_matB(B), m_n(A.rows())
+        {
+            if (m_n != A.cols() || m_n != B.rows() || m_n != B.cols())
+                throw std::invalid_argument("SymShiftInvert: A and B must be square matrices of the same size");
+        }
+
+        ///
+        /// Return the number of rows of the underlying matrix.
+        ///
+        Index rows() const { return m_n; }
+        ///
+        /// Return the number of columns of the underlying matrix.
+        ///
+        Index cols() const { return m_n; }
+
+        ///
+        /// Set the real shift \f$\sigma\f$.
+        ///
+        void set_shift(const Scalar& sigma)
+        {
+            m_solver.compute(m_matA - sigma * m_matB);
+            const bool success = m_solver.info() == Eigen::Success;
+            if (!success)
+                throw std::invalid_argument("SymShiftInvert: factorization failed with the given shift");
+        }
+
+        ///
+        /// Perform the shift-invert operation \f$y=(A-\sigma B)^{-1}x\f$.
+        ///
+        /// \param x_in  Pointer to the \f$x\f$ vector.
+        /// \param y_out Pointer to the \f$y\f$ vector.
+        ///
+        // y_out = inv(A - sigma * B) * x_in
+        void perform_op(const Scalar* x_in, Scalar* y_out) const
+        {
+            MapConstVec x(x_in, m_n);
+            MapVec y(y_out, m_n);
+            y.noalias() = m_solver.solve(x);
+        }
+    };
+
 
 }; // class SpectraSymGEigsShiftSolver
 
