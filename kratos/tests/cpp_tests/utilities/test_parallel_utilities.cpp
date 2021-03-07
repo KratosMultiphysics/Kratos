@@ -271,6 +271,24 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::vector<int> expct_data_vector(nsize);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    std::iota(expct_data_vector.begin(), expct_data_vector.end(), 1);
+
+    auto assembled_vector = block_for_each<AccumReduction<int>>(input_data_vector, [](int& rValue) {
+        return rValue+1;
+    });
+
+    std::sort(assembled_vector.begin(), assembled_vector.end());
+
+    KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 {
     int nsize = 1e3;
@@ -291,19 +309,21 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     }
     class CustomReducer{
         public:
-            typedef std::tuple<double,double> value_type;
-            double max_value = -std::numeric_limits<double>::max();
-            double max_abs = 0.0;
+            typedef double value_type;
+            typedef std::tuple<double,double> return_type;
 
-            value_type GetValue()
+            value_type max_value = -std::numeric_limits<double>::max();
+            value_type max_abs = 0.0;
+
+            return_type GetValue()
             {
-                value_type values;
+                return_type values;
                 std::get<0>(values) = max_value;
                 std::get<1>(values) = max_abs;
                 return values;
             }
 
-            void LocalReduce(double function_return_value){
+            void LocalReduce(value_type function_return_value){
                 this->max_value = std::max(this->max_value,function_return_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }

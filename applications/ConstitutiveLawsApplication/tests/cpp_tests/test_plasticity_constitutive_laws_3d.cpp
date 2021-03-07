@@ -454,7 +454,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetDeformationGradientF(deformation_gradient);
-    cl_parameters.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient));
+    cl_parameters.SetDeterminantF(MathUtils<double>::Det(deformation_gradient));
     Matrix const_matrix = ZeroMatrix(6, 6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
@@ -608,7 +608,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetDeformationGradientF(deformation_gradient);
-    cl_parameters.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient));
+    cl_parameters.SetDeterminantF(MathUtils<double>::Det(deformation_gradient));
     Matrix const_matrix = ZeroMatrix(6, 6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
@@ -773,7 +773,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetDeformationGradientF(deformation_gradient);
-    cl_parameters.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient));
+    cl_parameters.SetDeterminantF(MathUtils<double>::Det(deformation_gradient));
     Matrix const_matrix = ZeroMatrix(6, 6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
@@ -927,7 +927,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetDeformationGradientF(deformation_gradient);
-    cl_parameters.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient));
+    cl_parameters.SetDeterminantF(MathUtils<double>::Det(deformation_gradient));
     Matrix const_matrix = ZeroMatrix(6, 6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
