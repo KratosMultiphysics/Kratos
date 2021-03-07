@@ -2,12 +2,16 @@
 from __future__ import print_function, absolute_import, division
 import os
 import KratosMultiphysics
+import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 
 class TestSpectraEigensystemSolver(KratosUnittest.TestCase):
     def test_mass_normalization(self):
+        # check if solver is available
+        if (not hasattr(LinearSolversApplication, "SpectraSymGEigsShiftSolver")):
+            self.skipTest("SpectraSymGEigsShiftSolver is not included in the compilation of the LinearSolversApplication")
 
         space = KratosMultiphysics.UblasSparseSpace()
 
@@ -16,7 +20,7 @@ class TestSpectraEigensystemSolver(KratosUnittest.TestCase):
             "number_of_eigenvalues": 3,
             "normalize_eigenvectors": true,
             "shift": 0.0,
-            "echo_level": 0
+            "echo_level": 1
         }''')
 
         K = KratosMultiphysics.CompressedMatrix()
