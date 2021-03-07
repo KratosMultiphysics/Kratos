@@ -250,7 +250,7 @@ public:
 #else
         boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #endif // KRATOS_USE_AMATRIX
-        const TDataType first_minor = DetMat(sub_mat);
+        const TDataType first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
@@ -292,7 +292,7 @@ public:
         BoundedMatrix<TDataType, TDim, TDim> inverted_matrix;
 
         /* Compute Determinant of the matrix */
-        rInputMatrixDet = DetMat(rInputMatrix);
+        rInputMatrixDet = Det(rInputMatrix);
 
         if(TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
