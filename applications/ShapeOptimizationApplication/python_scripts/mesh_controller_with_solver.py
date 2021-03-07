@@ -99,7 +99,7 @@ class MeshControllerWithSolver(MeshController) :
             else:
                 self.MeshSolverSettings["solver_settings"].AddBool("reinitialize_model_part_each_step", True)
 
-            KM.Logger.PrintInfo("ShapeOpt", "Initialized automatic mesh refinement process")
+            KM.Logger.PrintInfo("ShapeOpt", "Initialized automatic automatic remeshing process")
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
