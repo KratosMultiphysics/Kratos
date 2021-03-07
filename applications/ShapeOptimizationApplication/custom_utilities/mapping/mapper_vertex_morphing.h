@@ -478,6 +478,8 @@ private:
         mValuesDestination[0] = ZeroVector(destination_node_number);
         mValuesDestination[1] = ZeroVector(destination_node_number);
         mValuesDestination[2] = ZeroVector(destination_node_number);
+        
+        mMappingMatrix.resize(destination_node_number,origin_node_number,false);
     }
 
     // --------------------------------------------------------------------------
