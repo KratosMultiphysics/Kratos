@@ -347,7 +347,11 @@ private:
         ///
         void set_shift(const Scalar& sigma)
         {
-            m_solver.compute(m_matA - sigma * m_matB);
+            if (sigma == 0.0) {
+                m_solver.compute(m_matA);
+            } else {
+                m_solver.compute(m_matA - sigma * m_matB);
+            }
             const bool success = m_solver.info() == Eigen::Success;
             if (!success)
                 throw std::invalid_argument("SymShiftInvert: factorization failed with the given shift");
