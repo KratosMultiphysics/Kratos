@@ -59,7 +59,8 @@ class MeshControllerWithSolver(MeshController) :
             "processes" : {
                 "boundary_conditions_process_list" : []
             },
-            "automatic_mesh_refinement_settings": {}
+            "use_automatic_remeshing"     : false,
+            "automatic_remeshing_settings": {}
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
@@ -83,15 +84,14 @@ class MeshControllerWithSolver(MeshController) :
         else:
             self.has_automatic_boundary_process = False
 
-        self.is_mesh_refinement_used = False
-        self.automatic_mesh_refinement_process_settings = self.MeshSolverSettings["automatic_mesh_refinement_settings"]
-        if (not self.automatic_mesh_refinement_process_settings.IsEquivalentTo(KM.Parameters("{}"))):
+        self.is_mesh_refinement_used = self.MeshSolverSettings["use_automatic_remeshing"].GetBool()
+        if (self.is_mesh_refinement_used):
+            automatic_mesh_refinement_process_settings = self.MeshSolverSettings["automatic_remeshing_settings"]
             if (automatic_mesh_refinement_process is None):
                 raise RuntimeError("Automatic mesh refinement requires MeshingApplication. Please compile/install it.")
 
-            self.__CheckAndSetAutomaticMeshRefinementSettings(self.automatic_mesh_refinement_process_settings)
-            self.mesh_refinement_process = automatic_mesh_refinement_process(model, self.automatic_mesh_refinement_process_settings)
-            self.is_mesh_refinement_used = True
+            self.__CheckAndSetAutomaticMeshRefinementSettings(automatic_mesh_refinement_process_settings)
+            self.mesh_refinement_process = automatic_mesh_refinement_process(model, automatic_mesh_refinement_process_settings)
 
             # here we set mesh movement solving strategy to reinitialize after each step to support automatic mesh refinement
             if (self.MeshSolverSettings["solver_settings"].Has("reinitialize_model_part_each_step")):
