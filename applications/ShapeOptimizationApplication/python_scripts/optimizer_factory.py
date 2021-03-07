@@ -140,7 +140,7 @@ class VertexMorphingMethod:
         model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
 
-        # variables required for meshing
+        # variables required for remeshing
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
