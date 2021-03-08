@@ -12,8 +12,6 @@
 #if !defined(KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED )
 #define  KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED
 
-// TODO: Add rotational stiffness
-
 // System includes
 
 // External includes
@@ -38,28 +36,59 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Concentrated nodal for 3D and 2D points
-
-class NodalConcentratedElement
+/**
+ * @class NodalConcentratedElement
+ * @ingroup StructuralMechanicsApplication
+ * @brief Concentrated nodal for 3D and 2D points
+ * @details The element can consider both the displacement and rotational stiffness, and both the mass and the inertia
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodalConcentratedElement
     : public Element
 {
 public:
 
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the node type
+    typedef Node<3> NodeType;
+
+    /// Definition of the geometry
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of the base type
+    typedef Element BaseType;
+
+    /// Definition of the index type
+    typedef std::size_t IndexType;
+
+    /// Definition of the size type
+    typedef std::size_t SizeType;
+
     /// Counted pointer of NodalConcentratedElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( NodalConcentratedElement);
     ///@}
 
-public:
+     /**
+     * @brief Flags related to the element computation
+     */
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DISPLACEMENT_STIFFNESS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_NODAL_MASS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ROTATIONAL_STIFFNESS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_NODAL_INERTIA );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DAMPING_RATIO );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ROTATIONAL_DAMPING_RATIO );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RAYLEIGH_DAMPING );
 
+    ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, bool UseRayleighDamping = false);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, bool UseRayleighDamping = false);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
@@ -77,6 +106,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -149,48 +179,103 @@ public:
     //************* COMPUTING  METHODS
 
     /**
-     * This is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
+     * @brief It is called to initialize the element if the element needs to perform any operation before any calculation is done
+     * @details The elemental variables will be initialized and set using this method
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to initialize the solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to initialize the NL iteration
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to finalize the solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It is called to finalize the NL iteration
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-
     /**
-     * This calculates just the RHS
+     * @brief This calculates just the RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
-     * This calculates just the LHS
+     * @brief This calculates just the LHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
@@ -200,8 +285,7 @@ public:
         ) override;
 
     /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
+      * @brief This is called during the assembling process in order to calculate the elemental damping matrix
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
@@ -218,35 +302,6 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        const Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(
-        const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-        const Variable<array_1d<double, 3>>& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -270,7 +325,7 @@ protected:
     ///@{
     ///@}
 
-    bool mUseRayleighDamping;
+    Flags mELementalFlags; /// Elemental flags
 
     ///@name Protected Operators
     ///@{
@@ -282,40 +337,47 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     /**
-     * Calculation of the Delta Position
+     * @brief This method computes the actual size of the system of equations
+     * @return This method returns the size of the system of equations
      */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+    std::size_t ComputeSizeOfSystem() const;
 
     ///@}
     ///@name Protected  Access
     ///@{
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
     ///@}
 
 private:
 
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
+
     ///@}
     ///@name Private Operators
     ///@{
+
     ///@}
     ///@name Private Operations
     ///@{
+
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
+
     ///@}
     ///@name Serialization
     ///@{

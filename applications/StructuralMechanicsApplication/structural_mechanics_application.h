@@ -52,7 +52,9 @@
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
-#include "custom_elements/nodal_concentrated_element.hpp"
+
+/* Springs elements */
+#include "custom_elements/nodal_concentrated_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element_3D2N.hpp"
@@ -288,9 +290,7 @@ private:
 
     // Adding the nodal concentrated element
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
-    const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
-    const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     // Linear kinematic elements
     const SmallDisplacement mSmallDisplacement2D3N;
