@@ -60,7 +60,17 @@ class MeshControllerWithSolver(MeshController) :
                 "boundary_conditions_process_list" : []
             },
             "use_automatic_remeshing"     : false,
-            "automatic_remeshing_settings": {}
+            "automatic_remeshing_settings": {
+                "step_frequency": 10,
+                "automatic_remesh": true,
+                "automatic_remesh_parameters": {
+                    "automatic_remesh_type": "Ratio",
+                    "min_size_ratio": 1.0,
+                    "max_size_ratio": 5.0,
+                    "refer_type": "Mean"
+                },
+                "echo_level": 3
+            }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
@@ -128,6 +138,12 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
         KM.VariableUtils().CopyVectorVar(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+
+        if self.has_automatic_boundary_process and self.is_remeshing_used:
+            # clear the existing nodes
+            self.OptimizationModelPart.GetSubModelPart("auto_surface_nodes").GetNodes().clear()
+            # recompute the boundary nodes here
+            KSO.GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
