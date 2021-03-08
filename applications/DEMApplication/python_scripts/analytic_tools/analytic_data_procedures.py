@@ -100,15 +100,11 @@ class FaceWatcherAnalyzer:
 
     def UpdateData(self, time, n_particles_old, mass_old):
         shape, time, n_particles, mass, vel_nr_mass = self.MakeReading(n_particles_old, mass_old)[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
-        total_mass = sum(mass)
-        #total_mass = np.sum(mass)
+        total_mass = np.sum(mass)
         if total_mass:
             avg_vel_nr = vel_nr_mass / total_mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
-            #avg_vel_tg = vel_tg_mass / total_mass
         else:
-            #avg_vel_nr = np.zeros(mass.size)
-            avg_vel_nr = [0.] * len(mass)
-            #avg_vel_tg = np.zeros(mass.size)
+            avg_vel_nr = np.zeros(mass.size)
         return shape, time, n_particles, mass, avg_vel_nr
 
     def MakeTotalFluxPlot(self):
@@ -211,12 +207,6 @@ class FaceAnalyzerClass:
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
         #x_h5 = input_data.get('/patch/X')
         #x = np.array(x_h5)
-
-        # if self.do_clear_data:
-        #     if len(n_particles):
-        #         self.n_particles_accumulated = n_particles[-1]
-        #         self.mass_accumulated = mass[-1]
-        #     self.face_watcher.ClearData()
 
     def CreateDataFile(self, time):
         name_n_particles = 'n_accum'
