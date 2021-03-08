@@ -20,7 +20,8 @@ add_definitions( -DEIGEN_MPL2_ONLY)
 
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos
-        SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
+    SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
+    SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
 )
 
 if( USE_EIGEN_MKL MATCHES ON )
@@ -63,13 +64,6 @@ if( USE_EIGEN_FEAST MATCHES ON )
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include )
     add_definitions(-DUSE_EIGEN_FEAST)
-endif()
-
-if( USE_EIGEN_SPECTRA MATCHES ON )
-    include_directories(
-        SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
-    )
-    add_definitions(-DUSE_EIGEN_SPECTRA)
 endif()
 
 ## generate variables with the sources

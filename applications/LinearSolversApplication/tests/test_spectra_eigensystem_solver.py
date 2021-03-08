@@ -9,10 +9,6 @@ from KratosMultiphysics import eigen_solver_factory
 
 class TestSpectraEigensystemSolver(KratosUnittest.TestCase):
     def test_mass_normalization(self):
-        # check if solver is available
-        if (not hasattr(LinearSolversApplication, "SpectraSymGEigsShiftSolver")):
-            self.skipTest("SpectraSymGEigsShiftSolver is not included in the compilation of the LinearSolversApplication")
-
         space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('''{
