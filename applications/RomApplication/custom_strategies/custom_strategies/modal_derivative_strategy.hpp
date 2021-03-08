@@ -388,6 +388,40 @@ public:
     }
 
     /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    bool SolveSolutionStep() override
+    {
+        KRATOS_TRY
+
+        auto& r_model_part = BaseType::GetModelPart();
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(r_model_part);
+
+        if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType == DerivativeParameterType::ModalCoordinate )
+        {   // Dynamic modal parameter derivatives
+            return this->SolveSolutionStepDynamicModalCoordinateDerivatives();
+        }
+        else if ( mDerivativeType == DerivativeType::Static && mDerivativeParameterType == DerivativeParameterType::ModalCoordinate )
+        {   // Static modal parameter derivatives
+            return this->SolveSolutionStepStaticModalCoordinateDerivatives();
+        } 
+        else if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType != DerivativeParameterType::ModalCoordinate && !mAdjointSolutionFlag)
+        {   // Dynamic material parameter derivatives
+            return this->SolveSolutionStepDynamicMaterialParameterDerivatives();
+        }
+        else if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType != DerivativeParameterType::ModalCoordinate && mAdjointSolutionFlag)
+        {   // Dynamic material parameter derivatives with adjoint contributions
+            return this->SolveSolutionStepAdjointDynamicMaterialParameterDerivatives();
+        }
+        else
+            return false;
+
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(r_model_part);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Solves the current step for static modal coordinate derivative case
      * 
      */
@@ -998,40 +1032,6 @@ public:
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
 
         return true;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-     */
-    bool SolveSolutionStep() override
-    {
-        KRATOS_TRY
-
-        auto& r_model_part = BaseType::GetModelPart();
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(r_model_part);
-
-        if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType == DerivativeParameterType::ModalCoordinate )
-        {   // Dynamic modal parameter derivatives
-            return this->SolveSolutionStepDynamicModalCoordinateDerivatives();
-        }
-        else if ( mDerivativeType == DerivativeType::Static && mDerivativeParameterType == DerivativeParameterType::ModalCoordinate )
-        {   // Static modal parameter derivatives
-            return this->SolveSolutionStepStaticModalCoordinateDerivatives();
-        } 
-        else if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType != DerivativeParameterType::ModalCoordinate && !mAdjointSolutionFlag)
-        {   // Dynamic material parameter derivatives
-            return this->SolveSolutionStepDynamicMaterialParameterDerivatives();
-        }
-        else if ( mDerivativeType == DerivativeType::Dynamic && mDerivativeParameterType != DerivativeParameterType::ModalCoordinate && mAdjointSolutionFlag)
-        {   // Dynamic material parameter derivatives with adjoint contributions
-            return this->SolveSolutionStepAdjointDynamicMaterialParameterDerivatives();
-        }
-        else
-            return false;
-
-        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(r_model_part);
 
         KRATOS_CATCH("")
     }
