@@ -87,17 +87,17 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
-        AddInitialStrainVectorContribution<Vector>(r_strain_vector, rValues);
+        this->AddInitialStrainVectorContribution<Vector>(r_strain_vector, rValues);
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
-                AddInitialStressVectorContribution<Vector>(r_stress_vector, rValues);
+                this->AddInitialStressVectorContribution<Vector>(r_stress_vector, rValues);
             } else {
                 BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-                AddInitialStressVectorContribution<Vector>(r_stress_vector, rValues);
+                this->AddInitialStressVectorContribution<Vector>(r_stress_vector, rValues);
             }
         }
     } else { // We check for plasticity
@@ -109,7 +109,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        AddInitialStrainVectorContribution<Vector>(r_strain_vector, rValues);
+        this->AddInitialStrainVectorContribution<Vector>(r_strain_vector, rValues);
 
         // We compute the stress or the constitutive matrix
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
@@ -127,7 +127,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 // S0 = Elastic stress with strain (E-Ep) + S0
                 Vector aux_stress = ZeroVector(VoigtSize);
                 BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
-                AddInitialStressVectorContribution<Vector>(aux_stress, rValues);
+                this->AddInitialStressVectorContribution<Vector>(aux_stress, rValues);
                 noalias(predictive_stress_vector) = aux_stress;
             }
 
@@ -301,7 +301,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
-    AddInitialStrainVectorContribution<Vector>(r_strain_vector, rValues);
+    this->AddInitialStrainVectorContribution<Vector>(r_strain_vector, rValues);
 
     // We compute the stress
     // Elastic Matrix
@@ -318,7 +318,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     } else {
         // Spred = r_constitutive_matrix:(E-Ep) + S0
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
-        AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector, rValues);
+        this->AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector, rValues);
     }
 
     // Initialize Plastic Parameters
