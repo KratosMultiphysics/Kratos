@@ -236,6 +236,7 @@ namespace Kratos {
       BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
       free_stream_velocity(0) = 10.0;
       model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+      model_part.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
 
       // Create nodes
       model_part.CreateNewNode(1, 0.0, 0.0, 0.0);

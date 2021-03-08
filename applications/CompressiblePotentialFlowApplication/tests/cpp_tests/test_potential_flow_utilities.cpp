@@ -43,6 +43,9 @@ void GenerateTestingElement(ModelPart& rModelPart) {
                               rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
     rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
+    const double velocity_squared_limit = PotentialFlowUtilities::ComputeVelocitySquaredLimit(rModelPart.GetProcessInfo());
+    rModelPart.GetProcessInfo()[VELOCITY_SQUARED_LIMIT] = velocity_squared_limit;
+
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -64,6 +67,9 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
                               rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
     rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+    const double velocity_squared_limit = PotentialFlowUtilities::ComputeVelocitySquaredLimit(rModelPart.GetProcessInfo());
+    rModelPart.GetProcessInfo()[VELOCITY_SQUARED_LIMIT] = velocity_squared_limit;
 }
 
 void AssignPotentialsToElement(Element& rElement) {
@@ -116,8 +122,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplica
     KRATOS_CHECK_RELATIVE_NEAR(local_velocity_squared, reference_velocity_squared, 1e-15);
 }
 
-// Checks the function ComputeMaximumVelocitySquared from the utilities
-KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+// Checks the function ComputeVelocitySquaredLimit from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeVelocitySquaredLimit, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -127,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialAp
 
     // Max local Mach number = sqrt(3.0), from MACH_SQUARED_LIMIT
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(r_current_process_info);
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeVelocitySquaredLimit(r_current_process_info);
 
     KRATOS_CHECK_RELATIVE_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-15);
 }
@@ -202,6 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialAp
 
     array_1d<double, 2> velocity(2, 0.0);
     velocity[0] = std::sqrt(local_velocity_squared);
+    KRATOS_WATCH(local_velocity_squared)
 
     // computes mach number with clamping
     const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, r_current_process_info);
