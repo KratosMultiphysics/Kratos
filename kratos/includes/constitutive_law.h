@@ -577,7 +577,8 @@ public:
     /**
      * @brief Adds the initial stress vector if it is defined in the InitialState
      */
-    void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
+    template<typename TVectorType>
+    void AddInitialStressVectorContribution(TVectorType& rStressVector, Parameters& rParameterValues) 
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
@@ -588,7 +589,8 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
+    template<typename TVectorType>
+    void AddInitialStrainVectorContribution(TVectorType& rStrainVector, Parameters& rParameterValues)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
@@ -599,7 +601,8 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    void AddInitialDeformationGradientMatrixContribution(Matrix& rF, Parameters& rParameterValues)
+    template<typename TMatrixType>
+    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF, Parameters& rParameterValues)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
