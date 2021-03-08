@@ -240,15 +240,11 @@ class FaceAnalyzerClass:
         surface_data = f.require_group(sp_name)
         surface_data.attrs['Surface Identifier'] = sp_name
 
-        #time_db = surface_data.require_dataset('time', shape = current_shape, dtype = np.float64)
-        #n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = np.int64)
-        #mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = np.float64)
-        #avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = np.float64)
+        time_db = surface_data.require_dataset('time', shape = current_shape, dtype = np.float64)
+        n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = np.int64)
+        mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = np.float64)
+        avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = np.float64)
 
-        time_db = surface_data.require_dataset('time', shape = current_shape, dtype = float)
-        n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = int)
-        mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = float)
-        avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = float)
         return time_db, n_particles_db, mass_db, avg_vel_nr_db
 
     def OldFileExists(self):
