@@ -51,10 +51,10 @@ void GenerateCompressiblePerturbationElement(ModelPart& rModelPart) {
     rModelPart.CreateNewElement("CompressiblePerturbationPotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 }
 
-void AssignPotentialsToNormalCompressiblePerturbationElement(Element::Pointer p_element, const std::array<double, 3> rPotential)
+void AssignPotentialsToNormalCompressiblePerturbationElement(Element::Pointer pElement, const std::array<double, 3> rPotential)
 {
     for (unsigned int i = 0; i < 3; i++)
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
 }
 
 BoundedVector<double,3> AssignDistancesToPerturbationCompressibleElement()
@@ -66,19 +66,19 @@ BoundedVector<double,3> AssignDistancesToPerturbationCompressibleElement()
     return distances;
 }
 
-void AssignPotentialsToWakeCompressiblePerturbationElement(Element::Pointer p_element, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
+void AssignPotentialsToWakeCompressiblePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
 {
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
         else
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
     }
 }
 

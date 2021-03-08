@@ -70,7 +70,7 @@ namespace Kratos {
       rModelPart.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
-    void AssignPotentialsToNormalElement(Element::Pointer p_element)
+    void AssignPotentialsToNormalElement(Element::Pointer pElement)
     {
       // Define the nodal values
       Vector potential(3);
@@ -79,10 +79,10 @@ namespace Kratos {
       potential(2) = 3.0;
 
       for (unsigned int i = 0; i < 3; i++)
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
     }
 
-    void AssignPotentialsToWakeElement(Element::Pointer p_element, const array_1d<double, 3>& rDistances)
+    void AssignPotentialsToWakeElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
     {
       // Define the nodal values
       Vector potential(3);
@@ -92,15 +92,15 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-          p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
         else
-          p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
       }
       for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-          p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
         else
-          p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
       }
     }
 

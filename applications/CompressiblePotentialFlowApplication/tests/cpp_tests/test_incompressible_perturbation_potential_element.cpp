@@ -48,28 +48,28 @@ namespace Kratos {
       rModelPart.CreateNewElement("IncompressiblePerturbationPotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
-    void AssignPotentialsToNormalPerturbationElement(Element::Pointer p_element)
+    void AssignPotentialsToNormalPerturbationElement(Element::Pointer pElement)
     {
       // Define the nodal values
       std::array<double, 3> potential{1.0, 2.0, 3.0};
 
       for (unsigned int i = 0; i < 3; i++)
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
     }
 
-    void AssignPotentialsToWakePerturbationElement(Element::Pointer p_element, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
+    void AssignPotentialsToWakePerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
     {
       for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
         else
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
     }
     }
 
