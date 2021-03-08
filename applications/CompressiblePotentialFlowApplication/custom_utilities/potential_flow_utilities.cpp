@@ -132,6 +132,21 @@ array_1d<double, Dim> ComputePerturbedVelocity(
     return velocity;
 }
 
+template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocityLowerElement(
+    const Element& rElement,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++)
+    {
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    return velocity;
+}
+
 double ComputeVelocitySquaredLimit(const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -164,6 +179,32 @@ double ComputeVelocitySquaredLimit(const ProcessInfo& rCurrentProcessInfo)
     return factor * numerator / denominator;
 }
 
+double ComputeVacuumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
+{
+    // Following Fully Simulataneous Coupling of the Full Potential Equation
+    //           and the Integral Boundary Layer Equations in Three Dimensions
+    //           by Brian Nishida (1996), Section 2.5
+
+    // read free stream values
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double free_stream_mach = rCurrentProcessInfo[FREE_STREAM_MACH];
+    KRATOS_ERROR_IF(free_stream_mach < std::numeric_limits<double>::epsilon())
+        << "ComputeVacuumVelocitySquared: free_stream_mach must be larger than zero." << std::endl;
+
+    const array_1d<double, 3>& free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+    // compute squares of values
+    const double free_stream_mach_squared = std::pow(free_stream_mach, 2.0);
+    const double free_stream_velocity_squared = inner_prod(free_stream_velocity, free_stream_velocity);
+
+    const double denominator = (heat_capacity_ratio - 1.0) * free_stream_mach_squared;
+
+    KRATOS_ERROR_IF(denominator < std::numeric_limits<double>::epsilon())
+        << "ComputeVacuumVelocitySquared: denominatior must be larger than zero." << std::endl;
+
+    return free_stream_velocity_squared * ( 1 + 2 / denominator);
+}
+
 // This function returns the square of the magnitude of the velocity,
 // clamping it if it is over the maximum allowed
 template <int Dim, int NumNodes>
@@ -178,7 +219,7 @@ double ComputeClampedVelocitySquared(
     // check if local velocity should be changed
     if (local_velocity_squared > max_velocity_squared)
     {
-        KRATOS_WARNING("Clamped local velocity") <<
+        KRATOS_WARNING_IF("Clamped local velocity", rCurrentProcessInfo[ECHO_LEVEL] > 0) <<
         "SQUARE OF LOCAL VELOCITY ABOVE ALLOWED SQUARE OF VELOCITY"
         << " local_velocity_squared  = " << local_velocity_squared
         << " max_velocity_squared  = " << max_velocity_squared << std::endl;
@@ -337,15 +378,16 @@ double ComputePerturbationCompressiblePressureCoefficient(const Element& rElemen
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
 
     // Computing local velocity
-    array_1d<double, Dim> velocity = ComputeVelocity<Dim,NumNodes>(rElement);
-    for (unsigned int i = 0; i < Dim; i++){
-        velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, Dim>& velocity = ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
 
     // Computing squares
     const double v_inf_2 = inner_prod(free_stream_velocity, free_stream_velocity);
     const double M_inf_2 = M_inf * M_inf;
     double v_2 = inner_prod(velocity, velocity);
+    const double vacuum_velocity_squared = ComputeVacuumVelocitySquared(rCurrentProcessInfo);
+    if( v_2 > vacuum_velocity_squared){
+        v_2 = vacuum_velocity_squared;
+    }
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << rElement.Id() << "\n"
@@ -560,7 +602,8 @@ double ComputeUpwindFactor(
 
     if(localMachNumberSquared < 1e-3){
         localMachNumberSquared = 1e-3;
-        KRATOS_WARNING("ComputeUpwindFactor") << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
+        KRATOS_WARNING_IF("ComputeUpwindFactor", rCurrentProcessInfo[ECHO_LEVEL] > 0)
+        << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
     }
 
     return upwind_factor_constant * (1.0 - std::pow(critical_mach, 2.0) / localMachNumberSquared);
@@ -921,6 +964,7 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template array_1d<double, 2> ComputePerturbedVelocityLowerElement<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
@@ -966,6 +1010,7 @@ template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template array_1d<double, 3> ComputePerturbedVelocityLowerElement<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
