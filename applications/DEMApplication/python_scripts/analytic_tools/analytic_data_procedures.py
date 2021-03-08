@@ -17,45 +17,17 @@ class ParticleWatcherAnalyzer:
 
 
 class FaceWatcherAnalyzer:
-    def __init__(self, name, analytic_face_watcher, path, do_clear_data = True):
+    def __init__(self, name, analytic_face_watcher):
         self.face_watcher = analytic_face_watcher
         self.face_watcher_name = name
-        self.do_clear_data = do_clear_data
         # the following objects are useful if data is chunked into several databases
-        self.times_data_base_names = []
-        self.n_particles_data_base_names = []
-        self.mass_data_base_names = []
-        self.n_particles_accumulated = 0
-        self.mass_accumulated = 0.0
         self.inlet = None
-
-        self.folder_path = path
-        self.file_path = path + '/flux_data_new.hdf5'
-        self.old_file_path = self.file_path.replace('_new.hdf5', '.hdf5')
-
-        FaceWatcherAnalyzer.file_path = self.file_path
-        FaceWatcherAnalyzer.file_path_old = self.old_file_path
-        FaceWatcherAnalyzer.RemoveFiles()
-
-    @staticmethod
-    def RemoveFiles():
-        new_path = FaceWatcherAnalyzer.file_path
-        old_path = FaceWatcherAnalyzer.file_path_old
-        for path in (p for p in [new_path, old_path] if os.path.exists(p)):
-            os.remove(path)
-
-    @staticmethod
-    def RemoveOldFile():
-        old_path = FaceWatcherAnalyzer.file_path_old
-        if os.path.exists(old_path):
-            os.remove(old_path)
 
     def MakeReading(self, n_particles_old, mass_old):
         times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [], [], [], [], []
         self.face_watcher.GetTotalFlux(times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass)
         lists = [times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass]
-        #times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [np.array(l) for l in lists]
-        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [l for l in lists]
+        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [np.array(l) for l in lists]
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
@@ -65,28 +37,6 @@ class FaceWatcherAnalyzer:
             self.inlet_accumulated_number_of_particles.append(self.inlet.GetNumberOfParticlesInjectedSoFar())
 
         return shape, times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass
-
-    def GetTimes(self):
-        return self.GetJointData(self.times_data_base_names)
-
-    def GetNumberOfParticlesFlux(self):
-        return self.GetJointData(self.n_particles_data_base_names)
-
-    def GetMassFlux(self):
-        return self.GetJointData(self.mass_data_base_names)
-
-    def GetJointData(self, data_base_names):
-        data_list = []
-
-        with h5py.File(self.file_path, 'r') as f:
-            if self.do_clear_data: # join all databases
-                for name in data_base_names:
-                    data_list.append(f['/' + name].value)
-                joint_list = np.concatenate(data_list, axis = 0)
-            else: # get the latest
-                joint_list = f['/' + data_base_names[-1]].value
-
-        return joint_list
 
     def CalculateAccumulatedVectors(self, length, number_flux, mass_flux, n_particles_old, mass_old):
         acc_number_flux = self.CalculateAccumulated(original_list = number_flux, old_accumulated = n_particles_old)
@@ -107,29 +57,6 @@ class FaceWatcherAnalyzer:
             avg_vel_nr = np.zeros(mass.size)
         return shape, time, n_particles, mass, avg_vel_nr
 
-    def MakeTotalFluxPlot(self):
-        import matplotlib.pyplot as plt
-        with h5py.File(self.file_path) as f:
-            times = f['/' + self.face_watcher_name + '/' + '/time'].value
-            mass_flux = f['/' + self.face_watcher_name + '/' + '/m_accum'].value
-        plt.xlabel('time')
-        plt.ylabel('accumulated mass throughput')
-        plt.plot(times, mass_flux)
-        plt.savefig(self.folder_path + '/mass_throughput.pdf', bbox_inches='tight')
-
-    def MakeFluxOfNumberOfParticlesPlot(self):
-        import matplotlib.pyplot as plt
-        self.MakeReading()
-        times = self.GetTimes()
-        flux = self.GetNumberOfParticlesFlux()
-        '''
-        plt.xlabel('time')
-        plt.ylabel('accumulated number of particles through surface')
-        plt.plot(times, flux)
-        plt.savefig(self.folder_path + '/throughput.svg')
-        plt.clf()
-        '''
-
     def MakeInletMassPlot(self):
         self.MakeInletReading()
 
@@ -145,10 +72,14 @@ class FaceAnalyzerClass:
         self.do_clear_data = do_clear_data
         self.n_particles_accumulated = 0
         self.mass_accumulated = 0.0
+        self.times_data_base_names = []
+        self.n_particles_data_base_names = []
+        self.mass_data_base_names = []
+
         for sub_part in self.model_part:
             if sub_part[IS_GHOST] == True:
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+                self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name])
 
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
@@ -249,3 +180,48 @@ class FaceAnalyzerClass:
 
     def OldFileExists(self):
         return os.path.exists(self.old_path)
+
+    def GetJointData(self, data_base_names):
+        data_list = []
+
+        with h5py.File(self.new_path, 'r') as f:
+            if self.do_clear_data: # join all databases
+                for name in data_base_names:
+                    data_list.append(f['/' + name].value)
+                joint_list = np.concatenate(data_list, axis = 0)
+            else: # get the latest
+                joint_list = f['/' + data_base_names[-1]].value
+
+        return joint_list
+
+    def GetTimes(self):
+        return self.GetJointData(self.times_data_base_names)
+
+    def GetNumberOfParticlesFlux(self):
+        return self.GetJointData(self.n_particles_data_base_names)
+
+    def GetMassFlux(self):
+        return self.GetJointData(self.mass_data_base_names)
+
+    def MakeTotalFluxPlot(self):
+        import matplotlib.pyplot as plt
+        with h5py.File(self.file_path) as f:
+            times = f['/' + self.face_watcher_name + '/' + '/time'].value
+            mass_flux = f['/' + self.face_watcher_name + '/' + '/m_accum'].value
+        plt.xlabel('time')
+        plt.ylabel('accumulated mass throughput')
+        plt.plot(times, mass_flux)
+        plt.savefig(self.main_path + '/mass_throughput.pdf', bbox_inches='tight')
+
+    def MakeFluxOfNumberOfParticlesPlot(self):
+        import matplotlib.pyplot as plt
+        self.MakeReading()
+        times = self.GetTimes()
+        flux = self.GetNumberOfParticlesFlux()
+        '''
+        plt.xlabel('time')
+        plt.ylabel('accumulated number of particles through surface')
+        plt.plot(times, flux)
+        plt.savefig(self.main_path + '/throughput.svg')
+        plt.clf()
+        '''
