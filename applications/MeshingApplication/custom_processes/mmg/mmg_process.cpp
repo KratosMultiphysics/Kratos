@@ -554,23 +554,27 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // In case of prism collapse we extrapolate now (and later extrude)
     if (collapse_prisms_elements) {
-        /* We interpolate all the values */
-        Parameters interpolate_parameters = Parameters(R"({})" );
-        interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
-        interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
-        interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
-        interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
-        interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
-        interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
-        interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
-        interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
-        interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-        interpolate_parameters["surface_elements"].SetBool(true);
 
-        ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-        ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-        NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
-        interpolate_nodal_values_process.Execute();
+        if (mThisParameters["interpolate_nodal_values"].GetBool()) {
+            /* We interpolate all the values */
+            Parameters interpolate_parameters = Parameters(R"({})" );
+            interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+            interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+            interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+            interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+            interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+            interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+            interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+            interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+            interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+            interpolate_parameters["surface_elements"].SetBool(true);
+
+            ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+            ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+            NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
+            interpolate_nodal_values_process.Execute();
+        }
+
 
         // Reorder before extrude
         mMmgUtilities.ReorderAllIds(mrThisModelPart);
@@ -605,20 +609,22 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         CreateDebugPrePostRemeshOutput(r_old_model_part);
     }
 
-    /* We interpolate all the values */
-    Parameters interpolate_parameters = Parameters(R"({})" );
-    interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
-    interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
-    interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
-    interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
-    interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
-    interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
-    interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
-    interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
-    interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-    if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
-    NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
-    interpolate_nodal_values_process.Execute();
+    if (mThisParameters["interpolate_nodal_values"].GetBool()) {
+        /* We interpolate all the values */
+        Parameters interpolate_parameters = Parameters(R"({})" );
+        interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+        interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+        interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+        interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+        interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+        interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+        interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+        interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+        interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+        if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
+        NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
+        interpolate_nodal_values_process.Execute();
+    }
 
     /* We initialize elements and conditions */
     if (mThisParameters["initialize_entities"].GetBool()) {
@@ -1243,6 +1249,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
         "preserve_flags"                       : true,
+        "interpolate_nodal_values"             : true,
         "interpolate_non_historical"           : true,
         "extrapolate_contour_values"           : true,
         "surface_elements"                     : false,
