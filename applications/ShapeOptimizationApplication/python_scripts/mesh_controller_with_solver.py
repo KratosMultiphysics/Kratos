@@ -105,6 +105,8 @@ class MeshControllerWithSolver(MeshController) :
 
             # here we set mesh movement solving strategy to reinitialize after each step to support automatic remeshing
             if (self.MeshSolverSettings["solver_settings"].Has("reinitialize_model_part_each_step")):
+                if (not self.MeshSolverSettings["solver_settings"]["reinitialize_model_part_each_step"].GetBool()):
+                    KM.Logger.PrintWarning("ShapeOpt", "Automatic remeshing requires to reinitialize model part at each step, therefore turning it on.")
                 self.MeshSolverSettings["solver_settings"]["reinitialize_model_part_each_step"].SetBool(True)
             else:
                 self.MeshSolverSettings["solver_settings"].AddBool("reinitialize_model_part_each_step", True)
