@@ -205,7 +205,7 @@ protected:
         KRATOS_ERROR << "Interface Jacobian approximation is not available for this convergence accelerator." << std::endl;
     }
 
-    virtual unsigned int GetProblemSize()
+    virtual std::size_t GetProblemSize()
     {
         KRATOS_ERROR << "Problem size is not available for this convergence accelerator." << std::endl;
     }
