@@ -351,7 +351,7 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    unsigned int GetProblemSize() override
+    unsigned std::size GetProblemSize() override
     {
         return mProblemSize;
     }
