@@ -500,7 +500,7 @@ private:
         MatrixPointerType p_aux_W = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
 
         // Drop the last column
-        IndexPartition<unsigned int>(mProblemSize).for_each([&](unsigned int IRow){
+        IndexPartition<std::size_t>(mProblemSize).for_each([&](unsigned int IRow){
             for (std::size_t i_col = 0; i_col < n_cols; ++i_col){
                 (*p_aux_V)(IRow, i_col) = (*mpObsMatrixV)(IRow, i_col);
                 (*p_aux_W)(IRow, i_col) = (*mpObsMatrixW)(IRow, i_col);
