@@ -250,6 +250,8 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     InitializeTriangulateIO(vorout_mid);
 
     // Initialize the boundary points coordinates list
+    // Note 1: that InitializeTriangulateIO allocates nothing for this by default
+    // Note 2: this will be deallocated within the ClearTriangulateIO call below
     in_mid.numberofpoints = rCoordinates.size()/2;
     in_mid.pointlist = (REAL *) malloc(in_mid.numberofpoints * 2 * sizeof(REAL));
 
@@ -273,9 +275,7 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     // "p" triangulates a Planar Straight Line Graph
     // "z" numbers all items starting from zero (rather than one)
     // "a" imposes a maximum triangle area constrain
-
-    std::string meshing_options =
-        AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
+    std::string meshing_options = AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
     triangulate(&meshing_options[0], &in_mid, &out_mid, &vorout_mid);
 
     // Save the obtained connectivities in an output std::vector
