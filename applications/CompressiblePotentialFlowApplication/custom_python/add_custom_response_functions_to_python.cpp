@@ -20,6 +20,7 @@
 
 // Response Functions
 #include "custom_response_functions/adjoint_lift_response_function_coordinates_jump.h"
+#include "custom_response_functions/adjoint_far_field_lift_response_function.h"
 
 
 namespace Kratos {
@@ -32,6 +33,11 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     // Response Functions
     py::class_<AdjointLiftJumpCoordinatesResponseFunction, AdjointLiftJumpCoordinatesResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLiftJumpCoordinatesResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+        // Response Functions
+    py::class_<AdjointLiftFarFieldCoordinatesResponseFunction, AdjointLiftFarFieldCoordinatesResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointLiftFarFieldCoordinatesResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
 }
