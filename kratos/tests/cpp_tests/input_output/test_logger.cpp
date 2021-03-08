@@ -16,7 +16,7 @@
 #include "input_output/logger.h"
 #include "input_output/logger_table_output.h"
 #include "includes/data_communicator.h"
-
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
     namespace Testing {
@@ -30,18 +30,18 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(message.GetLabel().c_str(), "label");
             if (DataCommunicator::GetDefault().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::INFO);
-            KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::STATUS);
+            KRATOS_CHECK(message.GetFlags().Is(LoggerMessage::STATUS));
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFileName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), -1);
 
             message << LoggerMessage::Severity::DETAIL
-                << LoggerMessage::Category::CRITICAL
+                << LoggerMessage::CRITICAL
                 << KRATOS_CODE_LOCATION << std::endl;
 
             KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00\n");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::DETAIL);
-            KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::CRITICAL);
+            KRATOS_CHECK(message.GetFlags().Is(LoggerMessage::CRITICAL));
             KRATOS_CHECK_NOT_EQUAL(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), 40);
@@ -73,7 +73,7 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
 
             Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output "
-                << Logger::Category::CRITICAL << std::endl;
+                << LoggerMessage::CRITICAL << std::endl;
 
             // The message has DETAIL severity and should not be written (check that nothing was added to the buffer)
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
@@ -516,6 +516,38 @@ namespace Kratos {
 
             std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test message\n[INFO] TestInfo: Test message\n[DETAIL] TestDetail: Test message\n" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStartStop, KratosCoreFastSuite)
+        {
+            int rank = DataCommunicator::GetDefault().Rank();
+
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            Logger::AddOutput(p_output);
+
+            KRATOS_INFO("TestLevel") << "Level 0\n";
+
+            double time = 0.1;
+            KRATOS_INFO_START("TimeStep") << time << std::endl;
+            KRATOS_INFO("TestLevel") << "Level 1\n";
+            KRATOS_INFO_START("Build");
+            KRATOS_INFO("TestLevel") << "Level 2\n";
+            KRATOS_INFO_STOP("Build");
+            KRATOS_INFO_START("Solve");
+            KRATOS_INFO("TestLevel") << "Level 2\n";
+            KRATOS_INFO_STOP("Solve");
+            KRATOS_INFO_STOP("TimeStep");
+
+            std::stringstream expected_output;
+            if (rank == 0){
+                expected_output << "TestLevel: Level 0\n";
+                expected_output << "TimeStep: 0.1\n";
+                expected_output << "  TestLevel: Level 1\n";
+                expected_output << "    TestLevel: Level 2\n";
+                expected_output << "    TestLevel: Level 2\n";
+            }
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.str().c_str());
         }
 
     }   // namespace Testing

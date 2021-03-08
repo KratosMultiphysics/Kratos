@@ -71,7 +71,7 @@ public:
     : mpStream(&rOutputStream),
       mMaxLevel(1),
       mSeverity(LoggerMessage::Severity::INFO),
-      mCategory(LoggerMessage::Category::STATUS)
+      mFlags(LoggerMessage::STATUS)
   {
     mOptions.Set(WARNING_PREFIX, true);
     mOptions.Set(INFO_PREFIX, false);
@@ -81,7 +81,7 @@ public:
   }
 
   LoggerOutput(LoggerOutput const& Other)
-    : mpStream(Other.mpStream), mMaxLevel(Other.mMaxLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
+    : mpStream(Other.mpStream), mMaxLevel(Other.mMaxLevel), mSeverity(Other.mSeverity), mFlags(Other.mFlags) {}
 
   /// Destructor.
   virtual ~LoggerOutput() {}
@@ -124,12 +124,12 @@ public:
     return mSeverity;
   }
 
-  void SetCategory(LoggerMessage::Category const& TheCategory) {
-    mCategory = TheCategory;
+  void SetFlags(Flags const& TheFlags) {
+    mFlags = TheFlags;
   }
 
-  LoggerMessage::Category GetCategory() const {
-    return mCategory;
+  Flags GetFlags() const {
+    return mFlags;
   }
 
   void SetOption(Kratos::Flags ThisFlag, bool Value) {
@@ -185,7 +185,7 @@ protected:
     : mpStream(nullptr),
       mMaxLevel(1),
       mSeverity(LoggerMessage::Severity::INFO),
-      mCategory(LoggerMessage::Category::STATUS)
+      mFlags(LoggerMessage::STATUS)
   {
     mOptions.Set(WARNING_PREFIX, true);
     mOptions.Set(INFO_PREFIX, false);
@@ -212,7 +212,7 @@ private:
   std::ostream* mpStream;
   std::size_t mMaxLevel;
   LoggerMessage::Severity mSeverity;
-  LoggerMessage::Category mCategory;
+  Kratos::Flags mFlags;
   Kratos::Flags mOptions;
 
   ///@}

@@ -66,8 +66,6 @@ namespace Kratos
 
     using Severity = LoggerMessage::Severity;
 
-    using Category = LoggerMessage::Category;
-
     using DistributedFilter = LoggerMessage::DistributedFilter;
 
     ///@}
@@ -97,10 +95,33 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      Logger& Start(){
+        return Start(mCurrentMessage.GetLabel());
+      }
+
+      Logger& Stop(){
+        return Stop(mCurrentMessage.GetLabel());
+      }
+
+      Logger& Start(std::string const& TheSectionLabel);
+
+      Logger& Stop(std::string const& TheSectionLabel);
 
       ///@}
       ///@name Static Methods
       ///@{
+
+    static std::vector<std::string>& GetLabelsStackInstance()
+    {
+      static std::vector<std::string> instance;
+      return instance;
+    }
+
+    static int& GetCurrentLevelInstance()
+    {
+      static int instance = 0;
+      return instance;
+    }
 
     static LoggerOutputContainerType& GetOutputsInstance()
     {
@@ -108,16 +129,17 @@ namespace Kratos
       return instance;
       }
 
-      static LoggerOutput& GetDefaultOutputInstance()
-      {
-          static LoggerOutput defaultOutputInstance(std::cout);
-          return defaultOutputInstance;
-      }
+    static LoggerOutput& GetDefaultOutputInstance()
+    {
+        static LoggerOutput defaultOutputInstance(std::cout);
+        return defaultOutputInstance;
+    }
 
     static void AddOutput(LoggerOutput::Pointer pTheOutput);
 
     static void Flush();
 
+    static std::string CreateFullLabel();
 
       ///@}
       ///@name Access
@@ -167,8 +189,8 @@ namespace Kratos
     /// Severity stream function
     Logger& operator << (Severity const& TheSeverity);
 
-    /// Category stream function
-    Logger& operator << (Category const& TheCategory);
+    /// Flags stream function
+    Logger& operator << (Flags const& TheFlags);
 
 
       ///@}
@@ -308,12 +330,16 @@ namespace Kratos
 #define KRATOS_TRACE_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_TRACE_FIRST_N(label, logger_count) << Kratos::Logger::DistributedFilter::FromAllRanks()
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
-#define KRATOS_CHECK_POINT(label) Kratos::Logger(label) << Kratos::Logger::Category::CHECKING
+#define KRATOS_CHECK_POINT(label) Kratos::Logger(label) << Kratos::Logger::CHECKING
 #else
 #define KRATOS_CHECK_POINT(label) \
   if (false)                      \
-    Kratos::Logger(label) << Kratos::Logger::Category::CHECKING
+    Kratos::Logger(label) << Kratos::LoggerMessage::CHECKING
 #endif
+
+#define KRATOS_INFO_START(label) Kratos::Logger(label).Start() << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+#define KRATOS_INFO_STOP(label) Kratos::Logger(label).Stop() << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::INFO
+
     ///@}
 
     ///@} addtogroup block

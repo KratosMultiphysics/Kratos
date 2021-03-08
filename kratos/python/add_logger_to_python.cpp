@@ -35,6 +35,63 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
     }
 }
 
+namespace Internals{
+    std::string GetMessage(pybind11::args Args, bool useKwargLabel){
+        if(len(Args) == 0) {
+            return ""; 
+        }
+
+        std::stringstream buffer;
+        // Get the label
+        unsigned int to_skip = useKwargLabel ? 0 : 1; //if the kwargs label is false, consider the first entry of the args as the label
+
+        unsigned int counter = 0;
+        for(auto item : Args)
+        {
+            if(counter >= to_skip)
+            {
+                buffer << item;
+                if(counter < len(Args))
+                    buffer << " ";
+            }
+            counter++;
+        }
+        return buffer.str();
+    }
+
+    std::string GetLabel(pybind11::args Args, pybind11::kwargs KWargs, bool useKwargLabel){
+        if(useKwargLabel) {
+            if(KWargs.contains("label")) {
+                return py::str(KWargs["label"]);
+            } else {
+                return "";
+            }
+        } 
+
+        if(len(Args) == 0) {
+            return ""; 
+        }
+
+        return py::str(Args[0]); // Consider the first entry of the args as the label
+   }
+
+    Logger::Severity GetSeverity(pybind11::kwargs KWargs, Logger::Severity DefaultSeverity){
+        if(KWargs.contains("severity")) {
+            DefaultSeverity = py::cast<Logger::Severity>(KWargs["severity"]);
+        }
+
+        return DefaultSeverity;
+    }
+
+    Flags GetCategory(pybind11::kwargs KWargs, Flags DefaultCategory){
+        if(KWargs.contains("category")) {
+            DefaultCategory = py::cast<Flags>(KWargs["category"]);
+        }
+
+        return DefaultCategory;
+    }
+}
+
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Implementation
  * @args tuple  representing the arguments of the function The first argument is the label
@@ -45,55 +102,9 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
  * @printRank bool record the MPI rank in the output message.
  **/
 void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel, LoggerMessage::DistributedFilter filterOption) {
-    if(len(args) == 0)
-        std::cout << "ERROR" << std::endl;
-
-    std::stringstream buffer;
-    Logger::Severity severityOption = severity;
-    Logger::Category categoryOption = Logger::Category::STATUS;
-
-    std::string label;
-//     const char* label;
-
-    // Get the label
-    unsigned int to_skip = 0; //if the kwargs label is false, consider the first entry of the args as the label
-    if(useKwargLabel) {
-        if(kwargs.contains("label")) {
-            label = py::str(kwargs["label"]);
-        } else {
-            label = "";
-        }
-    } else {
-        label = py::str(args[0]); //if the kwargs label is false, consider the first entry of the args as the label
-        to_skip = 1;
-    }
-
-    unsigned int counter = 0;
-    for(auto item : args)
-    {
-        if(counter >= to_skip)
-        {
-            buffer << item;
-            if(counter < len(args))
-                buffer << " ";
-        }
-        counter++;
-    }
-
-    // Extract the options
-    if(kwargs.contains("severity")) {
-//         severityOption = extract<Logger::Severity>(kwargs["severity"]);
-        severityOption = py::cast<Logger::Severity>(kwargs["severity"]);
-    }
-
-    if(kwargs.contains("category")) {
-//         categoryOption = extract<Logger::Category>(kwargs["category"]);
-        categoryOption = py::cast<Logger::Category>(kwargs["category"]);
-    }
-
     // Send the message and options to the logger
-    Logger logger(label);
-    logger << buffer.str() << severityOption << categoryOption << std::endl;
+    Logger logger(Internals::GetLabel(args, kwargs, useKwargLabel));
+    logger << Internals::GetMessage(args, useKwargLabel) << Internals::GetSeverity(kwargs, severity) << Internals::GetCategory(kwargs, LoggerMessage::STATUS) << std::endl;
     logger << filterOption << getDataCommunicator(kwargs);
 }
 
@@ -150,6 +161,22 @@ void printWarningOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
     printImpl(args, kwargs, Logger::Severity::WARNING, false, LoggerMessage::DistributedFilter::FromAllRanks());
 }
 
+void LoggerStart(pybind11::args args, pybind11::kwargs kwargs){
+     if (isPrintingRank(kwargs)) {
+        Logger logger(Internals::GetLabel(args, kwargs, false));
+        logger.Start() << Internals::GetMessage(args, false) << Internals::GetSeverity(kwargs, Logger::Severity::INFO) << Internals::GetCategory(kwargs, LoggerMessage::STATUS) << std::endl
+         << LoggerMessage::DistributedFilter::FromRoot() << getDataCommunicator(kwargs);
+    }
+}
+
+void LoggerStop(pybind11::args args, pybind11::kwargs kwargs){
+     if (isPrintingRank(kwargs)) {
+        Logger logger(Internals::GetLabel(args, kwargs, false));
+        logger.Stop() << Internals::GetMessage(args, false) << Internals::GetSeverity(kwargs, Logger::Severity::INFO) << Internals::GetCategory(kwargs, LoggerMessage::STATUS) << std::endl
+         << LoggerMessage::DistributedFilter::FromRoot() << getDataCommunicator(kwargs);
+    }
+}
+
 void  AddLoggerToPython(pybind11::module& m) {
 
     auto logger_output = py::class_<LoggerOutput, Kratos::shared_ptr<LoggerOutput>>(m,"LoggerOutput")
@@ -157,8 +184,8 @@ void  AddLoggerToPython(pybind11::module& m) {
     .def("GetMaxLevel", &LoggerOutput::GetMaxLevel)
     .def("SetSeverity", &LoggerOutput::SetSeverity)
     .def("GetSeverity", &LoggerOutput::GetSeverity)
-    .def("SetCategory", &LoggerOutput::SetCategory)
-    .def("GetCategory", &LoggerOutput::GetCategory)
+    .def("SetCategory", &LoggerOutput::SetFlags)
+    .def("GetCategory", &LoggerOutput::GetFlags)
     .def("SetOption", &LoggerOutput::SetOption)
     .def("GetOption", &LoggerOutput::GetOption)
     ;
@@ -183,6 +210,8 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, py::return_value_policy::reference); //_internal )
     logger_scope.def_static("AddOutput", &Logger::AddOutput);
+    logger_scope.def_static("Start", LoggerStart); // raw_function(printDefault,1))
+    logger_scope.def_static("Stop", LoggerStop); // raw_function(printDefault,1))
     ;
 
     // Enums for Severity
@@ -193,13 +222,13 @@ void  AddLoggerToPython(pybind11::module& m) {
     .value("DEBUG", Logger::Severity::DEBUG)
     .value("TRACE", Logger::Severity::TRACE);
 
-    // Enums for Category
-    py::enum_<Logger::Category>(logger_scope,"Category")
-    .value("STATUS", Logger::Category::STATUS)
-    .value("CRITICAL", Logger::Category::CRITICAL)
-    .value("STATISTICS", Logger::Category::STATISTICS)
-    .value("PROFILING", Logger::Category::PROFILING)
-    .value("CHECKING", Logger::Category::CHECKING);
+    logger_output.attr("STATUS") = LoggerMessage::STATUS;
+    logger_output.attr("CRITICAL") = LoggerMessage::CRITICAL;
+    logger_output.attr("STATISTICS") = LoggerMessage::STATISTICS;
+    logger_output.attr("PROFILING") = LoggerMessage::PROFILING;
+    logger_output.attr("CHECKING") = LoggerMessage::CHECKING;
+
+
 }
 
 }  // namespace Python.
