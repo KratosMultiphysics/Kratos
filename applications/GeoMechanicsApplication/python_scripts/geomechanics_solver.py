@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
@@ -46,70 +44,6 @@ class GeoMechanicalSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=False # To be removed eventually
         super(GeoMechanicalSolver, self).__init__(model, custom_settings)
-
-        # default_settings = KratosMultiphysics.Parameters("""
-        # {
-        #     "model_part_name" : "",
-        #     "domain_size" : -1,
-        #     "echo_level": 0,
-        #     "buffer_size": 2,
-        #     "analysis_type": "non_linear",
-        #     "model_import_settings": {
-        #         "input_type": "mdpa",
-        #         "input_filename": "unknown_name"
-        #     },
-        #     "computing_model_part_name" : "computing_domain",
-        #     "material_import_settings" :{
-        #         "materials_filename": ""
-        #     },
-        #     "time_stepping" : { },
-        #     "rotation_dofs": false,
-        #     "reform_dofs_at_each_step": false,
-        #     "line_search": false,
-        #     "compute_reactions": true,
-        #     "block_builder": true,
-        #     "clear_storage": false,
-        #     "move_mesh_flag": true,
-        #     "multi_point_constraints_used": false,
-        #     "convergence_criterion": "residual_criterion",
-        #     "displacement_relative_tolerance": 1.0e-4,
-        #     "displacement_absolute_tolerance": 1.0e-9,
-        #     "residual_relative_tolerance": 1.0e-4,
-        #     "residual_absolute_tolerance": 1.0e-9,
-        #     "max_iteration": 10,
-        #     "linear_solver_settings":{
-        #         "solver_type": "SuperLUSolver",
-        #         "max_iteration": 500,
-        #         "tolerance": 1e-9,
-        #         "scaling": false,
-        #         "verbosity": 1
-        #     },
-        #     "problem_domain_sub_model_part_list": ["solid"],
-        #     "processes_sub_model_part_list": [""],
-        #     "auxiliary_variables_list" : [],
-        #     "auxiliary_dofs_list" : [],
-        #     "auxiliary_reaction_list" : []
-        # }
-        # """)
-
-        # # temporary warnings, to be removed
-        # if custom_settings.Has("bodies_list"):
-        #     custom_settings.RemoveValue("bodies_list")
-        #     warning = '\n::[GeoMechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
-        #     warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-        #     self.print_warning_on_rank_zero("Bodies list", warning)
-        # if custom_settings.Has("solver_type"):
-        #     custom_settings.RemoveValue("solver_type")
-        #     warning = '\n::[GeoMechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
-        #     warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-        #     warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-        #     self.print_warning_on_rank_zero("Solver type", warning)
-        # if custom_settings.Has("time_integration_method"):
-        #     custom_settings.RemoveValue("time_integration_method")
-        #     warning = '\n::[GeoMechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
-        #     warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-        #     warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-        #     self.print_warning_on_rank_zero("Time integration method", warning)
 
         # # Overwrite the default settings with user-provided parameters.
         # self.settings.ValidateAndAssignDefaults(default_settings)
@@ -224,18 +158,6 @@ class GeoMechanicalSolver(PythonSolver):
     def KeepAdvancingSolutionLoop(self):
         pass
 
-    # def PrepareModelPart(self):
-    #     if not self.is_restarted():
-    #         # Check and prepare computing model part and import constitutive laws.
-    #         self._execute_after_reading()
-    #         self._set_and_fill_buffer()
-
-    #     # This will be removed once the Model is fully supported! => It wont e necessary anymore
-    #     if not self.model.HasModelPart(self.main_model_part.Name):
-    #         self.model.AddModelPart(self.main_model_part)
-
-    #     KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]::", "ModelPart prepared for Solver.")
-
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Initializing ...")
@@ -255,13 +177,6 @@ class GeoMechanicalSolver(PythonSolver):
                 pass
         self.Check()
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Finished initialization.")
-
-    # def Solve(self):
-    #     KratosMultiphysics.Logger.PrintWarning("::[GeoMechanicalSolver]:: ", "Solve(self)")
-    #     if self.settings["clear_storage"].GetBool():
-    #         self.Clear()
-    #     mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-    #     mechanical_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
         self.get_mechanical_solution_strategy().InitializeSolutionStep()
@@ -288,9 +203,7 @@ class GeoMechanicalSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
-            raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
