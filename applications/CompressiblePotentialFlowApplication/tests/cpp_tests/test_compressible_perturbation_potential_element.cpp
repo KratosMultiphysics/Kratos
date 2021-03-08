@@ -688,11 +688,6 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            if(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)) > 1e-10){
-                KRATOS_WATCH(i)
-                KRATOS_WATCH(j)
-                KRATOS_WATCH(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)))
-            }
             KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
         }
     }
@@ -718,11 +713,6 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
         for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            if(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)) > 1e-10){
-                KRATOS_WATCH(i)
-                KRATOS_WATCH(j)
-                KRATOS_WATCH(std::abs(LHS_finite_diference(i,j)-LHS_analytical(i,j)))
-            }
             KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
         }
     }

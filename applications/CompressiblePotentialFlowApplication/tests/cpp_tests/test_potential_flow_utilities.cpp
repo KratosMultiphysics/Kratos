@@ -326,7 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficientClam
     GenerateTestingElement(model_part);
     Element::Pointer pElement = model_part.pGetElement(1);
 
-    std::array<double, 3> potential{1.0, 733.13764, 929.1948};
+    const std::array<double, 3>& potential{1.0, 733.13764, 929.1948};
     AssignCustomPerturbationPotentialsToElement(*pElement, potential);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double pressure_coefficient =

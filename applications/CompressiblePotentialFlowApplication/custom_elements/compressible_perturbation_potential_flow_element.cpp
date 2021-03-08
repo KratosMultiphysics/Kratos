@@ -200,7 +200,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnInt
     }
     else if (rVariable == DENSITY)
     {
-        const array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+        const array_1d<double, Dim>& velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
         const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
 
@@ -413,13 +413,13 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     BoundedMatrix<double, NumNodes, NumNodes> lhs = ZeroMatrix(NumNodes,NumNodes);
 
     CalculateLeftHandSideContribution(lhs, rCurrentProcessInfo, velocity, data);
 
-    noalias(rLeftHandSideMatrix) += lhs;
+    noalias(rLeftHandSideMatrix) = lhs;
 }
 
 template <int Dim, int NumNodes>
@@ -462,8 +462,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     GetWakeDistances(data.distances);
 
     // Compute upper and lower velocities
-    const array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
-    const array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     BoundedMatrix<double, NumNodes, NumNodes> upper_lhs_total = ZeroMatrix(NumNodes,NumNodes);
     BoundedMatrix<double, NumNodes, NumNodes> lower_lhs_total = ZeroMatrix(NumNodes,NumNodes);
@@ -505,8 +505,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     GetWakeDistances(data.distances);
 
     // Compute upper and lower velocities
-    const array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
-    const array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     // Compute upper and lower rhs
     BoundedVector<double, NumNodes> upper_rhs = ZeroVector(NumNodes);
@@ -514,7 +514,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     CalculateRightHandSideContribution(upper_rhs, rCurrentProcessInfo, upper_velocity, data);
     CalculateRightHandSideContribution(lower_rhs, rCurrentProcessInfo, lower_velocity, data);
 
-    const array_1d<double, Dim> diff_velocity = upper_velocity - lower_velocity;
+    const array_1d<double, Dim>& diff_velocity = upper_velocity - lower_velocity;
 
     // Compute wake condition rhs
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
@@ -620,8 +620,8 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         PartitionsSign, GradientsValue, NEnriched);
 
     // Compute upper and lower velocities
-    const array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
-    const array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& upper_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
+    const array_1d<double, Dim>& lower_velocity = PotentialFlowUtilities::ComputePerturbedVelocityLowerElement<Dim,NumNodes>(*this, rCurrentProcessInfo);
 
     // Compute upper and lower densities
     const double upper_local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(upper_velocity, rCurrentProcessInfo);
@@ -816,7 +816,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    auto r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
