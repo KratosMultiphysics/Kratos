@@ -41,6 +41,7 @@ void GenerateCompressibleElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
     rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
+    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 0.8836;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -68,6 +69,7 @@ void GenerateCompressibleEmbeddedElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
     rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
+    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 0.8836;
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -308,12 +310,12 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-    std::array<double,36> reference{0.615556466,-0.615561780,5.314318652e-06,0.0,0.0,0.0,
-                                  -0.615561780,1.231123561,-0.615561780,0.615561780,-1.231123561,0.615561780,
-                                  5.314318652e-06,-0.615561780, 0.615556466,-5.314318652e-06,0.615561780, -0.615556466,
-                                  -0.615556466, 0.615561780,-5.314318652e-06,0.615556466, -0.615561780,5.314318652e-06,
-                                  0.0,0.0,0.0,-0.615561780,1.231123561,-0.615561780,
-                                  0.0,0.0,0.0,5.314318652e-06,-0.615561780,0.615556466};
+    std::array<double,36> reference{0.6155564666297989,-0.6155617809484512,5.314318652279458e-06,0,0,0,
+                                    -0.6125,1.225,-0.6125,0.6125,-1.225,0.6125,
+                                    0,-0.6125,0.6125,-0,0.6125,-0.6125,
+                                    -0.6125,0.6125,-0,0.6125,-0.6125,0,
+                                    0,0,0,-0.6155617809484512,1.231123561896902,-0.6155617809484512,
+                                    0,0,0,5.314318652279458e-06,-0.6155617809484512,0.6155564666297989};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
