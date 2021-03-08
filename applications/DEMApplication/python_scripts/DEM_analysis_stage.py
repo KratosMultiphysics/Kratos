@@ -455,9 +455,7 @@ class DEMAnalysisStage(AnalysisStage):
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
-            self.FaceAnalyzerClass.RemoveOldFile()
+            self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
 
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
