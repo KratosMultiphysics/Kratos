@@ -19,9 +19,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
+#include "includes/kratos_application.h"
+#include "structural_mechanics_application_variables.h"
+#include "geo_mechanics_application_constants.h"
 #include <string>
-
 
 namespace Kratos
 {
