@@ -29,7 +29,7 @@ class FaceWatcherAnalyzer:
         times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [], [], [], [], []
         self.face_watcher.GetTotalFlux(times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass)
         lists = [times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass]
-        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [np.array(l) for l in lists]
+        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [l for l in lists]
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
@@ -46,17 +46,17 @@ class FaceWatcherAnalyzer:
 
         return acc_number_flux, acc_mass_flux
 
-    def CalculateAccumulated(self, original_list, old_accumulated):
+    def CalculateAccumulated(self, original_list, old_accumulated = 0):
         new_accumulated = np.cumsum(np.array(original_list)) + old_accumulated
         return new_accumulated
 
     def UpdateData(self, time):
         shape, time, n_particles, mass, vel_nr_mass = self.MakeReading()[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
-        total_mass = np.sum(mass)
+        total_mass = sum(mass)
         if total_mass:
             avg_vel_nr = vel_nr_mass / total_mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
         else:
-            avg_vel_nr = np.zeros(mass.size)
+            avg_vel_nr = [0.] * len(mass)
         return shape, time, n_particles, mass, avg_vel_nr
 
     def MakeInletMassPlot(self):
@@ -69,6 +69,9 @@ class FaceWatcherAnalyzer:
         self.n_particles_accumulated = n_particles_old
         self.mass_accumulated = n_mass_old
 
+    def ClearData(self):
+        self.face_watcher.ClearData()
+
 class FaceAnalyzerClass:
     def __init__(self, model_part, main_path, do_clear_data = True):
         self.model_part = model_part
@@ -76,8 +79,6 @@ class FaceAnalyzerClass:
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
         self.do_clear_data = do_clear_data
-        self.n_particles_accumulated = 0
-        self.mass_accumulated = 0.0
         self.times_data_base_names = []
         self.n_particles_data_base_names = []
         self.mass_data_base_names = []
@@ -148,7 +149,7 @@ class FaceAnalyzerClass:
                     if self.do_clear_data:
                         if len(n_particles):
                             self.face_watcher_analysers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
-                        self.face_watcher_dict[sub_part.Name].ClearData()
+                        self.face_watcher_analysers[sub_part.Name].ClearData()
 
         # how to extract data from h5 subgrouped datasets:
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
@@ -176,7 +177,7 @@ class FaceAnalyzerClass:
                     if self.do_clear_data:
                         if len(n_particles):
                             self.face_watcher_analysers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
-                        self.face_watcher_dict[sub_part.Name].ClearData()
+                        self.face_watcher_analysers[sub_part.Name].ClearData()
 
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
         #x_h5 = input_data.get('/patch/X')
