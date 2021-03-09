@@ -604,8 +604,7 @@ protected:
                 else q = -0.5 * (b - sqrt_det);
                 root1 = q / a;
                 distance = root1;
-                if( q != 0.0)
-                {
+                if(std::abs(q) > 0.0) {
                     root2 = c / q;
                     if (root2 > root1) distance = root2;
                 }
