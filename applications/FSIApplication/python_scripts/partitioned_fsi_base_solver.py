@@ -214,7 +214,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         #     self._ComputeMeshPredictionDoubleFaced()
         # else:
         #     self._ComputeMeshPredictionSingleFaced()
-        KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'Mesh prediction computed.')
+        # KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'Mesh prediction computed.')
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -247,9 +247,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         nl_it = 0
         is_converged = False
         while (nl_it < self.max_nl_it):
-            KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear iteration = {0}'.format(nl_it))
             # Check convergence
-            if self._CheckFSIConvergence(dis_residual_norm):
+            if self._CheckFSIConvergence(nl_it, dis_residual_norm):
+                KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear iteration convergence achieved in {0} iterations.'.format(nl_it))
                 is_converged = True
                 break
 
@@ -345,9 +345,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.max_nl_it = coupling_settings["nl_max_it"].GetInt()
         self.nl_tol = coupling_settings["nl_tol"].GetDouble()
         self.solve_mesh_at_each_iteration = coupling_settings["solve_mesh_at_each_iteration"].GetBool()
-        #TODO: THESE SHOULDN'T BE NEEDED ANYMORE
-        # self.fluid_interface_submodelpart_name = coupling_settings["fluid_interfaces_list"][0].GetString()
-        # self.structure_interface_submodelpart_name = coupling_settings["structure_interfaces_list"][0].GetString()
 
         ## Save the FSI interfaces information in a dictionary
         mappers_settings = self.settings["coupling_settings"]["mapper_settings"]
@@ -890,10 +887,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Update the structure interface position with the DISPLACEMENT values from the predict
         self._GetFSICouplingInterfaceStructure().UpdatePosition(KratosMultiphysics.RELAXED_DISPLACEMENT)
 
-        ##TODO:
         # Map the relaxed displacement from the structure coupling interface to the fluid one
         self._MapStructureInterfaceDisplacement()
-        ##TODO:
 
         # Solve the mesh and fluid problem
         self._SolveFluid()
@@ -927,12 +922,10 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
         return dis_residual_norm
 
-    #TODO: USE THIS IN THE DERIVED EMBEDDED CLASS
-    #TODO: SHOULDN'T THIS BE IMPLEMENTED IN THE FSI COUPLING INTERFACE
-    def _CheckFSIConvergence(self, residual_norm):
+    def _CheckFSIConvergence(self, nl_it, residual_norm):
         interface_dofs = self._GetPartitionedFSIUtilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart())
         normalised_residual = residual_norm/sqrt(interface_dofs)
-        KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', '|res|/sqrt(nDOFS) = ' + str(normalised_residual))
+        KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear iteration = {0} |res|/sqrt(nDOFS) = {1}'.format(nl_it, normalised_residual))
         return normalised_residual < self.nl_tol
 
     def _GetPartitionedFSIUtilities(self):
