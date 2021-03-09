@@ -42,7 +42,7 @@ namespace TestCreationUtility
     }
 
     NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
-        
+
         SizeType p = PolynomialDegree;
         SizeType q = 1;
 
@@ -57,7 +57,7 @@ namespace TestCreationUtility
         knot_v[1] = 0.0;
         knot_v[2] = 1.0;
         knot_v[3] = 1.0;
-        
+
         NodeVector points((p+1)*(q+1));
 
         if (p == 3)
@@ -110,10 +110,10 @@ namespace TestCreationUtility
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
-        
+
         GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
                 result_geometries, 3, integration_points);
-        
+
         return result_geometries(0);
     }
 

@@ -8,19 +8,18 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+# 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
+from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
+# 5p Shell Hierarchic
+from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
+from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
+from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 
-<<<<<<< HEAD
-# Import the tests o test_classes to create the suits
-from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
-from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests
-from iga_truss_element_tests import IgaTrussElementTests
-from shell_kl_discrete_element_tests import ShellKLDiscreteElementTests
-from test_iga_output_process import TestIgaOutputProcess
-=======
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
->>>>>>> origin/master
+# Nurbs Geometry tests
+from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -36,22 +35,22 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-<<<<<<< HEAD
-        NodeCurveGeometry3DTests,
-        NodeSurfaceGeometry3DTests,
-        IgaTrussElementTests,
-        ShellKLDiscreteElementTests,
-        TestIgaOutputProcess
-    ]))
-=======
         SinglePatchTest,
+        # 3p Shell KL
         ScordelisRoofShell3pTest,
-        TTestModelers
+        LinearBeamShell3pTest,
+        TTestModelers,
+        TTestNurbsVolumeElements
         ]))
->>>>>>> origin/master
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # 5p Shell Hierarchic
+        TShell5pHierarchicLinearThickBeamTest,
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
+        ]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)

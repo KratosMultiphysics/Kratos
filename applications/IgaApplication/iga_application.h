@@ -11,12 +11,15 @@
 #include <string>
 #include <iostream>
 
+// External includes
+
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_5p_hierarchic_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -84,6 +87,11 @@ public:
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
     }
 
     ///@}
@@ -92,6 +100,9 @@ private:
 
     ///@name Member Variables
     ///@{
+
+    const Shell3pElement mShell3pElement;
+    const Shell5pHierarchicElement mShell5pHierarchicElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -103,6 +114,7 @@ private:
 
     ///@}
     ///@name Private methods
+    ///@{
 
     /// Assignment operator.
     KratosIgaApplication& operator=(KratosIgaApplication const& rOther);

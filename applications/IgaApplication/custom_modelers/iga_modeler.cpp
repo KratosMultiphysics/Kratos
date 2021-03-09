@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 
@@ -205,6 +205,9 @@ namespace Kratos
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const
     {
+        KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
+            << rElementName << " not registered." << std::endl;
+
         const Element& rReferenceElement = KratosComponents<Element>::Get(rElementName);
 
         ElementsContainerType new_element_list;

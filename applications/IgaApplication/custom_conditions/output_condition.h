@@ -154,6 +154,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_OUTPUT_CONDITION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_OUTPUT_CONDITION_H_INCLUDED  defined
