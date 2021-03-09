@@ -62,7 +62,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    BaseType::CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
 
@@ -77,7 +76,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
     // We compute the stress or the constitutive matrix
     if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-
+        
         PlasticDamageParameters plastic_damage_parameters = PlasticDamageParameters();
         InitializePlasticDamageParameters(r_strain_vector, rValues.GetMaterialProperties(),
             characteristic_length, plastic_damage_parameters);
@@ -85,11 +84,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
         CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
 
         CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-        // noalias(rValues.GetConstitutiveMatrix()) = plastic_damage_parameters.ConstitutiveMatrix;
+        noalias(rValues.GetConstitutiveMatrix()) = plastic_damage_parameters.ConstitutiveMatrix;
 
-        // S = E0:(E-Ein)
-        noalias(plastic_damage_parameters.StressVector) = prod(r_constitutive_matrix,
-            r_strain_vector - plastic_damage_parameters.PlasticStrain - plastic_damage_parameters.DamageStrain);
+        noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
+            r_strain_vector - plastic_damage_parameters.PlasticStrain);
 
         TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, 
             plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
@@ -126,7 +124,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    BaseType::CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
 
@@ -145,9 +142,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
 
     CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-    // S = E0:(E-Ein)
-    noalias(plastic_damage_parameters.StressVector) = prod(r_constitutive_matrix,
-        r_strain_vector - plastic_damage_parameters.PlasticStrain - plastic_damage_parameters.DamageStrain);
+    noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
+        r_strain_vector - plastic_damage_parameters.PlasticStrain);
 
     TYieldSurfaceType::CalculateEquivalentStress(plastic_damage_parameters.StressVector, 
         plastic_damage_parameters.StrainVector, plastic_damage_parameters.UniaxialStress, rValues);
@@ -326,11 +322,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     PlasticDamageParameters &rPDParameters
     )
 {
+    BoundedVectorType delta_sigma;
     const auto& r_mat_properties = rValues.GetMaterialProperties();
-    BoundedMatrixType initial_compliance, initial_constitutive_matrix;
-    CalculateElasticComplianceMatrix(initial_compliance, r_mat_properties);
-    CalculateElasticMatrix(initial_constitutive_matrix, rValues);
-
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
@@ -349,13 +342,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             // Compute the plastic strain increment
             CalculatePlasticStrainIncrement(rValues, rPDParameters);
             noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
-            // Add comnpute the damage contribution
-            noalias(rPDParameters.DamageStrain) += prod(Matrix(rPDParameters.ComplianceMatrixIncrement),
-                rPDParameters.StressVector);
 
             // Correct the stress
-            noalias(rPDParameters.StressVector) = prod(initial_constitutive_matrix, 
-                rPDParameters.StrainVector - rPDParameters.PlasticStrain - rPDParameters.DamageStrain);
+            noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, 
+                rPDParameters.StrainVector - rPDParameters.PlasticStrain);
 
             // Compute the non-linear dissipation performed
             CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
@@ -413,7 +403,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::UpdateInternalVariables(
     mDamageDissipation         = rPDParameters.DamageDissipation;
     mThreshold                 = rPDParameters.Threshold;
     noalias(mPlasticStrain)    = rPDParameters.PlasticStrain;
-    noalias(mDamageStrain)     = rPDParameters.DamageStrain;
     noalias(mComplianceMatrix) = rPDParameters.ComplianceMatrix;
 }
 
