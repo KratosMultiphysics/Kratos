@@ -165,10 +165,10 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
     auto aux_area = mParameters["initial_triangle_area"].GetDouble();
     KRATOS_ERROR_IF_NOT(mParameters.Has("max_triangulation_iteration"))
         << "Missing \"max_triangulation_iteration\" in CadTessellationModeler Parameters" << std::endl;
-    const auto max_iteration = mParameters["max_triangulation_iteration"].GetInt();
+    const IndexType max_iteration = mParameters["max_triangulation_iteration"].GetInt();
 
     // Initialize a 1d list with the coordinates of the points (outer and inner polygons)
-    IndexType n_boundary_points = rBoundaryLoop.size();
+    SizeType n_boundary_points = rBoundaryLoop.size();
     std::vector<double> boundary_points_coords(2 * n_boundary_points);
     IndexPartition<IndexType>(n_boundary_points).for_each([&](IndexType iPoint){
         auto& r_coords = rBoundaryLoop[iPoint];
@@ -178,7 +178,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
 
     // Initilize the segment list with the number of boundary edges and the start and end node id
     // For closed polygons the number of segments is equal to the number of points
-    const IndexType n_segments = rBoundaryLoop.size();
+    const SizeType n_segments = rBoundaryLoop.size();
     std::vector<std::array<double,2>> segments(n_segments);
     IndexPartition<IndexType>(n_segments).for_each(std::array<double,2>(), [&](IndexType iSegment, std::array<double,2>& rSegmentTLS){
         rSegmentTLS[0] = iSegment;
@@ -226,7 +226,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
 
     const auto& r_output_connectivites = std::get<0>(delaunator_output);
     const auto& r_output_coordinates_list = std::get<1>(delaunator_output);
-    const IndexType n_triangles = r_output_connectivites.size() % 3 == 0 ? r_output_connectivites.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
+    const SizeType n_triangles = r_output_connectivites.size() % 3 == 0 ? r_output_connectivites.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> triangulation_uv(n_triangles);
     for (IndexType i_triangle = 0; i_triangle < n_triangles; ++i_triangle) {
         auto& r_triangle_uv_coords = triangulation_uv[i_triangle];
@@ -248,7 +248,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::InsertGaussPoints
 {
     const auto gp_canonical_tri = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3>>::GenerateIntegrationPoints();
 
-    const IndexType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
+    const SizeType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);
     typedef std::pair<array_1d<double,3>, array_1d<double,3>> TLSType;
     IndexPartition<IndexType>(n_triangles).for_each(TLSType(), [&](IndexType iTriangle, TLSType& rTLSContainer){
@@ -285,7 +285,7 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::InsertGaussPoints
 {
     const auto gp_canonical_tri = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3>>::GenerateIntegrationPoints();
 
-    const IndexType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
+    const SizeType n_triangles = rTriangleConnectivities.size() % 3 == 0 ? rTriangleConnectivities.size() / 3 : KRATOS_ERROR << "Error in connectivities vector size." << std::endl;
     std::vector<BoundedMatrix<double,3,3>> gp_xyz(n_triangles);
     typedef std::tuple<array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>> TLSType;
     IndexPartition<IndexType>(n_triangles).for_each(TLSType(), [&](IndexType iTriangle, TLSType& rTLSContainer){
@@ -328,7 +328,7 @@ double CadTessellationModeler::ComputeDiscretizationError(
     const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsExact,
     const std::vector<BoundedMatrix<double,3,3>>& rGaussPointsApprox)
 {
-    const IndexType n_triangles = rGaussPointsExact.size();
+    const SizeType n_triangles = rGaussPointsExact.size();
     double discretization_error = IndexPartition<IndexType>(n_triangles).for_each<MaxReduction<double>>([&](IndexType iTriangle){
         double max_triangle_error = 0.0;
         const auto& r_gauss_pt_exact = rGaussPointsExact[iTriangle];
