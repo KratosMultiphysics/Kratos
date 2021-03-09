@@ -340,26 +340,25 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
 void MembraneElement::MaterialResponse(Vector& rStress,
     const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber,
-    Matrix& rTangentModulus)
+    Matrix& rTangentModulus,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     Vector strain_vector = ZeroVector(3);
-    rStress = ZeroVector(3);
+    noalias(rStress) = ZeroVector(3);
     StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
         rCurrentCoVariantMetric,rTransformationMatrix);
 
     // do this to consider the pre-stress influence in the check of the membrane state in the claw
     Vector initial_stress = ZeroVector(3);
     if (Has(MEMBRANE_PRESTRESS)){
-        Matrix stress_input = GetValue(MEMBRANE_PRESTRESS);
-        initial_stress += column(stress_input,rIntegrationPointNumber);
+        const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
+        initial_stress += column(r_stress_input,rIntegrationPointNumber);
     } else {
         AddPreStressPk2(initial_stress,rTransformedBaseVectors);
     }
     rStress += initial_stress;
 
-
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     element_parameters.SetStrainVector(strain_vector);
     element_parameters.SetStressVector(rStress);
     element_parameters.SetConstitutiveMatrix(rTangentModulus);
