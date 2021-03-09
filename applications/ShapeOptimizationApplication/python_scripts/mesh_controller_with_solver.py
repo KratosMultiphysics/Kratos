@@ -61,7 +61,7 @@ class MeshControllerWithSolver(MeshController) :
             },
             "use_automatic_remeshing"     : false,
             "automatic_remeshing_settings": {
-                "step_frequency": 10,
+                "step_frequency": 1,
                 "automatic_remesh": true,
                 "automatic_remesh_parameters": {
                     "automatic_remesh_type": "Ratio",
@@ -69,7 +69,7 @@ class MeshControllerWithSolver(MeshController) :
                     "max_size_ratio": 5.0,
                     "refer_type": "Mean"
                 },
-                "echo_level": 3
+                "echo_level": 0
             }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
