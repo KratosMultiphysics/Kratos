@@ -27,7 +27,7 @@ public:
     ///@{
 
     /// Counted pointer of Shell5pHierarchicElement
-    KRATOS_CLASS_POINTER_DEFINITION(Shell5pHierarchicElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell5pHierarchicElement);
 
     ///@}
     ///@name Life Cycle
