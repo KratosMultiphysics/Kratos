@@ -201,9 +201,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateDamageDissipatio
     )
 {
     const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
-    rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
+    // rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
+    //                         prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
+    //                         0.5 * rParam.CharacteristicLength / fracture_energy;
+    
+        rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
                             prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
-                            0.5 * rParam.CharacteristicLength / fracture_energy;
+                            rParam.CharacteristicLength / fracture_energy;
 
     rParam.DamageDissipationIncrement = MacaullyBrackets(rParam.DamageDissipationIncrement);
 }
@@ -344,7 +348,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
             // Correct the stress
-            noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, 
+            noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix,
                 rPDParameters.StrainVector - rPDParameters.PlasticStrain);
 
             // Compute the non-linear dissipation performed
