@@ -612,7 +612,12 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupe
     const double density_derivative_accel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(
         current_velocity, local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, 6.3365379876067950e-07, 1e-15);
+    const double reference = 6.33653798760679499e-07;
+    std::cout.precision(32);
+    KRATOS_WATCH(density_derivative_accel)
+    KRATOS_WATCH(reference)
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, reference, 1e-15);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating from the utilities
