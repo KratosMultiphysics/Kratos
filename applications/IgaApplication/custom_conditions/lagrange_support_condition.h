@@ -191,11 +191,6 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
             );
 
-        int Check(const ProcessInfo& rCurrentProcessInfo)
-        {
-            return 0;
-        }
-
         ///@}
         ///@name Input and output
         ///@{
