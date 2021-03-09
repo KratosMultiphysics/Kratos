@@ -96,7 +96,7 @@ int ParallelUtilities::InitializeNumberOfThreads()
 
     num_threads = std::max(1, num_threads);
 
-#ifdef KRATOS_SMP_OPENMP
+#ifdef KRATOS_SMP_OPENMP && KRATOS_FORCE_OMP_NUM_THREADS
     // external libraries included in Kratos still use OpenMP (such as AMGCL)
     // this makes sure that they use the same number of threads as Kratos itself.
     omp_set_num_threads(num_threads);
