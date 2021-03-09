@@ -602,7 +602,7 @@ public:
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
     template<typename TMatrixType>
-    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF, Parameters& rParameterValues)
+    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
