@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import time as timer
 import os
 import sys
@@ -12,6 +10,7 @@ import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 
 from importlib import import_module
 
@@ -23,24 +22,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
         self.initial_time = timer.perf_counter()
 
-        # Making sure that older cases still work by properly initalizing the parameters
-        solver_settings = parameters["solver_settings"]
-        if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintInfo("GeoMechanicsAnalysisBase", "Using the old way to pass the time_step, this will be removed!")
-            time_stepping_params = KratosMultiphysics.Parameters("{}")
-            time_stepping_params.AddValue("time_step", parameters["problem_data"]["time_step"])
-            solver_settings.AddValue("time_stepping", time_stepping_params)
-
-        if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("GeoMechanicsAnalysisBase", "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
-
-        if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("GeoMechanicsAnalysisBase", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
-
         # Set number of OMP threads
         parallel=Kratos.OpenMPUtils()
         problem_data_settings = parameters["problem_data"]
@@ -51,82 +32,21 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
         ## Import parallel modules if needed
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
         # Creating solver and model part and adding variables
-        super(GeoMechanicsAnalysisBase,self).__init__(model,parameters)
+        super().__init__(model,parameters)
 
     def _CreateSolver(self):
-        from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
         solver = geomechanics_solvers_wrapper.CreateSolver(self.model, self.project_parameters)
         return solver
-        #solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        #solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
-        #return solver
 
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
                 "loads_process_list",
                 "auxiliar_process_list"]
-
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
-        This method is TEMPORARY to not break existing code
-        It will be removed in the future
-        """
-        list_of_processes = super(GeoMechanicsAnalysisBase, self)._CreateProcesses(parameter_name, initialization_order)
-
-        if parameter_name == "processes":
-            processes_block_names = ["constraints_process_list", "loads_process_list","auxiliar_process_list"]
-            if len(list_of_processes) == 0: # Processes are given in the old format
-                info_msg  = "Using the old way to create the processes, this will be removed!\n"
-                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
-                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
-                info_msg += "for a description of the new format"
-                #KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Using the old way to create the processes, this will be removed!")
-                KratosMultiphysics.Logger.PrintWarning("GeoMechanicsAnalysisBase", info_msg)
-                from process_factory import KratosProcessFactory
-                factory = KratosProcessFactory(self.model)
-                for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
-            else: # Processes are given in the new format
-                for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
-        elif parameter_name == "output_processes":
-            if self.project_parameters.Has("output_configuration"):
-                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
-                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
-                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
-                info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanicsAnalysisBase", info_msg)
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
-        else:
-            raise NameError("wrong parameter name")
-
-        return list_of_processes
-
-
-    def _SetUpGiDOutput(self):
-        '''Initialize a GiD output instance.'''
-        if self.parallel_type == "OpenMP":
-            import geomechanics_cleaning_utility
-            geomechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
-            from gid_output_process import GiDOutputProcess as OutputProcess
-        elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
-
-        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                self.project_parameters["output_configuration"])
-
-        return output
 
     def _GetSimulationName(self):
         return "GeoMechanics Analysis"
@@ -199,7 +119,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
 
     def FinalizeSolutionStep(self):
-        super(GeoMechanicsAnalysisBase,self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         if(self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations):
             raise Exception("max_number_of_iterations_exceeded")
