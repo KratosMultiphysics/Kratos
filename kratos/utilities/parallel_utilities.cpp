@@ -41,7 +41,7 @@ void ParallelUtilities::SetNumThreads(const int NumThreads)
 
     const int num_procs = GetNumProcs();
     KRATOS_WARNING_IF("ParallelUtilities", NumThreads > num_procs) << "The number of requested threads (" << NumThreads << ") exceeds the number of available threads (" << num_procs << ")!" << std::endl;
-    GetNumberOfThreads() = NumThreads;
+    // GetNumberOfThreads() = NumThreads;
 
 #ifdef KRATOS_SMP_OPENMP
     // external libraries included in Kratos still use OpenMP (such as AMGCL)
@@ -96,7 +96,7 @@ int ParallelUtilities::InitializeNumberOfThreads()
 
     num_threads = std::max(1, num_threads);
 
-#ifdef KRATOS_SMP_OPENMP && KRATOS_FORCE_OMP_NUM_THREADS
+#if defined(KRATOS_SMP_OPENMP) && defined(KRATOS_FORCE_NUM_THREADS)
     // external libraries included in Kratos still use OpenMP (such as AMGCL)
     // this makes sure that they use the same number of threads as Kratos itself.
     omp_set_num_threads(num_threads);
@@ -106,22 +106,29 @@ int ParallelUtilities::InitializeNumberOfThreads()
 #endif
 }
 
-int& ParallelUtilities::GetNumberOfThreads()
+int ParallelUtilities::GetNumberOfThreads()
 {
-    if (!mspNumThreads) {
-        LockObject lock;
-        lock.SetLock();
-        if (!mspNumThreads) {
-            static int num_threads;
-            num_threads = InitializeNumberOfThreads();
-            mspNumThreads = &num_threads;
-        }
-        lock.UnSetLock();
-    }
+    // if (!mspNumThreads) {
+    //     LockObject lock;
+    //     lock.SetLock();
+    //     if (!mspNumThreads) {
+    //         static int num_threads;
+    //         num_threads = InitializeNumberOfThreads();
+    //         mspNumThreads = &num_threads;
+    //     }
+    //     lock.UnSetLock();
+    // }
 
-    return *mspNumThreads;
+    // return *mspNumThreads;
+#ifdef KRATOS_SMP_OPENMP
+    return omp_get_num_threads();
+#elif defined(KRATOS_SMP_CXX11)
+    return std::thread::hardware_concurrency();
+#else
+    return 1;
+#endif
 }
 
-int* ParallelUtilities::mspNumThreads = nullptr;
+// int* ParallelUtilities::mspNumThreads = nullptr;
 
 }  // namespace Kratos.
