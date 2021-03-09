@@ -56,7 +56,7 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.732050807568877293527446341505872366942805253810380628055806;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
     rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
