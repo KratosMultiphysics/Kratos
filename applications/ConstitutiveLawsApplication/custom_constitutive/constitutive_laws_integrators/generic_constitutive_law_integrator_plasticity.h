@@ -177,30 +177,35 @@ class GenericConstitutiveLawIntegratorPlasticity
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
 
-        // Backward Euler
-        while (is_converged == false && iteration <= max_iter) {
-            plastic_consistency_factor_increment = F * rPlasticDenominator;
-            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
-            noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
-            noalias(rPlasticStrain) += rPlasticStrainIncrement;
-            noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
+        if (rPlasticDissipation < 0.9999) {
+            // Backward Euler
+            while (is_converged == false && iteration <= max_iter) {
+                plastic_consistency_factor_increment = F * rPlasticDenominator;
+                if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
+                noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
+                noalias(rPlasticStrain) += rPlasticStrainIncrement;
+                noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
 
-            noalias(rPredictiveStressVector) -= delta_sigma;
+                noalias(rPredictiveStressVector) -= delta_sigma;
 
-            F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
-                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
-                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
+                F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
+                                            rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
+                                            rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
 
-            if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
-                is_converged = true;
-            } else {
-                iteration++;
+                if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+                    is_converged = true;
+                } else {
+                    iteration++;
+                }
             }
+
+            if (iteration > max_iter) {
+                KRATOS_WARNING("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+            }
+        } else {
+            noalias(rPredictiveStressVector) = ZeroVector(6);
         }
 
-        if (iteration > max_iter) {
-            KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
-        }
     }
 
     /**
