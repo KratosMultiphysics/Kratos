@@ -27,21 +27,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
-        self.min_buffer_size = 2
-
-        # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
-
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
-
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                  self.settings["domain_size"].GetInt())
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
 
@@ -124,10 +109,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
         return this_defaults
 
-    def ImportModelPart(self):
-        # we can use the default implementation in the base class
-        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
-
     def PrepareModelPart(self):
 
         # Set ProcessInfo variables
@@ -154,7 +135,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
 
     def AddDofs(self):
-        ## Solid dofs
+        ## displacement dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
@@ -197,8 +178,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "DOFs added correctly.")
 
-    def GetMinimumBufferSize(self):
-        return self.min_buffer_size
 
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_U_Pw_Solver]:: ", "Initialisation ...")
@@ -241,36 +220,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Solver initialization finished.")
 
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-
-    def ComputeDeltaTime(self):
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-    def Clear(self):
-        self.solver.Clear()
-
-    def Check(self):
-        self.solver.Check()
-
-    def SetEchoLevel(self, level):
-        self.solver.SetEchoLevel(level)
-
-    def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
-        current_time_corrected = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        #new_time = current_time + dt
-        new_time = current_time_corrected + dt
-        # print("new_time:", new_time)
-        self.main_model_part.CloneTimeStep(new_time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-
-        return new_time
-
-    def KeepAdvancingSolutionLoop(self, end_time):
-        current_time_corrected = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        return current_time_corrected < end_time
-
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
 
@@ -278,25 +227,11 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.solver.Predict()
 
     def SolveSolutionStep(self):
-        #KratosMultiphysics.Logger.PrintWarning("::[GeoMechanical_U_Pw_Solver]:: ", "SolveSolutionStep")
         is_converged = self.solver.SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
         self.solver.FinalizeSolutionStep()
-
-    def import_constitutive_laws(self):
-        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: importing constitutive law", materials_filename)
-        if (materials_filename != ""):
-            # Add constitutive laws and material properties from json file to model parts.
-            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
-            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
-            materials_imported = True
-        else:
-            materials_imported = False
-        return materials_imported
 
     #### Specific internal functions ####
 
