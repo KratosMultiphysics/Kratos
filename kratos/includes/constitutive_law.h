@@ -577,8 +577,8 @@ public:
     /**
      * @brief Adds the initial stress vector if it is defined in the InitialState
      */
-    template<typename TVectorType>
-    void AddInitialStressVectorContribution(TVectorType& rStressVector, Parameters& rParameterValues) 
+    template<const typename TVectorType>
+    void AddInitialStressVectorContribution(TVectorType& rStressVector) 
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
@@ -589,8 +589,8 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    template<typename TVectorType>
-    void AddInitialStrainVectorContribution(TVectorType& rStrainVector, Parameters& rParameterValues)
+    template<const typename TVectorType>
+    void AddInitialStrainVectorContribution(TVectorType& rStrainVector)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
