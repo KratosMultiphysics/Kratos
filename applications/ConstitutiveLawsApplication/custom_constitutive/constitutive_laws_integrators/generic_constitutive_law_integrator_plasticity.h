@@ -199,7 +199,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         }
 
         if (iteration > max_iter) {
-            KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+            KRATOS_WARNING("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
         }
     }
 
