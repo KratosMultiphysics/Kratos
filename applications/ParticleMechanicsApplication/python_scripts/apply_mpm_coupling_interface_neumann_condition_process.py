@@ -7,10 +7,10 @@ from math import sqrt
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyMPMCouplingInterfaceConditionProcess(Model, settings["Parameters"])
+    return ApplyMPMCouplingInterfaceNeumannConditionProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleNeumannConditionProcess):
+class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannConditionProcess):
     def __init__(self, Model, settings ):
 
         default_parameters = KratosMultiphysics.Parameters( """
@@ -27,7 +27,7 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleNeumannCondition
         self.model_part_name = settings["model_part_name"].GetString()
 
         # Initiate base class - Dirichlet condition
-        super(ApplyMPMCouplingInterfaceConditionProcess, self).__init__(Model, settings)
+        super(ApplyMPMCouplingInterfaceNeumannConditionProcess, self).__init__(Model, settings)
 
         # Set INTERFACE flag active
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, self.model_part.Conditions)
@@ -40,11 +40,11 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleNeumannCondition
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
 
-        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Interface" responsible for coupling with structure
+        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Neumann_Interface" responsible for coupling with structure
         # Create coupling model part
-        if not self.model.HasModelPart("MPM_Coupling_Interface"):
-            self.model.CreateModelPart("MPM_Coupling_Interface")
-        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface").CreateSubModelPart(self.model_part_name)
+        if not self.model.HasModelPart("MPM_Coupling_Neumann_Interface"):
+            self.model.CreateModelPart("MPM_Coupling_Neumann_Interface")
+        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Neumann_Interface").CreateSubModelPart(self.model_part_name)
 
         # Prepare coupling model part
         self._prepare_coupling_model_part(self.coupling_model_part)
@@ -55,6 +55,9 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleNeumannCondition
                 node_id         = mpc.Id
                 node_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
                 coupling_node   = self.coupling_model_part.CreateNewNode(node_id, node_coordinate[0], node_coordinate[1], node_coordinate[2])
+                coupling_node.X0 = node_coordinate[0]
+                coupling_node.Y0 = node_coordinate[1]
+                coupling_node.Z0 = node_coordinate[2]
             
 
 
@@ -78,11 +81,16 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleNeumannCondition
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
 
-                delta_x = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
+                coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
+                
                 node = self.coupling_model_part.GetNode(coupling_id)
-                du = (node.X-node.X0)+delta_x[0]
-                dw = (node.Y-node.Y0)+delta_x[1]
-                dz = (node.Z -node.Z0)+delta_x[2]
+                node.X =coord[0]
+                node.Y =coord[1]
+                node.Z =coord[2]
+                
+                du = (node.X-node.X0)
+                dw = (node.Y-node.Y0)
+                dz = (node.Z -node.Z0)
                 displacement = [du,dw,dz]
 
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,displacement)
