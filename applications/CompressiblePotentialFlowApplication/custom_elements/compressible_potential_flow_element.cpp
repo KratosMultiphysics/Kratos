@@ -445,7 +445,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSideNorm
 
     const CompressiblePotentialFlowElement& r_this = *this;
 
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(r_this);
+    const array_1d<double, Dim>& velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(r_this);
 
     BoundedVector<double, NumNodes> rhs = ZeroVector(NumNodes);
     CalculateRightHandSideContribution(rhs, rCurrentProcessInfo, velocity, data);
