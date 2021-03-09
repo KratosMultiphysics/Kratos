@@ -29,7 +29,7 @@ namespace Kratos {
 
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double bonded_equiv_young,
                                              double equiv_poisson, double calculation_area,
-                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                                 double OldLocalElasticContactForce[3],
@@ -94,6 +94,8 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             const ProcessInfo& r_process_info) override;
+
+        void ComputeNormalUnbondedForce(double indentation);
 
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 

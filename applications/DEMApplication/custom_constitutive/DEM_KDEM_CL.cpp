@@ -60,7 +60,7 @@ namespace Kratos {
     }
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
 
@@ -355,10 +355,10 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if ((indentation > 0) || (failure_id == 0)) {
+        if (indentation > 0 || !failure_id) {
             ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
         }
-        if (((indentation > 0) || (failure_id == 0)) && (sliding == false)) {
+        if ((indentation > 0 || !failure_id) && !sliding) {
             ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
