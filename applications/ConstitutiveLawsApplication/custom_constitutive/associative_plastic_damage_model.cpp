@@ -326,7 +326,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     PlasticDamageParameters &rPDParameters
     )
 {
-    BoundedVectorType delta_sigma;
     const auto& r_mat_properties = rValues.GetMaterialProperties();
 
     bool is_converged = false;
