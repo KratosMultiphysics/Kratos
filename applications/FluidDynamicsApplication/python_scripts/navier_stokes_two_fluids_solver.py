@@ -222,7 +222,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             #TODO: THINK IF WE KEEP THIS IN HERE OR AT THE END OF THE STEP
             # Apply mass conservation process
-            #self.mass_conservation_process.Execute()
+            self.mass_conservation_process.Execute()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set mass correction is performed.")
 
             # Recompute the distance field according to the new level-set position
@@ -237,7 +237,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.NODAL_AREA,
-                    layers,
                     max_distance,
                     self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
@@ -270,7 +269,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             self._GetSolutionStrategy().FinalizeSolutionStep()
-            self._GetAccelerationLimitationUtility().Execute()
+            # self._GetAccelerationLimitationUtility().Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):

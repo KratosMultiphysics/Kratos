@@ -8,7 +8,7 @@
 """
 
 from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
+import os 
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.python_linear_solver_factory as python_linear_solver_factory
@@ -33,7 +33,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "model_part_name"                    : "fluid_model_part",
+            "model_part_name"                    : "FluidModelPart",
             "mass_correction_settings"           : {
                 "echo_level" : 1
             },
@@ -147,7 +147,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
         # tol_error=0.001
         print(tol_error)
         tol_error_flux=1.0e-5
-        
+        factor=1
         # mass conservation  correction 
         if abs(initial_volume_error) > tol_error and abs(Flow_interface_corrected_old)>tol_flow:
             iteration=0
@@ -156,7 +156,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 flow_interface=self._CalculateFlowIntoAir() 
                 volumetric_error=self.mass_conservation_utility.GetVolumeError()
                 self._GetDistanceGradientProcess().Execute()
-                global_corrector= self.mass_conservation_utility.GetInterfaceArea()
+                global_corrector= factor* self.mass_conservation_utility.GetInterfaceArea()
                 print("AREA",global_corrector)
                 for node in self._fluid_model_part.Nodes:
                     distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -166,12 +166,13 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                     projected_velocity=self._DotProductKratos(veolocity_nodal,normalized_distance_gradient)
                     local_corrector=projected_velocity/flow_interface
                     
-                    if abs(local_corrector)<abs(global_corrector):
-                        corrector_distance=volumetric_error*abs(local_corrector)
+                    # if abs(local_corrector)<abs(global_corrector):
+                    #     corrector_distance=volumetric_error*abs(local_corrector)
                         
-                    else: 
-                        corrector_distance=volumetric_error/global_corrector
-                    # corrector_distance=volumetric_error/global_corrector    
+                    # else: 
+                    #     corrector_distance=volumetric_error/global_corrector
+
+                    corrector_distance=volumetric_error/global_corrector    
                     previous_distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                     new_distance= previous_distance+ corrector_distance
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,new_distance)
@@ -179,6 +180,16 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
             
                 self.mass_conservation_utility.ComputeBalancedVolume()
                 new_error = self.mass_conservation_utility.GetVolumeError()
+                filename = 'error_mass.txt'
+
+                if os.path.exists(filename):
+                    append_write = 'a' # append if already exists
+                else:
+                    append_write = 'w' # make a new file if not
+
+                highscore = open(filename,append_write)
+                highscore.write( str(old_volume_error) +' ' +str(new_error) +'\n')
+                highscore.close()
 
                 if abs(new_error)< abs(initial_volume_error):
                     print("mass correction has been carried out succesfully")
@@ -199,12 +210,21 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                     iteration+=1
                 else:
                     print("MASS CONSERVATION CHECK IS COMPLETED")
+                    
                     return
+        else:
+            filename = 'error_mass.txt'
+            if os.path.exists(filename):
+                append_write = 'a' # append if already exists
+            else:
+                append_write = 'w' # make a new file if not
+
+            highscore = open(filename,append_write)
+            highscore.write( str(initial_volume_error) +' ' +str(initial_volume_error) +'\n')
+            highscore.close()
 
                 
 
-                
-    
         self.ExecuteFinalizeSolutionStepWriting()
 
 

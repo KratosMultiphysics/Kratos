@@ -123,7 +123,21 @@ public:
         double Total_energy_water_splitted = 0.0;
         double Total_energy_air = 0.0;
         double Total_energy_water= 0.0;
-
+        double Total_energy_air_entire_element=0;
+        double Total_energy_water_entire_element=0;
+        double Total_cinematic_energy_water=0;
+        double Total_cinematic_energy_air=0;
+        double Total_hydrostatic_energy_water=0;
+        double Total_hydrostatic_energy_air=0;
+        double Total_cinematic_energy_water_splitted=0;
+        double Total_hydrostatic_energy_water_splitted=0;
+        double Total_cinematic_energy_water_not_splitted=0;
+        double Total_hydrostatic_energy_water_not_splitted=0;
+        double Total_cinematic_energy_air_splitted=0;
+        double Total_hydrostatic_energy_air_splitted=0;
+        double Total_cinematic_energy_air_not_splitted=0;
+        double Total_hydrostatic_energy_air_not_splitted=0;
+        double gravity=9.81;
         if(mDomainSize == 2)
         // Total Energy check for 2D cases[Fluid1_energy and FLuid2_energy]: A loop in each element of the mesh considering splitted elements (air/water elements)
         { 
@@ -138,6 +152,7 @@ public:
                 const auto &r_vel_0 = r_geom[0].FastGetSolutionStepValue(VELOCITY);
                 const auto &r_vel_1 = r_geom[1].FastGetSolutionStepValue(VELOCITY);
                 const auto &r_vel_2 = r_geom[2].FastGetSolutionStepValue(VELOCITY);
+                
 
                 // const bool is_valid = aux_n == r_geom.PointsNumber() ? true : false;
                 const bool is_valid = true;
@@ -336,24 +351,42 @@ public:
                             auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
                             for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss)
                             {
+                                // energy_solu_cinematic[0]= (std::pow(v_solu[0], 2) * Water_Density) / 2);
+                                // energy_solu_cinematic[1]= (std::pow(v_solu[1], 2) * Water_Density) / 2);
+                                // energy_solu_cinematic[2]= (std::pow(v_solu[2], 2) * Water_Density) / 2);
+                                // const double energy_water_cinematica= std::pow(std::pow(energy_solu_cinematic[0], 2) + std::pow(energy_solu_cinematic[1], 2) + std::pow(energy_solu_cinematic[2], 2), 0.5);
+                                // energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
+                                // energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
+                                // energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
+                                // const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                                // Total_cinematic_energy_water=+w_gauss_neg_side[i_gauss]*energy_water_cinematica
                                 array_1d<double, 3> v_solu;
                                 array_1d<double, 3> energy_solu;
+                                array_1d<double, 3> energy_solu_cinematic;
                                 const double p_solu = r_p_0 * N_neg_side(i_gauss, 0) + r_p_1 * N_neg_side(i_gauss, 1) + r_p_2 * N_neg_side(i_gauss, 2) + r_p_3 * N_neg_side(i_gauss, 3);
                                 v_solu[0] = r_vel_0[0] * N_neg_side(i_gauss, 0) + r_vel_1[0] * N_neg_side(i_gauss, 1) + r_vel_2[0] * N_neg_side(i_gauss, 2) + r_vel_3[0] * N_neg_side(i_gauss, 3);
                                 v_solu[1] = r_vel_0[1] * N_neg_side(i_gauss, 0) + r_vel_1[1] * N_neg_side(i_gauss, 1) + r_vel_2[1] * N_neg_side(i_gauss, 2) + r_vel_3[1] * N_neg_side(i_gauss, 3);
                                 v_solu[2] = r_vel_0[2] * N_neg_side(i_gauss, 0) + r_vel_1[2] * N_neg_side(i_gauss, 1) + r_vel_2[2] * N_neg_side(i_gauss, 2) + r_vel_3[2] * N_neg_side(i_gauss, 3);
-
+                                const double z_interpolated=r_geom[0].Z()* N_neg_side(i_gauss, 0) + r_geom[1].Z()* N_neg_side(i_gauss, 1) + r_geom[2].Z() * N_neg_side(i_gauss, 2) + r_geom[3].Z()* N_neg_side(i_gauss, 3);
                                 const double Water_Density = 1e+3;
                                 
-                                energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
-                                energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
-                                energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
-                                const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-
+                                const double velocity_square_norm=inner_prod(v_solu,v_solu);
+                                const double energy_water = (velocity_square_norm * Water_Density)/2+  gravity*Water_Density*z_interpolated;
+                                const double cinematic_energy_water=(velocity_square_norm * Water_Density)/2;
+                                const double hydrostatic_energy_water=gravity*Water_Density*z_interpolated;
+                                Total_hydrostatic_energy_water+=w_gauss_neg_side[i_gauss]* hydrostatic_energy_water;
+                                Total_cinematic_energy_water+= w_gauss_neg_side[i_gauss] * cinematic_energy_water;
                                 Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * energy_water;
                                 Total_energy_water += w_gauss_neg_side[i_gauss] * energy_water;
                                 cut_area_negative += w_gauss_neg_side[i_gauss];
                                 total_area_negative += w_gauss_neg_side[i_gauss];
+                                Total_cinematic_energy_water_splitted+= w_gauss_neg_side[i_gauss] * cinematic_energy_water;
+                                Total_hydrostatic_energy_water_splitted+=w_gauss_neg_side[i_gauss]* hydrostatic_energy_water;
+      
+
+
+
+
                             }
 
                         }
@@ -373,16 +406,27 @@ public:
                             for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss)
                             {
                                 array_1d<double, 3> v_solu;
-                                array_1d<double, 3> energy_solu;
+                                // const double energy_solu;
+                                array_1d<double, 3> energy_solu_cinematic;
                                 const double p_solu = r_p_0 * N_pos_side(i_gauss, 0) + r_p_1 * N_pos_side(i_gauss, 1) + r_p_2 * N_pos_side(i_gauss, 2)+ r_p_3 * N_pos_side(i_gauss, 3);
                                 v_solu[0] = r_vel_0[0] * N_pos_side(i_gauss, 0) + r_vel_1[0] * N_pos_side(i_gauss, 1) + r_vel_2[0] * N_pos_side(i_gauss, 2) + r_vel_3[0] * N_pos_side(i_gauss, 3);
                                 v_solu[1] = r_vel_0[1] * N_pos_side(i_gauss, 0) + r_vel_1[1] * N_pos_side(i_gauss, 1) + r_vel_2[1] * N_pos_side(i_gauss, 2)+ r_vel_3[1] * N_pos_side(i_gauss, 3);
                                 v_solu[2] = r_vel_0[2] * N_pos_side(i_gauss, 0) + r_vel_1[2] * N_pos_side(i_gauss, 1) + r_vel_2[2] * N_pos_side(i_gauss, 2)+ r_vel_3[2] * N_pos_side(i_gauss, 3);
                                 const double Air_Density = 1.22;
-                                energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
-                                energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
-                                energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                                const double energy_air = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                                const double z_interpolated=r_geom[0].Z()*N_pos_side(i_gauss, 0) + r_geom[1].Z()* N_pos_side(i_gauss, 1) + r_geom[2].Z() * N_pos_side(i_gauss, 2) + r_geom[3].Z()* N_pos_side(i_gauss, 3);
+                                const double velocity_norm=inner_prod(v_solu,v_solu);
+                                const double energy_air = (velocity_norm * Air_Density)/2+  gravity*Air_Density*z_interpolated;
+                                KRATOS_WATCH(r_geom[0].Id())
+                                KRATOS_WATCH(r_geom[0].Z())
+                                KRATOS_WATCH(z_interpolated)
+                                const double cinematic_energy_air=( velocity_norm * Air_Density)/2;
+                                const double hydrostatic_energy_air=gravity*Air_Density*z_interpolated;
+                                Total_hydrostatic_energy_air+=w_gauss_pos_side[i_gauss]* hydrostatic_energy_air;
+                                Total_cinematic_energy_air+= w_gauss_pos_side[i_gauss] * cinematic_energy_air;
+                                // energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
+                                // energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
+                                // energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
+                                // const double energy_air = (velocity_norm * Air_Density)/2+ p_soluT
                                 
 
                                 Total_energy_air_splitted += w_gauss_pos_side[i_gauss] * energy_air;
@@ -391,6 +435,8 @@ public:
                                 // Add the local Gauss contribution to the areas
                                 cut_area_positive += w_gauss_pos_side[i_gauss];
                                 total_area_positive += w_gauss_pos_side[i_gauss];
+                                Total_cinematic_energy_air_splitted+= w_gauss_pos_side[i_gauss] * cinematic_energy_air;
+                                Total_hydrostatic_energy_air_splitted+=w_gauss_pos_side[i_gauss]* hydrostatic_energy_air;
                     }
                     }
                     }
@@ -417,14 +463,25 @@ public:
                             v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2) + r_vel_3[2] * N(i_gauss, 3);
 
                             const double Air_Density = 1.22;
-                            energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
-                            energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
-                            energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                            const double Air_energy = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                            const double z_interpolated=r_geom[0].Z()*N(i_gauss, 0) + r_geom[1].Z()* N(i_gauss, 1) + r_geom[2].Z() * N(i_gauss, 2) + r_geom[3].Z()* N(i_gauss, 3);
 
-                            Total_energy_air += Air_energy * (jac_vect[i_gauss] / 6.0);
+                            const double velocity_norm=inner_prod(v_solu,v_solu);
+                            const double energy_air = (velocity_norm * Air_Density)/2+ gravity*Air_Density*z_interpolated;
+                            const double cinematic_energy_air=(velocity_norm * Air_Density)/2;
+                            const double hydrostatic_energy_air=gravity*Air_Density*z_interpolated;
+                            // const double Water_Density = 1e+3;
+                            // energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
+                            // energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
+                            // energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
+                            // const double Air_energy = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                            Total_hydrostatic_energy_air+=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_air;
+                            Total_cinematic_energy_air+= (jac_vect[i_gauss] / 6.0) * cinematic_energy_air;
+                            Total_energy_air += energy_air * (jac_vect[i_gauss] / 6.0);
+                            Total_energy_air_entire_element+= energy_air * (jac_vect[i_gauss] / 6.0);
                             // Add the local Gauss contribution to the areas
                             total_area_positive += (jac_vect[i_gauss] / 6.0);
+                            Total_cinematic_energy_air_not_splitted=(jac_vect[i_gauss] / 6.0) * cinematic_energy_air;
+                            Total_hydrostatic_energy_air_not_splitted=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_air;
                         }
                     }
                 
@@ -445,18 +502,25 @@ public:
                             v_solu[0] = r_vel_0[0] * N(i_gauss, 0) + r_vel_1[0] * N(i_gauss, 1) + r_vel_2[0] * N(i_gauss, 2) + r_vel_3[0] * N(i_gauss, 3);
                             v_solu[1] = r_vel_0[1] * N(i_gauss, 0) + r_vel_1[1] * N(i_gauss, 1) + r_vel_2[1] * N(i_gauss, 2) + r_vel_3[1] * N(i_gauss, 3);
                             v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2) + r_vel_3[2] * N(i_gauss, 3);
-                            
+                            const double z_interpolated=r_geom[0].Z()*N(i_gauss, 0) + r_geom[1].Z()* N(i_gauss, 1) + r_geom[2].Z() * N(i_gauss, 2) + r_geom[3].Z()* N(i_gauss, 3);
                             const double Water_Density = 1e03;
-                            energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
-                            energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
-                            energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
+                           
+
+                            const double velocity_norm=inner_prod(v_solu,v_solu);
+                            const double energy_water = (velocity_norm * Water_Density)/2+ gravity*Water_Density*z_interpolated;
                             
-                            const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+                            const double cinematic_energy_water=(velocity_norm * Water_Density)/2;
+                            const double hydrostatic_energy_water=gravity*Water_Density*z_interpolated;
+                            Total_hydrostatic_energy_water+=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_water;
+                            Total_cinematic_energy_water+= (jac_vect[i_gauss] / 6.0) * cinematic_energy_water;
+                            // const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
                             
                             Total_energy_water += energy_water * (jac_vect[i_gauss] / 6.0);
-                            
+                            Total_energy_water_entire_element+= energy_water* (jac_vect[i_gauss] / 6.0);
                             // Add the local Gauss contribution to the areas
                             total_area_negative += (jac_vect[i_gauss] / 6.0);
+                            Total_cinematic_energy_water_not_splitted=(jac_vect[i_gauss] / 6.0) * cinematic_energy_water;
+                            Total_hydrostatic_energy_water_not_splitted=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_water;
                         }
                     }
                 }   
@@ -478,12 +542,23 @@ public:
         std::cout << std::endl;
         
 
-        WritingFile(total_energy_system);
+        WritingFile(
+                    Total_energy_air,Total_energy_air_splitted,
+                    Total_energy_air_entire_element,Total_cinematic_energy_air,Total_hydrostatic_energy_air, Total_energy_water,Total_energy_water_splitted,
+                    Total_energy_water_entire_element,Total_cinematic_energy_water,Total_hydrostatic_energy_water,total_energy_system);
+    
 
         KRATOS_CATCH("");
     }
 
-    void WritingFile(const double& total_energy_system)
+
+
+    
+
+void WritingFile(
+const double& Total_energy_air,const double& Total_energy_air_splitted,
+const double& Total_energy_air_entire_element,const double& Total_cinematic_energy_air,const double&Total_hydrostatic_energy_air, const double& Total_energy_water,const double& Total_energy_water_splitted,
+const double& Total_energy_water_entire_element,const double& Total_cinematic_energy_water,const double& Total_hydrostatic_energy_water,const double& total_energy_system)
     {
         KRATOS_WATCH("I am writting into file energy check")
         const double current_time = mrModelPart.GetProcessInfo()[TIME];
@@ -496,10 +571,21 @@ public:
             std::cout << "no funciona" << std::endl;
         }
         //std::string output_line = "total_energy_system\t\tSTEP \n";
+
         std::string output_line = std::to_string(current_time) + "\t";
+        output_line += std::to_string(Total_energy_air) + "\t";
+        output_line += std::to_string(Total_energy_air_splitted) + "\t";
+        output_line += std::to_string(Total_energy_air_entire_element) + "\t";  
+        output_line += std::to_string(Total_cinematic_energy_air) + "\t";
+        output_line += std::to_string(Total_hydrostatic_energy_air) + "\t";
+        output_line += std::to_string(Total_energy_water) + "\t";
+        output_line += std::to_string(Total_energy_water_splitted) + "\t";
+        output_line += std::to_string(Total_energy_water_entire_element) + "\t";    
+        output_line += std::to_string(Total_cinematic_energy_water) + "\t";
+        output_line += std::to_string(Total_hydrostatic_energy_water) + "\t";
         output_line += std::to_string(total_energy_system) + "\n";
         MyFile << output_line ;
-        MyFile.close();
+
     }
 
  ///@}
