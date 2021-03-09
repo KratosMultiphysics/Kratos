@@ -2,21 +2,15 @@
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-# DEPRECATION: "CheckRegisteredApplications" is not needed any more and can be safely removed
-#KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-#KratosMultiphysics.CheckRegisteredApplications("GeoMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
-
 
 def CreateSolver(model, custom_settings):
     return GeoMechanicalSolver(model, custom_settings)
 
 class GeoMechanicalSolver(PythonSolver):
-    """The base class for structural mechanics solvers.
+    """The base class for geomechanics solvers.
 
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
