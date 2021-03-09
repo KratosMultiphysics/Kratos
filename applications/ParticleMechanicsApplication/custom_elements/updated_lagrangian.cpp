@@ -1262,15 +1262,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
 
     noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
 
-    //1.-Calculate StiffnessMatrix:
-    MatrixType StiffnessMatrix  = Matrix();
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-    MatrixType MassMatrix  = Matrix();
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
     {
@@ -1291,10 +1283,23 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
         beta = rCurrentProcessInfo[RAYLEIGH_BETA];
     }
 
-    //4.-Compose the Damping Matrix:
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
+    //2.-Calculate StiffnessMatrix:
+    if (std::abs(beta) > 1e-12){
+        MatrixType StiffnessMatrix  = Matrix();
+        this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+        //4.1.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix += beta  * StiffnessMatrix;
+    }
+
+    //3.-Calculate MassMatrix:
+    if (std::abs(alpha) > 1e-12){
+        MatrixType MassMatrix  = Matrix();
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        //4.2.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix  += alpha * MassMatrix;
+    }
 
     KRATOS_CATCH( "" )
 }

@@ -250,6 +250,8 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     InitializeTriangulateIO(vorout_mid);
 
     // Initialize the boundary points coordinates list
+    // Note 1: that InitializeTriangulateIO allocates nothing for this by default
+    // Note 2: this will be deallocated within the ClearTriangulateIO call below
     in_mid.numberofpoints = rCoordinates.size()/2;
     in_mid.pointlist = (REAL *) malloc(in_mid.numberofpoints * 2 * sizeof(REAL));
 
@@ -261,7 +263,7 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     in_mid.numberofsegments = rSegments.size();
     in_mid.segmentlist = (int*) malloc(in_mid.numberofsegments * 2 * sizeof(int));
     in_mid.segmentmarkerlist = (int*) malloc(in_mid.numberofsegments * sizeof(int));
-    for (std::size_t i = 0; i < in_mid.numberofsegments; ++i) {
+    for (std::size_t i = 0; i < rSegments.size(); ++i) {
         const auto& r_segment = rSegments[i];
         in_mid.segmentlist[2*i] = r_segment[0];
         in_mid.segmentlist[2*i + 1] = r_segment[1];
@@ -273,10 +275,8 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     // "p" triangulates a Planar Straight Line Graph
     // "z" numbers all items starting from zero (rather than one)
     // "a" imposes a maximum triangle area constrain
-    std::string str = AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
-    char *meshing_options = new char[str.length() + 1];
-    strcpy(meshing_options, str.c_str());
-    triangulate(meshing_options, &in_mid, &out_mid, &vorout_mid);
+    std::string meshing_options = AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
+    triangulate(&meshing_options[0], &in_mid, &out_mid, &vorout_mid);
 
     // Save the obtained connectivities in an output std::vector
     const auto& r_triangles_list = out_mid.trianglelist;
