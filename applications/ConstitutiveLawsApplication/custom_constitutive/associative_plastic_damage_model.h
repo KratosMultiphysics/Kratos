@@ -101,6 +101,7 @@ public:
         BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize);
         BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize);
+        BoundedVectorType DamageStrain           = ZeroVector(VoigtSize);
         BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize);
         BoundedVectorType StrainVector           = ZeroVector(VoigtSize);
         BoundedVectorType StressVector           = ZeroVector(VoigtSize);
@@ -678,6 +679,7 @@ public:
         rPlasticDamageParameters.DamageDissipation      = mDamageDissipation;
         rPlasticDamageParameters.TotalDissipation       = mPlasticDissipation + mDamageDissipation;
         rPlasticDamageParameters.Threshold              = mThreshold;
+        noalias(rPlasticDamageParameters.DamageStrain)  = mDamageStrain;
         noalias(rPlasticDamageParameters.PlasticStrain) = mPlasticStrain;
         noalias(rPlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
@@ -752,6 +754,7 @@ private:
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
+    BoundedVectorType mDamageStrain     = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
@@ -779,6 +782,7 @@ private:
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("DamageStrain", mDamageStrain);
         rSerializer.save("ComplianceMatrix", mComplianceMatrix);
     }
 
@@ -788,6 +792,7 @@ private:
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("DamageStrain", mDamageStrain);
         rSerializer.load("ComplianceMatrix", mComplianceMatrix);
     }
 
