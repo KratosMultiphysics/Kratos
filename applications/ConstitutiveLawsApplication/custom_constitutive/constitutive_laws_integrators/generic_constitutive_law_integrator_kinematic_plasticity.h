@@ -221,8 +221,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                     iteration++;
                 }
             }
+            KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorKinematicPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }  else {
+            noalias(rPredictiveStressVector) = ZeroVector(6);
         }
-        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorKinematicPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
     /**
