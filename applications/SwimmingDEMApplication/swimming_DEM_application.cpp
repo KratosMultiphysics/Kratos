@@ -40,12 +40,12 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXACT_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RECOVERED_PRESSURE_GRADIENT)
 KRATOS_CREATE_VARIABLE(double, EXACT_PRESSURE)
 KRATOS_CREATE_VARIABLE(double, SCALAR_ERROR)
 KRATOS_CREATE_VARIABLE(double, ERROR_X)
 KRATOS_CREATE_VARIABLE(double, ERROR_Y)
 KRATOS_CREATE_VARIABLE(double, ERROR_Z)
+KRATOS_CREATE_VARIABLE(double, ERROR_P)
 KRATOS_CREATE_VARIABLE(double, PERMEABILITY_1_DAY)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
@@ -85,8 +85,6 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mComputeVelocityLaplacianComponentSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mComputeVelocityLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mComputeVelocityLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-  mCalculateErrorL2Projection2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-  mCalculateErrorL2Projection3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
   mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
   mComputeLaplacianSimplexCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
@@ -106,12 +104,12 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RECOVERED_PRESSURE_GRADIENT)
   KRATOS_REGISTER_VARIABLE(EXACT_PRESSURE)
   KRATOS_REGISTER_VARIABLE(SCALAR_ERROR)
   KRATOS_REGISTER_VARIABLE(ERROR_X)
   KRATOS_REGISTER_VARIABLE(ERROR_Y)
   KRATOS_REGISTER_VARIABLE(ERROR_Z)
+  KRATOS_REGISTER_VARIABLE(ERROR_P)
   KRATOS_REGISTER_VARIABLE(PERMEABILITY_1_DAY)
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
@@ -154,8 +152,6 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianComponentSimplex3D", mComputeVelocityLaplacianComponentSimplex3D)
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex2D", mComputeVelocityLaplacianSimplex2D)
   KRATOS_REGISTER_ELEMENT("ComputeVelocityLaplacianSimplex3D", mComputeVelocityLaplacianSimplex3D)
-  KRATOS_REGISTER_ELEMENT("CalculateErrorL2Projection2D", mCalculateErrorL2Projection2D)
-  KRATOS_REGISTER_ELEMENT("CalculateErrorL2Projection3D", mCalculateErrorL2Projection3D)
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition2D", mMonolithicDEMCoupledWallCondition2D)
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition3D",mMonolithicDEMCoupledWallCondition3D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D",  mComputeLaplacianSimplexCondition2D)

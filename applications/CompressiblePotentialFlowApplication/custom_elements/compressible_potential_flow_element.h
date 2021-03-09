@@ -67,7 +67,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of CompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(CompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle

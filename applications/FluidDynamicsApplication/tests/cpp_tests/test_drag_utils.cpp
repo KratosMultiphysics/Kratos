@@ -82,10 +82,10 @@ namespace Kratos {
             Element::Pointer p_elem_1, p_elem_2;
             if (is_embedded){
                 rModelPart.GetProcessInfo().SetValue(SLIP_LENGTH, 1.0e-2);
-                p_elem_1 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
-                p_elem_2 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_2 = rModelPart.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
             } else {
-                p_elem_1 = rModelPart.CreateNewElement("SymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("WeaklyCompressibleNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
             }
             rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, cond_nodes, p_elem_prop);
 

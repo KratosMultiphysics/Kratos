@@ -398,7 +398,7 @@ private:
         const KinematicVariables& rKinematicVariables,
         Matrix& rT) const;
 
-    // Computes transformation for the stress tensor
+    // Computes transformation for the stress tensor 
     void CalculateTransformationFromCovariantToCartesian(
         const KinematicVariables& rKinematicVariables,
         Matrix& rTCovToCar) const;
@@ -457,14 +457,14 @@ private:
     // Calculation of the Cauchy stress by transforming the PK2 stress
     void CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rCauchyMembraneStressesCartesian,
-        array_1d<double, 3>& rCauchyBendingStressesCartesian,
+        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
+        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
         const ProcessInfo& rCurrentProcessInfo) const;
 
     // Calculation of the shear force, shear force = derivative of moment
     void CalculateShearForce(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 2>& rq,
+        array_1d<double, 2>& rq, 
         const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateDerivativeOfCurvatureInitial(

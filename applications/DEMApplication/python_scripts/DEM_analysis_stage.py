@@ -449,6 +449,18 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
+        self.ConvertClusterFileNamesFromRelativePathToAbsolutePath()
+
+    def ConvertClusterFileNamesFromRelativePathToAbsolutePath(self):
+        for properties in self.cluster_model_part.Properties:
+            if properties.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = properties[CLUSTER_FILE_NAME]
+                properties[CLUSTER_FILE_NAME] = os.path.join(self.main_path, cluster_file_name)
+
+        for submp in self.dem_inlet_model_part.SubModelParts:
+            if submp.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = submp[CLUSTER_FILE_NAME]
+                submp[CLUSTER_FILE_NAME] = os.path.join(self.main_path, cluster_file_name)
 
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):

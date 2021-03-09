@@ -55,6 +55,7 @@ class ConvectionDiffusionExplicitSolver(convection_diffusion_solver.ConvectionDi
         default_settings = KratosMultiphysics.Parameters(
         """
         {
+            "time_integration_method" : "explicit",
             "use_orthogonal_subscales" : false,
             "dynamic_tau": 1.0
         }

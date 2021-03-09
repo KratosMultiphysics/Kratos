@@ -69,5 +69,13 @@ KRATOS_TEST_CASE_IN_SUITE(SplitStringByDelimiter, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(splitted_string[3], "   ");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ReplaceAllSubstrings, KratosCoreFastSuite)
+{
+    const std::string string_to_replace = "Pokemon is an awesome show. Pokemon is the best!";
+    const std::string correct_string = StringUtilities::ReplaceAllSubstrings(string_to_replace, "Pokemon", "JoJo Bizarre Adventure");
+
+    KRATOS_CHECK_STRING_EQUAL(correct_string, "JoJo Bizarre Adventure is an awesome show. JoJo Bizarre Adventure is the best!");
+}
+
 }   // namespace Testing
 }  // namespace Kratos.

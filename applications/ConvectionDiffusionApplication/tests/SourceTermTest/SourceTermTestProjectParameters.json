@@ -8,6 +8,7 @@
     },
     "solver_settings"  : {
         "solver_type"                        : "transient",
+        "time_integration_method"            : "implicit",
         "analysis_type"                      : "non_linear",
         "model_part_name"                    : "ThermalModelPart",
         "domain_size"                        : 2,

@@ -240,6 +240,135 @@ namespace Kratos {
 
 		}
 
+		// /** Checks the TwoFluidNavierStokes3D4N element
+	    //  * Checks the LHS and RHS for a cut element with surface tension
+	    //  */
+	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesSurfaceTension3D4N, FluidDynamicsApplicationFastSuite)
+		{
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
+			modelPart.SetBufferSize(3);
+
+			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+			modelPart.AddNodalSolutionStepVariable(PRESSURE);
+			modelPart.AddNodalSolutionStepVariable(VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+			// Process info creation
+			double delta_time = 0.1;
+			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+			modelPart.GetProcessInfo().SetValue(SURFACE_TENSION, true);
+			Vector bdf_coefs(3);
+			bdf_coefs[0] = 3.0/(2.0*delta_time);
+			bdf_coefs[1] = -2.0/delta_time;
+			bdf_coefs[2] = 0.5*delta_time;
+			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+			// Set the element properties
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+			pElemProp->SetValue(DENSITY, 1000.0);
+			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+			pElemProp->SetValue(SURFACE_TENSION_COEFFICIENT, 1.0);
+			NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
+			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+			// Geometry creation
+			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+			modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+			modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
+			modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
+
+			Element::Pointer pElement = modelPart.pGetElement(1);
+
+			// Define the nodal values
+			Matrix vel_original(4,3);
+			vel_original(0,0) = 0.0; vel_original(0,1) = 0.1; vel_original(0,2) = 0.2;
+			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2; vel_original(1,2) = 0.3;
+			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
+			vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
+
+			// Set the nodal BODY_FORCE, DENSITY and DYNAMIC_VISCOSITY values
+			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
+				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
+				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
+				it_node->FastGetSolutionStepValue(BODY_FORCE_Z) = -9.81;
+			}
+
+			for(unsigned int i=0; i<4; i++){
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
+				for(unsigned int k=0; k<3; k++){
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = vel_original(i,k);
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*vel_original(i,k);
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75*vel_original(i,k);
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+				}
+			}
+
+			pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
+			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
+			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
+			pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
+
+			pElement->GetGeometry()[0].SetValue(CURVATURE, 1.0);
+			pElement->GetGeometry()[1].SetValue(CURVATURE, 1.0);
+			pElement->GetGeometry()[2].SetValue(CURVATURE, 1.0);
+			pElement->GetGeometry()[3].SetValue(CURVATURE, 1.0);
+
+			Vector inner_pressure_grad = ZeroVector(3);
+			Vector outer_pressure_grad = ZeroVector(3);
+
+			for(unsigned int k=0; k<3; k++){
+				inner_pressure_grad[k] = 0.5*k;
+				outer_pressure_grad[k] = 1.5*k + 1.0;
+			}
+
+			pElement->GetGeometry()[0].SetValue(PRESSURE_GRADIENT, inner_pressure_grad);
+			pElement->GetGeometry()[1].SetValue(PRESSURE_GRADIENT, outer_pressure_grad);
+			pElement->GetGeometry()[2].SetValue(PRESSURE_GRADIENT, inner_pressure_grad);
+			pElement->GetGeometry()[3].SetValue(PRESSURE_GRADIENT, outer_pressure_grad);
+
+			// Compute RHS and LHS
+			Vector RHS = ZeroVector(16);
+			Vector reference_RHS = ZeroVector(16);
+			Matrix LHS = ZeroMatrix(16,16);
+
+			const auto& r_process_info = modelPart.GetProcessInfo();
+			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+			reference_RHS[0] = -268.0132371599088;
+			reference_RHS[1] = -4.182094107233524;
+			reference_RHS[2]= -81.37622307441862;
+			reference_RHS[3]= -0.07197384163023302;
+			reference_RHS[4]= 56.05809670322434;
+			reference_RHS[5]= 29.90992150360854;
+			reference_RHS[6]= -428.7769671958163;
+			reference_RHS[7]= 0.3700935081503087;
+			reference_RHS[8]= 107.9781032300646;
+			reference_RHS[9]= 26.13414971317491;
+			reference_RHS[10]= -466.3175681317652;
+			reference_RHS[11]= 0.02197384163086232;
+			reference_RHS[12]= 149.4562038932866;
+			reference_RHS[13]= 43.24218955711688;
+			reference_RHS[14]= -514.3000749313327;
+			reference_RHS[15]= -0.420093508150938;
+
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
+			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+			KRATOS_CHECK_VECTOR_NEAR(RHS, reference_RHS, 1e-7);
+
+		}
+
         // /** Checks the TwoFluidNavierStokes3D4N element
         //  * Checks the LHS and RHS for a negative element (distance <= 0.0)
         //  */

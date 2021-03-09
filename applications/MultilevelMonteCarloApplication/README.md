@@ -143,7 +143,7 @@ Instructions for installing MMG can be found in the [Kratos wiki](https://github
 
 PyCOMPSs is the python library required in order to use [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a python environment.
 By default PyCOMPSs is not required in order to run the application.
-In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS = ON \ `.
+In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS=ON \ `.
 
 Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
 

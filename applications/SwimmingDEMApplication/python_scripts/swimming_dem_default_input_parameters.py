@@ -56,7 +56,8 @@ def GetDefaultInputParameters():
                 "min_fluid_fraction" : 0.2,
                 "fluid_fraction_grad_type" : 0,
                 "calculate_diffusivity_option" : false,
-                "viscosity_modification_type" : 0
+                "viscosity_modification_type" : 0,
+                "averaging_time_interval" : 1
             }
         },
 

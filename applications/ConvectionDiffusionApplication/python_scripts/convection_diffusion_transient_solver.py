@@ -33,6 +33,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionD
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
+            "time_integration_method" : "implicit",
             "transient_parameters" : {
                 "dynamic_tau": 1.0,
                 "theta"    : 0.5
