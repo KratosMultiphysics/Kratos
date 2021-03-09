@@ -24,7 +24,7 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)
 
     def SolveSolutionStep(self):
-        coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface")
+        coupling_model_part = self.model.GetModelPart("MPM_Coupling_Neumann_Interface")
         model_part_name = self.project_parameters["coupling_settings"]["interface_model_part_name"].GetString() # TODO this should be specified in "solver_wrapper_settings" in teh cosim-json
         model_part = self.model.GetModelPart(model_part_name)
 
@@ -45,7 +45,13 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
                 coupling_id   = mpc.Id
                 delta_x = mpc.CalculateOnIntegrationPoints(KPM.MPC_DISPLACEMENT, model_part.ProcessInfo)[0]
                 
-                coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KM.DISPLACEMENT,0,delta_x)
+                node = coupling_model_part.GetNode(coupling_id)
+                du = (node.X-node.X0) + delta_x[0]
+                dw = (node.Y-node.Y0) + delta_x[1]
+                dz = (node.Z -node.Z0) + delta_x[2]
+                displacement = [du,dw,dz]
+                
+                coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KM.DISPLACEMENT,0,displacement)
                 
                 velocity = mpc.CalculateOnIntegrationPoints(KPM.MPC_VELOCITY, model_part.ProcessInfo)[0]
                 coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KM.VELOCITY,0,velocity)

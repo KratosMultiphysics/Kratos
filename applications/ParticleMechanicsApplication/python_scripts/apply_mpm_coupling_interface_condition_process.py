@@ -60,7 +60,10 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
                 ## Set Displacement and Normal
                 normal = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL, self.model_part.ProcessInfo)[0]
                 coupling_node.SetSolutionStepValue(KratosMultiphysics.NORMAL,0,normal)
-
+                
+                coupling_node.X0 = node_coordinate[0]
+                coupling_node.Y0 = node_coordinate[1]
+                coupling_node.Z0 = node_coordinate[2]
 
     def ExecuteInitializeSolutionStep(self):
         ### Clone delta time
@@ -95,6 +98,15 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
                 coupling_id   = mpc.Id
                 contact_force = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,0,contact_force)
+
+                ##Update Position of coupling node
+                delta_x = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
+                coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
+                coord += delta_x
+                node = self.coupling_model_part.GetNode(coupling_id)
+                node.X =coord[0]
+                node.Y =coord[1]
+                node.Z =coord[2]
 
 
     # Local functions
