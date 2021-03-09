@@ -22,8 +22,11 @@ from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMo
 
 try:
     from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess as automatic_remeshing_process
-except ImportError:
+except ImportError as err:
     automatic_remeshing_process = None
+    # following is usefull because import can fail
+    # with MeshingApplication compiled without mmg.
+    automatic_remeshing_error_msg = str(err)
 
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
@@ -98,7 +101,7 @@ class MeshControllerWithSolver(MeshController) :
         if (self.is_remeshing_used):
             automatic_remeshing_process_settings = self.MeshSolverSettings["automatic_remeshing_settings"]
             if (automatic_remeshing_process is None):
-                raise RuntimeError("Automatic remeshing requires MeshingApplication. Please compile/install it.")
+                raise RuntimeError("Automatic remeshing requires to import MeshingApplication. Importing failed with following error msg.\n\t" + automatic_remeshing_error_msg)
 
             self.__CheckAndSetAutomaticMeshRefinementSettings(automatic_remeshing_process_settings)
             self.remeshing_process = automatic_remeshing_process(model, automatic_remeshing_process_settings)
