@@ -36,6 +36,7 @@ from shape_optimization_test_factory import sensitivity_verification_in_geometry
 from shape_optimization_test_factory import in_plane_opt_test
 from shape_optimization_test_factory import packaging_mesh_based_test
 from shape_optimization_test_factory import packaging_plane_based_test
+from shape_optimization_test_factory import remeshing_opt_process_test
 from wrl_io_test.test_wrl_io import WrlIOTest
 from surface_normal_shape_change_response_test.test_surface_normal_shape_change_response import SurfaceNormalShapeChangeTest
 
@@ -86,6 +87,7 @@ def AssembleTestSuites():
     nightSuite.addTest(trust_region_projector_test('test_execution'))
     nightSuite.addTest(opt_process_multiobjective_test('test_execution'))
     nightSuite.addTest(opt_process_stress_test('test_execution'))
+    smallSuite.addTest(remeshing_opt_process_test('test_execution')) # TODO move to nightSuite
     nightSuite.addTest(sensitivity_verification_semi_analytic_process_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_in_design_space_process_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_in_geometry_space_process_test('test_execution'))
