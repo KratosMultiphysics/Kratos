@@ -138,14 +138,7 @@ class Solution():
 
     def SetAnalyticFaceWatcher(self):
         from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
-        self.face_watcher_dict = dict()
-        self.face_watcher_analysers = dict()
-        for sub_part in self.rigid_face_model_part.SubModelParts:
-            if sub_part[IS_GHOST] == True:
-                name = sub_part.Name
-                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
