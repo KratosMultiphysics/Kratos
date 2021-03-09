@@ -376,12 +376,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double n = yield_compression / yield_tension;
         const double fracture_energy_tension = r_material_properties[FRACTURE_ENERGY]; // Frac energy in tension
-        const double fracture_energy_comprression = r_material_properties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
+        const double fracture_energy_compression = r_material_properties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
 
         const double characteristic_fracture_energy_tension = fracture_energy_tension / CharacteristicLength;
-        const double characteristic_fracture_energy_compression = fracture_energy_comprression / CharacteristicLength;
+        const double characteristic_fracture_energy_compression = fracture_energy_compression / CharacteristicLength;
 
-        const double hlim = 2.0 * young_modulus * characteristic_fracture_energy_compression / (std::pow(yield_compression, 2));
+        const double hlim = 2.0 * young_modulus * fracture_energy_compression / (std::pow(yield_compression, 2));
         KRATOS_ERROR_IF(CharacteristicLength > hlim) << "The Fracture Energy is to low: " << characteristic_fracture_energy_compression << std::endl;
 
         double constant0 = 0.0, constant1 = 0.0, dplastic_dissipation = 0.0;
@@ -596,7 +596,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold;
-        rSlope = -0.5 * initial_threshold;
+        rSlope = 0.0;
     }
 
     /**
