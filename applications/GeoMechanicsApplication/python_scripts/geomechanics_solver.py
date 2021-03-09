@@ -18,8 +18,8 @@ class GeoMechanicalSolver(PythonSolver):
     Derived classes can override the functions
     """
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=False # To be removed eventually
-        super(GeoMechanicalSolver, self).__init__(model, custom_settings)
+
+        super().__init__(model, custom_settings)
 
         # # Overwrite the default settings with user-provided parameters.
         # self.settings.ValidateAndAssignDefaults(default_settings)
