@@ -613,11 +613,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupe
         current_velocity, local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
 
     const double reference = 6.33653798760679499e-07;
-    std::cout.precision(32);
-    KRATOS_WATCH(density_derivative_accel)
-    KRATOS_WATCH(reference)
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, reference, 1e-15);
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, reference, 1e-13);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating from the utilities
