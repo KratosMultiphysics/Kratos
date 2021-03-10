@@ -43,7 +43,7 @@ namespace Kratos {
         }
         
         mUnbondedNormalElasticConstant = 2.0 * unbonded_equivalent_young * sqrt_equiv_radius_and_indentation;
-        mUnbondedTangentialElasticConstant = 4.0 * unbonded_equivalent_shear * mUnbondedNormalElasticConstant / equiv_young;
+        mUnbondedTangentialElasticConstant = 4.0 * unbonded_equivalent_shear * mUnbondedNormalElasticConstant / unbonded_equivalent_young;
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
