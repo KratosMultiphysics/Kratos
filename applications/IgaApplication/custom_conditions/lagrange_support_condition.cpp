@@ -105,7 +105,7 @@ namespace Kratos
                     {
                         for (IndexType n = 0; n < r_N.size1(); ++n) {
                             if (r_N(n, i) > shape_function_tolerance) {
-                                const array_1d<double, 3> l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                                const array_1d<double, 3>& l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                                 IndexType index = 3 * (counter);
                                 u[index]     = l_m[0] - displacement[0];
                                 u[index + 1] = l_m[1] - displacement[1];
