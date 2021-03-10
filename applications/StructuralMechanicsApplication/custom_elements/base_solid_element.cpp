@@ -1701,7 +1701,6 @@ void BaseSolidElement::CalculateLumpedMassVector(
         lumping_factors = this->GetValue(LUMPING_FACTORS);
     } else {
         lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
-        this->SetValue(LUMPING_FACTORS, lumping_factors);
     }
 
     for ( IndexType i = 0; i < number_of_nodes; ++i ) {
