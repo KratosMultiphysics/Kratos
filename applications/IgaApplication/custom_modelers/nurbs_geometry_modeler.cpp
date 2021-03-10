@@ -42,20 +42,21 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mParameters.Has("number_of_knot_spans"))
             << "NurbsGeometryModeler: Missing \"number_of_knot_spans\" section" << std::endl;
 
-        SizeType size_polynomial_order =  mParameters["polynomial_order"].size();
+        /// local space dimension is defined by the number of given polynomial orders.
+        SizeType local_space_dimension =  mParameters["polynomial_order"].size();
         SizeType size_number_of_knot_spans =  mParameters["number_of_knot_spans"].size();
 
         KRATOS_ERROR_IF( size_polynomial_order != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" does not match." << std::endl;
 
-        // if( size_polynomial_order == 2) {
+        // if( local_space_dimension == 2) {
         //     SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
         //     SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
         //     SizeType num_knot_span_u =  mParameters["number_of_knot_spans"].GetArrayItem(0).GetInt();
         //     SizeType num_knot_span_v =  mParameters["number_of_knot_spans"].GetArrayItem(1).GetInt();
         //     //CreateGeometry2D(..)
         // }
-        if( size_polynomial_order == 3) {
+        if( local_space_dimension == 3) {
             SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
             SizeType p_v =  mParameters["polynomial_order"].GetArrayItem(1).GetInt();
             SizeType p_w =  mParameters["polynomial_order"].GetArrayItem(2).GetInt();
