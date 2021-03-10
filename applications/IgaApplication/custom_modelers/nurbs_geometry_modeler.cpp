@@ -46,7 +46,7 @@ namespace Kratos
         SizeType local_space_dimension =  mParameters["polynomial_order"].size();
         SizeType size_number_of_knot_spans =  mParameters["number_of_knot_spans"].size();
 
-        KRATOS_ERROR_IF( size_polynomial_order != size_number_of_knot_spans )
+        KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
             << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" does not match." << std::endl;
 
         // if( local_space_dimension == 2) {
