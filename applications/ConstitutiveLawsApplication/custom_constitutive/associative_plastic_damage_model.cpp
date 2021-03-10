@@ -94,7 +94,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
 
         plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
 
-        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(1.0e-4 * mThreshold)) {
+        if (plastic_damage_parameters.NonLinearIndicator <= std::abs(1.0e-8 * mThreshold)) {
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
         } else {
             IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
@@ -150,7 +150,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 
     plastic_damage_parameters.NonLinearIndicator = plastic_damage_parameters.UniaxialStress - mThreshold;
 
-    if (plastic_damage_parameters.NonLinearIndicator > std::abs(1.0e-4 * mThreshold)) {
+    if (plastic_damage_parameters.NonLinearIndicator > std::abs(1.0e-8 * mThreshold)) {
         IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
     }
@@ -201,13 +201,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateDamageDissipatio
     )
 {
     const double fracture_energy = rMaterialProperties[FRACTURE_ENERGY];
-    // rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
-    //                         prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
-    //                         0.5 * rParam.CharacteristicLength / fracture_energy;
-
-        rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
+    rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
                             prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
-                            rParam.CharacteristicLength / fracture_energy;
+                            0.5 * rParam.CharacteristicLength / fracture_energy;
+
+    // rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
+    //                     prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
+    //                     rParam.CharacteristicLength / fracture_energy;
 
     rParam.DamageDissipationIncrement = MacaullyBrackets(rParam.DamageDissipationIncrement);
 }
@@ -306,14 +306,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
     else
         rPDParameters.PlasticConsistencyIncrement = 0.0;
 
-    if (rPDParameters.PlasticConsistencyIncrement < machine_tolerance) {
-        BoundedMatrixType constitutive_matrix;
-        CalculateElasticMatrix(constitutive_matrix, rValues);
-        denominator = (inner_prod(plastic_flow, prod(constitutive_matrix, plastic_flow)) +
-            rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
-        rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / denominator;
-    }
-
     rPDParameters.PlasticConsistencyIncrement = MacaullyBrackets(rPDParameters.PlasticConsistencyIncrement);
 }
 
@@ -337,16 +329,17 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             CalculateFlowVector(rValues, rPDParameters);
             CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
 
-            // Compute the compliance increment -> C dot
-            CalculateComplianceMatrixIncrement(rValues, rPDParameters);
-            noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
-
             // Compute the plastic strain increment
             CalculatePlasticStrainIncrement(rValues, rPDParameters);
             noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
             noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
                 prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
+
+            // Compute the compliance increment -> C dot
+            CalculateComplianceMatrixIncrement(rValues, rPDParameters);
+            noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
+            // CalculateConstitutiveMatrix(rValues, rPDParameters);
 
             CalculateConstitutiveMatrix(rValues, rPDParameters);
 
@@ -363,10 +356,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             // updated uniaxial and threshold stress check
             TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector,
                 rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
-            CalculateThresholdAndSlope(rValues, rPDParameters);
+            // CalculateThresholdAndSlope(rValues, rPDParameters);
             rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
-            if (rPDParameters.NonLinearIndicator <= 1.0e-4*rPDParameters.Threshold) {
+            if (rPDParameters.NonLinearIndicator <= 1.0e-8*rPDParameters.Threshold) {
                 is_converged = true;
             } else {
                 iteration++;
