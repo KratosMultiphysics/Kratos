@@ -35,7 +35,7 @@ GeometryNodeType::Pointer CreateLine3D2NForTestNode2D()
 {
     GeometryNodeType::PointsArrayType points;
     points.push_back(Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0));
-    points.push_back(Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0));
+    points.push_back(Kratos::make_intrusive<Node<3>>(2, 2.0, 0.0, 0.0));
 
     return GeometryNodeType::Pointer(new Line3D2<NodeType>(points));
 }
@@ -44,7 +44,7 @@ GeometryPointType::Pointer CreateLine3D2NForTestPoint2D()
 {
     GeometryPointType::PointsArrayType points;
     points.push_back(Kratos::make_shared<Point>(0.0, 0.0, 0.0));
-    points.push_back(Kratos::make_shared<Point>(1.0, 0.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(2.0, 0.0, 0.0));
 
     return GeometryPointType::Pointer(new Line3D2<Point>(points));
 }

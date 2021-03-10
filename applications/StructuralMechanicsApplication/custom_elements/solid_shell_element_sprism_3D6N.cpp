@@ -3753,7 +3753,7 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
         // Jacobian Determinant for the isoparametric and numerical integration
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(GetGeometry(), rIntegrationPoints[rPointNumber], J0);
-        rVariables.detJ = MathUtils<double>::DetMat(J0);
+        rVariables.detJ = MathUtils<double>::Det(J0);
     } else {
         // Cauchy stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
