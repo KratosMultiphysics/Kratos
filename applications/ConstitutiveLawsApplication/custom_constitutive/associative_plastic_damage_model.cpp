@@ -319,6 +319,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     )
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
+    BoundedMatrixType constitutive_matrix_increment;
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
@@ -333,15 +334,21 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             CalculatePlasticStrainIncrement(rValues, rPDParameters);
             noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
-            noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
-                prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
-
             // Compute the compliance increment -> C dot
             CalculateComplianceMatrixIncrement(rValues, rPDParameters);
             noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
             // CalculateConstitutiveMatrix(rValues, rPDParameters);
 
+            // noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
+            //     prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
+            noalias(rPDParameters.StressVector) -= prod(rPDParameters.ConstitutiveMatrix,
+                rPDParameters.PlasticStrainIncrement);
+
             CalculateConstitutiveMatrix(rValues, rPDParameters);
+            noalias(constitutive_matrix_increment) = -prod(rPDParameters.ConstitutiveMatrix,
+                                                           Matrix(prod(rPDParameters.ComplianceMatrixIncrement, rPDParameters.ConstitutiveMatrix)));
+            noalias(rPDParameters.StressVector) += prod(constitutive_matrix_increment,
+                rPDParameters.StrainVector - rPDParameters.PlasticStrain);
 
             // Compute the non-linear dissipation performed
             CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
@@ -356,7 +363,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             // updated uniaxial and threshold stress check
             TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector,
                 rPDParameters.StrainVector, rPDParameters.UniaxialStress, rValues);
-            // CalculateThresholdAndSlope(rValues, rPDParameters);
+            CalculateThresholdAndSlope(rValues, rPDParameters);
             rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
             if (rPDParameters.NonLinearIndicator <= 1.0e-8*rPDParameters.Threshold) {
