@@ -354,11 +354,6 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if (element1->Id() == 1 && element2->Id() == 24) {
-
-            double a = 1;
-        }
-
         const double tau_zero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
         const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
         double k_softening = 0.0;

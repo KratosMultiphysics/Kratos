@@ -35,7 +35,7 @@ namespace Kratos {
                                          double equiv_visco_damp_coeff_normal,
                                          double equiv_visco_damp_coeff_tangential,
                                          bool& sliding,
-                                         int failure_id);
+                                         int failure_id) override;
 
         double mUnbondedEquivViscoDampCoeffTangential;
         double mUnbondedEquivViscoDampCoeffNormal;
