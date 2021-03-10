@@ -323,6 +323,9 @@ protected:
         double rel_dry_height;
         double gravity;
 
+        double damping;
+        array_1d<double,3> boundary_velocity;
+
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
@@ -347,9 +350,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    double mDampingCoefficient;
-    array_1d<double,3> mBoundaryVelocity;
 
     ///@}
     ///@name Protected Operators
@@ -458,6 +458,11 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
+
+    void ComputeDampingCoefficient(
+        double& rDamping,
+        const double DistanceThreshold,
+        const double MaximumDamping);
 
     array_1d<double,9> ToNodalVector(const array_1d<double,3>& rVector);
 
