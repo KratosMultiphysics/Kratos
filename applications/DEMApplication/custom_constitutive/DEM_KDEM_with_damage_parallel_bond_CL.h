@@ -106,7 +106,7 @@ namespace Kratos {
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant;
         double mUnbondedTangentialElasticConstant;
-        double mViscoDampingLocalContactForce[3];
+        double mUnbondedViscoDampingLocalContactForce[3];
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
         bool mDebugPrintingOption;

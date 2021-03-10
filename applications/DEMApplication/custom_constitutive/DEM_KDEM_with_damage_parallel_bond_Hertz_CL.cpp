@@ -35,7 +35,13 @@ namespace Kratos {
         const double radius_sum      = my_radius + other_radius;
         const double radius_sum_inv  = 1.0 / radius_sum;
         const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
-        const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
+        double sqrt_equiv_radius_and_indentation;
+        if (indentation > 0.0) {
+            sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
+        } else {
+            sqrt_equiv_radius_and_indentation = 0.0;
+        }
+        
         mUnbondedNormalElasticConstant = 2.0 * unbonded_equivalent_young * sqrt_equiv_radius_and_indentation;
         mUnbondedTangentialElasticConstant = 4.0 * unbonded_equivalent_shear * mUnbondedNormalElasticConstant / equiv_young;
 
@@ -48,9 +54,8 @@ namespace Kratos {
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
 
-        mEquivViscoDampCoeffNormal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);
-        mEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedTangentialElasticConstant);
-        //
+        mUnbondedEquivViscoDampCoeffNormal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);
+        mUnbondedEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedTangentialElasticConstant);
 
         const double bonded_equiv_young = equiv_young - unbonded_equivalent_young;
         const double bonded_equiv_shear = bonded_equiv_young / (2.0 * (1 + equiv_poisson));
@@ -80,22 +85,26 @@ namespace Kratos {
 
         KRATOS_TRY
 
+        mUnbondedViscoDampingLocalContactForce[0] = 0.0;
+        mUnbondedViscoDampingLocalContactForce[1] = 0.0;
+        mUnbondedViscoDampingLocalContactForce[2] = 0.0;
+        
         if (indentation > 0 && !sliding) {
-            ViscoDampingLocalContactForce[0] = -mEquivViscoDampCoeffTangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = -mEquivViscoDampCoeffTangential * LocalRelVel[1];
-            ViscoDampingLocalContactForce[2] = -mEquivViscoDampCoeffNormal * LocalRelVel[2];
+            mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
+            mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
+            mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
         }
 
-        mViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[0];
-        mViscoDampingLocalContactForce[1] = ViscoDampingLocalContactForce[1];
-        mViscoDampingLocalContactForce[2] = ViscoDampingLocalContactForce[2];
-
-
-        if (!failure_id) {
-            ViscoDampingLocalContactForce[0] -= equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] -= equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-            ViscoDampingLocalContactForce[2] -= equiv_visco_damp_coeff_normal * LocalRelVel[2];
+        if (!failure_id) { // Adding bonded and unbonded parts 
+            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] - equiv_visco_damp_coeff_normal * LocalRelVel[2];
         }
+
+        #ifdef KRATOS_DEBUG
+            DemDebugFunctions::CheckIfNan(mUnbondedViscoDampingLocalContactForce, "NAN in Viscous Force in CalculateViscoDamping");
+            DemDebugFunctions::CheckIfNan(ViscoDampingLocalContactForce, "NAN in Viscous Force in CalculateViscoDamping");            
+        #endif
 
         KRATOS_CATCH("")
     }

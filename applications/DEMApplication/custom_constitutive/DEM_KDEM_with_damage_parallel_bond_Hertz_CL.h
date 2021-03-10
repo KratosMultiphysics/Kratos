@@ -37,8 +37,8 @@ namespace Kratos {
                                          bool& sliding,
                                          int failure_id);
 
-        double mEquivViscoDampCoeffNormal;
-        double mEquivViscoDampCoeffTangential;
+        double mUnbondedEquivViscoDampCoeffTangential;
+        double mUnbondedEquivViscoDampCoeffNormal;
 
     private:
 
