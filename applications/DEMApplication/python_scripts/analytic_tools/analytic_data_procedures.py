@@ -1,5 +1,4 @@
 import os
-import h5py
 import numpy as np
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -102,6 +101,7 @@ class FaceAnalyzerClass:
         self.RemoveOldFile()
 
     def CreateNewFile(self):
+        import h5py
         if os.path.exists(self.new_path):
             os.rename(self.new_path, self.old_path)
 
@@ -129,7 +129,7 @@ class FaceAnalyzerClass:
         # how to create subgrouped datasets with variable name:
         # group2 = f.create_group('group2/subfolder')
         # group2.create_dataset('data',data=d)
-
+        import h5py
         with h5py.File(self.new_path, 'a') as f, h5py.File(self.old_path, 'r') as f_old:
             for sub_part in self.model_part:
                 if sub_part[IS_GHOST]:
@@ -164,7 +164,7 @@ class FaceAnalyzerClass:
         # how to create subgrouped datasets with variable name:
         # group2 = f.create_group('group2/subfolder')
         # group2.create_dataset('data',data=d)
-
+        import h5py
         with h5py.File(self.new_path, 'a') as f:
             for sub_part in self.model_part:
                 if sub_part[IS_GHOST]:
@@ -199,7 +199,7 @@ class FaceAnalyzerClass:
 
     def GetJointData(self, data_base_names):
         data_list = []
-
+        import h5py
         with h5py.File(self.new_path, 'r') as f:
             if self.do_clear_data: # join all databases
                 for name in data_base_names:
@@ -221,6 +221,7 @@ class FaceAnalyzerClass:
 
     def MakeTotalFluxPlot(self):
         import matplotlib.pyplot as plt
+        import h5py
         with h5py.File(self.file_path) as f:
             times = f['/' + self.face_watcher_name + '/' + '/time'].value
             mass_flux = f['/' + self.face_watcher_name + '/' + '/m_accum'].value
