@@ -92,7 +92,8 @@ namespace Kratos
                     {
                         for (IndexType n = 0; n < r_N.size1(); ++n) {
                             if (r_N(n, i) > shape_function_tolerance) {
-                                const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+                                const array_1d<double, 3>& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+
                                 IndexType index = 3 * counter;
                                 u[index]     = (disp[0] - displacement[0]);
                                 u[index + 1] = (disp[1] - displacement[1]);
