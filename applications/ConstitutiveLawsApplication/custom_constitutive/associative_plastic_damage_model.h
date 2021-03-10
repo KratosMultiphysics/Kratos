@@ -751,6 +751,7 @@ private:
     double mPlasticDissipation = 0.0;
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
+    BoundedVectorType mPreviousStrain   = ZeroVector(VoigtSize);
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 

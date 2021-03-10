@@ -327,13 +327,12 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     )
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
-    BoundedMatrixType stiffness_increment;
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
-    if (rPDParameters.PlasticDissipation < 0.99999) {
+    if (rPDParameters.TotalDissipation < 0.99999) {
         while (is_converged == false && iteration <= max_iter) {
-            // Evaluate the updated Threshold and slope
+
             CalculateThresholdAndSlope(rValues, rPDParameters);
             CalculateFlowVector(rValues, rPDParameters);
             CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
@@ -341,28 +340,24 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             // Compute the compliance increment -> C dot
             CalculateComplianceMatrixIncrement(rValues, rPDParameters);
             noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
-            // CalculateConstitutiveMatrix(rValues, rPDParameters);
 
             // Compute the plastic strain increment
             CalculatePlasticStrainIncrement(rValues, rPDParameters);
             noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
 
-            // Correct the stress
-            // noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix,
-            //     rPDParameters.StrainVector - rPDParameters.PlasticStrain);
-            noalias(rPDParameters.StressVector) -= prod(rPDParameters.ConstitutiveMatrix,rPDParameters.PlasticStrainIncrement);
-            noalias(stiffness_increment) = -prod(rPDParameters.ConstitutiveMatrix, Matrix(prod(rPDParameters.ComplianceMatrixIncrement, rPDParameters.ConstitutiveMatrix)));
-            noalias(rPDParameters.StressVector) += prod(stiffness_increment, rPDParameters.StrainVector - rPDParameters.PlasticStrain);
+            noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
+                prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
             CalculateConstitutiveMatrix(rValues, rPDParameters);
 
             // Compute the non-linear dissipation performed
             CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
             CalculateDamageDissipationIncrement(r_mat_properties, rPDParameters);
+
             rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
             rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
 
-            rPDParameters.TotalDissipation   = (rPDParameters.PlasticDissipation + rPDParameters.DamageDissipation);
+            rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation + rPDParameters.DamageDissipation);
             rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ? 0.99999 : rPDParameters.TotalDissipation;
 
             // updated uniaxial and threshold stress check
@@ -371,7 +366,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             CalculateThresholdAndSlope(rValues, rPDParameters);
             rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
-            if (rPDParameters.NonLinearIndicator <= std::abs(1.0e-4 * rPDParameters.Threshold)) {
+            if (rPDParameters.NonLinearIndicator <= 1.0e-4*rPDParameters.Threshold) {
                 is_converged = true;
             } else {
                 iteration++;
