@@ -22,6 +22,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -300,6 +301,14 @@ private:
 }; // Class CompressiblePerturbationPotentialFlowElement
 
 ///@}
+
+namespace EmbeddedDiscontinuousInternals {
+
+template <size_t TDim, size_t TNumNodes>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
+    const Element &rElement,
+    const Vector &rElementalDistances);
+}
 
 ///@name Type Definitions
 ///@{

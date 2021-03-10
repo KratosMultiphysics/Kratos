@@ -578,11 +578,13 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         }
     }
 
-    if (this->Is(STRUCTURE)){
-        BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
-        BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLeftHandSideSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+    CalculateLeftHandSideSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+
+    if (this->Is(STRUCTURE)){
+
         const auto& r_geometry = this->GetGeometry();
         for (unsigned int row = 0; row < NumNodes; ++row){
             // The TE node takes the contribution of the subdivided element and
@@ -603,7 +605,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                 if (data.distances[row] < 0.0){
                     for (unsigned int column = 0; column < NumNodes; ++column){
                         // Conservation of mass
-                        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total_lower(row, column);
+                        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_negative(row, column);
                         // Wake condition
                         rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
                         rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
@@ -614,7 +616,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
                 else{ // else if (data.distances[row] > 0.0)
                     for (unsigned int column = 0; column < NumNodes; ++column){
                         // Conservation of mass
-                        rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                        rLeftHandSideMatrix(row, column) = lhs_positive(row, column);
                         // Wake condition
                         rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
                         rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
@@ -631,7 +633,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
             if (data.distances[row] < 0.0){
                 for (unsigned int column = 0; column < NumNodes; ++column){
                     // Conservation of mass
-                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total_lower(row, column);
+                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_negative(row, column);
                     // Wake condition
                     rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
                     rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
@@ -642,7 +644,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
             else{ // else if (data.distances[row] > 0.0)
                 for (unsigned int column = 0; column < NumNodes; ++column){
                     // Conservation of mass
-                    rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+                    rLeftHandSideMatrix(row, column) = lhs_positive(row, column);
                     // Wake condition
                     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
                     rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
@@ -729,11 +731,13 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     //     wake_rhs_lower(row) = - (data.N[row] + stabilization_lower) * (velocity_lower_2 - velocity_upper_2) * data.vol;
     // }
 
-    if (this->Is(STRUCTURE)){
-        double upper_vol = 0.0;
-        double lower_vol = 0.0;
+    double upper_vol = 0.0;
+    double lower_vol = 0.0;
 
-        CalculateVolumesSubdividedElement(upper_vol, lower_vol, rCurrentProcessInfo);
+    CalculateVolumesSubdividedElement(upper_vol, lower_vol, rCurrentProcessInfo);
+
+    if (this->Is(STRUCTURE)){
+
         for (unsigned int rRow = 0; rRow < NumNodes; ++rRow){
             if (r_geometry[rRow].GetValue(TRAILING_EDGE)){
                 rRightHandSideVector[rRow] = upper_rhs(rRow)*upper_vol/data.vol;
@@ -741,12 +745,12 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
             }
             else{
                 if (data.distances[rRow] > 0.0){
-                    rRightHandSideVector[rRow] = upper_rhs(rRow);
+                    rRightHandSideVector[rRow] = upper_rhs(rRow)*upper_vol/data.vol;
                     rRightHandSideVector[rRow + TNumNodes] = wake_rhs_lower(rRow);
                 }
                 else{
                     rRightHandSideVector[rRow] = wake_rhs_upper(rRow);
-                    rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow);
+                    rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow)*lower_vol/data.vol;
                 }
             }
         }
@@ -754,12 +758,12 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     else{
         for (unsigned int rRow = 0; rRow < NumNodes; ++rRow){
             if (data.distances[rRow] > 0.0){
-                rRightHandSideVector[rRow] = upper_rhs(rRow);
+                rRightHandSideVector[rRow] = upper_rhs(rRow)*upper_vol/data.vol;
                 rRightHandSideVector[rRow + TNumNodes] = wake_rhs_lower(rRow);
             }
             else{
                 rRightHandSideVector[rRow] = wake_rhs_upper(rRow);
-                rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow);
+                rRightHandSideVector[rRow + NumNodes] = lower_rhs(rRow)*lower_vol/data.vol;
             }
         }
     }
@@ -778,28 +782,49 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
 
     GetWakeDistances(data.distances);
 
-    // Subdivide the element
-    constexpr unsigned int nvolumes = 3 * (Dim - 1);
-    BoundedMatrix<double, NumNodes, Dim> Points;
-    array_1d<double, nvolumes> PartitionsSign;
-    BoundedMatrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
-    array_1d<double, nvolumes> Volumes;
-    std::vector<Matrix> GradientsValue(nvolumes);
-    BoundedMatrix<double, nvolumes, 2> NEnriched;
-    for (unsigned int i = 0; i < GradientsValue.size(); ++i)
-        GradientsValue[i].resize(2, Dim, false);
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
-        const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
-        for (unsigned int k = 0; k < Dim; ++k)
-        {
-            Points(i, k) = coords[k];
-        }
-    }
+    // // Subdivide the element
+    // constexpr unsigned int nvolumes = 3 * (Dim - 1);
+    // BoundedMatrix<double, NumNodes, Dim> Points;
+    // array_1d<double, nvolumes> PartitionsSign;
+    // BoundedMatrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
+    // array_1d<double, nvolumes> Volumes;
+    // std::vector<Matrix> GradientsValue(nvolumes);
+    // BoundedMatrix<double, nvolumes, 2> NEnriched;
+    // for (unsigned int i = 0; i < GradientsValue.size(); ++i)
+    //     GradientsValue[i].resize(2, Dim, false);
+    // for (unsigned int i = 0; i < NumNodes; ++i)
+    // {
+    //     const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+    //     for (unsigned int k = 0; k < Dim; ++k)
+    //     {
+    //         Points(i, k) = coords[k];
+    //     }
+    // }
 
-    const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(
-        Points, data.DN_DX, data.distances, Volumes, GPShapeFunctionValues,
-        PartitionsSign, GradientsValue, NEnriched);
+    // const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(
+    //     Points, data.DN_DX, data.distances, Volumes, GPShapeFunctionValues,
+    //     PartitionsSign, GradientsValue, NEnriched);
+
+    ModifiedShapeFunctions::Pointer p_calculator =
+        EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<Dim, NumNodes>(
+            *this,
+            data.distances);
+
+    Matrix positive_side_sh_func;
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+    Vector positive_side_weights;
+
+    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        positive_side_sh_func, positive_side_sh_func_gradients,
+        positive_side_weights, GeometryData::GI_GAUSS_1);
+
+    Matrix negative_side_sh_func;
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType negative_side_sh_func_gradients;
+    Vector negative_side_weights;
+
+    p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        negative_side_sh_func, negative_side_sh_func_gradients,
+        negative_side_weights, GeometryData::GI_GAUSS_1);
 
     // Upper part
     const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(*this, rCurrentProcessInfo);
@@ -814,7 +839,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
 
     const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
+    // const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     // Lower part
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
@@ -828,28 +853,48 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     const double density_lower = PotentialFlowUtilities::ComputeDensity<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
     const double DrhoDu2_lower = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
 
-    const BoundedVector<double, NumNodes> DNV_lower = prod(data.DN_DX, lower_velocity);
+    // const BoundedVector<double, NumNodes> DNV_lower = prod(data.DN_DX, lower_velocity);
 
     const double local_velocity_squared_lower = inner_prod(lower_velocity, lower_velocity);
 
-    // Compute the lhs and rhs that would correspond to it being divided
-    for (unsigned int i = 0; i < nsubdivisions; ++i)
-    {
-        if (PartitionsSign[i] > 0)
-        {
-            noalias(lhs_positive) += Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
-            if(local_velocity_squared < max_velocity_squared){
-                noalias(lhs_positive) += Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
-            }
-        }
-        else
-        {
-            noalias(lhs_negative) += Volumes[i] * density_lower * prod(data.DN_DX, trans(data.DN_DX));
-            if(local_velocity_squared_lower < max_velocity_squared){
-                noalias(lhs_negative) += Volumes[i] * 2 * DrhoDu2_lower * outer_prod(DNV_lower, trans(DNV_lower));
-            }
+    for (unsigned int i_gauss = 0;
+         i_gauss < positive_side_sh_func_gradients.size(); i_gauss++) {
+        const BoundedMatrix<double, NumNodes, Dim> DN_DX = positive_side_sh_func_gradients(i_gauss);
+        const BoundedVector<double, NumNodes> DNV = prod(DN_DX, velocity);
+        noalias(lhs_positive) += positive_side_weights(i_gauss) * density * prod(DN_DX, trans(DN_DX));
+        if(local_velocity_squared < max_velocity_squared){
+            noalias(lhs_positive) += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
         }
     }
+
+    for (unsigned int i_gauss = 0;
+         i_gauss < negative_side_sh_func_gradients.size(); i_gauss++) {
+        const BoundedMatrix<double, NumNodes, Dim> DN_DX = negative_side_sh_func_gradients(i_gauss);
+        const BoundedVector<double, NumNodes> DNV_lower = prod(DN_DX, lower_velocity);
+        noalias(lhs_negative) += negative_side_weights(i_gauss) * density_lower * prod(DN_DX, trans(DN_DX));
+        if(local_velocity_squared_lower < max_velocity_squared){
+            noalias(lhs_negative) += negative_side_weights(i_gauss) * 2 * DrhoDu2_lower * outer_prod(DNV_lower, trans(DNV_lower));
+        }
+    }
+
+    // // Compute the lhs and rhs that would correspond to it being divided
+    // for (unsigned int i = 0; i < nsubdivisions; ++i)
+    // {
+    //     if (PartitionsSign[i] > 0)
+    //     {
+    //         noalias(lhs_positive) += Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
+    //         if(local_velocity_squared < max_velocity_squared){
+    //             noalias(lhs_positive) += Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    //         }
+    //     }
+    //     else
+    //     {
+    //         noalias(lhs_negative) += Volumes[i] * density_lower * prod(data.DN_DX, trans(data.DN_DX));
+    //         if(local_velocity_squared_lower < max_velocity_squared){
+    //             noalias(lhs_negative) += Volumes[i] * 2 * DrhoDu2_lower * outer_prod(DNV_lower, trans(DNV_lower));
+    //         }
+    //     }
+    // }
 }
 
 template <int Dim, int NumNodes>
@@ -865,39 +910,68 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateVolum
 
     GetWakeDistances(data.distances);
 
-    // Subdivide the element
-    constexpr unsigned int nvolumes = 3 * (Dim - 1);
-    BoundedMatrix<double, NumNodes, Dim> Points;
-    array_1d<double, nvolumes> PartitionsSign;
-    BoundedMatrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
-    array_1d<double, nvolumes> Volumes;
-    std::vector<Matrix> GradientsValue(nvolumes);
-    BoundedMatrix<double, nvolumes, 2> NEnriched;
-    for (unsigned int i = 0; i < GradientsValue.size(); ++i)
-        GradientsValue[i].resize(2, Dim, false);
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
-        const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
-        for (unsigned int k = 0; k < Dim; ++k)
-        {
-            Points(i, k) = coords[k];
-        }
+    // // Subdivide the element
+    // constexpr unsigned int nvolumes = 3 * (Dim - 1);
+    // BoundedMatrix<double, NumNodes, Dim> Points;
+    // array_1d<double, nvolumes> PartitionsSign;
+    // BoundedMatrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
+    // array_1d<double, nvolumes> Volumes;
+    // std::vector<Matrix> GradientsValue(nvolumes);
+    // BoundedMatrix<double, nvolumes, 2> NEnriched;
+    // for (unsigned int i = 0; i < GradientsValue.size(); ++i)
+    //     GradientsValue[i].resize(2, Dim, false);
+    // for (unsigned int i = 0; i < NumNodes; ++i)
+    // {
+    //     const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+    //     for (unsigned int k = 0; k < Dim; ++k)
+    //     {
+    //         Points(i, k) = coords[k];
+    //     }
+    // }
+
+    // const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(
+    //     Points, data.DN_DX, data.distances, Volumes, GPShapeFunctionValues,
+    //     PartitionsSign, GradientsValue, NEnriched);
+
+    ModifiedShapeFunctions::Pointer p_calculator =
+        EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<Dim, NumNodes>(
+            *this,
+            data.distances);
+
+    Matrix positive_side_sh_func;
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+    Vector positive_side_weights;
+
+    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        positive_side_sh_func, positive_side_sh_func_gradients,
+        positive_side_weights, GeometryData::GI_GAUSS_1);
+
+    Matrix negative_side_sh_func;
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType negative_side_sh_func_gradients;
+    Vector negative_side_weights;
+
+    p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        negative_side_sh_func, negative_side_sh_func_gradients,
+        negative_side_weights, GeometryData::GI_GAUSS_1);
+
+    for (unsigned int i = 0; i < positive_side_sh_func_gradients.size(); ++i){
+        rUpper_vol += positive_side_weights(i);
     }
 
-    const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(
-        Points, data.DN_DX, data.distances, Volumes, GPShapeFunctionValues,
-        PartitionsSign, GradientsValue, NEnriched);
-
-    // Compute the volumes that would correspond to it being divided
-    for (unsigned int i = 0; i < nsubdivisions; ++i)
-    {
-        if (PartitionsSign[i] > 0){
-            rUpper_vol += Volumes[i];
-        }
-        else{
-            rLower_vol += Volumes[i];
-        }
+    for (unsigned int i = 0; i < negative_side_sh_func_gradients.size(); ++i){
+        rLower_vol += negative_side_weights(i);
     }
+
+    // // Compute the volumes that would correspond to it being divided
+    // for (unsigned int i = 0; i < nsubdivisions; ++i)
+    // {
+    //     if (PartitionsSign[i] > 0){
+    //         rUpper_vol += Volumes[i];
+    //     }
+    //     else{
+    //         rLower_vol += Volumes[i];
+    //     }
+    // }
 }
 
 template <int Dim, int NumNodes>
@@ -1027,6 +1101,20 @@ template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper functions for template specialization
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace EmbeddedDiscontinuousInternals {
+
+template <>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(const Element& rElement, const Vector& rElementalDistances)
+{
+    return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(rElement.pGetGeometry(), rElementalDistances);
+}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
