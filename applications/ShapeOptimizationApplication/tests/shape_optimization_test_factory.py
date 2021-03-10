@@ -10,9 +10,9 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 
 try:
-    from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess
-    has_mmg = True
-except ImportError as err:
+    import KratosMultiphysics.MeshingApplication
+    has_mmg = hasattr(KratosMultiphysics.MeshingApplication, "MmgProcess2D")
+except ImportError:
     has_mmg = False
 
 # ==============================================================================

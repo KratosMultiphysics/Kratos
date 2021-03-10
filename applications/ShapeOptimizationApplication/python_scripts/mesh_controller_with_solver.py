@@ -21,11 +21,13 @@ from KratosMultiphysics.ShapeOptimizationApplication.mesh_controller_base import
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 try:
+    import KratosMultiphysics.MeshingApplication as KMA
     from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess as automatic_remeshing_process
+    if not hasattr(KMA, "MmgProcess2D"):
+        automatic_remeshing_process = None
+        automatic_remeshing_error_msg = "MeshingApplication is not compiled with '-DINCLUDE_MMG=ON'"
 except ImportError as err:
     automatic_remeshing_process = None
-    # following is usefull because import can fail
-    # with MeshingApplication compiled without mmg.
     automatic_remeshing_error_msg = str(err)
 
 # # ==============================================================================
