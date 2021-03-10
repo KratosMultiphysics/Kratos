@@ -47,6 +47,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // ExplicitIntegrationUtilities
     m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
+    m.def("ComputeLumpingFactors",&ExplicitIntegrationUtilities::ComputeLumpingFactors);
 
     py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
         .def(py::init<ModelPart&>())
