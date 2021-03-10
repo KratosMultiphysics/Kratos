@@ -21,7 +21,6 @@
 #include "modeler/modeler.h"
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_volume_utilities.h"
-#include "includes/node.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
@@ -95,7 +94,7 @@ private:
      * @note The CP'S are defined as nodes and added to the rModelPart.
      * @todo How to deal with node Id's..
      **/
-    void CreateGeometry3D( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };

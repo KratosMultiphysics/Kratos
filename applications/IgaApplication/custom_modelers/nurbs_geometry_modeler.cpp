@@ -23,17 +23,11 @@ namespace Kratos
         // Get bounding box
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point"))
             << "NurbsGeometryModeler: Missing \"lower_point\" section" << std::endl;
-        double x_a =  mParameters["lower_point"].GetArrayItem(0).GetDouble();
-        double y_a =  mParameters["lower_point"].GetArrayItem(1).GetDouble();
-        double z_a =  mParameters["lower_point"].GetArrayItem(2).GetDouble();
-        Point point_a(x_a,y_a,z_a);
+        Point point_a(mParameters["lower_point"].GetVector());
 
         KRATOS_ERROR_IF_NOT(mParameters.Has("upper_point"))
             << "NurbsGeometryModeler: Missing \"upper_point\" section" << std::endl;
-        double x_b =  mParameters["upper_point"].GetArrayItem(0).GetDouble();
-        double y_b =  mParameters["upper_point"].GetArrayItem(1).GetDouble();
-        double z_b =  mParameters["upper_point"].GetArrayItem(2).GetDouble();
-        Point point_b(x_b,y_b,z_b);
+        Point point_b(mParameters["upper_point"].GetVector());
 
         // Get polynomial order and number of knotspans
         KRATOS_ERROR_IF_NOT(mParameters.Has("polynomial_order"))
@@ -47,7 +41,7 @@ namespace Kratos
         SizeType size_number_of_knot_spans =  mParameters["number_of_knot_spans"].size();
 
         KRATOS_ERROR_IF( local_space_dimension != size_number_of_knot_spans )
-            << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" does not match." << std::endl;
+            << "Size of given Vectors: \"polynomial_order\" and \"number_of_knot_spans\" do not match." << std::endl;
 
         // if( local_space_dimension == 2) {
         //     SizeType p_u =  mParameters["polynomial_order"].GetArrayItem(0).GetInt();
@@ -92,7 +86,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
-    void NurbsGeometryModeler::CreateGeometry3D( const Point A, const Point B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
+    void NurbsGeometryModeler::CreateGeometry3D( const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
         KRATOS_ERROR_IF( B.X() <= A.X() || B.Y() <= A.Y() || B.Z() <= A.Z() ) << "NurbsGeometryModeler: "
@@ -181,12 +175,15 @@ namespace Kratos
         }
 
         // Perform knot refinement.
-        if( NumKnotSpansU > 1)
+        if( NumKnotSpansU > 1) {
             mpGeometry = NurbsVolumeUtilities::KnotRefinementU(*mpGeometry, insert_knots_u);
-        if( NumKnotSpansV > 1)
+        }
+        if( NumKnotSpansV > 1) {
             mpGeometry = NurbsVolumeUtilities::KnotRefinementV(*mpGeometry, insert_knots_v);
-        if( NumKnotSpansW > 1)
+        }
+        if( NumKnotSpansW > 1) {
             mpGeometry = NurbsVolumeUtilities::KnotRefinementW(*mpGeometry, insert_knots_w);
+        }
     }
     ///@}
 
