@@ -252,9 +252,9 @@ class PotentialFlowSolver(FluidSolver):
         element_type = self.settings["formulation"]["element_type"].GetString()
         if "incompressible" in element_type:
             if not self.settings["formulation"].Has("stabilization_factor"):
-                strategy_type = "linear"
+                strategy_type = "non_linear"
             elif self.settings["formulation"]["stabilization_factor"].GetDouble() == 0.0:
-                strategy_type = "linear"
+                strategy_type = "non_linear"
             else:
                 strategy_type = "non_linear"
         elif "compressible" or "transonic" in element_type:
