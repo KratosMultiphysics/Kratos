@@ -88,6 +88,28 @@ namespace Python
         return(dummy.IsIdSelfAssigned());
     }
 
+    ///@}
+    ///@name Set and Calculate
+    ///@{
+
+    template< class TDataType >
+    void Assign(
+        GeometryType& dummy, const Variable<TDataType>& rVariable, TDataType Value)
+    {
+        dummy.Assign(rVariable, Value);
+    }
+
+    template< class TDataType >
+    TDataType Calculate(
+        GeometryType& dummy, const Variable<TDataType>& rVariable)
+    {
+        TDataType Output;
+        dummy.Calculate(rVariable, Output);
+        return Output;
+    }
+
+    ///@}
+
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -126,6 +148,15 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
         { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
+        { 
+            IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
+            for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
+                IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
+                integration_points[i] = point_tmp;
+            }
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();
@@ -172,6 +203,24 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
+    // Assign
+    .def("Assign", Assign<bool>)
+    .def("Assign", Assign<int>)
+    .def("Assign", Assign<double>)
+    .def("Assign", Assign<array_1d<double, 2>>)
+    .def("Assign", Assign<array_1d<double, 3>>)
+    .def("Assign", Assign<array_1d<double, 6>>)
+    .def("Assign", Assign<Vector>)
+    .def("Assign", Assign<Matrix>)
+    // Calculate
+    .def("Calculate", Calculate<bool>)
+    .def("Calculate", Calculate<int>)
+    .def("Calculate", Calculate<double>)
+    .def("Calculate", Calculate<array_1d<double, 2>>)
+    .def("Calculate", Calculate<array_1d<double, 3>>)
+    .def("Calculate", Calculate<array_1d<double, 6>>)
+    .def("Calculate", Calculate<Vector>)
+    .def("Calculate", Calculate<Matrix>)
     // Print
     .def("__str__", PrintObject<GeometryType>)
     // Access to nodes

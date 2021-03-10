@@ -106,20 +106,15 @@ class Commander:
 
     def RunMPITestSuit(self, application, path, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
-        if not level.startswith("mpi_"):
-            raise Exception("Trying to run a serial suite!")
-
         self.exitCode = 0
 
         test_script = path / Path("tests") / Path("test_{}.py".format(application))
 
         if Path.is_file(test_script):
-            full_command = "{} {} {} {} {} {} --using-mpi".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script)
+            full_command = "{} {} {} {} {} {} --using-mpi -v{} -l{}".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script, verbose, level)
             try:
                 self.process = subprocess.Popen([
-                    full_command,
-                    '-l'+level,
-                    '-v'+str(verbose)
+                    full_command
                 ], shell=True,
                    stdout=subprocess.PIPE,
                    cwd=os.path.dirname(os.path.abspath(test_script)))

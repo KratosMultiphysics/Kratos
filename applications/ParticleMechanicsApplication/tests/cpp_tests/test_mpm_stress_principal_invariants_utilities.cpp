@@ -275,23 +275,23 @@ namespace Testing
         auto positive_hydrostatic = CreateHydrostaticStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateStressInvariants(positive_hydrostatic, p, q, lode_angle);
 
-        KRATOS_CHECK_LESS_EQUAL((3.0e6 -         p)/         p, 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((0.0   -         q)/         q, 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((0.0   -lode_angle)/lode_angle, 1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR(3.0e6,          p, 1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR(0.0  ,          q, 1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR(0.0  , lode_angle, 1e-6);
 
         auto random_sorted = CreateRandomSortedStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateStressInvariants(random_sorted, p, q, lode_angle);
 
-        KRATOS_CHECK_LESS_EQUAL(( 2.333333e6  -         p)/         p,  1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 1.300000e7  -         q)/         q,  1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-3.847103e-2 -lode_angle)/lode_angle,  1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR( 2.333333e6 ,          p,  1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR( 1.300000e7 ,          q,  1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR(-3.847103e-2, lode_angle,  1e-6);
 
         auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateStressInvariants(random_unsorted_large, p, q, lode_angle);
 
-        KRATOS_CHECK_LESS_EQUAL((-7.566667e6  -          p)/         p, 1e-6);
-        KRATOS_CHECK_LESS_EQUAL(( 3.205819e7  -          q)/         q, 1e-6);
-        KRATOS_CHECK_LESS_EQUAL((-6.718688e-2 - lode_angle)/lode_angle, 1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR(-7.566667e6 ,          p, 1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR( 3.205819e7 ,          q, 1e-6);
+        KRATOS_CHECK_RELATIVE_NEAR(-6.718688e-2, lode_angle, 1e-6);
     }
 
     /**

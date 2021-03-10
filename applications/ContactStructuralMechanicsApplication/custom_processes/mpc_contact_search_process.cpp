@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -35,7 +35,7 @@ MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProce
 
     // We get the contact model part
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
 
     // Iterate in the constraints
     auto& r_constraints_array = r_sub_contact_model_part.MasterSlaveConstraints();
@@ -58,7 +58,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactMode
 
     // Iterate in the constraints
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
     auto& r_constraints_array = r_sub_contact_model_part.MasterSlaveConstraints();
 
     const SizeType total_number_constraints = BaseType::mrMainModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
@@ -194,7 +194,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
 
     // We iterate over the master nodes
     ModelPart& r_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = this->IsNotMultipleSearchs() ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+BaseType::mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     if (BaseType::mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
@@ -214,7 +214,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOper
         // We remove all the computing constraints
         const std::string sub_computing_model_part_name = "ComputingContactSub" + BaseType::mThisParameters["id_name"].GetString();
         ModelPart& r_computing_contact_model_part = BaseType::mrMainModelPart.GetSubModelPart("ComputingContact");
-        ModelPart& r_sub_computing_contact_model_part = this->IsNot(BaseType::MULTIPLE_SEARCHS) ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
+        ModelPart& r_sub_computing_contact_model_part = this->IsNotMultipleSearchs() ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
         auto& r_computing_constraints_array = r_sub_computing_contact_model_part.MasterSlaveConstraints();
         const int num_computing_constraints = static_cast<int>(r_computing_constraints_array.size());
 

@@ -222,11 +222,11 @@ public:
         normal[2] = 0.0;
 
         const double norm_normal = norm_2(normal);
-        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-        else KRATOS_ERROR << "Zero norm normal: X: " << normal[0] << "\tY: " << normal[1] << std::endl;
+        KRATOS_ERROR_IF(norm_normal <= std::numeric_limits<double>::epsilon()) << "Zero norm normal: X: " << normal[0] << "\tY: " << normal[1] << std::endl;
+        normal /= norm_normal;
 
         const array_1d<double,3> vector_points = r_p_a - r_p_c;
-        const double distance = inner_prod(vector_points, normal)/norm_normal;
+        const double distance = inner_prod(vector_points, normal);
         noalias(rPointProjected.Coordinates()) = r_p_c + normal * distance;
 
         return distance;

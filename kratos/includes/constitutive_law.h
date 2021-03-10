@@ -34,6 +34,7 @@
 #include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
+#include "includes/initial_state.h"
 
 
 namespace Kratos
@@ -231,6 +232,8 @@ public:
       const ProcessInfo*   mpCurrentProcessInfo;
       const Properties*    mpMaterialProperties;
       const GeometryType*  mpElementGeometry;
+
+
 
 
     public:
@@ -538,6 +541,74 @@ public:
      * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
     virtual SizeType GetStrainSize();
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    void SetInitialState(InitialState::Pointer pInitialState)
+    {
+        mpInitialState = pInitialState;
+    }
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    InitialState::Pointer pGetInitialState()
+    {
+        return mpInitialState;
+    }
+
+    /**
+     * @return The reference to initial state of strains/stresses/F
+     */
+    InitialState& GetInitialState()
+    {
+        return *mpInitialState;
+    }
+
+        /**
+     * @return The true if InitialState is defined
+     */
+    bool HasInitialState() const
+    {
+        return mpInitialState != nullptr;
+    }
+
+    /**
+     * @brief Adds the initial stress vector if it is defined in the InitialState
+     */
+    template<typename TVectorType>
+    void AddInitialStressVectorContribution(TVectorType& rStressVector) 
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStressVector) += r_initial_state.GetInitialStressVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    template<typename TVectorType>
+    void AddInitialStrainVectorContribution(TVectorType& rStrainVector)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStrainVector) -= r_initial_state.GetInitialStrainVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    template<typename TMatrixType>
+    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            rF = prod(r_initial_state.GetInitialDeformationGradientMatrix(), rF);
+        }
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
@@ -1173,6 +1244,7 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
 
+
     /**
      * @brief This method is used to check that tow Constitutive Laws are the same type (references)
      * @param rLHS The first argument
@@ -1327,7 +1399,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    InitialState::Pointer mpInitialState = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -1354,11 +1426,13 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
+        rSerializer.save("InitialState",mpInitialState);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
+        rSerializer.load("InitialState",mpInitialState);
     }
 
 
