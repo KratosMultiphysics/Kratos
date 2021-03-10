@@ -71,10 +71,8 @@ namespace Kratos
 
                                     counter_m++;
                                 }
-                            }
                         }
                         counter_n++;
-                    }
                 }
                 if (CalculateStiffnessMatrixFlag) {
                     noalias(rLeftHandSideMatrix) += LHS;
