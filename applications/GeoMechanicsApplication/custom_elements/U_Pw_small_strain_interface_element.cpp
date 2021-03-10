@@ -279,7 +279,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
 
-        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(JointWidth,
+                                          ConstitutiveParameters,
+                                          StrainVector[TDim-1],
+                                          MinimumJointWidth,
+                                          GPoint);
 
         noalias(Np) = row(NContainer, GPoint);
 
@@ -866,7 +870,11 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
 
-            this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
+            this->CheckAndCalculateJointWidth(JointWidth,
+                                              ConstitutiveParameters,
+                                              StrainVector[TDim-1],
+                                              MinimumJointWidth,
+                                              GPoint);
 
             noalias(Np) = row(NContainer,GPoint);
 
@@ -951,10 +959,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
 
-            this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
+            this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth, GPoint);
 
-            this->CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
-                                                                                                                DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
+            this->CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >( GradNpT,
+                                                                                            SFGradAuxVars,
+                                                                                            JContainer[GPoint],
+                                                                                            RotationMatrix,
+                                                                                            DN_DeContainer[GPoint],
+                                                                                            NContainer,
+                                                                                            JointWidth,
+                                                                                            GPoint);
 
             GeoElementUtilities::
                 InterpolateVariableWithComponents<TDim, TNumNodes>( BodyAcceleration,
@@ -962,7 +976,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                                     VolumeAcceleration,
                                                                     GPoint );
 
-            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability);
+            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,
+                                                                   JointWidth,
+                                                                   Transversal_Permeability);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
@@ -1018,11 +1034,14 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
 
-            this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
+            this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth, GPoint);
 
-            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability);
+            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,
+                                                                   JointWidth,
+                                                                   Transversal_Permeability);
 
-            noalias(PermeabilityMatrix) = prod(trans(RotationMatrix),BoundedMatrix<double,TDim, TDim>(prod(LocalPermeabilityMatrix,RotationMatrix)));
+            noalias(PermeabilityMatrix) = prod( trans(RotationMatrix),
+                                                BoundedMatrix<double,TDim, TDim>(prod(LocalPermeabilityMatrix,RotationMatrix)) );
 
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
@@ -1060,7 +1079,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
-            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,JointWidth,Transversal_Permeability);
+            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,
+                                                                   JointWidth,
+                                                                   Transversal_Permeability);
 
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = LocalPermeabilityMatrix;
@@ -1088,22 +1109,18 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
-    if (mInitialGap[0] < MinimumJointWidth)
-        mIsOpen[0] = false;
-    else
-        mIsOpen[0] = true;
 
     noalias(Vx) = Geom.GetPoint( 2 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
-    if (mInitialGap[1] < MinimumJointWidth)
-        mIsOpen[1] = false;
-    else
-        mIsOpen[1] = true;
+
+    for (unsigned i=0; i< mIsOpen.size(); ++i)
+    {
+        mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
+    }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<2,4>:::CalculateInitialGap()") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -1121,29 +1138,21 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
-    if (mInitialGap[0] < MinimumJointWidth)
-        mIsOpen[0] = false;
-    else
-        mIsOpen[0] = true;
 
     noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
-    if (mInitialGap[1] < MinimumJointWidth)
-        mIsOpen[1] = false;
-    else
-        mIsOpen[1] = true;
 
     noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 2 );
     mInitialGap[2] = norm_2(Vx);
-    if (mInitialGap[2] < MinimumJointWidth)
-        mIsOpen[2] = false;
-    else
-        mIsOpen[2] = true;
+
+    for (unsigned i=0; i< mIsOpen.size(); ++i)
+    {
+        mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
+    }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,6>:::CalculateInitialGap()") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -1161,36 +1170,24 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
-    if (mInitialGap[0] < MinimumJointWidth)
-        mIsOpen[0] = false;
-    else
-        mIsOpen[0] = true;
 
     noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
-    if (mInitialGap[1] < MinimumJointWidth)
-        mIsOpen[1] = false;
-    else
-        mIsOpen[1] = true;
 
     noalias(Vx) = Geom.GetPoint( 6 ) - Geom.GetPoint( 2 );
     mInitialGap[2] = norm_2(Vx);
-    if (mInitialGap[2] < MinimumJointWidth)
-        mIsOpen[2] = false;
-    else
-        mIsOpen[2] = true;
 
     noalias(Vx) = Geom.GetPoint( 7 ) - Geom.GetPoint( 3 );
     mInitialGap[3] = norm_2(Vx);
-    if (mInitialGap[3] < MinimumJointWidth)
-        mIsOpen[3] = false;
-    else
-        mIsOpen[3] = true;
+
+    for (unsigned i=0; i< mIsOpen.size(); ++i)
+    {
+        mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
+    }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement<3,8>:::CalculateInitialGap()") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -1674,7 +1671,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CheckAndCalculateJointWidth(double& rJointWidth, 
@@ -1691,7 +1687,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // No contact between interfaces
 
     // Initally open joint
-    if (mIsOpen[GPoint]==true)
+    if (mIsOpen[GPoint])
     {
         if (rJointWidth < MinimumJointWidth)
         {

@@ -76,7 +76,6 @@ int BilinearCohesive3DLaw::
 }
 
 //----------------------------------------------------------------------------------------
-
 ConstitutiveLaw::Pointer BilinearCohesive3DLaw::Clone() const
 {
     BilinearCohesive3DLaw::Pointer p_clone(new BilinearCohesive3DLaw(*this));
@@ -84,14 +83,15 @@ ConstitutiveLaw::Pointer BilinearCohesive3DLaw::Clone() const
 }
 
 //----------------------------------------------------------------------------------------
-
-void BilinearCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
+void BilinearCohesive3DLaw::
+    InitializeMaterial( const Properties& rMaterialProperties,
+                        const GeometryType& rElementGeometry,
+                        const Vector& rShapeFunctionsValues )
 {
     mStateVariable = rMaterialProperties[DAMAGE_THRESHOLD];
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     KRATOS_TRY
@@ -113,20 +113,27 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     {
         this->ComputeEquivalentStrain(EquivalentStrain,rStrainVector,CriticalDisplacement);
 
-        if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+        if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {
-            if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
+            if (Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
             {
                 // COMPUTE_CONSTITUTIVE_TENSOR
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
                 if(EquivalentStrain >= mStateVariable) //Loading
                 {
-                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,
+                                                           rStrainVector,
+                                                           YieldStress,
+                                                           DamageThreshold,
+                                                           CriticalDisplacement);
                 }
                 else //Unloading
                 {
-                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,
+                                                             YieldStress,
+                                                             DamageThreshold,
+                                                             CriticalDisplacement);
                 }
             }
             else
@@ -137,21 +144,36 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
                 if(EquivalentStrain >= mStateVariable) //Loading
                 {
-                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,
+                                                           rStrainVector,
+                                                           YieldStress,
+                                                           DamageThreshold,
+                                                           CriticalDisplacement);
                 }
                 else //Unloading
                 {
-                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,
+                                                             YieldStress,
+                                                             DamageThreshold,
+                                                             CriticalDisplacement);
                 }
-                this->ComputeStressVector(rStressVector,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                this->ComputeStressVector(rStressVector,
+                                          rStrainVector,
+                                          YieldStress,
+                                          DamageThreshold,
+                                          CriticalDisplacement);
             }
         }
-        else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
+        else if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
             // COMPUTE_STRESS
             Vector& rStressVector = rValues.GetStressVector();
 
-            this->ComputeStressVector(rStressVector,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+            this->ComputeStressVector(rStressVector,
+                                      rStrainVector,
+                                      YieldStress,
+                                      DamageThreshold,
+                                      CriticalDisplacement);
         }
     }
     else  // Contact between interfaces
@@ -161,20 +183,32 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
         this->ComputeEquivalentStrainContact(EquivalentStrain,rStrainVector,CriticalDisplacement);
 
-        if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+        if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {
-            if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
+            if (Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
             {
                 // COMPUTE_CONSTITUTIVE_TENSOR
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
                 if(EquivalentStrain >= mStateVariable) //Loading
                 {
-                    this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,
+                                                                  rStrainVector,
+                                                                  YoungModulus,
+                                                                  FrictionCoefficient,
+                                                                  YieldStress,
+                                                                  DamageThreshold,
+                                                                  CriticalDisplacement);
                 }
                 else //Unloading
                 {
-                    this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,
+                                                                    rStrainVector,
+                                                                    YoungModulus,
+                                                                    FrictionCoefficient,
+                                                                    YieldStress,
+                                                                    DamageThreshold,
+                                                                    CriticalDisplacement);
                 }
             }
             else
@@ -185,13 +219,31 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
                 if(EquivalentStrain >= mStateVariable) //Loading
                 {
-                    this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,
+                                                                  rStrainVector,
+                                                                  YoungModulus,
+                                                                  FrictionCoefficient,
+                                                                  YieldStress,
+                                                                  DamageThreshold,
+                                                                  CriticalDisplacement);
                 }
                 else //Unloading
                 {
-                    this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,
+                                                                    rStrainVector,
+                                                                    YoungModulus,
+                                                                    FrictionCoefficient,
+                                                                    YieldStress,
+                                                                    DamageThreshold,
+                                                                    CriticalDisplacement);
                 }
-                this->ComputeStressVectorContact(rStressVector,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                this->ComputeStressVectorContact(rStressVector,
+                                                 rStrainVector,
+                                                 YoungModulus,
+                                                 FrictionCoefficient,
+                                                 YieldStress,
+                                                 DamageThreshold,
+                                                 CriticalDisplacement);
             }
         }
         else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
@@ -199,7 +251,13 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
             // COMPUTE_STRESS
             Vector& rStressVector = rValues.GetStressVector();
 
-            this->ComputeStressVectorContact(rStressVector,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+            this->ComputeStressVectorContact(rStressVector,
+                                             rStrainVector,
+                                             YoungModulus,
+                                             FrictionCoefficient,
+                                             YieldStress,
+                                             DamageThreshold,
+                                             CriticalDisplacement);
         }
     }
     KRATOS_CATCH("")
@@ -209,7 +267,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 
 void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues )
 {
-    if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
+    if (rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
         //Check
         rValues.CheckAllParameters();
@@ -230,7 +288,7 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues 
             this->ComputeEquivalentStrainContact(EquivalentStrain,rStrainVector,CriticalDisplacement);
         }
 
-        if(EquivalentStrain >= mStateVariable)
+        if (EquivalentStrain >= mStateVariable)
         {
             mStateVariable = EquivalentStrain;
             if(mStateVariable > 1.0) mStateVariable = 1.0;
@@ -241,7 +299,7 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 double& BilinearCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    if( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE )
+    if ( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE )
     {
         rValue = mStateVariable;
     }
@@ -319,7 +377,6 @@ void BilinearCohesive3DLaw::
 }
 
 //----------------------------------------------------------------------------------------
-
 void BilinearCohesive3DLaw::
     ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
                                             const Vector& StrainVector,
@@ -338,38 +395,39 @@ void BilinearCohesive3DLaw::
 
     rConstitutiveMatrix(0,1) = -YieldStress*StrainVector[0]*StrainVector[1]/( (1.0-DamageThreshold)*
                                 CriticalDisplacement*CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable );
-    if(StrainVector[0] > 1.0e-20)
+
+    for (int i=indexStress3DInterface::INDEX_3D_INTERFACE_XZ; i!=indexStress3DInterface::INDEX_3D_INTERFACE_ZZ; ++i)
     {
-        rConstitutiveMatrix(0,2) = -YieldStress*StrainVector[0]*StrainVector[2]/( (1.0-DamageThreshold)*
-                                    CriticalDisplacement*CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) -
-                                    YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
+        if (StrainVector[i] > 1.0e-20)
+        {
+            rConstitutiveMatrix(i,indexStress3DInterface::INDEX_3D_INTERFACE_ZZ) = 
+              - YieldStress*StrainVector[i]*StrainVector[indexStress3DInterface::INDEX_3D_INTERFACE_ZZ]/( (1.0-DamageThreshold)
+                                                                                                         * CriticalDisplacement
+                                                                                                         * CriticalDisplacement
+                                                                                                         * CriticalDisplacement
+                                                                                                         * mStateVariable
+                                                                                                         * mStateVariable
+                                                                                                         * mStateVariable )
+                                       - YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
+        }
+        else if (StrainVector[i] < -1.0e-20)
+        {
+            rConstitutiveMatrix(i,indexStress3DInterface::INDEX_3D_INTERFACE_ZZ) =
+              - YieldStress*StrainVector[i]*StrainVector[indexStress3DInterface::INDEX_3D_INTERFACE_ZZ]/( (1.0-DamageThreshold)
+                                                                                                         * CriticalDisplacement
+                                                                                                         * CriticalDisplacement
+                                                                                                         * CriticalDisplacement
+                                                                                                         * mStateVariable
+                                                                                                         * mStateVariable
+                                                                                                         * mStateVariable )
+              + YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
+        }
+        else
+        {
+            rConstitutiveMatrix(i,indexStress3DInterface::INDEX_3D_INTERFACE_ZZ) = 0.0;
+        }
     }
-    else if(StrainVector[0] < -1.0e-20)
-    {
-        rConstitutiveMatrix(0,2) = -YieldStress*StrainVector[0]*StrainVector[2]/( (1.0-DamageThreshold)*
-                                    CriticalDisplacement*CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) +
-                                    YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
-    }
-    else
-    {
-        rConstitutiveMatrix(0,2) = 0.0;
-    }
-    if(StrainVector[1] > 1.0e-20)
-    {
-        rConstitutiveMatrix(1,2) = -YieldStress*StrainVector[1]*StrainVector[2]/( (1.0-DamageThreshold)*
-                                    CriticalDisplacement*CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) -
-                                    YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
-    }
-    else if(StrainVector[1] < -1.0e-20)
-    {
-        rConstitutiveMatrix(1,2) = -YieldStress*StrainVector[1]*StrainVector[2]/( (1.0-DamageThreshold)*
-                                    CriticalDisplacement*CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) +
-                                    YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
-    }
-    else
-    {
-        rConstitutiveMatrix(1,2) = 0.0;
-    }
+
     rConstitutiveMatrix(1,0) = rConstitutiveMatrix(0,1);
     rConstitutiveMatrix(2,0) = 0.0;
     rConstitutiveMatrix(2,1) = 0.0;
@@ -384,7 +442,8 @@ void BilinearCohesive3DLaw::ComputeConstitutiveMatrixUnloading( Matrix& rConstit
                                                                 const double& CriticalDisplacement )
 {
     KRATOS_TRY
-    rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
+    rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)
+                              *(1.0-mStateVariable)/(1.0-DamageThreshold);
     rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
     rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
 
@@ -399,7 +458,6 @@ void BilinearCohesive3DLaw::ComputeConstitutiveMatrixUnloading( Matrix& rConstit
 }
 
 //----------------------------------------------------------------------------------------
-
 void BilinearCohesive3DLaw::
     ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
                                               const Vector& StrainVector,
@@ -410,35 +468,32 @@ void BilinearCohesive3DLaw::
                                               const double& CriticalDisplacement)
 {
     KRATOS_TRY
-    rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
+    rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)
+                              *(1.0-mStateVariable)/(1.0-DamageThreshold);
     rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
     rConstitutiveMatrix(2,2) = YoungModulus/(DamageThreshold*CriticalDisplacement);
 
     rConstitutiveMatrix(0,1) = 0.0;
-    if(StrainVector[0] > 1.0e-20)
+
+    for (int i=indexStress3DInterface::INDEX_3D_INTERFACE_XZ; i!=indexStress3DInterface::INDEX_3D_INTERFACE_ZZ; ++i)
     {
-        rConstitutiveMatrix(0,2) = -YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
+        if (StrainVector[i] > 1.0e-20)
+        {
+            rConstitutiveMatrix(i, indexStress3DInterface::INDEX_3D_INTERFACE_ZZ) = 
+                -YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
+        }
+        else if (StrainVector[i] < -1.0e-20)
+        {
+            rConstitutiveMatrix(i, indexStress3DInterface::INDEX_3D_INTERFACE_ZZ) = 
+                YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
+        }
+        else
+        {
+            rConstitutiveMatrix(i, indexStress3DInterface::INDEX_3D_INTERFACE_ZZ) = 0.0;
+        }
     }
-    else if(StrainVector[0] < -1.0e-20)
-    {
-        rConstitutiveMatrix(0,2) = YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
-    }
-    else
-    {
-        rConstitutiveMatrix(0,2) = 0.0;
-    }
-    if(StrainVector[1] > 1.0e-20)
-    {
-        rConstitutiveMatrix(1,2) = -YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
-    }
-    else if(StrainVector[1] < -1.0e-20)
-    {
-        rConstitutiveMatrix(1,2) = YoungModulus*FrictionCoefficient/(DamageThreshold*CriticalDisplacement);
-    }
-    else
-    {
-        rConstitutiveMatrix(1,2) = 0.0;
-    }
+
+
     rConstitutiveMatrix(1,0) = 0.0;
     rConstitutiveMatrix(2,0) = 0.0;
     rConstitutiveMatrix(2,1) = 0.0;
@@ -446,7 +501,6 @@ void BilinearCohesive3DLaw::
 }
 
 //----------------------------------------------------------------------------------------
-
 void BilinearCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
                                                 const Vector& StrainVector,
                                                 const double& YieldStress,
@@ -455,15 +509,17 @@ void BilinearCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
 {
     KRATOS_TRY
 
-    rStressVector[0] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold) * StrainVector[0];
-    rStressVector[1] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold) * StrainVector[1];
-    rStressVector[2] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold) * StrainVector[2];
+    for (unsigned int i=0; i<rStressVector.size(); ++i)
+    {
+        rStressVector[i] =  YieldStress/(CriticalDisplacement*mStateVariable)
+                          * (1.0-mStateVariable)/(1.0-DamageThreshold)
+                          * StrainVector[i];
+    }
 
     KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
-
 void BilinearCohesive3DLaw::ComputeStressVectorContact(Vector& rStressVector,
                                                        const Vector& StrainVector,
                                                        const double& YoungModulus,
@@ -475,32 +531,28 @@ void BilinearCohesive3DLaw::ComputeStressVectorContact(Vector& rStressVector,
     KRATOS_TRY
 
     // Note: StrainVector[2] < 0.0
-    rStressVector[2] = YoungModulus/(DamageThreshold*CriticalDisplacement)*StrainVector[2];
+    rStressVector[indexStress3DInterface::INDEX_3D_INTERFACE_ZZ] = 
+          YoungModulus/(DamageThreshold*CriticalDisplacement)
+        * StrainVector[indexStress3DInterface::INDEX_3D_INTERFACE_ZZ];
 
-    if(StrainVector[0] > 1.0e-20)
+    for (int i=indexStress3DInterface::INDEX_3D_INTERFACE_XZ; i!=indexStress3DInterface::INDEX_3D_INTERFACE_ZZ; ++i)
     {
-        rStressVector[0] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[0] - FrictionCoefficient*rStressVector[2];
-    }
-    else if(StrainVector[0] < -1.0e-20)
-    {
-        rStressVector[0] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[0] + FrictionCoefficient*rStressVector[2];
-    }
-    else
-    {
-        rStressVector[0] = 0.0;
-    }
-
-    if(StrainVector[1] > 1.0e-20)
-    {
-        rStressVector[1] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[1] - FrictionCoefficient*rStressVector[2];
-    }
-    else if(StrainVector[1] < -1.0e-20)
-    {
-        rStressVector[1] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[1] + FrictionCoefficient*rStressVector[2];
-    }
-    else
-    {
-        rStressVector[1] = 0.0;
+        if (StrainVector[i] > 1.0e-20)
+        {
+            rStressVector[i] =  YieldStress/(CriticalDisplacement*mStateVariable)
+                              * (1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[i]
+                              - FrictionCoefficient*rStressVector[indexStress3DInterface::INDEX_3D_INTERFACE_ZZ];
+        }
+        else if (StrainVector[i] < -1.0e-20)
+        {
+            rStressVector[i] =  YieldStress/(CriticalDisplacement*mStateVariable)
+                              * (1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[i]
+                              + FrictionCoefficient*rStressVector[indexStress3DInterface::INDEX_3D_INTERFACE_ZZ];
+        }
+        else
+        {
+            rStressVector[i] = 0.0;
+        }
     }
 
     KRATOS_CATCH("")
