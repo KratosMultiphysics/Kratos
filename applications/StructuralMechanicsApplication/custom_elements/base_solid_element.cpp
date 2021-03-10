@@ -1696,8 +1696,13 @@ void BaseSolidElement::CalculateLumpedMassVector(
     // LUMPED MASS MATRIX
     const double total_mass = GetGeometry().DomainSize() * density * thickness;
 
-    Vector lumping_factors;
-    lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
+    Vector lumping_factors(number_of_nodes);
+    if (this->Has(LUMPING_FACTORS)) {
+        lumping_factors = this->GetValue(LUMPING_FACTORS);
+    } else {
+        lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
+        this->SetValue(LUMPING_FACTORS, lumping_factors);
+    }
 
     for ( IndexType i = 0; i < number_of_nodes; ++i ) {
         const double temp = lumping_factors[i] * total_mass;
