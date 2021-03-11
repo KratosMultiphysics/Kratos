@@ -128,52 +128,28 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
-    using  SimpleSteadyAdjointScheme2DType = SimpleSteadyAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
-    py::class_<SimpleSteadyAdjointScheme2DType, typename SimpleSteadyAdjointScheme2DType::Pointer, BaseSchemeType>
-        (m, "SimpleSteadyAdjointScheme2D")
-        .def(py::init<AdjointResponseFunction::Pointer>())
+    using  SimpleSteadyAdjointSchemeType = SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<SimpleSteadyAdjointSchemeType, typename SimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>
+        (m, "SimpleSteadyAdjointScheme")
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
         ;
 
-    using  SimpleSteadyAdjointScheme3DType = SimpleSteadyAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
-    py::class_<SimpleSteadyAdjointScheme3DType, typename SimpleSteadyAdjointScheme3DType::Pointer, BaseSchemeType>
-        (m, "SimpleSteadyAdjointScheme3D")
-        .def(py::init<AdjointResponseFunction::Pointer>())
+    using  VelocityBossakAdjointSchemeType = VelocityBossakAdjointScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<VelocityBossakAdjointSchemeType, typename VelocityBossakAdjointSchemeType::Pointer, BaseSchemeType>
+        (m, "VelocityBossakAdjointScheme")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
         ;
 
-    using  VelocityBossakAdjointScheme2DType = VelocityBossakAdjointScheme<2, SparseSpaceType, LocalSpaceType>;
-    py::class_<VelocityBossakAdjointScheme2DType, typename VelocityBossakAdjointScheme2DType::Pointer, BaseSchemeType>
-        (m, "VelocityBossakAdjointScheme2D")
-        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
+    using SimpleSteadySensitivityBuilderSchemeType = SimpleSteadySensitivityBuilderScheme;
+    py::class_<SimpleSteadySensitivityBuilderSchemeType, typename SimpleSteadySensitivityBuilderSchemeType::Pointer, SensitivityBuilderScheme>
+        (m, "SimpleSteadySensitivityBuilderScheme")
+        .def(py::init<const std::size_t, const std::size_t>())
         ;
 
-    using  VelocityBossakAdjointScheme3DType = VelocityBossakAdjointScheme<3, SparseSpaceType, LocalSpaceType>;
-    py::class_<VelocityBossakAdjointScheme3DType, typename VelocityBossakAdjointScheme3DType::Pointer, BaseSchemeType>
-        (m, "VelocityBossakAdjointScheme3D")
-        .def(py::init<Parameters, AdjointResponseFunction::Pointer>())
-        ;
-
-    using SimpleSteadySensitivityBuilderScheme2DType = SimpleSteadySensitivityBuilderScheme<2>;
-    py::class_<SimpleSteadySensitivityBuilderScheme2DType, typename SimpleSteadySensitivityBuilderScheme2DType::Pointer, SensitivityBuilderScheme>
-        (m, "SimpleSteadySensitivityBuilderScheme2D")
-        .def(py::init())
-        ;
-
-    using SimpleSteadySensitivityBuilderScheme3DType = SimpleSteadySensitivityBuilderScheme<3>;
-    py::class_<SimpleSteadySensitivityBuilderScheme3DType, typename SimpleSteadySensitivityBuilderScheme3DType::Pointer, SensitivityBuilderScheme>
-        (m, "SimpleSteadySensitivityBuilderScheme3D")
-        .def(py::init())
-        ;
-
-    using VelocityBossakSensitivityBuilderScheme2DType = VelocityBossakSensitivityBuilderScheme<2>;
-    py::class_<VelocityBossakSensitivityBuilderScheme2DType, typename VelocityBossakSensitivityBuilderScheme2DType::Pointer, SensitivityBuilderScheme>
-        (m, "VelocityBossakSensitivityBuilderScheme2D")
-        .def(py::init<const double>())
-        ;
-
-    using VelocityBossakSensitivityBuilderScheme3DType = VelocityBossakSensitivityBuilderScheme<3>;
-    py::class_<VelocityBossakSensitivityBuilderScheme3DType, typename VelocityBossakSensitivityBuilderScheme3DType::Pointer, SensitivityBuilderScheme>
-        (m, "VelocityBossakSensitivityBuilderScheme3D")
-        .def(py::init<const double>())
+    using VelocityBossakSensitivityBuilderSchemeType = VelocityBossakSensitivityBuilderScheme;
+    py::class_<VelocityBossakSensitivityBuilderSchemeType, typename VelocityBossakSensitivityBuilderSchemeType::Pointer, SensitivityBuilderScheme>
+        (m, "VelocityBossakSensitivityBuilderScheme")
+        .def(py::init<const double, const std::size_t, const std::size_t>())
         ;
 
 }

@@ -26,8 +26,8 @@
 namespace Kratos
 {
     enum Framework {EULERIAN_FRAMEWORK = 0, PFEM2_FRAMEWORK = 1};
-    enum Formulation {REDUCED_VARIABLES = 0, CONSERVED_VARIABLES = 1};
-    enum Variables {FREE_SURFACE_VARIABLE = 0, VELOCITY_VARIABLE = 1, FREE_SURFACE_AND_VELOCITY = 2};
+    enum Formulation {PrimitiveVariables = 0, ConservativeVariables = 1};
+    enum Variables {FreeSurfaceVariable = 0, VelocityVariable = 1, FreeSurfaceAndVelocity = 2};
 
     // Primary variables
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, HEIGHT)
@@ -40,8 +40,10 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, TOPOGRAPHY)                // Topographic definition of the domain
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, RAIN)                      // Source term
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, MANNING)                   // Friction coefficient
+    KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, CHEZY)                     // Friction coefficient
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, PERMEABILITY)              // Dry domain permeability
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, ATMOSPHERIC_PRESSURE)
+    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(SHALLOW_WATER_APPLICATION, WIND)
 
     // Auxiliary variables
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, SHOCK_STABILIZATION_FACTOR)

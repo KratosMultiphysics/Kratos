@@ -655,7 +655,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 }
 
-template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
 template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
