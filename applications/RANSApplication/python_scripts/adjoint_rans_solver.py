@@ -260,30 +260,19 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         element_names = tuple(self.formulation.GetElementNames())
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        if (domain_size == 2):
-            if (element_names == (("QSVMS"), )):
-                bossak_scheme_type = KratosCFD.VelocityBossakSensitivityBuilderScheme2D
-                steady_scheme_type = KratosCFD.SimpleSteadySensitivityBuilderScheme2D
-            else:
-                bossak_scheme_type = KratosRANS.RansVelocityBossakSensitivityBuilderScheme2D
-                steady_scheme_type = KratosRANS.RansSimpleSteadySensitivityBuilderScheme2D
-        elif (domain_size == 3):
-            if (element_names == (("QSVMS"), )):
-                bossak_scheme_type = KratosCFD.VelocityBossakSensitivityBuilderScheme3D
-                steady_scheme_type = KratosCFD.SimpleSteadySensitivityBuilderScheme3D
-            else:
-                bossak_scheme_type = KratosRANS.RansVelocityBossakSensitivityBuilderScheme3D
-                steady_scheme_type = KratosRANS.RansSimpleSteadySensitivityBuilderScheme3D
+
+        if (element_names == (("QSVMS"), )):
+            block_size = domain_size + 1
         else:
-            raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            block_size = domain_size + 3
 
         time_scheme_settings = self.settings["time_scheme_settings"]
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()
 
         if (time_scheme_type == "steady"):
-            self.sensitivity_builder_scheme = steady_scheme_type()
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme(domain_size, block_size)
         elif (time_scheme_type == "bossak"):
-            self.sensitivity_builder_scheme = bossak_scheme_type(time_scheme_settings["alpha_bossak"].GetDouble())
+            self.sensitivity_builder_scheme = KratosCFD.VelocityBossakSensitivityBuilderScheme(time_scheme_settings["alpha_bossak"].GetDouble(), domain_size, block_size)
 
         sensitivity_builder = Kratos.SensitivityBuilder(
             self.adjoint_settings["sensitivity_settings"],
@@ -319,29 +308,17 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         element_names = tuple(self.formulation.GetElementNames())
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        if (domain_size == 2):
-            if (element_names == (("QSVMS"), )):
-                bossak_scheme_type = GetKratosObjectPrototype("VelocityBossakAdjointScheme2D")
-                steady_scheme_type = GetKratosObjectPrototype("SimpleSteadyAdjointScheme2D")
-            else:
-                bossak_scheme_type = GetKratosObjectPrototype("RansVelocityBossakAdjointScheme2D")
-                steady_scheme_type = GetKratosObjectPrototype("RansSimpleSteadyAdjointScheme2D")
-        elif (domain_size == 3):
-            if (element_names == (("QSVMS"), )):
-                bossak_scheme_type = GetKratosObjectPrototype("VelocityBossakAdjointScheme3D")
-                steady_scheme_type = GetKratosObjectPrototype("SimpleSteadyAdjointScheme3D")
-            else:
-                bossak_scheme_type = GetKratosObjectPrototype("RansVelocityBossakAdjointScheme3D")
-                steady_scheme_type = GetKratosObjectPrototype("RansSimpleSteadyAdjointScheme3D")
+
+        if (element_names == (("QSVMS"), )):
+            block_size = domain_size + 1
         else:
-            raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            block_size = domain_size + 3
 
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
-        domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         if scheme_type == "bossak":
-            scheme = bossak_scheme_type(self.settings["time_scheme_settings"], response_function)
+            scheme = GetKratosObjectPrototype("VelocityBossakAdjointScheme")(self.settings["time_scheme_settings"], response_function, domain_size, block_size)
         elif scheme_type == "steady":
-            scheme = steady_scheme_type(response_function)
+            scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(response_function, domain_size, block_size)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
 

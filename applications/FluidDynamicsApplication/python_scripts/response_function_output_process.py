@@ -9,9 +9,9 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ResponseFunctionOutputProcess(Model, settings["Parameters"])
 
-class ResponseFunctionOutputProcess(Kratos.Process):
+class ResponseFunctionOutputProcess(Kratos.OutputProcess):
     def __init__(self, model, params):
-        Kratos.Process.__init__(self)
+        Kratos.OutputProcess.__init__(self)
 
         default_settings = Kratos.Parameters('''{
             "response_type"       : "PLEASE_SPECIFY_RESPONSE_TYPE",
@@ -30,7 +30,7 @@ class ResponseFunctionOutputProcess(Kratos.Process):
         response_type = self.params["response_type"].GetString()
         if (response_type == "norm_square"):
             self.response = KratosCFD.VelocityPressureNormSquareResponseFunction(
-                self.params["response_settings"], self.main_model_part)
+                self.params["response_settings"], self.model)
         else:
             raise Exception(
                 "Unknown response_type = \"" + response_type +
@@ -47,7 +47,7 @@ class ResponseFunctionOutputProcess(Kratos.Process):
             file_header = self.GetFileHeader()
             self.output_file =  TimeBasedAsciiFileWriterUtility(self.main_model_part, file_handler_params, file_header).file
 
-    def ExecuteFinalizeSolutionStep(self):
+    def PrintOutput(self):
         time = self.main_model_part.ProcessInfo[Kratos.TIME]
 
         out = str(time)

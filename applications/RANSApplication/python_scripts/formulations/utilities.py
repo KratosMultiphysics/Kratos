@@ -79,37 +79,13 @@ def GetKratosObjectPrototype(type_name):
             "KratosMultiphysics.FluidDynamicsApplication.StrategyLabel",
             "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosStrategyLabel"
         ],
-        "SimpleSteadyAdjointScheme2D":[
-            "KratosMultiphysics.FluidDynamicsApplication.SimpleSteadyAdjointScheme2D",
-            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosSimpleSteadyAdjointScheme2D"
+        "SimpleSteadyAdjointScheme":[
+            "KratosMultiphysics.FluidDynamicsApplication.SimpleSteadyAdjointScheme",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosSimpleSteadyAdjointScheme"
         ],
-        "SimpleSteadyAdjointScheme3D":[
-            "KratosMultiphysics.FluidDynamicsApplication.SimpleSteadyAdjointScheme3D",
-            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosSimpleSteadyAdjointScheme3D"
-        ],
-        "VelocityBossakAdjointScheme2D":[
-            "KratosMultiphysics.FluidDynamicsApplication.VelocityBossakAdjointScheme2D",
-            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosVelocityBossakAdjointScheme2D"
-        ],
-        "VelocityBossakAdjointScheme3D":[
-            "KratosMultiphysics.FluidDynamicsApplication.VelocityBossakAdjointScheme3D",
-            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosVelocityBossakAdjointScheme3D"
-        ],
-        "RansSimpleSteadyAdjointScheme2D":[
-            "KratosMultiphysics.RANSApplication.RansSimpleSteadyAdjointScheme2D",
-            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIRansSimpleSteadyAdjointScheme2D"
-        ],
-        "RansSimpleSteadyAdjointScheme3D":[
-            "KratosMultiphysics.RANSApplication.RansSimpleSteadyAdjointScheme3D",
-            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIRansSimpleSteadyAdjointScheme3D"
-        ],
-        "RansVelocityBossakAdjointScheme2D":[
-            "KratosMultiphysics.RANSApplication.RansVelocityBossakAdjointScheme2D",
-            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIRansVelocityBossakAdjointScheme2D"
-        ],
-        "RansVelocityBossakAdjointScheme3D":[
-            "KratosMultiphysics.RANSApplication.RansVelocityBossakAdjointScheme3D",
-            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIRansVelocityBossakAdjointScheme3D"
+        "VelocityBossakAdjointScheme":[
+            "KratosMultiphysics.FluidDynamicsApplication.VelocityBossakAdjointScheme",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosVelocityBossakAdjointScheme"
         ]
     }
 

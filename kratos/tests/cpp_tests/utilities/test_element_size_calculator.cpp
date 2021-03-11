@@ -156,8 +156,8 @@ namespace Kratos
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 2.0, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(3, 0.5, 0.5, 0.0)));
-            nodes.push_back(NodeType::Pointer(new NodeType(4, 0.2, 0.3, 1.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(3, 0.2, 0.3, 1.0)));
+            nodes.push_back(NodeType::Pointer(new NodeType(4, 0.5, 0.5, 0.0)));
             auto geometry = *GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
                 geometry, ElementSizeCalculator<3, 4>::AverageElementSize,

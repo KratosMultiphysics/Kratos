@@ -26,7 +26,7 @@ class ResponseFunctionInterface(object):
     def Initialize(self):
         pass
 
-    def SetEvaluationModelPart(self, evaluation_model_part):
+    def UpdateDesign(self, updated_model_part, variable):
         pass
 
     def InitializeSolutionStep(self):

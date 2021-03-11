@@ -97,7 +97,7 @@ public:
     ///@{
 
     /// Counted pointer of ShellRigid
-    KRATOS_CLASS_POINTER_DEFINITION(ShellRigid);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellRigid);
 
     ///@}
     ///@name Life Cycle
