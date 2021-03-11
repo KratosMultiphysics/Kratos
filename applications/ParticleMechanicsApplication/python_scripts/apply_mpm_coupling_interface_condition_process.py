@@ -100,9 +100,8 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,0,contact_force)
 
                 ##Update Position of coupling node
-                delta_x = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
                 coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
-                coord += delta_x
+                
                 node = self.coupling_model_part.GetNode(coupling_id)
                 node.X =coord[0]
                 node.Y =coord[1]
