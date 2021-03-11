@@ -377,7 +377,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     IndexType iteration = 0, max_iter = 1000;
     if (rPDParameters.TotalDissipation < 0.99999) {
         while (is_converged == false && iteration <= max_iter) {
-
             CalculateThresholdAndSlope(rValues, rPDParameters);
             CalculateFlowVector(rValues, rPDParameters);
             CalculatePlasticConsistencyIncrement(rValues, rPDParameters);

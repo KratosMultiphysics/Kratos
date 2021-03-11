@@ -152,6 +152,7 @@ public:
     AssociativePlasticDamageModel(const AssociativePlasticDamageModel &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
+          mDamageDissipation(rOther.mDamageDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticStrain(rOther.mPlasticStrain),
           mComplianceMatrix(rOther.mComplianceMatrix)
@@ -699,8 +700,10 @@ public:
         rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
         rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
 
-        rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation + rPDParameters.DamageDissipation);
-        rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ? 0.99999 : rPDParameters.TotalDissipation;
+        rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation +
+            rPDParameters.DamageDissipation);
+        rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ?
+            0.99999 : rPDParameters.TotalDissipation;
     }
 
     double CalculateVolumetricFractureEnergy( // g_F
@@ -799,6 +802,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
+        rSerializer.save("DamageDissipation", mDamageDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
         rSerializer.save("ComplianceMatrix", mComplianceMatrix);
@@ -808,6 +812,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
+        rSerializer.load("DamageDissipation", mDamageDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
         rSerializer.load("ComplianceMatrix", mComplianceMatrix);
