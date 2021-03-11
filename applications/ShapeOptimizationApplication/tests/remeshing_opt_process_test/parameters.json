@@ -15,9 +15,12 @@
                 "apply_mesh_solver" : true,
                 "solver_settings" : {
                     "domain_size"     : 2,
-                    "model_part_name" : "plate_with_hole"
+                    "model_part_name" : "plate_with_hole",
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.sparse_lu"
+                    }
                 },
-                "use_automatic_remeshing"     : true
+                "use_automatic_remeshing"     : false
             }
         },
         "objectives" : [{
@@ -37,12 +40,12 @@
         },
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
-            "max_iterations"     : 5,
+            "max_iterations"     : 2,
             "relative_tolerance" : 1e-2,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 5.0
+                "step_size"                  : 4.0
             }
         },
         "output" : {

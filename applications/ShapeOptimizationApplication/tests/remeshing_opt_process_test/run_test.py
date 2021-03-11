@@ -46,26 +46,25 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     resulting_improvement = float(last_line[2].strip())
 
     # Check against specifications
-    TestCase().assertEqual(resulting_optimization_iterations, 5)
-    # TestCase().assertAlmostEqual(resulting_improvement, -26.2433, 4) # TODO update response value
+    TestCase().assertEqual(resulting_optimization_iterations, 2)
+    TestCase().assertAlmostEqual(resulting_improvement, -3.49743E+00, 4)
 
-# TODO activate and store ref result
 
-# # Testing of design output
-# output_file_name = os.path.join(output_directory, "design_surface_0_5.vtk")
-# reference_file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref_design_surface_0_5.vtk")
+# Testing of design output
+output_file_name = os.path.join(output_directory, "plate_with_hole_0_2.vtk")
+reference_file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref_plate_with_hole_0_2.vtk")
 
-# result_check_settings = KM.Parameters("""{
-#         "reference_file_name"   : \""""+reference_file_name.replace("\\", "\\\\")+"""\",
-#         "output_file_name"      : \""""+output_file_name.replace("\\", "\\\\")+"""\",
-#         "remove_output_file"    : false,
-#         "comparison_type"       : "vtk",
-#         "tolerance"             : 1e-6,
-#         "relative_tolerance"    : 1e-9,
-#         "dimension"             : 3
-#     }""")
+result_check_settings = KM.Parameters("""{
+        "reference_file_name"   : \""""+reference_file_name.replace("\\", "\\\\")+"""\",
+        "output_file_name"      : \""""+output_file_name.replace("\\", "\\\\")+"""\",
+        "remove_output_file"    : false,
+        "comparison_type"       : "vtk",
+        "tolerance"             : 1e-6,
+        "relative_tolerance"    : 1e-9,
+        "dimension"             : 3
+    }""")
 
-# results_check_process = CompareTwoFilesCheckProcess(result_check_settings)
-# results_check_process.Execute()
+results_check_process = CompareTwoFilesCheckProcess(result_check_settings)
+results_check_process.Execute()
 
 # =======================================================================================================
