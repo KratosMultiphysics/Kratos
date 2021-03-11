@@ -133,7 +133,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
         # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
         # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
-        self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
         self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(structure_new_time)
 
         return fluid_new_time
@@ -236,7 +236,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
     def _InitializeCouplingInterfaces(self):
         # FSI interface coupling interfaces initialization
         # The getter methods are to construct the FSI coupling structure interface in here
-        self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart()
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart()
         self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart()
 
         # Set the INTERFACE flag to the structure skin
@@ -254,12 +254,12 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                     raycasting_relative_tolerance)
             elif self._GetDomainSize() == 3:
                 return KratosMultiphysics.CalculateDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                     raycasting_relative_tolerance)
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
@@ -267,11 +267,11 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
             elif self._GetDomainSize() == 3:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         else:
@@ -359,9 +359,9 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             KratosMultiphysics.RELAXED_DISPLACEMENT,
             KratosMultiphysics.DISPLACEMENT,
             self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
-            self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+            self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
             0)
-        self.__GetFSICouplingInterfaceFluid().UpdatePosition(KratosMultiphysics.DISPLACEMENT)
+        self._GetFSICouplingInterfaceFluid().UpdatePosition(KratosMultiphysics.DISPLACEMENT)
 
     def _SolveFluid(self):
         # Update the current iteration level-set position
@@ -375,7 +375,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             # Interpolate the pressure to the fluid FSI coupling interface
             self._GetPartitionedFSIUtilities().EmbeddedPressureToPositiveFacePressureInterpolator(
                 self.GetFluidComputingModelPart(),
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
 
         elif (self.level_set_type == "discontinuous"):
             # Generate the intersections skin to map from
@@ -398,7 +398,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
 
@@ -409,6 +409,15 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 self._GetTractionVariable())
 
         elif (self.level_set_type == "discontinuous"):
+            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
+            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
+            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
+            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
+
+            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
+            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
+            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
+            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
             # Map the POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the auxiliary embedded skin model part,
             # which is created from the elemental level set intersections, to the fluid FSI coupling interface
             mapper_params = KratosMultiphysics.Parameters("""{
@@ -417,7 +426,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             }""")
             mapper = KratosMapping.MapperFactory.CreateMapper(
                 self.__GetEmbedddedSkinUtilityModelPart(),
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 mapper_params)
             mapper.Map(KratosMultiphysics.POSITIVE_FACE_PRESSURE, KratosMultiphysics.POSITIVE_FACE_PRESSURE)
             mapper.Map(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
@@ -426,12 +435,12 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
                 KratosMultiphysics.NEGATIVE_FACE_PRESSURE,
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
 
@@ -488,7 +497,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
         return fsi_coupling_interface_structure
 
-    def __GetFSICouplingInterfaceFluid(self):
+    def _GetFSICouplingInterfaceFluid(self):
         if not hasattr(self, '_fsi_coupling_interface_fluid'):
             self._fsi_coupling_interface_fluid = self.__CreateFSICouplingInterfaceFluid()
         return self._fsi_coupling_interface_fluid
@@ -527,6 +536,16 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid FSI coupling interface created')
 
         return fsi_coupling_interface_fluid
+
+    def _GetFSICouplingInterfaceFluidPositive(self):
+        err_msg = 'Embedded partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluidPositive\' method.\n'
+        err_msg += 'Use \'_GetFSICouplingInterfaceFluid\' method as the fluid coupling interface is unique.'
+        raise Exception(err_mgs)
+
+    def _GetFSICouplingInterfaceFluidNegative(self):
+        err_msg = 'Embedded partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluidNegative\' method.\n'
+        err_msg += 'Use \'_GetFSICouplingInterfaceFluid\' method as the fluid coupling interface is unique.'
+        raise Exception(err_mgs)
 
     def _GetTractionVariable(self):
         if self._GetDomainSize() == 2:

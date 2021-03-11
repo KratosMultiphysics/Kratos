@@ -6,6 +6,8 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
+if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 class FSICouplingInterface():
 
@@ -65,7 +67,7 @@ class FSICouplingInterface():
             else:
                 aux_list.append(None)
                 break
-        
+
         if aux_list.count(None) != 0:
             err_msg = "Non-expected variable type in \'output_variable_list\'. Only scalar and array variables are supported."
             raise Exception(err_msg)
@@ -78,6 +80,13 @@ class FSICouplingInterface():
         else:
             err_msg = "Scalar and array variable types are mixed in the \'output_variable_list\'."
             raise Exception(err_msg)
+
+    def SetConvergenceAccelerator(self, convergence_accelerator):
+        """ This function sets the convergence accelerator of the current FSI coupling interface
+        This auxiliary method is understood to set the convergence accelerator in those situations
+        in which its constructor requires the FSI coupling interface model part to be set (e.g. MPI)
+        """
+        self.convergence_accelerator = convergence_accelerator
 
     def GetInterfaceModelPart(self):
         if not hasattr(self, '_fsi_interface_model_part'):
@@ -111,8 +120,7 @@ class FSICouplingInterface():
 
         # Compute the current non-linear iteration interface residual using the output variable
         # Note that the residual is computed as r^{k+1} = \tilde{u}^{k+1} - u^{k}
-        self._residual_size = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self.GetInterfaceModelPart())
-        self._output_variable_residual_vector = KratosMultiphysics.Vector(self._residual_size)
+        self._output_variable_residual_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
             self.GetInterfaceModelPart(),
             self._old_relaxed_variable,
@@ -127,7 +135,7 @@ class FSICouplingInterface():
 
     def Update(self):
         # Set and fill the iteration value vector with the previous non-linear iteration relaxed values (u^{k})
-        iteration_value_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             self._old_relaxed_variable,
@@ -144,7 +152,7 @@ class FSICouplingInterface():
 
     def UpdateDisplacement(self):
         # Set and fill the iteration value vector with the previous non-linear iteration relaxed values (u^{k})
-        iteration_value_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             self._relaxed_variable,
@@ -162,10 +170,10 @@ class FSICouplingInterface():
         # Get the output variable from the father model part
         # Note that this are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
         self.GetValuesFromFatherModelPart(output_variable)
-        
+
         # Set and fill the displacement value vector with the current non-linear iteration values (\tilde{u}^{k+1})
         # Note that these are the current uncorrected displacement obtained with the previously corrected load
-        iteration_value_u_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_u_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             output_variable,
@@ -173,7 +181,7 @@ class FSICouplingInterface():
 
         # Set and fill the traction value vector with the current non-linear iteration values (f^{k+1})
         # Note that these are the values that were employed to obtain the current displacements
-        iteration_value_f_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_f_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             self._traction_relaxed_variable,
@@ -193,7 +201,7 @@ class FSICouplingInterface():
 
     def UpdateTraction(self):
         # Set and fill the iteration value vector with the previous non-linear iteration relaxed values (f^{k})
-        iteration_value_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             self._traction_relaxed_variable,
@@ -207,7 +215,7 @@ class FSICouplingInterface():
             err_msg = "Input variable list has more than one variable. One is expected for the IBQN update."
             raise Exception(err_msg)
 
-        iteration_value_f_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_f_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             input_variable,
@@ -215,7 +223,7 @@ class FSICouplingInterface():
 
         # Set and fill the traction value vector with the current non-linear iteration values (u^{k+1})
         # Note that these are the values that were employed to obtain the current tractions
-        iteration_value_u_vector = KratosMultiphysics.Vector(self._residual_size)
+        iteration_value_u_vector = self._get_partitioned_fsi_utilities().SetUpInterfaceVector(self.GetInterfaceModelPart())
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             self._relaxed_variable,
@@ -302,10 +310,19 @@ class FSICouplingInterface():
                 self._fsi_interface_model_part.AddNodalSolutionStepVariable(self._old_traction_relaxed_variable)
                 self._fsi_interface_model_part.AddNodalSolutionStepVariable(self._traction_residual_variable)
 
+        # If parallel, add the PARTITION_INDEX variable
+        if self.GetFatherModelPart().IsDistributed():
+            self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+
         # Set the FSI coupling interface entities (nodes and elements)
         self._get_partitioned_fsi_utilities().CreateCouplingElementBasedSkin(
             self.GetFatherModelPart(),
             self._fsi_interface_model_part)
+
+        # Create the communication plan for the current coupling interface
+        # Note that we retrieve the fill communicator from the ParallelEnvironment so nothing would be done if non MPI
+        fill_communicator = KratosMultiphysics.ParallelEnvironment.CreateFillCommunicator(self._fsi_interface_model_part)
+        fill_communicator.Execute()
 
         return self._fsi_interface_model_part
 
@@ -319,15 +336,30 @@ class FSICouplingInterface():
 
     def _create_partitioned_fsi_utilities(self):
         domain_size = self.GetFatherModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size == 2:
-            if self.scalar_output:
-                return KratosFSI.PartitionedFSIUtilitiesDouble2D()
+        if not self.GetFatherModelPart().IsDistributed():
+            if domain_size == 2:
+                if self.scalar_output:
+                    return KratosFSI.PartitionedFSIUtilitiesDouble2D()
+                else:
+                    return KratosFSI.PartitionedFSIUtilitiesArray2D()
+            elif domain_size == 3:
+                if self.scalar_output:
+                    return KratosFSI.PartitionedFSIUtilitiesDouble3D()
+                else:
+                    return KratosFSI.PartitionedFSIUtilitiesArray3D()
             else:
-                return KratosFSI.PartitionedFSIUtilitiesArray2D()
-        elif domain_size == 3:
-            if self.scalar_output:
-                return KratosFSI.PartitionedFSIUtilitiesDouble3D()
-            else:
-                return KratosFSI.PartitionedFSIUtilitiesArray3D()
+                raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
         else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            if domain_size == 2:
+                if self.scalar_output:
+                    return KratosTrilinos.TrilinosPartitionedFSIUtilitiesDouble2D(self._epetra_communicator)
+                else:
+                    return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray2D(self._epetra_communicator)
+            elif domain_size == 3:
+                if self.scalar_output:
+                    return KratosTrilinos.TrilinosPartitionedFSIUtilitiesDouble3D(self._epetra_communicator)
+                else:
+                    return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray3D(self._epetra_communicator)
+            else:
+                raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
