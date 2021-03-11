@@ -840,7 +840,7 @@ public:
 
         return 0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("Element with Id " + std::to_string(Id()))
     }
 
     /**
