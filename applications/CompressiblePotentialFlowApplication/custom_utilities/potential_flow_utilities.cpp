@@ -133,6 +133,21 @@ array_1d<double, Dim> ComputePerturbedVelocity(
 }
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocityLowerElement(
+    const Element& rElement,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+    for (unsigned int i = 0; i < Dim; i++)
+    {
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    return velocity;
+}
+
+template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -586,8 +601,8 @@ double ComputeUpwindFactor(
     const double critical_mach = rCurrentProcessInfo[CRITICAL_MACH];
     const double upwind_factor_constant = rCurrentProcessInfo[UPWIND_FACTOR_CONSTANT];
 
-    if(localMachNumberSquared < 1e-3){
-        localMachNumberSquared = 1e-3;
+    if(localMachNumberSquared < 1e-6){
+        localMachNumberSquared = 1e-6;
         KRATOS_WARNING("ComputeUpwindFactor") << "localMachNumberSquared is smaller than 1-3 and is being clamped to 1e-3"  <<  std::endl;
     }
 
@@ -1106,6 +1121,7 @@ template array_1d<double, 2> ComputeVelocityUpperWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template array_1d<double, 2> ComputePerturbedVelocity<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template array_1d<double, 2> ComputePerturbedVelocityLowerElement<2,3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<2, 3>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<2, 3>(const array_1d<double, 2>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<2, 3>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
@@ -1155,6 +1171,7 @@ template array_1d<double, 3> ComputeVelocityUpperWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template array_1d<double, 3> ComputePerturbedVelocity<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template array_1d<double, 3> ComputePerturbedVelocityLowerElement<3,4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeMaximumVelocitySquared<3, 4>(const ProcessInfo& rCurrentProcessInfo);
 template double ComputeClampedVelocitySquared<3, 4>(const array_1d<double, 3>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 template double ComputeVelocityMagnitude<3, 4>(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
