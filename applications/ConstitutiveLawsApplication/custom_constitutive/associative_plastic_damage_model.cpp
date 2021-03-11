@@ -101,8 +101,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                // CalculateAnalyticalTangentTensor(rValues, plastic_damage_parameters);
+                // CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                CalculateAnalyticalTangentTensor(rValues, plastic_damage_parameters);
             }
         }
     } // compute stress or constitutive matrix
@@ -163,19 +163,30 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
-    PlasticDamageParameters &rParam
+    PlasticDamageParameters &rPDParameters
     )
 {
     const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
-    const double g = fracture_energy / rParam.CharacteristicLength;
-    BoundedVectorType plastic_flow = rParam.PlasticFlow;
+    const double g = fracture_energy / rPDParameters.CharacteristicLength;
+    const BoundedVectorType& r_plastic_flow = rPDParameters.PlasticFlow;
+    const BoundedVectorType& r_stress = rPDParameters.StressVector;
+    const double slope = rPDParameters.Slope;
+    const BoundedMatrixType& r_C = rPDParameters.ConstitutiveMatrix;
+    const double chi = rPDParameters.PlasticDamageProportion;
 
-    const double denominator = (inner_prod(plastic_flow, prod(rParam.ConstitutiveMatrix, plastic_flow)) +
-        rParam.Slope*inner_prod(rParam.StressVector / g, plastic_flow));
+    const double A = inner_prod(r_plastic_flow, prod(r_C, r_plastic_flow))*(1.0-chi);
+    const double B = (1.0-chi)*(1.0/g)*slope*inner_prod(r_plastic_flow, r_stress);
 
-    noalias(rValues.GetConstitutiveMatrix()) = rParam.ConstitutiveMatrix -
-        prod(Matrix(prod(rParam.ConstitutiveMatrix, outer_prod(rParam.PlasticFlow, rParam.PlasticFlow))),
-        rParam.ConstitutiveMatrix) /denominator;
+    const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) / inner_prod(r_plastic_flow, r_stress);
+    const BoundedMatrixType aux_mat = prod(r_C, aux_compliance_incr);
+    const double C = chi*inner_prod(r_plastic_flow, prod(aux_mat, r_stress));
+    const double D = (0.5*slope*chi/g)*inner_prod(r_stress, prod(aux_compliance_incr, r_stress));
+
+    double denominator = A + B + C + D;
+
+    noalias(rValues.GetConstitutiveMatrix()) = rPDParameters.ConstitutiveMatrix -
+        prod(Matrix(prod(rPDParameters.ConstitutiveMatrix, outer_prod(rPDParameters.PlasticFlow, rPDParameters.PlasticFlow))),
+        rPDParameters.ConstitutiveMatrix) /denominator;
 }
 
 template<class TYieldSurfaceType>
@@ -211,7 +222,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateDamageDissipatio
 /***********************************************************************************/
 /***********************************************************************************/
 
-// TO BE GENERALIZED TO ANY HARDENING LAW
 template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlope(
     ConstitutiveLaw::Parameters& rValues,
