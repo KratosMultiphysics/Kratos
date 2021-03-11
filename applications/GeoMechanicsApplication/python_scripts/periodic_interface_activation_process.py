@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.GeoMechanicsApplication as KratosPoro
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -19,7 +19,7 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
         params.AddValue("dimension",settings["dimension"])
         params.AddValue("stress_limit",settings["stress_limit"])
 
-        self.process = KratosPoro.PeriodicInterfaceProcess(model_part, params)
+        self.process = KratosGeo.PeriodicInterfaceProcess(model_part, params)
 
         if(settings["dimension"].GetInt() == 2):
             self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,2,5)

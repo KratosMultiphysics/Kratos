@@ -173,7 +173,6 @@ class ApplyExcavationProcess : public Process
     ModelPart& mr_model_part;
     bool mDeactivateSoilPart;
     std::string mModelPartName;
-    // unsigned int mModelLastCondition;
 
     int mNumNode;
 
