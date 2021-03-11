@@ -121,15 +121,10 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         for mpm in self.model_part.Elements:
             coord = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
             self.mesh_file.write("{} {} {} {}\n".format( mpm.Id, coord[0], coord[1], coord[2]))
-        for mpc in self.model_part.Conditions:
-            coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
-            self.mesh_file.write("{} {} {} {}\n".format( mpc.Id, coord[0], coord[1], coord[2]))
         self.mesh_file.write("End Coordinates\n")
         self.mesh_file.write("Elements\n")
         for mpm in self.model_part.Elements:
             self.mesh_file.write("{} {}\n".format(mpm.Id, mpm.Id))
-        for mpc in self.model_part.Conditions:
-            self.mesh_file.write("{} {}\n".format(mpc.Id, mpc.Id))
         self.mesh_file.write("End Elements\n")
         self.mesh_file.flush()
 
@@ -179,9 +174,7 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
     def _get_attribute(self, my_string, function_pointer, attribute_type):
         """Return the python object named by the string argument.
-
         To be used with functions from KratosGlobals
-
         Examples:
         variable = self._get_attribute("DISPLACEMENT",
                                        KratosMultiphysics.ParticleMechanicsApplication.GetVariable,
@@ -205,7 +198,6 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
     def _get_variable(self, my_string):
         """Return the python object of a Variable named by the string argument.
-
         Examples:
         recommended usage:
         variable = self._get_variable("MP_VELOCITY")
@@ -252,77 +244,6 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
                     KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
 
             self.result_file.write("End Values\n")
-
-        
-        var_name = "POINT_LOAD"
-        variable = self._get_variable(var_name)
-
-        is_scalar = self._is_scalar(variable)
-
-        # Write in result file
-        self.result_file.write("Result \"")
-        self.result_file.write("POINT_LOAD")
-
-        if is_scalar:
-            self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(step_label))
-        else:
-            self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(step_label))
-
-        self.result_file.write("Values\n")
-        for mpc in self.model_part.Conditions:
-            print_variable = mpc.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
-            # Check whether variable is a scalar or vector
-            if isinstance(print_variable, float) or isinstance(print_variable, int):
-                print_size = 1
-            else:
-                print_size = print_variable.Size()
-
-            # Write variable as formated
-            if print_size == 1:
-                self.result_file.write("{} {}\n".format(mpc.Id, print_variable))
-            elif print_size == 3:
-                self.result_file.write("{} {} {} {}\n".format(mpc.Id, print_variable[0], print_variable[1], print_variable[2]))
-            elif print_size == 6:
-                self.result_file.write("{} {} {} {} {} {} {}\n".format(mpc.Id, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
-            else:
-                KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
-
-        self.result_file.write("End Values\n")
- 
-        var_name = "MPC_DISPLACEMENT"
-        variable = self._get_variable(var_name)
-
-        is_scalar = self._is_scalar(variable)
-
-        # Write in result file
-        self.result_file.write("Result \"")
-        self.result_file.write("MPC_DISPLACEMENT")
-
-        if is_scalar:
-            self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(step_label))
-        else:
-            self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(step_label))
-
-        self.result_file.write("Values\n")
-        for mpc in self.model_part.Conditions:
-            print_variable = mpc.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
-            # Check whether variable is a scalar or vector
-            if isinstance(print_variable, float) or isinstance(print_variable, int):
-                print_size = 1
-            else:
-                print_size = print_variable.Size()
-
-            # Write variable as formated
-            if print_size == 1:
-                self.result_file.write("{} {}\n".format(mpc.Id, print_variable))
-            elif print_size == 3:
-                self.result_file.write("{} {} {} {}\n".format(mpc.Id, print_variable[0], print_variable[1], print_variable[2]))
-            elif print_size == 6:
-                self.result_file.write("{} {} {} {} {} {} {}\n".format(mpc.Id, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
-            else:
-                KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
-
-        self.result_file.write("End Values\n")
 
         self._stop_time_measure(clock_time)
 
