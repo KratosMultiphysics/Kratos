@@ -174,5 +174,406 @@ namespace Testing
         const std::vector<double> expected_relative_error({7.83999e-08,2.07838e-11,2.85724e-10,1.19805e-07,2.53715e-09,6.58355e-10,6.34008e-08,5.77027e-11,3.9188e-10,7.30737e-08,2.26601e-10,2.88665e-10,1.56401e-10,6.67553e-08,2.00164e-10,3.7924e-09,4.32224e-07,2.78981e-09,3.98132e-10,5.89574e-08,2.76404e-10,1.40101e-10,3.35175e-08,1.16888e-10,5.6946e-10,5.4851e-10,1.3056e-07,2.87022e-10,2.06904e-12,3.2299e-05,4.79543e-10,9.35669e-11,1.21407e-07,1.03257e-09,2.52929e-10,6.84278e-08,1.20185e-07,1.68722e-08,9.15427e-10,1.88326e-07,3.92703e-10,5.80919e-11,3.79004e-07,7.25958e-10,8.25508e-10,2.00979e-07,1.47245e-09,1.6338e-08,1.42025e-09,4.38993e-07,6.80859e-09,2.92253e-11,1.19192e-07,4.58938e-11,1.20997e-10,7.48042e-08,1.48577e-10,3.63387e-09,7.41823e-08,1.16976e-11,1.08821e-09,8.9436e-09,3.25153e-05,3.11555e-10,4.59753e-11,3.59894e-07,2.29186e-09,6.19311e-10,2.72257e-07,1.00945e-08,1.85752e-09,2.25757e-07,6.36167e-08,2.45672e-10,9.80188e-10,3.78806e-07,1.66561e-10,3.77833e-10,1.51191e-07,1.15385e-10,4.436e-10,8.086e-06,4.61353e-11,1.95153e-10,2.45672e-10,5.88961e-08,1.05936e-09,4.80807e-11,7.45737e-08,1.67813e-10,2.08987e-10,1.12515e-07,5.10433e-11,1.02384e-09,1.9622e-07,7.09616e-10,1.02271e-10,1.0528e-09,1.21355e-07,7.72253e-10,3.54967e-10,2.72712e-07,4.1818e-10,1.81686e-10,3.05914e-07,8.06128e-10,1.81512e-09,3.57271e-07,7.28385e-08,7.78619e-10,3.12537e-10,2.00335e-07,3.25997e-09,4.32728e-09,8.16507e-06,1.47387e-09,7.04346e-10,1.60776e-07,1.28813e-09,1.48714e-09,3.26769e-10,3.37628e-08,6.24457e-10,7.40437e-10,7.46591e-08,9.46029e-11,3.09336e-10,1.9826e-07,9.3412e-10,1.80188e-10,7.87286e-08,2.51837e-10,1.04632e-09,4.97367e-10,6.78623e-08,7.14672e-09,3.06683e-10,2.24474e-07,2.04464e-09,3.84428e-09,3.56122e-07,1.10454e-09,3.60626e-10,1.84727e-07});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(relative_error, expected_relative_error, tolerance)
     }
+
+    // Tests the mass matrix of the MembraneElement3D3N
+    KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D3NMassMatrix, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        const double density = 7850.0;
+        const double length  = 2.0;
+        const double height  = 1.0;
+        const double thickness = 0.01;
+        const double area = length*height/2.0;
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THICKNESS, thickness);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, length , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, length , height , 0.0);
+
+        AddDisplacementDofs(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+        auto p_element = r_model_part.CreateNewElement("MembraneElement3D3N", 1, element_nodes, p_elem_prop);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem_ref = *p_element;
+        r_const_elem_ref.Check(r_process_info);
+
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+
+
+        p_elem_prop->SetValue(COMPUTE_LUMPED_MASS_MATRIX,true);
+        Matrix mm_lumped = ZeroMatrix(number_of_dofs,number_of_dofs);
+        p_element->CalculateMassMatrix(mm_lumped,r_process_info);
+
+        p_elem_prop->SetValue(COMPUTE_LUMPED_MASS_MATRIX,false);
+        Matrix mm_consistent = ZeroMatrix(number_of_dofs,number_of_dofs);
+        p_element->CalculateMassMatrix(mm_consistent,r_process_info);
+
+        for (unsigned int i=0; i<number_of_dofs;++i){
+            double diagonal_entry = 0.0;
+            for (unsigned int j=0; j<number_of_dofs;++j) diagonal_entry += mm_consistent(i,j);
+            KRATOS_CHECK_NEAR(mm_lumped(i,i),diagonal_entry,1.0e-10);
+        }
+
+        Matrix mm_consistent_analytical = ZeroMatrix(number_of_dofs);
+        mm_consistent_analytical(0,0) = 2.0;
+        mm_consistent_analytical(0,3) = 1.0;
+        mm_consistent_analytical(0,6) = 1.0;
+
+        mm_consistent_analytical(1,1) = 2.0;
+        mm_consistent_analytical(1,4) = 1.0;
+        mm_consistent_analytical(1,7) = 1.0;
+
+        mm_consistent_analytical(2,2) = 2.0;
+        mm_consistent_analytical(2,5) = 1.0;
+        mm_consistent_analytical(2,8) = 1.0;
+
+        mm_consistent_analytical(3,0) = 1.0;
+        mm_consistent_analytical(3,3) = 2.0;
+        mm_consistent_analytical(3,6) = 1.0;
+
+        mm_consistent_analytical(4,1) = 1.0;
+        mm_consistent_analytical(4,4) = 2.0;
+        mm_consistent_analytical(4,7) = 1.0;
+
+        mm_consistent_analytical(5,2) = 1.0;
+        mm_consistent_analytical(5,5) = 2.0;
+        mm_consistent_analytical(5,8) = 1.0;
+
+        mm_consistent_analytical(6,0) = 1.0;
+        mm_consistent_analytical(6,3) = 1.0;
+        mm_consistent_analytical(6,6) = 2.0;
+
+        mm_consistent_analytical(7,1) = 1.0;
+        mm_consistent_analytical(7,4) = 1.0;
+        mm_consistent_analytical(7,7) = 2.0;
+
+        mm_consistent_analytical(8,2) = 1.0;
+        mm_consistent_analytical(8,5) = 1.0;
+        mm_consistent_analytical(8,8) = 2.0;
+
+
+        mm_consistent_analytical *= density*area*thickness / 12.0;
+
+        KRATOS_CHECK_MATRIX_NEAR(mm_consistent_analytical, mm_consistent, 1e-10);
+
+
+        Vector lumped_mass_vector = ZeroVector(number_of_dofs);
+        p_element->CalculateLumpedMassVector(lumped_mass_vector,r_process_info);
+
+        const double lumped_mass = thickness*area*density/3.0;
+        for (unsigned int i=0;i<number_of_dofs;++i)
+        {
+            KRATOS_CHECK_NEAR(mm_lumped(i,i),lumped_mass_vector[i],1.0e-10);
+            KRATOS_CHECK_NEAR(lumped_mass,lumped_mass_vector[i],1.0e-10);
+        }
+
+
+    }
+
+    // Tests the mass matrix of the MembraneElement3D4N
+    KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D4NMassMatrix, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        const double density = 7850.0;
+        const double length  = 2.0;
+        const double height  = 1.0;
+        const double thickness = 0.01;
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THICKNESS, thickness);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, length , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, length , height , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , height , 0.0);
+
+        AddDisplacementDofs(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
+        auto p_element = r_model_part.CreateNewElement("MembraneElement3D4N", 1, element_nodes, p_elem_prop);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem_ref = *p_element;
+        r_const_elem_ref.Check(r_process_info);
+
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+        p_elem_prop->SetValue(COMPUTE_LUMPED_MASS_MATRIX,true);
+        Matrix mm_lumped = ZeroMatrix(number_of_dofs,number_of_dofs);
+        p_element->CalculateMassMatrix(mm_lumped,r_process_info);
+
+        p_elem_prop->SetValue(COMPUTE_LUMPED_MASS_MATRIX,false);
+        Matrix mm_consistent = ZeroMatrix(number_of_dofs,number_of_dofs);
+        p_element->CalculateMassMatrix(mm_consistent,r_process_info);
+
+        for (unsigned int i=0; i<number_of_dofs;++i){
+            double diagonal_entry = 0.0;
+            for (unsigned int j=0; j<number_of_dofs;++j) diagonal_entry += mm_consistent(i,j);
+            KRATOS_CHECK_NEAR(mm_lumped(i,i),diagonal_entry,1.0e-10);
+        }
+
+
+        Matrix mm_consistent_analytical = ZeroMatrix(number_of_dofs);
+        mm_consistent_analytical(0,0) = 4.0;
+        mm_consistent_analytical(0,3) = 2.0;
+        mm_consistent_analytical(0,6) = 1.0;
+        mm_consistent_analytical(0,9) = 2.0;
+
+        mm_consistent_analytical(1,1) = 4.0;
+        mm_consistent_analytical(1,4) = 2.0;
+        mm_consistent_analytical(1,7) = 1.0;
+        mm_consistent_analytical(1,10) = 2.0;
+
+        mm_consistent_analytical(2,2) = 4.0;
+        mm_consistent_analytical(2,5) = 2.0;
+        mm_consistent_analytical(2,8) = 1.0;
+        mm_consistent_analytical(2,11) = 2.0;
+
+        mm_consistent_analytical(3,0) = 2.0;
+        mm_consistent_analytical(3,3) = 4.0;
+        mm_consistent_analytical(3,6) = 2.0;
+        mm_consistent_analytical(3,9) = 1.0;
+
+        mm_consistent_analytical(4,1) = 2.0;
+        mm_consistent_analytical(4,4) = 4.0;
+        mm_consistent_analytical(4,7) = 2.0;
+        mm_consistent_analytical(4,10) = 1.0;
+
+        mm_consistent_analytical(5,2) = 2.0;
+        mm_consistent_analytical(5,5) = 4.0;
+        mm_consistent_analytical(5,8) = 2.0;
+        mm_consistent_analytical(5,11) = 1.0;
+
+        mm_consistent_analytical(6,0) = 1.0;
+        mm_consistent_analytical(6,3) = 2.0;
+        mm_consistent_analytical(6,6) = 4.0;
+        mm_consistent_analytical(6,9) = 2.0;
+
+        mm_consistent_analytical(7,1) = 1.0;
+        mm_consistent_analytical(7,4) = 2.0;
+        mm_consistent_analytical(7,7) = 4.0;
+        mm_consistent_analytical(7,10) = 2.0;
+
+        mm_consistent_analytical(8,2) = 1.0;
+        mm_consistent_analytical(8,5) = 2.0;
+        mm_consistent_analytical(8,8) = 4.0;
+        mm_consistent_analytical(8,11) = 2.0;
+
+        mm_consistent_analytical(9,0) = 2.0;
+        mm_consistent_analytical(9,3) = 1.0;
+        mm_consistent_analytical(9,6) = 2.0;
+        mm_consistent_analytical(9,9) = 4.0;
+
+        mm_consistent_analytical(10,1) = 2.0;
+        mm_consistent_analytical(10,4) = 1.0;
+        mm_consistent_analytical(10,7) = 2.0;
+        mm_consistent_analytical(10,10) = 4.0;
+
+        mm_consistent_analytical(11,2) = 2.0;
+        mm_consistent_analytical(11,5) = 1.0;
+        mm_consistent_analytical(11,8) = 2.0;
+        mm_consistent_analytical(11,11) = 4.0;
+
+        mm_consistent_analytical *= density*length*height*thickness / 36.0;
+
+        KRATOS_CHECK_MATRIX_NEAR(mm_consistent_analytical, mm_consistent, 1e-10);
+
+
+        Vector lumped_mass_vector = ZeroVector(number_of_dofs);
+        p_element->CalculateLumpedMassVector(lumped_mass_vector,r_process_info);
+
+        const double lumped_mass = thickness*length*height*density*0.25;
+        for (unsigned int i=0;i<number_of_dofs;++i)
+        {
+            KRATOS_CHECK_NEAR(mm_lumped(i,i),lumped_mass_vector[i],1.0e-10);
+            KRATOS_CHECK_NEAR(lumped_mass,lumped_mass_vector[i],1.0e-10);
+        }
+
+    }
+
+
+    // Tests the dead load of the MembraneElement3D4N
+    KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D4NDeadLoad, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        const double density = 7850.0;
+        const double length  = 2.0;
+        const double height  = 1.0;
+        const double thickness = 0.01;
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THICKNESS, thickness);
+        array_1d<double, 3> gravity = ZeroVector(3);
+        gravity[0] = 1.0;
+        gravity[1] = 2.0;
+        gravity[2] = 3.0;
+        p_elem_prop->SetValue(VOLUME_ACCELERATION,gravity);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, length , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, length ,height , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , height , 0.0);
+
+
+        AddDisplacementDofs(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
+        auto p_element = r_model_part.CreateNewElement("MembraneElement3D4N", 1, element_nodes, p_elem_prop);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem_ref = *p_element;
+        r_const_elem_ref.Check(r_process_info);
+
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            array_1d<double, 3>& r_current_acceleration = p_element->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            r_current_acceleration = gravity;
+        }
+
+        Vector rhs = ZeroVector(number_of_dofs);
+        p_element->CalculateRightHandSide(rhs,r_process_info);
+
+
+        const double m1 = (0.250 * length * height * thickness * density);
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            for (unsigned int j=0;j<dimension;++j){
+                const unsigned int index = (i*dimension)+j;
+                KRATOS_CHECK_NEAR(
+                    rhs[index],
+                    m1*gravity[j],
+                    1.0e-10);
+            }
+        }
+    }
+
+   // Tests the dead load of the MembraneElement3D3N
+    KRATOS_TEST_CASE_IN_SUITE(MembraneElement3D3NDeadLoad, KratosStructuralMechanicsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        const double density = 7850.0;
+        const double length  = 2.0;
+        const double height  = 1.0;
+        const double thickness = 0.01;
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(DENSITY, density);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THICKNESS, thickness);
+        array_1d<double, 3> gravity = ZeroVector(3);
+        gravity[0] = 1.0;
+        gravity[1] = 2.0;
+        gravity[2] = 3.0;
+        p_elem_prop->SetValue(VOLUME_ACCELERATION,gravity);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, length , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, length ,height , 0.0);
+
+
+        AddDisplacementDofs(r_model_part);
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+        auto p_element = r_model_part.CreateNewElement("MembraneElement3D3N", 1, element_nodes, p_elem_prop);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem_ref = *p_element;
+        r_const_elem_ref.Check(r_process_info);
+
+        const unsigned int number_of_nodes = p_element->GetGeometry().size();
+        const unsigned int dimension = p_element->GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            array_1d<double, 3>& r_current_acceleration = p_element->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            r_current_acceleration = gravity;
+        }
+
+        Vector rhs = ZeroVector(number_of_dofs);
+        p_element->CalculateRightHandSide(rhs,r_process_info);
+
+
+        const double m1 = 0.50 * length * height * thickness * density / 3.0;
+
+        for (unsigned int i=0;i<number_of_nodes;++i){
+            for (unsigned int j=0;j<dimension;++j){
+                const unsigned int index = (i*dimension)+j;
+                KRATOS_CHECK_NEAR(
+                    rhs[index],
+                    m1*gravity[j],
+                    1.0e-10);
+            }
+        }
+    }
 }
 }

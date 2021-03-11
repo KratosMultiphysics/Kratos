@@ -335,6 +335,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     // Normal check process
     py::class_<NormalCheckProcess, NormalCheckProcess::Pointer, Process>(m, "NormalCheckProcess")
     .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     ;
 
     // FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
