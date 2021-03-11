@@ -162,7 +162,6 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
     mMmgUtilities.SetEchoLevel(mEchoLevel);
     mMmgUtilities.SetDiscretization(mDiscretization);
     mMmgUtilities.SetRemoveRegions(mRemoveRegions);
-    // mMmgUtilities.SetMeshOptimizationMode(mThisParameters["advanced_parameters"]["mesh_optimization_only"].GetBool());
     mMmgUtilities.InitMesh();
 
     KRATOS_CATCH("");
@@ -200,7 +199,6 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // We initialize the mesh and solution data
     InitializeMeshData();
 
-    //
     mMmgUtilities.SetMeshOptimizationModeParameter(optimization_mode);
 
     // We retrieve the data form the Kratos model part to fill sol
