@@ -1731,9 +1731,9 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMeshOptimizationModeParameter(const bool EnableMeshOptimization)
 {
     KRATOS_TRY;
-
+#if MMG_VERSION_GE(5,5)
     KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_optim, EnableMeshOptimization) ) << "Unable to set optim mode" << std::endl;
-
+#endif
     KRATOS_CATCH("");
 }
 
