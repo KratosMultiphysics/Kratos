@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/geometry_data.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
@@ -75,14 +76,15 @@ public:
     /// Constructor.
     VelocityPressureNormSquareResponseFunction(
         Parameters Settings,
-        ModelPart& rModelPart)
-        : mrModelPart(rModelPart)
+        Model& rModel)
+        : mrModel(rModel)
     {
         KRATOS_TRY;
 
         Parameters default_settings(R"(
         {
-            "norm_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
+            "main_model_part_name": "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "norm_model_part_name": "PLEASE_SPECIFY_MODEL_PART_NAME",
             "velocity_norm_factor": 1.0,
             "pressure_norm_factor": 1.0,
             "entities"            : ["elements"]
@@ -90,6 +92,7 @@ public:
 
         Settings.ValidateAndAssignDefaults(default_settings);
 
+        mMainModelPartName = Settings["main_model_part_name"].GetString();
         mNormModelPartName = Settings["norm_model_part_name"].GetString();
         mVelocityNormFactor = Settings["velocity_norm_factor"].GetDouble();
         mPressureNormFactor = Settings["pressure_norm_factor"].GetDouble();
@@ -126,11 +129,8 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR_IF(!mrModelPart.HasSubModelPart(mNormModelPartName))
-            << mNormModelPartName << " model part not found in "
-            << mrModelPart.Name() << ".\n";
-
-        auto& r_norm_model_part = mrModelPart.GetSubModelPart(mNormModelPartName);
+        auto& r_main_model_part = mrModel.GetModelPart(mMainModelPartName);
+        auto& r_norm_model_part = mrModel.GetModelPart(mNormModelPartName);
 
         if (mIsElements && !mIsConditions) {
             const IndexType number_of_entities =
@@ -146,8 +146,8 @@ public:
             }
         }
 
-        VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Elements());
-        VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Conditions());
+        VariableUtils().SetFlag(STRUCTURE, false, r_main_model_part.Elements());
+        VariableUtils().SetFlag(STRUCTURE, false, r_main_model_part.Conditions());
 
         IndexType total_entities = 0;
         if (mIsElements) {
@@ -275,8 +275,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
+
+    std::string mMainModelPartName;
     std::string mNormModelPartName;
+
     double mVelocityNormFactor;
     double mPressureNormFactor;
     bool mIsElements;

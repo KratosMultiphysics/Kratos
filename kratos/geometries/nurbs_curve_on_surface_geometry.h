@@ -39,6 +39,9 @@ public:
     typedef typename TSurfaceContainerPointType::value_type NodeType;
     typedef typename TCurveContainerPointType::value_type CurveNodeType;
 
+    typedef Geometry<NodeType> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
+
     typedef Geometry<NodeType> BaseType;
 
     typedef typename BaseType::IndexType IndexType;
@@ -56,6 +59,8 @@ public:
     using BaseType::CreateQuadraturePointGeometries;
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
+
+    static constexpr IndexType SURFACE_INDEX = -1;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -153,6 +158,68 @@ public:
         KRATOS_ERROR << "NurbsCurveOnSurfaceGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
             << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
             << std::endl;
+    }
+
+    ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Possible indices are:
+    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Possible indices are:
+    *        SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @param Index: SURFACE_INDEX or EMBEDDED_CURVE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if the index is
+    *        SURFACE_INDEX.
+    * @param Index of the geometry part.
+    * @return true if SURFACE_INDEX.
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        return Index == SURFACE_INDEX;
+    }
+
+    ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            array_1d<double, 3>& local_parameter = rOutput;
+            mpNurbsCurve->GlobalCoordinates(rOutput, local_parameter);
+        }
     }
 
     ///@}

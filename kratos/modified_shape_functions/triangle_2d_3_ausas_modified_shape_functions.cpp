@@ -107,8 +107,8 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAn
         // Get the intersection points condensation matrix
         Matrix p_matrix_neg_side;
         this->SetNegativeSideCondensationMatrix(p_matrix_neg_side,
-                                                mpTriangleSplitter->mEdgeNodeJ,
                                                 mpTriangleSplitter->mEdgeNodeI,
+                                                mpTriangleSplitter->mEdgeNodeJ,
                                                 mpTriangleSplitter->mSplitEdges);
 
         // Compute the negative side values
@@ -197,7 +197,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFun
             mpTriangleSplitter->mEdgeNodeI,
             mpTriangleSplitter->mEdgeNodeJ,
             mpTriangleSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
@@ -206,7 +206,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFun
             exterior_faces_parent_ids_vector,
             mpTriangleSplitter->mPositiveSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
@@ -248,7 +248,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFun
             exterior_faces_parent_ids_vector,
             mpTriangleSplitter->mNegativeSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,
