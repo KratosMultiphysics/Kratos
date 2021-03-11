@@ -68,6 +68,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SurfaceNormalShapeChangeTest]))
     smallSuite.addTest(algorithm_gradient_projection_test('test_execution'))
+    smallSuite.addTest(remeshing_opt_process_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
@@ -87,7 +88,6 @@ def AssembleTestSuites():
     nightSuite.addTest(trust_region_projector_test('test_execution'))
     nightSuite.addTest(opt_process_multiobjective_test('test_execution'))
     nightSuite.addTest(opt_process_stress_test('test_execution'))
-    smallSuite.addTest(remeshing_opt_process_test('test_execution')) # TODO move to nightSuite
     nightSuite.addTest(sensitivity_verification_semi_analytic_process_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_in_design_space_process_test('test_execution'))
     nightSuite.addTest(sensitivity_verification_in_geometry_space_process_test('test_execution'))
