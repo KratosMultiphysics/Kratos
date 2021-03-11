@@ -205,10 +205,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateDamageDissipatio
                             prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
                             0.5 * rParam.CharacteristicLength / fracture_energy;
 
-    // rParam.DamageDissipationIncrement = inner_prod(rParam.StressVector,
-    //                     prod(rParam.ComplianceMatrixIncrement,rParam.StressVector)) *
-    //                     rParam.CharacteristicLength / fracture_energy;
-
     rParam.DamageDissipationIncrement = MacaullyBrackets(rParam.DamageDissipationIncrement);
 }
 
@@ -296,13 +292,24 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
 {
     const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
     const double g = fracture_energy / rPDParameters.CharacteristicLength;
-    BoundedVectorType plastic_flow = rPDParameters.PlasticFlow;
+    const BoundedVectorType& r_plastic_flow = rPDParameters.PlasticFlow;
+    const BoundedVectorType& r_stress = rPDParameters.StressVector;
+    const double slope = rPDParameters.Slope;
+    const BoundedMatrixType& r_C = rPDParameters.ConstitutiveMatrix;
+    const double chi = rPDParameters.PlasticDamageProportion;
 
-    double denominator = (inner_prod(plastic_flow, prod(rPDParameters.ConstitutiveMatrix, plastic_flow)) +
-        rPDParameters.Slope*inner_prod(rPDParameters.StressVector / g, plastic_flow));
+    const double A = inner_prod(r_plastic_flow, prod(r_C, r_plastic_flow))*(1.0-chi);
+    const double B = (1.0-chi)*(1.0/g)*slope*inner_prod(r_plastic_flow, r_stress);
+
+    const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) / inner_prod(r_plastic_flow, r_stress);
+    const BoundedMatrixType aux_mat = prod(r_C, aux_compliance_incr);
+    const double C = chi*inner_prod(r_plastic_flow, prod(aux_mat, r_stress));
+    const double D = (0.5*slope*chi/g)*inner_prod(r_stress, prod(aux_compliance_incr, r_stress));
+
+    double denominator = A + B + C + D;
 
     if (std::abs(denominator) > machine_tolerance)
-        rPDParameters.PlasticConsistencyIncrement = rPDParameters.NonLinearIndicator / denominator;
+        rPDParameters.PlasticConsistencyIncrement = (rPDParameters.NonLinearIndicator) / denominator;
     else
         rPDParameters.PlasticConsistencyIncrement = 0.0;
 
@@ -320,6 +327,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
     BoundedMatrixType constitutive_matrix_increment;
+    CalculateConstitutiveMatrix(rValues, rPDParameters);
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
@@ -337,18 +345,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             // Compute the compliance increment -> C dot
             CalculateComplianceMatrixIncrement(rValues, rPDParameters);
             noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
-            // CalculateConstitutiveMatrix(rValues, rPDParameters);
 
-            // noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
-            //     prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
-            noalias(rPDParameters.StressVector) -= prod(rPDParameters.ConstitutiveMatrix,
-                rPDParameters.PlasticStrainIncrement);
-
+            noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
+                prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
             CalculateConstitutiveMatrix(rValues, rPDParameters);
-            noalias(constitutive_matrix_increment) = -prod(rPDParameters.ConstitutiveMatrix,
-                                                           Matrix(prod(rPDParameters.ComplianceMatrixIncrement, rPDParameters.ConstitutiveMatrix)));
-            noalias(rPDParameters.StressVector) += prod(constitutive_matrix_increment,
-                rPDParameters.StrainVector - rPDParameters.PlasticStrain);
 
             // Compute the non-linear dissipation performed
             CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
