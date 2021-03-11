@@ -219,14 +219,16 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticDenomin
     const BoundedMatrixType& r_C = rParam.ConstitutiveMatrix;
     const double chi = rParam.PlasticDamageProportion;
 
-    const double A = inner_prod(r_plastic_flow, prod(r_C, r_plastic_flow))*(1.0-chi);
-    const double B = (1.0-chi)*(1.0/g)*slope*inner_prod(r_plastic_flow, r_stress);
+    // Plasticity terms
+    const double A = inner_prod(r_plastic_flow, prod(r_C, r_plastic_flow))*(1.0 - chi);
+    const double B = (1.0 - chi) * (1.0 / g) * slope * inner_prod(r_plastic_flow, r_stress);
 
+    // Damage terms
     const BoundedMatrixType aux_compliance_incr = outer_prod(r_plastic_flow,r_plastic_flow) /
         inner_prod(r_plastic_flow, r_stress);
     const BoundedMatrixType aux_mat = prod(r_C, aux_compliance_incr);
     const double C = chi*inner_prod(r_plastic_flow, prod(aux_mat, r_stress));
-    const double D = (0.5*slope*chi/g)*inner_prod(r_stress, prod(aux_compliance_incr, r_stress));
+    const double D = (0.5 * slope * chi / g)*inner_prod(r_stress, prod(aux_compliance_incr, r_stress));
 
     return A + B + C + D;
 }
