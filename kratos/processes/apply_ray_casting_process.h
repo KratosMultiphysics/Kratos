@@ -53,6 +53,7 @@ public:
     typedef Element::GeometryType IntersectionGeometryType;
     typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
 
+public:
     ///@}
     ///@name Life Cycle
     ///@{
@@ -98,9 +99,6 @@ public:
     ///@}
     ///@name Deleted
     ///@{
-
-    /// Default constructor.
-    ApplyRayCastingProcess() = delete;;
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -182,6 +180,8 @@ private:
     ///@{
 
 
+    static std::vector<Internals::RegisteredPrototypeBase<Process>> msPrototypes;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -190,7 +190,7 @@ private:
     double mExtraRayOffset = 1.0e-8;
     double mRelativeTolerance = 1.0e-12;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
-    bool mIsSearchStructureAllocated;
+    bool mIsSearchStructureAllocated = false;
     double mCharacteristicLength = 1.0;
 
     ///@}
@@ -275,9 +275,18 @@ private:
     ///@name Un accessible methods
     ///@{
 
+    template <typename TClassType, typename TBaseCategoryType>
+    friend class Internals::RegisteredPrototype;
 
+    /// Default constructor for registering
+    ApplyRayCastingProcess() = default;
     ///@}
 }; // Class ApplyRayCastingProcess
+
+template<std::size_t TDim>
+std::vector<Internals::RegisteredPrototypeBase<Process>> ApplyRayCastingProcess<TDim>::msPrototypes{
+    Internals::RegisteredPrototype<ApplyRayCastingProcess<2>,Process>("ApplyRayCasting2DProcess"), 
+    Internals::RegisteredPrototype<ApplyRayCastingProcess<3>,Process>("ApplyRayCasting3DProcess")};
 
 ///@}
 ///@name Type Definitions
