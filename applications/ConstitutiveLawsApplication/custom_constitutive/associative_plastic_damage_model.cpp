@@ -161,13 +161,43 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 /***********************************************************************************/
 
 template<class TYieldSurfaceType>
+double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy( // g_F
+    const Properties& rMaterialProperties,
+    PlasticDamageParameters &rPDParameters
+    )
+{
+    double tension_parameter, compression_parameter;
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
+        rPDParameters.StressVector, tension_parameter,compression_parameter);
+
+    const bool has_symmetric_yield_stress = rMaterialProperties.Has(YIELD_STRESS);
+    const double yield_compression = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS] 
+        : rMaterialProperties[YIELD_STRESS_COMPRESSION];
+    const double yield_tension = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS] 
+        : rMaterialProperties[YIELD_STRESS_TENSION];
+    const double n = yield_compression / yield_tension;
+    const double fracture_energy_tension = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
+    const double fracture_energy_compression = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
+
+    const double characteristic_fracture_energy_tension = fracture_energy_tension /
+        rPDParameters.CharacteristicLength;
+    const double characteristic_fracture_energy_compression = fracture_energy_compression /
+        rPDParameters.CharacteristicLength;
+
+    return 1.0 / (tension_parameter / characteristic_fracture_energy_tension +
+        compression_parameter / characteristic_fracture_energy_compression);
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageParameters &rPDParameters
     )
 {
     const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
-    const double g = fracture_energy / rPDParameters.CharacteristicLength;
+    const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
     const BoundedVectorType& r_plastic_flow = rPDParameters.PlasticFlow;
     const BoundedVectorType& r_stress = rPDParameters.StressVector;
     const double slope = rPDParameters.Slope;
@@ -232,10 +262,15 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
         CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
         rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
+    
+    double tension_parameter, compression_parameter;
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
+        rPDParameters.StressVector, tension_parameter,compression_parameter);
+
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
         CalculateEquivalentStressThreshold(rPDParameters.TotalDissipation,
-        1.0, 0.0, rPDParameters.Threshold, rPDParameters.Slope, rValues, uniaxial_plastic_strain,
-        rPDParameters.CharacteristicLength);
+        tension_parameter, compression_parameter, rPDParameters.Threshold, rPDParameters.Slope, rValues,
+        uniaxial_plastic_strain, rPDParameters.CharacteristicLength);
 }
 
 /***********************************************************************************/
@@ -301,7 +336,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
     )
 {
     const double fracture_energy = rValues.GetMaterialProperties()[FRACTURE_ENERGY];
-    const double g = fracture_energy / rPDParameters.CharacteristicLength;
+    const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
     const BoundedVectorType& r_plastic_flow = rPDParameters.PlasticFlow;
     const BoundedVectorType& r_stress = rPDParameters.StressVector;
     const double slope = rPDParameters.Slope;

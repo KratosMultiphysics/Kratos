@@ -701,6 +701,11 @@ public:
         rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ? 0.99999 : rPDParameters.TotalDissipation;
     }
 
+    double CalculateVolumetricFractureEnergy( // g_F
+        const Properties& rMaterialProperties,
+        PlasticDamageParameters &rPDParameters
+        );
+
     void CalculateElasticMatrix(
         BoundedMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
