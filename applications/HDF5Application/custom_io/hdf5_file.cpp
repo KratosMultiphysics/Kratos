@@ -342,6 +342,19 @@ std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) cons
     KRATOS_CATCH("");
 }
 
+std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) const
+{
+    KRATOS_TRY;
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames(rGroupPath);
+    names.reserve(link_names.size());
+    for (const auto& r_name : link_names)
+        if (IsDataSet(rGroupPath + '/' + r_name))
+            names.push_back(r_name);
+    return names;
+    KRATOS_CATCH("");
+}
+
 void File::AddPath(const std::string& rPath)
 {
     KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
@@ -654,7 +667,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     attr_type_id = H5Aget_type(attr_id);
     KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
 
@@ -665,9 +678,9 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
         << "H5Sget_simple_extent_ndims failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(ndims != 0) << "Attribute \"" << rName << "\" is not scalar." << std::endl;
-    
+
     // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName
@@ -693,7 +706,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     attr_type_id = H5Aget_type(attr_id);
     KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
 
@@ -708,7 +721,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     rValue.resize(dims[0], false);
     // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName
@@ -734,7 +747,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     attr_type_id = H5Aget_type(attr_id);
     KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
 
@@ -749,7 +762,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     rValue.resize(dims[0], dims[1], false);
     // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName

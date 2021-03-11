@@ -75,7 +75,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionElement
-    KRATOS_CLASS_POINTER_DEFINITION(ConvectionDiffusionReactionElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvectionDiffusionReactionElement);
 
     ///@}
     ///@name Life Cycle

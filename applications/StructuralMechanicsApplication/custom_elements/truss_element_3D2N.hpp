@@ -131,7 +131,7 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces);
+        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
@@ -157,6 +157,10 @@ namespace Kratos
         void CalculateMassMatrix(
             MatrixType& rMassMatrix,
             const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateConsistentMassMatrix(
+            MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo) const;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,

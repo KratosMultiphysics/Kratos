@@ -118,8 +118,8 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        super(AdjointMonolithicSolver,self).__init__(model,custom_settings)
+        super().__init__(model,custom_settings)
+        self.element_has_nodal_properties = True
 
         self._SetFormulation()
 
@@ -175,20 +175,15 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        # the schemes used in fluid supports SLIP conditions which rotates element/condition
+        # matrices based on nodal NORMAL. Hence, the consistent adjoints also need to
+        # rotate adjoint element/condition matrices accordingly. Therefore, following
+        # schemes are used.
         if scheme_type == "bossak":
-            if domain_size == 2:
-                scheme = KratosCFD.VelocityBossakAdjointScheme2D(self.settings["scheme_settings"], response_function)
-            elif domain_size == 3:
-                scheme = KratosCFD.VelocityBossakAdjointScheme3D(self.settings["scheme_settings"], response_function)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            scheme = KratosCFD.VelocityBossakAdjointScheme(self.settings["scheme_settings"], response_function, domain_size, domain_size + 1)
         elif scheme_type == "steady":
-            if domain_size == 2:
-                scheme = KratosCFD.SimpleSteadyAdjointScheme2D(response_function)
-            elif domain_size == 3:
-                scheme = KratosCFD.SimpleSteadyAdjointScheme3D(response_function)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            scheme = KratosCFD.SimpleSteadyAdjointScheme(response_function, domain_size, domain_size + 1)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme
