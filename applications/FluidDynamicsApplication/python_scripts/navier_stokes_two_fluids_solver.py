@@ -327,7 +327,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = int(4000/100000*self.main_model_part.NumberOfElements())
+                layers = int(2000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
