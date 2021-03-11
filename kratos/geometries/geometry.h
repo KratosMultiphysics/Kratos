@@ -3461,6 +3461,18 @@ public:
         return rResult;
     }
 
+    virtual int Check() const
+    {
+        KRATOS_TRY
+
+        const double domain_size = DomainSize();
+        KRATOS_ERROR_IF(domain_size <= 0.0) << "Geometry # " << std::to_string(mId) << " has non-positive size " << domain_size << std::endl;
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
