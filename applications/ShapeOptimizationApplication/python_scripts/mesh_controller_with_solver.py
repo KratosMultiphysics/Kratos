@@ -33,7 +33,7 @@ except ImportError as err:
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__(self, MeshSolverSettings, model, design_surface_name):
+    def __init__(self, MeshSolverSettings, model):
         default_settings = KM.Parameters("""
         {
             "apply_mesh_solver" : true,
@@ -58,8 +58,7 @@ class MeshControllerWithSolver(MeshController) :
                     "tolerance": 1e-7
                 },
                 "compute_reactions"                : false,
-                "calculate_mesh_velocity"          : false,
-                "reinitialize_model_part_each_step": false
+                "calculate_mesh_velocity"          : false
             },
             "processes" : {
                 "boundary_conditions_process_list" : []
@@ -114,19 +113,12 @@ class MeshControllerWithSolver(MeshController) :
             self.__CheckAndSetAutomaticMeshRefinementSettings(automatic_remeshing_process_settings)
             self.remeshing_process = automatic_remeshing_process(model, automatic_remeshing_process_settings)
 
-            # here we set mesh movement solving strategy to reinitialize after each step to support automatic remeshing
-            if (self.MeshSolverSettings["solver_settings"].Has("reinitialize_model_part_each_step")):
-                if (not self.MeshSolverSettings["solver_settings"]["reinitialize_model_part_each_step"].GetBool()):
-                    KM.Logger.PrintWarning("ShapeOpt", "Automatic remeshing requires to reinitialize model part at each step, therefore turning it on.")
-                self.MeshSolverSettings["solver_settings"]["reinitialize_model_part_each_step"].SetBool(True)
-            else:
-                self.MeshSolverSettings["solver_settings"].AddBool("reinitialize_model_part_each_step", True)
+            # remeshing requires to reinitialize the model_part of the mesh solver
+            self.MeshSolverSettings["solver_settings"].AddBool("reinitialize_model_part_each_step", True)
 
             KM.Logger.PrintInfo("ShapeOpt", "Initialized automatic automatic remeshing process")
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
-
-        self.design_surface_name = design_surface_name
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -155,9 +147,7 @@ class MeshControllerWithSolver(MeshController) :
         KM.VariableUtils().CopyVectorVar(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if self.has_automatic_boundary_process and self.is_remeshing_used:
-            # clear the existing nodes
             self.OptimizationModelPart.GetSubModelPart("auto_surface_nodes").GetNodes().clear()
-            # recompute the boundary nodes here
             KSO.GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
