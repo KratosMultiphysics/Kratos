@@ -80,14 +80,19 @@ public:
     /**
      * @brief The constructor of the normal check process
      * @param rModelPart The model part to be considered
+     * @param ThisParameters The configuration parameters
      */
     NormalCheckProcess(
-        ModelPart& rModelPart
-        ) : mrModelPart(rModelPart)
+        ModelPart& rModelPart,
+        Parameters ThisParameters =  Parameters(R"({})")
+        ) : mrModelPart(rModelPart),
+            mParameters(ThisParameters)
     {
+        const Parameters default_parameters = GetDefaultParameters();
+        mParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
-    virtual ~NormalCheckProcess()= default;;
+    virtual ~NormalCheckProcess()= default;
 
     ///@}
     ///@name Operators
@@ -110,6 +115,11 @@ public:
      * @brief Execute method is used to execute the Process algorithms.
      */
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -155,6 +165,7 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;  /// The model part to be considered
+    Parameters mParameters;  /// The configuration parameters
 
     ///@}
     ///@name Protected Operators

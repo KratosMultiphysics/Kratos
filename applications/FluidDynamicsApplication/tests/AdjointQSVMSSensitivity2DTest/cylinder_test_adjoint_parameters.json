@@ -42,9 +42,7 @@
             "NoSlip2D_Cylinder"
         ],
         "linear_solver_settings": {
-            "solver_type": "amgcl",
-            "coarse_enough": 500,
-            "tolerance": 1e-9
+            "solver_type": "LinearSolversApplication.sparse_lu"
         },
         "model_import_settings": {
             "input_type": "mdpa",

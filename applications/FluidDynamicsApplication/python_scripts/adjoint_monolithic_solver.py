@@ -181,19 +181,9 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         # rotate adjoint element/condition matrices accordingly. Therefore, following
         # schemes are used.
         if scheme_type == "bossak":
-            if domain_size == 2:
-                scheme = KratosCFD.VelocityBossakAdjointScheme2D(self.settings["scheme_settings"], response_function, 3)
-            elif domain_size == 3:
-                scheme = KratosCFD.VelocityBossakAdjointScheme3D(self.settings["scheme_settings"], response_function, 4)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            scheme = KratosCFD.VelocityBossakAdjointScheme(self.settings["scheme_settings"], response_function, domain_size, domain_size + 1)
         elif scheme_type == "steady":
-            if domain_size == 2:
-                scheme = KratosCFD.SimpleSteadyAdjointScheme2D(response_function, 3)
-            elif domain_size == 3:
-                scheme = KratosCFD.SimpleSteadyAdjointScheme3D(response_function, 4)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            scheme = KratosCFD.SimpleSteadyAdjointScheme(response_function, domain_size, domain_size + 1)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme

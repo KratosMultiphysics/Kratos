@@ -244,6 +244,7 @@ class FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis:
                 "response_type": "norm_square",
                 "model_part_name": "<PARENT_MODEL_PART>",
                 "response_settings": {
+                    "main_model_part_name": "<PARENT_MODEL_PART>",
                     "norm_model_part_name": "<SUBMODEL_PART>",
                     "entities": [
                         "conditions"
@@ -258,8 +259,10 @@ class FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis:
         seperator_index = norm_model_part_name.rfind('.')
         response_parameters["Parameters"]["model_part_name"].SetString(
             norm_model_part_name[:seperator_index])
+        response_parameters["Parameters"]["response_settings"]["main_model_part_name"].SetString(
+            norm_model_part_name[:seperator_index])
         response_parameters["Parameters"]["response_settings"]["norm_model_part_name"].SetString(
-            norm_model_part_name[seperator_index+1:])
+            norm_model_part_name)
 
         kratos_parameters["output_processes"].AddEmptyList("response_function_outputs")
         kratos_parameters["output_processes"]["response_function_outputs"].Append(response_parameters)
