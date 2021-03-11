@@ -376,7 +376,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("debug_result_mesh",self.settings["debug_result_mesh"])
         mmg_parameters.AddValue("initialize_entities",self.settings["initialize_entities"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
-        if self.strategy == "Optimization":
+        if self.strategy == "optimization":
             mmg_parameters["advanced_parameters"]["mesh_optimization_only"].SetBool(True)
 
         if self.domain_size == 2:
@@ -419,7 +419,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     if self.interval.IsInInterval(current_time):
                         # We remesh if needed
                         if self.__execute_remesh():
-                            if self.strategy in ["Hessian", "LevelSet", "Optimization"]:
+                            if self.strategy in ["Hessian", "LevelSet", "optimization"]:
                                 if self.settings["blocking_threshold_size"].GetBool():
                                     MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
                                 self._ExecuteRefinement()
