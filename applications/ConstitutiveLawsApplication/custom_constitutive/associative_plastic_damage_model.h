@@ -553,7 +553,9 @@ public:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensor(
+        ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
 
 
     /**
@@ -705,6 +707,10 @@ public:
         const Properties& rMaterialProperties,
         PlasticDamageParameters &rPDParameters
         );
+    
+    double CalculatePlasticDenominator(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rParam);
 
     void CalculateElasticMatrix(
         BoundedMatrixType& rConstitutiveMatrix,
