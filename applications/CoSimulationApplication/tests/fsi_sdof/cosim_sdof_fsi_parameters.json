@@ -29,7 +29,7 @@
         "coupling_sequence":
         [
         {
-            "name": "sdof",
+            "name": "sdof_solver",
             "input_data_list": [
                 {
                     "data"              : "load",
@@ -73,7 +73,7 @@
                     }
                 }
             },
-            "sdof" :
+            "sdof_solver" :
             {
                 "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
                 "solver_wrapper_settings" : {
