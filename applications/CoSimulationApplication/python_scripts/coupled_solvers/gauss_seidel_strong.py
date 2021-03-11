@@ -73,6 +73,9 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.InitializeCouplingIteration()
 
+            for data_transfer_operator in self.data_transfer_operators_dict.values():
+                data_transfer_operator.InitializeNonLinearIteration()
+
             for conv_acc in self.convergence_accelerators_list:
                 conv_acc.InitializeNonLinearIteration()
 
@@ -86,6 +89,9 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.FinalizeCouplingIteration()
+
+            for data_transfer_operator in self.data_transfer_operators_dict.values():
+                data_transfer_operator.FinalizeNonLinearIteration()
 
             for conv_acc in self.convergence_accelerators_list:
                 conv_acc.FinalizeNonLinearIteration()
