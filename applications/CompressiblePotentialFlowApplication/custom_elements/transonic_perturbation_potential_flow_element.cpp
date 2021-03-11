@@ -646,7 +646,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     const double critical_mach_sq = std::pow(rCurrentProcessInfo[CRITICAL_MACH], 2.0);
 
     // To check clamping
-    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<TDim, TNumNodes>(rCurrentProcessInfo);
+    const double max_velocity_squared = rCurrentProcessInfo[VELOCITY_SQUARED_LIMIT];
     const double local_velocity_squared = inner_prod(velocity, velocity);
     const double upwind_velocity_squared = inner_prod(upwind_velocity, upwind_velocity);
 
@@ -815,7 +815,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double local_velocity_squared = inner_prod(rVelocity, rVelocity);
 
-    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<TDim, TNumNodes>(rCurrentProcessInfo);
+    const double max_velocity_squared = rCurrentProcessInfo[VELOCITY_SQUARED_LIMIT];
     if (local_velocity_squared < max_velocity_squared){
         rLhs_total += rData.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
     }
@@ -878,7 +878,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double upper_local_velocity_squared = inner_prod(upper_velocity, upper_velocity);
     const double lower_local_velocity_squared = inner_prod(lower_velocity, lower_velocity);
-    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<TDim, TNumNodes>(rCurrentProcessInfo);
+    const double max_velocity_squared = rCurrentProcessInfo[VELOCITY_SQUARED_LIMIT];
 
     // Compute the lhs and rhs that would correspond to it being divided
     for (unsigned int i = 0; i < nsubdivisions; ++i)

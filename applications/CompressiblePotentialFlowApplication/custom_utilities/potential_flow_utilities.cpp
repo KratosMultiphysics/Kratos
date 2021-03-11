@@ -214,7 +214,7 @@ double ComputeClampedVelocitySquared(
     const ProcessInfo& rCurrentProcessInfo)
 {
     // compute max velocity allowed by limit Mach number
-    const double max_velocity_squared = ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
+    const double max_velocity_squared = rCurrentProcessInfo[VELOCITY_SQUARED_LIMIT];
     double local_velocity_squared = inner_prod(rVelocity, rVelocity);
 
     // check if local velocity should be changed

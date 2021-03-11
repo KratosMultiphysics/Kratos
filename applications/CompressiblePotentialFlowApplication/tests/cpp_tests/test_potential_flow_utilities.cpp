@@ -43,6 +43,9 @@ void GenerateTestingElement(ModelPart& rModelPart) {
                               rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
     rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
+    const double velocity_squared_limit = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2,3>(rModelPart.GetProcessInfo());
+    rModelPart.GetProcessInfo()[VELOCITY_SQUARED_LIMIT] = velocity_squared_limit;
+
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -64,6 +67,9 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
                               rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
     rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+    const double velocity_squared_limit = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2,3>(rModelPart.GetProcessInfo());
+    rModelPart.GetProcessInfo()[VELOCITY_SQUARED_LIMIT] = velocity_squared_limit;
 }
 
 void AssignPotentialsToElement(Element& rElement) {

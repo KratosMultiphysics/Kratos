@@ -13,6 +13,7 @@
 // Project includes
 #include "apply_far_field_process.h"
 #include "utilities/openmp_utils.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
 
@@ -31,6 +32,8 @@ ApplyFarFieldProcess::ApplyFarFieldProcess(ModelPart& rModelPart,
 
 void ApplyFarFieldProcess::Execute()
 {
+    const double velocity_squared_limit = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2,3>(mrModelPart.GetProcessInfo());
+    mrModelPart.GetProcessInfo()[VELOCITY_SQUARED_LIMIT] = velocity_squared_limit;
     FindFarthestUpstreamBoundaryNode();
     AssignFarFieldBoundaryConditions();
     if (mInitializeFlowField){
