@@ -135,6 +135,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemFluidConstitutiveLaw : pub
      */
     void EffectiveViscousConstitutiveMatrix3D(double EffectiveViscosity, Matrix& rC);
 
+    double GetThetaMomentumForPressureIntegration() { return 0.5; };
     ///@}
     ///@name Protected  Access
     ///@{

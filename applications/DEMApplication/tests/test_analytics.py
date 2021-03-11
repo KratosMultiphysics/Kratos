@@ -59,9 +59,8 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
             self.FaceAnalyzerClass.CreateNewFile()
-            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
-                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.CheckTotalNumberOfCrossingParticles()
+            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.CheckTotalNumberOfCrossingParticles()
 
         self.FaceAnalyzerClass.RemoveOldFile()
 
@@ -86,11 +85,10 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:  # or IsCountStep()
             self.FaceAnalyzerClass.CreateNewFile()
-            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
-                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+            self.FaceAnalyzerClass.UpdateDataBases(time)
 
-                if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
-                    self.CheckTotalNumberOfCrossingParticles()
+            if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
+                self.CheckTotalNumberOfCrossingParticles()
 
             self.FaceAnalyzerClass.RemoveOldFile()
 
