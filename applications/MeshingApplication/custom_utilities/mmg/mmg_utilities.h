@@ -421,7 +421,7 @@ public:
     /**
      * @brief This sets the optimization mode using the API
      * where edge lengths are preserved, ignoring the metric values.
-     * @param[in] EnableMeshOptimization Sets the mesh optimzation member variable
+     * @param[in] EnableMeshOptimization Boolean to set the mesh optimization mode
      */
     virtual void SetMeshOptimizationModeParameter(const bool EnableMeshOptimization);
 
