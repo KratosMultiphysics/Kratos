@@ -83,6 +83,9 @@ class FaceAnalyzerClass:
         self.mass_data_base_names = []
         self.new_path = self.main_path + '/flux_data_new.hdf5'
         self.old_path = self.new_path.replace('_new.hdf5', '.hdf5')
+        self.name_n_particles = 'n_accum'
+        self.name_mass = 'm_accum'
+        self.name_avg_vel_nr = 'mass_avg_normal_vel'
 
         for sub_part in self.model_part:
             if sub_part[IS_GHOST] == True:
@@ -122,9 +125,6 @@ class FaceAnalyzerClass:
             self.CreateDataFile(time)
 
     def UpdateDataFile(self, time):
-        name_n_particles = 'n_accum'
-        name_mass = 'm_accum'
-        name_avg_vel_nr = 'mass_avg_normal_vel'
 
         # how to create subgrouped datasets with variable name:
         # group2 = f.create_group('group2/subfolder')
@@ -136,15 +136,15 @@ class FaceAnalyzerClass:
                     shape, time, n_particles, mass, avg_vel_nr = self.face_watcher_analysers[sub_part.Name].UpdateData(time)
                     shape_old = f_old['/' + sub_part.Name + '/time'].shape
                     current_shape = (shape_old[0] + shape[0], )
-                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, sub_part.Name, name_n_particles, name_mass, name_avg_vel_nr)
+                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, sub_part.Name)
 
                     time_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/time'][:]
                     time_db[shape_old[0]:] = time[:]
-                    n_particles_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + name_n_particles][:]
+                    n_particles_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + self.name_n_particles][:]
                     n_particles_db[shape_old[0]:] = n_particles[:]
-                    mass_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + name_mass][:]
+                    mass_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + self.name_mass][:]
                     mass_db[shape_old[0]:] = mass[:]
-                    avg_vel_nr_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + name_avg_vel_nr][:]
+                    avg_vel_nr_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + self.name_avg_vel_nr][:]
                     avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
                     if self.do_clear_data:
                         if len(n_particles):
@@ -157,9 +157,6 @@ class FaceAnalyzerClass:
         #x = np.array(x_h5)
 
     def CreateDataFile(self, time):
-        name_n_particles = 'n_accum'
-        name_mass = 'm_accum'
-        name_avg_vel_nr = 'mass_avg_normal_vel'
 
         # how to create subgrouped datasets with variable name:
         # group2 = f.create_group('group2/subfolder')
@@ -169,7 +166,7 @@ class FaceAnalyzerClass:
             for sub_part in self.model_part:
                 if sub_part[IS_GHOST]:
                     shape, time, n_particles, mass, avg_vel_nr = self.face_watcher_analysers[sub_part.Name].UpdateData(time)
-                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, sub_part.Name, name_n_particles, name_mass, name_avg_vel_nr)
+                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, sub_part.Name)
                     time_db[:] = time[:]
                     n_particles_db[:] = n_particles[:]
                     mass_db[:] = mass[:]
@@ -183,14 +180,14 @@ class FaceAnalyzerClass:
         #x_h5 = input_data.get('/patch/X')
         #x = np.array(x_h5)
 
-    def CreateDataSets(self, f, current_shape, sp_name, name_n_particles, name_mass, name_avg_vel_nr):
+    def CreateDataSets(self, f, current_shape, sp_name):
         surface_data = f.require_group(sp_name)
         surface_data.attrs['Surface Identifier'] = sp_name
 
         time_db = surface_data.require_dataset('time', shape = current_shape, dtype = np.float64)
-        n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = np.int64)
-        mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = np.float64)
-        avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = np.float64)
+        n_particles_db = surface_data.require_dataset(self.name_n_particles, shape = current_shape, dtype = np.int64)
+        mass_db = surface_data.require_dataset(self.name_mass, shape = current_shape, dtype = np.float64)
+        avg_vel_nr_db = surface_data.require_dataset(self.name_avg_vel_nr, shape = current_shape, dtype = np.float64)
 
         return time_db, n_particles_db, mass_db, avg_vel_nr_db
 

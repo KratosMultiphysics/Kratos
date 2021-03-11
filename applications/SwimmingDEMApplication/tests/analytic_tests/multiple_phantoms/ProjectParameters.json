@@ -236,7 +236,7 @@
     },
     "fluid_parameters"        : {
         "problem_data"     : {
-            "problem_name"  : "Multiple_phantoms_test",
+            "problem_name"  : "analytic_tests/multiple_phantoms/Multiple_phantoms_test",
             "parallel_type" : "OpenMP",
             "echo_level"    : 0,
             "start_time"    : 0.0,
