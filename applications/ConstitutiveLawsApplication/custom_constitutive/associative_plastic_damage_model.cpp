@@ -177,7 +177,8 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFrac
         : rMaterialProperties[YIELD_STRESS_TENSION];
     const double n = yield_compression / yield_tension;
     const double fracture_energy_tension = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
-    const double fracture_energy_compression = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
+    const double fracture_energy_compression = rMaterialProperties.Has(FRACTURE_ENERGY_COMPRESSION) ?
+        rMaterialProperties[FRACTURE_ENERGY_COMPRESSION] : rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2);
 
     const double characteristic_fracture_energy_tension = fracture_energy_tension /
         rPDParameters.CharacteristicLength;
