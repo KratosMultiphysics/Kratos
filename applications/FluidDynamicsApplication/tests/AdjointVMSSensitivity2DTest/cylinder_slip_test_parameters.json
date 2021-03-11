@@ -6,7 +6,7 @@
         "echo_level": 0,
         "parallel_type": "<PARALLEL_TYPE>"
     },
-    "_output_processes": {},
+    "output_processes": {},
     "restart_options": {
         "SaveRestart": "False",
         "RestartFrequency": 0,

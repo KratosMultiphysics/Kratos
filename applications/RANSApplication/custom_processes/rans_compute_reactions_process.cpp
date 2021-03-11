@@ -93,16 +93,26 @@ void RansComputeReactionsProcess::Initialize()
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     block_for_each(r_model_part.Conditions(), [&](ConditionType& rCondition){
-        const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
 
         if (!r_parent_element.Has(CONSTITUTIVE_LAW)) {
             const auto& r_geometry = rCondition.GetGeometry();
             const Vector& N = row(r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1), 0);
 
-            const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+            const Properties& r_properties = r_parent_element.GetProperties();
 
-            auto p_constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
-            p_constitutive_law->InitializeMaterial(r_parent_element.GetProperties(), r_parent_element.GetGeometry(), N);
+            KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+                << "In initialization of Element " << this->Info()
+                << ": No CONSTITUTIVE_LAW defined for property "
+                << r_properties.Id() << "." << std::endl;
+
+            // Here we can do down casting because, it should be always a FluidConstitutiveLaw
+            auto mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+
+            // This constitutive law should return nu + nu_t
+            mpConstitutiveLaw->InitializeMaterial(r_properties, r_parent_element.GetGeometry(), N);
+
+            r_parent_element.SetValue(CONSTITUTIVE_LAW, mpConstitutiveLaw);
         }
 
         rCondition.SetValue(REACTION, ZeroVector(3));
