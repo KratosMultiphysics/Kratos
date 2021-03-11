@@ -708,8 +708,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     CalculateLeftHandSideContribution(lower_lhs_total, rCurrentProcessInfo, lower_velocity, data);
 
     // Compute lhs wake condition
+    BoundedMatrix<double, TDim, TDim> condition_matrix = IdentityMatrix(TDim,TDim);
+    condition_matrix(0,0) = 1.0;
+    condition_matrix(1,1) = 0.0;
+    condition_matrix(2,2) = 0.0;
+
+    const BoundedMatrix<double, TDim, TNumNodes> xzfilter = prod(condition_matrix, trans(data.DN_DX));
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const BoundedMatrix<double, TNumNodes, TNumNodes> lhs_wake_condition = data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
+    const BoundedMatrix<double, TNumNodes, TNumNodes> lhs_wake_condition = data.vol * free_stream_density * prod(data.DN_DX, xzfilter);
 
     if (this->Is(STRUCTURE)){
         Matrix lhs_positive = ZeroMatrix(TNumNodes, TNumNodes);
@@ -764,7 +770,15 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     const BoundedVector<double, TNumNodes> upper_rhs = - data.vol * density_upper * prod(data.DN_DX, upper_velocity);
     const BoundedVector<double, TNumNodes> lower_rhs = - data.vol * density_lower * prod(data.DN_DX, lower_velocity);
-    const BoundedVector<double, TNumNodes> wake_rhs = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+
+    // Wake condition matrix
+    BoundedMatrix<double, TDim, TDim> condition_matrix = IdentityMatrix(TDim,TDim);
+    condition_matrix(0,0) = 1.0;
+    condition_matrix(1,1) = 0.0;
+    condition_matrix(2,2) = 0.0;
+
+    const auto xzfilter = prod(data.DN_DX, condition_matrix);
+    const BoundedVector<double, TNumNodes> wake_rhs = - data.vol * free_stream_density * prod(xzfilter, diff_velocity);
 
     if (this->Is(STRUCTURE))
     {
