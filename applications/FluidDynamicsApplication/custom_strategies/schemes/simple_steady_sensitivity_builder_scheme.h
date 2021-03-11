@@ -41,7 +41,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<unsigned int TDim, unsigned int TBlockSize = TDim + 1>
 class SimpleSteadySensitivityBuilderScheme : public SensitivityBuilderScheme
 {
 public:
@@ -65,10 +64,16 @@ public:
     ///@{
 
     /// Constructor.
-    SimpleSteadySensitivityBuilderScheme()
+    SimpleSteadySensitivityBuilderScheme(
+        const IndexType Dimension,
+        const IndexType BlockSize)
         : SensitivityBuilderScheme(),
-          mRotationalTool(TDim, TBlockSize)
+          mDimension(Dimension),
+          mBlockSize(BlockSize),
+          mRotationalTool(Dimension, mBlockSize)
     {
+        KRATOS_TRY
+
         // Allocate auxiliary memory.
         // This needs to be done in the constructor because, this scheme
         // is used to calculate sensitivities w.r.t. element quantities
@@ -81,7 +86,21 @@ public:
         mRotatedSensitivityMatrices.resize(number_of_threads);
         mSensitivityMatrices.resize(number_of_threads);
 
-        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << TBlockSize << " ].\n";
+        if (Dimension == 2) {
+            this->mAddNodalRotationDerivativesMethod = &SimpleSteadySensitivityBuilderScheme::TemplatedAddNodalRotationDerivatives<2>;
+            this->mAddNodalApplySlipConditionDerivativesMethod = &SimpleSteadySensitivityBuilderScheme::TemplatedAddNodalApplySlipConditionDerivatives<2>;
+        } else if (Dimension == 3) {
+            this->mAddNodalRotationDerivativesMethod = &SimpleSteadySensitivityBuilderScheme::TemplatedAddNodalRotationDerivatives<3>;
+            this->mAddNodalApplySlipConditionDerivativesMethod = &SimpleSteadySensitivityBuilderScheme::TemplatedAddNodalApplySlipConditionDerivatives<3>;
+        } else {
+            KRATOS_ERROR << "Unsupported dimensionality requested. Only 2D and 3D "
+                            "supported. [ Dimension = "
+                        << Dimension << " ].\n";
+        }
+
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << mDimension << ", BlockSize = " << mBlockSize << " ].\n";
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -112,8 +131,8 @@ public:
             // NORMAL_SHAPE_DERIVATIVE on conditions should already be available before
             // executing the following command. (This is done in adjoint_vmsmonolithic_solver.py)
             SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>(
-                rModelPart, TDim, NORMAL_SHAPE_DERIVATIVE,
-                mNodalNeighboursMap, 1.0 / TDim, SLIP);
+                rModelPart, mDimension, NORMAL_SHAPE_DERIVATIVE,
+                mNodalNeighboursMap, 1.0 / mDimension, SLIP);
         }
 
         BaseType::InitializeSolutionStep(rModelPart, rSensitivityModelPart, rResponseFunction);
@@ -442,6 +461,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    const IndexType mDimension;
+    const IndexType mBlockSize;
+
     bool mIsNodalNormalShapeDerivativesComputed = false;
     std::vector<Matrix> mAuxMatrices;
     std::vector<Vector> mAuxVectors;
@@ -451,6 +473,20 @@ private:
     std::unordered_map<int, std::vector<int>> mNodalNeighboursMap;
 
     const CoordinateTransformationUtils<Matrix, Vector, double> mRotationalTool;
+
+    void (SimpleSteadySensitivityBuilderScheme::*mAddNodalRotationDerivativesMethod)(
+        Matrix&,
+        const Matrix&,
+        const Vector&,
+        const IndexType,
+        const std::unordered_map<IndexType, IndexType>&,
+        const NodeType&) const;
+
+    void (SimpleSteadySensitivityBuilderScheme::*mAddNodalApplySlipConditionDerivativesMethod)(
+        Matrix&,
+        const IndexType,
+        const std::unordered_map<IndexType, IndexType>&,
+        const NodeType&) const;
 
     ///@}
     ///@name Private Operations
@@ -620,9 +656,9 @@ private:
         }
 
         if (rVariable == SHAPE_SENSITIVITY) {
-            KRATOS_DEBUG_ERROR_IF(number_of_derivative_nodes * TDim != rEntityResidualDerivatives.size1())
+            KRATOS_DEBUG_ERROR_IF(number_of_derivative_nodes * mDimension != rEntityResidualDerivatives.size1())
                 << "Entity sensitivity matrix size mismatch. [ rEntityResidualDerivatives.size = ( " << rEntityResidualDerivatives.size1()
-                << ", " << rEntityResidualDerivatives.size2() << " ), required size = ( " << (number_of_derivative_nodes * TDim)
+                << ", " << rEntityResidualDerivatives.size2() << " ), required size = ( " << (number_of_derivative_nodes * mDimension)
                 << ", " << residuals_size << " ) ].\n";
 
             // add relevant neighbour gps
@@ -645,7 +681,7 @@ private:
                 }
             }
 
-            const IndexType derivatives_size = local_index * TDim;
+            const IndexType derivatives_size = local_index * mDimension;
             if (rEntityRotatedResidualDerivatives.size1() != derivatives_size || rEntityRotatedResidualDerivatives.size2() != residuals_size) {
                 rEntityRotatedResidualDerivatives.resize(derivatives_size, residuals_size, false);
             }
@@ -661,7 +697,7 @@ private:
             // add residual derivative contributions
             for (IndexType a = 0; a < number_of_nodes; ++a) {
                 const auto& r_node = r_geometry[a];
-                const IndexType block_index = a * TBlockSize;
+                const IndexType block_index = a * mBlockSize;
                 if (r_node.Is(SLIP)) {
                     AddNodalRotationDerivatives(rEntityRotatedResidualDerivatives, rEntityResidualDerivatives, aux_vector, block_index, gp_index_map, r_node);
                     AddNodalApplySlipConditionDerivatives(rEntityRotatedResidualDerivatives, block_index, gp_index_map, r_node);
@@ -670,7 +706,7 @@ private:
                 }
             }
         } else {
-            const IndexType derivatives_size = number_of_nodes * TDim;
+            const IndexType derivatives_size = number_of_nodes * mDimension;
             if (rEntityRotatedResidualDerivatives.size1() != derivatives_size || rEntityRotatedResidualDerivatives.size2() != residuals_size) {
                 rEntityRotatedResidualDerivatives.resize(derivatives_size, residuals_size, false);
             }
@@ -681,6 +717,18 @@ private:
     }
 
     void AddNodalRotationDerivatives(
+        Matrix& rOutput,
+        const Matrix& rResidualDerivatives,
+        const Vector& rResiduals,
+        const IndexType NodeStartIndex,
+        const std::unordered_map<IndexType, IndexType>& rDerivativesMap,
+        const NodeType& rNode) const
+    {
+        (this->*(this->mAddNodalRotationDerivativesMethod))(rOutput, rResidualDerivatives, rResiduals, NodeStartIndex, rDerivativesMap, rNode);
+    }
+
+    template<unsigned int TDim>
+    void TemplatedAddNodalRotationDerivatives(
         Matrix& rOutput,
         const Matrix& rResidualDerivatives,
         const Vector& rResiduals,
@@ -712,7 +760,7 @@ private:
                 rOutput, aux_vector, c, NodeStartIndex);
 
             // add rest of the equation derivatives
-            for (IndexType a = TDim; a < TBlockSize; ++a) {
+            for (IndexType a = TDim; a < mBlockSize; ++a) {
                 rOutput(c, NodeStartIndex + a) +=
                     rResidualDerivatives(c, NodeStartIndex + a);
             }
@@ -749,6 +797,16 @@ private:
     }
 
     void AddNodalApplySlipConditionDerivatives(
+        Matrix& rOutput,
+        const IndexType NodeStartIndex,
+        const std::unordered_map<IndexType, IndexType>& rDerivativesMap,
+        const NodeType& rNode) const
+    {
+        (this->*(this->mAddNodalApplySlipConditionDerivativesMethod))(rOutput, NodeStartIndex, rDerivativesMap, rNode);
+    }
+
+    template<unsigned int TDim>
+    void TemplatedAddNodalApplySlipConditionDerivatives(
         Matrix& rOutput,
         const IndexType NodeStartIndex,
         const std::unordered_map<IndexType, IndexType>& rDerivativesMap,
@@ -818,7 +876,7 @@ private:
 
         // add non-rotated residual derivative contributions
         for (IndexType c = 0; c < rResidualDerivatives.size1(); ++c) {
-            for (IndexType i = 0; i < TBlockSize; ++i) {
+            for (IndexType i = 0; i < mBlockSize; ++i) {
                 rOutput(c, NodeStartIndex + i) +=
                     rResidualDerivatives(c, NodeStartIndex + i);
             }

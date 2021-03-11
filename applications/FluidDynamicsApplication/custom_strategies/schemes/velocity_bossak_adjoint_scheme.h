@@ -34,14 +34,14 @@
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
 // Application includes
-#include "custom_utilities/fluid_adjoint_utilities.h"
+#include "custom_utilities/fluid_adjoint_slip_utilities.h"
 
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
-template <unsigned int TDim, class TSparseSpace, class TDenseSpace, unsigned int TBlockSize = TDim + 1>
+template <class TSparseSpace, class TDenseSpace>
 class VelocityBossakAdjointScheme : public ResidualBasedAdjointBossakScheme<TSparseSpace, TDenseSpace>
 {
 public:
@@ -68,11 +68,12 @@ public:
     VelocityBossakAdjointScheme(
         Parameters Settings,
         AdjointResponseFunction::Pointer pResponseFunction,
+        const IndexType Dimension,
         const IndexType BlockSize)
         : BaseType(Settings, pResponseFunction),
-          mAdjointSlipUtilities(BlockSize)
+          mAdjointSlipUtilities(Dimension, BlockSize)
     {
-        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << BlockSize << " ].\n";
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
     }
 
     /// Destructor.
@@ -245,7 +246,7 @@ private:
     std::vector<Matrix> mAuxiliaryMatrix;
     std::vector<Matrix> mRotatedMatrix;
 
-    const typename FluidAdjointUtilities<TDim>::SlipUtilities mAdjointSlipUtilities;
+    const FluidAdjointSlipUtilities mAdjointSlipUtilities;
 
     ///@}
     ///@name Private Operations

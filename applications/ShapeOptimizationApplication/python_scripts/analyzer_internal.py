@@ -12,6 +12,8 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
+import os, pathlib
+
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 
@@ -27,8 +29,26 @@ try:
 except ImportError:
     convdiff_response_factory = None
 
-
 import time as timer
+
+class IterationScope:
+    def __init__(self, response_id, iteration_number, is_evaluated_in_folder):
+        self.is_evaluated_in_folder = is_evaluated_in_folder
+        if (self.is_evaluated_in_folder):
+            self.currentPath = pathlib.Path.cwd()
+            output_path = pathlib.Path("Design_Iterations")
+            response_text = "{:}/{:d}".format(response_id, iteration_number)
+            self.scope = output_path / response_text
+
+    def __enter__(self):
+        if (self.is_evaluated_in_folder):
+            self.scope.mkdir(parents=True, exist_ok=True)
+            os.chdir(str(self.scope))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if (self.is_evaluated_in_folder):
+            os.chdir(self.currentPath)
+
 
 # ==============================================================================
 class KratosInternalAnalyzer( AnalyzerBaseClass ):
@@ -57,19 +77,23 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             optimization_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis-1)
             optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
-            response.InitializeSolutionStep()
+            # now we scope in to the directory where response operations are done
+            with IterationScope(identifier, optimizationIteration, response.IsEvaluatedInFolder()):
+                response.UpdateDesign(optimization_model_part, KM.SHAPE_SENSITIVITY)
 
-            # response values
-            if communicator.isRequestingValueOf(identifier):
-                response.CalculateValue()
-                communicator.reportValue(identifier, response.GetValue())
+                response.InitializeSolutionStep()
 
-            # response gradients
-            if communicator.isRequestingGradientOf(identifier):
-                response.CalculateGradient()
-                communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
+                # response values
+                if communicator.isRequestingValueOf(identifier):
+                    response.CalculateValue()
+                    communicator.reportValue(identifier, response.GetValue())
 
-            response.FinalizeSolutionStep()
+                # response gradients
+                if communicator.isRequestingGradientOf(identifier):
+                    response.CalculateGradient()
+                    communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
+
+                response.FinalizeSolutionStep()
 
             # Clear results or modifications on model part
             optimization_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis)
