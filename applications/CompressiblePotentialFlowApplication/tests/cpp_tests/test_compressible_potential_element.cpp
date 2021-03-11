@@ -244,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     p_element->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
-    std::array<double, 9> reference_array{0.251249, -0.25125, 1.08455e-06, -0.25125, 0.502499, -0.25125, 1.08455e-06, -0.25125, 0.251249};
+    std::array<double, 9> reference_array{0.125624, -0.125625, 1.08455e-06, -0.125625, 0.25125, -0.125625, 1.08455e-06, -0.125625, 0.125624};
     // Copying to a 3x3 matrix to check against LHS
     Matrix reference(3, 3);
     for (unsigned int i = 0; i < reference.size1(); i++) {
