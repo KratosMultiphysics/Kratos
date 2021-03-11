@@ -109,13 +109,15 @@ public:
      * @param rOriginInterfaceModelPart Origin skin model part to copy the conditions from
      * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin elements
      */
+    //TODO: UPDATE THE METHOD NAME TO ConditionBased
     void CreateCouplingElementBasedSkin(
         const ModelPart &rOriginInterfaceModelPart,
         ModelPart &rDestinationInterfaceModelPart)
     {
         // Check the origin interface model part
-        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
+        const auto& r_communicator = rOriginInterfaceModelPart.GetCommunicator();
+        KRATOS_ERROR_IF(r_communicator.GlobalNumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(r_communicator.GlobalNumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
 
         // Check the destination interface model part
         KRATOS_ERROR_IF(rDestinationInterfaceModelPart.IsSubModelPart()) << "Destination model part must be a root model part." << std::endl;
@@ -124,8 +126,16 @@ public:
         KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfConditions() != 0) << "Destination interface model part should be empty. Current number of conditions: " << rDestinationInterfaceModelPart.NumberOfConditions() << std::endl;
 
         // Emulate the origin interface nodes in the coupling skin
-        for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
-            rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+        // Note that if the origin model part is MPI parallel we copy the PARTITION_INDEX to the coupling skin mesh
+        if (rOriginInterfaceModelPart.IsDistributed()) {
+            for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
+                auto p_new_node = rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+                p_new_node->FastGetSolutionStepValue(PARTITION_INDEX) = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
+            }
+        } else {
+            for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
+                rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+            }
         }
 
         // Create the new element based skin
@@ -140,7 +150,7 @@ public:
             //FIXME: CONSIDERING THAT THIS IS A SKIN, MAKES MORE SENSE TO HAVE CONDITIONS RATHER THAN ELEMENTS...
             //FIXME: NOTE THAT HAVING BOTH CONDITIONS AND ELEMENTS IMPEDES USING THE MAPPERS
             // rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
-        
+
             // Create the new condition element
             //FIXME: I ADDED THESE FOR THE EMBEDDED FIXES...
             //FIXME: THESE ARE ALSO REQUIRED TO CALCULATE THE RESIDUAL WITH THE CONDITIONS
