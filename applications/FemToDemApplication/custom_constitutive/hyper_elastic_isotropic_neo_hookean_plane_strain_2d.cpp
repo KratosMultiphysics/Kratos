@@ -16,14 +16,13 @@
 // Project includes
 #include "hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "fem_to_dem_application_variables.h"
-#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPlaneStrain2D()
+HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM()
     : BaseType()
 {
 }
@@ -31,7 +30,7 @@ HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPla
 /******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
-HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPlaneStrain2D(const HyperElasticIsotropicNeoHookeanPlaneStrain2D& rOther)
+HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM(const HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM& rOther)
     : BaseType(rOther)
 {
 }
@@ -39,22 +38,22 @@ HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPla
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer HyperElasticIsotropicNeoHookeanPlaneStrain2D::Clone() const
+ConstitutiveLaw::Pointer HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::Clone() const
 {
-    return Kratos::make_shared<HyperElasticIsotropicNeoHookeanPlaneStrain2D>(*this);
+    return Kratos::make_shared<HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM>(*this);
 }
 
 /*******************************DESTRUCTOR******************************************/
 /***********************************************************************************/
 
-HyperElasticIsotropicNeoHookeanPlaneStrain2D::~HyperElasticIsotropicNeoHookeanPlaneStrain2D()
+HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::~HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM()
 {
 };
 
 /*************************CONSTITUTIVE LAW GENERAL FEATURES ************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFeatures)
+void HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRAIN_LAW );
@@ -75,7 +74,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFea
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK2(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::CalculateConstitutiveMatrixPK2(
     Matrix& rConstitutiveMatrix,
     const Matrix& InverseCTensor,
     const double DeterminantF,
@@ -103,7 +102,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchhoff(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::CalculateConstitutiveMatrixKirchhoff(
     Matrix& rConstitutiveMatrix,
     const double DeterminantF,
     const double LameLambda,
@@ -130,7 +129,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKi
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateGreenLagrangianStrain(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::CalculateGreenLagrangianStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
@@ -149,7 +148,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateGreenLagrangianStrai
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateAlmansiStrain(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::CalculateAlmansiStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )

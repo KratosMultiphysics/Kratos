@@ -19,6 +19,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -44,7 +45,6 @@ void OmegaKBasedWallConditionData::Check(
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         const auto& r_node = rGeometry[i_node];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
@@ -66,13 +66,16 @@ void OmegaKBasedWallConditionData::CalculateConstants(
     KRATOS_TRY
 
     mOmegaSigma = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA];
-    mKappa = rCurrentProcessInfo[WALL_VON_KARMAN];
     mCmu25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+    mKappa = rCurrentProcessInfo[VON_KARMAN];
 
     KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
         << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
 
-    const double y_plus_limit = rCurrentProcessInfo[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+    mDensity = this->GetElementProperties()[DENSITY];
+
+    const double y_plus_limit = this->GetConditionProperties()[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+
     mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
 
     KRATOS_CATCH("");
@@ -84,16 +87,22 @@ bool OmegaKBasedWallConditionData::IsWallFluxComputable() const
 }
 
 double OmegaKBasedWallConditionData::CalculateWallFlux(
-    const Vector& rShapeFunctions) const
+    const Vector& rShapeFunctions)
 {
     using namespace RansCalculationUtilities;
 
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
+
     double nu, nu_t, tke;
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
-                    std::tie(nu, KINEMATIC_VISCOSITY),
-                    std::tie(nu_t, TURBULENT_VISCOSITY),
-                    std::tie(tke, TURBULENT_KINETIC_ENERGY));
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+    nu /= mDensity;
+
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(nu_t, TURBULENT_VISCOSITY),
+        std::tie(tke, TURBULENT_KINETIC_ENERGY));
 
     const double u_tau = mCmu25 * std::sqrt(std::max(tke, 0.0));
 

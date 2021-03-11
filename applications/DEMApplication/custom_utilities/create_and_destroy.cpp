@@ -45,7 +45,7 @@ namespace Kratos {
     int ParticleCreatorDestructor::FindMaxNodeIdInModelPart(ModelPart& r_modelpart) {
         KRATOS_TRY
         int max_Id = 1; //GID accepts Id's >= 1
-        std::vector<int> thread_maximums(OpenMPUtils::GetNumThreads(),1);
+        std::vector<int> thread_maximums(ParallelUtilities::GetNumThreads(),1);
 
         //#pragma omp parallel for
         for(int i=0; i<(int)r_modelpart.GetCommunicator().LocalMesh().Nodes().size(); i++){
@@ -53,7 +53,7 @@ namespace Kratos {
             if ((int) (node_it->Id()) > thread_maximums[OpenMPUtils::ThisThread()]) thread_maximums[OpenMPUtils::ThisThread()] = node_it->Id();
         }
 
-        for(int i=0; i<OpenMPUtils::GetNumThreads(); i++){
+        for(int i=0; i<ParallelUtilities::GetNumThreads(); i++){
             if(thread_maximums[i] > max_Id) max_Id = thread_maximums[i];
         }
 
@@ -328,7 +328,7 @@ namespace Kratos {
 
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
-            else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution in submodelpart ", r_sub_model_part_with_parameters.Name())
+            else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters.Name() << std::endl;
         }
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
@@ -595,7 +595,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
         else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
-        else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution in submodelpart ", r_sub_model_part_with_parameters.Name())
+        else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters.Name() << std::endl;
 
         NodeForClustersCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, false);
 
@@ -629,7 +629,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             mMaxNodeId++; //This must be done before CreateParticles because the creation of particles accesses mMaxNodeId to choose what Id is assigned to the new nodes/spheres
         }
 
-        if (!continuum_strategy && is_breakable) KRATOS_THROW_ERROR(std::runtime_error,"Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop.","")
+        KRATOS_ERROR_IF(!continuum_strategy && is_breakable) << "Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop." << std::endl;
 
         ParticleCreatorDestructor* creator_destructor_ptr = this;
         p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties, continuum_strategy);
@@ -956,12 +956,10 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 && r_clusters_model_part.NumberOfElements(0) == 0
                 && r_rigid_faces_model_part.NumberOfElements(0) == 0
                 && r_dem_inlet_model_part.NumberOfNodes(0) == 0) {
-                KRATOS_THROW_ERROR(std::logic_error, "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops.", "");
+                KRATOS_ERROR << "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." << std::endl;
             }
 
-            if (scale_factor < 0.0) {
-                KRATOS_THROW_ERROR(std::logic_error, "The enlargement factor for the automatic calculation of the bounding box must be a positive value.", "");
-            }
+            KRATOS_ERROR_IF(scale_factor < 0.0) << "The enlargement factor for the automatic calculation of the bounding box must be a positive value." << std::endl;
 
             if (scale_factor < 1.0) {
                 KRATOS_WARNING("DEM") << "\n WARNING" + std::string(2, '\n');
@@ -1065,10 +1063,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         else {
             for (int i = 0; i < 3; ++i) {
-
-                if (mHighPoint[i] < mLowPoint[i]) {
-                    KRATOS_THROW_ERROR(std::logic_error, "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates.", "");
-                }
+                KRATOS_ERROR_IF(mHighPoint[i] < mLowPoint[i]) << "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." << std::endl;
             }
 
             mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
@@ -1106,9 +1101,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         ElementsArrayType& rElements = rMesh.Elements();
         ModelPart::NodesContainerType& rNodes = rMesh.Nodes();
 
-        if (rElements.size() != rNodes.size()) {
-            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
-        }
+        KRATOS_ERROR_IF(rElements.size() != rNodes.size()) << "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!" << std::endl;
 
         int good_elems_counter = 0;
 
@@ -1141,9 +1134,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             else (*node_pointer_it).reset();
         }
 
-        if (good_elems_counter != good_nodes_counter) {
-            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of removed elements and the number of removed nodes were not the same!", 0);
-        }
+        KRATOS_ERROR_IF(good_elems_counter != good_nodes_counter) << "While removing elements and nodes, the number of removed elements and the number of removed nodes were not the same!" << std::endl;
 
         if ((int)rElements.size() != good_elems_counter) {
             rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());

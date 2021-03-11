@@ -182,12 +182,12 @@ public:
     /**
      * this is called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this computes the Tangent tensor via numerical derivation (perturbations)
@@ -260,7 +260,7 @@ protected:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const  override;
 
     bool UseElementProvidedStrain() const override;
 

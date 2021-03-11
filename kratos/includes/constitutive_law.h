@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -34,6 +34,7 @@
 #include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
+#include "includes/initial_state.h"
 
 
 namespace Kratos
@@ -231,6 +232,8 @@ public:
       const ProcessInfo*   mpCurrentProcessInfo;
       const Properties*    mpMaterialProperties;
       const GeometryType*  mpElementGeometry;
+
+
 
 
     public:
@@ -523,10 +526,10 @@ public:
      * @return a Pointer to the new constitutive law
      */
     virtual Pointer Create(
-        Kratos::Parameters NewParameters, 
+        Kratos::Parameters NewParameters,
         const Properties& rProperties
         ) const;
-    
+
     /**
      * @return The working space dimension of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class
@@ -538,6 +541,74 @@ public:
      * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
     virtual SizeType GetStrainSize();
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    void SetInitialState(InitialState::Pointer pInitialState)
+    {
+        mpInitialState = pInitialState;
+    }
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    InitialState::Pointer pGetInitialState()
+    {
+        return mpInitialState;
+    }
+
+    /**
+     * @return The reference to initial state of strains/stresses/F
+     */
+    InitialState& GetInitialState()
+    {
+        return *mpInitialState;
+    }
+
+        /**
+     * @return The true if InitialState is defined
+     */
+    bool HasInitialState() const
+    {
+        return mpInitialState != nullptr;
+    }
+
+    /**
+     * @brief Adds the initial stress vector if it is defined in the InitialState
+     */
+    template<typename TVectorType>
+    void AddInitialStressVectorContribution(TVectorType& rStressVector) 
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStressVector) += r_initial_state.GetInitialStressVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    template<typename TVectorType>
+    void AddInitialStrainVectorContribution(TVectorType& rStrainVector)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStrainVector) -= r_initial_state.GetInitialStrainVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    template<typename TMatrixType>
+    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            rF = prod(r_initial_state.GetInitialDeformationGradientMatrix(), rF);
+        }
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
@@ -685,7 +756,7 @@ public:
      */
     virtual void SetValue(const Variable<Vector >& rVariable,
                           const Vector& rValue,
-			  const ProcessInfo& rCurrentProcessInfo);
+              const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief Sets the value of a specified variable (Matrix)
@@ -695,7 +766,7 @@ public:
      */
     virtual void SetValue(const Variable<Matrix >& rVariable,
                           const Matrix& rValue,
-			  const ProcessInfo& rCurrentProcessInfo);
+              const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief Sets the value of a specified variable (array of 3 components)
@@ -770,7 +841,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     virtual array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 3 > >& rVariable,
-						  array_1d<double, 3 > & rValue);
+                          array_1d<double, 3 > & rValue);
 
     /**
      * returns the value of a specified variable (array of 6 components)
@@ -779,7 +850,7 @@ public:
      * @return the value of the specified variable
      */
     virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
-						  array_1d<double, 6 > & rValue);
+                          array_1d<double, 6 > & rValue);
 
 
      /**
@@ -864,9 +935,9 @@ public:
      */
     KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
     virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
-					      const GeometryType& rElementGeometry,
-					      const Vector& rShapeFunctionsValues,
-					      const ProcessInfo& rCurrentProcessInfo);
+                          const GeometryType& rElementGeometry,
+                          const Vector& rShapeFunctionsValues,
+                          const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -880,9 +951,9 @@ public:
      */
     KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
     virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-					    const GeometryType& rElementGeometry,
-					    const Vector& rShapeFunctionsValues,
-					    const ProcessInfo& rCurrentProcessInfo);
+                        const GeometryType& rElementGeometry,
+                        const Vector& rShapeFunctionsValues,
+                        const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -1040,9 +1111,9 @@ public:
      * @param rStrainFinal the measure of stress of the returned rStrainVector
      */
     virtual Vector& TransformStrains (Vector& rStrainVector,
-				     const Matrix &rF,
-				     StrainMeasure rStrainInitial,
-				     StrainMeasure rStrainFinal);
+                     const Matrix &rF,
+                     StrainMeasure rStrainInitial,
+                     StrainMeasure rStrainFinal);
 
     /**
      * Methods to transform stress Matrices:
@@ -1053,10 +1124,10 @@ public:
      * @param rStressFinal the measure of stress of the returned rStressMatrix
      */
     virtual Matrix& TransformStresses (Matrix& rStressMatrix,
-				       const Matrix &rF,
-				       const double &rdetF,
-				       StressMeasure rStressInitial,
-				       StressMeasure rStressFinal);
+                       const Matrix &rF,
+                       const double &rdetF,
+                       StressMeasure rStressInitial,
+                       StressMeasure rStressFinal);
 
 
     /**
@@ -1068,10 +1139,10 @@ public:
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
     virtual Vector& TransformStresses (Vector& rStressVector,
-				       const Matrix &rF,
-				       const double &rdetF,
-				       StressMeasure rStressInitial,
-				       StressMeasure rStressFinal);
+                       const Matrix &rF,
+                       const double &rdetF,
+                       StressMeasure rStressInitial,
+                       StressMeasure rStressFinal);
 
 
 
@@ -1083,9 +1154,9 @@ public:
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
     Vector& TransformPK1Stresses (Vector& rStressVector,
-				  const Matrix &rF,
-				  const double &rdetF,
-				  StressMeasure rStressFinal);
+                  const Matrix &rF,
+                  const double &rdetF,
+                  StressMeasure rStressFinal);
 
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure PK2:
@@ -1095,9 +1166,9 @@ public:
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
     Vector& TransformPK2Stresses (Vector& rStressVector,
-				  const Matrix &rF,
-				  const double &rdetF,
-				  StressMeasure rStressFinal);
+                  const Matrix &rF,
+                  const double &rdetF,
+                  StressMeasure rStressFinal);
 
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure Kirchhoff:
@@ -1107,9 +1178,9 @@ public:
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
     Vector& TransformKirchhoffStresses (Vector& rStressVector,
-					const Matrix &rF,
-					const double &rdetF,
-					StressMeasure rStressFinal);
+                    const Matrix &rF,
+                    const double &rdetF,
+                    StressMeasure rStressFinal);
 
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure Cauchy:
@@ -1119,9 +1190,9 @@ public:
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
     Vector& TransformCauchyStresses (Vector& rStressVector,
-				     const Matrix &rF,
-				     const double &rdetF,
-				     StressMeasure rStressFinal);
+                     const Matrix &rF,
+                     const double &rdetF,
+                     StressMeasure rStressFinal);
 
 
 
@@ -1135,14 +1206,14 @@ public:
      * This method performs a pull-back of the constitutive matrix
      */
     void PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
-				      const Matrix & rF );
+                      const Matrix & rF );
 
 
     /**
      * This method performs a push-forward of the constitutive matrix
      */
     void PushForwardConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
-					 const Matrix & rF );
+                     const Matrix & rF );
 
 
     /**
@@ -1166,105 +1237,13 @@ public:
                       const ProcessInfo& rCurrentProcessInfo);
 
 
-
-    //*** OUTDATED METHODS: ***//
-
-
-    /**
-     * Computes the material response in terms of stresses and algorithmic tangent
-     * @param StrainVector the current strains (total strains, input)
-     * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear strain measure is used)
-     * @param StressVector the computed stresses (output)
-     * @param algorithmicTangent the material tangent matrix (output)
-     * @param rCurrentProcessInfo current ProcessInfo instance
-     * @param rMaterialProperties the material's Properties object
-     * @param rElementGeometry the element's geometry
-     * @param rShapeFunctionsValues the shape functions values in the current integration pointer
-     * @param CalculateStresses flag whether or not to compute the stress response
-     * @param CalculateTangent flag to determine if to compute the material tangent
-     * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
-     * @param SaveInternalVariables flag whether or not to store internal (history) variables
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use version with ConstitutiveLaw::Parameters instead \"")
-    virtual void CalculateMaterialResponse(const Vector& StrainVector,
-                                           const Matrix& DeformationGradient,
-                                           Vector& StressVector,
-                                           Matrix& AlgorithmicTangent,
-                                           const ProcessInfo& rCurrentProcessInfo,
-                                           const Properties& rMaterialProperties,
-                                           const GeometryType& rElementGeometry,
-                                           const Vector& rShapeFunctionsValues,
-                                           bool CalculateStresses = true,
-                                           int CalculateTangent = true,
-                                           bool SaveInternalVariables = true);
-
-
-    /**
-     * Computes the volumetric part of the material response in terms of stresses and algorithmic tangent
-     * @param StrainVector the current strains (total strains, input)
-     * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
-     * @param StressVector the computed stresses (output)
-     * @param algorithmicTangent the material tangent matrix (output)
-     * @param rCurrentProcessInfo current ProcessInfo instance
-     * @param rMaterialProperties the material's Properties object
-     * @param rElementGeometry the element's geometry
-     * @param rShapeFunctionsValues the shape functions values in the current integration pointer
-     * @param CalculateStresses flag whether or not to compute the stress response
-     * @param CalculateTangent flag to determine if to compute the material tangent
-     * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
-     * @param SaveInternalVariables flag whether or not to store internal (history) variables
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - use CalculateMaterialResponse instead\"")
-    virtual void CalculateVolumetricResponse(const double VolumetricStrain,
-					     const Matrix& DeformationGradient,
-					     double& VolumetricStress,
-					     double& AlgorithmicBulk,
-					     const ProcessInfo& rCurrentProcessInfo,
-					     const Properties& rMaterialProperties,
-					     const GeometryType& rElementGeometry,
-					     const Vector& rShapeFunctionsValues,
-					     bool CalculateStresses,
-					     int CalculateTangent,
-					     bool SaveInternalVariables);
-
-    /**
-     * Computes the deviatoric part of the material response in terms of stresses and algorithmic tangent
-     * @param StrainVector the current strains (total strains, input)
-     * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
-     * @param StressVector the computed stresses (output)
-     * @param algorithmicTangent the material tangent matrix (output)
-     * @param rCurrentProcessInfo current ProcessInfo instance
-     * @param rMaterialProperties the material's Properties object
-     * @param rElementGeometry the element's geometry
-     * @param rShapeFunctionsValues the shape functions values in the current integration pointer
-     * @param CalculateStresses flag whether or not to compute the stress response
-     * @param CalculateTangent flag to determine if to compute the material tangent
-     * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
-     * @param SaveInternalVariables flag whether or not to store internal (history) variables
-
-
-     * TODO: add proper definition for algorithmic tangent
-     */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
-    virtual void CalculateDeviatoricResponse(const Vector& StrainVector,
-					     const Matrix& DeformationGradient,
-					     Vector& StressVector,
-					     Matrix& AlgorithmicTangent,
-					     const ProcessInfo& rCurrentProcessInfo,
-					     const Properties& rMaterialProperties,
-					     const GeometryType& rElementGeometry,
-					     const Vector& rShapeFunctionsValues,
-					     bool CalculateStresses = true,
-					     int CalculateTangent = true,
-					     bool SaveInternalVariables = true);
-
-
     // VM
 
     virtual void CalculateCauchyStresses(Vector& Cauchy_StressVector,
                                          const Matrix& F,
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
+
 
     /**
      * @brief This method is used to check that tow Constitutive Laws are the same type (references)
@@ -1340,14 +1319,14 @@ protected:
      * i.e. 2nd PK stress to Kirchhoff stress
      */
     void ContraVariantPushForward( Matrix& rMatrix,
-				   const Matrix& rF );
+                   const Matrix& rF );
 
     /**
      * This method performs a contra-variant pull-back between to tensors
      * i.e. Kirchhoff stress to 2nd PK stress
      */
     void ContraVariantPullBack( Matrix& rMatrix,
-				const Matrix& rF );
+                const Matrix& rF );
 
 
     /**
@@ -1355,7 +1334,7 @@ protected:
      * i.e. Green-Lagrange strain to Almansi strain
      */
     void CoVariantPushForward( Matrix& rMatrix,
-			       const Matrix& rF );
+                   const Matrix& rF );
 
 
     /**
@@ -1363,34 +1342,34 @@ protected:
      * i.e. Almansi strain to Green-Lagrange strain
      */
     void CoVariantPullBack( Matrix& rMatrix,
-			    const Matrix& rF );
+                const Matrix& rF );
 
 
     /**
      * This method performs a pull-back or a push-forward between two constitutive matrices
      */
     void ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
-					    const Matrix& rOriginalConstitutiveMatrix,
-					    const Matrix & rF );
+                        const Matrix& rOriginalConstitutiveMatrix,
+                        const Matrix & rF );
 
 
     /**
      * This method performs a pull-back or a push-forward between two constitutive tensor components
      */
     double& TransformConstitutiveComponent(double & rCabcd,
-					   const Matrix & rConstitutiveMatrix,
-					   const Matrix & rF,
-					   const unsigned int& a, const unsigned int& b,
-					   const unsigned int& c, const unsigned int& d);
+                       const Matrix & rConstitutiveMatrix,
+                       const Matrix & rF,
+                       const unsigned int& a, const unsigned int& b,
+                       const unsigned int& c, const unsigned int& d);
 
     /**
      * This method gets the constitutive tensor components
      * from a consitutive matrix supplied in voigt notation
      */
     double& GetConstitutiveComponent(double & rCabcd,
-				     const Matrix& rConstitutiveMatrix,
-				     const unsigned int& a, const unsigned int& b,
-				     const unsigned int& c, const unsigned int& d);
+                     const Matrix& rConstitutiveMatrix,
+                     const unsigned int& a, const unsigned int& b,
+                     const unsigned int& c, const unsigned int& d);
 
 
     ///@}
@@ -1420,7 +1399,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    InitialState::Pointer mpInitialState = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -1447,11 +1426,13 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
+        rSerializer.save("InitialState",mpInitialState);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
+        rSerializer.load("InitialState",mpInitialState);
     }
 
 

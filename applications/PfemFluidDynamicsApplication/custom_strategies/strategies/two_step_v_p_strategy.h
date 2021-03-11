@@ -189,13 +189,23 @@ namespace Kratos
       if (mTimeOrder == 1 && rModelPart.GetBufferSize() < 2)
         KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ", rModelPart.GetBufferSize());
 
-      const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      // const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-      for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
+      // for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
+      // {
+      //   ierr = itEl->Check(rCurrentProcessInfo);
+      //   if (ierr != 0)
+      //     break;
+      // }
+
+      const auto &r_current_process_info = rModelPart.GetProcessInfo();
+      for (const auto &r_element : rModelPart.Elements())
       {
-        ierr = itEl->Check(rCurrentProcessInfo);
+        ierr = r_element.Check(r_current_process_info);
         if (ierr != 0)
+        {
           break;
+        }
       }
 
       /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
@@ -209,20 +219,20 @@ namespace Kratos
       KRATOS_CATCH("");
     }
 
-    double Solve() override
+    bool SolveSolutionStep() override
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-      double NormDp = 0.0;
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
       unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
+      bool converged = false;
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
-      KRATOS_INFO("\n Solution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
+      KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
       if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
@@ -268,6 +278,7 @@ namespace Kratos
         {
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
           rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+          converged = true;
 
           KRATOS_INFO("TwoStepVPStrategy") << "V-P strategy converged in " << it + 1 << " iterations." << std::endl;
 
@@ -278,7 +289,6 @@ namespace Kratos
           break;
         }
       }
-      
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
         std::cout << "Convergence tolerance not reached." << std::endl;
@@ -286,7 +296,7 @@ namespace Kratos
       if (mReformDofSet)
         this->Clear();
 
-      return NormDp;
+      return converged;
     }
 
     void FinalizeSolutionStep() override
@@ -672,7 +682,7 @@ namespace Kratos
     void UpdateStressStrain()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 #pragma omp parallel
       {
@@ -900,7 +910,7 @@ namespace Kratos
     void ComputeErrorL2Norm()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       const double currentTime = rCurrentProcessInfo[TIME];
       const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -1048,7 +1058,7 @@ namespace Kratos
     void ComputeErrorL2NormCasePoiseuille()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       const double currentTime = rCurrentProcessInfo[TIME];
       const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 

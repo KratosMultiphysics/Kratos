@@ -21,12 +21,12 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
             variables_management.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             variables_management.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
-        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).__init__(model, self.project_parameters)
+        super().__init__(model, self.project_parameters)
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
         self.AddFluidVariablesForSwimmingDEM()
-        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
+        super().Initialize()
 
     def AddFluidVariablesForSwimmingDEM(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)

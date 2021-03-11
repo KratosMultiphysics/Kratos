@@ -10,7 +10,7 @@ namespace Kratos {
  */
 template<>
 void FSWernerWengleWallCondition<2, 2>::EquationIdVector(
-		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+		EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -55,7 +55,7 @@ void FSWernerWengleWallCondition<2, 2>::EquationIdVector(
  */
 template<>
 void FSWernerWengleWallCondition<3, 3>::EquationIdVector(
-		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+		EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -102,7 +102,7 @@ void FSWernerWengleWallCondition<3, 3>::EquationIdVector(
  */
 template<>
 void FSWernerWengleWallCondition<2, 2>::GetDofList(
-		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+		DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -149,7 +149,7 @@ void FSWernerWengleWallCondition<2, 2>::GetDofList(
  */
 template<>
 void FSWernerWengleWallCondition<3, 3>::GetDofList(
-		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+		DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
 	{
@@ -196,10 +196,10 @@ void FSWernerWengleWallCondition<3, 3>::GetDofList(
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
-        const Variable<array_1d<double,3> > &rVariable,
-        std::vector<array_1d<double,3> > &rValues,
-        const ProcessInfo &rCurrentProcessInfo)
+void FSWernerWengleWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+	const Variable<array_1d<double,3> > &rVariable,
+	std::vector<array_1d<double,3> > &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
 {
     rValues.resize(1);
     /* The cast is done to avoid modification of the element's data. Data modification
@@ -213,10 +213,10 @@ void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FSWernerWengleWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+	const Variable<double>& rVariable,
+	std::vector<double>& rValues,
+	const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     /*
@@ -231,10 +231,10 @@ void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 6 > >& rVariable,
-        std::vector<array_1d<double, 6 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FSWernerWengleWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+	const Variable<array_1d<double, 6 > >& rVariable,
+	std::vector<array_1d<double, 6 > >& rValues,
+	const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
@@ -243,10 +243,10 @@ void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FSWernerWengleWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+	const Variable<Vector>& rVariable,
+	std::vector<Vector>& rValues,
+	const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
@@ -255,18 +255,15 @@ void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FSWernerWengleWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+	const Variable<Matrix>& rVariable,
+	std::vector<Matrix>& rValues,
+	const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
     rValues[0] = const_this->GetValue(rVariable);
 }
-
-
-
 
 /**
  * @see FSWernerWengleWallCondition::CalculateWallParameters

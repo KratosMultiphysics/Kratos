@@ -8,7 +8,7 @@ BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetBetaParameters(self):
-        super(SDEMPFEMAnalysis,self).SetBetaParameters()
+        super().SetBetaParameters()
         self.project_parameters["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
         self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
 
@@ -24,7 +24,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
     def Initialize(self):
-        super(SDEMPFEMAnalysis,self).Initialize()
+        super().Initialize()
         self.TransferWallsFromPfemToDem()
 
     def TransferWallsFromPfemToDem(self):
@@ -65,7 +65,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
             self._GetFluidAnalysis().time = self.time
             #self._GetFluidAnalysis().step = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
             #self._GetFluidAnalysis().main_model_part.ProcessInfo[STEP] = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
-            print(" [STEP:",self.step," TIME:",self.time,"]")
+            Kratos.Logger.PrintInfo("SwimmingDEM", " [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
         self.TransferTimeToFluidSolver()

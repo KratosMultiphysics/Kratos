@@ -13,7 +13,6 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.IncompressibleFluidApplication
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
-import KratosMultiphysics.PfemApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PfemSolidMechanicsApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication

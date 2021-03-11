@@ -6,12 +6,14 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 
-# Check if Trilinos has been imported to set the have_trilinos flag
-if (KratosMultiphysics.Kernel().IsImported("TrilinosApplication")):
-    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-    have_trilinos = True
-else:
-    have_trilinos = False
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+have_trilinos = KratosUtilities.CheckIfApplicationsAvailable("TrilinosApplication")
+is_distributed = KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed()
+if have_trilinos and is_distributed:
+    try:
+        import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+    except Exception as e:
+        raise Exception("Trying to create a Trilinos convergence accelerator, but TrilinosApplication could not be found.")
 
 def CreateConvergenceAccelerator(configuration):
 
@@ -38,9 +40,6 @@ def CreateConvergenceAccelerator(configuration):
     return convergence_accelerator
 
 def CreateTrilinosConvergenceAccelerator(interface_model_part, epetra_communicator, configuration):
-
-    if not have_trilinos:
-        raise Exception("Trying to create a Trilinos convergence accelerator, but TrilinosApplication could not be found.")
 
     if (type(interface_model_part) != KratosMultiphysics.ModelPart):
         raise Exception("First input in Trilinos convergence accelerator factory is expceted to be provided as a Kratos ModelPart object.")

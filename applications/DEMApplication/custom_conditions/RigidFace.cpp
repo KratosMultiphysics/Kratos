@@ -415,13 +415,12 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
     const double n2 = DEM_INNER_PRODUCT_3(n, n);
     const double alpha = n2 - beta - gamma;
 
-    const bool falls_inside = alpha >=  0 && beta >=  0 && gamma >= 0
-                           && alpha <= n2 && beta <= n2 && gamma <= n2;
+    const bool falls_inside = alpha >=  0 && beta >=  0 && gamma >= 0 && alpha <= n2 && beta <= n2 && gamma <= n2;
 
     return falls_inside;
 }
 
-void RigidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)
+void RigidFace3D::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {
 
 }

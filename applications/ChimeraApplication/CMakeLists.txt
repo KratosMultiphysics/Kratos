@@ -7,8 +7,8 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## ChimeraApplication Core sources
 file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_CORE

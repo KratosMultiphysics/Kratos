@@ -21,15 +21,12 @@
 // Application includes
 #include "trilinos_space.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_trilinos_convergence_accelerators_to_python.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
-#include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
-
-// External includes
-#include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -73,14 +70,6 @@ void AuxiliarComputeInterfaceResidualVector(
         rInterfaceResidual.GetReference(),
         ResidualType,
         rResidualNormVariable);
-}
-
-void AuxiliarUpdateSolution(
-    ConvergenceAccelerator<TrilinosSparseSpaceType> &dummy,
-    AuxiliaryVectorWrapper &rResidualVector,
-    AuxiliaryVectorWrapper &rIterationGuess)
-{
-    dummy.UpdateSolution(rResidualVector.GetReference(), rIterationGuess.GetReference());
 }
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -176,32 +165,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesFluid)
         .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesStructure);
-
-    // Convergence accelerators (from FSIApplication)
-    typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
-    typedef AitkenConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosAitkenAccelerator;
-    typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosMVQNRecursiveAccelerator;
-
-    // Convergence accelerator base class
-    py::class_< TrilinosConvergenceAccelerator> (m,"TrilinosConvergenceAccelerator").def(py::init < >())
-        .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
-        .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
-        .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
-        .def("UpdateSolution", AuxiliarUpdateSolution)
-        .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
-        .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
-        ;
-
-    py::class_<TrilinosAitkenAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosAitkenConvergenceAccelerator")
-        .def(py::init<double>())
-        .def(py::init< Parameters& >())
-        ;
-
-    py::class_< TrilinosMVQNRecursiveAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosMVQNRecursiveJacobianConvergenceAccelerator")
-        .def(py::init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
-        .def(py::init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
-        ;
 
 }
 }  // namespace Python.

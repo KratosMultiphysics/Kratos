@@ -161,6 +161,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "output_mesh_file_name"            : "final_refined_mesh",
             "max_number_of_searchs"            : 1000,
             "preserve_flags"                   : true,
+            "interpolate_nodal_values"         : true,
             "interpolate_non_historical"       : true,
             "extrapolate_contour_values"       : true,
             "surface_elements"                 : false,
@@ -362,6 +363,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
         mmg_parameters.AddValue("preserve_flags",self.settings["preserve_flags"])
+        mmg_parameters.AddValue("interpolate_nodal_values",self.settings["interpolate_nodal_values"])
         mmg_parameters.AddValue("interpolate_non_historical",self.settings["interpolate_non_historical"])
         mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
         mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])

@@ -66,6 +66,10 @@ namespace Kratos {
     double* PropertiesProxy::pGetParticleCohesion()                                           { return  mParticleCohesion;                  }
     void    PropertiesProxy::SetParticleCohesionFromProperties(double* particle_cohesion)     { mParticleCohesion = particle_cohesion;      }
 
+    double  PropertiesProxy::GetParticleInitialCohesion()                                     { return *mParticleInitialCohesion;           }
+    double* PropertiesProxy::pGetParticleInitialCohesion()                                    { return  mParticleInitialCohesion;           }
+    void    PropertiesProxy::SetParticleInitialCohesionFromProperties(double* particle_initial_cohesion) { mParticleInitialCohesion = particle_initial_cohesion; }
+
     double  PropertiesProxy::GetAmountOfCohesionFromStress()                                  { return *mAmountOfCohesionFromStress;        }
     double* PropertiesProxy::pGetAmountOfCohesionFromStress()                                 { return  mAmountOfCohesionFromStress;        }
     void    PropertiesProxy::SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress) { mAmountOfCohesionFromStress = amount_of_cohesion_from_stress; }
@@ -116,6 +120,7 @@ namespace Kratos {
         mDensity                    = props.pGetDensity();
         mParticleMaterial           = props.pGetParticleMaterial();
         mParticleCohesion           = props.pGetParticleCohesion();
+        mParticleInitialCohesion    = props.pGetParticleInitialCohesion();
         mAmountOfCohesionFromStress = props.pGetAmountOfCohesionFromStress();
         mParticleKNormal            = props.pGetParticleKNormal();
         mParticleKTangential        = props.pGetParticleKTangential();
@@ -178,6 +183,9 @@ namespace Kratos {
 
             aux_pointer = &( props_it->GetValue(PARTICLE_COHESION) );
             vector_of_proxies[properties_counter].SetParticleCohesionFromProperties(aux_pointer);
+
+            aux_pointer = &( props_it->GetValue(PARTICLE_INITIAL_COHESION) );
+            vector_of_proxies[properties_counter].SetParticleInitialCohesionFromProperties(aux_pointer);
 
             aux_pointer = &( props_it->GetValue(AMOUNT_OF_COHESION_FROM_STRESS) );
             vector_of_proxies[properties_counter].SetAmountOfCohesionFromStressFromProperties(aux_pointer);

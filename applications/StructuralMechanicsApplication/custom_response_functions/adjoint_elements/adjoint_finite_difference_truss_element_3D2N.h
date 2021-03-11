@@ -91,8 +91,6 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
-    void CheckVariables() const;
-
     void CheckDofs() const;
 
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;

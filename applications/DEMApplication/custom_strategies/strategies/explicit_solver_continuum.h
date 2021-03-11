@@ -116,6 +116,7 @@ namespace Kratos {
         //bool   mDempackOption;
         std::vector<SphericContinuumParticle*> mListOfSphericContinuumParticles;
         std::vector<SphericContinuumParticle*> mListOfGhostSphericContinuumParticles;
+        DenseVector<int> mSearchControlVector;
 
     }; // Class ContinuumExplicitSolverStrategy
 

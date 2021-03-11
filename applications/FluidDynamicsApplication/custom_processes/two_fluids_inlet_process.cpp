@@ -35,10 +35,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     Process::Pointer pDistanceProcess )
     : Process(), mrInletModelPart(rModelPart) {
 
-    KRATOS_CHECK_VARIABLE_KEY( DISTANCE )
-    KRATOS_CHECK_VARIABLE_KEY( AUX_DISTANCE )
-    KRATOS_CHECK_VARIABLE_KEY( NODAL_AREA )
-
     // checking all parameters that define the interface
     Parameters default_parameters( R"(
     {

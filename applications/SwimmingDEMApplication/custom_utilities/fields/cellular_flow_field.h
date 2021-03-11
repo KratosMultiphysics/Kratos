@@ -39,7 +39,7 @@ CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(Globals::
 {
     mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
-    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 }
 
@@ -49,7 +49,7 @@ CellularFlowField(const double half_wavelength, const double max_flow_speed, con
 
     mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
-    unsigned int maximum_number_of_threads = OpenMPUtils::GetNumThreads();
+    unsigned int maximum_number_of_threads = ParallelUtilities::GetNumThreads();
     ResizeVectorsForParallelism(maximum_number_of_threads);
 }
 

@@ -324,7 +324,7 @@ void RansLineOutputProcess::UpdateSamplePoints()
         std::vector<int> found_global_points(mNumberOfSamplingPoints, -1);
         for (const auto& current_index_list : mSamplePointLocalIndexListMaster) {
             for (const auto sample_index : current_index_list) {
-                KRATOS_ERROR_IF(sample_index > mNumberOfSamplingPoints)
+                KRATOS_ERROR_IF(static_cast<SizeType>(sample_index) > mNumberOfSamplingPoints)
                     << "Sampling index error.\n";
                 KRATOS_ERROR_IF(found_global_points[sample_index] != -1)
                     << "Two or more partitions found enclosed element for "
@@ -428,7 +428,7 @@ void RansLineOutputProcess::WriteOutputFile() const
     {
         // check for vector sizes
         const auto& r_node = *(r_model_part.NodesBegin() + iNode);
-        SizeType local_index = vector_start_indices[0];
+        int local_index = vector_start_indices[0];
         for (int i = 0; i < number_of_vector_variables; ++i) {
             const auto& r_variable = *(mVectorVariablesList[i]);
             const auto& r_value = (*get_vector)(r_node, r_variable);

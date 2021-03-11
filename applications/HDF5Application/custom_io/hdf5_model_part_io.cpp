@@ -202,7 +202,8 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
-    WriteSubModelParts(rModelPart, mPrefix + "/SubModelParts");
+    mpFile->AddPath(mPrefix + "/SubModelParts");
+    WriteSubModelParts(rModelPart.SubModelParts(), mPrefix + "/SubModelParts");
 
     KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to write model part \"" << rModelPart.Name()
@@ -223,7 +224,9 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
     Internals::ReadAndAssignVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
-    ReadSubModelParts(rModelPart);
+    for (const auto& r_sub_model_part_name : mpFile->GetGroupNames(mPrefix + "/SubModelParts")) {
+        ReadSubModelParts(rModelPart, mPrefix + "/SubModelParts/" + r_sub_model_part_name);
+    }
 
     KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to read model part \"" << rModelPart.Name()
@@ -262,16 +265,22 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     return ids;
 }
 
-void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart, const std::string& GroupName)
+std::vector<std::size_t> ModelPartIO::ReadEntityIds(std::string const& rPath) const
 {
-    mpFile->AddPath(GroupName);
-    for (ModelPart const& r_sub_model_part : rModelPart.SubModelParts())
-    {
-        for (ModelPart const& r_sub_sub_model_part : r_sub_model_part.SubModelParts())
-        {
-            WriteSubModelParts(r_sub_sub_model_part, GroupName + "/" + r_sub_model_part.Name());
-        }
+    unsigned start_index, block_size;
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(rPath);
+    Vector<int> id_buf;
+    mpFile->ReadDataSet(rPath + "/Ids", id_buf, start_index, block_size);
+    std::vector<std::size_t> ids(id_buf.size());
+#pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(ids.size()); ++i)
+        ids[i] = id_buf[i];
+    return ids;
+}
 
+void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const& rSubModelPartsContainer, const std::string& GroupName)
+{
+    for (const auto& r_sub_model_part : rSubModelPartsContainer) {
         WriteInfo info;
         const std::string sub_model_part_path = GroupName + "/" + r_sub_model_part.Name();
         mpFile->AddPath(sub_model_part_path);
@@ -290,22 +299,34 @@ void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart, const std::str
             ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
             current_model_part_io.WriteConditions(r_sub_model_part.Conditions());
         }
+
+        WriteSubModelParts(r_sub_model_part.SubModelParts(), sub_model_part_path);
     }
 }
 
-void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart)
+void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rPath)
 {
-    auto sub_model_parts = mpFile->GetGroupNames(mPrefix + "/SubModelParts");
-    for (const auto& r_name : sub_model_parts)
-    {
-        const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + r_name;
-        auto& r_sub_model_part = rModelPart.CreateSubModelPart(r_name);
-        if (mpFile->HasPath(sub_model_part_path + "/NodeIds"))
-            r_sub_model_part.AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
-        if (mpFile->HasPath(sub_model_part_path + "/ElementIds"))
-            r_sub_model_part.AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
-        if (mpFile->HasPath(sub_model_part_path + "/ConditionIds"))
-            r_sub_model_part.AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
+    auto& r_sub_model_part = rModelPart.CreateSubModelPart(rPath.substr(rPath.rfind("/") + 1));
+    if (mpFile->HasPath(rPath + "/NodeIds")) {
+        r_sub_model_part.AddNodes(ReadContainerIds(rPath + "/NodeIds"));
+    }
+
+    const auto &group_names = mpFile->GetGroupNames(rPath);
+    for (const auto &group_name : group_names) {
+        const auto &current_path = rPath + "/" + group_name;
+        if (group_name == "Elements") {
+            // iterate over all types of elements
+            for (const auto &element_name : mpFile->GetGroupNames(current_path)) {
+                r_sub_model_part.AddElements(ReadEntityIds(current_path + "/" + element_name));
+            }
+        } else if (group_name == "Conditions") {
+            // iterate over all types of conditions
+            for (const auto &condition_name : mpFile->GetGroupNames(current_path)) {
+                r_sub_model_part.AddConditions(ReadEntityIds(current_path + "/" + condition_name));
+            }
+        } else {
+            ReadSubModelParts(r_sub_model_part, current_path);
+        }
     }
 }
 

@@ -20,7 +20,7 @@ class SDEMPFEMAnalysisWithFlush(SDEMPFEMAnalysis):
     def __init__(self, model, algorithm = None, parameters = Parameters("{}")):
         with open('ProjectParameters.json','r') as parameter_file:
                 parameters = Parameters(parameter_file.read())
-        super(SDEMPFEMAnalysisWithFlush, self).__init__(model, parameters)
+        super().__init__(model, parameters)
     def __enter__ (self):
         return self
 

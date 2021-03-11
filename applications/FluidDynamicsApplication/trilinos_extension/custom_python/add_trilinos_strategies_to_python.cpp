@@ -30,6 +30,14 @@
 #include "custom_strategies/strategies/fractional_step_strategy.h"
 #include "custom_utilities/solver_settings.h"
 
+// adjoint schemes
+#include "custom_strategies/schemes/simple_steady_adjoint_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_adjoint_scheme.h"
+
+// sensitivity builder schemes
+#include "custom_strategies/schemes/simple_steady_sensitivity_builder_scheme.h"
+#include "custom_strategies/schemes/velocity_bossak_sensitivity_builder_scheme.h"
+
 namespace Kratos {
 namespace Python {
 
@@ -43,6 +51,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 
     using TrilinosBaseSolvingStrategy = SolvingStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver >;
     using BaseSolverSettings = SolverSettings<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    using BaseSchemeType = Scheme<TrilinosSparseSpace, UblasLocalSpace>;
 
     using TrilinosFractionalStepStrategy = FractionalStepStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
     py::class_< TrilinosFractionalStepStrategy, typename TrilinosFractionalStepStrategy::Pointer, TrilinosBaseSolvingStrategy >(m,"TrilinosFractionalStepStrategy")
@@ -56,6 +65,19 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     .def("AddIterationStep",&TrilinosFractionalStepStrategy::AddIterationStep)
     .def("ClearExtraIterationSteps",&TrilinosFractionalStepStrategy::ClearExtraIterationSteps)
     ;
+
+    using TrilinosSimpleSteadyAdjointSchemeType = SimpleSteadyAdjointScheme<TrilinosSparseSpace, UblasLocalSpace>;
+    py::class_<TrilinosSimpleSteadyAdjointSchemeType, typename TrilinosSimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>
+        (m, "TrilinosSimpleSteadyAdjointScheme")
+        .def(py::init<AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        ;
+
+    using TrilinosVelocityBossakAdjointSchemeType = VelocityBossakAdjointScheme<TrilinosSparseSpace, UblasLocalSpace>;
+    py::class_<TrilinosVelocityBossakAdjointSchemeType, typename TrilinosVelocityBossakAdjointSchemeType::Pointer, BaseSchemeType>
+        (m, "TrilinosVelocityBossakAdjointScheme")
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer, const std::size_t, const std::size_t>())
+        ;
+
 }
 
 }

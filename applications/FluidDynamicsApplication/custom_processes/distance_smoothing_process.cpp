@@ -38,7 +38,7 @@ namespace Kratos
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::DistanceSmoothingProcess(
     ModelPart& rModelPart,
-    typename TLinearSolver::Pointer plinear_solver)
+    typename TLinearSolver::Pointer p_linear_solver)
     : Process(),
       mrModelPart(rModelPart),
       mrModel(rModelPart.GetModel()),
@@ -47,9 +47,7 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
     // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
     CreateAuxModelPart();
 
-    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
-
-    CreateSolutionStrategy(p_builder_solver);
+    CreateSolutionStrategy(p_linear_solver);
 }
 
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
@@ -122,7 +120,8 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
 
             auto& n_nodes = rNode.GetValue(NEIGHBOUR_NODES);
             for (unsigned int j = 0; j < n_nodes.size(); ++j) {
-                if (!(n_nodes[j].Is(CONTACT)) || !(rNode.Is(CONTACT))){
+                if (n_nodes[j].Is(CONTACT) == rNode.Is(CONTACT)){
+
                     const double dx = x_i - n_nodes[j].X();
                     const double dy = y_i - n_nodes[j].Y();
                     const double dz = z_i - n_nodes[j].Z();
@@ -163,7 +162,7 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::C
 }
 
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
+void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateSolutionStrategy(typename TLinearSolver::Pointer pLinearSolver)
 {
     // Generate a linear solver strategy
     auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -174,14 +173,18 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::C
     const bool ReformDofAtEachIteration = false;
     const bool CalculateNormDxFlag = false;
 
+    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
+
     mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
         r_smoothing_model_part,
         p_scheme,
-        pBuilderAndSolver,
+        p_builder_solver,
         CalculateReactions,
         ReformDofAtEachIteration,
         CalculateNormDxFlag);
 
+    mp_solving_strategy->Initialize();
+    mp_solving_strategy->SetEchoLevel(0);
     mp_solving_strategy->Check();
 }
 

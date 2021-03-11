@@ -151,8 +151,6 @@ namespace Kratos {
                                     int i_neighbour_count,
                                     int time_steps,
                                     bool& sliding,
-                                    int search_control,
-                                    DenseVector<int>& search_control_vector,
                                     double &equiv_visco_damp_coeff_normal,
                                     double &equiv_visco_damp_coeff_tangential,
                                     double LocalRelVel[3],
@@ -188,8 +186,6 @@ namespace Kratos {
                 element2,
                 i_neighbour_count,
                 sliding,
-                search_control,
-                search_control_vector,
                 r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
@@ -393,8 +389,6 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2,
                                                 int i_neighbour_count,
                                                 bool& sliding,
-                                                int search_control,
-                                                DenseVector<int>& search_control_vector,
                                                 const ProcessInfo& r_process_info) {
 
 
@@ -492,11 +486,7 @@ namespace Kratos {
                 if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
             }
         }
-        if (search_control == 0) {
-            if (failure_type != 0) {
-                search_control_vector[OpenMPUtils::ThisThread()] = 1;
-            }
-        }
+
     KRATOS_CATCH("")
     }
 
