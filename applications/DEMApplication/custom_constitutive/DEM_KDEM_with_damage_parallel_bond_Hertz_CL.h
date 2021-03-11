@@ -27,7 +27,7 @@ namespace Kratos {
         //                                      double equiv_poisson, double calculation_area,
         //                                      SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
 
-        void ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation);
+        void ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
 
         // void CalculateViscoDamping(double LocalRelVel[3],
         //                                  double ViscoDampingLocalContactForce[3],

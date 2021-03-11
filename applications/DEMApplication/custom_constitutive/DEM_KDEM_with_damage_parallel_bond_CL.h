@@ -95,7 +95,7 @@ namespace Kratos {
             bool& sliding,
             const ProcessInfo& r_process_info) override;
 
-        void ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation);
+        virtual void ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation);
 
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
