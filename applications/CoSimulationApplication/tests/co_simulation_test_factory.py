@@ -191,7 +191,6 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_sdof", "cosim_sdof_fsi")
-            # self.__AddVtkOutputToCFD() # uncomment to get output
             self._runTest()
 
     @classmethod
