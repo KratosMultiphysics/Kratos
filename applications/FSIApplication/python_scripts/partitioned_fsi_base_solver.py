@@ -202,20 +202,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.fluid_solver.Predict()
         self.mesh_solver.Predict()
 
-        # Compute mesh solver prediction
-        #FIXME: THIS PREDICT IS MESSING UP EVERYTHING!!!!!
-        #FIXME: THIS PREDICT IS MESSING UP EVERYTHING!!!!!
-        #FIXME: THIS PREDICT IS MESSING UP EVERYTHING!!!!!
-        #FIXME: THIS PREDICT IS MESSING UP EVERYTHING!!!!!
-        # This is performed by updating the structure position with the previous load and solving the mesh accordingly
-        # self.__PerformMeshPrediction()
-
-        # if (self.double_faced_structure):
-        #     self._ComputeMeshPredictionDoubleFaced()
-        # else:
-        #     self._ComputeMeshPredictionSingleFaced()
-        # KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'Mesh prediction computed.')
-
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
         err_msg += 'Specify the domain of interest by calling:\n'
@@ -290,6 +276,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                     self._GetFSICouplingInterfaceStructure().GetFatherModelPart(),
                     0)
+                #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
+                self._GetFSICouplingInterfaceStructure().GetFatherModelPart().GetCommunicator().SynchronizeVariable(self._GetTractionVariable())
+
             self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
 
             # Solve the structure problem
@@ -559,109 +548,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
                                                                             [node.Id],
                                                                             self.structure_solver.main_model_part.Properties[0])
 
-    # def __PerformMeshPrediction(self):
-    #     # Get the previous step fluid interface load
-    #     self.__TransferFluidLoad()
-
-    #     # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-    #     # Then transfer the obtained DISPLACEMENT to the structure FSI coupling interface
-    #     self._SolveStructure()
-
-    #     # Map the obtained structure displacement to the fluid interface
-    #     self._GetStructureToFluidPositiveInterfaceMapper().Map(
-    #         KratosMultiphysics.DISPLACEMENT,
-    #         KratosMultiphysics.MESH_DISPLACEMENT)
-    #     # In case the structure is double faced, we take advantage of the equal positive and negative sides meshes
-    #     if self.double_faced_structure:
-    #         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-    #             KratosMultiphysics.MESH_DISPLACEMENT,
-    #             KratosMultiphysics.MESH_DISPLACEMENT,
-    #             self._GetFSICouplingInterfaceFluidPositive.GetInterfaceModelPart(),
-    #             self._GetFSICouplingInterfaceFluidNegative.GetInterfaceModelPart())
-
-    #     # Update the fluid interface position
-    #     self._GetFSICouplingInterfaceFluidPositive().UpdatePosition(KratosMultiphysics.MESH_DISPLACEMENT)
-    #     if self.double_faced_structure:
-    #         self._GetFSICouplingInterfaceFluidNegative().UpdatePosition(KratosMultiphysics.MESH_DISPLACEMENT)
-
-    #     # Transfer values from fluid FSI coupling interfaces to fluid skin
-    #     self._GetFSICouplingInterfaceFluidPositive().TransferValuesToFatherModelPart(KratosMultiphysics.MESH_DISPLACEMENT)
-    #     if self.double_faced_structure:
-    #         self._GetFSICouplingInterfaceFluidNegative().TransferValuesToFatherModelPart(KratosMultiphysics.MESH_DISPLACEMENT)
-
-    #     # Solve the mesh problem
-    #     # self.mesh_solver.InitializeSolutionStep() #TODO: THIS SHOULDN'T BE NEEDED
-    #     self.mesh_solver.Predict()
-    #     self.mesh_solver.SolveSolutionStep()
-    #     # self.mesh_solver.FinalizeSolutionStep() #TODO: THIS SHOULDN'T BE DONE
-
-    # def _ComputeMeshPredictionSingleFaced(self):
-    #         # Get the previous step fluid interface nodal fluxes
-    #         keep_sign = False
-    #         distribute_load = True
-    #         self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-    #                                                          KratosStructural.POINT_LOAD,
-    #                                                          keep_sign,
-    #                                                          distribute_load)
-
-    #         # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-    #         self.structure_solver.SolveSolutionStep()
-
-    #         # Map the obtained structure displacement to the fluid interface
-    #         keep_sign = True
-    #         distribute_load = False
-    #         self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-    #                                                          KratosMultiphysics.MESH_DISPLACEMENT,
-    #                                                          keep_sign,
-    #                                                          distribute_load)
-
-    #         # Solve the mesh problem
-    #         self.mesh_solver.InitializeSolutionStep()
-    #         self.mesh_solver.Predict()
-    #         self.mesh_solver.SolveSolutionStep()
-    #         self.mesh_solver.FinalizeSolutionStep()
-
-    # def _ComputeMeshPredictionDoubleFaced(self):
-    #         # Get the previous step fluid interface nodal fluxes from both positive and negative faces
-    #         keep_sign = False
-    #         distribute_load = True
-    #         self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-    #                                                                  KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-    #         self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-    #                                                                  KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-
-    #         # Add the two faces contributions to the POINT_LOAD variable
-    #         # TODO: Add this to the variables utils
-    #         for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-    #             pos_face_force = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
-    #             neg_face_force = node.GetSolutionStepValue(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-    #             node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
-
-    #         # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-    #         self.structure_solver.SolveSolutionStep()
-
-    #         # Map the obtained structure displacement to both positive and negative fluid interfaces
-    #         keep_sign = True
-    #         distribute_load = False
-    #         self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-    #                                                                  KratosMultiphysics.MESH_DISPLACEMENT,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-    #         self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-    #                                                                  KratosMultiphysics.MESH_DISPLACEMENT,
-    #                                                                  keep_sign,
-    #                                                                  distribute_load)
-
-    #         # Solve the mesh problem
-    #         self.mesh_solver.InitializeSolutionStep()
-    #         self.mesh_solver.Predict()
-    #         self.mesh_solver.SolveSolutionStep()
-    #         self.mesh_solver.FinalizeSolutionStep()
-
     def _GetStructureToFluidPositiveInterfaceMapper(self):
         if not hasattr(self, '_structure_to_fluid_positive_interface_mapper'):
             self._structure_to_fluid_positive_interface_mapper = self._CreateStructureToFluidInterfaceMapper(
@@ -782,6 +668,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 KratosMultiphysics.MESH_DISPLACEMENT,
                 self._GetFSICouplingInterfaceFluidPositive.GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceFluidNegative.GetInterfaceModelPart())
+            #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
+            self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
         # Update the fluid interface position
         self._GetFSICouplingInterfaceFluidPositive().UpdatePosition(KratosMultiphysics.MESH_DISPLACEMENT)
@@ -880,6 +768,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self._GetStructureInterfaceSubmodelPart(),
             self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
             0)
+        #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.RELAXED_DISPLACEMENT)
 
         # Update the structure interface position with the DISPLACEMENT values from the predict
         self._GetFSICouplingInterfaceStructure().UpdatePosition(KratosMultiphysics.RELAXED_DISPLACEMENT)
@@ -907,6 +797,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
+            #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
+            self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.RELAXED_TRACTION)
 
         # Directly send the map load from the structure FSI coupling interface to the parent one
         self._GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self._GetTractionVariable())

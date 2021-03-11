@@ -253,6 +253,8 @@ class FSICouplingInterface():
             self.GetFatherModelPart(),
             self.GetInterfaceModelPart(),
             buffer_step)
+        #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
+        self.GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(variable)
 
     def TransferValuesToFatherModelPart(self, variable):
         buffer_step = 0
@@ -261,6 +263,8 @@ class FSICouplingInterface():
             self.GetInterfaceModelPart(),
             self.GetFatherModelPart(),
             buffer_step)
+        #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
+        self.GetFatherModelPart().GetCommunicator().SynchronizeVariable(variable)
 
     def _create_fsi_interface_model_part(self):
         # Add the FSI coupling interface to the model
