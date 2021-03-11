@@ -689,6 +689,17 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam
         );
+    
+    void AddNonLinearDissipation(
+        PlasticDamageParameters &rPDParameters
+        )
+    {
+        rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
+        rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
+
+        rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation + rPDParameters.DamageDissipation);
+        rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ? 0.99999 : rPDParameters.TotalDissipation;
+    }
 
     void CalculateElasticMatrix(
         BoundedMatrixType& rConstitutiveMatrix,

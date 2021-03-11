@@ -101,8 +101,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
             noalias(r_integrated_stress_vector) = plastic_damage_parameters.StressVector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                // CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                CalculateAnalyticalTangentTensor(rValues, plastic_damage_parameters);
+                CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                // CalculateAnalyticalTangentTensor(rValues, plastic_damage_parameters);
             }
         }
     } // compute stress or constitutive matrix
@@ -363,12 +363,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             // Compute the non-linear dissipation performed
             CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
             CalculateDamageDissipationIncrement(r_mat_properties, rPDParameters);
-
-            rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
-            rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
-
-            rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation + rPDParameters.DamageDissipation);
-            rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ? 0.99999 : rPDParameters.TotalDissipation;
+            AddNonLinearDissipation(rPDParameters);
 
             // updated uniaxial and threshold stress check
             TYieldSurfaceType::CalculateEquivalentStress(rPDParameters.StressVector,
