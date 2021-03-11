@@ -2309,7 +2309,6 @@ public:
         const Matrix& rDeltaPosition
         ) const
     {
-        constexpr std::size_t dimension = 3;
         noalias( rResult ) = ZeroVector( 3 );
         if (rDeltaPosition.size2() != 3)
             KRATOS_ERROR << "The second dimension of DeltaPosition matrix"
