@@ -10,8 +10,6 @@ from xmc.distributedEnvironmentFramework import *
 ############################################# CLASSES ##############################################
 ####################################################################################################
 
-OUTPUT_QUANTITIES = 1
-
 class UnfolderManager(object):
     """
     Class used to organize a list of values into a list of sublists. Referring to f as future type, this class allows to pass from [f, f, f, ... , f] to [[f, f, f, ... , f], ... ,[f, ... , f]]. The length of the original list is "number", while the length of each sublist is group.
@@ -29,9 +27,7 @@ class UnfolderManager(object):
     """
 
     def __init__(self, number, group):
-        global OUTPUT_QUANTITIES
         self.groups = math.ceil(number/group)
-        OUTPUT_QUANTITIES = self.groups
         self.number=number
         self.group=group
 
@@ -53,7 +49,7 @@ class UnfolderManager(object):
                 yield partial_vals
                 partial_vals = []
 
-    @ExaquteTask(target_direction=IN,returns='OUTPUT_QUANTITIES')
+    @task(keep=True, target_direction=IN,returns=1)
     def UnfoldNValues_Task(self, values):
         """
         Task method calling UnfoldNValues.
@@ -68,7 +64,7 @@ class UnfolderManager(object):
             list_unfolded = list_unfolded[0]
         return list_unfolded
 
-    @ExaquteTask(aux_qoi_array_contributions={Type: COLLECTION_IN, Depth: 2},returns='OUTPUT_QUANTITIES')
+    @task(keep=True, aux_qoi_array_contributions={Type: COLLECTION_IN, Depth: 2},returns=1)
     def PostprocessContributionsPerInstance_Task(self,aux_qoi_array_contributions,qoi_estimators):
         """
         Task method summing multiple contribution of a specific realization and calling UnfoldNValues.

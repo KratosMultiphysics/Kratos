@@ -7,8 +7,11 @@ libraries. Edit this module to choose a different implementation.
 
 """
 
+from exaqute import *
+init()
+
 # Without parallisation (built in XMC)
-from .localEnvironment import *
+# from .localEnvironment import *
 
 # Parallelisation, dependent on external libraries:
 

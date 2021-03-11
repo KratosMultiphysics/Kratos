@@ -21,7 +21,7 @@ class SingleLevelRNGSolverWrapper(sw.SolverWrapper):
 
     # TODO - this is a temporary solution for changing futures list
     # to list of futures
-    @ExaquteTask(returns=2)
+    @task(keep=True, returns=2)
     def _drawSample_Task(self,randomInput):
         start_time = time.time()
         if all([component>=0 for component in self.solverWrapperIndex]):
