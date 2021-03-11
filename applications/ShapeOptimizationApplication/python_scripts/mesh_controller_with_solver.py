@@ -33,7 +33,7 @@ except ImportError as err:
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__(self, MeshSolverSettings, model):
+    def __init__(self, MeshSolverSettings, model, design_surface_name):
         default_settings = KM.Parameters("""
         {
             "apply_mesh_solver" : true,
@@ -120,6 +120,8 @@ class MeshControllerWithSolver(MeshController) :
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
+        self.design_surface_name = design_surface_name
+
     # --------------------------------------------------------------------------
     def Initialize(self):
         if self.has_automatic_boundary_process:
@@ -157,6 +159,8 @@ class MeshControllerWithSolver(MeshController) :
         self._mesh_moving_analysis.RunSolutionLoop()
 
         if self.is_remeshing_used:
+            KSO.GeometryUtilities(self.OptimizationModelPart.GetSubModelPart(self.design_surface_name)).ComputeUnitSurfaceNormals()
+            # TODO here we can compute the distance
             self.OptimizationModelPart.Set(KM.MODIFIED, False)
             self.remeshing_process.ExecuteInitializeSolutionStep()
             self.remeshing_process.ExecuteFinalizeSolutionStep()
