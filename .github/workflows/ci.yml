@@ -147,6 +147,7 @@ jobs:
       shell: cmd
       run: |
         pip install numpy
+        pip install h5py
 
     - name: Build
       shell: cmd
