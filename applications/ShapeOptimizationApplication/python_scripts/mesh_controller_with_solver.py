@@ -74,7 +74,13 @@ class MeshControllerWithSolver(MeshController) :
                     "max_size_ratio": 5.0,
                     "refer_type": "Mean"
                 },
-                "echo_level": 0
+                "echo_level": 0,
+                "force_min" : true,
+                "force_max" : true,
+                "advanced_parameters" :
+                {
+                    "mesh_optimization_only": true
+                }
             }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
@@ -159,8 +165,6 @@ class MeshControllerWithSolver(MeshController) :
         self._mesh_moving_analysis.RunSolutionLoop()
 
         if self.is_remeshing_used:
-            KSO.GeometryUtilities(self.OptimizationModelPart.GetSubModelPart(self.design_surface_name)).ComputeUnitSurfaceNormals()
-            # TODO here we can compute the distance
             self.OptimizationModelPart.Set(KM.MODIFIED, False)
             self.remeshing_process.ExecuteInitializeSolutionStep()
             self.remeshing_process.ExecuteFinalizeSolutionStep()
