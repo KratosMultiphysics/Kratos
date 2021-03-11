@@ -277,6 +277,13 @@ class AnisotropyTest(StructuralMechanicsTestFactory):
 
 class InitialStateElasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/InitialStateElasticity/initial_state_test"
+    
+
+class InitialStateInelasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/InitialStateInelasticity/initial_state2_test"
+
+class InitialStateInelasticity2Test(StructuralMechanicsTestFactory):
+    file_name = "cl_test/InitialStateInelasticity/initial_state3_test"
 
 @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
