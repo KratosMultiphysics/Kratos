@@ -76,7 +76,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    // static int mspNumThreads;
+    static int* mspNumThreads;
 
     ///@}
     ///@name Private Operations
@@ -94,7 +94,7 @@ private:
     ///@name Private Access
     ///@{
 
-    static int GetNumberOfThreads();
+    static int& GetNumberOfThreads();
 
     ///@}
 }; // Class ParallelUtilities
