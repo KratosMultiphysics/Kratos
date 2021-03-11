@@ -183,7 +183,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void DEM_KDEM_with_damage_parallel_bond::ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
+    void DEM_KDEM_with_damage_parallel_bond::ComputeNormalUnbondedForce(double indentation) {
 
         KRATOS_TRY
 
@@ -294,7 +294,7 @@ namespace Kratos {
         }
 
         if (indentation >= 0.0) {
-           ComputeNormalUnbondedForce(element1, element2, indentation);
+           ComputeNormalUnbondedForce(indentation);
         }
 
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
