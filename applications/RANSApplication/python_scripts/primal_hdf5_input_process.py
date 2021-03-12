@@ -72,17 +72,17 @@ def Factory(parameters, model):
             core_settings[i]["io_settings"]["io_type"] = "serial_hdf5_file_io"
 
     list_of_solution_step_variables_parameters = ParametersWrapper("""{
-        "list_of_variables" : ["ALL_VARIABLES"]
+        "list_of_variables" : ["ALL_VARIABLES_FROM_FILE"]
     }""")
 
     list_of_nodal_variables = ParametersWrapper("""{
-        "list_of_variables" : ["ALL_VARIABLES"]
+        "list_of_variables" : ["ALL_VARIABLES_FROM_FILE"]
     }""")
     list_of_nodal_flags = ParametersWrapper("""{
         "list_of_variables" : ["SLIP", "INLET", "OUTLET"]
     }""")
     list_of_condition_data_variables = ParametersWrapper("""{
-        "list_of_variables" : ["ALL_VARIABLES"]
+        "list_of_variables" : ["ALL_VARIABLES_FROM_FILE"]
     }""")
     list_of_condition_flag_variables = ParametersWrapper("""{
         "list_of_variables" : ["SLIP"]

@@ -103,7 +103,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(ModelPart& rModelPart, unsigned 
     if (mVariableNames.size() == 0)
         return;
 
-    if (mVariableNames.size() == 1 && mVariableNames[0] == "ALL_VARIABLES") {
+    if (mVariableNames.size() == 1 && mVariableNames[0] == "ALL_VARIABLES_FROM_VARIABLES_LIST") {
         // Here we can change the original list because, solution step variables
         // list is same for all the time steps. So we have to check this only
         // once, and it will be the same for all steps.
@@ -147,7 +147,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(ModelPart& rModelPart, unsigned S
 
     const std::string& current_path = mPrefix + "/NodalSolutionStepData";
 
-    if (mVariableNames.size() == 1 && mVariableNames[0] == "ALL_VARIABLES") {
+    if (mVariableNames.size() == 1 && mVariableNames[0] == "ALL_VARIABLES_FROM_FILE") {
         if (mpFile->HasPath(current_path)) {
             // Here we can change the original list because, solution step variables
             // list is same for all the time steps. So we have to check this only
@@ -174,7 +174,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(ModelPart& rModelPart, unsigned S
             }
         } else {
             KRATOS_WARNING("NodalSolutionStepDataIO")
-                << "ALL_VARIABLES are specified to be read, but no variable "
+                << "ALL_VARIABLES_FROM_FILE are specified to be read, but no variable "
                    "data is found at "
                 << current_path << " in " << mpFile->GetFileName() <<".\n";
             return;

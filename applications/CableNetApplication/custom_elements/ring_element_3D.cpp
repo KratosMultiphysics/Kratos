@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos {
@@ -577,8 +578,7 @@ void RingElement3D::AddExplicitContribution(
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * dimension;
 
-            #pragma omp atomic
-            r_nodal_mass += element_mass_vector(index);
+            AtomicAdd(r_nodal_mass, element_mass_vector(index));
         }
     }
     KRATOS_CATCH("")
@@ -610,8 +610,7 @@ void RingElement3D::AddExplicitContribution(
             size_t index = dimension * i;
             array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], rRHSVector[index + j] - damping_residual_contribution[index + j] );
             }
         }
     } else if (rDestinationVariable == NODAL_INERTIA) {
@@ -622,16 +621,9 @@ void RingElement3D::AddExplicitContribution(
 
         for (int i = 0; i < points_number; ++i) {
             double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, dimension> &r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             int index = i * dimension;
 
-            #pragma omp atomic
-            r_nodal_mass += mass_vector[index];
-
-            for (int k = 0; k < dimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += 0.0;
-            }
+            AtomicAdd(r_nodal_mass, mass_vector[index]);
         }
     }
     KRATOS_CATCH("")

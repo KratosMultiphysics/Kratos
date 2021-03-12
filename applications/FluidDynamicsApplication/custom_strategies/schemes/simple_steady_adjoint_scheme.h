@@ -24,7 +24,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "custom_utilities/fluid_adjoint_utilities.h"
+#include "custom_utilities/fluid_adjoint_slip_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -44,7 +44,7 @@ namespace Kratos
  * \f$\partial_{\mathbf{w}}J^{T}\f$ is returned by ResponseFunction::CalculateFirstDerivativesGradient.
  * \f$\mathbf{c}$ is the rotation and slip condition matrix
  */
-template <unsigned int TDim, class TSparseSpace, class TDenseSpace, unsigned int TBlockSize = TDim + 1>
+template <class TSparseSpace, class TDenseSpace>
 class SimpleSteadyAdjointScheme : public ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
@@ -59,22 +59,23 @@ public:
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    using AdjointSlipUtilities = typename FluidAdjointUtilities<TDim>::template SlipUtilities<TBlockSize>;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
     explicit SimpleSteadyAdjointScheme(
-        AdjointResponseFunction::Pointer pResponseFunction)
-        : BaseType(pResponseFunction)
+        AdjointResponseFunction::Pointer pResponseFunction,
+        const IndexType Dimension,
+        const IndexType BlockSize)
+        : BaseType(pResponseFunction),
+          mAdjointSlipUtilities(Dimension, BlockSize)
     {
         // Allocate auxiliary memory.
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mAuxMatrices.resize(number_of_threads);
 
-        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << TDim << ", BlockSize = " << TBlockSize << " ].\n";
+        KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
     }
 
     /// Destructor.
@@ -149,6 +150,8 @@ private:
 
     std::vector<Matrix> mAuxMatrices;
 
+    const FluidAdjointSlipUtilities mAdjointSlipUtilities;
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -200,7 +203,7 @@ private:
         rEntity.CalculateFirstDerivativesLHS(rEntityResidualFirstDerivatives, rCurrentProcessInfo);
         rEntity.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        AdjointSlipUtilities::CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedSlipVariableDerivatives(
             rEntityRotatedResidualFirstDerivatives, rEntityResidualFirstDerivatives, rEntity.GetGeometry());
 
         KRATOS_CATCH("");
