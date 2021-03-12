@@ -60,7 +60,6 @@ namespace Kratos
       
       void SubSteppingElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
       {      
-                                KRATOS_WATCH("HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA") 
 				double deltadt = rModelPart.GetProcessInfo()[DELTA_TIME];
 				double dt=0.5 * deltadt; 
 
@@ -87,7 +86,7 @@ namespace Kratos
 					Node < 3 > ::Pointer pparticle = *(iparticle.base());
 						
 					bool do_move = true;
-					bool first_time=false;
+					//bool first_time=false;
 					iparticle->FastGetSolutionStepValue(DISTANCE)=0.0;
 	    
 					iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY) = iparticle->FastGetSolutionStepValue(VELOCITY);  //AUX_VEL
@@ -131,7 +130,7 @@ namespace Kratos
 								} //if (is_found == true)
 								else
 									{
-										double time1=iparticle->FastGetSolutionStepValue(DISTANCE);
+										//double time1=iparticle->FastGetSolutionStepValue(DISTANCE);
 										array_1d<double,3> acc;
 										acc[0] =  0.0;
 										acc[1] = -10.0;
@@ -154,7 +153,6 @@ namespace Kratos
 
 void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
     {      
-        KRATOS_WATCH("HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA") 
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
         dt *=0.5; 
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
@@ -167,9 +165,6 @@ void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
         array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
 
-        KRATOS_WATCH("TDim");
-        KRATOS_WATCH("TDim");
-        KRATOS_WATCH(TDim);
 	array_1d<double, TDim + 1 > N;
 
 	const int max_results = 10000;
@@ -188,7 +183,7 @@ void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
 	    array_1d<double,3> initial_position;		
 
-	    bool is_found=false;	
+	    //bool is_found=false;	
 	    bool is_found1=false;	
 	    bool is_found2=false;	
 	    bool is_found3=false;	
@@ -374,7 +369,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
 	    array_1d<double,3> initial_position;		
 
-	    bool is_found=false;	
+	    //bool is_found=false;	
 	    bool is_found1=false;	
 	    bool is_found2=false;	
 	    bool is_found3=false;	

@@ -144,9 +144,9 @@ namespace Kratos
 		    
 	//double& temperature = (node_it)->FastGetSolutionStepValue(TEMPERATURE);
 		    
-		double temperature_aux = 0.0;
+	//double temperature_aux = 0.0;
 		    
-		double tot_weight = 0.0;
+		//double tot_weight = 0.0;
 		double maximunweight = SPHCubicKernel(sigma, 0.0, radius);    
 		for (int k = 0; k < number_of_points_in_radius; k++)
 		{
