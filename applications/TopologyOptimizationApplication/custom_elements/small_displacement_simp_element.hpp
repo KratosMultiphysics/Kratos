@@ -154,20 +154,20 @@ public:
     // =============================================================================================================================================
     
     /// Function that gets the value on the Integration Point (For printing purposes in the output GiD)
-   /// void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+   void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Function to calculate the sensitivities and the objective function
      void Calculate(
     const Variable<double>& rVariable,
     double &rOutput,
     const ProcessInfo& rCurrentProcessInfo
-    );  
+    ) override;  
 
     
 
     /// Function that overwrites the CalculateOnIntegrationPoints, to insert the X_PHYS into all Gauss Points of the given element
     /// That allows printing X_PHYS as elemental value in GiD
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)  override;
 
     void SetElementData(const KinematicVariables& rThisKinematicVariables, ConstitutiveLaw::Parameters& rValues, const int & rPointNumber);
 
@@ -271,8 +271,8 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    virtual void save(Serializer& rSerializer) const;
-    virtual void load(Serializer& rSerializer);
+    virtual void save(Serializer& rSerializer) const override;
+    virtual void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

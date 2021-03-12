@@ -14,6 +14,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/applications/TopologyOptimizationAppli
 ## TopologyOptimization core sources
 set( KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_CORE     
 	${CMAKE_CURRENT_SOURCE_DIR}/topology_optimization_application.cpp 
+    	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_simp_element.cpp
 	)
 
 ## TopoloyOptimization python interface sources

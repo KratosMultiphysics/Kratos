@@ -19,14 +19,14 @@
 
 
 // Project includes
-///#include "includes/define.h"
-///#include "includes/model_part.h"
-///#include "solving_strategies/schemes/scheme.h"
-///#include "includes/variables.h"
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "includes/variables.h"
 
 //#include "solid_mechanics_application.h"
 ///#include "structural_mechanics_application.h"
-///#include "topology_optimization_application.h"
+#include "topology_optimization_application.h"
 
 // Application includes
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -96,7 +96,7 @@ public:
 
     /** Destructor.
     */
-    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {}
+    virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {}
     ///virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {} alte Version 14.12
 
 
@@ -111,6 +111,8 @@ public:
 
     /// This function calculates a new Youngs Modulus based on the densities and multiplies it into the
     /// LHS and RHS contributions of the complete system
+  
+  
     virtual void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LSH,

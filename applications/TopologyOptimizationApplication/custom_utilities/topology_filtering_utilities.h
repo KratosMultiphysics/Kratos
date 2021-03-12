@@ -21,6 +21,10 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp>
+
 
 // Project includes
 #include "includes/define.h"
@@ -229,6 +233,8 @@ public:
 				double Hxdc_sum = 0;
 				double H = 0.0;
 				double H_sum = 0;
+				double Hxdx=0;
+				double Hxdx_sum = 0;
 				array_1d<double,3> elemental_distance;
 				double distance = 0.0;
 
@@ -238,24 +244,36 @@ public:
 					elemental_distance = ZeroVector(3);
 					elemental_distance = *Results[ElementPositionItem_j] - center_coord;
 					distance = std::sqrt(inner_prod(elemental_distance,elemental_distance));
+				/* 	std::cout<< "Sensitivity: " << distance << " Wert"<< std::endl; */
 
 					// Creation of mesh independent convolution operator (weight factors)
 					H  = FilterFunc.ComputeWeight(distance);
 					Hxdc = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(DCDX))
 						    *(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
+					Hxdx = H*(Results[ElementPositionItem_j]->GetOriginElement()->GetValue(X_PHYS));
 					H_sum    += H;
 					Hxdc_sum += Hxdc;
+					Hxdx_sum += Hxdx;
 				}
 
 				// Calculate filtered sensitivities and assign to the elements
 				dcdx_filtered[i++] = Hxdc_sum / (H_sum*std::max(0.001,elem_i->GetValue(X_PHYS)) );
+/* 				std::cout<< "Sensitivity: " << dcdx_filtered[i] << " Wert"<< std::endl;  */
+				double dx = 0;
+				dx = Hxdx_sum/H_sum;
+/* 				std::cout<< "Sensitivity: " << dx << " Wert"<< std::endl;  */
+				elem_i->SetValue(X_PHYS, dx);
 			}
 
 			// Overwrite sensitivities with filtered sensitivities
 			i = 0;
-			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
-					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin(); elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+			{
 				elem_i->SetValue(DCDX,dcdx_filtered[i++]);
+/*  				double a;
+				a = elem_i->GetValue(DCDX);
+				std::cout<< "Sensitivity: " << a << " Wert"<< std::endl;   */
+			}
 
 			clock_t end = clock();
 			std::cout << "  Filtered sensitivities calculated          [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;

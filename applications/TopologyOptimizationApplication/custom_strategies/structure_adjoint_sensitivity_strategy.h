@@ -93,6 +93,7 @@ public:
 		KRATOS_TRY;
 
 		double Out = 0.0;
+		int i= 0;
 
 		clock_t begin = clock();
 
@@ -101,8 +102,10 @@ public:
 		{
 			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
 			element_i->Calculate(DCDX, Out, ConstProcessInfo);
+/* 			std::cout<< "Globalstrain ist: " << element_i->GetValue(DCDX) << " Wert"<< std::endl;  */
+			i++;
 		}
-
+/* 		std::cout<< "i IST: " << i << " Wert"<< std::endl; */
 		clock_t end = clock();
 		std::cout << "  Objective Function sensitivities computed  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
