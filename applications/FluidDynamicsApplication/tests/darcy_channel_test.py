@@ -13,6 +13,7 @@ class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
     """
     def __init__(self, model, settings):
         super(TwoFluidNoRedistanceSolver,self).__init__(model,settings)
+        self._reinitialization_type = "none"
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
