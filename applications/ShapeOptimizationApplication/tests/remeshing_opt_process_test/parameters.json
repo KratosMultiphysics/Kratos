@@ -22,7 +22,7 @@
                 },
                 "use_automatic_remeshing"     : true,
                 "automatic_remeshing_settings": {
-                    "strategy"        : "LevelSet",
+                    "strategy"        : "levelset",
                     "step_frequency"  : 1,
                     "automatic_remesh": true,
                     "automatic_remesh_parameters": {
