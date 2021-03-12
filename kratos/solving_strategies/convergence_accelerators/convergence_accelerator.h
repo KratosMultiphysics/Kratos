@@ -178,7 +178,7 @@ public:
      * @return true If the convergence accelerator updates in both directions (e.g. displacements and tractions)
      * @return false If the convergece accelerator updates in a single direction (e.g. only displacements)
      */
-    virtual bool IsBlockNewton()
+    virtual bool IsBlockNewton() const
     {
         return false;
     }
@@ -205,7 +205,7 @@ protected:
         KRATOS_ERROR << "Interface Jacobian approximation is not available for this convergence accelerator." << std::endl;
     }
 
-    virtual std::size_t GetProblemSize()
+    virtual std::size_t GetProblemSize() const
     {
         KRATOS_ERROR << "Problem size is not available for this convergence accelerator." << std::endl;
     }
