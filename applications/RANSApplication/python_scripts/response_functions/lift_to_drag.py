@@ -12,7 +12,7 @@ from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
 
 
-class LiftToDragResponseFunction(ResponseFunctionInterface):
+class LiftToDrag(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
         self.response_settings = response_settings
@@ -89,7 +89,7 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
         startTime = timer.time()
 
         # copy data to the working directory
-        LiftToDragResponseFunction._RecursiveCopy(str(self.problem_setup_folder), ".")
+        LiftToDrag._RecursiveCopy(str(self.problem_setup_folder), ".")
 
         # write the new shape mdpa
         Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.optimization_model_part)
@@ -108,8 +108,8 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
                 primal_parameters = Kratos.Parameters(file_input.read())
 
             # add response function outputs
-            LiftToDragResponseFunction._AddResponseFunctionOutput(primal_parameters, self.lift_model_part_name)
-            LiftToDragResponseFunction._AddResponseFunctionOutput(primal_parameters, self.drag_model_part_name)
+            LiftToDrag._AddResponseFunctionOutput(primal_parameters, self.lift_model_part_name)
+            LiftToDrag._AddResponseFunctionOutput(primal_parameters, self.drag_model_part_name)
 
             # set the loggers
             file_logger = Kratos.FileLoggerOutput("primal_evaluation.log")
@@ -136,8 +136,8 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
             Kratos.Logger.PrintInfo(self._GetLabel(), "Found existing completed primal evaluation.")
 
         # calculate lift and drag
-        self.lift = LiftToDragResponseFunction._CalculateTimeAveragedDrag(primal_parameters, self.lift_model_part_name, self.lift_direction)
-        self.drag = LiftToDragResponseFunction._CalculateTimeAveragedDrag(primal_parameters, self.drag_model_part_name, self.drag_direction)
+        self.lift = LiftToDrag._CalculateTimeAveragedDrag(primal_parameters, self.lift_model_part_name, self.lift_direction)
+        self.drag = LiftToDrag._CalculateTimeAveragedDrag(primal_parameters, self.drag_model_part_name, self.drag_direction)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
@@ -146,7 +146,7 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
         lift_start_time = timer.time()
 
         self.lift_adjoint_model = Kratos.Model()
-        self.lift_adjoint_simulation = LiftToDragResponseFunction._SolveAdjointProblem(
+        self.lift_adjoint_simulation = LiftToDrag._SolveAdjointProblem(
                 self.lift_adjoint_model,
                 self.problem_setup_file_settings["lift_adjoint_project_parameters_file"].GetString(),
                 "lift_adjoint_evaluation.log")
@@ -157,7 +157,7 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
         drag_start_time = timer.time()
 
         self.drag_adjoint_model = Kratos.Model()
-        self.drag_adjoint_simulation = LiftToDragResponseFunction._SolveAdjointProblem(
+        self.drag_adjoint_simulation = LiftToDrag._SolveAdjointProblem(
                 self.drag_adjoint_model,
                 self.problem_setup_file_settings["drag_adjoint_project_parameters_file"].GetString(),
                 "drag_adjoint_evaluation.log")
@@ -193,7 +193,7 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
 
     @staticmethod
     def _GetLabel():
-        return "AdjointLiftToDragResponseFunction"
+        return "AdjointLiftToDrag"
 
     @staticmethod
     def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name):
@@ -231,10 +231,10 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
 
     @staticmethod
     def _CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction):
-        output_process = LiftToDragResponseFunction._GetResponseFunctionOutputProcess(kratos_parameters, model_part_name)
+        output_process = LiftToDrag._GetResponseFunctionOutputProcess(kratos_parameters, model_part_name)
         if (output_process is not None):
             output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
-            time_steps, reactions = LiftToDragResponseFunction._ReadDrag(output_file_name)
+            time_steps, reactions = LiftToDrag._ReadDrag(output_file_name)
             total_drag = 0.0
             for reaction in reversed(reactions):
                 total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
@@ -283,7 +283,7 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
         }
         ''')
 
-        if (LiftToDragResponseFunction._GetResponseFunctionOutputProcess(kratos_parameters, model_part_name) is None):
+        if (LiftToDrag._GetResponseFunctionOutputProcess(kratos_parameters, model_part_name) is None):
             response_parameters["Parameters"]["model_part_name"].SetString(model_part_name)
             kratos_parameters["processes"]["auxiliar_process_list"].Append(response_parameters)
 
@@ -297,4 +297,4 @@ class LiftToDragResponseFunction(ResponseFunctionInterface):
             elif (item.is_dir()):
                 new_path = dest_path / item.relative_to(src)
                 new_path.mkdir(exist_ok=True)
-                LiftToDragResponseFunction._RecursiveCopy(str(item), str(new_path))
+                LiftToDrag._RecursiveCopy(str(item), str(new_path))

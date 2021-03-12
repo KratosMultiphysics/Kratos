@@ -5,7 +5,7 @@ import time as timer
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
-class AverageLocationDeviationResponseFunction(ResponseFunctionInterface):
+class GeometricCentroidDeviation(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
         self.response_settings = response_settings
@@ -24,7 +24,7 @@ class AverageLocationDeviationResponseFunction(ResponseFunctionInterface):
         self.model_part = self.model[self.response_settings["model_part_name"].GetString()]
 
         self.model_part_center = Kratos.Array3(0.0)
-        self.number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
+        number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
 
         for node in self.model_part.Nodes:
             self.model_part_center[0] += node.X
@@ -32,7 +32,7 @@ class AverageLocationDeviationResponseFunction(ResponseFunctionInterface):
             self.model_part_center[2] += node.Z
 
         self.model_part_center = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(self.model_part_center)
-        self.model_part_center /= self.number_of_nodes
+        self.model_part_center /= number_of_nodes
 
     def CalculateValue(self):
         start_time = timer.time()
@@ -45,7 +45,8 @@ class AverageLocationDeviationResponseFunction(ResponseFunctionInterface):
 
         average_location = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(average_location)
 
-        self.value_array = (average_location / self.number_of_nodes  - self.model_part_center)
+        number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
+        self.value_array = (average_location / number_of_nodes  - self.model_part_center)
         self.value = self.value_array[0] ** 2 + self.value_array[1] ** 2 + self.value_array[2] ** 2
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - start_time,2),"s")
@@ -60,14 +61,16 @@ class AverageLocationDeviationResponseFunction(ResponseFunctionInterface):
         if variable != Kratos.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
 
+        number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
+
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = 2.0 * self.value_array / self.number_of_nodes
+            gradient[node.Id] = 2.0 * self.value_array / number_of_nodes
 
         return gradient
 
     @staticmethod
     def _GetLabel():
-        return "AverageLocationDeviationResponseFunction"
+        return "GeometricCentroidDeviation"
 
 
