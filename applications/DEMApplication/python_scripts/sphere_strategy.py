@@ -400,16 +400,22 @@ class ExplicitStrategy():
         dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self._UpdateTimeInOneModelPart(spheres_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(cluster_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
+        self._UpdateTimeInOneModelPart(spheres_model_part, time, self.dt, is_time_to_print)
+        self._UpdateTimeInOneModelPart(cluster_model_part, time, self.dt, is_time_to_print)
+        self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, self.dt, is_time_to_print)
+        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, self.dt, is_time_to_print)
 
-    def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
-        model_part.ProcessInfo[TIME] = time
-        model_part.ProcessInfo[DELTA_TIME] = self.dt
-        model_part.ProcessInfo[TIME_STEPS] += 1
-        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
+    @classmethod
+    def _UpdateTimeInOneModelPart(self, model_part, time, dt, is_time_to_print = False):
+        ''' This method is redirected to its cpp version with improved speed.
+        It also has been updated to classmethod and args so it can be called from external App
+        '''
+
+        AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
+        # model_part.ProcessInfo[TIME] = time
+        # model_part.ProcessInfo[DELTA_TIME] = dt
+        # model_part.ProcessInfo[TIME_STEPS] += 1
+        # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
         (self.cplusplus_strategy).FinalizeSolutionStep()
