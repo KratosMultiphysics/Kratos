@@ -386,8 +386,9 @@ double ComputePerturbationCompressiblePressureCoefficient(const Element& rElemen
     const double M_inf_2 = M_inf * M_inf;
     double v_2 = inner_prod(velocity, velocity);
     const double vacuum_velocity_squared = ComputeVacuumVelocitySquared(rCurrentProcessInfo);
-    if( v_2 > vacuum_velocity_squared){
-        v_2 = vacuum_velocity_squared;
+
+    if( v_2 > (vacuum_velocity_squared - 1.0)){
+        v_2 = vacuum_velocity_squared - 1.0;
     }
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
