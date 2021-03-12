@@ -142,6 +142,14 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
+        
+    - name: Download boost
+      run: |
+        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+        Push-Location -Path "$env:TEMP\boost"
 
     - name: Installing dependencies
       shell: cmd
