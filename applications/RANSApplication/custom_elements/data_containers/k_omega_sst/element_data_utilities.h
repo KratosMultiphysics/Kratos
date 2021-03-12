@@ -38,7 +38,7 @@ double CalculateCrossDiffusionTerm(
     const double SigmaTurbulentSpecificEnergyDissipationRate2,
     const double TurbulentSpecificEnergyDissipationRate,
     const array_1d<double, TDim>& rTurbulentKineticEnergyGradient,
-    const array_1d<double, TDim>& rTurbulentSpecificEnergyDissipationRate);
+    const array_1d<double, TDim>& rTurbulentSpecificEnergyDissipationRateGradient);
 
 double CalculateF1(
     const double TurbulentKineticEnergy,
@@ -68,6 +68,25 @@ double CalculateGamma(
     const double BetaStar,
     const double Sigma,
     const double Kappa);
+
+
+double CalculateArg1(
+    const double BetaStar,
+    const double TurbulentKineticEnergy,
+    const double TurbulentSpecificEnergyDissipationRate,
+    const double WallDistance);
+
+double CalculateArg2(
+    const double KinematicViscosity,
+    const double TurbulentSpecificEnergyDissipationRate,
+    const double WallDistanceSquare);
+
+double CalculateArg3(
+    const double SigmaTurbulentSpecificEnergyDissipationRate2,
+    const double TurbulentKineticEnergy,
+    const double CrossDiffusion,
+    const double WallDistanceSquare);
+
 
 } // namespace KOmegaSSTElementData
 
