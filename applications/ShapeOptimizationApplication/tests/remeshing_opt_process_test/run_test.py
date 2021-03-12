@@ -49,22 +49,10 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     TestCase().assertEqual(resulting_optimization_iterations, 2)
     TestCase().assertAlmostEqual(resulting_improvement, -7.25331E+00, 4)
 
+# check if remeshing has happened
+mp = model.GetModelPart(parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString())
 
-# Testing of design output
-output_file_name = os.path.join(output_directory, "plate_with_hole_0_2.vtk")
-reference_file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref_plate_with_hole_0_2.vtk")
-
-result_check_settings = KM.Parameters("""{
-        "reference_file_name"   : \""""+reference_file_name.replace("\\", "\\\\")+"""\",
-        "output_file_name"      : \""""+output_file_name.replace("\\", "\\\\")+"""\",
-        "remove_output_file"    : false,
-        "comparison_type"       : "vtk",
-        "tolerance"             : 1e-6,
-        "relative_tolerance"    : 1e-9,
-        "dimension"             : 3
-    }""")
-
-results_check_process = CompareTwoFilesCheckProcess(result_check_settings)
-results_check_process.Execute()
+TestCase().assertNotEqual(mp.NumberOfNodes(), 422) # initial mesh had 422 nodes
+TestCase().assertEqual(mp.NumberOfNodes(), 411) # after remeshing in step 1 it has 411 nodes
 
 # =======================================================================================================
