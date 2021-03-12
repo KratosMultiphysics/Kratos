@@ -111,8 +111,8 @@ IF(CMAKE_VERSION VERSION_LESS "3.16.0")
         SET(CMAKE_UNITY_BUILD OFF)
     ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
-    # Legacy Unitary build
     IF(USE_COTIRE MATCHES ON)
+        # Legacy Unitary build
         message("Using USE_COTIRE is deprecated and was replaced by CMAKE_UNITY_BUILD.")
         SET(CMAKE_UNITY_BUILD ON)
     ENDIF(USE_COTIRE MATCHES ON)
