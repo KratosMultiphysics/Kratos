@@ -507,13 +507,15 @@ private:
     void ApplySlipCondition()
     {
         auto &r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        const double wall_factor = r_process_info.Has(SLIP_WALL_FACTOR) ? r_process_info[SLIP_WALL_FACTOR] : 1.0;
 
-        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_model_part.Nodes(), [&wall_factor](Node<3>& rNode){
             if (rNode.Is(SLIP)) {
                 auto unit_normal = rNode.FastGetSolutionStepValue(NORMAL);
                 unit_normal /= norm_2(unit_normal);
                 auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
-                const double r_mom_n = inner_prod(r_mom, unit_normal);
+                const double r_mom_n = wall_factor * inner_prod(r_mom, unit_normal);
                 noalias(r_mom) -= r_mom_n * unit_normal;
             }
         });
