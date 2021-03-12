@@ -65,7 +65,7 @@ class MeshControllerWithSolver(MeshController) :
             },
             "use_automatic_remeshing"     : false,
             "automatic_remeshing_settings": {
-                "strategy"        : "Optimization",
+                "strategy"        : "optimization",
                 "step_frequency"  : 1,
                 "automatic_remesh": true,
                 "automatic_remesh_parameters": {
