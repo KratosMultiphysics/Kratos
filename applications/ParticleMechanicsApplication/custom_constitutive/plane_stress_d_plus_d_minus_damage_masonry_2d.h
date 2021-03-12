@@ -429,6 +429,9 @@ protected:
 	bool InitializeDamageLaw = false;
 
 	Vector mStrainOld = ZeroVector(GetStrainSize());
+	Vector mStrainPlastic = ZeroVector(GetStrainSize());
+	Vector mStrainRateVec = ZeroVector(GetStrainSize());
+	bool mIsCompressiveDamageEvolution = false;
 
 	// Tension & Compression Thresholds
 
@@ -445,6 +448,7 @@ protected:
 
 	// Compression damage parameters
 	double DamageParameterCompression = 0.0;
+	double DamageParameterCompressionOld = 0.0;
 	double DamageParameterCompressionHardening = 0.0;
 	double DamageParameterCompressionSoftening = 0.0;
 	double CompressionMaxHistoricalStrain = 0.0;

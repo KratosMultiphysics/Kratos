@@ -69,6 +69,8 @@ bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 		return true;
 	if(rThisVariable == MP_HARDENING_RATIO)
 		return true;
+	if(rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN)
+		return true;
 	return false;
 }
 /***********************************************************************************/
@@ -129,6 +131,8 @@ double& MPMDamageDPlusDMinusMasonry2DLaw::GetValue(
 		rValue = mStrainRate;
 	else if(rThisVariable == MP_HARDENING_RATIO)
 		rValue = DamageParameterCompressionHardening;
+	else if(rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN)
+		rValue = std::sqrt(2.0/3.0*inner_prod(mStrainPlastic, mStrainPlastic));
 	return rValue;
 }
 /***********************************************************************************/
@@ -362,21 +366,22 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	CalculationData data;
 
 	const Vector& StrainVector   	= rValues.GetStrainVector();
+	const Vector strain_vector_elastic = StrainVector - mStrainPlastic;
 
 	KRATOS_ERROR_IF_NOT(StrainVector.size() == mStrainOld.size())
 		<< "The new and old strain vectors are different sizes!"
 		<< "\nStrainVector = " << StrainVector
 		<< "\nStrainVectorOld = " << mStrainOld
 		<< std::endl;
-	const Vector strain_rate_vec = (StrainVector - mStrainOld) / pinfo[DELTA_TIME];
-	mStrainRate = std::sqrt(0.5 * inner_prod(strain_rate_vec, strain_rate_vec));
+	mStrainRateVec = (StrainVector - mStrainOld) / pinfo[DELTA_TIME];
+	mStrainRate = std::sqrt(0.5 * inner_prod(mStrainRateVec, mStrainRateVec));
 	mStrainOld = Vector(rValues.GetStrainVector()); // only needed for the strain rate calc.
 
 	this->InitializeCalculationData(props, geom, pinfo, data);
 
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
-	this->CalculateMaterialResponseInternal(StrainVector, PredictiveStressVector, data, props);
+	this->CalculateMaterialResponseInternal(strain_vector_elastic, PredictiveStressVector, data, props);
 
 	bool is_damaging_tension = false;
 	bool is_damaging_compression = false;
@@ -824,7 +829,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 				const double new_damage_softening = 1.0 - trial_softening_stress / yield_tension;
 				if (new_damage_softening > DamageParameterTensionSoftening) DamageParameterTensionSoftening = new_damage_softening;
 				else KRATOS_ERROR << "Tension softening damage tried to decrease\n";
-				if (DamageParameterTensionSoftening > 0.99) DamageParameterTensionSoftening = 1.0;
+				if (DamageParameterTensionSoftening > 0.95) DamageParameterTensionSoftening = 1.0;
 			}
 		}
 	}
@@ -861,6 +866,8 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	const double eq_strain = eq_compression_stress / data.YoungModulus;
 	if (eq_strain > CompressionMaxHistoricalStrain)
 	{
+		mIsCompressiveDamageEvolution = true;
+
 		CompressionMaxHistoricalStrain = eq_strain;
 
 		// Get bezier controllers
@@ -1046,7 +1053,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::ComputeCharacteristicLength(
 /***********************************************************************************/
 /***********************************************************************************/
 void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
-	const Vector& StrainVector,
+	const Vector& StrainVectorElastic,
 	Vector& PredictiveStressVector,
 	CalculationData& data,
 	Properties props)
@@ -1054,10 +1061,12 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	if(PredictiveStressVector.size() != VoigtSize)
 		PredictiveStressVector.resize(VoigtSize,false);
 
+	mIsCompressiveDamageEvolution = false;
+
 	ThresholdTension     = CurrentThresholdTension;
 	ThresholdCompression = CurrentThresholdCompression;
 
-	noalias(data.EffectiveStressVector) = prod(data.ElasticityMatrix, StrainVector);
+	noalias(data.EffectiveStressVector) = prod(data.ElasticityMatrix, StrainVectorElastic);
 
 	if(std::abs(data.EffectiveStressVector(0)) < tolerance) {data.EffectiveStressVector(0) = 0.0;}
 	if(std::abs(data.EffectiveStressVector(1)) < tolerance) {data.EffectiveStressVector(1) = 0.0;}
@@ -1074,6 +1083,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	if (props[INTEGRATION_IMPLEX] != 0){ //IMPLEX Integration
 		// time factor
 		KRATOS_ERROR << "HIT IMPLEX!\n";
+		/*
 		double time_factor = 0.0;
 		if(PreviousDeltaTime > 0.0) time_factor = data.DeltaTime / PreviousDeltaTime;
 		CurrentDeltaTime = data.DeltaTime;
@@ -1098,6 +1108,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 		// new damage variables (explicit)
 		//this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
 		//this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression,DamageParameterCompression);
+		*/
 	}
 	else { // IMPLICIT Integration
 
@@ -1117,6 +1128,20 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	noalias(PredictiveStressVector)  = (1.0 - DamageParameterTension)     * data.EffectiveTensionStressVector;
 	noalias(PredictiveStressVector) += (1.0 - DamageParameterCompression) * data.EffectiveCompressionStressVector;
 
+
+	// Compute plastic evolution
+	if (mIsCompressiveDamageEvolution && DamageParameterCompression > DamageParameterCompressionOld)
+	{
+		const double elastic_power = inner_prod(data.EffectiveStressVector, mStrainRateVec);
+		if (elastic_power >0.0 )
+		{
+			const double elastic_strain_energy = inner_prod(data.EffectiveStressVector, StrainVectorElastic);
+			const double b_minus = props.Has(PLASTICITY_FACTOR_B_MINUS) ? props[PLASTICITY_FACTOR_B_MINUS] : 0.3;
+			mStrainPlastic += b_minus * elastic_power / elastic_strain_energy * StrainVectorElastic * data.DeltaTime;
+		}
+	}
+
+	DamageParameterCompressionOld = DamageParameterCompression;
 }
 /***********************************************************************************/
 /***********************************************************************************/
