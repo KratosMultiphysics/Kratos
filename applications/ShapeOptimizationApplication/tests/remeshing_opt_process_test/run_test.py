@@ -47,12 +47,12 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 
     # Check against specifications
     TestCase().assertEqual(resulting_optimization_iterations, 2)
-    TestCase().assertAlmostEqual(resulting_improvement, -7.25331E+00, 4)
+    TestCase().assertAlmostEqual(resulting_improvement, 1.42057E+01, 4)
 
 # check if remeshing has happened
 mp = model.GetModelPart(parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString())
 
 TestCase().assertNotEqual(mp.NumberOfNodes(), 422) # initial mesh had 422 nodes
-TestCase().assertEqual(mp.NumberOfNodes(), 411) # after remeshing in step 1 it has 411 nodes
+TestCase().assertEqual(mp.NumberOfNodes(), 525) # after remeshing in step 1 it has 525 nodes
 
 # =======================================================================================================
