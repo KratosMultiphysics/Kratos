@@ -21,15 +21,15 @@ namespace Kratos {
 
         std::vector<int> sorted_labels_A;
         std::vector<int> sorted_labels_B;
-        std::vector<int> sorted_labels_C; 
+        std::vector<int> sorted_labels_C;
 
         std::vector<array_1d<double,3>> initial_directive_line;
-        std::vector<array_1d<double,3>> directive_line; 
+        std::vector<array_1d<double,3>> directive_line;
         std::vector<array_1d<double,3>> normals;
 
         /////   Default constructor   /////
 
-        BeamSolidsUtility() {}                                            
+        BeamSolidsUtility() {}
 
         /////   Constructor with ModelPart   /////
 
@@ -38,7 +38,7 @@ namespace Kratos {
         typedef ModelPart::NodesContainerType NodesArrayType;
 
         double x_A, x_B, x_C;
-        // vector <double> Directive_line;        
+        // vector <double> Directive_line;
 
         Node < 3 > Aux_Node;
 
@@ -55,6 +55,8 @@ namespace Kratos {
         NodesArrayType& pNodesC = EdgeLineC.GetCommunicator().LocalMesh().Nodes();
 
         unsigned int submodel_number_of_nodes = pNodesA.size();           // same number of nodes A,B,C assumed
+        KRATOS_ERROR_IF(pNodesA.size() != pNodesB.size())<<"The number of nodes is not consistent between edges"<<std::endl;
+        KRATOS_ERROR_IF(pNodesC.size() != pNodesB.size())<<"The number of nodes is not consistent between edges"<<std::endl;
 
         for (unsigned int inode = 0; inode < submodel_number_of_nodes; inode++) {
 
@@ -64,7 +66,7 @@ namespace Kratos {
             const int& labelA = Aux_Node.Id();
             initial_labels_A.push_back(labelA);
             x_A = Aux_Node.X();
-       
+
             ModelPart::NodeIterator i_iteratorB = pNodesB.ptr_begin() + inode;
             Aux_Node = *i_iteratorB;
 
@@ -93,7 +95,7 @@ namespace Kratos {
 
         sorted_labels_A = initial_labels_A;
         sorted_labels_B = initial_labels_B;
-        sorted_labels_C = initial_labels_C;       
+        sorted_labels_C = initial_labels_C;
 
         }
 
@@ -106,7 +108,7 @@ namespace Kratos {
 
     void ComputeDirectiveLineOfBeamSolids(ModelPart& r_model_part){
 
-        typedef ModelPart::NodesContainerType NodesArrayType;        
+        typedef ModelPart::NodesContainerType NodesArrayType;
 
         double x1,y1,z1, x2,y2,z2, x3,y3,z3;
         double a,b,c;
@@ -155,15 +157,15 @@ namespace Kratos {
             modulus = sqrt( pow(aux_vector_rot[0],2) + pow(aux_vector_rot[1],2) + pow(aux_vector_rot[2],2) );
 
             aux_vector_rot = aux_vector_rot / modulus;
-            normals.push_back(aux_vector_rot);             
+            normals.push_back(aux_vector_rot);
 
             aux_vector_last = aux_vector_dir;
             aux_vector_dir = (coords_A + coords_B + coords_C)/3;          // Calculation of the directive line
             a = aux_vector_dir[0];
             b = aux_vector_dir[1];
-            c = aux_vector_dir[2];  
+            c = aux_vector_dir[2];
 
-            directive_RES << a << " " << b << " " << c << "\n";            
+            directive_RES << a << " " << b << " " << c << "\n";
             directive_line.push_back(aux_vector_dir);
 
             aux_vector_delta = aux_vector_dir - aux_vector_last;
@@ -182,9 +184,9 @@ namespace Kratos {
     void ComputeReactionsOfBeamSolids(ModelPart& r_model_part){
 
         typedef ModelPart::NodesContainerType NodesArrayType;
-        
+
         double feed_pressure=0, rotation_pressure=0, area=0;
-        
+
         array_1d<double,3> coords,reactions;
 
         Node < 3 > Aux_Node;
@@ -207,7 +209,7 @@ namespace Kratos {
 
             feed_pressure += reactions[0];
             rotation_pressure += reactions[1]*coords[2] - reactions[2]*coords[1];
-        
+
         }
 
         feed_pressure /= area;

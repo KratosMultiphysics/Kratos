@@ -1223,7 +1223,7 @@ class Report(object):
         pass
 
     def Prepare(self, timer, control_time):
-        self.initial_pr_time = timer.clock()
+        self.initial_pr_time = timer.process_time()
         self.initial_re_time = timer.time()
         self.prev_time = 0.0
         self.total_steps_expected = 0
@@ -1269,12 +1269,12 @@ class Report(object):
         return report
 
     def FinalReport(self, timer):
-        elapsed_pr_time = timer.clock() - self.initial_pr_time
+        elapsed_pr_time = timer.process_time() - self.initial_pr_time
         elapsed_re_time = timer.time() - self.initial_re_time
         label = "DEM: "
 
         report = "Calculation ends at instant: " + str(timer.time()) + "\n"\
-            + label + "Calculation ends at processing time instant: " + str(timer.clock()) + "\n"\
+            + label + "Calculation ends at processing time instant: " + str(timer.process_time()) + "\n"\
             + label + "Elapsed processing time: " + str(elapsed_pr_time) + "\n"\
             + label + "Elapsed real time: " + str(elapsed_re_time) + "\n" + label
 
