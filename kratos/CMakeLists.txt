@@ -65,6 +65,10 @@ target_compile_definitions(KratosVersion PRIVATE
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 target_link_libraries(KratosCore PUBLIC gidpost triangle)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 target_compile_definitions(KratosCore PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
