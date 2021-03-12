@@ -512,9 +512,9 @@ private:
 
         block_for_each(r_model_part.Nodes(), [&wall_factor](Node<3>& rNode){
             if (rNode.Is(SLIP)) {
-                auto unit_normal = rNode.FastGetSolutionStepValue(NORMAL);
+                array_1d<double, 3>& unit_normal = rNode.FastGetSolutionStepValue(NORMAL);
                 unit_normal /= norm_2(unit_normal);
-                auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
+                array_1d<double, 3>& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
                 const double r_mom_n = wall_factor * inner_prod(r_mom, unit_normal);
                 noalias(r_mom) -= r_mom_n * unit_normal;
             }
