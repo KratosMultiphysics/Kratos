@@ -168,9 +168,6 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 			ue[3 * node_i + 0] = CurrentDisplacement[0];
 			ue[3 * node_i + 1] = CurrentDisplacement[1];
 			ue[3 * node_i + 2] = CurrentDisplacement[2];
-			std::cout<< "Velocity 0: " << CurrentDisplacement[0] << " Wert"<< std::endl; 
-			std::cout<< "Velocity 1: " << CurrentDisplacement[1] << " Wert"<< std::endl; 
-			std::cout<< "Velocity 2: " << CurrentDisplacement[2] << " Wert"<< std::endl; 
 
 		}
 
