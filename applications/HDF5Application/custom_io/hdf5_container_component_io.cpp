@@ -542,12 +542,12 @@ void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::R
     std::vector<std::string> current_components_list(mComponentNames.size());
     std::copy(mComponentNames.begin(), mComponentNames.end(), current_components_list.begin());
 
-    if (mComponentNames.size() == 1 && mComponentNames[0] == "ALL_VARIABLES") {
+    if (mComponentNames.size() == 1 && mComponentNames[0] == "ALL_VARIABLES_FROM_FILE") {
         if (mpFile->HasPath(mComponentPath)) {
             current_components_list = std::move(mpFile->GetDataSetNames(mComponentPath));
         } else {
             KRATOS_WARNING("ContainerComponentIO")
-                << "ALL_VARIABLES are specified to be read, but no variable "
+                << "ALL_VARIABLES_FROM_FILE are specified to be read, but no variable "
                    "data is found at "
                 << mComponentPath << " in " << mpFile->GetFileName() << ".\n";
             return;

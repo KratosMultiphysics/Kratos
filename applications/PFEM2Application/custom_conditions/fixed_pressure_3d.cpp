@@ -31,7 +31,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FixedPressure3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void FixedPressure3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		{
@@ -42,7 +42,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FixedPressure3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void FixedPressure3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		{
@@ -69,7 +69,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FixedPressure3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+	void FixedPressure3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 	{
 		{
 			int number_of_nodes = GetGeometry().PointsNumber();
@@ -83,7 +83,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	  void FixedPressure3D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& rCurrentProcessInfo)
+	  void FixedPressure3D::GetDofList(DofsVectorType& ConditionalDofList,const ProcessInfo& rCurrentProcessInfo) const
 	{
 		{
 			const unsigned int TDim = 3;

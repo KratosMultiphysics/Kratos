@@ -52,9 +52,7 @@ class RHSElement
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 {
     int nsize = 1e3;
-    std::vector<double> data_vector(nsize);
-    for(auto& it : data_vector)
-        it = 5.0;
+    std::vector<double> data_vector(nsize, 5.0);
 
     //here we raise every entry of a vector to the power 0.1
     BlockPartition<std::vector<double>>(data_vector).for_each(
@@ -93,12 +91,37 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 }
 
 // Basic Type
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    const std::vector<double> data_vector(nsize, 5.0);
+
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum = BlockPartition<decltype(data_vector)>(data_vector).for_each<SumReduction<double>>(
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
+    //here we check for a reduction (computing the sum of all the entries)
+    auto final_sum_short = block_for_each<SumReduction<double>>(data_vector,
+        [](const double item)
+        {
+            return item;
+        }
+    );
+
+    const double expected_value = 5.0*nsize;
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum, expected_value);
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum_short, expected_value);
+}
+
+// Basic Type
 KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 {
     int nsize = 1e3;
-    std::vector<double> data_vector(nsize), output(nsize);
-    for(auto& it : data_vector)
-        it = -1.0;
+    std::vector<double> data_vector(nsize, -1.0), output(nsize);
 
     //output = 2*data_vector (in parallel, and accessing by index)
     IndexPartition<unsigned int>(data_vector.size()).for_each(
@@ -248,6 +271,24 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::vector<int> expct_data_vector(nsize);
+
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+    std::iota(expct_data_vector.begin(), expct_data_vector.end(), 1);
+
+    auto assembled_vector = block_for_each<AccumReduction<int>>(input_data_vector, [](int& rValue) {
+        return rValue+1;
+    });
+
+    std::sort(assembled_vector.begin(), assembled_vector.end());
+
+    KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 {
     int nsize = 1e3;
@@ -268,19 +309,21 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
     }
     class CustomReducer{
         public:
-            typedef std::tuple<double,double> value_type;
-            double max_value = -std::numeric_limits<double>::max();
-            double max_abs = 0.0;
+            typedef double value_type;
+            typedef std::tuple<double,double> return_type;
 
-            value_type GetValue()
+            value_type max_value = -std::numeric_limits<double>::max();
+            value_type max_abs = 0.0;
+
+            return_type GetValue()
             {
-                value_type values;
+                return_type values;
                 std::get<0>(values) = max_value;
                 std::get<1>(values) = max_abs;
                 return values;
             }
 
-            void LocalReduce(double function_return_value){
+            void LocalReduce(value_type function_return_value){
                 this->max_value = std::max(this->max_value,function_return_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }

@@ -278,6 +278,12 @@ public:
             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_FLUID_SCALAR_1, r_node);
         }
 
+        // For OSS: Add projection of residuals to RHS
+        if (rProcessInfo[OSS_SWITCH] == 1) {
+            KRATOS_ERROR
+                << "OSS projections are not yet supported with VMS adjoints.\n";
+        }
+
         return value;
 
         KRATOS_CATCH("")
@@ -403,12 +409,6 @@ public:
                     coeff * N[i_node] * body_force[d];
             }
             ++local_index; // Skip pressure Dof
-        }
-
-        // For OSS: Add projection of residuals to RHS
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1) {
-            KRATOS_ERROR
-                << "OSS projections are not yet supported with VMS adjoints.\n";
         }
 
         KRATOS_CATCH("");
@@ -824,7 +824,6 @@ protected:
 
                 // Velocity block
                 K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-                // K = 0.5 * Density * (rShapeFunc[i] * AGradN[j] - AGradN[i] * rShapeFunc[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
                 K += TauOne * Density * AGradN[i] * Density *
                      AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
                 K *= Weight;

@@ -996,13 +996,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssignRightHand
     if (rData.distances[rRow] > 0.0)
     {
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        // TODO: Check theory behind setting rhs to 0
-        rRightHandSideVector[rRow + TNumNodes] = 0.0; //rWake_rhs(rRow);
+        rRightHandSideVector[rRow + TNumNodes] = -rWake_rhs(rRow);
     }
     else
     {
-        // TODO: Check theory behind setting rhs to 0
-        rRightHandSideVector[rRow] = 0.0; //rWake_rhs(rRow);
+        rRightHandSideVector[rRow] = rWake_rhs(rRow);
         rRightHandSideVector[rRow + TNumNodes] = rLower_rhs(rRow);
     }
 }

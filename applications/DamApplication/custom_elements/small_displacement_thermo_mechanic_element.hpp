@@ -37,7 +37,7 @@ public:
 
 
 
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementThermoMechanicElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementThermoMechanicElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
