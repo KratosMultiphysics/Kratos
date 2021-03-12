@@ -1702,6 +1702,45 @@ void MmgUtilities<MMGLibrary::MMGS>::InitVerbosityParameter(const IndexType Verb
 /***********************************************************************************/
 
 template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetMeshOptimizationModeParameter(const bool EnableMeshOptimization)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_optim, EnableMeshOptimization) ) << "Unable to set optim mode" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetMeshOptimizationModeParameter(const bool EnableMeshOptimization)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_optim, EnableMeshOptimization) ) << "Unable to set optim mode" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetMeshOptimizationModeParameter(const bool EnableMeshOptimization)
+{
+    KRATOS_TRY;
+#if MMG_VERSION_GE(5,5)
+    KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_optim, EnableMeshOptimization) ) << "Unable to set optim mode" << std::endl;
+#endif
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>& rMMGMeshInfo)
 {
     KRATOS_TRY;
