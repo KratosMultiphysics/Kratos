@@ -2069,7 +2069,7 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
     }
 
     void SphericParticle::CheckBreakageCriterion(double LocalContactForce[3]) {
-        if ( LocalContactForce[2] > 25.0 ) {
+        if ( LocalContactForce[2] > 25.0e6 ) {
             this->Set(TO_ERASE, true);
         }
     }

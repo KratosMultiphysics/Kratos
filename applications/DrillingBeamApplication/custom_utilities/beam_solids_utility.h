@@ -19,81 +19,32 @@ namespace Kratos {
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        std::vector<int> sorted_labels_A;
-        std::vector<int> sorted_labels_B;
-        std::vector<int> sorted_labels_C; 
+        unsigned int mNodesEdge, submodel_number_of_nodes_A1, submodel_number_of_nodes_A2;
 
-        std::vector<array_1d<double,3>> initial_directive_line;
-        std::vector<array_1d<double,3>> directive_line; 
-        std::vector<array_1d<double,3>> normals;
+        std::vector<int> IDs_edge;
+
+        std::vector<int> IDs_A1;
+        std::vector<int> IDs_A2;
+
+        std::vector<int> sorted_labels_A1;
+        std::vector<int> sorted_labels_A2;
+
+        NodesArrayType* mpNodesPt;       
+
+        // std::vector<array_1d<double,3>> initial_directive_line;
+        // std::vector<array_1d<double,3>> directive_line;
+        // std::vector<array_1d<double,3>> normals;       
 
         /////   Default constructor   /////
 
-        BeamSolidsUtility() {}                                            
+        // BeamSolidsUtility() {}
 
         /////   Constructor with ModelPart   /////
 
         BeamSolidsUtility(ModelPart& r_model_part) {
 
-        typedef ModelPart::NodesContainerType NodesArrayType;
-
-        double x_A, x_B, x_C;
-        // vector <double> Directive_line;        
-
-        Node < 3 > Aux_Node;
-
-        std::vector<int> initial_labels_A;
-        std::vector<int> initial_labels_B;
-        std::vector<int> initial_labels_C;
-
-        ModelPart& EdgeLineA = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A");
-        ModelPart& EdgeLineB = r_model_part.GetSubModelPart("GENERIC_SbModel_line_B");
-        ModelPart& EdgeLineC = r_model_part.GetSubModelPart("GENERIC_SbModel_line_C");
-
-        NodesArrayType& pNodesA = EdgeLineA.GetCommunicator().LocalMesh().Nodes();
-        NodesArrayType& pNodesB = EdgeLineB.GetCommunicator().LocalMesh().Nodes();
-        NodesArrayType& pNodesC = EdgeLineC.GetCommunicator().LocalMesh().Nodes();
-
-        unsigned int submodel_number_of_nodes = pNodesA.size();           // same number of nodes A,B,C assumed
-
-        for (unsigned int inode = 0; inode < submodel_number_of_nodes; inode++) {
-
-            ModelPart::NodeIterator i_iteratorA = pNodesA.ptr_begin() + inode;
-            Aux_Node = *i_iteratorA;
-
-            const int& labelA = Aux_Node.Id();
-            initial_labels_A.push_back(labelA);
-            x_A = Aux_Node.X();
-       
-            ModelPart::NodeIterator i_iteratorB = pNodesB.ptr_begin() + inode;
-            Aux_Node = *i_iteratorB;
-
-            const int& labelB = Aux_Node.Id();
-            initial_labels_B.push_back(labelB);
-            x_B = Aux_Node.X();
-
-            ModelPart::NodeIterator i_iteratorC = pNodesC.ptr_begin() + inode;
-            Aux_Node = *i_iteratorC;
-
-            const int& labelC = Aux_Node.Id();
-            initial_labels_C.push_back(labelC);
-            x_C = Aux_Node.X();
-
-        }
-
-        // unsigned int values[] = { 20, 60, 40, 25, 15, 2 };
-
-        // int compare(const void * a, const void * b ){
-        //     return ( *(int*)a - *(int*)b );
-        // }
-
-        // qsort(values, 6, sizeof(int), compare);
-
-        // std::cout << values << std::endl;
-
-        sorted_labels_A = initial_labels_A;
-        sorted_labels_B = initial_labels_B;
-        sorted_labels_C = initial_labels_C;       
+            ModelPart& EdgePoints = r_model_part.GetSubModelPart("GENERIC_SbModel_edge");
+            pNodesPt = &(EdgePoints.GetCommunicator().LocalMesh().Nodes());
 
         }
 
@@ -102,99 +53,172 @@ namespace Kratos {
         virtual ~BeamSolidsUtility() {}
 
 
-// ------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+    void ComputeEdgePointOfBeamSolids(ModelPart& r_model_part){
 
-    void ComputeDirectiveLineOfBeamSolids(ModelPart& r_model_part){
+        // ModelPart& EdgePoints = r_model_part.GetSubModelPart("GENERIC_SbModel_edge");
+        // NodesArrayType& pNodesPt = EdgePoints.GetCommunicator().LocalMesh().Nodes();                 
 
-        typedef ModelPart::NodesContainerType NodesArrayType;        
-
-        double x1,y1,z1, x2,y2,z2, x3,y3,z3;
-        double a,b,c;
-        double modulus, directive_length=0, dlength=0;
-
-        array_1d<double,3> coords_A, coords_B, coords_C;
-        array_1d<double,3> aux_vector_rot, aux_vector_last, aux_vector_delta, aux_vector_dir;
+        array_1d<double,3> coords1, coords2, displacements, edge_coords;
 
         Node < 3 > Aux_Node;
 
-        std::ofstream directive_RES("directive_RES.txt", std::ios_base::out | std::ios_base::app);
-
-        const unsigned int submodel_number_of_nodes = sorted_labels_A.size();  // same number of nodes A,B,C assumed
-
-        for (unsigned int inode = 0; inode < submodel_number_of_nodes; inode++) {
-
-            int label_A = sorted_labels_A[inode];
-            Aux_Node = r_model_part.GetNode(label_A);
-            coords_A = Aux_Node.Coordinates();
-
-            x1 = coords_A[0];
-            y1 = coords_A[1];
-            z1 = coords_A[2];
-
-            int label_B = sorted_labels_B[inode];
-            Aux_Node = r_model_part.GetNode(label_B);
-            coords_B = Aux_Node.Coordinates();
-
-            x2 = coords_B[0];
-            y2 = coords_B[1];
-            z2 = coords_B[2];
-
-            int label_C = sorted_labels_C[inode];
-            Aux_Node = r_model_part.GetNode(label_C);
-            coords_C = Aux_Node.Coordinates();
-
-            x3 = coords_C[0];
-            y3 = coords_C[1];
-            z3 = coords_C[2];
+        std::ofstream RES_edgePoint("RES_edgePoint.txt", std::ios_base::out | std::ios_base::app);
 
 
-            aux_vector_rot[0] = (y1-y2)*(z3-z2) - (z1-z2)*(y3-y2);        // calculation of the normal to the deformed plane
-            aux_vector_rot[1] = (z1-z2)*(x3-x2) - (x1-x2)*(z3-z2);
-            aux_vector_rot[2] = (x1-x2)*(y3-y2) - (y1-y2)*(x3-x2);
+        nodes_edge = pNodesPt->size();
+        std::cout << "submodel_number_of_nodes ..... point " << nodes_edge << std::endl;
 
-            modulus = sqrt( pow(aux_vector_rot[0],2) + pow(aux_vector_rot[1],2) + pow(aux_vector_rot[2],2) );
 
-            aux_vector_rot = aux_vector_rot / modulus;
-            normals.push_back(aux_vector_rot);             
+        ModelPart::NodeIterator i_iteratorPt1 = pNodesPt->ptr_begin();
+        Aux_Node = *i_iteratorPt1;
 
-            aux_vector_last = aux_vector_dir;
-            aux_vector_dir = (coords_A + coords_B + coords_C)/3;          // Calculation of the directive line
-            a = aux_vector_dir[0];
-            b = aux_vector_dir[1];
-            c = aux_vector_dir[2];  
+        coords1 = Aux_Node.Coordinates();
+        displacements = Aux_Node.FastGetSolutionStepValue(DISPLACEMENT);
 
-            directive_RES << a << " " << b << " " << c << "\n";            
-            directive_line.push_back(aux_vector_dir);
+        ModelPart::NodeIterator i_iteratorPt2 = pNodesPt->ptr_begin() + 1;
+        Aux_Node = *i_iteratorPt2;
 
-            aux_vector_delta = aux_vector_dir - aux_vector_last;
-            dlength = sqrt( pow(aux_vector_delta[0],2)+pow(aux_vector_delta[1],2)+pow(aux_vector_delta[2],2) );
-            directive_length += dlength;
+        coords2 = Aux_Node.Coordinates();
+        displacements = Aux_Node.FastGetSolutionStepValue(DISPLACEMENT);
 
-        }
+        edge_coords = 0.5*(coords1 + coords2);                
 
-        directive_RES << "\n Directive length ... " << directive_length << "\n";
-
-        directive_line.clear();
-        normals.clear();
+        RES_edgePoint << edge_coords[0] << " " << edge_coords[1] << " " << edge_coords[2] << "\n";
 
     }
 
+
+// ------------------------------------------------------------------------------------------------
+    void ComputeDirectiveLineOfBeamSolids(ModelPart& r_model_part){
+
+        typedef ModelPart::NodesContainerType NodesArrayType;
+
+        Node < 3 > Aux_Node;
+
+        array_1d<double,3> coords_A1, coords_A2, directive_coords;
+        array_1d<double,3> aux_vector_rot, aux_vector_last, aux_vector_delta, aux_vector_dir;
+
+        unsigned int aux_label;
+
+        double modulus, directive_length=0, dlength=0;
+
+        std::ofstream RES_directive("RES_directive.txt", std::ios_base::out | std::ios_base::app);
+
+        ModelPart& EdgeLineA1 = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A1");
+        ModelPart& EdgeLineA2 = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A2");
+
+        NodesArrayType& pNodesA1 = EdgeLineA1.GetCommunicator().LocalMesh().Nodes();
+        NodesArrayType& pNodesA2 = EdgeLineA2.GetCommunicator().LocalMesh().Nodes();
+
+
+        submodel_number_of_nodes_A1 = pNodesA1.size();
+        std::cout << "submodel_number_of_nodes A1.................." << submodel_number_of_nodes_A1 << std::endl;
+
+        submodel_number_of_nodes_A2 = pNodesA2.size();
+        std::cout << "submodel_number_of_nodes A2.................." << submodel_number_of_nodes_A2 << std::endl;
+
+        // KRATOS_ERROR_IF(pNodesA1.size() != pNodesA2.size())<<"The number of nodes is not consistent between edges"<<std::endl;
+
+        for (unsigned int inode = 0; inode < submodel_number_of_nodes_A1; inode++) {
+
+            ModelPart::NodeIterator i_iteratorA1 = pNodesA1.ptr_begin() + inode;
+            Aux_Node = *i_iteratorA1;
+
+            const int& aux_id = Aux_Node.Id(); 
+            IDs_A1.push_back(aux_id);
+
+        }
+
+        for (unsigned int inode = 0; inode < submodel_number_of_nodes_A2; inode++) {
+
+            ModelPart::NodeIterator i_iteratorA2 = pNodesA2.ptr_begin() + inode;
+            Aux_Node = *i_iteratorA2;
+
+            const int& aux_id = Aux_Node.Id(); 
+            IDs_A2.push_back(aux_id);
+
+        }
+
+        // unsigned int values[] = { 20, 60, 40, 25, 15, 2 };
+        // int compare(const void * a, const void * b ){
+        //     return ( *(int*)a - *(int*)b );
+        // }
+
+        // qsort(values, 6, sizeof(int), compare);
+        // std::cout << values << std::endl;
+
+        sorted_labels_A1 = IDs_A1;
+        sorted_labels_A2 = IDs_A2; 
+
+        for (unsigned int inode = 0; inode < submodel_number_of_nodes_A1; inode++) {
+
+            aux_label = sorted_labels_A1[inode];
+            Aux_Node = r_model_part.GetNode(aux_label);
+            coords_A1 = Aux_Node.Coordinates();
+
+            aux_label = sorted_labels_A2[inode];
+            Aux_Node = r_model_part.GetNode(aux_label);
+            coords_A2 = Aux_Node.Coordinates();
+
+            directive_coords = 0.5*(coords_A1 + coords_A2);                     
+
+            RES_directive << directive_coords[0] << " " << directive_coords[1] << " " << directive_coords[2] << "\n";                         
+
+        }
+
+    //         int label_B = sorted_labels_B[inode];
+    //         Aux_Node = r_model_part.GetNode(label_B);
+    //         coords_B = Aux_Node.Coordinates();
+
+    //         x2 = coords_B[0];
+    //         y2 = coords_B[1];
+    //         z2 = coords_B[2];
+
+    //         aux_vector_rot[0] = (y1-y2)*(z3-z2) - (z1-z2)*(y3-y2);        // calculation of the normal to the deformed plane
+    //         aux_vector_rot[1] = (z1-z2)*(x3-x2) - (x1-x2)*(z3-z2);
+    //         aux_vector_rot[2] = (x1-x2)*(y3-y2) - (y1-y2)*(x3-x2);
+
+    //         modulus = sqrt( pow(aux_vector_rot[0],2) + pow(aux_vector_rot[1],2) + pow(aux_vector_rot[2],2) );
+
+    //         aux_vector_rot = aux_vector_rot / modulus;
+    //         normals.push_back(aux_vector_rot);
+
+    //         aux_vector_last = aux_vector_dir;
+    //         aux_vector_dir = (coords_A + coords_B + coords_C)/3;          // Calculation of the directive line
+    //         a = aux_vector_dir[0];
+    //         b = aux_vector_dir[1];
+    //         c = aux_vector_dir[2];
+
+    //         RES_directive << a << " " << b << " " << c << "\n";
+    //         directive_line.push_back(aux_vector_dir);
+
+    //         aux_vector_delta = aux_vector_dir - aux_vector_last;
+    //         dlength = sqrt( pow(aux_vector_delta[0],2)+pow(aux_vector_delta[1],2)+pow(aux_vector_delta[2],2) );
+    //         directive_length += dlength;
+
+    //     directive_line.clear();
+    //     normals.clear();
+
+        }        
+
+
+// -------------------------------------------------------------------------------------------------
     void ComputeReactionsOfBeamSolids(ModelPart& r_model_part){
 
         typedef ModelPart::NodesContainerType NodesArrayType;
-        
-        double feed_pressure=0, rotation_pressure=0, area=0;
-        
+
         array_1d<double,3> coords,reactions;
 
         Node < 3 > Aux_Node;
 
+        double feed_pressure=0, rotation_pressure=0, area=0;
 
-        std::ofstream reactions_RES("reactions_RES.txt", std::ios_base::out | std::ios_base::app);
-        area = 5.8959e-4;
+        std::ofstream RES_reactions("RES_reactions.txt", std::ios_base::out | std::ios_base::app);
+        area = 0.587141e-3;
+
 
         ModelPart& Base = r_model_part.GetSubModelPart("DISPLACEMENT_BC");
-
         NodesArrayType& pNodes = Base.GetCommunicator().LocalMesh().Nodes();
 
         for (unsigned int inode = 0; inode < pNodes.size(); inode++) {
@@ -207,13 +231,13 @@ namespace Kratos {
 
             feed_pressure += reactions[0];
             rotation_pressure += reactions[1]*coords[2] - reactions[2]*coords[1];
-        
+
         }
 
         feed_pressure /= area;
         rotation_pressure /= area;
 
-        reactions_RES << feed_pressure << " " << rotation_pressure << "\n";
+        RES_reactions << feed_pressure << " " << rotation_pressure << "\n";
 
     }
 

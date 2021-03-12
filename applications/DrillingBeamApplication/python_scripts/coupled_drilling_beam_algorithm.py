@@ -57,7 +57,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
         rigid_faces_nodal_results = []
         contact_model_part_results = []
         mixed_nodal_results = ["DISPLACEMENT"]
-        gauss_points_results = []
+        gauss_points_results = ["CAUCHY_STRESS_TENSOR"]
         self.gid_output.initialize_dem_fem_results(structures_nodal_results,
                                                    dem_nodal_results,
                                                    clusters_nodal_results,
@@ -148,7 +148,8 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
-            self.beam_solids_utility.ComputeDirectiveLineOfBeamSolids(self.structural_main_model_part)
+            self.beam_solids_utility.ComputeEdgePointOfBeamSolids(self.structural_main_model_part)
+            # self.beam_solids_utility.ComputeDirectiveLineOfBeamSolids(self.structural_main_model_part)
             self.beam_solids_utility.ComputeReactionsOfBeamSolids(self.structural_main_model_part)
 
 if __name__ == "__main__":
