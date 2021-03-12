@@ -44,6 +44,12 @@ pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLIC
 target_link_libraries(KratosMetisApplication PRIVATE KratosMetisCore)
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMetisCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosMetisApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .pyd)

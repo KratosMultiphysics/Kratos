@@ -38,6 +38,12 @@ pybind11_add_module(KratosFluidTransportApplication MODULE ${KRATOS_FLUID_TRANSP
 target_link_libraries(KratosFluidTransportApplication PRIVATE KratosFluidTransportCore)
 set_target_properties(KratosFluidTransportApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFluidTransportCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosFluidTransportApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 ###############################################################################
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

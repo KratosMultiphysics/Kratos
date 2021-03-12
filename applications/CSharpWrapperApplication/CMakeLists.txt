@@ -49,6 +49,12 @@ pybind11_add_module(KratosCSharpWrapperApplication MODULE THIN_LTO ${KRATOS_WRAP
 target_link_libraries(KratosCSharpWrapperApplication PRIVATE KratosCSharpWrapperCore)
 set_target_properties(KratosCSharpWrapperApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCSharpWrapperCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosCSharpWrapperApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 

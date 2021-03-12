@@ -38,6 +38,12 @@ pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SI
 target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore)
 set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCoSimulationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosCoSimulationApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # Making the cpp_test_solver_one and cpp_test_solver_two executables
 add_executable(ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
 add_executable(pong ${KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES})

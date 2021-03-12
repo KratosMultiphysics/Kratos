@@ -38,6 +38,11 @@ pybind11_add_module(KratosULFApplication MODULE ${KRATOS_ULF_APPLICATION_SOURCES
 target_link_libraries(KratosULFApplication PRIVATE KratosCore )
 set_target_properties(KratosULFApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosULFApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosULFApplication PROPERTIES SUFFIX .pyd)

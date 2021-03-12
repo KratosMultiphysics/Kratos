@@ -42,6 +42,11 @@ pybind11_add_module(KratosDemStructuresCouplingApplication MODULE THIN_LTO ${KRA
 target_link_libraries(KratosDemStructuresCouplingApplication PUBLIC KratosDemStructuresCouplingCore)
 set_target_properties(KratosDemStructuresCouplingApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosDemStructuresCouplingCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosDemStructuresCouplingApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON) #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)

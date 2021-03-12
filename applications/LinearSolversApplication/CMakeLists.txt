@@ -89,6 +89,12 @@ pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LIN
 target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
 set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosLinearSolversCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosLinearSolversApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
         find_library(MKL_RT_LIB mkl_rt)

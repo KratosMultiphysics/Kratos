@@ -25,6 +25,11 @@ pybind11_add_module( KratosMeshMovingTrilinosExtension MODULE THIN_LTO ${KRATOS_
 target_link_libraries( KratosMeshMovingTrilinosExtension PRIVATE KratosMeshMovingCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
 set_target_properties( KratosMeshMovingTrilinosExtension PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMeshMovingTrilinosExtension PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 ###############################################################################
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
