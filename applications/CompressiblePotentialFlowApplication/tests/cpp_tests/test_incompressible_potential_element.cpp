@@ -231,11 +231,7 @@ namespace Kratos {
 
       PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-      for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-          for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-              KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-          }
-      }
+      KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
   }
 
 
