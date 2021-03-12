@@ -161,7 +161,7 @@ void MembraneElement::CalculateLeftHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 
 {
-    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
+    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
 }
 
 //***********************************************************************************
@@ -177,7 +177,7 @@ void MembraneElement::CalculateRightHandSide(
     const SizeType system_size = number_of_nodes * dimension;
 
     Vector internal_forces = ZeroVector(system_size);
-    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
+    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
     rRightHandSideVector.resize(system_size);
     noalias(rRightHandSideVector) = ZeroVector(system_size);
     noalias(rRightHandSideVector) -= internal_forces;
@@ -340,8 +340,7 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
 void MembraneElement::MaterialResponse(Vector& rStress,
     const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber,
-    Matrix& rTangentModulus,
-    const ProcessInfo& rCurrentProcessInfo)
+    Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo)
 {
     Vector strain_vector = ZeroVector(3);
     noalias(rStress) = ZeroVector(3);
@@ -513,7 +512,7 @@ void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1];
 }
 
-void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod)
+void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -562,7 +561,8 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+            rCurrentProcessInfo);
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
@@ -642,7 +642,8 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
  }
 
 
-void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod)
+void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -690,7 +691,8 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+            rCurrentProcessInfo);
 
 
         for (SizeType dof_s=0;dof_s<number_dofs;++dof_s){
@@ -803,7 +805,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             else {
                 Matrix material_tangent_modulus = ZeroMatrix(dimension);
                 MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+                    rCurrentProcessInfo);
 
                 if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
                     Vector principal_stresses = ZeroVector(2);
@@ -864,7 +867,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             Matrix material_tangent_modulus = ZeroMatrix(dimension);
             MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+                rCurrentProcessInfo);
 
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
