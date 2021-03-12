@@ -47,7 +47,7 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 
     # Check against specifications
     TestCase().assertEqual(resulting_optimization_iterations, 2)
-    TestCase().assertAlmostEqual(resulting_improvement, -3.49743E+00, 4)
+    TestCase().assertAlmostEqual(resulting_improvement, -7.25331E+00, 4)
 
 
 # Testing of design output

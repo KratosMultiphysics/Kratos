@@ -20,7 +20,7 @@
                         "solver_type": "LinearSolversApplication.sparse_lu"
                     }
                 },
-                "use_automatic_remeshing"     : false
+                "use_automatic_remeshing"     : true
             }
         },
         "objectives" : [{
@@ -45,7 +45,7 @@
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 4.0
+                "step_size"                  : 8.0
             }
         },
         "output" : {
@@ -53,11 +53,7 @@
             "nodal_results"      : [
                 "SHAPE_UPDATE",
                 "SHAPE_CHANGE",
-                "DF1DX",
-                "DF1DX_MAPPED",
-                "SEARCH_DIRECTION",
-                "CONTROL_POINT_UPDATE",
-                "CONTROL_POINT_CHANGE"
+                "DF1DX"
             ],
             "output_format" : {
                 "name": "vtk",
