@@ -35,26 +35,6 @@ class MonteCarloIndex:
                 instantiateObject(qoi_estimator_module[i], **qoi_estimator_module_args[i])
             )
 
-        # combined estimators
-        # TODO to be removed (see issue #23)
-        combined_estimator_module = keywordArgs.get("combinedEstimator", None)
-        combined_estimator_module_args = keywordArgs.get("combinedEstimatorInputDictionary")
-        if combined_estimator_module is not None:
-            warnings.warn(
-                (
-                    "combinedEstimator and combinedEstimatorInputDictionary are "
-                    "deprecated. Use qoiEstimator and qoiEstimatorInputDictionary "
-                    "instead. Retro-compatibility is ensured only until 2021-06."
-                ),
-                FutureWarning,
-            )
-            for i in range(len(combined_estimator_module)):
-                self.qoiEstimator.append(
-                    instantiateObject(
-                        combined_estimator_module[i], **combined_estimator_module_args[i]
-                    )
-                )
-
         sampler_input_dict = keywordArgs.get("samplerInputDictionary")
         sampler_input_dict["solverWrapperIndices"] = self.solverIndices()
         self.sampler = instantiateObject(keywordArgs.get("sampler"), **sampler_input_dict)

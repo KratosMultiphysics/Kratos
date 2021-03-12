@@ -196,8 +196,7 @@ public:
         this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
 
-    int Check(
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
@@ -391,16 +390,18 @@ private:
 
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                AdjointMonolithicWallCondition<TDim, TNumNodes>& rThis)
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    AdjointMonolithicWallCondition<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const AdjointMonolithicWallCondition<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const AdjointMonolithicWallCondition<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

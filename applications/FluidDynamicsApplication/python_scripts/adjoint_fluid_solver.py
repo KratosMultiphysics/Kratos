@@ -126,7 +126,7 @@ class AdjointFluidSolver(FluidSolver):
         elif response_type == "norm_square":
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.settings["response_function_settings"]["custom_settings"],
-                self.main_model_part)
+                self.model)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
@@ -142,21 +142,14 @@ class AdjointFluidSolver(FluidSolver):
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # the schemes used in fluid supports SLIP conditions which rotates element/condition
+        # matrices based on nodal NORMAL. Hence, the consistent adjoints also need to
+        # rotate adjoint element/condition matrices accordingly and to compute derivatives
+        # of rotation matrices as well. Therefore, following schemes are used.
         if (time_scheme_type == "steady"):
-            if domain_size == 2:
-                self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme2D()
-            elif domain_size == 3:
-                self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme3D()
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            self.sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme(domain_size, domain_size + 1)
         elif (time_scheme_type == "bossak"):
-            if domain_size == 2:
-                self.sensitivity_builder_scheme = KratosCFD.VelocityBossakSensitivityBuilderScheme2D(time_scheme_settings["alpha_bossak"].GetDouble())
-            elif domain_size == 3:
-                self.sensitivity_builder_scheme = KratosCFD.VelocityBossakSensitivityBuilderScheme3D(time_scheme_settings["alpha_bossak"].GetDouble())
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
-
+            self.sensitivity_builder_scheme = KratosCFD.VelocityBossakSensitivityBuilderScheme(time_scheme_settings["alpha_bossak"].GetDouble(), domain_size, domain_size + 1)
 
         sensitivity_builder = KratosMultiphysics.SensitivityBuilder(
             self.settings["sensitivity_settings"],

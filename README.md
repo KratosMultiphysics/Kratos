@@ -40,6 +40,28 @@ Some main modules are:
 - [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
+# Documentation
+Here you can find the basic documentation of the project:
+## Getting Started
+* Getting Kratos (Last compiled Release)
+    * [Kratos for Linux](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Linux)
+    * [Kratos for Windows](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Windows)
+    <!-- * [Kratos for Mac](https://github.com/KratosMultiphysics/Kratos/wiki/MacOS-install) -->
+    * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
+* Compiling Kratos
+    * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
+
+## Tutorials
+* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
+* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
+* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
+* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
+* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
+* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+
+## More documentation
+[Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
+
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
