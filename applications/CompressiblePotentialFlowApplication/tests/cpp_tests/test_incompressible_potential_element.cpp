@@ -210,7 +210,7 @@ namespace Kratos {
       }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedInompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedIncompressiblePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
