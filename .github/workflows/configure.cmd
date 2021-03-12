@@ -36,7 +36,7 @@ cmake                                                ^
   -G"Visual Studio 16 2019"                          ^
   -H"%KRATOS_SOURCE%"                                ^
   -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-  -DBOOST_ROOT="%TEMP\boost%"                        ^
+  -DBOOST_ROOT="$env:TEMP\boost"                        ^
   -DINSTALL_RUNKRATOS=OFF                            ^
   -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX"        ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
