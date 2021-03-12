@@ -170,9 +170,9 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFrac
         rPDParameters.StressVector, tension_parameter,compression_parameter);
 
     const bool has_symmetric_yield_stress = rMaterialProperties.Has(YIELD_STRESS);
-    const double yield_compression = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS] 
+    const double yield_compression = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS]
         : rMaterialProperties[YIELD_STRESS_COMPRESSION];
-    const double yield_tension = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS] 
+    const double yield_tension = has_symmetric_yield_stress ? rMaterialProperties[YIELD_STRESS]
         : rMaterialProperties[YIELD_STRESS_TENSION];
     const double n = yield_compression / yield_tension;
     const double fracture_energy_tension = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
@@ -277,7 +277,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
         CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
         rPDParameters.UniaxialStress, rPDParameters.PlasticStrain, 0.0, rValues, uniaxial_plastic_strain);
-    
+
     double tension_parameter, compression_parameter;
     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(
         rPDParameters.StressVector, tension_parameter,compression_parameter);
