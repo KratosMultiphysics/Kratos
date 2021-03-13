@@ -41,6 +41,7 @@ def AssembleTestSuites():
     smallSuite.addTest(FSICouplingInterfaceTest('test_fsi_coupling_interface'))
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithAitken'))
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQN'))
+    smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithIBNMVQN'))
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQNRecursive'))
     smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_constant_forces'))
     smallSuite.addTest(ConvergenceAcceleratorSpringTest('test_aitken_accelerator_variable_stiffness'))
