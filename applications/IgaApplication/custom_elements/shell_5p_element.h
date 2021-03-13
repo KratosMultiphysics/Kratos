@@ -32,7 +32,7 @@ protected:
         // covariant metric
         array_1d<double, 3> metricChange;
         array_1d<double, 3> curvature;
-        array_1d<double, 2> transShear; //shear 
+        array_1d<double, 2> transShear; //shear
 
         //base vectors current and reference
         BoundedVector<double, 3> a1;
@@ -121,7 +121,9 @@ public:
     typedef std::size_t IndexType;
 
     // GometryType
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
 
     ///@}
     ///@name Life Cycle
@@ -202,7 +204,7 @@ public:
 
         CalculateAll(left_hand_side_matrix, rRightHandSideVector,
             rCurrentProcessInfo, false, true);
-    } 
+    }
 
     /**
     * @brief This is called during the assembling process in order
@@ -376,9 +378,8 @@ private:
     /// Initialize Operations
     void InitializeMaterial();
 
-    void CalculateKinematics(
-        const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables, VariationVariables& rVariationVariables) const;
+    std::pair< Shell5pElement::KinematicVariables, Shell5pElement::VariationVariables>
+        CalculateKinematics(const IndexType IntegrationPointIndex) const;
 
     // Computes the cartesian derivatives from curvilinear ones
     Matrix CalculateCartesianDerivatives(
@@ -416,7 +417,13 @@ private:
     using Matrix23d = BoundedMatrix<double, 2, 3>;
 
 
+    /// Helper
     void CalculateSVKMaterialTangent() ;
+
+
+    template< typename ContainerType, typename VarType>
+    BoundedVector<double, 3> InterpolateVariable(const ContainerType& vec, const Kratos::Variable<VarType>& varType) const;
+
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
     private:

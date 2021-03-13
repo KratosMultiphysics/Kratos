@@ -16,7 +16,7 @@
 // Project includes
 // Application includes
 #include "custom_elements/shell_5p_element.h"
-
+#include <numeric>
 namespace Kratos
 {
 	///@name Initialize Functions
@@ -25,7 +25,7 @@ namespace Kratos
 	void Shell5pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-			const GeometryType& r_geometry = GetGeometry();
+		const GeometryType& r_geometry = GetGeometry();
 
 		const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
@@ -48,7 +48,7 @@ namespace Kratos
 		{
 			m_cart_deriv[point_number]= CalculateCartesianDerivatives(point_number );
 
-			CalculateKinematics(point_number, kinematic_variables, variation_variables);
+			std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number);
 
 			reference_Curvature[point_number] = kinematic_variables.curvature;
 			reference_TransShear[point_number] = kinematic_variables.transShear;
@@ -69,10 +69,10 @@ namespace Kratos
 		if (mConstitutiveLawVector.size() != r_number_of_integration_points)
 			mConstitutiveLawVector.resize(r_number_of_integration_points);
 
-		for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-			mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+		std::fill(mConstitutiveLawVector.begin(), mConstitutiveLawVector.end(), GetProperties()[CONSTITUTIVE_LAW]->Clone());
+
+		for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number)
 			mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
-		}
 
 		CalculateSVKMaterialTangent();
 		KRATOS_CATCH("");
@@ -81,24 +81,6 @@ namespace Kratos
 	///@}
 	///@name Assembly
 	///@{
-	void printToMaple(const Matrix& A)
-	{
-		std::cout << "<< ";
-		for (int z = 0; z < A.size1(); ++z)
-		{
-			for (int s = 0; s < A.size2(); ++s)
-			{
-				if (s < A.size2() - 1)
-					std::cout << A(z, s) << ", ";
-				else
-					std::cout << A(z, s);
-			}
-			if (z < A.size1() - 1)
-				std::cout << ">|<";
-			else
-				std::cout << ">>" << std::endl;
-		}
-	}
 
 	void Shell5pElement::CalculateAll(
 		MatrixType& rLeftHandSideMatrix,
@@ -121,7 +103,7 @@ namespace Kratos
 
 			KinematicVariables kinematic_variables;
 			VariationVariables variation_variables;
-			CalculateKinematics(point_number, kinematic_variables, variation_variables);
+			std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number);
 			// Create constitutive law parameters:
 			ConstitutiveLaw::Parameters constitutive_law_parameters(
 				GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -141,7 +123,7 @@ namespace Kratos
 			// LEFT HAND SIDE MATRIX
 			if (CalculateStiffnessMatrixFlag == true)
 			{
-				Matrix Kg =
+				const Matrix Kg =
 				CalculateGeometricStiffness(
 					point_number,
 					kinematic_variables,
@@ -160,23 +142,39 @@ namespace Kratos
 	///@name Kinematics
 	///@{
 
-	void Shell5pElement::CalculateKinematics(
-		const IndexType IntegrationPointIndex,
-		KinematicVariables& rKin,
-		VariationVariables& rVar
+	template< typename ContainerType, typename VarType>
+	BoundedVector<double, 3> Shell5pElement::InterpolateVariable(const ContainerType& vec, const Kratos::Variable<VarType>& varType) const
+	{
+		auto nodeValuesTimesAnsatzFunction = [&](double nodalVar, const NodeType& node )
+		{ return nodalVar * node.GetValue(varType); };
+		BoundedVector<double, 3> nullVec;
+		nullVec = ZeroVector(3);
+		return std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
+	}
+
+
+	std::pair< Shell5pElement::KinematicVariables, Shell5pElement::VariationVariables> Shell5pElement::CalculateKinematics(
+		const IndexType IntegrationPointIndex
 	) const
 	{
+		KinematicVariables rKin;
+		VariationVariables rVar;
 		rKin.setZero();
 		const SizeType number_of_nodes = GetGeometry().size();
+
+		rKin.t = InterpolateVariable(row(m_N, IntegrationPointIndex), DIRECTOR);
+		rKin.dtd1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), DIRECTOR);
+		rKin.dtd2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), DIRECTOR);
+		std::cout << "rKin.t: " << rKin.t << std::endl;
 		for (size_t i = 0; i < number_of_nodes; i++)
 		{
-			rKin.t    +=             m_N(IntegrationPointIndex, i) * GetGeometry()[i].GetValue(DIRECTOR);
-			rKin.dtd1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetValue(DIRECTOR);
-			rKin.dtd2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DIRECTOR);
+			//rKin.t    +=             m_N(IntegrationPointIndex, i) * GetGeometry()[i].GetValue(DIRECTOR);
+			//rKin.dtd1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetValue(DIRECTOR);
+		   // rKin.dtd2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DIRECTOR);
 			rKin.a1   += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].Coordinates();
 			rKin.a2   += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].Coordinates();
 			rKin.dud1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-			rKin.dud2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DISPLACEMENT);
+			rKin.dud2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 			rKin.A1   += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetInitialPosition();
 			rKin.A2   += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetInitialPosition();
 		}
@@ -224,6 +222,8 @@ namespace Kratos
 
 		rKin.transShear[0] = inner_prod(t, a1);
 		rKin.transShear[1] = inner_prod(t, a2);
+
+		return std::make_pair(rKin, rVar);
 	}
 
 	/* Transforms derivatives to obtain cartesian quantities  */
@@ -548,9 +548,7 @@ namespace Kratos
 		double st = (director[2] > 0) ? 1 : ((director[2] < 0) ? -1 : 1);
 		double s = 1 / (1 + fabs(director[2]));
 
-		array_1d<double, 2 > y;
-		y[0] = director[0] * s;
-		y[1] = director[1] * s;
+		array_1d<double, 2 > y(director[0] * s, director[1] * s);
 		const double ys1 = y[0] * y[0];
 		const double ys2 = y[1] * y[1];
 		const double s2 = 2 * (1 + ys1 + ys2);
@@ -587,34 +585,32 @@ namespace Kratos
 
 		if (compute_director) {
 			auto& r_parent_geometry = GetGeometry().GetGeometryParent(0);
-			for (int i = 0; i < GetGeometry().size(); i++)
+			for (auto& node: GetGeometry())
 			{
 				std::cout << "DIREKTORUPDATE" << std::endl;
-				const double normt =  GetGeometry()[i].GetValue(DIRECTORLENGTH);
-				array_1d<double, 3 > director = GetGeometry()[i].GetValue(DIRECTOR)/ normt;
+				const double normt = node.GetValue(DIRECTORLENGTH);
+				array_1d<double, 3 > director = node.GetValue(DIRECTOR)/ normt;
 
 				array_1d<double, 2 > inc2d;
-				inc2d[0] = GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC_X) / normt;
-				inc2d[1] = GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC_Y) / normt;
+				inc2d[0] = node.FastGetSolutionStepValue(DIRECTORINC_X) / normt;
+				inc2d[1] = node.FastGetSolutionStepValue(DIRECTORINC_Y) / normt;
 
-				const Matrix32d BLA = GetGeometry()[i].GetValue(DIRECTORTANGENTSPACE);
+				const Matrix32d BLA = node.GetValue(DIRECTORTANGENTSPACE);
 				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 				std::cout << "=========================" << std::endl;
-				std::cout << director << std::endl;
-				std::cout << normt << std::endl;
 				std::cout << inc2d << std::endl;
 				std::cout << inc3d << std::endl;
 				std::cout << "=========================" << std::endl;
 				director = director + inc3d;
 				director *= normt / norm_2(director);
 
-				GetGeometry()[i].SetValue(DIRECTOR, director);
-				GetGeometry()[i].SetValue(DIRECTORINC_X, 0);
-				GetGeometry()[i].SetValue(DIRECTORINC_Y, 0);
-				GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC_X) = 0.0;
-				GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC_Y) = 0.0;
-				std::cout << "incAfterReset: " << GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC_X) << " " << GetGeometry()[i].FastGetSolutionStepValue(DIRECTORINC_Y) << std::endl;
-				GetGeometry()[i].SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
+				node.SetValue(DIRECTOR, director);
+				node.SetValue(DIRECTORINC_X, 0);
+				node.SetValue(DIRECTORINC_Y, 0);
+				node.FastGetSolutionStepValue(DIRECTORINC_X) = 0.0;
+				node.FastGetSolutionStepValue(DIRECTORINC_Y) = 0.0;
+				std::cout << "incAfterReset: " << node.FastGetSolutionStepValue(DIRECTORINC_X) << " " << node.FastGetSolutionStepValue(DIRECTORINC_Y) << std::endl;
+				node.SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
 			}
 		}
 	}
