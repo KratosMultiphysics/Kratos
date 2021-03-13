@@ -168,14 +168,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-    py::class_<GenericFunctionUtility,  GenericFunctionUtility::Pointer >(m,"GenericFunctionUtility")
+    py::class_<BasicGenericFunctionUtility,  BasicGenericFunctionUtility::Pointer >(m,"BasicGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def("UseLocalSystem", &BasicGenericFunctionUtility::UseLocalSystem)
+        .def("DependsOnSpace", &BasicGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &BasicGenericFunctionUtility::FunctionBody)
+        .def("RotateAndCallFunction", &BasicGenericFunctionUtility::RotateAndCallFunction)
+        .def("CallFunction", &BasicGenericFunctionUtility::CallFunction)
+        ;
+
+    py::class_<GenericFunctionUtility,  GenericFunctionUtility::Pointer, BasicGenericFunctionUtility >(m,"GenericFunctionUtility")
         .def(py::init<const std::string&>() )
         .def(py::init<const std::string&, Parameters>())
-        .def("UseLocalSystem", &GenericFunctionUtility::UseLocalSystem)
-        .def("DependsOnSpace", &GenericFunctionUtility::DependsOnSpace)
-        .def("FunctionBody", &GenericFunctionUtility::FunctionBody)
-        .def("RotateAndCallFunction", &GenericFunctionUtility::RotateAndCallFunction)
-        .def("CallFunction", &GenericFunctionUtility::CallFunction)
         ;
 
     // NOTE: This is a legacy function
