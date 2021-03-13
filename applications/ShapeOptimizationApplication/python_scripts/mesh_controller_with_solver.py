@@ -21,9 +21,14 @@ from KratosMultiphysics.ShapeOptimizationApplication.mesh_controller_base import
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 try:
-    from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess as automatic_mesh_refinement_process
-except ImportError:
-    automatic_mesh_refinement_process = None
+    import KratosMultiphysics.MeshingApplication as KMA
+    from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess as automatic_remeshing_process
+    if not hasattr(KMA, "MmgProcess2D"):
+        automatic_remeshing_process = None
+        automatic_remeshing_error_msg = "MeshingApplication is not compiled with '-DINCLUDE_MMG=ON'"
+except ImportError as err:
+    automatic_remeshing_process = None
+    automatic_remeshing_error_msg = str(err)
 
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
@@ -53,14 +58,26 @@ class MeshControllerWithSolver(MeshController) :
                     "tolerance": 1e-7
                 },
                 "compute_reactions"                : false,
-                "calculate_mesh_velocity"          : false,
-                "reinitialize_model_part_each_step": false
+                "calculate_mesh_velocity"          : false
             },
             "processes" : {
                 "boundary_conditions_process_list" : []
             },
             "use_automatic_remeshing"     : false,
-            "automatic_remeshing_settings": {}
+            "automatic_remeshing_settings": {
+                "strategy"        : "optimization",
+                "step_frequency"  : 1,
+                "automatic_remesh": true,
+                "automatic_remesh_parameters": {
+                    "automatic_remesh_type": "Ratio",
+                    "min_size_ratio": 1.0,
+                    "max_size_ratio": 5.0,
+                    "refer_type"    : "Mean"
+                },
+                "echo_level": 0,
+                "force_min" : true,
+                "force_max" : true
+            }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
@@ -84,22 +101,19 @@ class MeshControllerWithSolver(MeshController) :
         else:
             self.has_automatic_boundary_process = False
 
-        self.is_mesh_refinement_used = self.MeshSolverSettings["use_automatic_remeshing"].GetBool()
-        if (self.is_mesh_refinement_used):
-            automatic_mesh_refinement_process_settings = self.MeshSolverSettings["automatic_remeshing_settings"]
-            if (automatic_mesh_refinement_process is None):
-                raise RuntimeError("Automatic mesh refinement requires MeshingApplication. Please compile/install it.")
+        self.is_remeshing_used = self.MeshSolverSettings["use_automatic_remeshing"].GetBool()
+        if (self.is_remeshing_used):
+            automatic_remeshing_process_settings = self.MeshSolverSettings["automatic_remeshing_settings"]
+            if (automatic_remeshing_process is None):
+                raise RuntimeError("Automatic remeshing requires to import MeshingApplication. Importing failed with following error msg.\n\t" + automatic_remeshing_error_msg)
 
-            self.__CheckAndSetAutomaticMeshRefinementSettings(automatic_mesh_refinement_process_settings)
-            self.mesh_refinement_process = automatic_mesh_refinement_process(model, automatic_mesh_refinement_process_settings)
+            self.__CheckAndSetAutomaticMeshRefinementSettings(automatic_remeshing_process_settings)
+            self.remeshing_process = automatic_remeshing_process(model, automatic_remeshing_process_settings)
 
-            # here we set mesh movement solving strategy to reinitialize after each step to support automatic mesh refinement
-            if (self.MeshSolverSettings["solver_settings"].Has("reinitialize_model_part_each_step")):
-                self.MeshSolverSettings["solver_settings"]["reinitialize_model_part_each_step"].SetBool(True)
-            else:
-                self.MeshSolverSettings["solver_settings"].AddBool("reinitialize_model_part_each_step", True)
+            # remeshing requires to reinitialize the model_part of the mesh solver
+            self.MeshSolverSettings["solver_settings"].AddBool("reinitialize_model_part_each_step", True)
 
-            KM.Logger.PrintInfo("ShapeOpt", "Initialized automatic mesh refinement process")
+            KM.Logger.PrintInfo("ShapeOpt", "Initialized automatic automatic remeshing process")
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
@@ -109,8 +123,8 @@ class MeshControllerWithSolver(MeshController) :
             KSO.GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
 
         self._mesh_moving_analysis.Initialize()
-        if self.is_mesh_refinement_used:
-            self.mesh_refinement_process.ExecuteInitialize()
+        if self.is_remeshing_used:
+            self.remeshing_process.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, variable):
@@ -129,14 +143,18 @@ class MeshControllerWithSolver(MeshController) :
 
         KM.VariableUtils().CopyVectorVar(variable, KM.MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
+        if self.has_automatic_boundary_process and self.is_remeshing_used:
+            self.OptimizationModelPart.GetSubModelPart("auto_surface_nodes").GetNodes().clear()
+            KSO.GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
+
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
         self._mesh_moving_analysis.RunSolutionLoop()
 
-        if self.is_mesh_refinement_used:
+        if self.is_remeshing_used:
             self.OptimizationModelPart.Set(KM.MODIFIED, False)
-            self.mesh_refinement_process.ExecuteInitializeSolutionStep()
-            self.mesh_refinement_process.ExecuteFinalizeSolutionStep()
+            self.remeshing_process.ExecuteInitializeSolutionStep()
+            self.remeshing_process.ExecuteFinalizeSolutionStep()
 
         KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(KM.MESH_DISPLACEMENT)
 
@@ -150,8 +168,8 @@ class MeshControllerWithSolver(MeshController) :
     def Finalize(self):
         self._mesh_moving_analysis.Finalize()
 
-        if self.is_mesh_refinement_used:
-            self.mesh_refinement_process.ExecuteFinalize()
+        if self.is_remeshing_used:
+            self.remeshing_process.ExecuteFinalize()
 
     # --------------------------------------------------------------------------
     @staticmethod
@@ -192,28 +210,28 @@ class MeshControllerWithSolver(MeshController) :
     def __CheckAndSetAutomaticMeshRefinementSettings(self, parameters):
         if (parameters.Has("interpolate_nodal_values")):
             if (parameters["interpolate_nodal_values"].GetBool()):
-                KM.Logger.PrintWarning("ShapeOpt", "Historical value interpolation is not allowed in automatic mesh refinement. Turning it off.")
+                KM.Logger.PrintWarning("ShapeOpt", "Historical value interpolation is not allowed in automatic remeshing. Turning it off.")
             parameters["interpolate_nodal_values"].SetBool(False)
         else:
             parameters.AddBool("interpolate_nodal_values", False)
 
         if (parameters.Has("interpolate_non_historical")):
             if (parameters["interpolate_non_historical"].GetBool()):
-                KM.Logger.PrintWarning("ShapeOpt", "Non-historical value interpolation is not allowed in automatic mesh refinement. Turning it off.")
+                KM.Logger.PrintWarning("ShapeOpt", "Non-historical value interpolation is not allowed in automatic remeshing. Turning it off.")
             parameters["interpolate_non_historical"].SetBool(False)
         else:
             parameters.AddBool("interpolate_non_historical", False)
 
         if (parameters.Has("extrapolate_contour_values")):
             if (parameters["extrapolate_contour_values"].GetBool()):
-                KM.Logger.PrintWarning("ShapeOpt", "Value extrapolation is not allowed in automatic mesh refinement. Turning it off.")
+                KM.Logger.PrintWarning("ShapeOpt", "Value extrapolation is not allowed in automatic remeshing. Turning it off.")
             parameters["extrapolate_contour_values"].SetBool(False)
         else:
             parameters.AddBool("extrapolate_contour_values", False)
 
         if (parameters.Has("model_part_name")):
             if (parameters["model_part_name"].GetString() != self.OptimizationModelPart.Name):
-                KM.Logger.PrintWarning("ShapeOpt", "Mismatching model part name provided for automatic mesh refinement [ " + parameters["model_part_name"].GetString() + " ]. Using the optimization model part [ " + self.OptimizationModelPart.Name + " ].")
+                KM.Logger.PrintWarning("ShapeOpt", "Mismatching model part name provided for automatic remeshing [ " + parameters["model_part_name"].GetString() + " ]. Using the optimization model part [ " + self.OptimizationModelPart.Name + " ].")
             parameters["model_part_name"].SetString(self.OptimizationModelPart.Name)
         else:
             parameters.AddString("model_part_name", self.OptimizationModelPart.Name)

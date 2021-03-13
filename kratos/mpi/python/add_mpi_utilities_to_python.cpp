@@ -51,10 +51,8 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     .def_static("SetMPICommunicator",&ModelPartCommunicatorUtilities::SetMPICommunicator)
     ;
 
-    py::class_<ParallelFillCommunicator >(m,"ParallelFillCommunicator")
+    py::class_<ParallelFillCommunicator, ParallelFillCommunicator::Pointer, FillCommunicator>(m,"ParallelFillCommunicator")
     .def(py::init<ModelPart& >() )
-    .def("Execute", &ParallelFillCommunicator::Execute )
-    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
     ;
 
     m.def_submodule("DataCommunicatorFactory")

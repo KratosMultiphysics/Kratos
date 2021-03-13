@@ -567,9 +567,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def ProcessAnalyticData(self):
         self._GetDEMAnalysis().WriteAnalyticDataToFileAndClear()
 
-    def SetInletWatcher(self):
-        self.watcher_analyser.SetInlet(self.DEM_inlet)
-
     def TellTime(self):
         Say('DEM time: ', str(self.time) + ', step: ', self.step)
         Say('fluid time: ', str(self._GetSolver().next_time_to_solve_fluid) + ', step: ', self._GetSolver().fluid_step)

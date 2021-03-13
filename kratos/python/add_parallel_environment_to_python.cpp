@@ -37,6 +37,7 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
     .def_static("GetDefaultSize",&ParallelEnvironment::GetDefaultSize)
     .def_static("HasDataCommunicator",&ParallelEnvironment::HasDataCommunicator)
     .def_static("GetDefaultDataCommunicatorName",&ParallelEnvironment::GetDefaultDataCommunicatorName)
+    .def_static("CreateFillCommunicator", &ParallelEnvironment::CreateFillCommunicator)
     .def_static("Info", []() {
         std::stringstream ss;
         ParallelEnvironment::PrintInfo(ss);
