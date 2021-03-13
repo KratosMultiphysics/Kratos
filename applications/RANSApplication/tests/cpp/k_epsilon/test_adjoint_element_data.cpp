@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilonEpsilonElementDataEpsilonDerivative, KratosRan
     AdjointTestUtilities::RunElementDataDerivativeTest<
         KEpsilonElementData::EpsilonElementData<2>, KEpsilonElementData::EpsilonElementDataDerivatives<2, 3>::EpsilonDerivative>(
         model, KEpsilonAddVariables, KEpsilonSetVariables,
-        KEpsilonSetProperties, KEpsilonUpdateVariables, 2, 1e-4, 1e-5);
+        KEpsilonSetProperties, KEpsilonUpdateVariables, 2, 1e-4, 1e-4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilonEpsilonElementDataShapeDerivative, KratosRansFastSuite)
