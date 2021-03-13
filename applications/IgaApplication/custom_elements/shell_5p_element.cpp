@@ -142,17 +142,6 @@ namespace Kratos
 	///@name Kinematics
 	///@{
 
-	template< typename ContainerType, typename VarType>
-	BoundedVector<double, 3> Shell5pElement::InterpolateVariable(const ContainerType& vec, const Kratos::Variable<VarType>& varType) const
-	{
-		auto nodeValuesTimesAnsatzFunction = [&](double nodalVar, const NodeType& node )
-		{ return nodalVar * node.GetValue(varType); };
-		BoundedVector<double, 3> nullVec;
-		nullVec = ZeroVector(3);
-		return std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
-	}
-
-
 	std::pair< Shell5pElement::KinematicVariables, Shell5pElement::VariationVariables> Shell5pElement::CalculateKinematics(
 		const IndexType IntegrationPointIndex
 	) const
@@ -162,22 +151,15 @@ namespace Kratos
 		rKin.setZero();
 		const SizeType number_of_nodes = GetGeometry().size();
 
-		rKin.t = InterpolateVariable(row(m_N, IntegrationPointIndex), DIRECTOR);
-		rKin.dtd1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), DIRECTOR);
-		rKin.dtd2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), DIRECTOR);
-		std::cout << "rKin.t: " << rKin.t << std::endl;
-		for (size_t i = 0; i < number_of_nodes; i++)
-		{
-			//rKin.t    +=             m_N(IntegrationPointIndex, i) * GetGeometry()[i].GetValue(DIRECTOR);
-			//rKin.dtd1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetValue(DIRECTOR);
-		   // rKin.dtd2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetValue(DIRECTOR);
-			rKin.a1   += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].Coordinates();
-			rKin.a2   += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].Coordinates();
-			rKin.dud1 += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-			rKin.dud2 += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-			rKin.A1   += m_cart_deriv[IntegrationPointIndex](0, i) * GetGeometry()[i].GetInitialPosition();
-			rKin.A2   += m_cart_deriv[IntegrationPointIndex](1, i) * GetGeometry()[i].GetInitialPosition();
-		}
+		rKin.t    = InterpolateVariable(row(m_N, IntegrationPointIndex)            , m_GetValueFunctor, DIRECTOR);
+		rKin.dtd1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetValueFunctor, DIRECTOR);
+		rKin.dtd2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetValueFunctor, DIRECTOR);
+		rKin.a1   = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetCoordinatesFunctor);
+		rKin.a2   = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetCoordinatesFunctor);
+		rKin.A1   = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetInitialPositionFunctor);
+		rKin.A2   = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetInitialPositionFunctor);
+		rKin.dud1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
+		rKin.dud2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
 
 		double invL_t = 1.0 / norm_2(rKin.t);
 		rKin.t *= invL_t;
@@ -347,7 +329,6 @@ namespace Kratos
 
 		Matrix Kg{ ZeroMatrix(num_dof, num_dof) };
 		const array_1d<double, 8>& S = rConstitutive.StressVector;
-		std::cout << "Stress: " << S << std::endl;
 
 		const Matrix3d chiAndSfac = ractVar.Chi11 * S[3] + ractVar.Chi22 * S[4] + (ractVar.Chi12 + ractVar.Chi21) * S[5]  //S[3..5] are moments
 		                                                                         + ractVar.S1 * S[6] + ractVar.S2 * S[7]; //S[6..7] is transverse shear
@@ -382,8 +363,6 @@ namespace Kratos
 				Matrix3d Temp = S[3] * dN1i * WJ1 + S[4] * dN2i * WJ2 + S[5] * (dN1i * WJ2 + dN2i * WJ1); // bending_{,dir,disp}*M
 				Temp += ractVar.P * Nj * (dN1i * S[6] + dN2i * S[7]);  // shear_{,dir,disp}*Q
 
-				noalias(subrange(Kg, i4, i4 + 3, j4, j4 + 2)) = prod(Temp, BLAJ);
-
 				noalias(subrange(Kg, i1, i1 + 3, j4, j4 + 2)) = prod(Temp, BLAJ);
 				Temp = S[3] * dN1j * WI1 + S[4] * dN2j * WI2 + S[5] * (dN1j * WI2 + dN2j * WI1); // bending_{,disp,dir}*M
 
@@ -396,7 +375,7 @@ namespace Kratos
 				Temp = Ni * Nj * chiAndSfac;  // shear_{,dir,dir}*Q + bending_{,dir,dir}*M
 				Temp += ractVar.S1 * NdN1 * S[3] + ractVar.S2 * NdN2 * S[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * S[5];  // bending_{,dir,dir}*M
 
-				const Matrix23d Temp2 = prod(BLAI_T, Temp); //useless temp due to ublas prodprod
+				const Matrix23d Temp2 = prod(BLAI_T, Temp); //useless temp due to nonworking ublas prod(prod())
 				noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) = prod(Temp2, BLAJ);
 			}
 			const double kgT = -inner_prod(r_geometry[i].GetValue(DIRECTOR),
@@ -522,6 +501,16 @@ namespace Kratos
 		KRATOS_CATCH("")
 	};
 
+	template< typename ContainerType, typename NodeFunctor, typename ...Args>
+	BoundedVector<double, 3> Shell5pElement::InterpolateVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const
+	{
+		auto nodeValuesTimesAnsatzFunction = [&](double nodalVar, const NodeType& node)
+		{ return nodalVar * (node.*funct)(args...); };
+		BoundedVector<double, 3> nullVec;
+		nullVec = ZeroVector(3);
+		return std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
+	}
+
 	void Shell5pElement::CalculateSVKMaterialTangent(	)
 	{
 		const double nu = this->GetProperties()[POISSON_RATIO];
@@ -587,7 +576,6 @@ namespace Kratos
 			auto& r_parent_geometry = GetGeometry().GetGeometryParent(0);
 			for (auto& node: GetGeometry())
 			{
-				std::cout << "DIREKTORUPDATE" << std::endl;
 				const double normt = node.GetValue(DIRECTORLENGTH);
 				array_1d<double, 3 > director = node.GetValue(DIRECTOR)/ normt;
 
@@ -597,10 +585,7 @@ namespace Kratos
 
 				const Matrix32d BLA = node.GetValue(DIRECTORTANGENTSPACE);
 				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
-				std::cout << "=========================" << std::endl;
-				std::cout << inc2d << std::endl;
-				std::cout << inc3d << std::endl;
-				std::cout << "=========================" << std::endl;
+
 				director = director + inc3d;
 				director *= normt / norm_2(director);
 
@@ -609,7 +594,6 @@ namespace Kratos
 				node.SetValue(DIRECTORINC_Y, 0);
 				node.FastGetSolutionStepValue(DIRECTORINC_X) = 0.0;
 				node.FastGetSolutionStepValue(DIRECTORINC_Y) = 0.0;
-				std::cout << "incAfterReset: " << node.FastGetSolutionStepValue(DIRECTORINC_X) << " " << node.FastGetSolutionStepValue(DIRECTORINC_Y) << std::endl;
 				node.SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
 			}
 		}

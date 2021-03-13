@@ -353,6 +353,11 @@ private:
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector;
 
+    Kratos::Variable<Vector>::Type const& (NodeType::*m_GetValueFunctor)(const Kratos::Variable<Vector >&) const = &NodeType::GetValue;
+    Kratos::Variable<array_1d<double, 3>>::Type const& (NodeType::*m_FastGetSolutionStepValueFunctor)(const Kratos::Variable<array_1d<double,3> >&) const = &NodeType::FastGetSolutionStepValue;
+    NodeType::PointType::CoordinatesArrayType const& (NodeType::* m_GetCoordinatesFunctor)() const = &NodeType::Coordinates;
+    NodeType::PointType const& (NodeType::* m_GetInitialPositionFunctor)() const = &NodeType::GetInitialPosition;
+
     // Transformed curvilinear derivatives into cartesian derivatives/
     std::vector<Matrix> m_cart_deriv;
 
@@ -421,8 +426,8 @@ private:
     void CalculateSVKMaterialTangent() ;
 
 
-    template< typename ContainerType, typename VarType>
-    BoundedVector<double, 3> InterpolateVariable(const ContainerType& vec, const Kratos::Variable<VarType>& varType) const;
+    template< typename ContainerType, typename NodeFunctor, typename ...Args>
+    BoundedVector<double, 3> InterpolateVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
 
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
