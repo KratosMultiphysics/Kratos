@@ -194,7 +194,7 @@ KElementDataDerivatives<TDim, TNumNodes>::UDerivative::UDerivative(
         }
     }
 
-    t_derivative *= (1.414 / this->mrData.mT);
+    t_derivative *= (1.414 * 1.414 / this->mrData.mT);
 
     const double f2_derivative = KOmegaSSTElementData::AdjointUtilities<TDim>::CalculateF2Derivative(
         mrData.mTurbulentKineticEnergy, 0.0, mrData.mTurbulentSpecificEnergyDissipationRate,
@@ -508,7 +508,7 @@ KElementDataDerivatives<TDim, TNumNodes>::ShapeDerivative::ShapeDerivative(
         }
     }
 
-    t_derivative *= (1.414 / this->mrData.mT);
+    t_derivative *= (1.414 * 1.414  / this->mrData.mT);
 
     // TODO: Calculate wall distance derivatives also
     const double f2_derivative = KOmegaSSTElementData::AdjointUtilities<TDim>::CalculateF2Derivative(
