@@ -19,6 +19,7 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_5p_hierarchic_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -27,6 +28,7 @@
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
+#include "custom_modelers/nurbs_geometry_modeler.h"
 
 namespace Kratos {
 
@@ -101,6 +103,7 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
+    const Shell5pHierarchicElement mShell5pHierarchicElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -109,6 +112,7 @@ private:
 
     // Modelers
     const IgaModeler mIgaModeler;
+    const NurbsGeometryModeler mNurbsGeometryModeler;
 
     ///@}
     ///@name Private methods

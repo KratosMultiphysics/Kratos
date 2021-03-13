@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Pointer definition of TransientConvectionDiffusionPFEM2FICElement
-    KRATOS_CLASS_POINTER_DEFINITION(TransientConvectionDiffusionPFEM2FICElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientConvectionDiffusionPFEM2FICElement);
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;

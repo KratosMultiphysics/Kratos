@@ -107,8 +107,8 @@ protected:
     ///@{
 
     // Arrays to get edge and node IDs of geometry from edge ID of splitting utility
-    const std::array<size_t, 3> edge_id_for_geometry = {{2, 0, 1}};
-    const std::array<std::array<size_t,2>, 3> node_ids_for_geometry = {{{0,1}, {1,2}, {2,0}}};
+    const std::array<size_t, 3> edge_id_for_geometry {{2, 0, 1}};
+    const std::array<std::array<size_t,2>, 3> node_ids_for_geometry {{{{0,1}}, {{1,2}}, {{2,0}}}};
 
     ///@}
     ///@name Protected Operators
