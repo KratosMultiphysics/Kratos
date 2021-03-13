@@ -27,6 +27,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.h"
+#include "custom_utilities/fluid_adjoint_variable_information.h"
 
 namespace Kratos
 {
@@ -45,6 +46,8 @@ public:
     using GeometryType = Geometry<NodeType>;
 
     using IndexType = std::size_t;
+
+    using AdjointVariableInformationType = AdjointVariableInformation::VariableInformation<TDim>;
 
     ///@}
     ///@name Classes
@@ -98,6 +101,110 @@ public:
         void CalculateStrainRateDerivative(
             Vector& rOutput,
             const Matrix& rNodalVelocity) const;
+
+        ///@}
+    };
+
+    /**
+     * @brief This class is used with k-omega-sst adjoints
+     *
+     * k-omega-sst turbulence model calculate nu_t using tke, omega, and velocity_gradient.
+     * Therefore, in the case of the derivative w.r.t. VELOCITY, we need to calculate
+     * velocity_gradient derivatives as well. Then QSVMSDerivatives will apply chain rule
+     * to computed velocity_gradient derivatives to convert them to velocity derivatives.
+     *
+     * @tparam TNumNodes
+     */
+    template<unsigned int TNumNodes>
+    class KOmegaSSTVelocityDerivative : public QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>
+    {
+    public:
+        /// name@ Type Definitions
+        ///@{
+
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>;
+
+        static constexpr double VelocityDerivativeFactor = 1.0;
+
+        static constexpr double PressureDerivativeFactor = 0.0;
+
+        static constexpr unsigned int TDerivativeDimension = TDim;
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        KOmegaSSTVelocityDerivative(
+            const IndexType NodeIndex,
+            const IndexType DirectionIndex,
+            const GeometryType& rGeometry,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX,
+            const double WDerivative,
+            const double DetJDerivative,
+            const Matrix& rdNdXDerivative)
+            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+        {
+        }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        std::vector<AdjointVariableInformationType> GetEffectiveViscosityDependentVariables() const;
+
+        ///@}
+    };
+
+    /**
+     * @brief This class is used with k-omega-sst adjoints
+     *
+     * k-omega-sst turbulence model calculate nu_t using tke, omega, and velocity_gradient.
+     * Therefore, in the case of the derivative w.r.t. VELOCITY, we need to calculate
+     * velocity_gradient derivatives as well. Then QSVMSDerivatives will apply chain rule
+     * to computed velocity_gradient derivatives to convert them to velocity derivatives.
+     *
+     * @tparam TNumNodes
+     */
+    template<unsigned int TNumNodes>
+    class KOmegaSSTShapeDerivative : public QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>
+    {
+    public:
+        /// name@ Type Definitions
+        ///@{
+
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>;
+
+        static constexpr double VelocityDerivativeFactor = 0.0;
+
+        static constexpr double PressureDerivativeFactor = 0.0;
+
+        static constexpr unsigned int TDerivativeDimension = TDim;
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        KOmegaSSTShapeDerivative(
+            const IndexType NodeIndex,
+            const IndexType DirectionIndex,
+            const GeometryType& rGeometry,
+            const double W,
+            const Vector& rN,
+            const Matrix& rdNdX,
+            const double WDerivative,
+            const double DetJDerivative,
+            const Matrix& rdNdXDerivative)
+            : BaseType(NodeIndex, DirectionIndex, rGeometry, W, rN, rdNdX, WDerivative, DetJDerivative, rdNdXDerivative)
+        {
+        }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        std::vector<AdjointVariableInformationType> GetEffectiveViscosityDependentVariables() const;
 
         ///@}
     };
