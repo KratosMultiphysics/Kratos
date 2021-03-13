@@ -133,6 +133,13 @@ double CalculateGamma(
     return Beta / BetaStar - Sigma * std::pow(Kappa, 2) / std::sqrt(BetaStar);
 }
 
+template<unsigned int TDim>
+double CalculateVorticityNorm(const BoundedMatrix<double, TDim, TDim>& rVelocityGradient)
+{
+    const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+        (rVelocityGradient + trans(rVelocityGradient)) * 0.5;
+    return norm_frobenius(symmetric_velocity_gradient) * 1.414;
+}
 
 double CalculateArg1(
     const double BetaStar,
@@ -166,6 +173,9 @@ double CalculateArg3(
 
 template double CalculateCrossDiffusionTerm<2>(const double, const double, const array_1d<double, 2>&, const array_1d<double, 2>&);
 template double CalculateCrossDiffusionTerm<3>(const double, const double, const array_1d<double, 3>&, const array_1d<double, 3>&);
+
+template double CalculateVorticityNorm<2>(const BoundedMatrix<double, 2, 2>&);
+template double CalculateVorticityNorm<3>(const BoundedMatrix<double, 3, 3>&);
 
 } // namespace KOmegaSSTElementData
 

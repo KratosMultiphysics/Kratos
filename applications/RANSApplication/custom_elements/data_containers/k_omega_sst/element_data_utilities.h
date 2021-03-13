@@ -69,6 +69,8 @@ double CalculateGamma(
     const double Sigma,
     const double Kappa);
 
+template<unsigned int TDim>
+double CalculateVorticityNorm(const BoundedMatrix<double, TDim, TDim>& rVelocityGradient);
 
 double CalculateArg1(
     const double BetaStar,
