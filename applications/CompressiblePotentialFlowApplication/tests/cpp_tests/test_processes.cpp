@@ -151,8 +151,8 @@ namespace Kratos {
       std::vector<std::size_t> elemNodes{ 1, 2, 3 };
       model_part.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 
-      Element::Pointer pElement = model_part.pGetElement(1);
-      pElement -> Set(ACTIVE);
+      Element::Pointer p_element = model_part.pGetElement(1);
+      p_element -> Set(ACTIVE);
 
       // Define the nodal values
       std::array<double,3> potential;
@@ -167,10 +167,10 @@ namespace Kratos {
 
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i];
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i];
 
       Vector resultant_force(3);
       ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
@@ -203,7 +203,7 @@ namespace Kratos {
       model_part.CreateNewProperties(0);
       Properties::Pointer pElemProp = model_part.pGetProperties(0);
       std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
-      ModelPart::ElementType::Pointer pElement = model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+      ModelPart::ElementType::Pointer p_element = model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 
       // Create body sub_model_part
       ModelPart& body_model_part = model_part.CreateSubModelPart("body_model_part");
@@ -218,7 +218,7 @@ namespace Kratos {
       // Execute the Define2DWakeProcess
       Define2DWakeProcess.ExecuteInitialize();
 
-      const int wake = pElement->GetValue(WAKE);
+      const int wake = p_element->GetValue(WAKE);
       KRATOS_CHECK_NEAR(wake, 1, 1e-6);
     }
 

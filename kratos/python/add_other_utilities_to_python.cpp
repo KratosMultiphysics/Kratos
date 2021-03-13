@@ -23,6 +23,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
+#include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
 
 //Other utilities
@@ -599,6 +600,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Clear", &FileNameDataCollector::FileNameData::Clear)
         .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
+
+    py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
+        .def(py::init<ModelPart& >() )
+        .def("Execute", &FillCommunicator::Execute)
+        .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
+    ;
 }
 
 } // namespace Python.

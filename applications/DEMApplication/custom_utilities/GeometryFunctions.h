@@ -1315,6 +1315,20 @@ namespace Kratos {
         return false;
     }//VertexCheck
 
+
+    static inline bool FastVertexCheck(const array_1d<double,3>& Coord, const array_1d<double,3>& Particle_Coord, double Radius)
+    {
+        double dist_sq = 0.0;
+        array_1d<double, 3> normal_v;
+        for (unsigned int j = 0; j < 3; j++)
+        {
+            normal_v[j] = Particle_Coord[j] - Coord[j];
+            dist_sq += normal_v[j] * normal_v[j];
+        }
+        if (dist_sq <= Radius * Radius) return true;
+        return false;
+    }//FastVertexCheck
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////******The four Functions BELOW are used to calculate the weight coefficient for quadrilateral*******///////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -40,7 +40,7 @@ namespace Kratos
 namespace
 {
 namespace test_solid_static_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 using SparseSpaceType = TUblasSparseSpace<double>;
 using LocalSpaceType = TUblasDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensit
 namespace
 {
 namespace test_solid_static_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {
     Parameters params{R"({"traced_dof": "DISPLACEMENT", "direction": [0.0,1.0,0.0], "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
