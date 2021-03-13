@@ -292,6 +292,7 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::Data::CalculateGaussPointData(
     // Ask Ruben: Why not (Velocity - MeshVelocity) in here?
     derivative_utilities::CalculateStrainRate(mStrainRate, mNodalVelocity, rdNdX);
     mConstitutiveLawValues.SetShapeFunctionsValues(rN);
+    mConstitutiveLawValues.SetShapeFunctionsDerivatives(rdNdX);
 
     // ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     // this is ok under the hypothesis that no history dependent behavior is employed
