@@ -312,8 +312,6 @@ namespace Kratos
              lift+=traction_vector_aux[1]+traction_vector_aux[4]+traction_vector_aux[7];
                
              }
-             
-             
 
              }
             }
