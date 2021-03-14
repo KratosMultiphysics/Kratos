@@ -79,8 +79,8 @@ class LiftToDrag(ResponseFunctionInterface):
     def Initialize(self):
         pass
 
-    def SetEvaluationModelPart(self, OptimizationModelPart):
-        self.optimization_model_part = OptimizationModelPart
+    def UpdateDesign(self, updated_model_part, variable):
+        self.updated_model_part = updated_model_part
 
     def InitializeSolutionStep(self):
         self.lift = None
@@ -92,7 +92,7 @@ class LiftToDrag(ResponseFunctionInterface):
         LiftToDrag._RecursiveCopy(str(self.problem_setup_folder), ".")
 
         # write the new shape mdpa
-        Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.optimization_model_part)
+        Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.updated_model_part)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed to copy data = ",round(timer.time() - startTime,2),"s")
 
