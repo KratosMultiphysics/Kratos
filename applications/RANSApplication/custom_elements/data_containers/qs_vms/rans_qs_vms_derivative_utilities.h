@@ -116,13 +116,13 @@ public:
      * @tparam TNumNodes
      */
     template<unsigned int TNumNodes>
-    class KOmegaSSTVelocityDerivative : public QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>
+    class KOmegaSSTVelocityDerivative : public QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = typename QSVMSDerivativeUtilities<TDim>::VelocityDerivative<TNumNodes>;
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template VelocityDerivative<TNumNodes>;
 
         static constexpr double VelocityDerivativeFactor = 1.0;
 
@@ -168,13 +168,13 @@ public:
      * @tparam TNumNodes
      */
     template<unsigned int TNumNodes>
-    class KOmegaSSTShapeDerivative : public QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>
+    class KOmegaSSTShapeDerivative : public QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>
     {
     public:
         /// name@ Type Definitions
         ///@{
 
-        using BaseType = typename QSVMSDerivativeUtilities<TDim>::ShapeDerivative<TNumNodes>;
+        using BaseType = typename QSVMSDerivativeUtilities<TDim>::template ShapeDerivative<TNumNodes>;
 
         static constexpr double VelocityDerivativeFactor = 0.0;
 
