@@ -91,7 +91,8 @@
 // k-omega condition data containers
 #include "custom_conditions/data_containers/k_omega/vms_monolithic_kk_based_omega_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/vms_monolithic_ku_based_omega_wall_condition_data.h"
-
+// k-omega-sst condition data containers
+#include "custom_conditions/data_containers/k_omega_sst/vms_monolithic_kk_based_omega_wall_condition_data.h"
 
 namespace Kratos
 {
@@ -303,6 +304,10 @@ private:
 
     const TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<2, 2>> mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint2D2N;
     const TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<3, 3>> mRansKOmegaVMSKBasedOmegaUBasedWallAdjoint3D3N;
+
+    // k-omega-sst turbulence model adjoint conditions
+    const TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaKBasedWallConditionData<2, 2>> mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint2D2N;
+    const TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaKBasedWallConditionData<3, 3>> mRansKOmegaSSTVMSKBasedOmegaKBasedWallAdjoint3D3N;
 
     ///@}
     ///@name Un accessible methods
