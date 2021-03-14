@@ -935,7 +935,7 @@ void ShallowWater2D3::ComputeDampingCoefficient(
 
         if (distance < DistanceThreshold) {
             const double pow_coeff = 3.0;
-            const double smooth_function = (std::exp(std::pow((DistanceThreshold - distance) / DistanceThreshold, pow_coeff)) - 1.0) / (std::exp(1.0) - 1.0);
+            const double smooth_function = std::expm1(std::pow((DistanceThreshold - distance) / DistanceThreshold, pow_coeff)) / std::expm1(1.0);
             rDamping = MaximumDamping * smooth_function;
         } else {
             rDamping = 0.0;

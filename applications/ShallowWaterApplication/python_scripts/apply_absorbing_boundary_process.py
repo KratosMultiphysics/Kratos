@@ -1,8 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
-from math import sqrt
-
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
