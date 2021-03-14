@@ -86,7 +86,7 @@ public:
     BasicGenericFunctionUtility(BasicGenericFunctionUtility const& rOther);
 
     /// Destructor.
-    ~BasicGenericFunctionUtility();
+    virtual ~BasicGenericFunctionUtility();
 
     ///@}
     ///@name Operations
@@ -235,7 +235,7 @@ public:
     GenericFunctionUtility(GenericFunctionUtility const& rOther);
 
     /// Destructor.
-    ~GenericFunctionUtility() {};
+    ~GenericFunctionUtility() override {};
 
     ///@}
     ///@name Operations
