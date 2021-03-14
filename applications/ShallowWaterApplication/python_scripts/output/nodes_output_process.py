@@ -141,10 +141,10 @@ class NodesOutputProcess(KM.Process):
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.out_file_params, self._GetHeader()).file
         if self.settings["use_mesh_nodes"].GetBool():
             for node in self.nodes:
-                file.write(self._GetData(node, self._DistanceToOrigin(node)))
+                file.write(self._GetNodeData(node, self._DistanceToOrigin(node)))
         else:
             for node, elem, area_coords in zip(self.nodes, self.elements, self.area_coords):
-                file.write(self._GetData(elem, area_coords, self._DistanceToOrigin(node)))
+                file.write(self._GetElementData(elem, area_coords, self._DistanceToOrigin(node)))
         file.close()
 
     def _GetTolerance(self):
@@ -211,7 +211,7 @@ class NodesOutputProcess(KM.Process):
             header += name + " "
         return header + "\n"
 
-    def _GetData(self, node, position):
+    def _GetNodeData(self, node, position):
         line = str(position) + " "
         for var in self.variables:
             line += str(node.GetSolutionStepValue(var)) + " "
@@ -219,7 +219,7 @@ class NodesOutputProcess(KM.Process):
             line += str(node.GetValue(var)) + " "
         return line + "\n"
 
-    def _GetData(self, elem, area_coords, position):
+    def _GetElementData(self, elem, area_coords, position):
         line = str(position) + " "
         for var in self.variables:
             line += str(self._Interpolate(elem, area_coords, var)) + " "
