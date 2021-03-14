@@ -40,6 +40,7 @@
 
 // k-omega-sst
 #include "custom_conditions/data_containers/k_omega_sst/omega_k_based_wall_condition_data_derivatives.h"
+#include "custom_conditions/data_containers/k_omega_sst/omega_u_based_wall_condition_data_derivatives.h"
 
 // Include base h
 #include "scalar_wall_flux_condition_derivatives.h"
@@ -306,5 +307,18 @@ template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallCo
 template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaKBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaKBasedWallConditionDataDerivatives<3>::KDerivative>;
 template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaKBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaKBasedWallConditionDataDerivatives<3>::OmegaDerivative>;
 template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaKBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaKBasedWallConditionDataDerivatives<3>::ShapeDerivative>;
+
+// k-omega-sst u based
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::Data>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::UDerivative>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::KDerivative>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::OmegaDerivative>;
+template class ScalarWallFluxConditionDerivatives<2, 2, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<2>::ShapeDerivative>;
+
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::Data>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::UDerivative>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::KDerivative>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::OmegaDerivative>;
+template class ScalarWallFluxConditionDerivatives<3, 3, typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::Data>::VariableDerivatives<typename KOmegaSSTWallConditionData::OmegaUBasedWallConditionDataDerivatives<3>::ShapeDerivative>;
 
 } // namespace Kratos
