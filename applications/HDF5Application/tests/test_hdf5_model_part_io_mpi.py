@@ -252,8 +252,8 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io.ReadModelPart(read_model_part)
             KratosMPI.ParallelFillCommunicator(read_model_part.GetRootModelPart()).Execute()
             hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
-            hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part.Nodes, 0)
-            hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator(), 0)
+            hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part, 0)
+            hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part, 0)
 
             # Check data.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):

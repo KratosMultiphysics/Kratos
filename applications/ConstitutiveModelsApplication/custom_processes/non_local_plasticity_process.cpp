@@ -192,7 +192,7 @@ namespace Kratos
 
 
          std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(numberOfGP);
-         ie->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
+         ie->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
 
 
 

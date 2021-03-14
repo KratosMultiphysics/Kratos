@@ -1,0 +1,74 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM
+    ROTATIONAL_MOMENT_COEFFICIENT 0.01
+    CONTACT_TAU_ZERO 25.0
+    CONTACT_SIGMA_MIN 5.0
+    CONTACT_INTERNAL_FRICC 1
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    STATIC_FRICTION 0.577350269189494
+    DYNAMIC_FRICTION 0.577350269189494
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_viscous_Coulomb
+End Properties
+
+Begin Nodes
+    5   0.1000000000   0.0000000000   0.1000000000
+    6   0.0333333333   0.0000000000   0.1666666667
+    8  -0.0333333333   0.0000000000   0.2333333333
+    9  -0.1000000000   0.0000000000   0.3000000000
+End Nodes
+
+
+Begin Elements SphericContinuumParticle3D// GUI group identifier: bonded_spheres
+        9          1     5
+       10          1     6
+       11          1     8
+       12          1     9
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: bonded_spheres
+          5 0       0.05
+          6 0       0.05
+          8 0       0.05
+          9 0       0.05
+End NodalData
+
+Begin NodalData COHESIVE_GROUP // GUI group identifier: bonded_spheres
+          5 0 1
+          6 0 1
+          8 0 1
+          9 0 1
+End NodalData
+
+Begin NodalData SKIN_SPHERE
+          5 0 1
+          6 0 1
+          8 0 1
+          9 0 1
+End NodalData
+
+Begin SubModelPart PartsCont_bonded_spheres // Group bonded_spheres // Subtree PartsCont
+    Begin SubModelPartNodes
+            5
+            6
+            8
+            9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            9
+           10
+           11
+           12
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
