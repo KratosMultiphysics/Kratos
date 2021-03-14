@@ -5,7 +5,11 @@ message("**** configuring KratosConstitutiveLawsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
+# temp dependency until the remaining basic laws are moved to the Core
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## ConstitutiveLaws Core sources
 file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE
@@ -23,7 +27,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosConstitutiveLawsCore SHARED ${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE} ${KRATOS_CONSTITUTIVE_LAWS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosConstitutiveLawsCore PUBLIC KratosCore)
+target_link_libraries(KratosConstitutiveLawsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosConstitutiveLawsCore PROPERTIES COMPILE_DEFINITIONS "CONSTITUTIVE_LAWS_APPLICATION=EXPORT,API")
 
 ###############################################################

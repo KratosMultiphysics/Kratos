@@ -98,6 +98,7 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointQSVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipSteady'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipBossak'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))

@@ -121,7 +121,7 @@ public:
      */
 
     void UpdateInternalForces(
-        BoundedVector<double,msLocalSize>& rInternalForces) override;
+        BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
