@@ -81,7 +81,6 @@ class NodesOutputProcess(KM.Process):
                 if self._DistanceToLine(node) < tolerance:
                     self.nodes.append(node)
         else:
-            end = self.origin + self.direction
             self.nodes = []
             self.elements = []
             self.area_coords = []
@@ -90,7 +89,7 @@ class NodesOutputProcess(KM.Process):
             tolerance = self._GetTolerance()
             num_nodes = self.settings["number_of_nodes"].GetInt()
             for i in range(num_nodes):
-                node = KM.Point(self.origin + i / num_nodes * self.direction)
+                node = KM.Point(self.origin + i / (num_nodes+1) * self.direction)
                 area_coords = KM.Vector()
                 found_id = locator.FindElement(node, area_coords, configuration, tolerance)
                 self.nodes.append(node)
@@ -101,7 +100,7 @@ class NodesOutputProcess(KM.Process):
         self.nonhist_variables, self.nonhist_names = self._GenerateVariablesList(self.settings["nonhistorical_variables"], False)
 
     def Check(self):
-        """Verify if the two specified points are found inside the domain"""
+        """Verify if the two specified points are found inside the domain."""
         start_point = KM.Point(self.settings["start_point"].GetVector())
         end_point = KM.Point(self.settings["end_point"].GetVector())
         locator = KM.BruteForcePointLocator(self.model_part)
@@ -227,14 +226,16 @@ class NodesOutputProcess(KM.Process):
             line += str(self._InterpolateNonHistorical(elem, area_coords, var)) + " "
         return line + "\n"
 
-    def _Interpolate(self, elem, area_coords, variable):
+    @staticmethod
+    def _Interpolate(elem, area_coords, variable):
         nodes = elem.GetNodes()
         value = nodes[0].GetSolutionStepValue(variable) * area_coords[0]
         for n , c in zip(nodes[1:], area_coords[1:]):
             value = value + c * n.GetSolutionStepValue(variable)
         return value
 
-    def _InterpolateNonHistorical(self, elem, area_coords, variable):
+    @staticmethod
+    def _InterpolateNonHistorical(elem, area_coords, variable):
         nodes = elem.GetNodes()
         value = nodes[0].GetValue(variable) * area_coords[0]
         for n , c in zip(nodes[1:], area_coords[1:]):
