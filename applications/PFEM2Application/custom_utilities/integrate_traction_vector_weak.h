@@ -120,7 +120,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	template< unsigned int TDim>
-	class IntegrateTractionVectorUtility
+	class IntegrateTractionVectorWeakUtility
 	{
 	public:
 	
@@ -131,7 +131,7 @@ namespace Kratos
     typedef typename Configure::ResultContainerType            ResultContainerType;
     typedef typename Configure::ResultIteratorType             ResultIteratorType; 
 
-		KRATOS_CLASS_POINTER_DEFINITION(IntegrateTractionVectorUtility);
+		KRATOS_CLASS_POINTER_DEFINITION(IntegrateTractionVectorWeakUtility);
         
 
     struct element_data
@@ -152,17 +152,17 @@ namespace Kratos
     };
 
 		//template<unsigned int TDim>
-		IntegrateTractionVectorUtility(ModelPart& model_part, double& mu)
+		IntegrateTractionVectorWeakUtility(ModelPart& model_part, double& mu)
 			: mr_model_part(model_part)
 		{
-			std::cout << "initializing IntegrateTractionVectorUtility" << std::endl;
+			std::cout << "initializing IntegrateTractionVectorWeakUtility" << std::endl;
 			
 			Check();
 		
 		}
 		
          
-		~IntegrateTractionVectorUtility()
+		~IntegrateTractionVectorWeakUtility()
 		{}
 		
 		    vector<double> ReturnDrag()
@@ -174,6 +174,8 @@ namespace Kratos
             double lift=0.0;
             double Volume = 0.0;
             double Area=0.0;
+            array_1d<double,TDim> traction_vector = ZeroVector(TDim); 
+            array_1d<double,(TDim+1)*(TDim+1)> traction_vector_aux = ZeroVector((TDim+1)*(TDim+1)); 
              
             auto &rConditionsArray = mr_model_part.Conditions();
             const auto it_condition_begin = rConditionsArray.begin();
@@ -189,10 +191,9 @@ namespace Kratos
              boost::numeric::ublas::bounded_matrix<double,TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2> Kvu_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
              boost::numeric::ublas::bounded_matrix<double,TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2> Kvp_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
              
-             array_1d<double,(TDim*2)> gp = ZeroVector(TDim*2);
-             array_1d<double,(TDim+1)> N = ZeroVector(TDim+1);
-
+             array_1d<double,(TDim+1)> N;
              array_1d<double,TDim> normal_vector = ZeroVector(TDim); 
+
              GlobalPointersVector< Element >& neighbor_els = it_condition->GetValue(NEIGHBOUR_ELEMENTS);
              if (it_condition->GetValue(NEIGHBOUR_ELEMENTS).size()>1)
                KRATOS_THROW_ERROR(std::invalid_argument,"NEIGHBOUR_ELEMENTS is more than one","");
@@ -232,6 +233,7 @@ namespace Kratos
              normal_vector[1]=normal_vector[1]/normal_vector_magnitude;
              
              double  length =it_condition->GetGeometry().Length();
+             array_1d<double,(TDim*2)> gp = ZeroVector(TDim*2);
              double xdistance = it_condition->GetGeometry()[1].X() - it_condition->GetGeometry()[0].X();
              double ydistance = it_condition->GetGeometry()[1].Y() - it_condition->GetGeometry()[0].Y();
              gp[0]=it_condition->GetGeometry()[0].X()+0.211324865*xdistance;
@@ -240,47 +242,12 @@ namespace Kratos
              gp[3]=it_condition->GetGeometry()[0].Y()+0.788675135*ydistance;
              
 
-             double TotalArea=0.0;
-             double x10 = geom[1].X() - geom[0].X();
-             double y10 = geom[1].Y() - geom[0].Y();
-
-             double x20 = geom[2].X() - geom[0].X();
-             double y20 = geom[2].Y() - geom[0].Y();
-             double detJ = x10 * y20-y10 * x20;
-             TotalArea = 0.5*detJ;
-             
              //integration over two gauss points starts here
              for(int m = 0; m<2; m++)
              {
-              double Area0=0.0;
-              x10 = geom[1].X() - gp[m*2];
-              y10 = geom[1].Y() - gp[m*2+1];
 
-              x20 = geom[2].X() - gp[m*2];
-              y20 = geom[2].Y() - gp[m*2+1];
-              detJ = x10 * y20-y10 * x20;
-              Area0 = 0.5*detJ;
-              N[0]=Area0/TotalArea;
+              CalculateShapeFunctionsOnGaussPoints(geom,gp,N,m); 
               
-              double Area1=0.0;
-              x10 = gp[m*2] - geom[0].X();
-              y10 = gp[m*2+1] - geom[0].Y();
-
-              x20 = geom[2].X() - geom[0].X();
-              y20 = geom[2].Y() - geom[0].Y();
-              detJ = x10 * y20-y10 * x20;
-              Area1 = 0.5*detJ;
-              N[1]=Area1/TotalArea;
-              
-              double Area2=0.0;
-              x10 = geom[1].X() - geom[0].X();
-              y10 = geom[1].Y() - geom[0].Y();
-
-              x20 = gp[m*2] - geom[0].X();
-              y20 = gp[m*2+1] - geom[0].Y();
-              detJ = x10 * y20-y10 * x20;
-              Area2 = 0.5*detJ;
-              N[2]=Area2/TotalArea;
               
               Kvu_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
               Kvp_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
@@ -380,6 +347,46 @@ namespace Kratos
   double mu;
 	double mDENSITY_WATER;
 	double mDENSITY_AIR;
+
+  void CalculateShapeFunctionsOnGaussPoints(Geometry< Node<3> >& geom, array_1d<double,(TDim*2)>& gp, array_1d<double,(TDim+1)>& N,int& m)
+  {
+    
+    double x10 = geom[1].X() - geom[0].X();
+    double y10 = geom[1].Y() - geom[0].Y();
+    double x20 = geom[2].X() - geom[0].X();
+    double y20 = geom[2].Y() - geom[0].Y();
+    double detJ = x10 * y20-y10 * x20;
+    double TotalArea = 0.5*detJ;
+
+    double Area0=0.0;
+    x10 = geom[1].X() - gp[m*2];
+    y10 = geom[1].Y() - gp[m*2+1];
+    x20 = geom[2].X() - gp[m*2];
+    y20 = geom[2].Y() - gp[m*2+1];
+    detJ = x10 * y20-y10 * x20;
+    Area0 = 0.5*detJ;
+    N[0]=Area0/TotalArea;
+              
+    double Area1=0.0;
+    x10 = gp[m*2] - geom[0].X();
+    y10 = gp[m*2+1] - geom[0].Y();
+    x20 = geom[2].X() - geom[0].X();
+    y20 = geom[2].Y() - geom[0].Y();
+    detJ = x10 * y20-y10 * x20;
+              Area1 = 0.5*detJ;
+              N[1]=Area1/TotalArea;
+              
+              double Area2=0.0;
+              x10 = geom[1].X() - geom[0].X();
+              y10 = geom[1].Y() - geom[0].Y();
+
+              x20 = gp[m*2] - geom[0].X();
+              y20 = gp[m*2+1] - geom[0].Y();
+              detJ = x10 * y20-y10 * x20;
+              Area2 = 0.5*detJ;
+              N[2]=Area2/TotalArea;
+
+  }
 
 	
 	};
