@@ -41,6 +41,7 @@ public:
     static double CalculateWallFluxDerivative(
         const double KinematicViscosity,
         const double OmegaSigma,
+        const double OmegaSigmaDerivative,
         const double UTau,
         const double UTauDerivative,
         const double Cmu25,

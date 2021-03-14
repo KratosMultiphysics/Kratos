@@ -51,6 +51,10 @@ void OmegaUBasedWallConditionDataDerivatives<TDim>::Data::Check(
     const auto& r_condition_properties = rCondition.GetProperties();
     const int number_of_nodes = r_geometry.PointsNumber();
 
+    KRATOS_ERROR_IF_NOT(r_geometry.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE) == 1)
+        << "Wall function check is called for a condition with non-activated wall function. [ Condition.Id() = "
+        << rCondition.Id() << " ].\n";
+
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA))
@@ -65,15 +69,15 @@ void OmegaUBasedWallConditionDataDerivatives<TDim>::Data::Check(
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_condition_properties.Id() << " ].\n";
 
-    KRATOS_ERROR_IF_NOT(r_geometry.Has(NORMAL))
-        << "NORMAL is not found in condition [ Condition.Id() = " << rCondition.Id()
+    KRATOS_ERROR_IF_NOT(norm_2(r_geometry.GetValue(NORMAL)) > 0.0)
+        << "NORMAL is not found or not properly initialized in condition [ Condition.Id() = " << rCondition.Id()
         << " ].\n";
     KRATOS_ERROR_IF_NOT(r_geometry.Has(NORMAL_SHAPE_DERIVATIVE))
         << "NORMAL_SHAPE_DERIVATIVE is not found in condition [ Condition.Id() = " << rCondition.Id()
         << " ].\n";
 
-    KRATOS_ERROR_IF_NOT(r_geometry.Has(DISTANCE))
-    << "DISTANCE is not found in condition [ Condition.Id() = " << rCondition.Id()
+    KRATOS_ERROR_IF_NOT(r_geometry.GetValue(DISTANCE) > 0.0)
+    << "DISTANCE is not found or not properly initialized in condition [ Condition.Id() = " << rCondition.Id()
     << " ].\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -175,7 +179,7 @@ double OmegaUBasedWallConditionDataDerivatives<TDim>::UDerivative::CalculateWall
     }
 
     return KOmegaConditionDataUtilities::CalculateWallFluxDerivative(
-        mrData.mrParameters.mKinematicViscosity, mrData.mOmegaSigma, mrData.mUTau, u_tau_derivative,
+        mrData.mrParameters.mKinematicViscosity, mrData.mOmegaSigma, 0.0, mrData.mUTau, u_tau_derivative,
         mrData.mCmu25, mrData.mrParameters.mKappa, mrData.mrParameters.mYPlus, y_plus_derivative);
 }
 
@@ -292,7 +296,7 @@ double OmegaUBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calculate
     }
 
     return KOmegaConditionDataUtilities::CalculateWallFluxDerivative(
-        mrData.mrParameters.mKinematicViscosity, mrData.mOmegaSigma, mrData.mUTau, u_tau_derivative,
+        mrData.mrParameters.mKinematicViscosity, mrData.mOmegaSigma, 0.0, mrData.mUTau, u_tau_derivative,
         mrData.mCmu25, mrData.mrParameters.mKappa, mrData.mrParameters.mYPlus, y_plus_derivative);
 }
 
@@ -326,7 +330,7 @@ double OmegaUBasedWallConditionDataDerivatives<TDim>::ShapeDerivative::Calculate
     }
 
     return KOmegaConditionDataUtilities::CalculateWallFluxDerivative(
-        mrData.mrParameters.mKinematicViscosity, mrData.mOmegaSigma, mrData.mUTau, u_tau_derivative,
+        mrData.mrParameters.mKinematicViscosity, mrData.mOmegaSigma, 0.0, mrData.mUTau, u_tau_derivative,
         mrData.mCmu25, mrData.mrParameters.mKappa, mrData.mrParameters.mYPlus, y_plus_derivative);
 }
 
