@@ -37,6 +37,9 @@
 #include "custom_conditions/data_containers/k_omega/vms_monolithic_kk_based_omega_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/vms_monolithic_ku_based_omega_wall_condition_data.h"
 
+// k-omega-sst
+#include "custom_conditions/data_containers/k_omega_sst/vms_monolithic_kk_based_omega_wall_condition_data.h"
+
 // Include base h
 #include "two_equation_turbulence_model_adjoint_condition.h"
 
@@ -884,5 +887,9 @@ template class TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaWallCondit
 
 template class TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<2, 2>>;
 template class TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaWallConditionData::VMSMonolithicKBasedOmegaUBasedWallConditionData<3, 3>>;
+
+// k-omega-sst
+template class TwoEquationTurbulenceModelAdjointCondition<2, 2, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaKBasedWallConditionData<2, 2>>;
+template class TwoEquationTurbulenceModelAdjointCondition<3, 3, KOmegaSSTWallConditionData::VMSMonolithicKBasedOmegaKBasedWallConditionData<3, 3>>;
 
 } // namespace Kratos
