@@ -136,7 +136,7 @@ namespace Kratos
 
     struct element_data
     {
-      bounded_matrix<double,TDim+1, TDim> v, vn, vnn, f; 
+      bounded_matrix<double,TDim+1, TDim> v;
       array_1d<double,TDim+1> p, rho;
           
       bounded_matrix<double, TDim+1, TDim > DN_DX;
