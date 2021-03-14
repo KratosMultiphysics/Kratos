@@ -231,7 +231,7 @@ public:
     /// Constructor with Geometry Id
     explicit Hexahedra3D8(
         const IndexType GeometryId,
-        const PointsArrayType& rThisPoints 
+        const PointsArrayType& rThisPoints
         ) : BaseType( GeometryId, rThisPoints, &msGeometryData )
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 8 ) << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
@@ -364,22 +364,6 @@ public:
         p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
-    
-    // Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D8< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
 
     /**
      * Information

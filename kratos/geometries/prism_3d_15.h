@@ -371,7 +371,7 @@ public:
     {
         return typename BaseType::Pointer( new Prism3D15( NewGeometryId, rThisPoints ) );
     }
-    
+
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
@@ -387,22 +387,6 @@ public:
         p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
-
-    //     Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Prism3D15< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
 
     /**
      * Informations
