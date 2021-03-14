@@ -42,6 +42,7 @@ double KOmegaConditionDataUtilities::CalculateWallFlux(
 double KOmegaConditionDataUtilities::CalculateWallFluxDerivative(
     const double KinematicViscosity,
     const double OmegaSigma,
+    const double OmegaSigmaDerivative,
     const double UTau,
     const double UTauDerivative,
     const double Cmu25,
@@ -53,7 +54,7 @@ double KOmegaConditionDataUtilities::CalculateWallFluxDerivative(
     const double wall_turbulent_viscosity_derivative = Kappa * KinematicViscosity * YPlusDerivative;
 
     const double effective_viscosity = KinematicViscosity + wall_turbulent_viscosity * OmegaSigma;
-    const double effective_viscosity_derivative = wall_turbulent_viscosity_derivative * OmegaSigma;
+    const double effective_viscosity_derivative = wall_turbulent_viscosity_derivative * OmegaSigma + wall_turbulent_viscosity * OmegaSigmaDerivative;
 
     const double coeff = 1.0 / (Kappa * std::pow(Cmu25 * YPlus * KinematicViscosity, 2));
     const double coeff_derivative = (-1.0 * std::pow(coeff, 2)) * (Kappa * std::pow(Cmu25 * KinematicViscosity, 2) * 2.0 * YPlus * YPlusDerivative);
