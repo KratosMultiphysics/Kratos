@@ -115,7 +115,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "time.h"
 
-//#include "processes/process.h"
 
 
 namespace Kratos
@@ -125,40 +124,36 @@ namespace Kratos
 	{
 	public:
 	
-	    typedef SpatialContainersConfigure<TDim>     Configure;   
-	    typedef typename Configure::PointType                      PointType; 
-	    //typedef PointType::CoordinatesArrayType           CoordinatesArrayType;
-        typedef typename Configure::ContainerType                  ContainerType;   
-        //typedef Configure::PointerType                    PointerType;
-        typedef typename Configure::IteratorType                   IteratorType; 
-        typedef typename Configure::ResultContainerType            ResultContainerType;
-	    //typedef Configure::ResultPointerType              ResultPointerType;
-        typedef typename Configure::ResultIteratorType             ResultIteratorType; 
-        typedef PointerVector< PFEM_Particle_Fluid, PFEM_Particle_Fluid*, std::vector<PFEM_Particle_Fluid*> > ParticlePointerVector;
+	  typedef SpatialContainersConfigure<TDim>     Configure;   
+	  typedef typename Configure::PointType                      PointType; 
+    typedef typename Configure::ContainerType                  ContainerType;   
+    typedef typename Configure::IteratorType                   IteratorType; 
+    typedef typename Configure::ResultContainerType            ResultContainerType;
+    typedef typename Configure::ResultIteratorType             ResultIteratorType; 
 
 		KRATOS_CLASS_POINTER_DEFINITION(IntegrateTractionVectorUtility);
         
 
-        struct element_data
-        {
-          bounded_matrix<double,TDim+1, TDim> v, vn, vnn, f; 
-          array_1d<double,TDim+1> p, rho;
+    struct element_data
+    {
+      bounded_matrix<double,TDim+1, TDim> v, vn, vnn, f; 
+      array_1d<double,TDim+1> p, rho;
           
-          bounded_matrix<double, TDim+1, TDim > DN_DX;
-          array_1d<double, TDim+1 > N;
+      bounded_matrix<double, TDim+1, TDim > DN_DX;
+      array_1d<double, TDim+1 > N;
           
-          Matrix C;
-          Vector stress;
+      Matrix C;
+      Vector stress;
           
-          double bdf0;
-          double bdf1;
-          double bdf2;
-          double h;
-          double dyn_tau_coeff;
-        };
+      double bdf0;
+      double bdf1;
+      double bdf2;
+      double h;
+      double dyn_tau_coeff;
+    };
 
 		//template<unsigned int TDim>
-		TractionVectorIntegrationUtility(ModelPart& model_part)
+		IntegrateTractionVectorUtility(ModelPart& model_part)
 			: mr_model_part(model_part)
 		{
 			std::cout << "initializing IntegrateTractionVectorUtility" << std::endl;
@@ -171,21 +166,16 @@ namespace Kratos
 		~IntegrateTractionVectorUtility()
 		{}
 		
-		vector<double> ReturnDrag()
+		    vector<double> ReturnDrag()
         {
             KRATOS_TRY
-            
             const SizeType NumNodes = TDim+1;
             element_data data; 
             double drag=0.0;
             double lift=0.0;
             double Volume = 0.0;
             double Area=0.0;
-            array_1d<double,TDim> traction_vector = ZeroVector(TDim); 
-            array_1d<double,9> traction_vector_aux = ZeroVector(9); 
              
-                  
-            
             auto &rConditionsArray = mr_model_part.Conditions();
             const auto it_condition_begin = rConditionsArray.begin();
             array_1d<double, 3> dummy;
@@ -387,58 +377,13 @@ namespace Kratos
 // 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESS_PROJ) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESS_PROJ variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESSURE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PROJECTED_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PROJECTED_VELOCITY variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(DELTA_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DELTA_VELOCITY variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(YP) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing YP variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NORMAL) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data","");
-	}
+}
 	
 
-	
-
-
-		
-	
-		
-
-		
-
-		
-	
 	ModelPart& mr_model_part;
-	ModelPart* mtopographic_model_part_pointer;
-	array_1d<double, 3 > mcalculation_domain_complete_displacement;
-	array_1d<double, 3 > mcalculation_domain_added_displacement;
-	bool mintialized_transfer_tool;
-	bool muse_mesh_velocity_to_convect;
-	int m_nparticles;
-	int mnelems;
 	double mDENSITY_WATER;
 	double mDENSITY_AIR;
-	
-	//vector<double> mareas_vector; UNUSED SO COMMENTED 
-	int max_nsubsteps;
-	double max_substep_dt;
-	int mmaximum_number_of_particles;
-	std::vector< PFEM_Particle_Fluid  > mparticles_vector; //Point<3>
-	int mlast_elem_id;
-	bool modd_timestep;
-	bool mparticle_printing_tool_initialized;
-	unsigned int mfilter_factor;
-	unsigned int mlast_node_id;
-	//ModelPart& mr_particle_model_part;
-	
-	vector<int> mnumber_of_particles_in_elems; 
-	vector<int> mnumber_of_particles_in_elems_aux; 
-	vector<ParticlePointerVector*>  mpointers_to_particle_pointers_vectors;
-	
-	typename BinsObjectDynamic<Configure>::Pointer  mpBinsObjectDynamic;
-	typename BinsObjectDynamic<Configure>::Pointer  mpTopographicBinsObjectDynamic;
 
-
-	void CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An );
 	
 	};
 	
