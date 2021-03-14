@@ -787,7 +787,7 @@ public:
      * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
+    Pointer Create(
         const std::string& rNewGeometryName,
         PointsArrayType const& rThisPoints
         ) const
@@ -846,7 +846,7 @@ public:
      * @param rGeometry Reference to an existing geometry
      * @return Pointer to the new geometry
      */
-    virtual Pointer Create(
+    Pointer Create(
         const std::string& rNewGeometryName,
         const GeometryType& rGeometry
         ) const
