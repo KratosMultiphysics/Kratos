@@ -149,11 +149,10 @@ namespace Kratos
       double bdf1;
       double bdf2;
       double h;
-      double dyn_tau_coeff;
     };
 
 		//template<unsigned int TDim>
-		IntegrateTractionVectorUtility(ModelPart& model_part)
+		IntegrateTractionVectorUtility(ModelPart& model_part, double& mu)
 			: mr_model_part(model_part)
 		{
 			std::cout << "initializing IntegrateTractionVectorUtility" << std::endl;
@@ -178,7 +177,7 @@ namespace Kratos
              
             auto &rConditionsArray = mr_model_part.Conditions();
             const auto it_condition_begin = rConditionsArray.begin();
-            array_1d<double, 3> dummy;
+            
             for (int i = 0; i < static_cast<int>(rConditionsArray.size()); ++i) 
             {
              auto it_condition = it_condition_begin + i;
@@ -186,7 +185,7 @@ namespace Kratos
              boost::numeric::ublas::bounded_matrix<double,TDim,TDim*(TDim+1)> Kvu_nitsche_Dmatrix = ZeroMatrix(TDim,TDim*(TDim+1)); 
              boost::numeric::ublas::bounded_matrix<double,TDim*(TDim+1),TDim*(TDim+1)> Kvu_nitsche = ZeroMatrix(TDim*(TDim+1),TDim*(TDim+1)); 
              boost::numeric::ublas::bounded_matrix<double,TDim*(TDim+1),TDim+1> Kvp_nitsche = ZeroMatrix(TDim*(TDim+1),TDim+1);
-             boost::numeric::ublas::bounded_matrix<double,2,TDim+1> Kvp_nitsche_Dmatrix = ZeroMatrix(2,TDim+1);
+             boost::numeric::ublas::bounded_matrix<double,TDim,TDim+1> Kvp_nitsche_Dmatrix = ZeroMatrix(TDim,TDim+1);
              boost::numeric::ublas::bounded_matrix<double,TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2> Kvu_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
              boost::numeric::ublas::bounded_matrix<double,TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2> Kvp_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
              
@@ -204,7 +203,7 @@ namespace Kratos
               Geometry< Node<3> >& geom = ielem->GetGeometry();
               GeometryUtils::CalculateGeometryData(geom, data.DN_DX, data.N, Volume);
               const bounded_matrix<double,NumNodes,TDim>& DN = data.DN_DX;
-              const double mu = ielem->GetProperties()[VISCOSITY];
+              // const double mu = ielem->GetProperties()[VISCOSITY];
               array_1d<double,TDim*(TDim+1)> v_aux = ZeroVector(TDim*(TDim+1));
               array_1d<double,(TDim+1)> p_aux = ZeroVector(TDim+1);
               array_1d<double,(TDim+1)*(TDim+1)> temp_vector;
@@ -226,6 +225,7 @@ namespace Kratos
                temp_vector[counter++] = p_aux[iii];             
               }
 
+             array_1d<double, 3> dummy;
              normal_vector = it_condition->GetGeometry().Normal(dummy);
              double normal_vector_magnitude=sqrt(normal_vector[0]*normal_vector[0]+normal_vector[1]*normal_vector[1]);
              normal_vector[0]=normal_vector[0]/normal_vector_magnitude;
@@ -240,7 +240,6 @@ namespace Kratos
              gp[3]=it_condition->GetGeometry()[0].Y()+0.788675135*ydistance;
              
 
-             
              double TotalArea=0.0;
              double x10 = geom[1].X() - geom[0].X();
              double y10 = geom[1].Y() - geom[0].Y();
@@ -323,8 +322,7 @@ namespace Kratos
              Kvp_nitsche_Dmatrix(1,1)=N[1]*normal_vector(1);
              Kvp_nitsche_Dmatrix(1,2)=N[2]*normal_vector(1);
              
-             
-             
+
              Kvp_nitsche=prod(Kvu_nitsche_Cmatrix,Kvp_nitsche_Dmatrix);
              
              for (int i=0; i<(TDim+1); i++)
@@ -373,14 +371,13 @@ namespace Kratos
 	
 	void Check()
 	{
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
-// 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESS_PROJ) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESS_PROJ variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESSURE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data","");
-}
+  }
 	
 
 	ModelPart& mr_model_part;
+  double mu;
 	double mDENSITY_WATER;
 	double mDENSITY_AIR;
 
