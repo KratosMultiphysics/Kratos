@@ -53,6 +53,12 @@ public:
     typedef typename TSparseSpace::VectorPointerType               VectorPointerType;
     typedef typename TSparseSpace::MatrixPointerType               MatrixPointerType;
 
+    typedef typename TDenseSpace::VectorType                         DenseVectorType;
+    typedef typename TDenseSpace::MatrixType                         DenseMatrixType;
+
+    typedef typename TDenseSpace::MatrixPointerType           DenseMatrixPointerType;
+    typedef typename TDenseSpace::VectorPointerType           DenseVectorPointerType;
+
     // Counted pointer of ConvergenceAccelerator
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceAccelerator);
 
@@ -165,6 +171,18 @@ public:
         return mEchoLevel;
     }
 
+    /**
+     * @brief Checks if the update direction is unique or double
+     * For the current convergence accelerator, this method returns information about the nature of the coupling
+     * If it is block Newton, the update is done in both directions. Otherwise, it is done in one direction
+     * @return true If the convergence accelerator updates in both directions (e.g. displacements and tractions)
+     * @return false If the convergece accelerator updates in a single direction (e.g. only displacements)
+     */
+    virtual bool IsBlockNewton() const
+    {
+        return false;
+    }
+
     ///@}
 protected:
     ///@name Protected member Variables
@@ -172,6 +190,25 @@ protected:
 
     // Level of echo for the convergence accelerator
     int mEchoLevel;
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    virtual void ComputeJacobianApproximation()
+    {
+        KRATOS_ERROR << "Interface Jacobian approximation cannot be computed with this convergence accelerator." << std::endl;
+    }
+
+    virtual DenseMatrixPointerType pGetInverseJacobianApproximation()
+    {
+        KRATOS_ERROR << "Interface Jacobian approximation is not available for this convergence accelerator." << std::endl;
+    }
+
+    virtual std::size_t GetProblemSize() const
+    {
+        KRATOS_ERROR << "Problem size is not available for this convergence accelerator." << std::endl;
+    }
 
     ///@}
 }; // Class ConvergenceAccelerator
