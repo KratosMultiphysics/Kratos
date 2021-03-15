@@ -227,9 +227,17 @@ namespace Testing
 
         geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
 
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.353553, 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.55, 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], 0.353553, 1.0e-4);
+        // Manually project
+        const auto center = geom->Center();
+        const array_1d<double, 3> normal = geom->UnitNormal(center);
+        const Point point_to_project(point);
+        double distance;
+        Geometry<Point>::CoordinatesArrayType point_projected;
+        point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
+
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], point_projected[0], 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], point_projected[1], 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], point_projected[2], 1.0e-4);
 
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.55, 1.0e-4);
