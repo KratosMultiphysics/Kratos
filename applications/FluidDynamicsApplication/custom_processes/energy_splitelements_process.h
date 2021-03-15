@@ -10,7 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_ENERGY_SPLIT_LEMENTS_PROCESS_H_INCLUDED)
+#if !defined(KRATOS_ENERGY_SPLIT_ELEMENTS_PROCESS_H_INCLUDED)
 #define KRATOS_ENERGY_SPLIT_ELEMENTS_PROCESS_H_INCLUDED
 
 // System includes
@@ -138,427 +138,367 @@ public:
         double Total_cinematic_energy_air_not_splitted=0;
         double Total_hydrostatic_energy_air_not_splitted=0;
         double gravity=9.81;
+        double Total_hydrostatic_energy_water_elemental=0;
+        double Total_potential_energy_water_fluid=0;
+        double Total_hydrostatic_energy_air_elemental=0;
+        double Total_potential_energy_air_fluid=0;
+        const double Water_Density = 1e+3;
+        const double Air_Density = 1.22;
+        double interface_area=0.0;
+        double air_zg = 0.0;
+        double water_zg = 0.0;
+
         if(mDomainSize == 2)
         // Total Energy check for 2D cases[Fluid1_energy and FLuid2_energy]: A loop in each element of the mesh considering splitted elements (air/water elements)
-        { 
-            for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem) 
-            {
-                auto &r_geom = it_elem->GetGeometry();
-                const auto elem_dist = SetDistanceVector(*it_elem);
+        {
+            // for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+            // {
+            //     auto &r_geom = it_elem->GetGeometry();
+            //     const auto elem_dist = SetDistanceVector(*it_elem);
 
-                const auto &r_p_0 = r_geom[0].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_1 = r_geom[1].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_2 = r_geom[2].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_vel_0 = r_geom[0].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_1 = r_geom[1].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_2 = r_geom[2].FastGetSolutionStepValue(VELOCITY);
-                
-
-                // const bool is_valid = aux_n == r_geom.PointsNumber() ? true : false;
-                const bool is_valid = true;
-                if (is_valid) {
-                    if (this->IsCut(elem_dist)){
-                        // Generate the splitting pattern
-                        DivideTriangle2D3::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3>(r_geom, elem_dist);
-                        p_divide_util->GenerateDivision();
-
-                        // Generate the modified shape functions util
-                        auto p_geom = it_elem->pGetGeometry();
-                        ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, elem_dist);
-
-                        Matrix N_neg_side;
-                        Vector w_gauss_neg_side;
-                        Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
-                        p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::GI_GAUSS_2);
-
-                        // Save the coordinates of all the subdivision Gauss pts.
-                        const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
-                        const unsigned int n_neg_sbdiv = (p_divide_util->mNegativeSubdivisions).size();
-
-                        for (unsigned int i_sbdiv = 0; i_sbdiv < n_neg_sbdiv; ++i_sbdiv){
-                            auto p_sbdiv = (p_divide_util->mNegativeSubdivisions)[i_sbdiv];
-                            auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                            for (unsigned int i_gauss = 0;  i_gauss < 3; ++i_gauss){
-                                array_1d<double, 3> v_solu;
-                                array_1d<double, 3> energy_solu;
-                                const double p_solu = r_p_0*N_neg_side(i_gauss,0) + r_p_1*N_neg_side(i_gauss,1) + r_p_2*N_neg_side(i_gauss,2);
-                                v_solu[0] = r_vel_0[0]*N_neg_side(i_gauss,0) + r_vel_1[0]*N_neg_side(i_gauss,1) + r_vel_2[0]*N_neg_side(i_gauss,2);
-                                v_solu[1] = r_vel_0[1]*N_neg_side(i_gauss,0) + r_vel_1[1]*N_neg_side(i_gauss,1) + r_vel_2[1]*N_neg_side(i_gauss,2);
-                                v_solu[2] = r_vel_0[2]*N_neg_side(i_gauss,0) + r_vel_1[2]*N_neg_side(i_gauss,1) + r_vel_2[2]*N_neg_side(i_gauss,2);
-
-                                const double Water_Density=1e+3;
-                                energy_solu[0] =( (std::pow(v_solu[0],2) * Water_Density) / 2) + p_solu;
-                                energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
-                                energy_solu[2] = ((std::pow(v_solu[2] , 2) * Water_Density) / 2) + p_solu;
-                                const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2] , 2 ) , 0.5);
-
-                                Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * energy_water;
-                                Total_energy_water += w_gauss_neg_side[i_gauss] * energy_water;
-                                cut_area_negative += w_gauss_neg_side[i_gauss];
-                                total_area_negative += w_gauss_neg_side[i_gauss];
-                            }
-                        }
-
-                        
-                        Matrix N_pos_side;
-                        Vector w_gauss_pos_side;
-                        Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
-                        p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::GI_GAUSS_2);
-
-                        // Save the coordinates of all the subdivision Gauss pts.
-                        const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
-                        const unsigned int n_pos_sbdiv = (p_divide_util->mPositiveSubdivisions).size();
-
-                        for (unsigned int i_sbdiv = 0; i_sbdiv < n_pos_sbdiv; ++i_sbdiv)
-                        {
-                                auto p_sbdiv = (p_divide_util->mPositiveSubdivisions)[i_sbdiv];
-                                auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                                for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss)
-                                {
-                                    array_1d<double, 3> v_solu;
-                                    array_1d<double, 3> energy_solu;
-                                    const double p_solu = r_p_0 * N_pos_side(i_gauss, 0) + r_p_1 * N_pos_side(i_gauss, 1) + r_p_2 * N_pos_side(i_gauss, 2);
-                                    v_solu[0] = r_vel_0[0] * N_pos_side(i_gauss, 0) + r_vel_1[0] * N_pos_side(i_gauss, 1) + r_vel_2[0] * N_pos_side(i_gauss, 2);
-                                    v_solu[1] = r_vel_0[1] * N_pos_side(i_gauss, 0) + r_vel_1[1] * N_pos_side(i_gauss, 1) + r_vel_2[1] * N_pos_side(i_gauss, 2);
-                                    v_solu[2] = r_vel_0[2] * N_pos_side(i_gauss, 0) + r_vel_1[2] * N_pos_side(i_gauss, 1) + r_vel_2[2] * N_pos_side(i_gauss, 2);
-                                    const double Air_Density = 1.22;
-                                    energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
-                                    energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
-                                    energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                                    const double Air_Energy_total = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-
-                                    Total_energy_air_splitted += w_gauss_pos_side[i_gauss] * Air_Energy_total;
-                                    Total_energy_air += w_gauss_pos_side[i_gauss] * Air_Energy_total;
-
-                                    // Add the local Gauss contribution to the areas
-                                    cut_area_positive += w_gauss_pos_side[i_gauss];
-                                    total_area_positive += w_gauss_pos_side[i_gauss];
-                                }
+            //     const auto &r_p_0 = r_geom[0].FastGetSolutionStepValue(PRESSURE);
+            //     const auto &r_p_1 = r_geom[1].FastGetSolutionStepValue(PRESSURE);
+            //     const auto &r_p_2 = r_geom[2].FastGetSolutionStepValue(PRESSURE);
+            //     const auto &r_vel_0 = r_geom[0].FastGetSolutionStepValue(VELOCITY);
+            //     const auto &r_vel_1 = r_geom[1].FastGetSolutionStepValue(VELOCITY);
+            //     const auto &r_vel_2 = r_geom[2].FastGetSolutionStepValue(VELOCITY);
 
 
+            //     // const bool is_valid = aux_n == r_geom.PointsNumber() ? true : false;
+            //     const bool is_valid = true;
+            //     if (is_valid) {
+            //         if (this->IsCut(elem_dist)){
+            //             // Generate the splitting pattern
+            //             DivideTriangle2D3::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3>(r_geom, elem_dist);
+            //             p_divide_util->GenerateDivision();
+
+            //             // Generate the modified shape functions util
+            //             auto p_geom = it_elem->pGetGeometry();
+            //             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, elem_dist);
+
+            //             Matrix N_neg_side;
+            //             Vector w_gauss_neg_side;
+            //             Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
+            //             p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::GI_GAUSS_2);
+
+            //             // Save the coordinates of all the subdivision Gauss pts.
+            //             const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
+            //             const unsigned int n_neg_sbdiv = (p_divide_util->mNegativeSubdivisions).size();
+
+            //             for (unsigned int i_sbdiv = 0; i_sbdiv < n_neg_sbdiv; ++i_sbdiv){
+            //                 auto p_sbdiv = (p_divide_util->mNegativeSubdivisions)[i_sbdiv];
+            //                 auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            //                 for (unsigned int i_gauss = 0;  i_gauss < 3; ++i_gauss){
+            //                     array_1d<double, 3> v_solu;
+            //                     array_1d<double, 3> energy_solu;
+            //                     const double p_solu = r_p_0*N_neg_side(i_gauss,0) + r_p_1*N_neg_side(i_gauss,1) + r_p_2*N_neg_side(i_gauss,2);
+            //                     v_solu[0] = r_vel_0[0]*N_neg_side(i_gauss,0) + r_vel_1[0]*N_neg_side(i_gauss,1) + r_vel_2[0]*N_neg_side(i_gauss,2);
+            //                     v_solu[1] = r_vel_0[1]*N_neg_side(i_gauss,0) + r_vel_1[1]*N_neg_side(i_gauss,1) + r_vel_2[1]*N_neg_side(i_gauss,2);
+            //                     v_solu[2] = r_vel_0[2]*N_neg_side(i_gauss,0) + r_vel_1[2]*N_neg_side(i_gauss,1) + r_vel_2[2]*N_neg_side(i_gauss,2);
+
+            //                     const double Water_Density=1e+3;
+            //                     energy_solu[0] =( (std::pow(v_solu[0],2) * Water_Density) / 2) + p_solu;
+            //                     energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
+            //                     energy_solu[2] = ((std::pow(v_solu[2] , 2) * Water_Density) / 2) + p_solu;
+            //                     const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2] , 2 ) , 0.5);
+
+            //                     Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * energy_water;
+            //                     Total_energy_water += w_gauss_neg_side[i_gauss] * energy_water;
+            //                     cut_area_negative += w_gauss_neg_side[i_gauss];
+            //                     total_area_negative += w_gauss_neg_side[i_gauss];
+            //                 }
+            //             }
 
 
-                            }
+            //             Matrix N_pos_side;
+            //             Vector w_gauss_pos_side;
+            //             Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
+            //             p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::GI_GAUSS_2);
 
-                            
-                        }
+            //             // Save the coordinates of all the subdivision Gauss pts.
+            //             const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
+            //             const unsigned int n_pos_sbdiv = (p_divide_util->mPositiveSubdivisions).size();
 
-                    // No split element case
-                    else {
-                        // Check if the element is in the positive (fluid) region
-                        if (this->IsPositive(elem_dist)){
-                            // Get geometry data
-                            Vector jac_vect;
-                            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
-                            auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
-                                // Obtained solution
-                                array_1d<double, 3> v_solu;
-                                array_1d<double, 3> energy_solu;
-                                const double p_solu = r_p_0*N(i_gauss,0) + r_p_1*N(i_gauss,1) + r_p_2*N(i_gauss,2);
-                                v_solu[0] = r_vel_0[0]*N(i_gauss,0) + r_vel_1[0]*N(i_gauss,1) + r_vel_2[0]*N(i_gauss,2);
-                                v_solu[1] = r_vel_0[1]*N(i_gauss,0) + r_vel_1[1]*N(i_gauss,1) + r_vel_2[1]*N(i_gauss,2);
-                                v_solu[2] = r_vel_0[2]*N(i_gauss,0) + r_vel_1[2]*N(i_gauss,1) + r_vel_2[2]*N(i_gauss,2);
+            //             for (unsigned int i_sbdiv = 0; i_sbdiv < n_pos_sbdiv; ++i_sbdiv)
+            //             {
+            //                     auto p_sbdiv = (p_divide_util->mPositiveSubdivisions)[i_sbdiv];
+            //                     auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            //                     for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss)
+            //                     {
+            //                         array_1d<double, 3> v_solu;
+            //                         array_1d<double, 3> energy_solu;
+            //                         const double p_solu = r_p_0 * N_pos_side(i_gauss, 0) + r_p_1 * N_pos_side(i_gauss, 1) + r_p_2 * N_pos_side(i_gauss, 2);
+            //                         v_solu[0] = r_vel_0[0] * N_pos_side(i_gauss, 0) + r_vel_1[0] * N_pos_side(i_gauss, 1) + r_vel_2[0] * N_pos_side(i_gauss, 2);
+            //                         v_solu[1] = r_vel_0[1] * N_pos_side(i_gauss, 0) + r_vel_1[1] * N_pos_side(i_gauss, 1) + r_vel_2[1] * N_pos_side(i_gauss, 2);
+            //                         v_solu[2] = r_vel_0[2] * N_pos_side(i_gauss, 0) + r_vel_1[2] * N_pos_side(i_gauss, 1) + r_vel_2[2] * N_pos_side(i_gauss, 2);
+            //                         const double Air_Density = 1.22;
+            //                         energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
+            //                         energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
+            //                         energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
+            //                         const double Air_Energy_total = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
 
-                                const double Air_Density=1.22;
-                                energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
-                                energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
-                                energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                                const double Air_energy = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-            
-                                Total_energy_air += Air_energy * (jac_vect[i_gauss] / 6.0);
-                                // Add the local Gauss contribution to the areas
-                                total_area_positive += (jac_vect[i_gauss] / 6.0);
-                            }
-                        }
-                        
-                        else if (this->IsNegative(elem_dist)){
-                            // Get geometry data
-                            Vector jac_vect;
-                            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
-                            auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            //                         Total_energy_air_splitted += w_gauss_pos_side[i_gauss] * Air_Energy_total;
+            //                         Total_energy_air += w_gauss_pos_side[i_gauss] * Air_Energy_total;
 
-                            // Obtained solution
-                            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss)
-                            {
-                                array_1d<double, 3> v_solu;
-                                array_1d<double, 3> energy_solu;
+            //                         // Add the local Gauss contribution to the areas
+            //                         cut_area_positive += w_gauss_pos_side[i_gauss];
+            //                         total_area_positive += w_gauss_pos_side[i_gauss];
+            //                     }
 
-                                const double p_solu = r_p_0 * N(i_gauss, 0) + r_p_1 * N(i_gauss, 1) + r_p_2 * N(i_gauss, 2);
-                                v_solu[0] = r_vel_0[0] * N(i_gauss, 0) + r_vel_1[0] * N(i_gauss, 1) + r_vel_2[0] * N(i_gauss, 2);
-                                v_solu[1] = r_vel_0[1] * N(i_gauss, 0) + r_vel_1[1] * N(i_gauss, 1) + r_vel_2[1] * N(i_gauss, 2);
-                                v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2);
 
-                                const double Water_Density = 1e+3;
-                                energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
-                                energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
-                                energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
-                                const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-                                Total_energy_water += energy_water * (jac_vect[i_gauss] / 6.0);
-                                // Add the local Gauss contribution to the areas
-                                total_area_negative += (jac_vect[i_gauss] / 6.0);
-                            }
-                        }
-                    }
-                }
-            }
+
+
+            //                 }
+
+
+            //             }
+
+            //         // No split element case
+            //         else {
+            //             // Check if the element is in the positive (fluid) region
+            //             if (this->IsPositive(elem_dist)){
+            //                 // Get geometry data
+            //                 Vector jac_vect;
+            //                 jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
+            //                 auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            //                 for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+            //                     // Obtained solution
+            //                     array_1d<double, 3> v_solu;
+            //                     array_1d<double, 3> energy_solu;
+            //                     const double p_solu = r_p_0*N(i_gauss,0) + r_p_1*N(i_gauss,1) + r_p_2*N(i_gauss,2);
+            //                     v_solu[0] = r_vel_0[0]*N(i_gauss,0) + r_vel_1[0]*N(i_gauss,1) + r_vel_2[0]*N(i_gauss,2);
+            //                     v_solu[1] = r_vel_0[1]*N(i_gauss,0) + r_vel_1[1]*N(i_gauss,1) + r_vel_2[1]*N(i_gauss,2);
+            //                     v_solu[2] = r_vel_0[2]*N(i_gauss,0) + r_vel_1[2]*N(i_gauss,1) + r_vel_2[2]*N(i_gauss,2);
+
+            //                     const double Air_Density=1.22;
+            //                     energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
+            //                     energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
+            //                     energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
+            //                     const double Air_energy = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+
+            //                     Total_energy_air += Air_energy * (jac_vect[i_gauss] / 6.0);
+            //                     // Add the local Gauss contribution to the areas
+            //                     total_area_positive += (jac_vect[i_gauss] / 6.0);
+            //                 }
+            //             }
+
+            //             else if (this->IsNegative(elem_dist)){
+            //                 // Get geometry data
+            //                 Vector jac_vect;
+            //                 jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
+            //                 auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+            //                 // Obtained solution
+            //                 for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss)
+            //                 {
+            //                     array_1d<double, 3> v_solu;
+            //                     array_1d<double, 3> energy_solu;
+
+            //                     const double p_solu = r_p_0 * N(i_gauss, 0) + r_p_1 * N(i_gauss, 1) + r_p_2 * N(i_gauss, 2);
+            //                     v_solu[0] = r_vel_0[0] * N(i_gauss, 0) + r_vel_1[0] * N(i_gauss, 1) + r_vel_2[0] * N(i_gauss, 2);
+            //                     v_solu[1] = r_vel_0[1] * N(i_gauss, 0) + r_vel_1[1] * N(i_gauss, 1) + r_vel_2[1] * N(i_gauss, 2);
+            //                     v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2);
+
+            //                     const double Water_Density = 1e+3;
+            //                     energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
+            //                     energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
+            //                     energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
+            //                     const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
+            //                     Total_energy_water += energy_water * (jac_vect[i_gauss] / 6.0);
+            //                     // Add the local Gauss contribution to the areas
+            //                     total_area_negative += (jac_vect[i_gauss] / 6.0);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
         else if(mDomainSize == 3)
         {
+            double total_energy = 0.0;
+            double total_potential_energy = 0.0;
+            double total_kinematic_energy = 0.0;
+
             for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
             {
                 auto &r_geom = it_elem->GetGeometry();
                 const auto elem_dist = SetDistanceVector(*it_elem);
 
-                const auto &r_p_0 = r_geom[0].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_1 = r_geom[1].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_2 = r_geom[2].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_3 = r_geom[3].FastGetSolutionStepValue(PRESSURE);
-
-                const auto &r_vel_0 = r_geom[0].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_1 = r_geom[1].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_2 = r_geom[2].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_3 = r_geom[3].FastGetSolutionStepValue(VELOCITY);
-
-                // const bool is_valid = aux_n == r_geom.PointsNumber() ? true : false;
-                const bool is_valid = true;
+                if (it_elem->Id() == 15) {
+                    KRATOS_WATCH(elem_dist)
+                }
 
                 // Split element case
-                if (is_valid)
+                if (this->IsCut(elem_dist))
                 {
-                    if (this->IsCut3D(elem_dist))
+                    // Generate the splitting pattern
+                    DivideTetrahedra3D4::Pointer p_divide_util = Kratos::make_shared<DivideTetrahedra3D4>(r_geom, elem_dist);
+                    p_divide_util->GenerateDivision();
+
+                    // Generate the modified shape functions util
+                    auto p_geom = it_elem->pGetGeometry();
+                    ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, elem_dist);
+
+                    Matrix N_neg_side;
+                    Vector w_gauss_neg_side;
+                    Matrix N_neg_side_interface;
+                    Vector w_gauss_interface;
+
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
+                    p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::GI_GAUSS_2);
+                    p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::GI_GAUSS_2);
+                    // Save the coordinates of all the subdivision Gauss pts.
+                    const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
+                    const unsigned int n_neg_sbdiv = (p_divide_util->mNegativeSubdivisions).size();
+                    const unsigned int n_interface_side_gauss_pt=w_gauss_interface.size();
+                    for (unsigned int i_gauss_interface = 0; i_gauss_interface < n_interface_side_gauss_pt ; ++i_gauss_interface)
                     {
-                        // Generate the splitting pattern
-                        DivideTetrahedra3D4::Pointer p_divide_util = Kratos::make_shared<DivideTetrahedra3D4>(r_geom, elem_dist);
-                        p_divide_util->GenerateDivision();
-
-                        // Generate the modified shape functions util
-                        auto p_geom = it_elem->pGetGeometry();
-                        ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, elem_dist);
-
-                        Matrix N_neg_side;
-                        Vector w_gauss_neg_side;
-                        Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
-                        p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::GI_GAUSS_2);
-
-                        // Save the coordinates of all the subdivision Gauss pts.
-                        const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
-                        const unsigned int n_neg_sbdiv = (p_divide_util->mNegativeSubdivisions).size();
-
-                        for (unsigned int i_sbdiv = 0; i_sbdiv < n_neg_sbdiv; ++i_sbdiv)
-                        {
-                            auto p_sbdiv = (p_divide_util->mNegativeSubdivisions)[i_sbdiv];
-                            auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                            for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss)
-                            {
-                                // energy_solu_cinematic[0]= (std::pow(v_solu[0], 2) * Water_Density) / 2);
-                                // energy_solu_cinematic[1]= (std::pow(v_solu[1], 2) * Water_Density) / 2);
-                                // energy_solu_cinematic[2]= (std::pow(v_solu[2], 2) * Water_Density) / 2);
-                                // const double energy_water_cinematica= std::pow(std::pow(energy_solu_cinematic[0], 2) + std::pow(energy_solu_cinematic[1], 2) + std::pow(energy_solu_cinematic[2], 2), 0.5);
-                                // energy_solu[0] = ((std::pow(v_solu[0], 2) * Water_Density) / 2) + p_solu;
-                                // energy_solu[1] = ((std::pow(v_solu[1], 2) * Water_Density) / 2) + p_solu;
-                                // energy_solu[2] = ((std::pow(v_solu[2], 2) * Water_Density) / 2) + p_solu;
-                                // const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-                                // Total_cinematic_energy_water=+w_gauss_neg_side[i_gauss]*energy_water_cinematica
-                                array_1d<double, 3> v_solu;
-                                array_1d<double, 3> energy_solu;
-                                array_1d<double, 3> energy_solu_cinematic;
-                                const double p_solu = r_p_0 * N_neg_side(i_gauss, 0) + r_p_1 * N_neg_side(i_gauss, 1) + r_p_2 * N_neg_side(i_gauss, 2) + r_p_3 * N_neg_side(i_gauss, 3);
-                                v_solu[0] = r_vel_0[0] * N_neg_side(i_gauss, 0) + r_vel_1[0] * N_neg_side(i_gauss, 1) + r_vel_2[0] * N_neg_side(i_gauss, 2) + r_vel_3[0] * N_neg_side(i_gauss, 3);
-                                v_solu[1] = r_vel_0[1] * N_neg_side(i_gauss, 0) + r_vel_1[1] * N_neg_side(i_gauss, 1) + r_vel_2[1] * N_neg_side(i_gauss, 2) + r_vel_3[1] * N_neg_side(i_gauss, 3);
-                                v_solu[2] = r_vel_0[2] * N_neg_side(i_gauss, 0) + r_vel_1[2] * N_neg_side(i_gauss, 1) + r_vel_2[2] * N_neg_side(i_gauss, 2) + r_vel_3[2] * N_neg_side(i_gauss, 3);
-                                const double z_interpolated=r_geom[0].Z()* N_neg_side(i_gauss, 0) + r_geom[1].Z()* N_neg_side(i_gauss, 1) + r_geom[2].Z() * N_neg_side(i_gauss, 2) + r_geom[3].Z()* N_neg_side(i_gauss, 3);
-                                const double Water_Density = 1e+3;
-                                
-                                const double velocity_square_norm=inner_prod(v_solu,v_solu);
-                                const double energy_water = (velocity_square_norm * Water_Density)/2+  gravity*Water_Density*z_interpolated;
-                                const double cinematic_energy_water=(velocity_square_norm * Water_Density)/2;
-                                const double hydrostatic_energy_water=gravity*Water_Density*z_interpolated;
-                                Total_hydrostatic_energy_water+=w_gauss_neg_side[i_gauss]* hydrostatic_energy_water;
-                                Total_cinematic_energy_water+= w_gauss_neg_side[i_gauss] * cinematic_energy_water;
-                                Total_energy_water_splitted += w_gauss_neg_side[i_gauss] * energy_water;
-                                Total_energy_water += w_gauss_neg_side[i_gauss] * energy_water;
-                                cut_area_negative += w_gauss_neg_side[i_gauss];
-                                total_area_negative += w_gauss_neg_side[i_gauss];
-                                Total_cinematic_energy_water_splitted+= w_gauss_neg_side[i_gauss] * cinematic_energy_water;
-                                Total_hydrostatic_energy_water_splitted+=w_gauss_neg_side[i_gauss]* hydrostatic_energy_water;
-      
-
-
-
-
-                            }
-
-                        }
-                        Matrix N_pos_side;
-                        Vector w_gauss_pos_side;
-                        Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
-                        p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::GI_GAUSS_2);
-
-                        // Save the coordinates of all the subdivision Gauss pts.
-                        const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
-                        const unsigned int n_pos_sbdiv = (p_divide_util->mPositiveSubdivisions).size();
-
-                        for (unsigned int i_sbdiv = 0; i_sbdiv < n_pos_sbdiv; ++i_sbdiv)
-                        {
-                            auto p_sbdiv = (p_divide_util->mPositiveSubdivisions)[i_sbdiv];
-                            auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                            for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss)
-                            {
-                                array_1d<double, 3> v_solu;
-                                // const double energy_solu;
-                                array_1d<double, 3> energy_solu_cinematic;
-                                const double p_solu = r_p_0 * N_pos_side(i_gauss, 0) + r_p_1 * N_pos_side(i_gauss, 1) + r_p_2 * N_pos_side(i_gauss, 2)+ r_p_3 * N_pos_side(i_gauss, 3);
-                                v_solu[0] = r_vel_0[0] * N_pos_side(i_gauss, 0) + r_vel_1[0] * N_pos_side(i_gauss, 1) + r_vel_2[0] * N_pos_side(i_gauss, 2) + r_vel_3[0] * N_pos_side(i_gauss, 3);
-                                v_solu[1] = r_vel_0[1] * N_pos_side(i_gauss, 0) + r_vel_1[1] * N_pos_side(i_gauss, 1) + r_vel_2[1] * N_pos_side(i_gauss, 2)+ r_vel_3[1] * N_pos_side(i_gauss, 3);
-                                v_solu[2] = r_vel_0[2] * N_pos_side(i_gauss, 0) + r_vel_1[2] * N_pos_side(i_gauss, 1) + r_vel_2[2] * N_pos_side(i_gauss, 2)+ r_vel_3[2] * N_pos_side(i_gauss, 3);
-                                const double Air_Density = 1.22;
-                                const double z_interpolated=r_geom[0].Z()*N_pos_side(i_gauss, 0) + r_geom[1].Z()* N_pos_side(i_gauss, 1) + r_geom[2].Z() * N_pos_side(i_gauss, 2) + r_geom[3].Z()* N_pos_side(i_gauss, 3);
-                                const double velocity_norm=inner_prod(v_solu,v_solu);
-                                const double energy_air = (velocity_norm * Air_Density)/2+  gravity*Air_Density*z_interpolated;
-                                KRATOS_WATCH(r_geom[0].Id())
-                                KRATOS_WATCH(r_geom[0].Z())
-                                KRATOS_WATCH(z_interpolated)
-                                const double cinematic_energy_air=( velocity_norm * Air_Density)/2;
-                                const double hydrostatic_energy_air=gravity*Air_Density*z_interpolated;
-                                Total_hydrostatic_energy_air+=w_gauss_pos_side[i_gauss]* hydrostatic_energy_air;
-                                Total_cinematic_energy_air+= w_gauss_pos_side[i_gauss] * cinematic_energy_air;
-                                // energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
-                                // energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
-                                // energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                                // const double energy_air = (velocity_norm * Air_Density)/2+ p_soluT
-                                
-
-                                Total_energy_air_splitted += w_gauss_pos_side[i_gauss] * energy_air;
-                                Total_energy_air += w_gauss_pos_side[i_gauss] * energy_air;
-
-                                // Add the local Gauss contribution to the areas
-                                cut_area_positive += w_gauss_pos_side[i_gauss];
-                                total_area_positive += w_gauss_pos_side[i_gauss];
-                                Total_cinematic_energy_air_splitted+= w_gauss_pos_side[i_gauss] * cinematic_energy_air;
-                                Total_hydrostatic_energy_air_splitted+=w_gauss_pos_side[i_gauss]* hydrostatic_energy_air;
-                    }
-                    }
+                        interface_area+=w_gauss_interface[i_gauss_interface];;
                     }
 
-                    // No split element case
+                    for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss)
+                    {
+                        const double Water_Density = 1e+3;
+                        Vector N_gauss = row(N_neg_side, i_gauss);
+                        const double w_gauss = w_gauss_neg_side[i_gauss];
+                        const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+
+                        //const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+                        water_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+                        // const double total_energy_gauss = kinetic_energy + potential_energy;
+
+                        total_area_negative += w_gauss;
+
+                        // Total_energy_water += total_energy_gauss;
+                        // Total_energy_water_splitted+= total_energy_gauss;
+                        Total_cinematic_energy_water += kinetic_energy;
+
+                    }
+                    Matrix N_pos_side;
+                    Vector w_gauss_pos_side;
+                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
+                    p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::GI_GAUSS_2);
+
+                    // Save the coordinates of all the subdivision Gauss pts.
+                    const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
+                    const unsigned int n_pos_sbdiv = (p_divide_util->mPositiveSubdivisions).size();
+
+                    for (unsigned int i_gauss = 0; i_gauss < n_pos_gauss_pt; ++i_gauss)
+                    {
+                        const double Air_Density = 1.22;
+                        Vector N_gauss = row(N_pos_side, i_gauss);
+                        const double w_gauss = w_gauss_pos_side[i_gauss];
+                        const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                        const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                        const double total_energy_gauss = kinetic_energy + potential_energy;
+                        air_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+
+                        total_area_positive+=w_gauss;
+
+                        Total_energy_air += total_energy_gauss;
+                        Total_energy_air_splitted+= total_energy_gauss;
+                        Total_cinematic_energy_air+=kinetic_energy;
+
+                        // Total_hydrostatic_energy_air+=potential_energy;
+                    }
+                }
+                // No split element case
                 else
                 {
-
+                    // Get geometry data
+                    Vector jac_vect;
+                    r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
+                    auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+                    const auto& r_integrations_points = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    const unsigned int n_gauss = r_integrations_points.size();
                     // Check if the element is in the positive (fluid) region
-                    if (this->IsPositive3D(elem_dist))
+                    if (this->IsPositive(elem_dist))
                     {
-                        
-                        // Get geometry data
-                        Vector jac_vect;
-                        jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
-                        auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-                        for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss){
-                            // Obtained solution
-                            array_1d<double, 3> v_solu;
-                            array_1d<double, 3> energy_solu;
-                            const double p_solu = r_p_0 * N(i_gauss, 0) + r_p_1 * N(i_gauss, 1) + r_p_2 * N(i_gauss, 2) + r_p_3 * N(i_gauss, 3);
-                            v_solu[0] = r_vel_0[0] * N(i_gauss, 0) + r_vel_1[0] * N(i_gauss, 1) + r_vel_2[0] * N(i_gauss, 2)+ r_vel_3[0] * N(i_gauss, 3);
-                            v_solu[1] = r_vel_0[1] * N(i_gauss, 0) + r_vel_1[1] * N(i_gauss, 1) + r_vel_2[1] * N(i_gauss, 2)+r_vel_3[1] * N(i_gauss, 3);
-                            v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2) + r_vel_3[2] * N(i_gauss, 3);
-
+                        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss){
                             const double Air_Density = 1.22;
-                            const double z_interpolated=r_geom[0].Z()*N(i_gauss, 0) + r_geom[1].Z()* N(i_gauss, 1) + r_geom[2].Z() * N(i_gauss, 2) + r_geom[3].Z()* N(i_gauss, 3);
+                            Vector N_gauss = row(N, i_gauss);
+                            const double w_gauss = r_integrations_points[i_gauss].Weight() * jac_vect[i_gauss];
+                            const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                            const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Air_Density);
+                            const double total_energy_gauss = kinetic_energy + potential_energy;
+                            air_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+                            total_area_positive += w_gauss;
 
-                            const double velocity_norm=inner_prod(v_solu,v_solu);
-                            const double energy_air = (velocity_norm * Air_Density)/2+ gravity*Air_Density*z_interpolated;
-                            const double cinematic_energy_air=(velocity_norm * Air_Density)/2;
-                            const double hydrostatic_energy_air=gravity*Air_Density*z_interpolated;
-                            // const double Water_Density = 1e+3;
-                            // energy_solu[0] = ((std::pow(v_solu[0], 2) * Air_Density) / 2) + p_solu;
-                            // energy_solu[1] = ((std::pow(v_solu[1], 2) * Air_Density) / 2) + p_solu;
-                            // energy_solu[2] = ((std::pow(v_solu[2], 2) * Air_Density) / 2) + p_solu;
-                            // const double Air_energy = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-                            Total_hydrostatic_energy_air+=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_air;
-                            Total_cinematic_energy_air+= (jac_vect[i_gauss] / 6.0) * cinematic_energy_air;
-                            Total_energy_air += energy_air * (jac_vect[i_gauss] / 6.0);
-                            Total_energy_air_entire_element+= energy_air * (jac_vect[i_gauss] / 6.0);
-                            // Add the local Gauss contribution to the areas
-                            total_area_positive += (jac_vect[i_gauss] / 6.0);
-                            Total_cinematic_energy_air_not_splitted=(jac_vect[i_gauss] / 6.0) * cinematic_energy_air;
-                            Total_hydrostatic_energy_air_not_splitted=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_air;
+                            Total_energy_air += total_energy_gauss;
+                            Total_energy_air_entire_element+= total_energy_gauss;
+                            Total_cinematic_energy_air+=kinetic_energy;
+                            Total_hydrostatic_energy_air+=potential_energy;
+                        }
+                    } else {
+                        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss){
+                            const double Water_Density = 1e+3;
+                            Vector N_gauss = row(N, i_gauss);
+                            const double w_gauss = r_integrations_points[i_gauss].Weight() * jac_vect[i_gauss];
+                            const double kinetic_energy = CalculateGaussPointKinematicEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+                            const double potential_energy = CalculateGaussPointPotentialEnergy(r_geom, N_gauss, w_gauss, Water_Density);
+                            const double total_energy_gauss = kinetic_energy + potential_energy;
+
+                            water_zg += CalculateGaussPointPotentialEnergyGravityCenter(r_geom,N_gauss,w_gauss);
+                            total_area_negative += w_gauss;
+
+                            Total_energy_water += total_energy_gauss;
+                            Total_energy_water_entire_element+= total_energy_gauss;
+                            Total_cinematic_energy_water+=kinetic_energy;
+                            Total_hydrostatic_energy_water+=potential_energy;
+
+
+
+
+
+
+
+
                         }
                     }
-                
-
-                    else if (this->IsNegative3D(elem_dist))
-                    {
-                        // Get geometry data
-                        Vector jac_vect;
-                        jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::GI_GAUSS_2);
-                        
-                        auto N = r_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-                        // Obtained solution
-                        for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss){
-                            array_1d<double, 3> v_solu;
-                            array_1d<double, 3> energy_solu;
-                            const double p_solu = r_p_0 * N(i_gauss, 0) + r_p_1 * N(i_gauss, 1) + r_p_2 * N(i_gauss, 2) + r_p_3 * N(i_gauss, 3);
-                            v_solu[0] = r_vel_0[0] * N(i_gauss, 0) + r_vel_1[0] * N(i_gauss, 1) + r_vel_2[0] * N(i_gauss, 2) + r_vel_3[0] * N(i_gauss, 3);
-                            v_solu[1] = r_vel_0[1] * N(i_gauss, 0) + r_vel_1[1] * N(i_gauss, 1) + r_vel_2[1] * N(i_gauss, 2) + r_vel_3[1] * N(i_gauss, 3);
-                            v_solu[2] = r_vel_0[2] * N(i_gauss, 0) + r_vel_1[2] * N(i_gauss, 1) + r_vel_2[2] * N(i_gauss, 2) + r_vel_3[2] * N(i_gauss, 3);
-                            const double z_interpolated=r_geom[0].Z()*N(i_gauss, 0) + r_geom[1].Z()* N(i_gauss, 1) + r_geom[2].Z() * N(i_gauss, 2) + r_geom[3].Z()* N(i_gauss, 3);
-                            const double Water_Density = 1e03;
-                           
-
-                            const double velocity_norm=inner_prod(v_solu,v_solu);
-                            const double energy_water = (velocity_norm * Water_Density)/2+ gravity*Water_Density*z_interpolated;
-                            
-                            const double cinematic_energy_water=(velocity_norm * Water_Density)/2;
-                            const double hydrostatic_energy_water=gravity*Water_Density*z_interpolated;
-                            Total_hydrostatic_energy_water+=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_water;
-                            Total_cinematic_energy_water+= (jac_vect[i_gauss] / 6.0) * cinematic_energy_water;
-                            // const double energy_water = std::pow(std::pow(energy_solu[0], 2) + std::pow(energy_solu[1], 2) + std::pow(energy_solu[2], 2), 0.5);
-                            
-                            Total_energy_water += energy_water * (jac_vect[i_gauss] / 6.0);
-                            Total_energy_water_entire_element+= energy_water* (jac_vect[i_gauss] / 6.0);
-                            // Add the local Gauss contribution to the areas
-                            total_area_negative += (jac_vect[i_gauss] / 6.0);
-                            Total_cinematic_energy_water_not_splitted=(jac_vect[i_gauss] / 6.0) * cinematic_energy_water;
-                            Total_hydrostatic_energy_water_not_splitted=(jac_vect[i_gauss] / 6.0)* hydrostatic_energy_water;
-                        }
-                    }
-                }   
+                }
+            }
         }
-        }
-        }
-        const double total_energy_system= Total_energy_air+Total_energy_water;
+
+        air_zg /= total_area_positive;
+        water_zg /= total_area_negative;
+
+        KRATOS_WATCH(air_zg)
+        KRATOS_WATCH(water_zg)
+
+        // const double Potential_energy_water_test=PotentialEnergyTest(total_area_negative,Total_hydrostatic_energy_water_elemental,Water_Density);
+        // const double Potential_energy_air_test=PotentialEnergyTest(total_area_positive,Total_hydrostatic_energy_air_elemental,Air_Density);
+        const double Potential_energy_water_test = PotentialEnergyRuben(total_area_negative, water_zg, Water_Density, gravity);
+        const double Potential_energy_air_test = PotentialEnergyRuben(total_area_positive, air_zg, Air_Density, gravity);
+
+        const double Total_energy_air_system= Potential_energy_air_test+ Total_cinematic_energy_air;
+        const double Total_energy_water_system= Potential_energy_water_test+ Total_cinematic_energy_water;
+        const double total_energy_system= Total_energy_air_system+Total_energy_water_system;
         // Print the obtained values
         std::cout << std::endl;
-        std::cout << "Water_area_splited:" << cut_area_negative << std::endl;
-        std::cout << "Air_area_splited" << cut_area_positive << std::endl;
-        std::cout << "Water_area:" << total_area_negative << std::endl;
-        std::cout << "Air_area:" << total_area_positive << std::endl;
-        std::cout << "Total_energy_air_splitted:" << Total_energy_air_splitted << std::endl;
-        std::cout << "Total_energy_water_splitted:" << Total_energy_water_splitted << std::endl;
-        std::cout << "Total_energy_air:" << Total_energy_air << std::endl;
-        std::cout << "Total_energy_water:" << Total_energy_water << std::endl;
+        std::cout<< "Total_potential_water_energy"<< Potential_energy_water_test<< std::endl;
+        std::cout << "Total_cinematic_water_energy"<< Total_cinematic_energy_water<<std::endl;
+        std::cout<< "Total_potential_air_energy"<< Potential_energy_air_test<< std::endl;
+        std::cout << "Total_cinematic_air_energy"<<  Total_cinematic_energy_air<< std::endl;
+        std::cout << "Total_energy_air:" << Total_energy_air_system << std::endl;
+        std::cout << "Total_energy_water:" << Total_energy_water_system << std::endl;
         std::cout << "total_energy_system:" << total_energy_system  << std::endl;
-        std::cout << std::endl;
-        
 
-        WritingFile(
-                    Total_energy_air,Total_energy_air_splitted,
-                    Total_energy_air_entire_element,Total_cinematic_energy_air,Total_hydrostatic_energy_air, Total_energy_water,Total_energy_water_splitted,
-                    Total_energy_water_entire_element,Total_cinematic_energy_water,Total_hydrostatic_energy_water,total_energy_system);
-    
+        std::cout << std::endl;
+
+
+
+
+        WritingFile(Potential_energy_water_test,Total_cinematic_energy_water,Total_energy_water_system,Potential_energy_air_test, Total_cinematic_energy_air,Total_energy_air_system,total_energy_system,air_zg,water_zg,interface_area,total_area_negative,total_area_positive);
 
         KRATOS_CATCH("");
     }
 
 
 
-    
 
-void WritingFile(
-const double& Total_energy_air,const double& Total_energy_air_splitted,
-const double& Total_energy_air_entire_element,const double& Total_cinematic_energy_air,const double&Total_hydrostatic_energy_air, const double& Total_energy_water,const double& Total_energy_water_splitted,
-const double& Total_energy_water_entire_element,const double& Total_cinematic_energy_water,const double& Total_hydrostatic_energy_water,const double& total_energy_system)
+
+void WritingFile(const double Potential_energy_water_test,const double Total_cinematic_energy_water,const double Total_energy_water_system,const double Potential_energy_air_test,const double Total_cinematic_air_energy,const double Total_energy_air_system,const double total_energy_system ,const double air_zg,const double water_zg,const double interface_area,const double total_area_negative,const double total_area_positive)
     {
         KRATOS_WATCH("I am writting into file energy check")
         const double current_time = mrModelPart.GetProcessInfo()[TIME];
@@ -573,19 +513,46 @@ const double& Total_energy_water_entire_element,const double& Total_cinematic_en
         //std::string output_line = "total_energy_system\t\tSTEP \n";
 
         std::string output_line = std::to_string(current_time) + "\t";
-        output_line += std::to_string(Total_energy_air) + "\t";
-        output_line += std::to_string(Total_energy_air_splitted) + "\t";
-        output_line += std::to_string(Total_energy_air_entire_element) + "\t";  
-        output_line += std::to_string(Total_cinematic_energy_air) + "\t";
-        output_line += std::to_string(Total_hydrostatic_energy_air) + "\t";
-        output_line += std::to_string(Total_energy_water) + "\t";
-        output_line += std::to_string(Total_energy_water_splitted) + "\t";
-        output_line += std::to_string(Total_energy_water_entire_element) + "\t";    
+        output_line += std::to_string(Potential_energy_water_test) + "\t";
         output_line += std::to_string(Total_cinematic_energy_water) + "\t";
-        output_line += std::to_string(Total_hydrostatic_energy_water) + "\t";
-        output_line += std::to_string(total_energy_system) + "\n";
+        output_line += std::to_string(Total_energy_water_system) + "\t";
+        output_line += std::to_string(Potential_energy_air_test) + "\t";
+        output_line += std::to_string(Total_cinematic_air_energy) + "\t";
+        output_line += std::to_string(Total_energy_air_system) + "\t";
+        output_line += std::to_string(total_energy_system) + "\t";
+        output_line += std::to_string(air_zg) + "\t";
+        output_line += std::to_string(water_zg) + "\t";
+        output_line += std::to_string(interface_area)+"\t";
+        output_line += std::to_string(total_area_negative)+"\t";
+        output_line += std::to_string(total_area_positive)+"\n";
+
         MyFile << output_line ;
 
+    }
+
+
+    double PotentialEnergyTest(const double weighted_elevation,
+        const double volume,
+        const double Density )
+
+    {
+
+        const double gravity =9.81;
+        const double elevation_cg=weighted_elevation/volume;
+        KRATOS_WATCH(elevation_cg)
+        KRATOS_WATCH(volume)
+        return (Density * gravity * elevation_cg*volume);
+
+    }
+
+    double PotentialEnergyRuben(
+        const double zg,
+        const double volume,
+        const double density,
+        const double gravity)
+
+    {
+        return density * volume * gravity * zg;
     }
 
  ///@}
@@ -647,7 +614,7 @@ protected:
         unsigned int n_pos = 0;
         unsigned int n_neg = 0;
 
-        for (unsigned int i_node = 0; i_node < 3; ++i_node){
+        for (unsigned int i_node = 0; i_node < rElementalDistances.size(); ++i_node){
             if(rElementalDistances[i_node] > 0.0) {
                 n_pos++;
             } else {
@@ -665,112 +632,20 @@ protected:
     bool IsPositive(const Vector& rElementalDistances)
     {
         unsigned int n_pos = 0;
-
-        for (unsigned int i_node = 0; i_node < 3; ++i_node){
+        const unsigned int n_nodes = rElementalDistances.size();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
             if(rElementalDistances[i_node] > 0.0) {
                 n_pos++;
             }
         }
 
-        if (n_pos == 3){
+        if (n_pos == n_nodes){
             return true;
         } else {
             return false;
         }
     }
 
-    bool IsNegative(const Vector &rElementalDistances)
-    {
-        unsigned int n_neg = 0;
-
-        for (unsigned int i_node = 0; i_node < 3; ++i_node)
-        {
-            if (rElementalDistances[i_node]<  0.0)
-            {
-                n_neg++;
-            }
-        }
-
-        if (n_neg == 3)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    bool IsCut3D(const Vector &rElementalDistances)
-    {
-        unsigned int n_pos = 0;
-        unsigned int n_neg = 0;
-
-        for (unsigned int i_node = 0; i_node < 4; ++i_node)
-        {
-            if (rElementalDistances[i_node] > 0.0)
-            {
-                n_pos++;
-            }
-            else
-            {
-                n_neg++;
-            }
-        }
-
-        if (n_pos != 0 && n_neg != 0)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    bool IsPositive3D(const Vector &rElementalDistances)
-    {
-        unsigned int n_pos = 0;
-
-        for (unsigned int i_node = 0; i_node < 4; ++i_node)
-        {
-            if (rElementalDistances[i_node] > 0.0)
-            {
-                n_pos++;
-            }
-        }
-
-        if (n_pos == 4)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    bool IsNegative3D(const Vector &rElementalDistances)
-    {
-        unsigned int n_neg = 0;
-
-        for (unsigned int i_node = 0; i_node < 4; ++i_node)
-        {
-            if (rElementalDistances[i_node] < 0.0)
-            {
-                n_neg++;
-            }
-        }
-
-        if (n_neg == 4)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
 
     Vector SetDistanceVector(const Element& rElement)
     {
@@ -781,6 +656,56 @@ protected:
             distances_vector[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
         }
         return distances_vector;
+    }
+
+    double CalculateGaussPointKinematicEnergy(
+        const Geometry<Node<3>>& rGeometry,
+        const Vector& rN,
+        const double Weight,
+        const double Density)
+    {
+        // Gauss pt. interpolation of velocity
+        array_1d<double,3> v_gauss = ZeroVector(3);
+        const unsigned int n_nodes = rGeometry.PointsNumber();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            v_gauss += rN[i_node] * rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);
+        }
+
+        // Calculate and return Gauss pt. kinetic energy
+        const double squared_v_norm = inner_prod(v_gauss, v_gauss);
+        return Weight * Density * squared_v_norm / 2.0;
+    }
+
+    double CalculateGaussPointPotentialEnergy(
+        const Geometry<Node<3>>& rGeometry,
+        const Vector& rN,
+        const double Weight,
+        const double Density)
+    {   // Gauss pt. interpolation of elevation
+        const double gravity = 9.81;
+        double z_interpolated = 0.0;
+        const unsigned int n_nodes = rGeometry.PointsNumber();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+        }
+        // Calculate and return Gauss pt. potential energy
+        return (Density * gravity * z_interpolated) * Weight;
+
+    }
+
+        double CalculateGaussPointPotentialEnergyGravityCenter(
+        const Geometry<Node<3>>& rGeometry,
+        const Vector& rN,
+        const double Weight)
+    {
+        double z_interpolated = 0.0;
+        const unsigned int n_nodes = rGeometry.PointsNumber();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+            z_interpolated += rGeometry[i_node].Z() * rN[i_node];
+        }
+
+        return (z_interpolated) * Weight;
+
     }
 
     ///@}
