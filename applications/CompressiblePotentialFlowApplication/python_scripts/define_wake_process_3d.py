@@ -421,5 +421,5 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         print('Number of wake nodes = ', nodes)
         print('ratio = ', elements / nodes)
 
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
-        CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 1)
+        CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 1)

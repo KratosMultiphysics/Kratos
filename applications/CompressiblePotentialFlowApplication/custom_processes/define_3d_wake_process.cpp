@@ -58,13 +58,13 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     AddWakeNodes();
 
-    SelectWakeTipNodes();
+    // SelectWakeTipNodes();
 
-    SelectDoubleTrailingEdgeElements();
+    // SelectDoubleTrailingEdgeElements();
 
     //ApplyMPConstraints();
 
-    Print();
+    // Print();
 }
 // This function initializes the variables and removes all of the elements of
 // the trailing edge submodelpart

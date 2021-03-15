@@ -1002,8 +1002,11 @@ bool CheckWakeConditionXDirection(const Element& rElement, const int& rComponent
 template <int Dim>
 void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
 {
-    std::ofstream outfile;
-    outfile.open("unfulfilled_pressure_wake_elements_id.txt");
+    if(rEchoLevel > 1){
+        std::ofstream outfile;
+        outfile.open("unfulfilled_pressure_wake_elements_id.txt");
+    }
+
     unsigned int number_of_unfulfilled_wake_conditions = 0;
     unsigned int number_of_unfulfilled_wing_tip_wake_conditions = 0;
     unsigned int number_of_unfulfilled_zero_velocity_wake_conditions = 0;
