@@ -275,9 +275,9 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddKuttaConditio
     BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
     BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
     BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
     noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
 
-    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         if (this->GetGeometry()[i].GetValue(WING_TIP))
