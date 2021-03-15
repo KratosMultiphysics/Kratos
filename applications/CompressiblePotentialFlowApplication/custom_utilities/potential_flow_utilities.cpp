@@ -119,7 +119,7 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputePerturbedVelocity(
-    const Element& rElement, 
+    const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
@@ -547,7 +547,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 
 template <int Dim, int NumNodes>
 double ComputeUpwindFactor(
-        double localMachNumberSquared, 
+        double localMachNumberSquared,
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -569,8 +569,8 @@ double ComputeUpwindFactor(
 
 template <int Dim, int NumNodes>
 double SelectMaxUpwindFactor(
-        const array_1d<double, Dim>& rCurrentVelocity, 
-        const array_1d<double, Dim>& rUpwindVelocity, 
+        const array_1d<double, Dim>& rCurrentVelocity,
+        const array_1d<double, Dim>& rUpwindVelocity,
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -602,7 +602,7 @@ size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions)
         rUpwindFactorOptions[2] = 0.0;
     }
     const auto max_upwind_factor_opt = std::max_element(rUpwindFactorOptions.begin(), rUpwindFactorOptions.end());
-    
+
     // Case 0: Subsonic flow
     // Case 1: Supersonic and accelerating flow (M^2 > M^2_up)
     // Case 2: Supersonic and decelerating flow (M^2 < M^2_up)
@@ -647,7 +647,7 @@ double ComputeUpwindFactorDerivativeWRTVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeDensity(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Implemented according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
@@ -673,8 +673,8 @@ double ComputeDensity(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensity(
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const array_1d<double, Dim>& rCurrentVelocity,
+    const array_1d<double, Dim>& rUpwindVelocity,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -694,7 +694,7 @@ double ComputeUpwindedDensity(
 
 template <int Dim, int NumNodes>
 double ComputeDensityDerivativeWRTVelocitySquared(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -726,9 +726,9 @@ double ComputeDensityDerivativeWRTVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(
-    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rCurrentVelocity,
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -754,7 +754,7 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
-    //           by Brian Nishida (1996), Section A.2.6    
+    //           by Brian Nishida (1996), Section A.2.6
     // const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
@@ -767,7 +767,7 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -784,7 +784,7 @@ template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(
     const array_1d<double, Dim>& rUpwindVelocity,
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -905,6 +905,16 @@ void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCand
         }
     }
 }
+
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer)
+{
+    double area = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+        return rEntity.GetGeometry().Area();
+    });
+
+    return area;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -1000,5 +1010,7 @@ template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeCo
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+template double CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
+template double CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 } // namespace PotentialFlow
 } // namespace Kratos
