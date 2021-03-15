@@ -227,7 +227,7 @@ public:
                 VectorType(problem_size),
                 [&aux_LHS, &p_inv_jac_right, &p_inv_jac_left, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
             {
-                TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS); 
+                TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS);
                 for (std::size_t row = 0; row < problem_size; ++row) {
                     aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_right, rAuxColumnTLS);
                 }
@@ -237,7 +237,7 @@ public:
             // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
             QR<double, row_major> qr_util;
             qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-            qr_util.solve(&(aux_RHS)(0), &(right_correction)(0)); 
+            qr_util.solve(&(aux_RHS)(0), &(right_correction)(0));
         }
 
         // Update the iteration guess
@@ -289,7 +289,7 @@ public:
                 VectorType(problem_size),
                 [&aux_LHS, &p_inv_jac_left, &p_inv_jac_right, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
             {
-                TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS); 
+                TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS);
                 for (std::size_t row = 0; row < problem_size; ++row) {
                     aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_left, rAuxColumnTLS);
                 }
@@ -299,7 +299,7 @@ public:
             // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
             QR<double, row_major> qr_util;
             qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-            qr_util.solve(&(aux_RHS)(0), &(left_correction)(0)); 
+            qr_util.solve(&(aux_RHS)(0), &(left_correction)(0));
         }
 
         // Update the iteration guess
@@ -358,7 +358,7 @@ public:
         KRATOS_CATCH( "" );
     }
 
-    bool IsBlockNewton() override
+    bool IsBlockNewton() const override
     {
         return true;
     }

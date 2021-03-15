@@ -76,7 +76,7 @@ public:
 
     /**
      * @brief Construct a new MVQNFullJacobianConvergenceAccelerator object
-     * MultiVector Quasi-Newton convergence accelerator with full Jacobian json settings constructor 
+     * MultiVector Quasi-Newton convergence accelerator with full Jacobian json settings constructor
      * This constructor also makes possible the MVQN usage for the interface block Newton equations
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
@@ -236,7 +236,7 @@ protected:
 
         if (mConvergenceAcceleratorIteration == 0) {
             if (!mJacobiansAreInitialized) {
-                // Initialize the problem size with the first residual 
+                // Initialize the problem size with the first residual
                 mProblemSize = TSparseSpace::Size(rResidualVector);
 
                 // Initialize the Jacobian matrices
@@ -348,31 +348,13 @@ protected:
             TSparseSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
             TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
         }
-    
-        // if (mConvergenceAcceleratorIteration == 0) {
-        //     if (mConvergenceAcceleratorFirstCorrectionPerformed == false) {
-        //         // The very first correction of the problem is done with a fixed point iteration
-        //         TSparseSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
-        //         mConvergenceAcceleratorFirstCorrectionPerformed = true;
-        //     } else {
-        //         // Fist step correction is done with the previous step Jacobian
-        //         VectorType AuxVec(mProblemSize);
-        //         TSparseSpace::Mult(*mpJac_n, *mpResidualVector_1, AuxVec);
-        //         TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
-        //     }
-        // } else {
-        //     // Perform the correction
-        //     VectorType AuxVec(mProblemSize);
-        //     TSparseSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
-        //     TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
-        // }
     }
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-    unsigned int GetProblemSize() override
+    std::size_t GetProblemSize() const override
     {
         return mProblemSize;
     }
@@ -395,7 +377,6 @@ private:
     double mOmega_0;                                                // Relaxation factor for the initial fixed point iteration
     double mAbsCutOff;                                              // Tolerance for the absolute cut-off criterion
     bool mUsedInBlockNewtonEquations;                               // Indicates if the current MVQN is to be used in the interface block Newton equations
-    
     unsigned int mProblemSize = 0;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration = 0;              // Convergence accelerator iteration counter
     bool mJacobiansAreInitialized = false;                          // Indicates that the Jacobian matrices have been already initialized
@@ -521,7 +502,7 @@ private:
         MatrixPointerType p_aux_W = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
 
         // Drop the last column
-        IndexPartition<unsigned int>(mProblemSize).for_each([&](unsigned int IRow){
+        IndexPartition<std::size_t>(mProblemSize).for_each([&](unsigned int IRow){
             for (std::size_t i_col = 0; i_col < n_cols; ++i_col){
                 (*p_aux_V)(IRow, i_col) = (*mpObsMatrixV)(IRow, i_col);
                 (*p_aux_W)(IRow, i_col) = (*mpObsMatrixW)(IRow, i_col);
