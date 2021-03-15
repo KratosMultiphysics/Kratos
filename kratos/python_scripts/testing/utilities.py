@@ -109,7 +109,6 @@ class Commander:
         self.exitCode = 0
 
         test_script = path / Path("tests") / Path("test_{}.py".format(application))
-        directory = str( path / Path("tests"))
 
         if Path.is_file(test_script):
             full_command = "{} {} {} {} {} {} --using-mpi -v{} -l{}".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script, verbose, level)
