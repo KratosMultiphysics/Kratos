@@ -110,7 +110,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.p_count = self.p_frequency
 
         #self._solver = self._GetSolver()
-        self.SetDt()
         self.SetFinalTime()
         self.AddVariables()
         super().__init__(model, self.DEM_parameters)
@@ -155,9 +154,6 @@ class DEMAnalysisStage(AnalysisStage):
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
-
-    def SetDt(self):
-        self._GetSolver().dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
