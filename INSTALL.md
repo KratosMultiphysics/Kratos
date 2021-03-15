@@ -436,22 +436,20 @@ Enables(Default) or Disables the compilation of the embedded python interpreter 
 Enables(Default) or Disables the compilation of the C++ unitary tests for Kratos and Applications.
 
 ### Compilation Performance
-`-DUSE_COTIRE=ON/OFF`
+`-DCMAKE_UNITY_BUILD=ON/OFF`
 
-Enables or Disables(default) the use of [cotire](https://github.com/sakra/cotire) to speedup compilation by using unitary builds.
+Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
 In order to install and compile with this switch please use:
 
 On Linux
 ```shell
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1 && \
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j1
 ```
 On Windows
 ```shell
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
