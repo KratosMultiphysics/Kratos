@@ -39,7 +39,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
 
-    def ExecuteInitialize(self):
+    def ExecuteInitializeSolutionStep(self):
 
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
