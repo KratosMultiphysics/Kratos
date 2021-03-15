@@ -46,6 +46,14 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
 
+        if not primal_parameters.Has("reform_dofs_at_each_step") or not primal_parameters["reform_dofs_at_each_step"].GetBool():
+            if not primal_parameters.Has("reform_dofs_at_each_step"):
+                primal_parameters.AddEmptyValue("reform_dofs_at_each_step")
+            primal_parameters["reform_dofs_at_each_step"].SetBool(True)
+            wrn_msg = 'This solver requires the setting reform the dofs at each step in optimization.'
+            wrn_msg += 'The solver setting has been set to True')
+            Logger.PrintWarning(self._GetLabel(), wrn_msg)
+
         self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
 
         self.primal_analysis = potential_flow_analysis.PotentialFlowAnalysis(model, primal_parameters)
