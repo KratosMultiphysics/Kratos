@@ -420,9 +420,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             iteration++;
         }
     }
-    if (iteration > max_iter) {
-        KRATOS_ERROR << "Maximum number of iterations in plasticity loop reached..." << std::endl;
-    }
+    KRATOS_WARNING_IF("Plastic Damage Backward Euler",iteration > max_iter) <<
+        "Maximum number of iterations in plasticity loop reached..." << std::endl;
 }
 
 /***********************************************************************************/
@@ -1051,8 +1050,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateTangentTensor(
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ?
+        r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ?
+        static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
 
     if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
         CalculateAnalyticalTangentTensor(rValues, rPlasticDamageParameters);
