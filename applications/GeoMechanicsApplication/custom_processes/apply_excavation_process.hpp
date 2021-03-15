@@ -75,7 +75,6 @@ class ApplyExcavationProcess : public Process
 
         const int nelements = mr_model_part.GetMesh(0).Elements().size();
         const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
-        // mModelLastCondition = mr_model_part.GetMesh(0).Conditions().size();
 
         if (nelements != 0)
         {
