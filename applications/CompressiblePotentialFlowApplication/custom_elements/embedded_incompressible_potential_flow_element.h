@@ -136,6 +136,10 @@ private:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateKuttaWakeLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
     void AddPotentialGradientStabilizationTerm(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);

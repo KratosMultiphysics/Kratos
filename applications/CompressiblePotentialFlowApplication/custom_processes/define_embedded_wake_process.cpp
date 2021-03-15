@@ -37,7 +37,7 @@ void DefineEmbeddedWakeProcess::Execute()
     ComputeDistanceToWake();
     MarkWakeElements();
     ComputeTrailingEdgeNode();
-    MarkKuttaWakeElements();
+    // MarkKuttaWakeElements();
 
     KRATOS_CATCH("");
 }
@@ -76,7 +76,8 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 {
                     deactivated_elements_id_list.push_back(it_elem->Id());
                 }
-                it_elem->Set(ACTIVE, false);
+                it_elem->SetValue(WAKE, true);
+                it_elem->Set(STRUCTURE, true);
                 auto& r_geometry = it_elem->GetGeometry();
                 for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();

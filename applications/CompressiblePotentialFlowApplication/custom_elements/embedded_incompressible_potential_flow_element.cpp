@@ -70,7 +70,11 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
         }
     }
     else {
-        BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        if (this->Is(STRUCTURE)) {
+            CalculateKuttaWakeLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        } else {
+            BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        }
     }
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
@@ -115,6 +119,45 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
 }
+
+template <int Dim, int NumNodes>
+void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWakeLocalSystem(
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Note that the lhs and rhs have double the size
+    if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
+        rLeftHandSideMatrix.size2() != 2 * NumNodes)
+        rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
+    if (rRightHandSideVector.size() != 2 * NumNodes)
+        rRightHandSideVector.resize(2 * NumNodes, false);
+    rLeftHandSideMatrix.clear();
+    rRightHandSideVector.clear();
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(*this);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_total = data.vol*free_stream_density*prod(data.DN_DX, trans(data.DN_DX));
+
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        for (unsigned int j = 0; j < NumNodes; ++j)
+        {
+            rLeftHandSideMatrix(i, j) = lhs_total(i, j);
+            rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total(i, j);
+        }
+    }
+
+    BoundedVector<double, 2*NumNodes> split_element_values;
+    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
+}
+
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGradientStabilizationTerm(
