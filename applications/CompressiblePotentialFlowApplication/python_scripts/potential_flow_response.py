@@ -279,10 +279,7 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
         self.body_model_part = self.main_model_part.GetSubModelPart("Body2D_Body")
 
     def _ComputePerimeter(self,  model_part):
-        perimeter=0.0
-        for condition in model_part.Conditions:
-            perimeter += condition.GetGeometry().Area()
-        return perimeter
+        return KCPFApp.PotentialFlowUtilities.CalculateArea(model_part.Conditions)
 
     def CalculateValue(self):
         pass
