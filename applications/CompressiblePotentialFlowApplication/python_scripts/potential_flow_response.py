@@ -46,13 +46,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
 
-        if not primal_parameters.Has("reform_dofs_at_each_step") or not primal_parameters["reform_dofs_at_each_step"].GetBool():
-            if not primal_parameters.Has("reform_dofs_at_each_step"):
-                primal_parameters.AddEmptyValue("reform_dofs_at_each_step")
-            primal_parameters["reform_dofs_at_each_step"].SetBool(True)
-            wrn_msg = 'This solver requires the setting reform the dofs at each step in optimization.'
-            wrn_msg += 'The solver setting has been set to True')
-            Logger.PrintWarning(self._GetLabel(), wrn_msg)
+        primal_parameters = self._CheckParameters(primal_parameters)
 
         self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
 
@@ -61,7 +55,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool()
 
         # Create the adjoint solver
-        adjoint_parameters = self._GetAdjointParameters()
+        adjoint_parameters = self._CheckParameters(self._GetAdjointParameters())
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
 
@@ -84,6 +78,15 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             self.primal_analysis.end_time += 1
         self.primal_analysis.RunSolutionLoop()
         Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+        # Solving Adjoint
+        # synchronize the modelparts
+        self._SynchronizeAdjointFromPrimal()
+        startTime = timer.time()
+        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+        if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
+            self.adjoint_analysis.end_time += 1
+        self.adjoint_analysis.RunSolutionLoop()
+        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def CalculateValue(self):
         startTime = timer.time()
@@ -94,14 +97,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self._value = value
 
     def CalculateGradient(self):
-        # synchronize the modelparts
-        self._SynchronizeAdjointFromPrimal()
-        startTime = timer.time()
-        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
-        if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
-            self.adjoint_analysis.end_time += 1
-        self.adjoint_analysis.RunSolutionLoop()
-        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+        # Computed in InitializeSolutionStep()
+        pass
 
     def GetValue(self):
         #switching to negative to minimize the negative of lift
@@ -161,6 +158,15 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type]  +"Response"
 
+    def _CheckParameters(self, parameters):
+        if not parameters["solver_settings"].Has("reform_dofs_at_each_step") or not parameters["solver_settings"]["reform_dofs_at_each_step"].GetBool():
+            if not parameters["solver_settings"].Has("reform_dofs_at_each_step"):
+                parameters["solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
+            parameters["solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
+            wrn_msg = 'This solver requires the setting reform the dofs at each step in optimization.'
+            wrn_msg += 'The solver setting has been set to True'
+            Logger.PrintWarning(self._GetLabel(), wrn_msg)
+        return parameters
 
 
 class AngleOfAttackResponseFunction(ResponseFunctionInterface):
