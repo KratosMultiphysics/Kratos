@@ -657,6 +657,7 @@ private:
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMisesVonMises;
+    const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager;
 
     ///@}
     ///@name Private Operators

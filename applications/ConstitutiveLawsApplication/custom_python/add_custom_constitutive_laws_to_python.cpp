@@ -1753,6 +1753,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DVonMisesVonMises").def(py::init<>());
+
+    py::class_< AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>,
+    typename AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"AssociativePlasticDamageModel3DDruckerPragerDruckerPrager").def(py::init<>());
 }
 
 }  // namespace Python.

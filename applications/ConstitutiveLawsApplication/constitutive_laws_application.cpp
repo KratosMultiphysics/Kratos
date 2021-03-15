@@ -444,6 +444,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw3D", mParallelRuleOfMixturesLaw3D);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPragerDruckerPrager", mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager);
 
 }
 }  // namespace Kratos.
