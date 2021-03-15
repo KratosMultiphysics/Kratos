@@ -131,11 +131,15 @@ namespace Testing {
 
         geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
 
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.517678, TOLERANCE);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.532322, TOLERANCE);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], 0.0, TOLERANCE);
+        const Point point_to_project(point);
+        Point point_projected;
+        GeometricalProjectionUtilities::FastProjectOnLine2D(*geom, point_to_project, point_projected);
 
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.0501021, TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], point_projected[0], TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], point_projected[1], TOLERANCE);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], point_projected[2], TOLERANCE);
+
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.05, TOLERANCE);
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.0, TOLERANCE);
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[2], 0.0, TOLERANCE);
     }
