@@ -212,8 +212,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangen
         prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
 
-    noalias(rValues.GetConstitutiveMatrix()) = rPDParameters.ConstitutiveMatrix -
-        outer_prod(left_vector, right_vector) / denominator;
+    noalias(rValues.GetConstitutiveMatrix()) = r_C - outer_prod(right_vector, left_vector) / denominator;
 }
 
 /***********************************************************************************/
