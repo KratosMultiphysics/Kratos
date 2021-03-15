@@ -398,10 +398,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         // Compute the compliance increment -> C dot
         CalculateComplianceMatrixIncrement(rValues, rPDParameters);
         noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
-        CalculateConstitutiveMatrix(rValues, rPDParameters);
 
-        noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix,
-            rPDParameters.StrainVector - rPDParameters.PlasticStrain);
+        noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
+            prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
+        CalculateConstitutiveMatrix(rValues, rPDParameters);
 
         // Compute the non-linear dissipation performed
         CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
