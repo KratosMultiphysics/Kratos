@@ -3,7 +3,10 @@ import numpy as np
 
 # Import distributed framework
 from exaqute import *
-init()
+try:
+    init()
+except:
+    pass
 
 try:
     computing_units_auxiliar_utilities = int(os.environ["computing_units_auxiliar_utilities"])
