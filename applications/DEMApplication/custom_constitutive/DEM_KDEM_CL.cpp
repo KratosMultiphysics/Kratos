@@ -296,7 +296,7 @@ namespace Kratos {
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        if (failure_type == 0) { // This means it has not broken
+        if (!failure_type) { // This means it has not broken
             //Properties& element1_props = element1->GetProperties();
             //Properties& element2_props = element2->GetProperties();
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))

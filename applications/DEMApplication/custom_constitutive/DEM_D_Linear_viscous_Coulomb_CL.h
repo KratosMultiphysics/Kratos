@@ -83,13 +83,13 @@ namespace Kratos {
                                                    NeighbourClassType* const neighbour,
                                                    double indentation,
                                                    double previous_indentation,
-                                                   double& AuxElasticShearForce,
-                                                   double& MaximumAdmisibleShearForce){
+                                                   double& modulus_of_elastic_shear_force,
+                                                   double& maximum_admissible_shear_force){
 
             LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
             LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
 
-            AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            modulus_of_elastic_shear_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
             const double my_tg_of_static_friction_angle        = GetTgOfStaticFrictionAngleOfElement(element);
             const double neighbour_tg_of_static_friction_angle = neighbour->GetProperties()[STATIC_FRICTION];
@@ -103,15 +103,15 @@ namespace Kratos {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< GetElementId(element)<<std::endl;
             }
 
-            MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_static_fri_ang;
-            if (AuxElasticShearForce > MaximumAdmisibleShearForce) MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_dynamic_fri_ang;
+            maximum_admissible_shear_force = normal_contact_force * equiv_tg_of_static_fri_ang;
+            if (modulus_of_elastic_shear_force > maximum_admissible_shear_force) maximum_admissible_shear_force = normal_contact_force * equiv_tg_of_dynamic_fri_ang;
 
             const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
             const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
 
             const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
-            if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
+            if (ActualTotalShearForce > maximum_admissible_shear_force) {
 
                 const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
@@ -121,15 +121,15 @@ namespace Kratos {
 
                 if (dot_product >= 0.0) {
 
-                    if (ActualElasticShearForce > MaximumAdmisibleShearForce) {
-                        const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
+                    if (ActualElasticShearForce > maximum_admissible_shear_force) {
+                        const double fraction = maximum_admissible_shear_force / ActualElasticShearForce;
                         LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
                         LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
                         ViscoDampingLocalContactForce[0] = 0.0;
                         ViscoDampingLocalContactForce[1] = 0.0;
                     }
                     else {
-                        const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
+                        const double ActualViscousShearForce = maximum_admissible_shear_force - ActualElasticShearForce;
                         const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
                         ViscoDampingLocalContactForce[0] *= fraction;
                         ViscoDampingLocalContactForce[1] *= fraction;
@@ -137,12 +137,12 @@ namespace Kratos {
                 }
                 else {
                     if (ViscoDampingLocalContactForceModule >= ActualElasticShearForce) {
-                        const double fraction = (MaximumAdmisibleShearForce + ActualElasticShearForce) / ViscoDampingLocalContactForceModule;
+                        const double fraction = (maximum_admissible_shear_force + ActualElasticShearForce) / ViscoDampingLocalContactForceModule;
                         ViscoDampingLocalContactForce[0] *= fraction;
                         ViscoDampingLocalContactForce[1] *= fraction;
                     }
                     else {
-                        const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
+                        const double fraction = maximum_admissible_shear_force / ActualElasticShearForce;
                         LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
                         LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
                         ViscoDampingLocalContactForce[0] = 0.0;

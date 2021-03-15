@@ -89,7 +89,7 @@ namespace Kratos {
         mUnbondedViscoDampingLocalContactForce[1] = 0.0;
         mUnbondedViscoDampingLocalContactForce[2] = 0.0;
         
-        if (indentation > 0 && !sliding) {
+        if (indentation > 0) {
             mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
             mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
             mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];

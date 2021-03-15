@@ -110,6 +110,22 @@ namespace Kratos {
                 time_steps,
                 r_process_info);
 
+        CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
+                                   equiv_visco_damp_coeff_tangential,
+                                   element1,
+                                   element2,
+                                   kn_el,
+                                   kt_el);
+
+        CalculateViscoDamping(LocalRelVel,
+                              ViscoDampingLocalContactForce,
+                              indentation,
+                              equiv_visco_damp_coeff_normal,
+                              equiv_visco_damp_coeff_tangential,
+                              sliding,
+                              element1->mIniNeighbourFailureId[i_neighbour_count]);
+        
+        // Tangential forces are calculated after the viscodamping because the frictional limit bounds the sum of elastic plus viscous forces
         CalculateTangentialForces(OldLocalElasticContactForce,
                 LocalElasticContactForce,
                 LocalElasticExtraContactForce,
@@ -127,21 +143,6 @@ namespace Kratos {
                 i_neighbour_count,
                 sliding,
                 r_process_info);
-
-        CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
-                                   equiv_visco_damp_coeff_tangential,
-                                   element1,
-                                   element2,
-                                   kn_el,
-                                   kt_el);
-
-        CalculateViscoDamping(LocalRelVel,
-                              ViscoDampingLocalContactForce,
-                              indentation,
-                              equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              sliding,
-                              element1->mIniNeighbourFailureId[i_neighbour_count]);
 
         FindMaximumValueOfNormalAndTangentialDamageComponents(element1, element2);
 
