@@ -31,17 +31,6 @@ namespace Internals {
 
 namespace { // helpers namespace
 
-static double ElapsedSeconds(const std::chrono::steady_clock::time_point& rStartTime)
-{
-    using namespace std::chrono;
-    return duration_cast<duration<double>>(steady_clock::now() - rStartTime).count();
-}
-
-static bool PathExists(const fs::path& rPath)
-{
-    return fs::exists(rPath);
-}
-
 template <typename T>
 static void CheckStream(const T& rStream, const fs::path& rPath)
 {
@@ -92,7 +81,7 @@ private:
             }
         }
 
-        ExchangeSyncFileWithPartner();
+        ExchangeSyncFileWithPartner("connect");
 
         Info info;
         info.Set("is_connected", true);
@@ -101,7 +90,7 @@ private:
 
     Info DisconnectDetail(const Info& I_Info) override
     {
-        ExchangeSyncFileWithPartner();
+        ExchangeSyncFileWithPartner("disconnect");
 
         if (mCommInFolder && GetIsPrimaryConnection()) {
             // delete directory to remove potential leftovers
@@ -117,10 +106,10 @@ private:
         return info;
     }
 
-    void ExchangeSyncFileWithPartner() const
+    void ExchangeSyncFileWithPartner(const std::string& rIdentifier) const
     {
-        const fs::path file_name_primary(GetFileName("CoSimIO_primary_connect_" + GetConnectionName(), "sync"));
-        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_connect_" + GetConnectionName(), "sync"));
+        const fs::path file_name_primary(GetFileName("CoSimIO_primary_" + rIdentifier + "_" + GetConnectionName(), "sync"));
+        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_" + rIdentifier + "_" + GetConnectionName(), "sync"));
 
         if (GetIsPrimaryConnection()) {
             std::ofstream sync_file;
@@ -522,7 +511,7 @@ private:
     void WaitForPath(const fs::path& rPath) const
     {
         CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << std::endl;
-        while(!PathExists(rPath)) {
+        while(!fs::exists(rPath)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
         }
         CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found: " << rPath << std::endl;
@@ -530,9 +519,9 @@ private:
 
     void WaitUntilFileIsRemoved(const fs::path& rPath) const
     {
-        if (PathExists(rPath)) { // only issue the wating message if the file exists initially
+        if (fs::exists(rPath)) { // only issue the wating message if the file exists initially
             CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << " to be removed" << std::endl;
-            while(PathExists(rPath)) {
+            while(fs::exists(rPath)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
             }
             CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << rPath << " was removed" << std::endl;

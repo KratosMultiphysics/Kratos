@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <map>
+#include <chrono>
 
 // Project includes
 #include "define.hpp"
@@ -51,6 +52,12 @@ inline void CheckEntry(const std::string& rEntry, const std::string& rKey)
     for (const auto ch : disallowed_chars) {
         CO_SIM_IO_ERROR_IF_NOT(rEntry.find(ch) == std::string::npos) << "Entry for \"" << rKey << "\" contains a character that is not allowed: \"" << std::string(1,ch) << "\"!" << std::endl;
     }
+}
+
+inline double ElapsedSeconds(const std::chrono::steady_clock::time_point& rStartTime)
+{
+    using namespace std::chrono;
+    return duration_cast<duration<double>>(steady_clock::now() - rStartTime).count();
 }
 
 inline int GetNumberOfNodesForElementType(ElementType Type)

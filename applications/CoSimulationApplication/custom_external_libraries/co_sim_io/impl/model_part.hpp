@@ -254,6 +254,15 @@ public:
         rOStream << "    Number of Elements: " << NumberOfElements() << std::endl;
     }
 
+    void Clear()
+    {
+        mElements.clear();
+        mElements.shrink_to_fit();
+
+        mNodes.clear();
+        mNodes.shrink_to_fit();
+    }
+
 private:
     std::string mName;
     NodesContainerType mNodes;
