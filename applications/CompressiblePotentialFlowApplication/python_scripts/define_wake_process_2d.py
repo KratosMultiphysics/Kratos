@@ -53,7 +53,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         if self.compute_wake_at_each_step and self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP] > 1:
             CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
-
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
             raise Exception("Fluid model part does not have a wake_sub_model_part")
