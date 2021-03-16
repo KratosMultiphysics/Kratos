@@ -347,7 +347,7 @@ model = GeoModel()
 model.SetGeoModelPart(main_model_part)
 model.GenerateCfdModelPart()
 
-# # [ITA] TROPPO LENTO
+# # TOO SLOW
 # stop_A = time.time()
 # KratosGeo.FillCfdModelpartUtilities(main_model_part).FillModelPart(model.GetGeoCfdModelPart())
 # print("[DEBUG PY]\t-> FillModelPart filled in ", (time.time()-stop_A))
