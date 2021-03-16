@@ -334,7 +334,7 @@ public:
      */
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        mpCurveOnSurface->SpansLocalSpace(rSpans, DirectionIndex,
+        mpCurveOnSurface->SpansLocalSpace(rSpans,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 

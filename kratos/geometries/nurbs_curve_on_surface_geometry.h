@@ -250,7 +250,7 @@ public:
     void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         auto interval = mpNurbsCurve->DomainInterval();
-        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
+        this->SpansLocalSpace(rSpans, interval.GetT0(), interval.GetT1());
     }
 
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
@@ -261,8 +261,8 @@ public:
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
-        mpNurbsSurface->Spans(surface_spans_u, 0);
-        mpNurbsSurface->Spans(surface_spans_v, 1);
+        mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
+        mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
 
         CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
             rSpans,
@@ -319,7 +319,7 @@ public:
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
-        Spans(spans);
+        SpansLocalSpace(spans);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
@@ -339,7 +339,7 @@ public:
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
+        SpansLocalSpace(spans, StartParameter, EndParameter);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);
