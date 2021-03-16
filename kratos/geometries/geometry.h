@@ -1798,11 +1798,27 @@ public:
     /* @brief Provides spans in local paramater coordinates of geometry
      *        in direction LocalDirectionIndex.
      *        For NurbsSurface this is equivalent to the knot vector.
-     *        Linear geometries typically provide the delimiters, here.
+     *        Linear geometries shall provide the delimiters, here.
      * @param resulting vector of span intervals.
      * @param LocalDirectionIndex of chosen direction, for curves always 0.
      */
     virtual void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType LocalDirectionIndex = 0) const
+    {
+        KRATOS_ERROR <<
+            "Calling SpansLocalSpace of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
+    /* @brief Provides spans in global coordinates of geometry
+     *        in direction LocalDirectionIndex.
+     *        For NurbsCurves this is equivalent to the knot vector.
+     *        Linear geometries shall provide the delimiter coordinates, here.
+     * @param resulting vector of span intervals.
+     * @param LocalDirectionIndex of chosen direction, for curves always 0.
+     */
+    virtual void SpansGlobalSpace(
         std::vector<double>& rSpans,
         IndexType LocalDirectionIndex = 0) const
     {
