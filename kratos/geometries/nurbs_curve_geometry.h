@@ -317,6 +317,69 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
+    int ClosestPointLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        }
+        else if (rPointLocalCoordinates[0] == min_parameter) {
+            return 2;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rPointLocalCoordinates[0] = max_parameter;
+            return 0;
+        }
+        else if (rPointLocalCoordinates[0] == max_parameter) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    ///@}
     ///@name Geometrical Informations
     ///@{
 

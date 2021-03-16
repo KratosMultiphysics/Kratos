@@ -272,6 +272,34 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+     * and sets it to the closest border */
+    int ClosestPointLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return mpNurbsCurve->ClosestPointLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+
+    ///@}
     ///@name Geometrical Informations
     ///@{
 

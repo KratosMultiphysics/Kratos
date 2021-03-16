@@ -339,6 +339,70 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+        else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            return 2;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+        else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* Returns if rPointLocalCoordinates[0] is 
+     *         on boundary -> 2
+     *         inside -> 1
+     *         ouside -> 0
+     * and sets it to the closest border */
+    int ClosestPointLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        }
+        else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            return 2;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        }
+        else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
