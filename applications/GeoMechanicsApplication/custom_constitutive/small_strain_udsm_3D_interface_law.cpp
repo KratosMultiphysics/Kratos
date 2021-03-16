@@ -22,7 +22,6 @@ namespace Kratos
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
-
 SmallStrainUDSM3DInterfaceLaw::SmallStrainUDSM3DInterfaceLaw()
    : SmallStrainUDSM3DLaw()
    {
@@ -47,7 +46,6 @@ SmallStrainUDSM3DInterfaceLaw::
 
 //********************************CLONE***********************************************
 //************************************************************************************
-
 ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 {
    KRATOS_TRY;
@@ -76,17 +74,15 @@ SmallStrainUDSM3DInterfaceLaw
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
-
 SmallStrainUDSM3DInterfaceLaw::~SmallStrainUDSM3DInterfaceLaw()
 {
    //KRATOS_INFO("~SmallStrainUDSM3DLaw()") << std::endl;
 }
 
-
 //************************************************************************************
 //************************************************************************************
-
-void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DInterfaceLaw::
+   UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
 {
    const Vector& rStrainVector = rValues.GetStrainVector();
 
@@ -96,6 +92,7 @@ void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(Constitutive
 
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
    //KRATOS_INFO("mStressVector") << mStressVector << std::endl;
@@ -105,7 +102,7 @@ void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVecto
    rStressVector(INDEX_3D_INTERFACE_XZ) = mStressVector[INDEX_3D_XZ];
 }
 
-
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
    // KRATOS_INFO("SetInternalStressVector:rStressVector") << rStressVector << std::endl;
@@ -115,9 +112,11 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStres
    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_3D_INTERFACE_ZZ);
    mStressVectorFinalized[INDEX_3D_YZ] = rStressVector(INDEX_3D_INTERFACE_YZ);
    mStressVectorFinalized[INDEX_3D_XZ] = rStressVector(INDEX_3D_INTERFACE_XZ);
+
    KRATOS_CATCH("")
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
    // KRATOS_INFO("SetInternalStrainVector:rStrainVector") << rStrainVector << std::endl;
@@ -126,10 +125,9 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrai
    mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector(INDEX_3D_INTERFACE_ZZ);
    mStrainVectorFinalized[INDEX_3D_YZ] = rStrainVector(INDEX_3D_INTERFACE_YZ);
    mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector(INDEX_3D_INTERFACE_XZ);
-
 }
 
-
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
                                                             Matrix& rConstitutiveMatrix )
 {
@@ -152,6 +150,7 @@ void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Par
    }
 }
 
+//----------------------------------------------------------------------------------------
 indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(indexStress3DInterface index3D)
 {
    switch (index3D)
@@ -167,7 +166,9 @@ indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(indexStress3DInterface i
    }
 }
 
-void SmallStrainUDSM3DInterfaceLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+//----------------------------------------------------------------------------------------
+void SmallStrainUDSM3DInterfaceLaw::
+   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
 {
    const Vector& rStrainVector = rValues.GetStrainVector();
    std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);

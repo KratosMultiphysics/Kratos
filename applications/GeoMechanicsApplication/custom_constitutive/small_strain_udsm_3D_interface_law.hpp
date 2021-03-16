@@ -136,7 +136,6 @@ namespace Kratos
          return StressMeasure_Cauchy;
       }
 
-
       /**
        * @brief It calculates the strain vector
        * @param rValues The internal values of the law
