@@ -252,7 +252,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
 
         return mp
 
-    def _set_up_system_3d4n(self,current_model,explicit_dynamics=True):
+    def _set_up_system_3d4n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
