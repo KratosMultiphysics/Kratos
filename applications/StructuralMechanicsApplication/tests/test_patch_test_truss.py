@@ -1181,7 +1181,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         displacement_node2_x = mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
         self.assertAlmostEqual(displacement_node2_x, -0.09407182775540882,4)
 
-    def taest_truss3D2N_multi_linear_elasticity(self):
+    def test_truss3D2N_multi_linear_elasticity(self):
         self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
