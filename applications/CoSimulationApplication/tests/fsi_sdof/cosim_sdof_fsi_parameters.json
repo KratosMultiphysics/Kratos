@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 1.2,
+        "end_time" : 5,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -36,7 +36,7 @@
                     "from_solver"       : "fluid",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "transfer_forces",
-                    "data_transfer_operator_options" : ["swap_sign"]
+                    "data_transfer_operator_options" : ["swap_sign", "add_values"]
                 }
             ],
             "output_data_list": [
