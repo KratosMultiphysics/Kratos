@@ -948,6 +948,29 @@ void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCand
         }
     }
 }
+
+template<>
+Vector ComputeKuttaNormal<2>(const double angle)
+{
+    // This assumes the x axis is the horizontal
+    Vector kutta_normal=ZeroVector(2);
+    kutta_normal[0]=sin(angle);
+    kutta_normal[1]=cos(angle);
+    return kutta_normal;
+}
+
+
+template<>
+Vector ComputeKuttaNormal<3>(const double angle)
+{
+    // This assumes the horizontal plane is the XY plane
+    // and that the span is aligned with the Y axis
+    Vector kutta_normal=ZeroVector(3);
+    kutta_normal[0]=sin(angle);
+    kutta_normal[1]=0;
+    kutta_normal[2]=cos(angle);
+    return kutta_normal;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -1045,5 +1068,7 @@ template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeCo
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+template Vector ComputeKuttaNormal<2>(const double angle);
+template Vector ComputeKuttaNormal<3>(const double angle);
 } // namespace PotentialFlow
 } // namespace Kratos

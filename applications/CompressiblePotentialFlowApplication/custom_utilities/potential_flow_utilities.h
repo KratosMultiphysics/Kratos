@@ -181,6 +181,10 @@ void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
 
 template <int Dim, int NumNodes>
 void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+
+template<int Dim>
+Vector ComputeKuttaNormal(const double angle);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 
