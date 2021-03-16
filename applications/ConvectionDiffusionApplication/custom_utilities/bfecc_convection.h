@@ -67,6 +67,7 @@ public:
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
+        std::vector< bool > hasvalidelempointer( rModelPart.Nodes().size());
 
         // Allocate non-historical variables
         for (auto &r_node : rModelPart.Nodes()) {
@@ -86,6 +87,7 @@ public:
 
             array_1d<double,3> bckPos = iparticle->Coordinates();
             const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var);
+            
             bool has_valid_elem_pointer = false;
             bool is_found = ConvectBySubstepping(dt,bckPos,vel, N,N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, substeps, conv_var, has_valid_elem_pointer);
             found[i] = is_found;
