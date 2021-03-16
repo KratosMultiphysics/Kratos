@@ -295,8 +295,8 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
             }
             """)
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AztecSolver'), "AztecSolver was explicitly disabled.")
 class TestAztecLinearSolvers(TestLinearSolvers):
-    @KratosUnittest.skipIf(not hasattr(KratosMultiphysics.TrilinosApplication, 'AztecSolver'), "AztecSolver was explicitly disabled.")
     def test_aztec_cg(self):
         self._RunParametrized("""
             {
@@ -338,7 +338,6 @@ class TestAztecLinearSolvers(TestLinearSolvers):
             }
             """)
 
-    @KratosUnittest.skipIf(not hasattr(KratosMultiphysics.TrilinosApplication, 'AztecSolver'), "AztecSolver was explicitly disabled.")
     def test_aztec_gmres(self):
         self._RunParametrized("""
             {
@@ -380,8 +379,8 @@ class TestAztecLinearSolvers(TestLinearSolvers):
             }
             """)
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
 class TestMLLinearSolvers(TestLinearSolvers):
-    @KratosUnittest.skipIf(not hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
     def test_ml_symmetric(self):
         self._RunParametrized("""
             {
@@ -402,7 +401,6 @@ class TestMLLinearSolvers(TestLinearSolvers):
             }
             """)
 
-    @KratosUnittest.skipIf(not hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
     def test_ml_symmetric_scaling(self):
         self._RunParametrized("""
             {
@@ -423,7 +421,6 @@ class TestMLLinearSolvers(TestLinearSolvers):
             }
             """)
 
-    @KratosUnittest.skipIf(not hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
     def test_ml_nonsymmetric(self):
         self._RunParametrized("""
             {
@@ -444,7 +441,6 @@ class TestMLLinearSolvers(TestLinearSolvers):
             }
             """)
 
-    @KratosUnittest.skipIf(not hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
     def test_ml_nonsymmetric_scaling(self):
         self._RunParametrized("""
             {
