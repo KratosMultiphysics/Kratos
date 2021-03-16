@@ -1066,7 +1066,6 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
         Matrix contravariant_metric_reference = ZeroMatrix(3);
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
         double detJ = 0.0;
-        double strain_energy_gp = 0.0; // strain energy per gauss point
         rOutput = 0.0; // total strain energy
         Vector strain_vector = ZeroVector(3);
         Vector stress_vector = ZeroVector(3);
@@ -1078,7 +1077,7 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
             // reset gauss point strain
-            strain_energy_gp = 0.0;
+            double strain_energy_gp = 0.0; // strain energy per gauss point
 
             // getting information for integration
             const double integration_weight_i = r_integration_points[point_number].Weight();
