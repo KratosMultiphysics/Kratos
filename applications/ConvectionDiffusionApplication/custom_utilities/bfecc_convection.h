@@ -84,7 +84,6 @@ public:
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
-        std::vector< bool > hasvalidelempointer( rModelPart.Nodes().size());
 
         // Allocate non-historical variables and update old velocity as per dt_factor
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
