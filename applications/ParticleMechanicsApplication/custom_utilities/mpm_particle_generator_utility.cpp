@@ -108,6 +108,8 @@ namespace MPMParticleGeneratorUtility
                     }
 
                     // Set element type
+                    const bool is_cpdi = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_CPDI))
+                    ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_CPDI) : true;
                     std::string element_type_name = "UpdatedLagrangian";
                     if (IsMixedFormulation) {
                         if (background_geo_type == GeometryData::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
@@ -119,6 +121,10 @@ namespace MPMParticleGeneratorUtility
                             element_type_name = "UpdatedLagrangianPQ";
                             KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
                         }
+                    }
+                    else if (is_cpdi) {
+                            element_type_name = "UpdatedLagrangianCPDI";
+                            KRATOS_ERROR_IF(IsAxisSymmetry) << "CPDI is not implemented for axisymmetric elements yet." << std::endl;
                     }
 
                     // Get new element

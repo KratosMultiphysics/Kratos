@@ -66,6 +66,13 @@ namespace Kratos
             typename GeometryType::Pointer pQuadraturePointGeometry,
             const double Tolerance);
 
+        static void DefineBoundaryOfEmbeddedElement(const ModelPart& rBackgroundGridModelPart,
+            const array_1d<double, 3>& rCoordinates,
+            const array_1d<double, 3>& rLocalCoords,
+            Element& rMasterMaterialPoint,
+            typename GeometryType::Pointer pQuadraturePointGeometry,
+            const double Tolerance);
+
     private:
         static void CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
             const array_1d<double, 3>& rCenter, const double SideHalfLength, const SizeType WorkingDim);

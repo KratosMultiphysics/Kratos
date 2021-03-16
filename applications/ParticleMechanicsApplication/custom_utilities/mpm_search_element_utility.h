@@ -187,6 +187,22 @@ namespace MPMSearchElementUtility
         KRATOS_CATCH("");
     }
 
+    inline void UpdateCPDIQuadraturePoint(const ModelPart& rBackgroundGridModelPart,
+        const array_1d<double, 3>& rCoordinates,
+        Element& rMasterMaterialPoint,
+        typename GeometryType::Pointer pQuadraturePointGeometry,
+        const double Tolerance)
+    {
+        KRATOS_TRY;
+
+        array_1d<double, 3> local_coords;
+        pQuadraturePointGeometry->IsInside(rCoordinates, local_coords, Tolerance);
+        PQMPMPartitionUtilities::DefineBoundaryOfEmbeddedElement(rBackgroundGridModelPart, rCoordinates,
+            local_coords, rMasterMaterialPoint, pQuadraturePointGeometry, Tolerance);
+
+        KRATOS_CATCH("");
+    }
+
 
     inline void NeighbourSearchElements(const ModelPart& rMPMModelPart,
         const ModelPart& rBackgroundGridModelPart,
@@ -209,11 +225,21 @@ namespace MPMSearchElementUtility
             {
                 const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
+                const bool is_cpdi = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_CPDI))
+                    ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_CPDI) : true;
+                
                 if (is_pqmpm)
                 {
                     // Updates the quadrature point geometry.
                     (*element_itr).GetGeometry().SetGeometryParent(&r_found_geom);
                     PQMPMPartitionUtilities::PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
+                        local_coordinates, *element_itr, element_itr->pGetGeometry(), Tolerance);
+                }
+                if (is_cpdi)
+                {
+                    // Updates the quadrature point geometry.
+                    (*element_itr).GetGeometry().SetGeometryParent(&r_found_geom);
+                    PQMPMPartitionUtilities::DefineBoundaryOfEmbeddedElement(rBackgroundGridModelPart, xg[0],
                         local_coordinates, *element_itr, element_itr->pGetGeometry(), Tolerance);
                 }
                 else
@@ -350,11 +376,22 @@ namespace MPMSearchElementUtility
 
                     const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                         ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
+
+                    const bool is_cpdi = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_CPDI))
+                        ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_CPDI) : true;
+                    
                     if (is_pqmpm)
                     {
                         // Updates the quadrature point geometry.
                         (*element_itr).GetGeometry().SetGeometryParent((pelem->pGetGeometry().get()));
                         UpdatePartitionedQuadraturePoint(rBackgroundGridModelPart, xg[0],
+                            *element_itr, pelem->pGetGeometry(), Tolerance);
+                    }
+                    else if (is_cpdi)
+                    {
+                        // Updates the quadrature point geometry.
+                        (*element_itr).GetGeometry().SetGeometryParent((pelem->pGetGeometry().get()));
+                        UpdateCPDIQuadraturePoint(rBackgroundGridModelPart, xg[0],
                             *element_itr, pelem->pGetGeometry(), Tolerance);
                     }
                     else

@@ -227,6 +227,314 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    void PQMPMPartitionUtilities::DefineBoundaryOfEmbeddedElement(const ModelPart& rBackgroundGridModelPart,
+    const array_1d<double, 3>& rCoordinates,
+    const array_1d<double, 3>& rLocalCoords,
+    Element& rMasterMaterialPoint,
+    typename GeometryType::Pointer pQuadraturePointGeometry,
+    const double Tolerance)
+    {
+        KRATOS_TRY;
+
+        if (rMasterMaterialPoint.GetGeometry().Id() != pQuadraturePointGeometry->Id())
+        {
+            #pragma omp critical
+            KRATOS_ERROR << "DefineBoundaryOfEmbeddedElement | Quadrature point geometry ID from the material point and ID of the quadrature point geometry to be attached are not equal!\n";
+            GeometryType& rParentGeom1 = rMasterMaterialPoint.GetGeometry().GetGeometryParent(0);
+            (pQuadraturePointGeometry.get())->SetGeometryParent(&rParentGeom1);
+        }
+
+        GeometryType& rParentGeom = pQuadraturePointGeometry->GetGeometryParent(0);
+
+        // If axisymmetric make normal MP
+        if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC)) {
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)) {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pQuadraturePointGeometry, rLocalCoords,
+                    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    rParentGeom);
+                return;
+            }
+        }
+
+        const SizeType working_dim = rParentGeom.WorkingSpaceDimension();
+        
+        // Get volume and set up master domain bounding points
+        std::vector<double> mp_volume_vec;
+        rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume_vec, rBackgroundGridModelPart.GetProcessInfo());
+        if (rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2 && rMasterMaterialPoint.GetProperties().Has(THICKNESS))
+            mp_volume_vec[0] /= rMasterMaterialPoint.GetProperties()[THICKNESS];
+        const double side_half_length = std::pow(mp_volume_vec[0], 1.0 / double(working_dim)) / 2.0;
+        std::vector<array_1d<double, 3>> master_domain_points(std::pow(2.0, working_dim));
+        CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
+
+        // Initially check if the bounding box volume scalar is less than the element volume scalar
+        if (mp_volume_vec[0] <= rParentGeom.DomainSize()) {
+            if (CheckAllPointsAreInGeom(master_domain_points, rParentGeom, Tolerance)) {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pQuadraturePointGeometry, rLocalCoords,
+                    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    rParentGeom);
+                return;
+            }
+        }
+        
+        // we need to do splitting. Initially determine all grid elements we intersect with
+        Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2]);
+        if (working_dim == 3) point_low[2] -= side_half_length;
+        Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2]);
+        if (working_dim == 3) point_high[2] += side_half_length;
+        SizeType number_of_nodes = 0;
+        std::vector<GeometryType*> intersected_geometries;
+
+        // Do neighbour searching to determine the intersected geometries
+        IndexType recursion_count = 0;
+        intersected_geometries.push_back(&rParentGeom);
+        RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
+            intersected_geometries, point_low, point_high, recursion_count,
+            rCoordinates, side_half_length);
+        for (size_t i = 0; i < intersected_geometries.size(); ++i)
+            number_of_nodes += intersected_geometries[i]->PointsNumber();
+
+
+        // Prepare containers to hold all sub-points
+        PointerVector<Node<3>> nodes_list(number_of_nodes);
+        IntegrationPointsArrayType ips(1);
+        Matrix N_matrix(master_domain_points.size(), number_of_nodes, -1.0);
+        DenseVector<Matrix> DN_De_vector(master_domain_points.size());
+
+
+        // Temporary local containers
+        double sub_point_volume = 0.0;
+        array_1d<double, 3> sub_point_position;
+        IndexType active_node_index = 0;
+        IndexType active_subpoint_index = 0;
+        IntegrationPoint<3> trial_subpoint;
+        Matrix local_derivative(master_domain_points.size(), working_dim);
+        local_derivative(0,0)= -1;
+        local_derivative(0,1)= -1;
+        local_derivative(1,0)= 1;
+        local_derivative(1,1)= -1;
+        local_derivative(2,0)= 1;
+        local_derivative(2,1)= 1;
+        local_derivative(3,0)= -1;
+        local_derivative(3,1)= 1;
+
+        for (size_t i = 0; i < intersected_geometries.size(); ++i) {
+                Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+                Vector N(intersected_geometries[i]->PointsNumber());
+            // Loop over all nodes of embedded element to create sub points 
+            bool is_inside =false;
+            array_1d<double, 3> dummy_local_coords;
+            for (size_t j = 0; j < master_domain_points.size(); ++j) {
+                is_inside = MPMSearchElementUtility::CheckIsInside(*intersected_geometries[i], dummy_local_coords, master_domain_points[j], Tolerance, false);
+                
+                if (is_inside ){
+                    trial_subpoint = CreateSubPoint(master_domain_points[j], mp_volume_vec[0],
+                            *intersected_geometries[i], N, DN_De);
+
+                    
+                    for (size_t k = 0; k < N.size(); ++k) {
+                        N_matrix(active_subpoint_index, active_node_index) =  0.25 * N[k];        // HARDCODED!!! should be local shape function value (valid for squared embedded element with mp in the center)
+                        
+                        nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(k);
+
+                        for (size_t l = 0; l < working_dim; ++l) {
+                            DN_De(k,l) = local_derivative(k,l)* 0.25 * N[k]; // not true should be pos and negative depending on local derivative of embedded element
+                        }
+
+                        active_node_index += 1;
+                    }
+                    DN_De_vector[active_subpoint_index] = DN_De;
+
+                    active_subpoint_index += 1;
+                    
+                }
+
+            }
+            
+        }
+        
+        IntegrationPointsArrayType ips_active(active_subpoint_index);
+        PointerVector<Node<3>> nodes_list_active(active_node_index);
+        nodes_list_active = nodes_list;
+
+        // Transfer data over
+        GeometryData::IntegrationMethod ThisDefaultMethod = pQuadraturePointGeometry->GetDefaultIntegrationMethod();
+        IntegrationPointsContainerType ips_container;
+        ips_container[ThisDefaultMethod] = ips_active;
+        ShapeFunctionsValuesContainerType shape_function_container;
+        shape_function_container[ThisDefaultMethod] = N_matrix;
+        
+
+        ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
+        shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
+        
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(ThisDefaultMethod,
+            ips_container, shape_function_container, shape_function_derivatives_container);
+        
+        
+        for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
+        
+        pQuadraturePointGeometry->SetGeometryShapeFunctionContainer(data_container);
+        pQuadraturePointGeometry->Points() = nodes_list_active;
+
+
+        // array_1d<double, 3> sub_point_position;
+        // PointerVector<Node<3>> nodes_list(number_of_nodes);
+        // IntegrationPointsArrayType ips(master_domain_points.size());
+        // Matrix N_matrix(master_domain_points.size(), number_of_nodes, -1.0);
+        // DenseVector<Matrix> DN_De_vector(master_domain_points.size());
+        // IntegrationPoint<3> node;
+        
+        // for (size_t i = 0; i < master_domain_points.size(); ++i){
+            
+
+        //     Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+        //     Vector N(intersected_geometries[i]->PointsNumber());
+
+        //     node = CreateSubPoint(master_domain_points[i],  mp_volume_vec[0],
+        //                 *intersected_geometries[i], N, DN_De);
+
+        //     KRATOS_WATCH(master_domain_points[i])
+
+        // }
+
+        // // we need to do splitting. Initially determine all grid elements we intersect with
+        // Point point_low(rCoordinates[0] - side_half_length, rCoordinates[1] - side_half_length, rCoordinates[2]);
+        // if (working_dim == 3) point_low[2] -= side_half_length;
+        // Point point_high(rCoordinates[0] + side_half_length, rCoordinates[1] + side_half_length, rCoordinates[2]);
+        // if (working_dim == 3) point_high[2] += side_half_length;
+        // SizeType number_of_nodes = 0;
+        // std::vector<GeometryType*> intersected_geometries;
+
+
+        // // Do neighbour searching to determine the intersected geometries
+        // IndexType recursion_count = 0;
+        // intersected_geometries.push_back(&rParentGeom);
+        // RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
+        //     intersected_geometries, point_low, point_high, recursion_count,
+        //     rCoordinates, side_half_length);
+        // for (size_t i = 0; i < intersected_geometries.size(); ++i)
+        //     number_of_nodes += intersected_geometries[i]->PointsNumber();
+
+        // // Prepare containers to hold all sub-points
+        // PointerVector<Node<3>> nodes_list(number_of_nodes);
+        // IntegrationPointsArrayType ips(intersected_geometries.size());
+        // Matrix N_matrix(intersected_geometries.size(), number_of_nodes, -1.0);
+        // DenseVector<Matrix> DN_De_vector(intersected_geometries.size());
+
+        // KRATOS_WATCH(intersected_geometries.size())
+
+        // // // Temporary local containers
+        // // double sub_point_volume = 0.0;
+        // array_1d<double, 3> sub_point_position;
+        // IndexType active_node_index = 0;
+        // IndexType active_subpoint_index = 0;
+        // IntegrationPoint<3> node;
+
+        // // Loop over all intersected grid elements and make subpoints in each
+        // for (size_t i = 0; i < intersected_geometries.size(); ++i) {
+        //     Matrix DN_De(intersected_geometries[i]->PointsNumber(), working_dim);
+        //     Vector N(intersected_geometries[i]->PointsNumber());
+
+        //     node = CreateSubPoint(sub_point_position,  mp_volume_vec[0],
+        //                 *intersected_geometries[i], N, DN_De);
+
+        //     ips[active_subpoint_index] = node;
+        //             DN_De_vector[active_subpoint_index] = DN_De;
+        //             for (size_t j = 0; j < N.size(); ++j) {
+        //                 N_matrix(active_subpoint_index, active_node_index) = N[j];
+        //                 nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+        //                 KRATOS_WATCH(nodes_list)
+
+        //                 active_node_index += 1;
+        //             }
+        //             active_subpoint_index += 1;
+
+        // }
+        // if (active_subpoint_index == 1) {
+        //     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+        //         pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+        //         rParentGeom);
+        //     return;
+        // }
+
+        // IntegrationPointsArrayType ips_active(active_subpoint_index);
+        // PointerVector<Node<3>> nodes_list_active(active_node_index);
+        // if (ips_active.size() == ips.size()) {
+        //     ips_active = ips;
+        //     nodes_list_active = nodes_list;
+        // }
+        // else {
+        //     N_matrix.resize(active_subpoint_index, active_node_index, true);
+        //     DN_De_vector.resize(active_subpoint_index, true);
+        //     for (size_t i = 0; i < active_subpoint_index; ++i) ips_active[i] = ips[i];
+        //     for (size_t i = 0; i < active_node_index; ++i) nodes_list_active(i) = nodes_list(i);
+        // }
+
+        // // check if there are any fixed nodes within the bounding box
+        // if (CheckFixedNodesWithinBoundingBox(nodes_list_active, point_high, point_low, working_dim))
+        // {
+        //     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+        //         pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+        //         rParentGeom);
+        //     return;
+        // }
+
+        // // Check volume fractions sum to unity
+        // double vol_sum = 0.0;
+        // for (size_t i = 0; i < ips_active.size(); ++i) vol_sum += ips_active[i].Weight();
+        // if (std::abs(vol_sum - 1.0) > Tolerance) {
+        //     const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS))
+        //         ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS) : false;
+        //     if (is_pqmpm_fallback) {
+        //         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+        //             pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+        //             rParentGeom);
+        //         return;
+        //     }
+        //     else {
+        //         #pragma omp critical
+        //         KRATOS_INFO("MPMSearchElementUtility::Check")
+        //             << "Volume fraction of sub-points does not approximately sum to 1.0."
+        //             << " This probably means the background grid is not big enough."
+        //             << "\nPosition = " << rCoordinates
+        //             << "\nNumber of active sub points = " << ips_active.size()
+        //             << "\nNumber of trial sub points = " << ips.size()
+        //             << "\nMaterial point volume = " << mp_volume_vec[0]
+        //             << "\nTotal volume fraction = " << vol_sum << "\nIndividual volume fractions:\n";
+        //         for (size_t i = 0; i < ips_active.size(); ++i) std::cout << "\t" << ips_active[i].Weight()
+        //             << "\t\t" << ips_active[i].Coordinates() << std::endl;
+        //         KRATOS_ERROR << "ERROR";
+        //     }
+        // }
+        // else CheckPQMPM(ips_active, Tolerance, N_matrix, DN_De_vector);
+
+        // // Transfer data over
+        // GeometryData::IntegrationMethod ThisDefaultMethod = pQuadraturePointGeometry->GetDefaultIntegrationMethod();
+        // IntegrationPointsContainerType ips_container;
+        // ips_container[ThisDefaultMethod] = ips_active;
+        // ShapeFunctionsValuesContainerType shape_function_container;
+        // shape_function_container[ThisDefaultMethod] = N_matrix;
+        // ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
+        // shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
+        // GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(ThisDefaultMethod,
+        //     ips_container, shape_function_container, shape_function_derivatives_container);
+
+        // for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
+        // if (pQuadraturePointGeometry->IntegrationPointsNumber() == 1) {
+        //     pQuadraturePointGeometry = CreateCustomQuadraturePoint(working_dim, pQuadraturePointGeometry->LocalSpaceDimension(),
+        //         data_container, nodes_list_active, &rParentGeom);
+        //     rMasterMaterialPoint.SetGeometry(pQuadraturePointGeometry);
+        // }
+
+        // pQuadraturePointGeometry->SetGeometryShapeFunctionContainer(data_container);
+        // pQuadraturePointGeometry->Points() = nodes_list_active;
+
+        KRATOS_CATCH("");
+    }
+
 
     void PQMPMPartitionUtilities::CreateBoundingBoxPoints(std::vector<array_1d<double, 3>>& rPointVector,
         const array_1d<double, 3>& rCenter, const double SideHalfLength, const SizeType WorkingDim)
