@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 2.5,
+        "end_time" : 1.2,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
