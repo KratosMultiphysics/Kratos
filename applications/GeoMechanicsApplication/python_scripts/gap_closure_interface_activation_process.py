@@ -17,7 +17,7 @@ class GapClosureInterfaceActivationProcess(KratosMultiphysics.Process):
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
         params.AddValue("gap_width_threshold",settings["gap_width_threshold"])
-
+        params.AddValue("consider_gap_closure",settings["consider_gap_closure"])
         self.process = KratosGeo.GapClosureInterfaceProcess(model_part, params)
 
     def ExecuteInitialize(self):

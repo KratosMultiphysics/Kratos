@@ -137,29 +137,15 @@ proc WriteMdpa { basename dir problemtypedir } {
             puts $FileVar ""
     }
 
-    # Interface drained and interface undrained part
-    set interface_Groups [list   [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
+    # Interface two_phase, drained and undrained parts
+    set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
     foreach Groups $interface_Groups {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            if {[lindex [lindex $Groups $i] 4] eq "BilinearCohesive3DLaw"} {
-                incr PropertyId
-                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-                puts $FileVar "Begin Properties $PropertyId"
-                puts $FileVar "End Properties"
-                puts $FileVar ""
-            } elseif {[lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStress2DLaw"} {
-                incr PropertyId
-                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-                puts $FileVar "Begin Properties $PropertyId"
-                puts $FileVar "End Properties"
-                puts $FileVar ""
-            } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM3DInterfaceLaw"} {         
-                incr PropertyId
-                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-                puts $FileVar "Begin Properties $PropertyId"
-                puts $FileVar "End Properties"
-                puts $FileVar ""
-            }
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
         }
     }
     
@@ -650,8 +636,8 @@ proc WriteMdpa { basename dir problemtypedir } {
         }
     }
 
-    # Interface drained and interface undrained part
-    set interface_Groups [list   [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
+    # Interface two-phase, drained and undrained parts
+    set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
     foreach Groups $interface_Groups {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             if {[lindex [lindex $Groups $i] 3] eq false} {
@@ -876,6 +862,41 @@ proc WriteMdpa { basename dir problemtypedir } {
         dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
     }
 
+    # Gap_Closure
+    set IsGapClosure [GiD_AccessValue get gendata Gap_Closure_Interface_Conditions]
+    if {$IsGapClosure eq true} {
+        set GapClosureBarsDict [dict create]
+
+        set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
+        foreach Groups $interface_Groups {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                if {[lindex [lindex $Groups $i] 135] eq true} {
+                    # Elements Property
+                    set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                    set ConditionList [list]
+                    # InterfaceElement2D4N
+                    SaveGapClosureBarsFromIE2D4N GapClosureBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
+                    # InterfaceElement3D6N
+                    SaveGapClosureBarsFromIE3D6N GapClosureBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
+                    # InterfaceElement3D8N
+                    SaveGapClosureBarsFromIE3D8N GapClosureBarsDict ConditionId ConditionList [lindex $Groups $i] $InterfaceElemsProp
+
+                    dict set ConditionDict Gap_Closure_Bars_[lindex [lindex $Groups $i] 1] $ConditionList
+                }
+            }
+        }
+
+        # if {[dict size $GapClosureBarsDict] > 0} {
+        #     puts $FileVar "Begin Conditions GapClosureCondition"
+        #     dict for {Name GapClosureBar} $GapClosureBarsDict {
+        #         puts $FileVar "  [dict get $GapClosureBar Id]  [dict get $GapClosureBar PropertyId]  [dict get $GapClosureBar Connectivities]"
+        #     }
+        #     puts $FileVar "End Conditions"
+        #     puts $FileVar ""
+        # }
+    }
+
+
     puts $FileVar ""
 
     ## SubModelParts
@@ -901,6 +922,9 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteElementSubmodelPart FileVar Interface_drained
     # Interface undrained Part
     WriteElementSubmodelPart FileVar Interface_undrained
+    # Interface two_phase Part
+    WriteElementSubmodelPart FileVar Interface_two_phase
+
     # PropagationUnion (InterfaceElement)
     if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
         WritePropUnionElementSubmodelPart FileVar $PropUnionElementList
@@ -943,6 +967,13 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteRecordResultSubmodelPart FileVar Record_LINE_LOAD
     # Record_SURFACE_LOAD
     WriteRecordResultSubmodelPart FileVar Record_SURFACE_LOAD
+
+    # GapClosure_Bars
+    if {$IsGapClosure eq true} {
+        WriteGapClosureBarsSubmodelPart FileVar Interface_two_phase $ConditionDict
+        WriteGapClosureBarsSubmodelPart FileVar Interface_drained $ConditionDict
+        WriteGapClosureBarsSubmodelPart FileVar Interface_undrained $ConditionDict
+    }
 
     close $FileVar
 

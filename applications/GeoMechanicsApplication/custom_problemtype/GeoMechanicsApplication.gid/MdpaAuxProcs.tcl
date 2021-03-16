@@ -57,7 +57,6 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
 # TODO: it may be dangerous to write Tables without format (puts -nonewline $FileVar [format  "%.10f" [lindex $Table $j]])
 
 #-------------------------------------------------------------------------------
-
 proc PressureTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -162,7 +161,6 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc VectorTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -220,7 +218,6 @@ proc VectorTable {FileVar TableId TableDict CondName VarName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc NormalTangentialTable {FileVar TableId TableDict CondName NormalVarName TangentialVarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -264,7 +261,6 @@ proc NormalTangentialTable {FileVar TableId TableDict CondName NormalVarName Tan
 }
 
 #-------------------------------------------------------------------------------
-
 proc ScalarTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -295,7 +291,6 @@ proc ScalarTable {FileVar TableId TableDict CondName VarName} {
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 proc WriteAnchorElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
@@ -373,7 +368,7 @@ proc WriteAnchorElements {FileVar Group ElemType ElemName PropertyId Connectivit
 
 }
 
-
+#-------------------------------------------------------------------------------
 proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
@@ -389,7 +384,6 @@ proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType}
 }
 
 #-------------------------------------------------------------------------------
-
 proc WritePropUnionElements {FileVar PropertyId} {
     upvar $FileVar MyFileVar
 
@@ -417,7 +411,6 @@ proc WritePropUnionElements {FileVar PropertyId} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteNodalConditions {FileVar ConditionId ConditionDict Groups CondName PropertyId} {
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -442,7 +435,6 @@ proc WriteNodalConditions {FileVar ConditionId ConditionDict Groups CondName Pro
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteLineConditions {FileVar ConditionId ConditionDict Groups CondName PropertyDict} {
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -476,7 +468,6 @@ proc WriteLineConditions {FileVar ConditionId ConditionDict Groups CondName Prop
 
 
 #-------------------------------------------------------------------------------
-
 proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName PropertyDict} {
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -508,7 +499,6 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType CondName PropertyDict} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] faces -element_type $ElemType]
     if {[llength [lindex $Entities 1]] > 0} {
@@ -537,7 +527,6 @@ proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType C
 
 
 #-------------------------------------------------------------------------------
-
 proc WriteInterfaceConditions {FileVar ConditionId ConditionList Group ElemType CondName PropertyId ConnectivityType} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
@@ -553,6 +542,126 @@ proc WriteInterfaceConditions {FileVar ConditionId ConditionList Group ElemType 
         }
         puts $MyFileVar "End Conditions"
         puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc SaveGapClosureBarsFromIE2D4N {PeriodicBarsDict ConditionId ConditionList Group PropertyId} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type quadrilateral]
+    if {[llength $Entities] > 0} {
+        upvar $PeriodicBarsDict MyPeriodicBarsDict
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            set IEInfo [GiD_Mesh get element [lindex $Entities $j]]
+            set Node0 [lindex $IEInfo 3]
+            set Node1 [lindex $IEInfo 4]
+            set Node2 [lindex $IEInfo 5]
+            set Node3 [lindex $IEInfo 6]
+            if {[dict exists $MyPeriodicBarsDict BN${Node0}N${Node3}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Connectivities "$Node0 $Node3"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node1}N${Node2}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node2} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node2} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node2} Connectivities "$Node1 $Node2"
+            }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc SaveGapClosureBarsFromIE3D6N {PeriodicBarsDict ConditionId ConditionList Group PropertyId} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type prism]
+    if {[llength $Entities] > 0} {
+        upvar $PeriodicBarsDict MyPeriodicBarsDict
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            set IEInfo [GiD_Mesh get element [lindex $Entities $j]]
+            set Node0 [lindex $IEInfo 3]
+            set Node1 [lindex $IEInfo 4]
+            set Node2 [lindex $IEInfo 5]
+            set Node3 [lindex $IEInfo 6]
+            set Node4 [lindex $IEInfo 7]
+            set Node5 [lindex $IEInfo 8]
+            if {[dict exists $MyPeriodicBarsDict BN${Node0}N${Node3}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Connectivities "$Node0 $Node3"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node1}N${Node4}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node4} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node4} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node4} Connectivities "$Node1 $Node4"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node2}N${Node5}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node5} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node5} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node5} Connectivities "$Node2 $Node5"
+            }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc SaveGapClosureBarsFromIE3D8N {PeriodicBarsDict ConditionId ConditionList Group PropertyId} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type hexahedra]
+    if {[llength $Entities] > 0} {
+        upvar $PeriodicBarsDict MyPeriodicBarsDict
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            set IEInfo [GiD_Mesh get element [lindex $Entities $j]]
+            set Node0 [lindex $IEInfo 3]
+            set Node1 [lindex $IEInfo 4]
+            set Node2 [lindex $IEInfo 5]
+            set Node3 [lindex $IEInfo 6]
+            set Node4 [lindex $IEInfo 7]
+            set Node5 [lindex $IEInfo 8]
+            set Node6 [lindex $IEInfo 9]
+            set Node7 [lindex $IEInfo 10]
+            if {[dict exists $MyPeriodicBarsDict BN${Node0}N${Node4}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node4} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node4} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node4} Connectivities "$Node0 $Node4"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node1}N${Node5}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node5} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node5} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node5} Connectivities "$Node1 $Node5"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node2}N${Node6}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node6} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node6} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node6} Connectivities "$Node2 $Node6"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node3}N${Node7}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node3}N${Node7} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node3}N${Node7} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node3}N${Node7} Connectivities "$Node3 $Node7"
+            }
+        }
     }
 }
 
@@ -1308,3 +1417,42 @@ proc WriteRecordResultSubmodelPart {FileVar CondName} {
     }
 }
 
+#-------------------------------------------------------------------------------
+proc WriteGapClosureBarsSubmodelPart {FileVar CondName ConditionDict} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+        
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 135] eq true} {
+                puts $MyFileVar "Begin SubModelPart Gap_Closure_Bars_[lindex [lindex $Groups $i] 1]"
+                # Tables
+                # puts $MyFileVar "  Begin SubModelPartTables"
+                # puts $MyFileVar "  End SubModelPartTables"
+                # Nodes
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+                puts $MyFileVar "  Begin SubModelPartNodes"
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
+                }
+                puts $MyFileVar "  End SubModelPartNodes"
+                # Elements
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
+                puts $MyFileVar "  Begin SubModelPartElements"
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
+                }
+                puts $MyFileVar "  End SubModelPartElements"
+                # Conditions
+                set ConditionList [dict get $ConditionDict Gap_Closure_Bars_[lindex [lindex $Groups $i] 1]]
+                puts $MyFileVar "  Begin SubModelPartConditions"
+                # for {set j 0} {$j < [llength $ConditionList]} {incr j} {
+                #     puts $MyFileVar "    [lindex $ConditionList $j]"
+                # }
+                puts $MyFileVar "  End SubModelPartConditions"
+                puts $MyFileVar "End SubModelPart"
+                puts $MyFileVar ""
+            }
+        }
+    }
+}

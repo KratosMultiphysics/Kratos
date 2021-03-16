@@ -28,7 +28,9 @@ HELP: Number of threads used for parallel calculation.
 QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: false
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.
-
+QUESTION: Gap_Closure_Interface_Conditions#CB#(true,false)
+VALUE: true
+HELP: Define gap/closure conditions to automatically activation of interface elements.
 
 TITLE:Solver_Settings
 QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic,K0-Procedure)

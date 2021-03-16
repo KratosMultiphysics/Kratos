@@ -49,6 +49,7 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "consider_gap_closure": true,
                 "gap_width_threshold": 0.01
             }  )" );
 
@@ -60,6 +61,7 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mGapWidthThreshold = rParameters["gap_width_threshold"].GetDouble();
+        mConsiderGapClosure = rParameters["consider_gap_closure"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -78,56 +80,46 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        const int nelements = mr_model_part.GetMesh(0).Elements().size();
-        const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
-
-        if (nelements > 0)
+        if (mConsiderGapClosure)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+            const int nelements = mr_model_part.GetMesh(0).Elements().size();
+            const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
 
-            std::vector<bool> SetToDeactive(nelements);
-            #pragma omp parallel for
-            for (int k = 0; k < nelements; ++k)
+            if (nelements > 0)
             {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                SetToDeactive[k] = IsGapCreated(it);
-                //if (it->Id() == 97)
-                //    KRATOS_INFO("SetToDeactive") << it->Id() << " "<< SetToDeactive[k] << std::endl;
-            }
+                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
 
-
-            // Activation/deactivation of the existing parts:
-            // ( User must specify each part through the interface)
-            #pragma omp parallel for
-            for (int k = 0; k < nelements; ++k)
-            {
-                if (SetToDeactive[k])
+                std::vector<bool> SetToDeactive(nelements);
+                #pragma omp parallel for
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                    it->Set(ACTIVE, false);
-                } 
-                else
+                    SetToDeactive[k] = IsGapCreated(it);
+                }
+
+
+                // Activation/deactivation of the existing parts:
+                // ( User must specify each part through the interface)
+                #pragma omp parallel for
+                for (int k = 0; k < nelements; ++k)
                 {
-                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                    it->Set(ACTIVE, true);
+                    if (SetToDeactive[k])
+                    {
+                        ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                        it->Set(ACTIVE, false);
+                    } 
+                    else
+                    {
+                        ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                        it->Set(ACTIVE, true);
+                    }
                 }
             }
         }
-
         KRATOS_CATCH("");
     }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    // void ExecuteFinalizeSolutionStep() override
-    // {
-    //     KRATOS_TRY;
-
-    //     //this -> ExecuteInitialize();
-
-    //     KRATOS_CATCH("");
-    // }
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -154,6 +146,7 @@ protected:
 
     ModelPart& mr_model_part;
     double mGapWidthThreshold;
+    bool mConsiderGapClosure;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -216,38 +209,17 @@ private:
             noalias(TangentVector) = rGeom.GetPoint(IndexSide[iSide][1]) - rGeom.GetPoint(IndexSide[iSide][0]);
             array_1d<double,3> normalVector;
             MathUtils<double>::UnitCrossProduct(normalVector, OutOfPlane, TangentVector);
-            // if (it->Id() == 97)
-            // {
-            //     KRATOS_INFO("Point-0") << rGeom.GetPoint(IndexSide[iSide][0]) << std::endl;
-            //     KRATOS_INFO("Point-1") << rGeom.GetPoint(IndexSide[iSide][1]) << std::endl;
-            //     KRATOS_INFO("normalVector") << iSide << "  " << normalVector << std::endl;
-            // }
 
             double GapSide = 0.0;
             for (unsigned int iPoint=0; iPoint < nPointSide; ++iPoint)
             {
                 const array_1d<double,3> &displacement = rGeom[IndexSide[iSide][iPoint]].FastGetSolutionStepValue(DISPLACEMENT, 0);
                 double GapPoint = inner_prod(normalVector, displacement);
-                // if (it->Id() == 97)
-                // {
-                //     KRATOS_INFO("displacement") << iPoint << "  " << displacement << std::endl;
-                //     KRATOS_INFO("GapPoint")     << iPoint << "  " << GapPoint << std::endl;
-                // }
                 GapSide -= GapPoint;
             }
             GapSide /= double(nPointSide);
-            // if (it->Id() == 97)
-            // {
-            //     KRATOS_INFO("GapSide") << iSide << "  " << GapSide << std::endl;
-            // }
             GapSize += GapSide;
         }
-
-        // if (it->Id() == 97)
-        // {
-        //     KRATOS_INFO("GapSize") << GapSize << std::endl;
-        // }
-
 
         return !(GapSize < mGapWidthThreshold);
 
@@ -276,37 +248,17 @@ private:
 
             array_1d<double,3> normalVector;
             MathUtils<double>::UnitCrossProduct(normalVector, Vector0, Vector1);
-            // if (it->Id() == 97)
-            // {
-            //     KRATOS_INFO("Point-0") << rGeom.GetPoint(IndexSide[iSide][0]) << std::endl;
-            //     KRATOS_INFO("Point-1") << rGeom.GetPoint(IndexSide[iSide][1]) << std::endl;
-            //     KRATOS_INFO("normalVector") << iSide << "  " << normalVector << std::endl;
-            // }
 
             double GapSide = 0.0;
             for (unsigned int iPoint=0; iPoint < nPointSide; ++iPoint)
             {
                 const array_1d<double,3> &displacement = rGeom[IndexSide[iSide][iPoint]].FastGetSolutionStepValue(DISPLACEMENT, 0);
                 double GapPoint = inner_prod(normalVector, displacement);
-                // if (it->Id() == 97)
-                // {
-                //     KRATOS_INFO("displacement") << iPoint << "  " << displacement << std::endl;
-                //     KRATOS_INFO("GapPoint")     << iPoint << "  " << GapPoint << std::endl;
-                // }
                 GapSide -= GapPoint;
             }
             GapSide /= double(nPointSide);
-            // if (it->Id() == 97)
-            // {
-            //     KRATOS_INFO("GapSide") << iSide << "  " << GapSide << std::endl;
-            // }
             GapSize += GapSide;
         }
-
-        // if (it->Id() == 97)
-        // {
-        //     KRATOS_INFO("GapSize") << GapSize << std::endl;
-        // }
 
         return !(GapSize < mGapWidthThreshold);
 
@@ -336,40 +288,19 @@ private:
 
             array_1d<double,3> normalVector;
             MathUtils<double>::UnitCrossProduct(normalVector, Vector0, Vector1);
-            // if (it->Id() == 97)
-            // {
-            //     KRATOS_INFO("Point-0") << rGeom.GetPoint(IndexSide[iSide][0]) << std::endl;
-            //     KRATOS_INFO("Point-1") << rGeom.GetPoint(IndexSide[iSide][1]) << std::endl;
-            //     KRATOS_INFO("normalVector") << iSide << "  " << normalVector << std::endl;
-            // }
 
             double GapSide = 0.0;
             for (unsigned int iPoint=0; iPoint < nPointSide; ++iPoint)
             {
                 const array_1d<double,3> &displacement = rGeom[IndexSide[iSide][iPoint]].FastGetSolutionStepValue(DISPLACEMENT, 0);
                 double GapPoint = inner_prod(normalVector, displacement);
-                // if (it->Id() == 97)
-                // {
-                //     KRATOS_INFO("displacement") << iPoint << "  " << displacement << std::endl;
-                //     KRATOS_INFO("GapPoint")     << iPoint << "  " << GapPoint << std::endl;
-                // }
                 GapSide -= GapPoint;
             }
             GapSide /= double(nPointSide);
-            // if (it->Id() == 97)
-            // {
-            //     KRATOS_INFO("GapSide") << iSide << "  " << GapSide << std::endl;
-            // }
             GapSize += GapSide;
         }
 
-        // if (it->Id() == 97)
-        // {
-        //     KRATOS_INFO("GapSize") << GapSize << std::endl;
-        // }
-
         return !(GapSize < mGapWidthThreshold);
-
 
         KRATOS_CATCH( "" )
     }

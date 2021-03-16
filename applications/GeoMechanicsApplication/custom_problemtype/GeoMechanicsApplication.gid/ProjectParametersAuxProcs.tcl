@@ -262,7 +262,7 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         if {$MyGroupNum < $NumGroups} {
             puts $MyFileVar "    \},\{"
         } else {
-            puts $MyFileVar "    \}\]"
+            puts $MyFileVar "    \}\],"
         }
     }
 }
@@ -304,7 +304,7 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         if {$MyGroupNum < $NumGroups} {
             puts $MyFileVar "    \},\{"
         } else {
-            puts $MyFileVar "    \}\]"
+            puts $MyFileVar "    \}\],"
         }
     }
 }
@@ -333,8 +333,31 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         if {$MyGroupNum < $NumGroups} {
             puts $MyFileVar "    \},\{"
         } else {
-            puts $MyFileVar "    \}\]"
+            puts $MyFileVar "    \}\],"
         }
     }
 }
 
+#-------------------------------------------------------------------------------
+proc WriteGapClosureInterfaceProcess {FileVar GroupNum Groups NumGroups} {
+    upvar $FileVar MyFileVar
+    upvar $GroupNum MyGroupNum
+
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        if {[lindex [lindex $Groups $i] 135] eq true} {
+            incr MyGroupNum
+            puts $MyFileVar "            \"python_module\": \"gap_closure_interface_activation_process\","
+            puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.GeoMechanicsApplication\","
+            puts $MyFileVar "            \"Parameters\":    \{"
+            puts $MyFileVar "                \"model_part_name\": \"PorousDomain.Gap_Closure_Bars_[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"consider_gap_closure\": [lindex [lindex $Groups $i] 135]"
+            puts $MyFileVar "                \"gap_width_threshold\": [lindex [lindex $Groups $i] 136]"
+            puts $MyFileVar "            \}"
+            if {$MyGroupNum < $NumGroups} {
+                puts $MyFileVar "        \},\{"
+            } else {
+                puts $MyFileVar "        \}\]"
+            }
+        }
+    }
+}
