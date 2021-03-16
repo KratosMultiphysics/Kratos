@@ -266,11 +266,9 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddKuttaConditio
 
     Vector vector_distances=ZeroVector(NumNodes);
 
-    double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
 
-    BoundedVector<double, Dim> n_angle;
-    n_angle[0]=sin(angle_in_deg*Globals::Pi/180);
-    n_angle[1]=cos(angle_in_deg*Globals::Pi/180);
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
 
     BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
     BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
