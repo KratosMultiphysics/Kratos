@@ -63,7 +63,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef typename MVQNFullJacobianConvergenceAcceleratorType::Pointer MVQNFullJacobianConvergenceAcceleratorPointerType;
     py::class_<MVQNFullJacobianConvergenceAcceleratorType, MVQNFullJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
         .def(py::init<Parameters>())
-        .def(py::init<double, double>())
+        .def(py::init<const double, const double, const bool>())
     ;
 
     // MVQN recursive convergence accelerator
