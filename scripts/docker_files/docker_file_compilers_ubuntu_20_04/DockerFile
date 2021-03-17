@@ -13,7 +13,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get -y update && \
-    apt-cache pkgnames intel && \
     apt-get install -y \
         build-essential \
         clang \
