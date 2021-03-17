@@ -94,6 +94,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
     def _CreateCustomizedLinearSolver(self, linear_solver_settings):
+        # Creating a linear solver based on the input setting for processes besides the Navier-Stokes
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_settings)
 
     def _CreateConvergenceCriterion(self):

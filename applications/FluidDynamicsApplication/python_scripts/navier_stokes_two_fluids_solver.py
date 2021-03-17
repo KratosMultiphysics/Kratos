@@ -384,18 +384,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return self._acceleration_limitation_utility
 
     def _GetRedistancingLinearSolver(self):
+        # A linear solver configured specifically for distance re-initialization process
         if not hasattr(self, '_redistancing_linear_solver'):
             redistancing_linear_solver_configuration = self.settings["linear_solver_settings"] # TODO: add customized configuration to the main settings
             self._redistancing_linear_solver = self._CreateCustomizedLinearSolver(redistancing_linear_solver_configuration)
         return self._redistancing_linear_solver
 
     def _GetLevelsetLinearSolver(self):
+        # A linear solver configured specifically for the level-set convection process
         if not hasattr(self, '_levelset_linear_solver'):
             levelset_linear_solver_configuration = self.settings["linear_solver_settings"] # TODO: add customized configuration to the main settings
             self._levelset_linear_solver = self._CreateCustomizedLinearSolver(levelset_linear_solver_configuration)
         return self._levelset_linear_solver
 
     def _GetSmoothingLinearSolver(self):
+        # A linear solver configured specifically for the distance smoothing process
         if not hasattr(self, '_smoothing_linear_solver'):
             smoothing_linear_solver_configuration = self.settings["linear_solver_settings"] # TODO: add customized configuration to the main settings
             self._smoothing_linear_solver = self._CreateCustomizedLinearSolver(smoothing_linear_solver_configuration)
@@ -442,6 +445,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return self._distance_modification_process
 
     def _CreateCustomizedLinearSolver(self, linear_solver_settings):
+        # Creating a linear solver based on the input setting for processes besides the Navier-Stokes
         return linear_solver_factory.ConstructSolver(linear_solver_settings)
 
     def __CreateAccelerationLimitationUtility(self):
