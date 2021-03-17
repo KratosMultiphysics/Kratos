@@ -350,7 +350,7 @@ proc WriteGapClosureInterfaceProcess {FileVar GroupNum Groups NumGroups} {
             puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.GeoMechanicsApplication\","
             puts $MyFileVar "            \"Parameters\":    \{"
             puts $MyFileVar "                \"model_part_name\": \"PorousDomain.Gap_Closure_Bars_[lindex [lindex $Groups $i] 1]\","
-            puts $MyFileVar "                \"consider_gap_closure\": [lindex [lindex $Groups $i] 135]"
+            puts $MyFileVar "                \"consider_gap_closure\": [lindex [lindex $Groups $i] 135],"
             puts $MyFileVar "                \"gap_width_threshold\": [lindex [lindex $Groups $i] 136]"
             puts $MyFileVar "            \}"
             if {$MyGroupNum < $NumGroups} {

@@ -638,30 +638,70 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     # Interface two-phase, drained and undrained parts
     set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
-    foreach Groups $interface_Groups {
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            if {[lindex [lindex $Groups $i] 3] eq false} {
-                # Elements Property
-                set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-                # UPwSmallStrainInterfaceElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4Connectivities
-                # UPwSmallStrainInterfaceElement3D6N
-                WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp PrismInterface3D6Connectivities
-                # UPwSmallStrainInterfaceElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
-            } else {
-                # Elements Property
-                set LinkInterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-                # UPwSmallStrainLinkInterfaceElement2D4N
-                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp QuadrilateralInterface2D4Connectivities
-                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp TriangleInterface2D4Connectivities
-                # UPwSmallStrainLinkInterfaceElement3D6N
-                WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp Triangle2D6Connectivities
-                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp TetrahedronInterface3D6Connectivities
-                # UPwSmallStrainLinkInterfaceElement3D8N
-                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainLinkInterfaceElement3D8N $LinkInterfaceElemsProp Hexahedron3D8Connectivities
+    if {$IsQuadratic eq 0} {
+        foreach Groups $interface_Groups {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                if {[lindex [lindex $Groups $i] 3] eq false} {
+                    # Elements Property
+                    set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                    # UPwSmallStrainInterfaceElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4Connectivities
+
+                    # UPwSmallStrainInterfaceElement3D6N
+                    WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp PrismInterface3D6Connectivities
+                    # UPwSmallStrainInterfaceElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
+                } else {
+                    # Elements Property
+                    set LinkInterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                    # UPwSmallStrainLinkInterfaceElement2D4N
+                    WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp QuadrilateralInterface2D4Connectivities
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp TriangleInterface2D4Connectivities
+                    # UPwSmallStrainLinkInterfaceElement3D6N
+                    WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp Triangle2D6Connectivities
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp TetrahedronInterface3D6Connectivities
+                    # UPwSmallStrainLinkInterfaceElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainLinkInterfaceElement3D8N $LinkInterfaceElemsProp Hexahedron3D8Connectivities
+                }
             }
         }
+    } elseif {$IsQuadratic eq 1} {
+        foreach Groups $interface_Groups {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                if {[lindex [lindex $Groups $i] 3] eq false} {
+                    # Elements Property
+                    set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                    # UPwSmallStrainInterfaceElement2D4N twice
+                    WriteInterface2D4NElementsAs2D6N FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
+
+                    # UPwSmallStrainInterfaceElement3D6N twice
+                    WriteInterface3D6NElementsAs3D12N FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp \
+                                                      PrismInterface3D6ConnectivitiesPart1 \
+                                                      PrismInterface3D6ConnectivitiesPart2 \
+                                                      PrismInterface3D6ConnectivitiesPart3 \
+                                                      PrismInterface3D6ConnectivitiesPart4
+                    # UPwSmallStrainInterfaceElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
+                } else {
+                    # Elements Property
+                    set LinkInterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                    # UPwSmallStrainLinkInterfaceElement2D4N twice
+                    WriteInterface2D4NElementsAs2D6N FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainLinkInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
+                    WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp TriangleInterface2D4Connectivities
+                    # UPwSmallStrainLinkInterfaceElement3D6N
+                    # UPwSmallStrainInterfaceElement3D6N twice
+                    WriteInterface3D6NElementsAs3D12N FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $InterfaceElemsProp \
+                                                      PrismInterface3D6ConnectivitiesPart1 \
+                                                      PrismInterface3D6ConnectivitiesPart2 \
+                                                      PrismInterface3D6ConnectivitiesPart3 \
+                                                      PrismInterface3D6ConnectivitiesPart4
+                    WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp TetrahedronInterface3D6Connectivities
+                    # UPwSmallStrainLinkInterfaceElement3D8N
+                    WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainLinkInterfaceElement3D8N $LinkInterfaceElemsProp Hexahedron3D8Connectivities
+                }
+            }
+        }
+
     }
 
     # PropagationUnion (InterfaceElement)

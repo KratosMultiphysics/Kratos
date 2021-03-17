@@ -384,6 +384,42 @@ proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType}
 }
 
 #-------------------------------------------------------------------------------
+proc WriteInterface2D4NElementsAs2D6N {FileVar Group ElemType ElemName PropertyId ConnectivityType1 ConnectivityType2} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
+    if {[llength $Entities] > 0} {
+        upvar $FileVar MyFileVar
+
+        puts $MyFileVar "Begin Elements $ElemName"
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType1 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType2 [lindex $Entities $j]]"
+        }
+        puts $MyFileVar "End Elements"
+        puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc WriteInterface3D6NElementsAs3D12N {FileVar Group ElemType ElemName PropertyId \
+                                        ConnectivityType1 ConnectivityType2 \
+                                        ConnectivityType3 ConnectivityType4} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
+    if {[llength $Entities] > 0} {
+        upvar $FileVar MyFileVar
+
+        puts $MyFileVar "Begin Elements $ElemName"
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType1 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType2 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType3 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType4 [lindex $Entities $j]]"
+        }
+        puts $MyFileVar "End Elements"
+        puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
 proc WritePropUnionElements {FileVar PropertyId} {
     upvar $FileVar MyFileVar
 
@@ -715,6 +751,33 @@ proc Quadrilateral2D4Connectivities { ElemId } {
 }
 
 #-------------------------------------------------------------------------------
+proc Quadrilateral2D4ConnectivitiesPart1 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 7]\
+    [lindex $ElementInfo 9] [lindex $ElementInfo 6]"
+}
+
+#-------------------------------------------------------------------------------
+proc Quadrilateral2D4ConnectivitiesPart2 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 7] [lindex $ElementInfo 4]\
+    [lindex $ElementInfo 5] [lindex $ElementInfo 9]"
+}
+
+#-------------------------------------------------------------------------------
+proc Quadrilateral2D6Connectivities { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 9]"
+}
+
+#-------------------------------------------------------------------------------
 
 proc Triangle3D3Connectivities { ElemId } {
 
@@ -909,6 +972,106 @@ proc PrismInterface3D6Connectivities { ElemId } {
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
     [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart1 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 9] [lindex $ElementInfo 11]\
+    [lindex $ElementInfo 6] [lindex $ElementInfo 15] [lindex $ElementInfo 17]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart2 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 11] [lindex $ElementInfo 9] [lindex $ElementInfo 4]\
+    [lindex $ElementInfo 17] [lindex $ElementInfo 15] [lindex $ElementInfo 7]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart3 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 11] [lindex $ElementInfo 4] [lindex $ElementInfo 10]\
+    [lindex $ElementInfo 17] [lindex $ElementInfo 7] [lindex $ElementInfo 16]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart4 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 11] [lindex $ElementInfo 10] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 17] [lindex $ElementInfo 16] [lindex $ElementInfo 8]"
 
     #~ ## Check element orientation (very slow!)
     #~ # Obtaining element volume
