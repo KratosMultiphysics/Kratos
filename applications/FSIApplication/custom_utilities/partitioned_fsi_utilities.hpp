@@ -653,16 +653,25 @@ public:
     void CalculateTractionFromPressureValues(
         ModelPart& rModelPart,
         const Variable<double>& rPressureVariable,
-        const Variable<array_1d<double,3>>& rTractionVariable)
+        const Variable<array_1d<double,3>>& rTractionVariable,
+        const bool SwapTractionSign)
     {
         // Update the nodal normals
         NormalCalculationUtils().CalculateOnSimplex(rModelPart);
+
+        // Set the nodal traction modulus calculation function
+        std::function<double(const double, const array_1d<double,3>)> traction_modulus_func;
+        if (SwapTractionSign)  {
+            traction_modulus_func = [](const double PosPressure, const array_1d<double,3>& rNormal){return - PosPressure / norm_2(rNormal);};
+        } else {
+            traction_modulus_func = [](const double PosPressure, const array_1d<double,3>& rNormal){return PosPressure / norm_2(rNormal);};
+        }
 
         // Calculate the tractions from the pressure values
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPressureVariable);
-            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = (p_pos / norm_2(r_normal)) * r_normal;
+            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, r_normal) * r_normal;
         });
 
         // Synchronize values among processes
@@ -673,17 +682,26 @@ public:
         ModelPart& rModelPart,
         const Variable<double>& rPositivePressureVariable,
         const Variable<double>& rNegativePressureVariable,
-        const Variable<array_1d<double,3>>& rTractionVariable)
+        const Variable<array_1d<double,3>>& rTractionVariable,
+        const bool SwapTractionSign)
     {
         // Update the nodal normals
         NormalCalculationUtils().CalculateOnSimplex(rModelPart);
+
+        // Set the nodal traction modulus calculation function
+        std::function<double(const double, const double, const array_1d<double,3>)> traction_modulus_func;
+        if (SwapTractionSign)  {
+            traction_modulus_func = [](const double PosPressure, const double NegPressure, const array_1d<double,3>& rNormal){return (NegPressure - PosPressure) / norm_2(rNormal);};
+        } else {
+            traction_modulus_func = [](const double PosPressure, const double NegPressure, const array_1d<double,3>& rNormal){return (PosPressure - NegPressure) / norm_2(rNormal);};
+        }
 
         // Calculate the tractions from the pressure values
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
             const double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);
-            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = ((p_pos - p_neg) / norm_2(r_normal)) * r_normal;
+            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, p_neg, r_normal) * r_normal;
         });
 
         // Synchronize values among processes

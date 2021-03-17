@@ -403,23 +403,17 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 0)
 
             # Convert the pressure scalar load to a traction vector one
+            swap_traction_sign = True
             self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self._GetTractionVariable())
+                self._GetTractionVariable(),
+                swap_traction_sign)
 
         elif (self.level_set_type == "discontinuous"):
-            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
-            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
-            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
-            #FIXME: USE THE BASE CLASS METHODS TO CREATE THE MAPPER!
-
-            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
-            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
-            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
-            #FIXME: CHECK IF WE CAN CREATE THE MAPPER ONCE, EVEN THOUGH THE EMBEDDED SKIN PART IS CONSTANTLY UPDATED
             # Map the POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the auxiliary embedded skin model part,
             # which is created from the elemental level set intersections, to the fluid FSI coupling interface
+            # Note that the mapper instance is created each time as the embedded skin mesh potentially changes at each iteration
             mapper_params = KratosMultiphysics.Parameters("""{
                 "mapper_type": "nearest_element",
                 "echo_level" : 0
@@ -445,11 +439,13 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 0)
 
             # Convert the pressure scalar load to a traction vector one
+            swap_traction_sign = True
             self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,
                 KratosMultiphysics.NEGATIVE_FACE_PRESSURE,
-                self._GetTractionVariable())
+                self._GetTractionVariable(),
+                swap_traction_sign)
 
         else:
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
