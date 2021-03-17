@@ -4,6 +4,7 @@ This module contains an interface to the available response functions
 import time as timer
 import shutil
 from pathlib import Path
+from math import isclose, sqrt
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
@@ -11,6 +12,15 @@ from KratosMultiphysics.response_functions.response_function_interface import Re
 from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
 
+try:
+    import KratosMultiphysics.MeshingApplication as KMA
+    from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess as automatic_remeshing_process
+    if not hasattr(KMA, "MmgProcess2D"):
+        automatic_remeshing_process = None
+        automatic_remeshing_error_msg = "MeshingApplication is not compiled with '-DINCLUDE_MMG=ON'"
+except ImportError as err:
+    automatic_remeshing_process = None
+    automatic_remeshing_error_msg = str(err)
 
 class LiftToDrag(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
@@ -25,9 +35,29 @@ class LiftToDrag(ResponseFunctionInterface):
                 "primal_project_parameters_file"      : "PLEASE_SPECIFY_PRIMAL_PROJECT_PARAMETERS_FILE",
                 "lift_adjoint_project_parameters_file": "PLEASE_SPECIFY_LIFT_ADJOINT_PROJECT_PARAMETERS_FILE",
                 "drag_adjoint_project_parameters_file": "PLEASE_SPECIFY_DRAG_ADJOINT_PROJECT_PARAMETERS_FILE"
+            },
+            "use_automatic_mesh_refinement"     : false,
+            "automatic_mesh_refinement_settings": {
+                "moving_average_number_of_iterations"         : 10,
+                "moving_average_difference_relative_tolerance": 1e-3,
+                "moving_average_difference_absolute_tolerance": 1e-5,
+                "radius_of_influence"                         : 0.0,
+                "influence_model_part_name"                   : "PLEASE_SPECIFY_INFLUENCE_MODEL_PART",
+                "refinement_data_settings": {
+                    "refinement_data_from": "lift_adjoint_solution",
+                    "list_of_variables": [
+                        "VELOCITY",
+                        "PRESSURE",
+                        "ADJOINT_FLUID_SCALAR_1",
+                        "ADJOINT_FLUID_VECTOR_1"
+                    ]
+                },
+                "mmg_process_settings": {}
             }
         }
         """)
+
+        self.model = model
 
         self.response_settings.ValidateAndAssignDefaults(default_parameters)
 
@@ -76,8 +106,80 @@ class LiftToDrag(ResponseFunctionInterface):
         self.lift_model_part_name =  self.main_model_part_name + "." + self.lift_model_part_name
         self.drag_model_part_name =  self.main_model_part_name + "." + self.drag_model_part_name
 
+        self.use_automatic_mesh_refinement = self.response_settings["use_automatic_mesh_refinement"].GetBool()
+        if (self.use_automatic_mesh_refinement):
+            if (automatic_remeshing_process is None):
+                raise RuntimeError("Automatic mesh refinement requires to import MeshingApplication. Importing failed with following error msg.\n\t" + automatic_remeshing_error_msg)
+
+            automatic_mesh_refinement_settings = self.response_settings["automatic_mesh_refinement_settings"]
+            self.current_objective_moving_average = 0.0
+            self.previous_objective_moving_average = 0.0
+            self.moving_average_difference_relative_tolerance = automatic_mesh_refinement_settings["moving_average_difference_relative_tolerance"].GetDouble()
+            self.moving_average_difference_absolute_tolerance = automatic_mesh_refinement_settings["moving_average_difference_absolute_tolerance"].GetDouble()
+            self.moving_average_number_of_iterations = automatic_mesh_refinement_settings["moving_average_number_of_iterations"].GetInt()
+            self.read_refinement_data_from = automatic_mesh_refinement_settings["refinement_data_settings"]["refinement_data_from"].GetString()
+            self.read_variables = automatic_mesh_refinement_settings["refinement_data_settings"]["list_of_variables"].GetStringArray()
+            self.radius_of_influence = automatic_mesh_refinement_settings["radius_of_influence"].GetDouble()
+            self.influence_model_part_name = automatic_mesh_refinement_settings["influence_model_part_name"].GetString()
+            self.remeshing_process = automatic_remeshing_process(model, automatic_mesh_refinement_settings["mmg_process_settings"])
+            self.objective_values = []
+
     def Initialize(self):
-        pass
+        if (self.use_automatic_mesh_refinement):
+            self.remeshing_process.ExecuteInitialize()
+
+    def InitializeIteration(self, optimization_model_part, optimizationIteration):
+        if (self.use_automatic_mesh_refinement and len(self.objective_values) == self.moving_average_number_of_iterations):
+            Kratos.Logger.PrintInfo(self._GetLabel(), "Initiating automatic mesh refinement")
+
+            self.current_objective_moving_average = 0.0
+            for v in self.objective_values:
+                self.current_objective_moving_average += v
+            self.current_objective_moving_average /= self.moving_average_number_of_iterations
+
+            if (isclose(
+                    self.current_objective_moving_average,
+                    self.previous_objective_moving_average,
+                    self.moving_average_difference_relative_tolerance,
+                    self.moving_average_difference_absolute_tolerance)):
+
+                startTime = timer.time()
+
+                if (self.read_refinement_data_from == "lift_adjoint_solution"):
+                    self.input_model_part = self.primal_simulation.__GetSolver().GetComputingModelPart()
+                elif (self.read_refinement_data_from == "drag_adjoint_solution"):
+                    self.input_model_part = self.lift_adjoint_simulation.__GetSolver().GetComputingModelPart()
+                elif (self.read_refinement_data_from == "primal_solution"):
+                    self.input_model_part = self.drag_adjoint_simulation.__GetSolver().GetComputingModelPart()
+                else:
+                    raise Exception("Unsupported \"refinement_data_from\" requested. Supported types are \n\t lift_adjoint_solution\n\t drag_adjoint_solution \n\t primal_solution")
+
+                geometric_center = [0.0, 0.0, 0.0]
+                for node in self.model[self.influcence_model_part_name].Nodes:
+                    geometric_center[0] += node.X
+                    geometric_center[1] += node.Y
+                    geometric_center[2] += node.Z
+
+                geometric_center[0] /= len(self.influcence_model_part.Nodes)
+                geometric_center[1] /= len(self.influcence_model_part.Nodes)
+                geometric_center[2] /= len(self.influcence_model_part.Nodes)
+
+                for node in optimization_model_part.Nodes:
+                    distance = sqrt((node.X - geometric_center[0]) ** 2 + (node.Y - geometric_center[1]) ** 2 + (node.Z - geometric_center[2]) ** 2)
+                    node.Set(Kratos.BLOCKED, distance > self.radius_of_influence)
+
+                for variable_name in self.read_variables:
+                    variable = Kratos.KratosGlobals.GetVariable(variable_name)
+                    Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(variable, variable, self.input_model_part, optimization_model_part)
+
+                self.remeshing_process.ExecuteInitializeSolutionStep()
+                self.remeshing_process.ExecuteFinalizeSolutionStep()
+
+                self.objective_values.clear()
+
+                Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for automatic mesh refinement = ",round(timer.time() - startTime,2),"s")
+
+            self.previous_objective_moving_average = self.current_objective_moving_average
 
     def UpdateDesign(self, updated_model_part, variable):
         self.updated_model_part = updated_model_part
@@ -138,6 +240,11 @@ class LiftToDrag(ResponseFunctionInterface):
         # calculate lift and drag
         self.lift = LiftToDrag._CalculateTimeAveragedDrag(primal_parameters, self.lift_model_part_name, self.lift_direction)
         self.drag = LiftToDrag._CalculateTimeAveragedDrag(primal_parameters, self.drag_model_part_name, self.drag_direction)
+
+        if (self.use_automatic_mesh_refinement):
+            self.objective_values.append(self.GetValue())
+            if (len(self.objective_values) > self.moving_average_number_of_iterations):
+                del self.objective_values[0]
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 

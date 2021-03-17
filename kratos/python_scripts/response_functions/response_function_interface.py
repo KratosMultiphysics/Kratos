@@ -26,6 +26,9 @@ class ResponseFunctionInterface(object):
     def Initialize(self):
         pass
 
+    def InitializeIteration(self, optimization_model_part, optimizationIteration):
+        pass
+
     def UpdateDesign(self, updated_model_part, variable):
         pass
 

@@ -44,6 +44,13 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
 
+    const auto& values = rParameters["interval"].GetVector();
+
+    KRATOS_ERROR_IF(values.size() != 2) << "Interval should only consist two values corresponding to start time and end time.\n";
+
+    mIntervalStartTime = std::min(values[0], values[1]);
+    mIntervalEndTime = std::max(values[0], values[1]);
+
     KRATOS_ERROR_IF(mTurbulentMixingLength < std::numeric_limits<double>::epsilon())
         << "turbulent_mixing_length should be greater than zero.\n";
 
@@ -75,17 +82,22 @@ void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitializeSolutionStep
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    const double c_mu_75 = std::pow(r_model_part.GetProcessInfo()[TURBULENCE_RANS_C_MU], 0.75);
-    auto& r_nodes = r_model_part.Nodes();
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+    const double current_time = r_process_info[TIME];
 
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-        rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
-            c_mu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
-    });
+    if (current_time >= mIntervalStartTime && current_time <= mIntervalEndTime) {
+        const double c_mu_75 = std::pow(r_process_info[TURBULENCE_RANS_C_MU], 0.75);
+        auto& r_nodes = r_model_part.Nodes();
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Applied epsilon values to " << mModelPartName << ".\n";
+        block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+            const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
+                c_mu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
+        });
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Applied epsilon values to " << mModelPartName << ".\n";
+    }
 
     KRATOS_CATCH("");
 }
@@ -127,6 +139,7 @@ const Parameters RansEpsilonTurbulentMixingLengthInletProcess::GetDefaultParamet
             "turbulent_mixing_length" : 0.005,
             "echo_level"              : 0,
             "is_fixed"                : true,
+            "interval"                : [0.0, 1e+30],
             "min_value"               : 1e-14
         })");
 

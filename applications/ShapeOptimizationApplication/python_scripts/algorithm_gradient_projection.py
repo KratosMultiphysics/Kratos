@@ -111,6 +111,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             timer.StartNewLap()
 
+            self.__initializeAnalyzer()
+
             self.__initializeNewShape()
 
             self.__analyzeShape()
@@ -132,6 +134,10 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def FinalizeOptimizationLoop(self):
         self.data_logger.FinalizeDataLogging()
         self.analyzer.FinalizeAfterOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def __initializeAnalyzer(self):
+        self.analyzer.InitializeIteration(self.optimization_iteration)
 
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):

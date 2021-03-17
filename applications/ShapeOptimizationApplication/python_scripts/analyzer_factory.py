@@ -105,6 +105,11 @@ class Analyzer(AnalyzerBaseClass):
         self.external_analyzer.InitializeBeforeOptimizationLoop()
 
     # --------------------------------------------------------------------------
+    def InitializeIteration( self, optimizationIteration ):
+        self.internal_analyzer.InitializeIteration(optimizationIteration)
+        self.external_analyzer.InitializeIteration(optimizationIteration)
+
+    # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, unique_iterator, communicator):
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.external_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)

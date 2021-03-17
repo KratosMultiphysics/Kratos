@@ -67,6 +67,12 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             response.Initialize()
 
     # --------------------------------------------------------------------------
+    def InitializeIteration( self, optimizationIteration ):
+        optimization_model_part = self.model_part_controller.GetOptimizationModelPart()
+        for _, response in self.response_functions.items():
+            response.InitializeIteration(optimization_model_part, optimizationIteration)
+
+    # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
         optimization_model_part = self.model_part_controller.GetOptimizationModelPart()
 

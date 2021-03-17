@@ -113,6 +113,8 @@ private:
     std::string mModelPartName;
     double mTurbulentMixingLength;
     double mMinValue;
+    double mIntervalStartTime;
+    double mIntervalEndTime;
     bool mIsConstrained;
     int mEchoLevel;
 

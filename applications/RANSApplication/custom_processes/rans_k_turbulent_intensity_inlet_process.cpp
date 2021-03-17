@@ -44,6 +44,13 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
 
+    const auto& values = rParameters["interval"].GetVector();
+
+    KRATOS_ERROR_IF(values.size() != 2) << "Interval should only consist two values corresponding to start time and end time.\n";
+
+    mIntervalStartTime = std::min(values[0], values[1]);
+    mIntervalEndTime = std::max(values[0], values[1]);
+
     KRATOS_ERROR_IF(mTurbulentIntensity < 0.0)
         << "Turbulent intensity needs to be positive in the modelpart "
         << mModelPartName << "\n.";
@@ -72,18 +79,25 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        const auto& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
-        const double velocity_magnitude = norm_2(r_velocity);
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+    const double current_time = r_process_info[TIME];
 
-        rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
-            1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
-    });
+    if (current_time >= mIntervalStartTime && current_time <= mIntervalEndTime) {
+        auto& r_nodes = r_model_part.Nodes();
 
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Applied k values to " << mModelPartName << ".\n";
+        block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+            const auto& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const double velocity_magnitude = norm_2(r_velocity);
+
+            rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
+                1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
+        });
+
+        KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+            << "Applied k values to " << mModelPartName << ".\n";
+    }
 
     KRATOS_CATCH("");
 }
@@ -129,6 +143,7 @@ const Parameters RansKTurbulentIntensityInletProcess::GetDefaultParameters() con
             "turbulent_intensity" : 0.05,
             "echo_level"          : 0,
             "is_fixed"            : true,
+            "interval"            : [0.0, 1e+30],
             "min_value"           : 1e-14
         })");
 

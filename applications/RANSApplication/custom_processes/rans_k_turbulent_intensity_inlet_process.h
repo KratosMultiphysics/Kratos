@@ -111,6 +111,8 @@ private:
     std::string mModelPartName;
     double mTurbulentIntensity;
     double mMinValue;
+    double mIntervalStartTime;
+    double mIntervalEndTime;
     int mEchoLevel;
     bool mIsConstrained;
 
