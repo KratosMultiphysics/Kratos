@@ -692,7 +692,7 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam
         );
-    
+
     void AddNonLinearDissipation(
         PlasticDamageParameters &rPDParameters
         )
@@ -710,7 +710,7 @@ public:
         const Properties& rMaterialProperties,
         PlasticDamageParameters &rPDParameters
         );
-    
+
     double CalculatePlasticDenominator(
         ConstitutiveLaw::Parameters& rValues,
         PlasticDamageParameters &rParam);
