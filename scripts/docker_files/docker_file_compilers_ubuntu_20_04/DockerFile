@@ -34,3 +34,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
 CMD [ "/bin/bash" ]
 
 WORKDIR $HOME
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
