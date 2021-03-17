@@ -40,7 +40,6 @@ namespace Kratos
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
         IndexType counter_n = 0;
-        IndexType counter_m = 0;
 
         // Integration
         const typename GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -48,6 +47,7 @@ namespace Kratos
         {
             for (IndexType i = 0; i < number_of_nodes; i++) //loop over Lagrange Multipliers
             {
+                    IndexType counter_m = 0;
                     if (r_N(point_number, i) > shape_function_tolerance) {
                         for (IndexType j = 0; j < number_of_nodes; j++) // loop over shape functions of displacements
                         {
