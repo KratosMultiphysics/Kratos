@@ -66,22 +66,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             self._epetra_communicator = KratosTrilinos.CreateCommunicator()
         return self._epetra_communicator
 
-    def _GetRedistancingLinearSolver(self):
-        if (self.settings["linear_solver_settings"]["solver_type"].GetString() == "amgcl"):
-            if not hasattr(self, '_redistancing_linear_solver'):
-                self._redistancing_linear_solver = self._CreateRedistancingLinearSolver()
-            return self._redistancing_linear_solver
-        else:
-            return self._GetLinearSolver()
-
-    def _GetLevelsetLinearSolver(self):
-        if (self.settings["linear_solver_settings"]["solver_type"].GetString() == "amgcl"):
-            if not hasattr(self, '_redistancing_linear_solver'):
-                self._levelset_linear_solver = self._CreateLevelsetLinearSolver()
-            return self._levelset_linear_solver
-        else:
-            return self._GetLinearSolver()
-
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration
@@ -109,13 +93,8 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
-    def _CreateLevelsetLinearSolver(self):
-        linear_solver_configuration = self.settings["linear_solver_settings"]
-        return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
-
-    def _CreateRedistancingLinearSolver(self):
-        linear_solver_configuration = self.settings["linear_solver_settings"]
-        return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
+    def _CreateCustomizedLinearSolver(self, linear_solver_settings):
+        return trilinos_linear_solver_factory.ConstructSolver(linear_solver_settings)
 
     def _CreateConvergenceCriterion(self):
         convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(

@@ -382,6 +382,24 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._acceleration_limitation_utility = self.__CreateAccelerationLimitationUtility()
         return self._acceleration_limitation_utility
 
+    def _GetRedistancingLinearSolver(self):
+        if not hasattr(self, '_redistancing_linear_solver'):
+            redistancing_linear_solver_configuration = self.settings["linear_solver_settings"] # TODO: add customized configuration to the main settings
+            self._redistancing_linear_solver = self._CreateCustomizedLinearSolver(redistancing_linear_solver_configuration)
+        return self._redistancing_linear_solver
+
+    def _GetLevelsetLinearSolver(self):
+        if not hasattr(self, '_levelset_linear_solver'):
+            levelset_linear_solver_configuration = self.settings["linear_solver_settings"] # TODO: add customized configuration to the main settings
+            self._levelset_linear_solver = self._CreateCustomizedLinearSolver(levelset_linear_solver_configuration)
+        return self._levelset_linear_solver
+
+    def _GetSmoothingLinearSolver(self):
+        if not hasattr(self, '_smoothing_linear_solver'):
+            smoothing_linear_solver_configuration = self.settings["linear_solver_settings"] # TODO: add customized configuration to the main settings
+            self._smoothing_linear_solver = self._CreateCustomizedLinearSolver(smoothing_linear_solver_configuration)
+        return self._smoothing_linear_solver
+
     def _GetLevelSetConvectionProcess(self):
         if not hasattr(self, '_level_set_convection_process'):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
@@ -422,6 +440,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
         return self._distance_modification_process
 
+    def _CreateCustomizedLinearSolver(self, linear_solver_settings):
+        return linear_solver_factory.ConstructSolver(linear_solver_settings)
+
     def __CreateAccelerationLimitationUtility(self):
         maximum_multiple_of_g_acceleration_allowed = 5.0
         acceleration_limitation_utility = KratosCFD.AccelerationLimitationUtilities(
@@ -447,7 +468,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
-            linear_solver = self._GetLinearSolver()
+            linear_solver = self._GetLevelsetLinearSolver()
 
             levelset_convection_settings = self.settings["levelset_convection_settings"]
             if domain_size == 2:
@@ -476,7 +497,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Construct the variational distance calculation process
         if (self._reinitialization_type == "variational"):
             maximum_iterations = 2 #TODO: Make this user-definable
-            linear_solver = self._GetLinearSolver()
+            linear_solver = self._GetRedistancingLinearSolver()
             computing_model_part = self.GetComputingModelPart()
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
                 distance_reinitialization_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
@@ -509,7 +530,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def _CreateDistanceSmoothingProcess(self):
         # construct the distance smoothing process
-        linear_solver = self._GetLinearSolver()
+        linear_solver = self._GetSmoothingLinearSolver()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             distance_smoothing_process = KratosCFD.DistanceSmoothingProcess2D(
             self.main_model_part,
