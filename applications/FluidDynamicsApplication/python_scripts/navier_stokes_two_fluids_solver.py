@@ -444,7 +444,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
         return self._distance_modification_process
 
-    def _CreateCustomizedLinearSolver(self, linear_solver_settings):
+    def _CreateCustomizedLinearSolver(linear_solver_settings):
         # Creating a linear solver based on the input setting for processes besides the Navier-Stokes
         return linear_solver_factory.ConstructSolver(linear_solver_settings)
 
