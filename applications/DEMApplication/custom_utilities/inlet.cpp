@@ -545,10 +545,21 @@ namespace Kratos {
 
             if (number_of_particles_to_insert) {
                 //randomizing mesh
-                std::mt19937 random_generator(r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
                 int valid_elements_length = 0;
+
+                int seed;
+                if(r_modelpart.GetProcessInfo()[USE_EXTERNAL_SEED]) {
+                    std::random_device rd;
+                    seed = r_modelpart.GetProcessInfo()[SEED];
+                }
+                else {
+                    std::random_device rd;
+                    seed = rd();
+                }
+
+                std::mt19937 gen(seed);
 
                 for (int i = 0; i < mesh_size_elements; i++) {
                     if (all_elements[i]->IsNot(ACTIVE) && !OneNeighbourInjectorIsInjecting(all_elements[i])) {
@@ -564,8 +575,6 @@ namespace Kratos {
                     }
                 }
 
-
-
                 PropertiesProxy* p_fast_properties = NULL;
                 int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();
                 for (unsigned int i = 0; i < mFastProperties.size(); i++) {
@@ -575,7 +584,6 @@ namespace Kratos {
                         break;
                     }
                 }
-
 
                 const array_1d<double, 3> angular_velocity = mp[ANGULAR_VELOCITY];
                 const double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
@@ -601,6 +609,8 @@ namespace Kratos {
 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);
 
+                std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
+
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
 
@@ -610,7 +620,8 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = random_generator() % valid_elements_length;
+                    int random_pos = distrib(gen);
+
                     Element* p_injector_element = valid_elements[random_pos].get();
 
                     if (mp[CONTAINS_CLUSTERS] == false) {

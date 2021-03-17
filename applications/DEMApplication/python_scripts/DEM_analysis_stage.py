@@ -493,6 +493,9 @@ class DEMAnalysisStage(AnalysisStage):
                     t = self.time
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
+        self.spheres_model_part.ProcessInfo.SetValue(USE_EXTERNAL_SEED, self.DEM_parameters["use_external_seed"].GetBool())
+        self.spheres_model_part.ProcessInfo.SetValue(SEED, self.DEM_parameters["seed"].GetInt())
+
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
