@@ -48,6 +48,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+        self.iterations_for_convergence = 0
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.InitializeSolutionStep()
@@ -67,6 +68,8 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
+            self.iterations_for_convergence += 1
+
             if self.echo_level > 0:
                 cs_tools.cs_print_info(self._ClassName(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
