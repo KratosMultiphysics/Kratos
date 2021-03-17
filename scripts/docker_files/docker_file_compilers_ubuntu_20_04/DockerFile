@@ -15,17 +15,14 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get -y update && \
     apt-get install -y \
         build-essential \
-        ccache \
-        clang-10 \
+        clang \
         intel-hpckit \
         cmake \
-        gfortran-7 \
+        gfortran \
         git \
         libopenmpi-dev \
         openmpi-bin \
         valgrind && \
-    /usr/sbin/update-ccache-symlinks && \
-    echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc && \
     # remove some now unnecessary packages
     apt-get -y remove \
         gnupg2 \
