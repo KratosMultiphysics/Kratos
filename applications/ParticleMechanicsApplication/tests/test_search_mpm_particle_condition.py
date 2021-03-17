@@ -30,13 +30,13 @@ class TestSearchMPMParticleCondition(KratosUnittest.TestCase):
 
         self._create_background_elements(sub_background,dimension, geometry_element)
 
-        # Create element and nodes
-        sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_CONDITION, 1)
+        self._create_nodes(sub_background, dimension)
 
-        self._create_nodes(sub_mp, dimension)
-
-        self._create_conditions(sub_mp,dimension)
+        self._create_conditions(sub_background,dimension)
+        for condition in grid_model_part.Conditions:
+            condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, 1)
+            condition.SetValue(KratosParticle.MPC_IS_NEUMANN, True)
+            condition.SetValue(KratosParticle.POINT_LOAD, [1.0, 0.0, 0.0])
 
         # Set active
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
@@ -47,11 +47,9 @@ class TestSearchMPMParticleCondition(KratosUnittest.TestCase):
 
     def _create_nodes(self, model_part, dimension):
         if (dimension == 2):
-            model_part.CreateNewNode(13, 0.75, 0.75, 0.0)
+            model_part.CreateNewNode(13, 0.1, 0.1, 0.0)
         if (dimension == 3):
-            model_part.CreateNewNode(13, 0.75, 0.75, 0.1)
-
-               
+            model_part.CreateNewNode(13, 0.1, 0.1, 0.1)
 
 
     def _create_background_nodes(self, model_part, dimension, geometry_element):
@@ -133,14 +131,19 @@ class TestSearchMPMParticleCondition(KratosUnittest.TestCase):
         # Check the searched node as expected connectivity
         if not expected_connectivity_node:
             for mpc in material_point_model_part.Conditions:
-                self.assertEqual(mpc.GetNodes(), [])
+                self.assertEqual(mpc.GetNodes(), [])           
         else:
             for mpc in material_point_model_part.Conditions:
-                for i in range (len(expected_connectivity_node)):
-                    self.assertEqual(mpc.GetNode(i).Id, grid_model_part.GetNode(expected_connectivity_node[i]).Id)
-                    self.assertEqual(mpc.GetNode(i).X, grid_model_part.GetNode(expected_connectivity_node[i]).X)
-                    self.assertEqual(mpc.GetNode(i).Y, grid_model_part.GetNode(expected_connectivity_node[i]).Y)
-                    self.assertEqual(mpc.GetNode(i).Z, grid_model_part.GetNode(expected_connectivity_node[i]).Z)
+                if (mpc.GetGeometry().PointsNumber() == 0):
+                    print("Search Element: Condition was not found!")
+                    for i in range (len(expected_connectivity_node)):
+                        self.assertEqual(mpc.GetNode(i).Id, ())
+                else:
+                    for i in range (len(expected_connectivity_node)):
+                        self.assertEqual(mpc.GetNode(i).Id, grid_model_part.GetNode(expected_connectivity_node[i]).Id)
+                        self.assertEqual(mpc.GetNode(i).X, grid_model_part.GetNode(expected_connectivity_node[i]).X)
+                        self.assertEqual(mpc.GetNode(i).Y, grid_model_part.GetNode(expected_connectivity_node[i]).Y)
+                        self.assertEqual(mpc.GetNode(i).Z, grid_model_part.GetNode(expected_connectivity_node[i]).Z)
 
     def test_SearchMPMParticleConditionTriangle2D(self):
         current_model = KratosMultiphysics.Model()
@@ -190,11 +193,11 @@ class TestSearchMPMParticleCondition(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition(current_model, dimension=2, geometry_element="Quadrilateral")
 
-        new_coordinate = [-0.11111, 0.12345, 1.0]
+        new_coordinate = [-0.11111, 0.12345, 0.0]
         self._move_and_search_condition(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
-        new_coordinate = [0.6, 0.12345, 1.0]
+        new_coordinate = [0.6, 0.12345, 0.0]
         self._move_and_search_condition(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3])
 
