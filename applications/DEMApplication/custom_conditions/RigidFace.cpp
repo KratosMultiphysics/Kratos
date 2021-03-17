@@ -419,6 +419,8 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
     const double alpha = 1 - beta - gamma;
     const bool falls_inside = (alpha >= 0 && beta >= 0 && gamma >= 0
                             && alpha <= 1 && beta <= 1 && gamma <= 1);
+    
+    return falls_inside;
 }
 
 void RigidFace3D::FinalizeSolutionStep(const ProcessInfo& r_process_info)
