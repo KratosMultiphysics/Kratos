@@ -18,6 +18,8 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential \
         clang \
         intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
+        intel-oneapi-mpi \
+        intel-oneapi-python \
         cmake \
         gfortran \
         git \
