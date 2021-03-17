@@ -7,6 +7,11 @@ RUN apt-get update -y && apt-get upgrade -y && \
         gnupg2 \
         software-properties-common \
         wget && \
+    wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -P/tmp && \
+    apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
+    rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB && \
+    echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list && \
+    add-apt-repository ppa:git-core/ppa && \
     apt-get -y update && \
     apt-get install -y \
         build-essential \
