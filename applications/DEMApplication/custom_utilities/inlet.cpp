@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <random>
+#include <functional>
 
 #include "inlet.h"
 #include "create_and_destroy.h"
@@ -50,6 +51,18 @@ namespace Kratos {
         mLayerRemoved.resize(number_of_submodelparts);
         mNumberOfParticlesInjected.resize(number_of_submodelparts);
         mMassInjected.resize(number_of_submodelparts);
+
+        if(inlet_modelpart.GetProcessInfo()[USE_EXTERNAL_SEED]) {
+            std::random_device rd;
+            mSeed = inlet_modelpart.GetProcessInfo()[SEED];
+        }
+        else {
+            std::random_device rd;
+            mSeed = rd();
+        }
+
+        std::mt19937 gen(mSeed);
+        mGenerator = gen;
 
         int smp_iterator_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {
@@ -479,6 +492,8 @@ namespace Kratos {
 
         int smp_number = 0;
         int inter_smp_number = 0;
+        int valid_elements_length = 0;
+
         for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
             ModelPart& mp = *mListOfSubModelParts[i];
 
@@ -547,19 +562,6 @@ namespace Kratos {
                 //randomizing mesh
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
-                int valid_elements_length = 0;
-
-                int seed;
-                if(r_modelpart.GetProcessInfo()[USE_EXTERNAL_SEED]) {
-                    std::random_device rd;
-                    seed = r_modelpart.GetProcessInfo()[SEED];
-                }
-                else {
-                    std::random_device rd;
-                    seed = rd();
-                }
-
-                std::mt19937 gen(seed);
 
                 for (int i = 0; i < mesh_size_elements; i++) {
                     if (all_elements[i]->IsNot(ACTIVE) && !OneNeighbourInjectorIsInjecting(all_elements[i])) {
@@ -620,7 +622,7 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = distrib(gen);
+                    int random_pos = distrib(mGenerator);
 
                     Element* p_injector_element = valid_elements[random_pos].get();
 
