@@ -184,6 +184,7 @@ public:
     {
         const SizeType size_b = TSparseSpace::Size(rb);
         if (size_b != 0) { //if we are solving for something
+            KRATOS_WATCH(size_b)
 
             SizeType size_residual;
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);

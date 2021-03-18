@@ -171,7 +171,10 @@ template struct MMGMeshInfo<MMGLibrary::MMGS>;
 
 // The member variables related with the MMG library
 MMG5_pMesh mMmgMesh; /// The mesh data from MMG
-MMG5_pSol  mMmgSol;  /// The metric variable for MMG
+MMG5_pSol  mMmgMet;  /// The metric variable for MMG
+#if MMG_VERSION_GE(5,5)
+    MMG5_pSol  mMmgSol;  /// The solution variable for MMG
+#endif
 MMG5_pSol  mMmgDisp; /// The displacement variable for MMG
 
 /***********************************************************************************/
@@ -1595,7 +1598,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>
     KRATOS_TRY;
 
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D)
-    KRATOS_ERROR_IF( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfQuadrilaterals, rMMGMeshInfo.NumberOfLines) != 1 ) << "Unable to set mesh size" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -2328,6 +2331,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
 {
     KRATOS_TRY;
 
+// #if MMG_VERSION_GE(5,5)
+//     auto p_sol = mMmgSol;
+// #else
+//     auto p_sol = mMmgMet;
+// #endif
+
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgSol,MMG2D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
@@ -2340,7 +2349,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
 //     /* Debug mode ON (default value = OFF) */
 //     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgSol,MMG2D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
-    const int ier = MMG2D_mmg2dls(mMmgMesh, mMmgSol);
+    const int ier = MMG2D_mmg2dls(mMmgMesh, mMmgSol, mMmgMet);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLS: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2432,6 +2441,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
 {
     KRATOS_TRY;
 
+// #if MMG_VERSION_GE(5,5)
+//     auto p_sol = mMmgSol;
+// #else
+//     auto p_sol = mMmgMet;
+// #endif
+
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgSol,MMG3D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
@@ -2470,7 +2485,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
 //     /* Debug mode ON (default value = OFF) */
 //     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgSol,MMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
-    const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgSol);
+#if MMG_VERSION_GE(5,5)
+    const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgSol, mMmgMet);
+#else
+    const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgMet);
+#endif
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2561,6 +2580,12 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
 {
     KRATOS_TRY;
 
+// #if MMG_VERSION_GE(5,5)
+//     auto p_sol = mMmgSol;
+// #else
+//     auto p_sol = mMmgMet;
+// #endif
+
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,mMmgSol,MMGS_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
@@ -2572,7 +2597,11 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
 //     /* Debug mode ON (default value = OFF) */
 //     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,mMmgSol,MMGS_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
-    const int ier = MMGS_mmgsls(mMmgMesh, mMmgSol);
+#if MMG_VERSION_GE(5,5)
+    const int ier = MMGS_mmgsls(mMmgMesh, mMmgSol, mMmgMet);
+#else
+    const int ier = MMGS_mmgsls(mMmgMesh, mMmgMet);
+#endif
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLS: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
