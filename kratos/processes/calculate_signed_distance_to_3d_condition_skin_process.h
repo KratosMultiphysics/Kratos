@@ -1389,11 +1389,10 @@ private:
 //         for(int i = 0 ; i < leaves_size ; i++)
 //             CalculateNotEmptyLeavesDistance(leaves[i]);
 
-#pragma omp parallel for firstprivate(nodes_size)
-         for(int i = 0 ; i < nodes_size ; i++)
-         {
-             CalculateNodeDistance(*(nodes[i]));
-         }
+         block_for_each(nodes, [this](Node<3>& rNode){
+              CalculateNodeDistance(rNode);
+          });
+
          Timer::Stop("Calculate Distances2");
 
      }
