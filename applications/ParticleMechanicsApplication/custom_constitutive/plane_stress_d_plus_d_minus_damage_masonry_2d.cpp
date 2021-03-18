@@ -373,9 +373,11 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 		<< "\nStrainVector = " << StrainVector
 		<< "\nStrainVectorOld = " << mStrainOld
 		<< std::endl;
-	mStrainRateVec = (StrainVector - mStrainOld) / pinfo[DELTA_TIME];
+
+	mStrainDelta = StrainVector - mStrainOld;
+	mStrainRateVec = mStrainDelta / pinfo[DELTA_TIME];
 	mStrainRate = std::sqrt(0.5 * inner_prod(mStrainRateVec, mStrainRateVec));
-	mStrainOld = Vector(rValues.GetStrainVector()); // only needed for the strain rate calc.
+	mStrainOld = Vector(rValues.GetStrainVector()); // needed for the strain rate and strain increment calc.
 
 	this->InitializeCalculationData(props, geom, pinfo, data);
 
@@ -791,7 +793,13 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	const double young_modulus = data.YoungModulus;
 	const double yield_tension = data.YieldStressTension;
 
-
+	// This is the assumption of compression softening transferring over to tension as well
+	if (DamageParameterCompressionSoftening > DamageParameterTensionSoftening)
+	{
+		DamageParameterTensionSoftening = DamageParameterCompressionSoftening;
+		const double limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
+		TensionMaxHistoricalStrain = limit_softening_stress / data.YoungModulus; // so that unloading corresponds to the new damage
+	}
 
 	// Calc eq strain
 	const double eq_strain = eq_tensile_stress/ data.YoungModulus;
@@ -833,8 +841,6 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 			}
 		}
 	}
-
-
 
 	// Compute the damaged stress
 	if (DamageParameterTensionSoftening < 1e-6 || eq_tensile_stress < 1e-6)
@@ -1061,13 +1067,10 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	if(PredictiveStressVector.size() != VoigtSize)
 		PredictiveStressVector.resize(VoigtSize,false);
 
-	mIsCompressiveDamageEvolution = false;
-
-	ThresholdTension     = CurrentThresholdTension;
-	ThresholdCompression = CurrentThresholdCompression;
+	mIsCompressiveDamageEvolution = false; // also reflects compressive plasticity
+	const double b_minus = props.Has(PLASTICITY_FACTOR_B_MINUS) ? props[PLASTICITY_FACTOR_B_MINUS] : 0.3;
 
 	noalias(data.EffectiveStressVector) = prod(data.ElasticityMatrix, StrainVectorElastic);
-
 	if(std::abs(data.EffectiveStressVector(0)) < tolerance) {data.EffectiveStressVector(0) = 0.0;}
 	if(std::abs(data.EffectiveStressVector(1)) < tolerance) {data.EffectiveStressVector(1) = 0.0;}
 	if(std::abs(data.EffectiveStressVector(2)) < tolerance) {data.EffectiveStressVector(2) = 0.0;}
@@ -1075,54 +1078,56 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 	this->TensionCompressionSplit(data);
 	this->ConstructProjectionTensors(data);
 
-	// compute the equivalent stress measures
-	this->CalculateEquivalentStressTension(data, UniaxialStressTension);
+	// compute the equivalent compression stress measure
 	this->CalculateEquivalentStressCompression(data, UniaxialStressCompression);
 
+	// Plasticity check - faria1998 box 1
+	if (UniaxialStressCompression/ data.YoungModulus > CompressionMaxHistoricalStrain)
+	{
+		const double trial_stress_magnitude = std::sqrt(inner_prod(data.EffectiveStressVector, data.EffectiveStressVector));
+		const Vector trial_stress_normalised = data.EffectiveStressVector / trial_stress_magnitude;
+		const double macaulay_temp = MACAULAY(inner_prod(trial_stress_normalised, mStrainDelta));
+		if (macaulay_temp > 1e-9)
+		{
+			const double return_lamda = 1.0 - b_minus / trial_stress_magnitude * data.YoungModulus * macaulay_temp;
+			if (return_lamda < -1e-9 || return_lamda > (1.0+1e-9))
+			{
+				KRATOS_INFO("MPM masonry law") << "Masonry plasticity parameter return_lamda has invalid value!\n"
+					<< "return_lamda = " << return_lamda;
+				KRATOS_ERROR << "ERROR";
+			}
+
+			// Make backup of trial data in case we dont have plasticity
+			CalculationData trial_data(data);
+
+			data.EffectiveStressVector*= return_lamda; // returned stress
+			this->TensionCompressionSplit(data);
+			this->ConstructProjectionTensors(data);
+			this->CalculateEquivalentStressCompression(data, UniaxialStressCompression);
+			if (UniaxialStressCompression / data.YoungModulus > CompressionMaxHistoricalStrain)
+			{
+				// Plasticity evolves and we use the returned elastic stress currently stored in 'data'
+				mIsCompressiveDamageEvolution = true;
+			}
+			else
+			{
+				// No plasticity - restore the trial data and uniaxial compression stress
+				data = trial_data;
+				this->CalculateEquivalentStressCompression(data, UniaxialStressCompression);
+			}
+		}
+	}
+
+	// compute the equivalent tension stress measure
+	this->CalculateEquivalentStressTension(data, UniaxialStressTension);
+
 	// damage update
-	if (props[INTEGRATION_IMPLEX] != 0){ //IMPLEX Integration
-		// time factor
-		KRATOS_ERROR << "HIT IMPLEX!\n";
-		/*
-		double time_factor = 0.0;
-		if(PreviousDeltaTime > 0.0) time_factor = data.DeltaTime / PreviousDeltaTime;
-		CurrentDeltaTime = data.DeltaTime;
+	// Calculate compression damage first
+	this->CalculateDamageCompression(data, UniaxialStressCompression, DamageParameterCompression);
 
-		// explicit evaluation
-		ThresholdTension = CurrentThresholdTension + time_factor * (CurrentThresholdTension - PreviousThresholdTension);
-		ThresholdCompression = CurrentThresholdCompression + time_factor * (CurrentThresholdCompression - PreviousThresholdCompression);
+	// This model assumes the tension softening damage = max(damage_soft_tension, damage_soft_compression)
+	this->CalculateDamageTension(data, UniaxialStressTension, DamageParameterTension);
 
-		// save implicit variables for the finalize_solution_step
-		double implicit_threshold_tension 		= CurrentThresholdTension;
-		double implicit_threshold_compression 	= CurrentThresholdCompression;
-
-		if(UniaxialStressTension > implicit_threshold_tension)
-			implicit_threshold_tension = UniaxialStressTension;
-
-		if(UniaxialStressCompression > implicit_threshold_compression)
-			implicit_threshold_compression = UniaxialStressCompression;
-
-		TemporaryImplicitThresholdTension 		= implicit_threshold_tension;
-		TemporaryImplicitThresholdTCompression 	= implicit_threshold_compression;
-
-		// new damage variables (explicit)
-		//this->CalculateDamageTension(data, ThresholdTension, DamageParameterTension);
-		//this->CalculateDamageCompression(data, ThresholdCompression, UniaxialStressCompression,DamageParameterCompression);
-		*/
-	}
-	else { // IMPLICIT Integration
-
-		if(UniaxialStressTension > ThresholdTension)
-			ThresholdTension = UniaxialStressTension;
-		this->CalculateDamageTension(data, UniaxialStressTension, DamageParameterTension);
-
-		if(UniaxialStressCompression > ThresholdCompression)
-			ThresholdCompression = UniaxialStressCompression;
-		this->CalculateDamageCompression(data, UniaxialStressCompression, DamageParameterCompression);
-
-		TemporaryImplicitThresholdTension = ThresholdTension;
-		TemporaryImplicitThresholdTCompression = ThresholdCompression;
-	}
 
 	// calculation of stress tensor
 	noalias(PredictiveStressVector)  = (1.0 - DamageParameterTension)     * data.EffectiveTensionStressVector;

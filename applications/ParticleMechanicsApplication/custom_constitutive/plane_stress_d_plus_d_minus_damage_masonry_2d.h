@@ -431,6 +431,7 @@ protected:
 	Vector mStrainOld = ZeroVector(GetStrainSize());
 	Vector mStrainPlastic = ZeroVector(GetStrainSize());
 	Vector mStrainRateVec = ZeroVector(GetStrainSize());
+	Vector mStrainDelta = ZeroVector(GetStrainSize());
 	bool mIsCompressiveDamageEvolution = false;
 
 	// Tension & Compression Thresholds
