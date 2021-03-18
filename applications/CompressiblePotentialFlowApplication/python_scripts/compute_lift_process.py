@@ -150,6 +150,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         potential_integral = 0.0
         drag_integral = 0.0
+        self.trailing_edge_model_part = self.body_model_part.GetRootModelPart().GetSubModelPart("Wake3D_Wake_Auto1")
         for cond in self.trailing_edge_model_part.Conditions:
             length = cond.GetGeometry().Area()
             for node in cond.GetNodes():
