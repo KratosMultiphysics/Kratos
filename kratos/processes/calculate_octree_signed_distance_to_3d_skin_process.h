@@ -34,6 +34,7 @@
 #include "utilities/timer.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -360,11 +361,9 @@ private:
           std::vector<OctreeType::cell_type*> all_leaves;
           mOctree.GetAllLeavesVector(all_leaves);
 
-#pragma omp parallel for
-          for (std::size_t i = 0; i < all_leaves.size(); i++)
-          {
-              *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
-          }
+          block_for_each(all_leaves, [&](OctreeType::cell_type& rleaf){
+              *(rleaf.pGetDataPointer()) = ConfigurationType::AllocateData();
+          });
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
           for (std::size_t i = 0; i < all_leaves.size(); i++)
