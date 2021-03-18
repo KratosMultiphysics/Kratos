@@ -483,10 +483,8 @@ private:
           ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
-#pragma omp parallel for firstprivate(nodes_size)
-          for(int i = 0 ; i < nodes_size ; i++)
-              nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
 
+            VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
 
             std::vector<CellType*> leaves;
 
