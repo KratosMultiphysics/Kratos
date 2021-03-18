@@ -195,12 +195,20 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofList(Dofs
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    const bool active = Is(ACTIVE);
+    // bool active = false;
+    // if ((this)->IsDefined(ACTIVE))
+    //     active = (this)->Is(ACTIVE);
+
+    // KRATOS_WATCH((this)->IsDefined(ACTIVE))
 
     const TransonicPerturbationPotentialFlowElement& r_const_this = *this;
     const int wake = r_const_this.GetValue(WAKE);
 
-    if (wake != 0 && active == true)
+    // if(active == false){
+    //     KRATOS_WATCH(active)
+    // }
+
+    if (wake != 0)
     {
         ComputePotentialJump(rCurrentProcessInfo);
     }
@@ -293,6 +301,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnInte
     }
     else if (rVariable == WAKE)
     {
+        // const TransonicPerturbationPotentialFlowElement& r_this = *this;
+        // const int wake = r_this.GetValue(WAKE);
+        // if(wake != 0){
+        //     KRATOS_WATCH(wake)
+        // }
         rValues[0] = this->GetValue(WAKE);
     }
     else if (rVariable == ZERO_VELOCITY_CONDITION)
@@ -1166,26 +1179,30 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
 {
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double v_infinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
+    // const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    // const double v_infinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
 
     array_1d<double, TNumNodes> distances;
     GetWakeDistances(distances);
 
+    auto r_geometry = GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        double aux_potential =
-            GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         double potential_jump = aux_potential - potential;
+
         if (distances[i] > 0)
         {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP,
-                                      -2.0 / v_infinity_norm * (potential_jump));
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, -potential_jump);
+            r_geometry[i].UnSetLock();
         }
         else
         {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / v_infinity_norm * (potential_jump));
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(POTENTIAL_JUMP, potential_jump);
+            r_geometry[i].UnSetLock();
         }
     }
 }
