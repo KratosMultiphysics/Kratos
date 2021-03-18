@@ -110,7 +110,7 @@ class ExplicitStrategy():
 
 
         # TIME RELATED PARAMETERS
-        self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
+        self.dt = DEM_parameters["MaxTimeStep"].GetDouble()
         self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
         self.end_time = DEM_parameters["FinalTime"].GetDouble()
 
@@ -268,7 +268,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
-        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
 
         #-----os.chdir('..')   # check functionality
 
