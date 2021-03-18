@@ -468,15 +468,24 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CheckMinimumFractureEnerg
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const bool is_yield_symmetric = r_material_properties.Has(YIELD_STRESS_TENSION) ? false : true;
 
     const double young_modulus = r_material_properties[YOUNG_MODULUS];
-    const double yield = r_material_properties.Has(YIELD_STRESS_TENSION) ? r_material_properties[YIELD_STRESS_TENSION] : 
+    const double yield = (is_yield_symmetric == false) ? r_material_properties[YIELD_STRESS_TENSION] : 
         r_material_properties[YIELD_STRESS];
     const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
 
     const double hlim = 2.0 * young_modulus * fracture_energy / (std::pow(yield, 2));
     KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim) << "The Fracture Energy is to low: " <<
         rPDParameters.CharacteristicLength << std::endl;
+    
+    if (is_yield_symmetric == false) { // Check frac energy in compression
+        const double yield_compression =  r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double fracture_energy_compr = r_material_properties[FRACTURE_ENERGY_COMPRESSION];
+        const double hlim_compr = 2.0 * young_modulus * fracture_energy_compr / (std::pow(yield_compression, 2));
+        KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim_compr) << "The Fracture Energy in compression is to low: " <<
+            rPDParameters.CharacteristicLength << std::endl;
+    }
 }
 
 /***********************************************************************************/
