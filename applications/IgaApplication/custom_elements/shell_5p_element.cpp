@@ -22,7 +22,7 @@ namespace Kratos
 	///@name Initialize Functions
 	///@{
 
-	void Shell5pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+	void Shell5pElement::Initialize()
 	{
 		KRATOS_TRY
 		const GeometryType& r_geometry = GetGeometry();
@@ -586,7 +586,7 @@ namespace Kratos
 				const Matrix32d BLA = node.GetValue(DIRECTORTANGENTSPACE);
 				const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 
-				director = director + inc3d;
+				director = director + inc3d; //
 				director *= normt / norm_2(director);
 
 				node.SetValue(DIRECTOR, director);

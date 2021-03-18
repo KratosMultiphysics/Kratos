@@ -281,7 +281,7 @@ public:
     ///@name Base Class Operations
     ///@{
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
+    void Initialize() final;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) final;
 
