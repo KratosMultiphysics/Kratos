@@ -28,13 +28,13 @@ void AssignPotentialsToNormalElement(Element& rElement, const std::array<double,
 template <int NumNodes>
 void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, NumNodes>& rDistances, const std::array<double, 2*NumNodes>& rPotential)
 {
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < NumNodes; i++){
         if (rDistances(i) > 0.0)
             rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
             rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < NumNodes; i++){
         if (rDistances(i) < 0.0)
             rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
         else
