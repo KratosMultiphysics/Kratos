@@ -28,7 +28,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void NothingCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -49,7 +49,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void NothingCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -70,7 +70,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void NothingCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -92,7 +92,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void NothingCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void NothingCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 

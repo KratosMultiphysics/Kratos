@@ -66,10 +66,9 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    FICData<TDim,TNumNodes,true>::Check(rElement,rProcessInfo);
-    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
+    int out = FICData<TDim,TNumNodes,true>::Check(rElement,rProcessInfo);
 
-    return 0;
+    return out;
 }
 
 ///@}

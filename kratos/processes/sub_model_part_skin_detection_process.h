@@ -54,28 +54,9 @@ std::string mName;
 public:
 SelectIfAllNodesOnSubModelPart(const std::string& rName): mName(rName) {}
 
-void Prepare(ModelPart& rMainModelPart) const override
-{
-    ModelPart& r_model_part = rMainModelPart.GetSubModelPart(mName);
-    auto node_begin = r_model_part.NodesBegin();
-    const int num_nodes = r_model_part.NumberOfNodes();
+void Prepare(ModelPart& rMainModelPart) const override;
 
-    #pragma omp parallel for
-    for (int k = 0; k < num_nodes; k++)
-    {
-        (node_begin+k)->Set(SubModelPartSkinDetectionProcess::NODE_SELECTED);
-    }
-}
-
-bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override
-{
-    bool select = true;
-    for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node)
-    {
-        select &= i_node->Is(SubModelPartSkinDetectionProcess::NODE_SELECTED);
-    }
-    return select;
-}
+bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
 
 };
 

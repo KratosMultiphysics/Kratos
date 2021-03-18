@@ -454,9 +454,9 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
 }
 
-void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info){}
+void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& r_process_info) const {}
 
-void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info)
+void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& r_process_info)
 {
     rMassMatrix(0,0) = GetMass();
 }
@@ -1391,9 +1391,9 @@ void SphericParticle::CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_pr
     mDiscontinuumConstitutiveLaw->Initialize(r_process_info);
 }
 
-void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info){}
+void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info){}
 
-void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info)
+void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info) const
 {
     KRATOS_TRY
 
@@ -1798,16 +1798,13 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
         double mass = GetMass();
         double coeff = r_process_info[NODAL_MASS_COEFF];
 
-        if (coeff > 1.0) {
-            KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is ", coeff);
+        if(coeff > 1.0) {
+            KRATOS_ERROR << "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is "<< coeff << std::endl;
         }
-
         else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) {
             Output = 9.0E09;
         }
-
         else {
-
             if (r_process_info[VIRTUAL_MASS_OPTION]) {
                 mass = mass / (1 - coeff);
             }

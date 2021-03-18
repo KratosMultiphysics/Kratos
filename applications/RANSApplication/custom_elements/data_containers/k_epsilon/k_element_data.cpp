@@ -18,6 +18,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "element_data_utilities.h"
 #include "rans_application_variables.h"
@@ -46,7 +47,6 @@ void KElementData<TDim>::Check(
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
@@ -62,8 +62,13 @@ template <unsigned int TDim>
 void KElementData<TDim>::CalculateConstants(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+    mDensity = this->GetProperties().GetValue(DENSITY);
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim>
@@ -76,13 +81,18 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    double tke;
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
+    mKinematicViscosity /= mDensity;
+
+    double tke;
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, tke, mTurbulentKinematicViscosity);
 

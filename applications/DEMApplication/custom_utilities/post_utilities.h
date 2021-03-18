@@ -96,7 +96,7 @@ namespace Kratos {
 
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pElements.size(), this->GetElementPartition());
 
             double velocity_X = 0.0, velocity_Y = 0.0, velocity_Z = 0.0;
 
@@ -104,7 +104,7 @@ namespace Kratos {
 
             #pragma omp parallel for reduction(+: velocity_X, velocity_Y, velocity_Z, number_of_elements)
 
-            for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++) {
+            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
 
                 ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
                 ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -127,10 +127,7 @@ namespace Kratos {
                 } //elements for
 
                 for (int i = 0; i < 3; ++i) {
-
-                    if (high_point[i] < low_point[i]) {
-                        KRATOS_THROW_ERROR(std::logic_error, "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates.", "");
-                    }
+                    KRATOS_ERROR_IF(high_point[i] < low_point[i]) << "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates." << std::endl;
                 }
 
             } //parallel for
@@ -335,13 +332,13 @@ namespace Kratos {
         } //ComputeEulerAngles
 
 
-        double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& r_process_info) {
+        double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, const ProcessInfo& r_process_info) {
 
             double adimensional_value = 0.0;
 
             ElementsArrayType& pParticleElements = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
 
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pParticleElements.size(), this->GetElementPartition());
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pParticleElements.size(), this->GetElementPartition());
 
             array_1d<double,3> particle_forces;
 
@@ -351,7 +348,7 @@ namespace Kratos {
 
             //#pragma omp parallel for
             #pragma omp parallel for reduction(+:total_force)
-            for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++) {
+            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
                 ElementsArrayType::iterator it_begin = pParticleElements.ptr_begin() + this->GetElementPartition()[k];
                 ElementsArrayType::iterator it_end   = pParticleElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -382,13 +379,13 @@ namespace Kratos {
 
             ElementsArrayType& pContactElements        = rContactModelPart.GetCommunicator().LocalMesh().Elements();
 
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pContactElements.size(), this->GetElementPartition());
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pContactElements.size(), this->GetElementPartition());
 
             array_1d<double,3> contact_forces;
             double total_elastic_force = 0.0;
 
             #pragma omp parallel for reduction(+:total_elastic_force)
-            for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++) {
+            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
                 ElementsArrayType::iterator it_begin = pContactElements.ptr_begin() + this->GetElementPartition()[k];
                 ElementsArrayType::iterator it_end   = pContactElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -407,13 +404,11 @@ namespace Kratos {
                 }
             }
 
-            if (total_elastic_force != 0.0)
-            {
+            if (total_elastic_force != 0.0) {
                 adimensional_value =  total_force/total_elastic_force;
             }
-            else
-            {
-                KRATOS_THROW_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
+            else {
+                KRATOS_ERROR << "There are no elastic forces= " << total_elastic_force << std::endl;
             }
 
             return adimensional_value;

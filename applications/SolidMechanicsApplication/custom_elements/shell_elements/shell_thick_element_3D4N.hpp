@@ -301,11 +301,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
   int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValuesVector(Vector& values, int Step = 0) override;
+  void GetValuesVector(Vector& values, int Step = 0) const override;
 
-  void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
+  void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
 
-  void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
+  void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
   void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 

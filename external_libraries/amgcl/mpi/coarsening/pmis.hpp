@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,13 @@ THE SOFTWARE.
 
 #include <tuple>
 #include <memory>
+#include <numeric>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/mpi/util.hpp>
 #include <amgcl/mpi/distributed_matrix.hpp>
+#include <amgcl/coarsening/tentative_prolongation.hpp>
 
 namespace amgcl {
 namespace mpi {
@@ -55,6 +57,9 @@ struct pmis {
 
 
     struct params {
+        /// Near nullspace parameters.
+        amgcl::coarsening::nullspace_params nullspace;
+
         // Strong connectivity threshold
         scalar_type eps_strong;
 
@@ -65,23 +70,25 @@ struct pmis {
 
 #ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
-            : AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong),
+            : AMGCL_PARAMS_IMPORT_CHILD(p, nullspace),
+              AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong),
               AMGCL_PARAMS_IMPORT_VALUE(p, block_size)
         {
-            check_params(p, {"eps_strong", "block_size"});
+            check_params(p, {"nullspace", "eps_strong", "block_size"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
+            AMGCL_PARAMS_EXPORT_CHILD(p, path, nullspace);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, eps_strong);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, block_size);
         }
 #endif
-    };
+    } &prm;
 
     std::shared_ptr< distributed_matrix<bool_backend> > conn;
     std::shared_ptr< matrix > p_tent;
 
-    pmis(const matrix &A, const params &prm = params()) {
+    pmis(const matrix &A, params &prm) : prm(prm) {
         ptrdiff_t n = A.loc_rows();
         std::vector<ptrdiff_t> state(n);
         std::vector<int>       owner(n);
@@ -704,43 +711,298 @@ struct pmis {
     tentative_prolongation(communicator comm, ptrdiff_t n, ptrdiff_t naggr,
             std::vector<ptrdiff_t> &state, std::vector<int> &owner)
     {
-        AMGCL_TIC("tentative prolongation");
-        // Form tentative prolongation operator.
         auto p_loc = std::make_shared<build_matrix>();
         auto p_rem = std::make_shared<build_matrix>();
         build_matrix &P_loc = *p_loc;
         build_matrix &P_rem = *p_rem;
 
-        std::vector<ptrdiff_t> dom = comm.exclusive_sum(naggr);
-        P_loc.set_size(n, naggr, true);
-        P_rem.set_size(n, 0, true);
+        AMGCL_TIC("tentative prolongation");
 
-#pragma omp parallel for
-        for(ptrdiff_t i = 0; i < n; ++i) {
-            if (state[i] == pmis::deleted) continue;
+        if (int null_cols = prm.nullspace.cols) {
+            ptrdiff_t nba = naggr / prm.block_size;
 
-            if (owner[i] == comm.rank) {
-                ++P_loc.ptr[i+1];
-            } else {
-                ++P_rem.ptr[i+1];
+            std::vector<ptrdiff_t> fdom = comm.exclusive_sum(n);
+            std::vector<ptrdiff_t> cdom = comm.exclusive_sum(naggr);
+
+            std::vector<int> scounts(comm.size, 0);
+            std::vector<int> rcounts(comm.size);
+
+            // Precompute the shape of the prolongation operator.
+            // Each row contains exactly nullspace.cols non-zero entries.
+            // Rows that do not belong to any aggregate are empty.
+            P_loc.set_size(n, null_cols * nba, true);
+            P_rem.set_size(n, 0, true);
+
+            // Also count the number of local DOFs in local aggregates
+            ptrdiff_t loc_dofs = 0;
+
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                if (state[i] == pmis::deleted) continue;
+
+                if (owner[i] == comm.rank) {
+                    P_loc.ptr[i+1] = null_cols;
+                    ++loc_dofs;
+                } else {
+                    P_rem.ptr[i+1] = null_cols;
+                    ++scounts[owner[i]];
+                }
             }
-        }
 
-        P_loc.set_nonzeros(P_loc.scan_row_sizes());
-        P_rem.set_nonzeros(P_rem.scan_row_sizes());
+            // Setup the exchange
+            MPI_Request req;
+            MPI_Ialltoall(
+                    scounts.data(), 1, MPI_INT,
+                    rcounts.data(), 1, MPI_INT,
+                    comm, &req);
+
+            P_loc.set_nonzeros(P_loc.scan_row_sizes());
+            P_rem.set_nonzeros(P_rem.scan_row_sizes());
+
+            MPI_Wait(&req, MPI_STATUS_IGNORE);
+
+            int snbr = 0;
+            int rnbr = 0;
+            for(int i = 0; i < comm.size; ++i) {
+                if (scounts[i]) ++snbr;
+                if (rcounts[i]) ++rnbr;
+            }
+
+            std::vector<int> send_nbr; send_nbr.reserve(snbr);
+            std::vector<int> recv_nbr; recv_nbr.reserve(rnbr);
+            std::vector<int> send_ptr; send_ptr.reserve(snbr + 1); send_ptr.push_back(0);
+            std::vector<int> recv_ptr; recv_ptr.reserve(rnbr + 1); recv_ptr.push_back(0);
+
+            for(int i = 0; i < comm.size; ++i) {
+                if (scounts[i]) {
+                    send_nbr.push_back(i);
+                    send_ptr.push_back(send_ptr.back() + scounts[i]);
+                }
+                if (rcounts[i]) {
+                    recv_nbr.push_back(i);
+                    recv_ptr.push_back(recv_ptr.back() + rcounts[i]);
+                }
+            }
+
+            int send_dofs = send_ptr.back();
+            int recv_dofs = recv_ptr.back();
+
+            std::vector<ptrdiff_t> send_agg(send_dofs);             // IDs of the aggregates we are sending
+            std::vector<ptrdiff_t> send_dof(send_dofs);             // DOFs included in the aggregates
+            std::vector<double>    send_row(send_dofs * null_cols); // Rows of the nullspace matrix corresponding to the DOFs
+
+            std::vector<ptrdiff_t> recv_agg(recv_dofs);             // IDs of the aggregates we are receiving
+            std::vector<ptrdiff_t> recv_dof(recv_dofs);             // DOFs included in the aggregates
+            std::vector<double>    recv_row(recv_dofs * null_cols); // Rows of the nullspace matrix corresponding to the DOFs
+
+            // Prepare the data to send
+            std::vector<ptrdiff_t> send_rank_ptr(comm.size + 1); send_rank_ptr[0] = 0;
+            std::partial_sum(scounts.begin(), scounts.end(), send_rank_ptr.begin() + 1);
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                auto s = state[i];
+                auto o = owner[i];
+
+                if (s == pmis::deleted) continue;
+                if (o == comm.rank) continue;
+
+                auto head = send_rank_ptr[o]++;
+
+                send_agg[head] = s;
+                send_dof[head] = i + fdom[comm.rank];
+                std::copy_n(&prm.nullspace.B[i * null_cols], null_cols, &send_row[head * null_cols]);
+            }
+
+            // Exchange the data
+            std::vector<MPI_Request> send_req(3 * snbr);
+            std::vector<MPI_Request> recv_req(3 * rnbr);
+
+            for(int i = 0; i < rnbr; ++i) {
+                int n = recv_nbr[i];
+                int p = recv_ptr[i];
+                int w = recv_ptr[i + 1] - p;
+
+                MPI_Request *req = &recv_req[3 * i];
+
+                MPI_Irecv(&recv_agg[p], w, datatype<ptrdiff_t>(), n, tag_exc_agg, comm, &req[0]);
+                MPI_Irecv(&recv_dof[p], w, datatype<ptrdiff_t>(), n, tag_exc_dof, comm, &req[1]);
+                MPI_Irecv(&recv_row[null_cols * p], null_cols * w, datatype<double>(), n, tag_exc_row, comm, &req[2]);
+            }
+
+            for(int i = 0; i < snbr; ++i) {
+                int n = send_nbr[i];
+                int p = send_ptr[i];
+                int w = send_ptr[i + 1] - p;
+
+                MPI_Request *req = &send_req[3 * i];
+
+                MPI_Isend(&send_agg[p], w, datatype<ptrdiff_t>(), n, tag_exc_agg, comm, &req[0]);
+                MPI_Isend(&send_dof[p], w, datatype<ptrdiff_t>(), n, tag_exc_dof, comm, &req[1]);
+                MPI_Isend(&send_row[null_cols * p], null_cols * w, datatype<double>(), n, tag_exc_row, comm, &req[2]);
+            }
+
+            AMGCL_TIC("MPI Wait");
+            MPI_Waitall(recv_req.size(), recv_req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(send_req.size(), send_req.data(), MPI_STATUSES_IGNORE);
+            AMGCL_TOC("MPI Wait");
+
+            // Sort the fine-level points by the aggregate number.
+            // The order vector contains tuples of (aggr, dof, src, dst),
+            // where src points to a row in B, and dst points to a row in P
+            std::vector<std::tuple<ptrdiff_t, ptrdiff_t, double*, value_type*>> order;
+            order.reserve(loc_dofs + recv_dofs);
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                auto s = state[i];
+                auto o = owner[i];
+
+                if (s == pmis::deleted) continue;
+                if (o != comm.rank) continue;
+
+                order.emplace_back(s / prm.block_size, i + fdom[comm.rank],
+                        &prm.nullspace.B[i * null_cols], &P_loc.val[P_loc.ptr[i]]);
+            }
+            for(ptrdiff_t i = 0; i < recv_dofs; ++i) {
+                order.emplace_back(recv_agg[i] / prm.block_size, recv_dof[i],
+                        &recv_row[i * null_cols], nullptr);
+            }
+            std::sort(order.begin(), order.end());
+
+            std::vector<ptrdiff_t> aggr_ptr(nba + 1, 0);
+            for(size_t i = 0; i < order.size(); ++i)
+                ++aggr_ptr[std::get<0>(order[i])+1];
+            std::partial_sum(aggr_ptr.begin(), aggr_ptr.end(), aggr_ptr.begin());
+
+            // Compute the tentative prolongation operator and null-space vectors
+            // for the coarser level.
+            std::vector<double> Bnew;
+            Bnew.resize(nba * null_cols * null_cols);
+
+#pragma omp parallel
+            {
+                amgcl::detail::QR<double> qr;
+                std::vector<double> Bpart;
+
+#pragma omp for
+                for(ptrdiff_t i = 0; i < nba; ++i) {
+                    auto aggr_beg = aggr_ptr[i];
+                    auto aggr_end = aggr_ptr[i+1];
+                    auto d = aggr_end - aggr_beg;
+
+                    Bpart.resize(d * null_cols);
+
+                    for(ptrdiff_t j = aggr_beg, r = 0; j < aggr_end; ++j, ++r) {
+                        auto src = std::get<2>(order[j]);
+                        for(int c = 0; c < null_cols; ++c)
+                            Bpart[r + d * c] = src[c];
+                    }
+
+                    qr.factorize(d, null_cols, &Bpart[0], amgcl::detail::col_major);
+
+                    for(ptrdiff_t r = 0, k = i * null_cols * null_cols; r < null_cols; ++r)
+                        for(int c = 0; c < null_cols; ++c, ++k)
+                            Bnew[k] = qr.R(r,c);
+
+                    for(ptrdiff_t j = aggr_beg, r = 0; j < aggr_end; ++j, ++r) {
+                        auto src = std::get<2>(order[j]);
+                        auto dst = std::get<3>(order[j]);
+
+                        if (dst) {
+                            // TODO: this is just a workaround to make non-scalar value
+                            // types compile. Most probably this won't actually work.
+                            for(int c = 0; c < null_cols; ++c)
+                                dst[c] = qr.Q(r,c) * math::identity<value_type>();
+                        } else {
+                            for(int c = 0; c < null_cols; ++c)
+                                src[c] = qr.Q(r,c);
+                        }
+                    }
+                }
+            }
+
+            // Exchange the computed rows of the prolongation operator with the
+            // owners.
+            for(int i = 0; i < snbr; ++i) {
+                int n = send_nbr[i];
+                int p = send_ptr[i];
+                int w = send_ptr[i + 1] - p;
+                MPI_Irecv(&send_row[null_cols * p], null_cols * w, datatype<double>(), n, tag_exc_row, comm, &send_req[i]);
+            }
+
+            for(int i = 0; i < rnbr; ++i) {
+                int n = recv_nbr[i];
+                int p = recv_ptr[i];
+                int w = recv_ptr[i + 1] - p;
+                MPI_Isend(&recv_row[null_cols * p], null_cols * w, datatype<double>(), n, tag_exc_row, comm, &recv_req[i]);
+            }
+
+            // Fill column numbers
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                ptrdiff_t s = state[i];
+                if (s == pmis::deleted) continue;
+
+                int d = owner[i];
+                if (d == comm.rank) {
+                    auto col = &P_loc.col[P_loc.ptr[i]];
+                    for (int j = 0; j < null_cols; ++j) {
+                        col[j] = null_cols * s / prm.block_size + j;
+                    }
+                } else {
+                    auto col = &P_rem.col[P_rem.ptr[i]];
+                    for (int j = 0; j < null_cols; ++j) {
+                        col[j] = null_cols * (s + cdom[d]) / prm.block_size + j;
+                    }
+                }
+            }
+
+            AMGCL_TIC("MPI Wait");
+            MPI_Waitall(snbr, send_req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(rnbr, recv_req.data(), MPI_STATUSES_IGNORE);
+            AMGCL_TOC("MPI Wait");
+
+            // Use the P rows computed by the neighbors
+            for(ptrdiff_t k = 0; k < send_dofs; ++k) {
+                auto i = send_dof[k] - fdom[comm.rank];
+                auto src = &send_row[k * null_cols];
+                auto dst = &P_rem.val[P_rem.ptr[i]];
+
+                for(ptrdiff_t j = 0; j < null_cols; ++j) {
+                    dst[j] = src[j] * math::identity<value_type>();
+                }
+            }
+
+            std::swap(prm.nullspace.B, Bnew);
+        } else {
+            std::vector<ptrdiff_t> dom = comm.exclusive_sum(naggr);
+
+            P_loc.set_size(n, naggr, true);
+            P_rem.set_size(n, 0, true);
 
 #pragma omp parallel for
-        for(ptrdiff_t i = 0; i < n; ++i) {
-            ptrdiff_t s = state[i];
-            if (s == pmis::deleted) continue;
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                if (state[i] == pmis::deleted) continue;
 
-            int d = owner[i];
-            if (d == comm.rank) {
-                P_loc.col[P_loc.ptr[i]] = s;
-                P_loc.val[P_loc.ptr[i]] = math::identity<value_type>();
-            } else {
-                P_rem.col[P_rem.ptr[i]] = s + dom[d];
-                P_rem.val[P_rem.ptr[i]] = math::identity<value_type>();
+                if (owner[i] == comm.rank) {
+                    ++P_loc.ptr[i+1];
+                } else {
+                    ++P_rem.ptr[i+1];
+                }
+            }
+
+            P_loc.set_nonzeros(P_loc.scan_row_sizes());
+            P_rem.set_nonzeros(P_rem.scan_row_sizes());
+
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                ptrdiff_t s = state[i];
+                if (s == pmis::deleted) continue;
+
+                int d = owner[i];
+                if (d == comm.rank) {
+                    P_loc.col[P_loc.ptr[i]] = s;
+                    P_loc.val[P_loc.ptr[i]] = math::identity<value_type>();
+                } else {
+                    P_rem.col[P_rem.ptr[i]] = s + dom[d];
+                    P_rem.val[P_rem.ptr[i]] = math::identity<value_type>();
+                }
             }
         }
         AMGCL_TOC("tentative prolongation");
@@ -846,6 +1108,10 @@ struct pmis {
     private:
         static const int undone = -2;
         static const int deleted = -1;
+
+        static const int tag_exc_agg = 4011;
+        static const int tag_exc_dof = 4012;
+        static const int tag_exc_row = 4013;
 };
 
 } // namespace coarsening

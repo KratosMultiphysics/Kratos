@@ -175,9 +175,11 @@ class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
 class MembraneHemisphereTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_hemisphere_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
 
@@ -199,18 +201,22 @@ class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/dynamic_3D2NTruss_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
 
 class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
 
@@ -229,39 +235,61 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class BigCubeSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class BigCubeSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_DP_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class AnisotropyTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/AnisotropyCube/anisotropy_test"
 
+class InitialStateElasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/InitialStateElasticity/initial_state_test"
+    
+
+class InitialStateInelasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/InitialStateInelasticity/initial_state2_test"
+
+class InitialStateInelasticity2Test(StructuralMechanicsTestFactory):
+    file_name = "cl_test/InitialStateInelasticity/initial_state3_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
 

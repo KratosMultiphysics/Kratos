@@ -16,6 +16,7 @@
 
 // Project includes
 #include "processes/skin_detection_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -162,12 +163,8 @@ ModelPart& SkinDetectionProcess<TDim>::SetUpAuxiliaryModelPart()
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
     } else {
         auto& r_conditions_array = mrModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions();
-        const SizeType number_of_conditions = r_conditions_array.size();
-        const auto it_cond_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(number_of_conditions); ++i)
-            (it_cond_begin + i)->Set(TO_ERASE, true);
+        VariableUtils().SetFlag(TO_ERASE, true, r_conditions_array);
 
         mrModelPart.GetSubModelPart(name_auxiliar_model_part).RemoveConditionsFromAllLevels(TO_ERASE);
 
@@ -218,13 +215,8 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
 
     // Now we set the flag on the nodes. The list of nodes of the auxiliar model part
     auto& r_nodes_array = rAuxiliaryModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        it_node->Set(INTERFACE, true);
-    }
+    VariableUtils().SetFlag(INTERFACE, true, r_nodes_array);
 }
 
 /***********************************************************************************/

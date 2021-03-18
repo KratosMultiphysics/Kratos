@@ -19,8 +19,10 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
+#include "includes/properties.h"
 
 // Application includes
 
@@ -34,37 +36,33 @@ class ConvectionDiffusionReactionElementData
 public:
     using GeometryType = Geometry<Node<3>>;
 
-    ConvectionDiffusionReactionElementData(const GeometryType& rGeometry)
-    : mrGeometry(rGeometry)
+    ConvectionDiffusionReactionElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+        : mrGeometry(rGeometry),
+          mrProperties(rProperties),
+          mrConstitutiveLaw(*(rGeometry.GetValue(CONSTITUTIVE_LAW)))
+    {
+        mConstitutiveLawParameters =
+            ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
+    }
+
+    virtual void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) = 0;
-
-    virtual void CalculateGaussPointData(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const int Step) = 0;
-
-    virtual array_1d<double, 3> CalculateEffectiveVelocity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const = 0;
-
-    virtual double CalculateEffectiveKinematicViscosity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const = 0;
-
-    virtual double CalculateReactionTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const = 0;
-
-    virtual double CalculateSourceTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const = 0;
-
-    virtual void UpdateElementDataValueContainer(Element& rElement) const
+    ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
     {
+        return mConstitutiveLawParameters;
+    }
+
+    ConstitutiveLaw& GetConstitutiveLaw()
+    {
+        return mrConstitutiveLaw;
     }
 
     const GeometryType& GetGeometry() const
@@ -72,8 +70,16 @@ public:
         return mrGeometry;
     }
 
+    const Properties& GetProperties() const
+    {
+        return mrProperties;
+    }
+
 private:
     const GeometryType& mrGeometry;
+    const Properties& mrProperties;
+    ConstitutiveLaw& mrConstitutiveLaw;
+    ConstitutiveLaw::Parameters mConstitutiveLawParameters;
 };
 
 ///@}

@@ -91,6 +91,8 @@ class FEMDEMCouplingUtilities
 
     void ComputeAndTranferAveragedContactTotalForces(ModelPart &rStructureModelPart, const double FEMtimeStep);
 
+    bool IsGenerateDEMRequired(ModelPart &rModelPart);
+
     void ResetContactImpulses(ModelPart &rStructureModelPart);
 
     void RemoveDuplicates(
@@ -101,7 +103,6 @@ class FEMDEMCouplingUtilities
         ModelPart& rDEMModelPart);
 
     int GetNumberOfNodes(ModelPart &rModelPart);
-    
 
 
 }; // class FEMDEMCouplingUtilities

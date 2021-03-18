@@ -17,6 +17,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_spheric_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ice_continuum_particle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/bonding_spheric_continuum_particle.cpp
@@ -53,6 +54,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_2D_dev_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_fabric_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_beam_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_soft_torque_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_CL.cpp
@@ -119,6 +121,11 @@ pybind11_add_module(KratosDEMApplication MODULE THIN_LTO ${KRATOS_DEM_APPLICATIO
 target_link_libraries(KratosDEMApplication PUBLIC KratosDEMCore)
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosDEMCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosDEMApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
@@ -133,12 +140,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosDEMCore)
-  cotire(KratosDEMApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py KratosMultiphysics/DEMApplication/__init__.py )

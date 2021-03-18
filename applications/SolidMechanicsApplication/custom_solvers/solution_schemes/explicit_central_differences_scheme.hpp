@@ -383,14 +383,6 @@ namespace Kratos
       int ErrorCode = 0;
       ErrorCode  = BaseType::Check(rModelPart);
 
-      // Check that all required variables have been registered
-      KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-      KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-      KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-      KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS);
-      KRATOS_CHECK_VARIABLE_KEY(MIDDLE_VELOCITY);
-      KRATOS_CHECK_VARIABLE_KEY(FORCE_RESIDUAL);
-
       // Check that variables are correctly allocated
       for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)
         {
