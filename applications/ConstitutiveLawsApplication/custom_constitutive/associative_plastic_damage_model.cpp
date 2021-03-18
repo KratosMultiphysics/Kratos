@@ -381,6 +381,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     PlasticDamageParameters &rPDParameters
     )
 {
+    KRATOS_TRY;
     const auto& r_mat_properties = rValues.GetMaterialProperties();
     BoundedMatrixType constitutive_matrix_increment;
     CalculateConstitutiveMatrix(rValues, rPDParameters);
@@ -427,7 +428,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     } else {
         rPDParameters.StressVector = 1e-4 * rPDParameters.StressVector;
     }
-
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -471,13 +472,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CheckMinimumFractureEnerg
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     const double young_modulus = r_material_properties[YOUNG_MODULUS];
-    const double yield = r_material_properties[YIELD_STRESS];
+    const double yield = r_material_properties.Has(YIELD_STRESS_TENSION) ? r_material_properties[YIELD_STRESS_TENSION] : 
+        r_material_properties[YIELD_STRESS];
     const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
 
     const double hlim = 2.0 * young_modulus * fracture_energy / (std::pow(yield, 2));
     KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim) << "The Fracture Energy is to low: " <<
         rPDParameters.CharacteristicLength << std::endl;
-
 }
 
 /***********************************************************************************/
