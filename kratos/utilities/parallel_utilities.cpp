@@ -13,6 +13,7 @@
 //
 
 // System includes
+#include <algorithm>
 #include <cstdlib> // for std::getenv
 
 // External includes
@@ -28,7 +29,13 @@ namespace Kratos
 
 int ParallelUtilities::GetNumThreads()
 {
+#ifdef KRATOS_SMP_OPENMP
+    return omp_get_max_threads();
+#elif defined(KRATOS_SMP_CXX11)
     return GetNumberOfThreads();
+#else
+    return 1;
+#endif
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
@@ -56,7 +63,7 @@ int ParallelUtilities::GetNumProcs()
 
 #elif defined(KRATOS_SMP_CXX11)
     // NOTE: std::thread::hardware_concurrency() can return 0 in some systems!
-    unsigned num_procs = std::thread::hardware_concurrency();
+    int num_procs = std::thread::hardware_concurrency();
 
     KRATOS_WARNING_IF("ParallelUtilities", num_procs == 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
 

@@ -17,6 +17,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "custom_elements/base_solid_element.h"
@@ -459,8 +460,7 @@ void BaseSolidElement::AddExplicitContribution(
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const IndexType index = i * dimension;
 
-            #pragma omp atomic
-            r_geom[i].GetValue(NODAL_MASS) += element_mass_vector[index];
+            AtomicAdd(r_geom[i].GetValue(NODAL_MASS), element_mass_vector[index]);
         }
     }
 
@@ -507,8 +507,7 @@ void BaseSolidElement::AddExplicitContribution(
             array_1d<double, 3>& r_force_residual = r_geom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
             for (IndexType j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     }
@@ -600,7 +599,7 @@ void BaseSolidElement::CalculateMassMatrix(
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Checking if computing lumped mass matrix
-    const bool compute_lumped_mass_matrix =  r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo);
 
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
@@ -621,7 +620,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::DetMat(J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
@@ -1211,7 +1210,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<bool>& rVariable,
-    std::vector<bool>& rValues,
+    const std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1229,7 +1228,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<int>& rVariable,
-    std::vector<int>& rValues,
+    const std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1247,7 +1246,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1265,7 +1264,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1283,7 +1282,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1300,7 +1299,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1317,8 +1316,8 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
-    const Variable<array_1d<double, 6 > >& rVariable,
-    std::vector<array_1d<double, 6 > > rValues,
+    const Variable<array_1d<double, 6>>& rVariable,
+    const std::vector<array_1d<double, 6>>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1336,7 +1335,7 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1615,8 +1614,9 @@ void BaseSolidElement::CalculateAndAddKg(
     KRATOS_TRY
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( StressVector );
-    Matrix reduced_Kg = prod( DN_DX, IntegrationWeight * Matrix( prod( stress_tensor, trans( DN_DX ) ) ) ); //to be optimized
+    const Matrix stress_tensor_x_weigth = IntegrationWeight * MathUtils<double>::StressVectorToTensor( StressVector );
+    Matrix reduced_Kg(DN_DX.size1(), DN_DX.size1());
+    MathUtils<double>::BDBtProductOperation(reduced_Kg, stress_tensor_x_weigth, DN_DX);
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
 
     KRATOS_CATCH( "" )

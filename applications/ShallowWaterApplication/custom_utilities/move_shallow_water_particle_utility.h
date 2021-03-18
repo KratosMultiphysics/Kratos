@@ -869,7 +869,7 @@ public:
         const int max_results = 1000;
 
         //tools for the paralelization
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+        unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
         std::vector<unsigned int> elem_partition;
         int number_of_rows = mrModelPart.Elements().size();
         elem_partition.resize(number_of_threads + 1);
@@ -981,7 +981,7 @@ public:
         const int offset = mOffset;
 
         //TOOLS FOR THE PARALELIZATION
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+        unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
         std::vector<unsigned int> elem_partition;
         int number_of_rows=mrModelPart.Elements().size();
         //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
