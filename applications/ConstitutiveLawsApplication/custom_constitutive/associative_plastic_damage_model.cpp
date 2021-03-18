@@ -423,8 +423,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                 iteration++;
             }
         }
-        KRATOS_WARNING_IF("Plastic Damage Backward Euler",iteration > max_iter) <<
-            "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        KRATOS_ERROR_IF(iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     } else {
         rPDParameters.StressVector = 1e-4 * rPDParameters.StressVector;
     }
