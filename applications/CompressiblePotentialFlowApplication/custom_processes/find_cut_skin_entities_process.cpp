@@ -66,15 +66,15 @@ FindCutSkinEntitiesProcess::FindCutSkinEntitiesProcess(
 
         if (n_neg > 0 && n_pos > 0) {
             node_index++;
-            section_conditions_ordered_ids.push_back(r_cond.Id());
-            // auto p_node = rSectionModelPart.CreateNewNode(node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
-            // p_node->SetValue(PRESSURE_COEFFICIENT, r_cond.GetValue(PRESSURE_COEFFICIENT));
+            // section_conditions_ordered_ids.push_back(r_cond.Id());
+            auto p_node = rSectionModelPart.CreateNewNode(node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
+            p_node->SetValue(PRESSURE_COEFFICIENT, r_cond.GetValue(PRESSURE_COEFFICIENT));
         }
     }
 
-    std::sort(section_conditions_ordered_ids.begin(),
-              section_conditions_ordered_ids.end());
-    mrSectionModelPart.AddConditions(section_conditions_ordered_ids);
+    // std::sort(section_conditions_ordered_ids.begin(),
+    //           section_conditions_ordered_ids.end());
+    // mrSectionModelPart.AddConditions(section_conditions_ordered_ids);
 
 
 
