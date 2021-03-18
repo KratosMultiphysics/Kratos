@@ -151,6 +151,7 @@ Windows
 ```Shell
 ./path_to_kratos/scripts/configure.bat
 ```
+Note: after installing Visual Studio, in some Windows systems the console does not have direct access to the Visual Studio Compiler. In order to make sure the compiler is available, try typing 'cl'. Use this console to compile Kratos if the compiler responds. In case of error, instead of using the standard Windows console, open the Native Tools Command Prompt console and launch the compilation from there.
 
 The example scripts for every system are shown next.
 
