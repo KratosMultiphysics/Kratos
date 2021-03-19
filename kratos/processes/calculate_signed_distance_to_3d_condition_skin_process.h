@@ -1390,9 +1390,9 @@ private:
 //         for(int i = 0 ; i < leaves_size ; i++)
 //             CalculateNotEmptyLeavesDistance(leaves[i]);
 
-         /* block_for_each(nodes, [&](Node<3>& rNode){
-              CalculateNodeDistance(*rNode);
-          }); */
+        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
+            CalculateNodeDistance(*(nodes[Index]));
+        });
 
          Timer::Stop("Calculate Distances2");
 
