@@ -75,7 +75,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionElement
-    KRATOS_CLASS_POINTER_DEFINITION(ConvectionDiffusionReactionElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvectionDiffusionReactionElement);
 
     ///@}
     ///@name Life Cycle
@@ -323,6 +323,9 @@ public:
     ///@}
 
 protected:
+    ///@name Protected operations
+    ///@{
+
     /**
      * @brief Get the Values Array
      *
@@ -370,8 +373,6 @@ protected:
         const array_1d<double, 3>& rVector,
         const Matrix& rShapeDerivatives) const;
 
-    ///@name Protected Operations
-    ///@{
     /**
      * @brief Calculates shape function data for this element
      *

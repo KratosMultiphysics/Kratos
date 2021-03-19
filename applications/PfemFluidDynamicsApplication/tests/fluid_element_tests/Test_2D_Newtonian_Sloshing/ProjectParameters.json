@@ -55,6 +55,7 @@
             "parts_list" : ["Parts_Parts_Auto2"]
         }],
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "constitutive_laws_list" : ["Newtonian2DLaw","None"],
         "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"]
     },
     "problem_process_list"     : [{
@@ -150,6 +151,8 @@
                 "check_variables"      : ["VELOCITY_X","VELOCITY_Y"],
                 "input_file_name"      : "fluid_element_tests/Test_2D_Newtonian_Sloshing/Test_2D_Newtonian_Sloshing_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
+            "tolerance"            : 1e-8,
+            "relative_tolerance"   : 1e-9,
                 "time_frequency"       : 0.002
             }
         }]

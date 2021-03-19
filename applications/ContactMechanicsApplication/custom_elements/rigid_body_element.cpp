@@ -149,7 +149,7 @@ void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void RigidBodyElement::GetValuesVector(Vector& rValues, int Step)
+void RigidBodyElement::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -177,7 +177,7 @@ void RigidBodyElement::GetValuesVector(Vector& rValues, int Step)
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step) const 
 {
     KRATOS_TRY
 
@@ -205,7 +205,7 @@ void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -1406,7 +1406,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
 //************************************************************************************
 //************************************************************************************
 
-RigidBodyElement::SizeType RigidBodyElement::GetDofsSize()
+RigidBodyElement::SizeType RigidBodyElement::GetDofsSize() const
 {
   KRATOS_TRY
 

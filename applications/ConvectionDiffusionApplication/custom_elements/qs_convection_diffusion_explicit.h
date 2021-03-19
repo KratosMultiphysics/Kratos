@@ -140,6 +140,11 @@ public:
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
     void Calculate(
         const Variable<double>& rVariable,
         double& Output,

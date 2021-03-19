@@ -175,22 +175,16 @@ public:
         DerivedBaseType::mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        const auto it_node_begin = rModelPart.Nodes().begin();
-
         array_1d<double, 3 > delta_displacement;
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
-        #pragma omp parallel for private(delta_displacement)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+            noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-            noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-
-            noalias(r_current_velocity) = (DerivedBaseType::mBossak.c1 * delta_displacement - DerivedBaseType::mBossak.c4 * r_previous_velocity);
-        }
+            noalias(r_current_velocity) = (this->mBossak.c1 * rDeltaDisplacementTLS - this->mBossak.c4 * r_previous_velocity);
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -222,12 +216,10 @@ public:
 
         // Updating time derivatives (nodally for efficiency)
         const auto it_node_begin = rModelPart.Nodes().begin();
-        const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
 
         // Auxiliar variables
         const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3 > delta_displacement = zero_array;
-        bool predicted_x, predicted_y, predicted_z;
 
         // Getting position
         const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
@@ -237,58 +229,56 @@ public:
         const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
         const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
 
-        #pragma omp parallel for private(delta_displacement, predicted_x, predicted_y, predicted_z)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
-            predicted_x = false;
-            predicted_y = false;
-            predicted_z = false;
+            bool predicted_x = false;
+            bool predicted_y = false;
+            bool predicted_z = false;
 
             //Predicting: r_current_displacement = r_previous_displacement + r_previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3>& r_previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& r_previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& r_current_acceleration        = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& r_current_velocity            = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_displacement        = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3>& r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_current_acceleration        = rNode.FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& r_current_velocity            = rNode.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& r_current_displacement        = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             if (velpos_x > -1) {
-                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed()) {
-                    delta_displacement[0] = (r_current_velocity[0] + DerivedBaseType::mBossak.c4 * r_previous_velocity[0])/DerivedBaseType::mBossak.c1;
-                    r_current_displacement[0] =  r_previous_displacement[0] + delta_displacement[0];
+                if (rNode.GetDof(VELOCITY_X, velpos_x).IsFixed()) {
+                    rDeltaDisplacementTLS[0] = (r_current_velocity[0] + this->mBossak.c4 * r_previous_velocity[0])/this->mBossak.c1;
+                    r_current_displacement[0] =  r_previous_displacement[0] + rDeltaDisplacementTLS[0];
                     predicted_x = true;
                 }
             }
             if (disppos_x > -1 && !predicted_x) {
-                if (!it_node->GetDof(DISPLACEMENT_X, disppos_x).IsFixed() && !predicted_x) {
+                if (!rNode.GetDof(DISPLACEMENT_X, disppos_x).IsFixed() && !predicted_x) {
                     r_current_displacement[0] = r_previous_displacement[0] + delta_time * r_previous_velocity[0];
                 }
             }
 
             if (velpos_y > -1) {
-                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed()) {
-                    delta_displacement[1] = (r_current_velocity[1] + DerivedBaseType::mBossak.c4 * r_previous_velocity[1])/DerivedBaseType::mBossak.c1;
-                    r_current_displacement[1] =  r_previous_displacement[1] + delta_displacement[1];
+                if (rNode.GetDof(VELOCITY_Y, velpos_y).IsFixed()) {
+                    rDeltaDisplacementTLS[1] = (r_current_velocity[1] + this->mBossak.c4 * r_previous_velocity[1])/this->mBossak.c1;
+                    r_current_displacement[1] =  r_previous_displacement[1] + rDeltaDisplacementTLS[1];
                     predicted_y = true;
                 }
             }
             if (disppos_y > -1 && !predicted_y) {
-                if (!it_node->GetDof(DISPLACEMENT_Y, disppos_y).IsFixed() && !predicted_y) {
+                if (!rNode.GetDof(DISPLACEMENT_Y, disppos_y).IsFixed() && !predicted_y) {
                     r_current_displacement[1] = r_previous_displacement[1] + delta_time * r_previous_velocity[1];
                 }
             }
 
             if (velpos_z > -1) {
-                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed()) {
-                    delta_displacement[2] = (r_current_velocity[2] + DerivedBaseType::mBossak.c4 * r_previous_velocity[2])/DerivedBaseType::mBossak.c1;
-                    r_current_displacement[2] =  r_previous_displacement[2] + delta_displacement[2];
+                if (rNode.GetDof(VELOCITY_Z, velpos_z).IsFixed()) {
+                    rDeltaDisplacementTLS[2] = (r_current_velocity[2] + this->mBossak.c4 * r_previous_velocity[2])/this->mBossak.c1;
+                    r_current_displacement[2] =  r_previous_displacement[2] + rDeltaDisplacementTLS[2];
                     predicted_z = true;
                 }
             }
             if (disppos_z > -1 && !predicted_z) {
-                if (!it_node->GetDof(DISPLACEMENT_Z, disppos_z).IsFixed() && !predicted_z) {
+                if (!rNode.GetDof(DISPLACEMENT_Z, disppos_z).IsFixed() && !predicted_z) {
                     r_current_displacement[2] = r_previous_displacement[2] + delta_time * r_previous_velocity[2];
                 }
             }
@@ -296,7 +286,7 @@ public:
             // Updating time derivatives
             noalias(r_current_acceleration) = zero_array;
             noalias(r_current_velocity) = r_previous_velocity;
-        }
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -395,10 +385,10 @@ protected:
     {
         // Adding  damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) // if D matrix declared
-            noalias(rLHSContribution) += rD * DerivedBaseType::mBossak.c1;
+            noalias(rLHSContribution) += rD * this->mBossak.c1;
         else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[*mpRayleighBeta];
-            noalias(rLHSContribution) += rM * beta * DerivedBaseType::mBossak.c1;
+            noalias(rLHSContribution) += rM * beta * this->mBossak.c1;
         }
     }
 
@@ -422,12 +412,12 @@ protected:
         const auto& r_const_elem_ref = rElement;
         // Adding damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
-            r_const_elem_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-            noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
+            r_const_elem_ref.GetFirstDerivativesVector(this->mVector.v[this_thread], 0);
+            noalias(rRHSContribution) -= prod(rD, this->mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[*mpRayleighBeta];
-            r_const_elem_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-            noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
+            r_const_elem_ref.GetFirstDerivativesVector(this->mVector.v[this_thread], 0);
+            noalias(rRHSContribution) -= beta * prod(rM, this->mVector.v[this_thread]);
         }
     }
 
@@ -452,12 +442,12 @@ protected:
         // Adding damping contribution
         // Damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
-            r_const_cond_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-            noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
+            r_const_cond_ref.GetFirstDerivativesVector(this->mVector.v[this_thread], 0);
+            noalias(rRHSContribution) -= prod(rD, this->mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[*mpRayleighBeta];
-            r_const_cond_ref.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-            noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
+            r_const_cond_ref.GetFirstDerivativesVector(this->mVector.v[this_thread], 0);
+            noalias(rRHSContribution) -= beta * prod(rM, this->mVector.v[this_thread]);
         }
     }
 

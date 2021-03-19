@@ -37,28 +37,28 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of ParticleContactElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ParticleContactElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ParticleContactElement);
 
     /// Default constructor.
-    ParticleContactElement( IndexType NewId, GeometryType::Pointer pGeometry );
-    ParticleContactElement( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    ParticleContactElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    ParticleContactElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~ParticleContactElement();
 
-    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& r_process_info) override;
 
-    void InitializeSolutionStep(const ProcessInfo& r_process_info ) override;
+    void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
-    void FinalizeSolutionStep(const ProcessInfo& r_process_info ) override;
+    void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) override;
 
-    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info ) override;
+    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
     void PrepareForPrinting();
 

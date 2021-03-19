@@ -584,6 +584,7 @@ private:
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
 
+    template<class TValueType>
     void DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                      PartitionIndicesContainerType const& EntitiesPartitions,
                                      std::string BlockName);

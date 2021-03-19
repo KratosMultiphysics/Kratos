@@ -74,7 +74,7 @@ set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
 # Sources for the Python module
 file(
     GLOB_RECURSE
-    KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES
+    KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
@@ -85,9 +85,15 @@ target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
 set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 ## LinearSolversApplication python module
-pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
+pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
 target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
 set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosLinearSolversCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosLinearSolversApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
@@ -109,12 +115,6 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set_target_properties( KratosLinearSolversCore PROPERTIES SUFFIX .pyd )
     set_target_properties( KratosLinearSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosLinearSolversCore)
-    cotire(KratosLinearSolversApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/LinearSolversApplication.py KratosMultiphysics/LinearSolversApplication/__init__.py )

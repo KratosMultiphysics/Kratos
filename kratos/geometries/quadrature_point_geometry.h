@@ -18,16 +18,16 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_dimension.h"
-
 
 namespace Kratos
 {
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A sinlge quadrature point, that can be used for geometries without
+ * @brief A single quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
@@ -239,6 +239,20 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with Vector
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const override
+    {
+        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT) {
+            DeterminantOfJacobianParent(rOutput);
+        }
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
@@ -281,6 +295,20 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Returns the polynomial degree of the parent geometry
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpGeometryParent)
+            << "Trying to call PolynomialDegree(LocalDirectionIndex) from quadrature point. "
+            << "Pointer to parent is not assigned." << std::endl;
+
+        return mpGeometryParent->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Coordinates
     ///@{
 
@@ -301,6 +329,12 @@ public:
         return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates);
     }
 
+    /* @brief returns the respective segment domain size of this
+     *        quadrature point, computed on the parent of this geometry.
+     *        Required for reduced quadrature point geometries (Not all
+     *        nodes are part of this geometry - used for mapping).
+     * @param rResult vector of results of this quadrature point.
+     */
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         CoordinatesArrayType const& LocalCoordinates,
@@ -355,6 +389,22 @@ public:
             << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->DeterminantOfJacobian(rPoint);
+    }
+
+
+    /* @brief returns the respective segment length of this
+     *        quadrature point. Length of vector always 1.
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobianParent(
+        Vector& rResult) const
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        rResult[0] = this->GetGeometryParent(0).DeterminantOfJacobian(this->IntegrationPoints()[0]);
+
+        return rResult;
     }
 
     Matrix& InverseOfJacobian(
@@ -452,7 +502,7 @@ private:
 
     // quatrature point can be related to a parent geometry. To keep the connection,
     // this geometry is related to the integration point.
-    GeometryType* mpGeometryParent;
+    GeometryType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Serialization

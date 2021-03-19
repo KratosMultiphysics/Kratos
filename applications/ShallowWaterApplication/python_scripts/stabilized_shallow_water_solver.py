@@ -22,32 +22,28 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.WIND)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.main_model_part)
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
-
         KM.Logger.PrintInfo(self.__class__.__name__, "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
         super().Initialize()
-        self.main_model_part.ProcessInfo.SetValue(SW.LUMPED_MASS_FACTOR, self.settings["lumped_mass_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(SW.GROUND_IRREGULARITY, self.settings["ground_irregularity"].GetDouble())
-
-    def InitializeSolutionStep(self):
-        SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT))
-        super().InitializeSolutionStep()
+        self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_AIR, 1e0)
+        self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_WATER, 1e3)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Nodes)
-        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Elements)
-        dry_height = self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
         SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
-        SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, dry_height)
-        SW.ComputeVelocityProcess(self.main_model_part, dry_height).Execute()
+        SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part, True)
         self._CheckWaterLoss()
 
     @classmethod
@@ -55,16 +51,22 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         default_settings = KM.Parameters("""
         {
         "time_integration_order"     : 2,
-        "lumped_mass_factor"         : 1.0,
+        "relative_dry_height"        : 0.1,
+        "stabilization_factor"       : 0.005,
         "shock_stabilization_factor" : 0.001,
-        "ground_irregularity"        : 0.0
+        "add_flux_correction"        : false
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def _CreateScheme(self):
-        time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
+        if self.settings["add_flux_correction"].GetBool():
+            time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
+            if self.settings["shock_stabilization_factor"].GetDouble() > 0.0:
+                KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction, please, disable on of them.")
+        else:
+            time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
         return time_scheme
 
     def _InitializeWaterLoss(self):

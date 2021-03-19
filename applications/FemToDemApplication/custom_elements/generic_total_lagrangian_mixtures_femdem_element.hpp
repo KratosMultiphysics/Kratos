@@ -255,7 +255,7 @@ protected:
 
 
     void CheckIfEraseElement(
-        ProcessInfo &rCurrentProcessInfo,
+        const ProcessInfo &rCurrentProcessInfo,
         const Properties& rProperties
         ) override
     {
@@ -263,7 +263,8 @@ protected:
             this->Set(ACTIVE, false);
             this->mDamage = 0.98;
             // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
+            // rCurrentProcessInfo[GENERATE_DEM] = true;
+            this->SetValue(GENERATE_DEM, true);
         }
     }
 

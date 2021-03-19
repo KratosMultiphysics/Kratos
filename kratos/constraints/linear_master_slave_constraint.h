@@ -54,7 +54,7 @@ namespace Kratos
  * @details The data T and ConstantVector (or the equivalent scalars) are not stored in the base class, since they can be eventually evaluated runtime.
  * @author Aditya Ghantasala
  */
-class LinearMasterSlaveConstraint
+class KRATOS_API(KRATOS_CORE) LinearMasterSlaveConstraint
     :  public MasterSlaveConstraint
 {
 public:
@@ -308,20 +308,7 @@ public:
         EquationIdVectorType& rSlaveEquationIds,
         EquationIdVectorType& rMasterEquationIds,
         const ProcessInfo& rCurrentProcessInfo
-        ) const override
-    {
-        if (rSlaveEquationIds.size() != mSlaveDofsVector.size())
-            rSlaveEquationIds.resize(mSlaveDofsVector.size());
-
-        if (rMasterEquationIds.size() != mMasterDofsVector.size())
-            rMasterEquationIds.resize(mMasterDofsVector.size());
-
-        for(IndexType i=0; i<rSlaveEquationIds.size(); ++i)
-            rSlaveEquationIds[i] = mSlaveDofsVector[i]->EquationId();
-
-        for(IndexType i=0; i<rMasterEquationIds.size(); ++i)
-            rMasterEquationIds[i] = mMasterDofsVector[i]->EquationId();
-    }
+        ) const override;
 
     /**
      * @brief This method returns the slave dof vector
@@ -363,38 +350,13 @@ public:
      * @brief This method resets the values of the slave dofs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
-            #pragma omp atomic
-            mSlaveDofsVector[i]->GetSolutionStepValue() *= 0.0;
-        }
-    }
+    void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This method directly applies the master/slave relationship
      * @param rCurrentProcessInfo the current process info instance
      */
-    void Apply(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // Saving the master dofs values
-        Vector master_dofs_values(mMasterDofsVector.size());
-
-        for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
-            master_dofs_values[i] = mMasterDofsVector[i]->GetSolutionStepValue();
-        }
-
-        // Apply the constraint to the slave dofs
-        for (IndexType i = 0; i < mRelationMatrix.size1(); ++i) {
-            double aux = mConstantVector[i];
-            for(IndexType j = 0; j < mRelationMatrix.size2(); ++j) {
-                aux += mRelationMatrix(i,j) * master_dofs_values[j];
-            }
-
-            #pragma omp atomic
-            mSlaveDofsVector[i]->GetSolutionStepValue() += aux;
-        }
-    }
+    void Apply(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This method allows to set the Local System in case is not computed on tunning time (internal variable)
@@ -406,17 +368,7 @@ public:
         const MatrixType& rRelationMatrix,
         const VectorType& rConstantVector,
         const ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        if (mRelationMatrix.size1() != rRelationMatrix.size1() || mRelationMatrix.size2() != rRelationMatrix.size2())
-            mRelationMatrix.resize(rRelationMatrix.size1(), rRelationMatrix.size2(), false);
-
-        noalias(mRelationMatrix) = rRelationMatrix;
-
-        if (mConstantVector.size() != rConstantVector.size())
-            mConstantVector.resize(rConstantVector.size(), false);
-        noalias(mConstantVector) = rConstantVector;
-    }
+        ) override;
 
     /**
      * @brief This is called during the assembling process in order
@@ -429,16 +381,7 @@ public:
         MatrixType& rRelationMatrix,
         VectorType& rConstantVector,
         const ProcessInfo& rCurrentProcessInfo
-        ) const override
-    {
-        if (rRelationMatrix.size1() != mRelationMatrix.size1() || rRelationMatrix.size2() != mRelationMatrix.size2())
-            rRelationMatrix.resize(mRelationMatrix.size1(), mRelationMatrix.size2(), false);
-        noalias(rRelationMatrix) = mRelationMatrix;
-
-        if (rConstantVector.size() != mConstantVector.size())
-            rConstantVector.resize(mConstantVector.size(), false);
-        noalias(rConstantVector) = mConstantVector;
-    }
+        ) const override;
 
     ///@}
     ///@name Input and output
@@ -479,56 +422,20 @@ protected:
     VectorType mConstantVector;             /// The vector containing the additional kinematic relationship
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
 
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MasterSlaveConstraint);
-        rSerializer.save("SlaveDofVec", mSlaveDofsVector);
-        rSerializer.save("MasterDofVec", mMasterDofsVector);
-        rSerializer.save("RelationMat", mRelationMatrix);
-        rSerializer.save("ConstantVec", mConstantVector);
-    }
+    void save(Serializer &rSerializer) const override;
 
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MasterSlaveConstraint);
-        rSerializer.load("SlaveDofVec", mSlaveDofsVector);
-        rSerializer.load("MasterDofVec", mMasterDofsVector);
-        rSerializer.load("RelationMat", mRelationMatrix);
-        rSerializer.load("ConstantVec", mConstantVector);
-    }
+    void load(Serializer &rSerializer) override;
+
+    ///@}
+
 };
 
 ///@name Input/Output funcitons
@@ -548,7 +455,6 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 }
 
 ///@}
-
 
 } // namespace Kratos
 

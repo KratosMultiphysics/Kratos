@@ -72,17 +72,18 @@ class PartitionedFSIBaseSolver(PythonSolver):
             mesh_solver_settings.AddEmptyValue("model_import_settings").AddEmptyValue("input_type").SetString("use_input_model_part")
 
         # Check that the ALE and the fluid have the sime time scheme
-        fluid_time_scheme =  fluid_solver_settings["time_scheme"].GetString()
-        if mesh_solver_settings.Has("mesh_velocity_calculation"):
-            if mesh_solver_settings["mesh_velocity_calculation"].Has("time_scheme"):
-                if not fluid_time_scheme == mesh_solver_settings["mesh_velocity_calculation"]["time_scheme"].GetString():
-                    err_msg = 'Fluid and mesh solver require to use the same time scheme ("time_scheme") for consistency!\n'
-                    raise Exception(err_msg)
+        if fluid_solver_settings.Has("time_scheme"):
+            fluid_time_scheme =  fluid_solver_settings["time_scheme"].GetString()
+            if mesh_solver_settings.Has("mesh_velocity_calculation"):
+                if mesh_solver_settings["mesh_velocity_calculation"].Has("time_scheme"):
+                    if not fluid_time_scheme == mesh_solver_settings["mesh_velocity_calculation"]["time_scheme"].GetString():
+                        err_msg = 'Fluid and mesh solver require to use the same time scheme ("time_scheme") for consistency!\n'
+                        raise Exception(err_msg)
+                else:
+                    mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
             else:
+                mesh_solver_settings.AddEmptyValue("mesh_velocity_calculation")
                 mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
-        else:
-            mesh_solver_settings.AddEmptyValue("mesh_velocity_calculation")
-            mesh_solver_settings["mesh_velocity_calculation"].AddValue("time_scheme", fluid_solver_settings["time_scheme"])
 
         # Check domain size
         fluid_domain_size = fluid_solver_settings["domain_size"].GetInt()

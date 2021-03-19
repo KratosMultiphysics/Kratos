@@ -119,7 +119,7 @@ class PreUtilities
     void FillAnalyticSubModelPartUtility(ModelPart& rSpheresModelPart, ModelPart& rAnalyticSpheresModelPart){
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
         std::vector<std::vector<std::size_t> > thread_vectors_of_ids;
-        int mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        int mNumberOfThreads = ParallelUtilities::GetNumThreads();
         thread_vectors_of_ids.resize(mNumberOfThreads);
 
         #pragma omp parallel for

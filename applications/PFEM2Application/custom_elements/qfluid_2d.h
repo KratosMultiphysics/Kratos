@@ -82,7 +82,7 @@ namespace Kratos
     ///@{
 
     /// Counted pointer of QFluid2D
-    KRATOS_CLASS_POINTER_DEFINITION(QFluid2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QFluid2D);
 
     ///@}
     ///@name Life Cycle
@@ -106,21 +106,21 @@ namespace Kratos
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
     //void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
     //void CalculateViscousMatrix(MatrixType& K, const BoundedMatrix<double,3,2>& DN_DX, const double& nu);
     void CalculateViscousMatrix(MatrixType& K  , const BoundedMatrix<double,3,2>& DN_DX, const double& nu, const double& deltat, const double& bulk); //, const double& k);
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -213,8 +213,8 @@ namespace Kratos
     ///@}
     ///@name Private Operators
     ///@{
-    void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);//, unsigned int ComponentIndex);
-    void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);//, unsigned int ComponentIndex);
+    void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
     // inline double CalculateTau(BoundedMatrix<double, 3,2 > & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
     double ComputeSmagorinskyViscosity(const BoundedMatrix<double, 3, 2 > & DN_DX,
                                        const double& h,

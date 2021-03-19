@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ class make_solver : public amgcl::detail::non_copyable {
             );
     public:
         typedef typename IterativeSolver::backend_type backend_type;
-        typedef amgcl::mpi::distributed_matrix<backend_type> matrix;
+        typedef amgcl::mpi::distributed_matrix<typename Precond::backend_type> matrix;
         typedef typename backend_type::value_type value_type;
         typedef typename backend_type::params backend_params;
         typedef typename backend::builtin<value_type>::matrix build_matrix;
@@ -107,6 +107,19 @@ class make_solver : public amgcl::detail::non_copyable {
             P(comm, A, prm.precond, bprm),
             S(n, prm.solver, bprm, mpi::inner_product(comm))
         {
+        }
+
+        template <class Backend>
+        make_solver(
+                communicator comm, std::shared_ptr<distributed_matrix<Backend>> A,
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+                ) :
+            prm(prm), n(A->loc_rows()),
+            P(comm, std::make_shared<matrix>(*A), prm.precond, bprm),
+            S(n, prm.solver, bprm, mpi::inner_product(comm))
+        {
+            A->move_to_backend(bprm);
         }
 
         make_solver(

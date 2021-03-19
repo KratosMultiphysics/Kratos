@@ -126,7 +126,12 @@ namespace Kratos
     void CalculateMassMatrix(MatrixType& rMassMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLumpedMassVector(VectorType& rMassVector);
+    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+      const ProcessInfo& rCurrentProcessInfo) const;
+
+    void CalculateLumpedMassVector(
+      VectorType& rMassVector,
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void AddExplicitContribution(
       const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
@@ -154,7 +159,7 @@ namespace Kratos
      * @param Configuration Reference/Current
      */
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const;
 
       /**
      * @brief Calculates the covariant metric
@@ -206,7 +211,7 @@ namespace Kratos
      * @param rDetJacobi The determinant of the Jacobian
      * @param rReferenceBaseVectors Reference base vectors
      */
-    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const;
 
 
       /**
@@ -258,7 +263,7 @@ namespace Kratos
     void MaterialResponse(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
       const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
-      Matrix& rTangentModulus);
+      Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -284,7 +289,7 @@ namespace Kratos
      * @param rInternalForces The internal forces
      * @param ThisMethod numerical integration method
      */
-    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod);
+    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -292,7 +297,7 @@ namespace Kratos
      * @param rStiffnessMatrix The stiffness matrix
      * @param ThisMethod numerical integration method
      */
-    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod);
+    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -372,10 +377,12 @@ namespace Kratos
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
+
+    void ReferenceLumpingFactors(Vector& rResult) const;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    double mReferenceArea = 0.0;
+    double CalculateReferenceArea() const;
 
     ///@}
     ///@name Serialization
