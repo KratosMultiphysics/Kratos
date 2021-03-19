@@ -517,7 +517,6 @@ KRATOS_TEST_CASE_IN_SUITE(SpMV, KratosCoreFastSuite)
     for(SparseTestingInternals::IndexType i=0; i!=x.size(); ++i){
         sum += x(i);
     }
-    std::cout << " **********************" << sum << std::endl;
 
     double reference_sum = 0.0;
     for(auto& item : reference_A_map)
