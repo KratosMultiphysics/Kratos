@@ -181,119 +181,121 @@ void SensitivityUtilities::AssignEntityDerivativesToNodes(
 
     auto& entity_container = GetContainer<TContainerType>(rModelPart);
 
+    auto& r_nodes = rModelPart.Nodes();
+
+    int value_dimension = 0;
     if (entity_container.size() != 0) {
-        auto& r_nodes = rModelPart.Nodes();
-
-        const int value_dimension =
-            entity_container.begin()->GetValue(rDerivativeVariable).size2();
-
-        KRATOS_ERROR_IF(value_dimension == 0)
-            << "Column dimension (representing dimensionality of the value "
-               "where derivatives are calculated) of the matrix values are "
-               "zero in "
-            << rModelPart.Name() << ". Please assign proper matrix values for "
-            << rDerivativeVariable.Name() << ".";
-
-        VariableUtils().SetFlag(VISITED, false, r_nodes);
-
-        // identify nodes where neighbours are required
-        block_for_each(entity_container, [&](typename TContainerType::value_type& rEntity) {
-            if (rEntity.Is(rFlag) == CheckValue) {
-                KRATOS_ERROR_IF(!rEntity.Has(rDerivativeVariable))
-                    << rDerivativeVariable.Name() << " not found in data value container of "
-                    << rEntity.Info() << ".";
-
-                const Matrix& r_value = rEntity.GetValue(rDerivativeVariable);
-
-                KRATOS_ERROR_IF(value_dimension != static_cast<int>(r_value.size2()))
-                    << rDerivativeVariable.Name()
-                    << " matrix value second dimension is not consistent at "
-                    << rEntity.Info() << " [ required dimension size: " << value_dimension
-                    << ", obtained matrix: " << r_value << " ].\n";
-
-                auto& r_geometry = rEntity.GetGeometry();
-                for (auto& r_node : r_geometry) {
-                    if (r_node.Is(rFlag) == CheckValue) {
-                        r_node.SetLock();
-                        r_node.Set(VISITED, true);
-                        r_node.UnSetLock();
-                    }
-                }
-            }
-        });
-
-        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
-
-        // resizing matrices
-        block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-            if (rNode.Is(VISITED)) {
-                const int node_id = rNode.Id();
-
-                const auto p_itr = rNeighbourNodeIdsMap.find(node_id);
-                KRATOS_ERROR_IF(p_itr == rNeighbourNodeIdsMap.end())
-                    << node_id << " is not found in nodal neighbours map.";
-
-                const int number_of_neighbour_nodes = p_itr->second.size();
-
-                // neighbour nodes only contain neighbours, not self. But derivatives are there for neighbour
-                // nodes and self node. So we reserve space for number_of_neighbour_nodes + 1 nodes
-                // first block always represent self node, rest in the order of rNeighbourNodeIdsMap vector
-                rNode.SetValue(rDerivativeVariable,
-                               Matrix((number_of_neighbour_nodes + 1) * DerivativeDimension,
-                                      value_dimension, 0.0));
-            } else {
-                // initializing these unused node matrices are required to do non-historical assembly
-                // otherwise, this method will fail with TContainerType = ModelPart::ConditionsContainerType
-                // at TransferDistributedValues in MPICommunicator::AssembleDynamicMatrixValues
-                rNode.SetValue(rDerivativeVariable, Matrix(1, 1, 0.0));
-            }
-        });
-
-        block_for_each(entity_container, [&](typename TContainerType::value_type& rEntity) {
-            if (rEntity.Is(rFlag) == CheckValue) {
-                auto& r_geometry = rEntity.GetGeometry();
-                const int number_of_nodes = r_geometry.PointsNumber();
-
-                std::unordered_map<int, std::unordered_map<int, int>> derivative_nodes_map;
-
-                // calculate the node mapping
-                ComputeEntityGeometryNeighbourNodeMap(
-                    derivative_nodes_map, rNeighbourNodeIdsMap, r_geometry, rFlag, CheckValue);
-
-                const Matrix& r_entity_derivatives =
-                    rEntity.GetValue(rDerivativeVariable) * Weight;
-
-                // move this variable also to TLS storage
-                Matrix nodal_derivative(DerivativeDimension, value_dimension);
-
-                // placing derivatives correctly
-                for (int i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
-                    auto& r_base_node = r_geometry[i_base_node];
-
-                    if (r_base_node.Is(rFlag) == CheckValue) {
-                        const auto& r_derivative_nodes_map =
-                            derivative_nodes_map.find(i_base_node)->second;
-
-                        for (int i_deriv_node = 0;
-                             i_deriv_node < number_of_nodes; ++i_deriv_node) {
-                            GetMatrixSubBlock(nodal_derivative, r_entity_derivatives,
-                                              i_deriv_node * DerivativeDimension,
-                                              DerivativeDimension, 0, value_dimension);
-
-                            r_base_node.SetLock();
-                            AddMatrixSubBlock(
-                                r_base_node.GetValue(rDerivativeVariable), nodal_derivative,
-                                r_derivative_nodes_map.find(i_deriv_node)->second * DerivativeDimension,
-                                0);
-                            r_base_node.UnSetLock();
-                        }
-                    }
-                }
-            }
-        });
-
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(rDerivativeVariable);
+        value_dimension = entity_container.begin()->GetValue(rDerivativeVariable).size2();
     }
+
+    value_dimension = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(value_dimension);
+
+    KRATOS_ERROR_IF(value_dimension == 0)
+        << "Column dimension (representing dimensionality of the value "
+            "where derivatives are calculated) of the matrix values are "
+            "zero in "
+        << rModelPart.Name() << ". Please assign proper matrix values for "
+        << rDerivativeVariable.Name() << ".";
+
+    VariableUtils().SetFlag(VISITED, false, r_nodes);
+
+    // identify nodes where neighbours are required
+    block_for_each(entity_container, [&](typename TContainerType::value_type& rEntity) {
+        if (rEntity.Is(rFlag) == CheckValue) {
+            KRATOS_ERROR_IF(!rEntity.Has(rDerivativeVariable))
+                << rDerivativeVariable.Name() << " not found in data value container of "
+                << rEntity.Info() << ".";
+
+            const Matrix& r_value = rEntity.GetValue(rDerivativeVariable);
+
+            KRATOS_ERROR_IF(value_dimension != static_cast<int>(r_value.size2()))
+                << rDerivativeVariable.Name()
+                << " matrix value second dimension is not consistent at "
+                << rEntity.Info() << " [ required dimension size: " << value_dimension
+                << ", obtained matrix: " << r_value << " ].\n";
+
+            auto& r_geometry = rEntity.GetGeometry();
+            for (auto& r_node : r_geometry) {
+                if (r_node.Is(rFlag) == CheckValue) {
+                    r_node.SetLock();
+                    r_node.Set(VISITED, true);
+                    r_node.UnSetLock();
+                }
+            }
+        }
+    });
+
+    rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+
+    // resizing matrices
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+        if (rNode.Is(VISITED)) {
+            const int node_id = rNode.Id();
+
+            const auto p_itr = rNeighbourNodeIdsMap.find(node_id);
+            KRATOS_ERROR_IF(p_itr == rNeighbourNodeIdsMap.end())
+                << node_id << " is not found in nodal neighbours map.";
+
+            const int number_of_neighbour_nodes = p_itr->second.size();
+
+            // neighbour nodes only contain neighbours, not self. But derivatives are there for neighbour
+            // nodes and self node. So we reserve space for number_of_neighbour_nodes + 1 nodes
+            // first block always represent self node, rest in the order of rNeighbourNodeIdsMap vector
+            rNode.SetValue(rDerivativeVariable,
+                            Matrix((number_of_neighbour_nodes + 1) * DerivativeDimension,
+                                    value_dimension, 0.0));
+        } else {
+            // initializing these unused node matrices are required to do non-historical assembly
+            // otherwise, this method will fail with TContainerType = ModelPart::ConditionsContainerType
+            // at TransferDistributedValues in MPICommunicator::AssembleDynamicMatrixValues
+            rNode.SetValue(rDerivativeVariable, Matrix(1, 1, 0.0));
+        }
+    });
+
+    block_for_each(entity_container, [&](typename TContainerType::value_type& rEntity) {
+        if (rEntity.Is(rFlag) == CheckValue) {
+            auto& r_geometry = rEntity.GetGeometry();
+            const int number_of_nodes = r_geometry.PointsNumber();
+
+            std::unordered_map<int, std::unordered_map<int, int>> derivative_nodes_map;
+
+            // calculate the node mapping
+            ComputeEntityGeometryNeighbourNodeMap(
+                derivative_nodes_map, rNeighbourNodeIdsMap, r_geometry, rFlag, CheckValue);
+
+            const Matrix& r_entity_derivatives =
+                rEntity.GetValue(rDerivativeVariable) * Weight;
+
+            // move this variable also to TLS storage
+            Matrix nodal_derivative(DerivativeDimension, value_dimension);
+
+            // placing derivatives correctly
+            for (int i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
+                auto& r_base_node = r_geometry[i_base_node];
+
+                if (r_base_node.Is(rFlag) == CheckValue) {
+                    const auto& r_derivative_nodes_map =
+                        derivative_nodes_map.find(i_base_node)->second;
+
+                    for (int i_deriv_node = 0;
+                            i_deriv_node < number_of_nodes; ++i_deriv_node) {
+                        GetMatrixSubBlock(nodal_derivative, r_entity_derivatives,
+                                            i_deriv_node * DerivativeDimension,
+                                            DerivativeDimension, 0, value_dimension);
+
+                        r_base_node.SetLock();
+                        AddMatrixSubBlock(
+                            r_base_node.GetValue(rDerivativeVariable), nodal_derivative,
+                            r_derivative_nodes_map.find(i_deriv_node)->second * DerivativeDimension,
+                            0);
+                        r_base_node.UnSetLock();
+                    }
+                }
+            }
+        }
+    });
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rDerivativeVariable);
 
     KRATOS_CATCH("");
 }

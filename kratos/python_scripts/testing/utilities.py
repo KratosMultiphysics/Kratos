@@ -117,7 +117,7 @@ class Commander:
                     full_command
                 ], shell=True,
                    stdout=subprocess.PIPE,
-                   cwd=os.path.dirname(os.path.abspath(test_script)))
+                   cwd=os.path.dirname(os.path.abspath(str(test_script))))
             except:
                 print('[Error]: Unable to execute "{}"'.format(full_command), file=sys.stderr)
                 self.exitCode = 1
