@@ -61,6 +61,8 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.STRUCTURE, True)
 
+            self.model_part.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, settings["activate_wall_functions"].GetBool())
+
             if (settings["activate_wall_functions"].GetBool()):
                 for node in self.model_part.Nodes:
                     node.Set(KratosMultiphysics.SLIP, True)
@@ -68,3 +70,6 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
                 for condition in self.model_part.Conditions:
                     condition.Set(KratosMultiphysics.SLIP, True)
                     condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 1)
+            else:
+                for condition in self.model_part.Conditions:
+                    condition.SetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE, 0)
