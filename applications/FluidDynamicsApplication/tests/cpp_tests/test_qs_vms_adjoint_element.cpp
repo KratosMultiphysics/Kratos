@@ -39,50 +39,6 @@ ModelPart& CreateFluidQSVMSAdjointModelPart(
     const std::string& rModelPartName,
     const std::string& rElementName)
 {
-    const auto& set_variable_values = [](ModelPart& rModelPart) {
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 50.0, 100.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY, 5.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, MESH_VELOCITY, 50.0, 100.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, PRESSURE, 5.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ACCELERATION, 2.0, 3.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, BODY_FORCE, 2.0, 3.0, 1);
-
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
-
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
-
-        // following values do not need to be set when OSS projections are supported by Adjoints
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, ADVPROJ, 2.0, 3.0, 0);
-        FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, DIVPROJ, 2.0, 3.0, 0);
-
-        auto& r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(DOMAIN_SIZE, 2);
-        r_process_info.SetValue(DYNAMIC_TAU, 0.04);
-        r_process_info.SetValue(DELTA_TIME, 0.01);
-        r_process_info.SetValue(BOSSAK_ALPHA, -0.03);
-        r_process_info.SetValue(OSS_SWITCH, 0);
-    };
-
     // preparing primal model part
     const auto& add_solution_step_variables = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -130,7 +86,48 @@ ModelPart& CreateFluidQSVMSAdjointModelPart(
     auto& r_model_part = FluidTestUtilities::CreateTestModelPart(
         rModel, rModelPartName, rElementName, "LineCondition2D2N", set_element_properties,
         set_condition_properties, add_solution_step_variables, add_dofs);
-    set_variable_values(r_model_part);
+
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, 50.0, 100.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 50.0, 100.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, PRESSURE, 5.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 50.0, 100.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 2.0, 3.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, BODY_FORCE, 2.0, 3.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, 5.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, MESH_VELOCITY, 50.0, 100.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, PRESSURE, 5.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, EXTERNAL_PRESSURE, 50.0, 100.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ACCELERATION, 2.0, 3.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, BODY_FORCE, 2.0, 3.0, 1);
+
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
+
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_SCALAR_1, 1.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_1, 1.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_2, 1.0, 10.0, 1);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADJOINT_FLUID_VECTOR_3, 1.0, 10.0, 1);
+
+    // following values do not need to be set when OSS projections are supported by Adjoints
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, ADVPROJ, 2.0, 3.0, 0);
+    FluidTestUtilities::RandomFillNodalHistoricalVariable(r_model_part, DIVPROJ, 2.0, 3.0, 0);
+
+    auto& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info.SetValue(DOMAIN_SIZE, 2);
+    r_process_info.SetValue(DYNAMIC_TAU, 0.04);
+    r_process_info.SetValue(DELTA_TIME, 0.01);
+    r_process_info.SetValue(BOSSAK_ALPHA, -0.03);
+    r_process_info.SetValue(OSS_SWITCH, 0);
 
     return r_model_part;
 }
