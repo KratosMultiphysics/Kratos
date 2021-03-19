@@ -900,7 +900,6 @@ public:
         const Variable<double>& rDerivativeVariable,
         double& rOutput);
 
-
     /**
      * @brief Calculates derivatives of a given function
      *
@@ -921,7 +920,6 @@ public:
         const Variable<double>& rDerivativeVariable,
         Vector& rOutput);
 
-
     /**
      * @brief Calculates derivatives of a given function
      *
@@ -941,7 +939,6 @@ public:
         const Variable<Matrix>& rFunctionVariable,
         const Variable<double>& rDerivativeVariable,
         Matrix& rOutput);
-
 
     /**
      * @brief Calculates derivatives of a given function
