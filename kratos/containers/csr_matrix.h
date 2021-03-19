@@ -17,6 +17,7 @@
 // System includes
 #include <iostream>
 #include <limits>
+#include <span/span.hpp>
 
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
@@ -26,7 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "span/span.hpp"
 
 namespace Kratos
 {
