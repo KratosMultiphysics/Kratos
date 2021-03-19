@@ -39,6 +39,8 @@
 #include "utilities/geometry_utilities.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/body_normal_calculation_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -1309,9 +1311,9 @@ private:
           std::vector<OctreeType::cell_type*> all_leaves;
           mOctree.GetAllLeavesVector(all_leaves);
 
-          block_for_each(all_leaves, [&](OctreeType::cell_type& rleaf){
+          /* block_for_each(all_leaves, [&](OctreeType::cell_type& rleaf){
               *(rleaf.pGetDataPointer()) = ConfigurationType::AllocateData();
-          });
+          }); */
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
           //KRATOS_WATCH(all_leaves.size());
@@ -1375,7 +1377,7 @@ private:
      {
          Timer::Start("Calculate Distances2");
          ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
-         int nodes_size = nodes.size();
+         //int nodes_size = nodes.size();
 //         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
 //#pragma omp parallel for firstprivate(nodes_size)
 //         for(int i = 0 ; i < nodes_size ; i++)
@@ -1389,9 +1391,9 @@ private:
 //         for(int i = 0 ; i < leaves_size ; i++)
 //             CalculateNotEmptyLeavesDistance(leaves[i]);
 
-         block_for_each(nodes, [this](Node<3>& rNode){
-              CalculateNodeDistance(rNode);
-          });
+         /* block_for_each(nodes, [&](Node<3>& rNode){
+              CalculateNodeDistance(*rNode);
+          }); */
 
          Timer::Stop("Calculate Distances2");
 
@@ -1448,10 +1450,10 @@ private:
           ConfigurationType::data_type& nodes = mOctreeNodes;
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
-#pragma omp parallel for firstprivate(nodes_size)
-          for(int i = 0 ; i < nodes_size ; i++)
-              nodes[i]->Distance() = 1.00;
 
+        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
+            nodes[Index]->Distance() = 1.00;
+        });
 
             std::vector<CellType*> leaves;
 
