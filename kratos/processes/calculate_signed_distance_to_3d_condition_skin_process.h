@@ -40,7 +40,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -1311,9 +1310,9 @@ private:
           std::vector<OctreeType::cell_type*> all_leaves;
           mOctree.GetAllLeavesVector(all_leaves);
 
-          /* block_for_each(all_leaves, [&](OctreeType::cell_type& rleaf){
-              *(rleaf.pGetDataPointer()) = ConfigurationType::AllocateData();
-          }); */
+          IndexPartition<std::size_t>(all_leaves.size()).for_each([&](std::size_t Index){
+              *(all_leaves[Index]->pGetDataPointer()) = ConfigurationType::AllocateData();
+          });
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
           //KRATOS_WATCH(all_leaves.size());
@@ -1377,7 +1376,7 @@ private:
      {
          Timer::Start("Calculate Distances2");
          ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
-         //int nodes_size = nodes.size();
+         int nodes_size = nodes.size();
 //         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
 //#pragma omp parallel for firstprivate(nodes_size)
 //         for(int i = 0 ; i < nodes_size ; i++)
