@@ -41,6 +41,10 @@ public:
 
     using NodeType = ModelPart::NodeType;
 
+    using ConditionType = ModelPart::ConditionType;
+
+    using ElementType = ModelPart::ElementType;
+
     ///@}
     ///@name Static Operations
     ///@{
@@ -51,55 +55,29 @@ public:
         const Variable<TDataType>& rVariable,
         const NodeType& rNode);
 
-    ///@}
-    ///@name Classes
-    ///@{
-
-    template<class TContainerType>
-    class Testing
-    {
-    public:
-        ///@name Static Operations
-        ///@{
-
-        template<class TDataType>
-        static void RunAdjointEntityDerivativesTest(
-            ModelPart& rPrimalModelPart,
-            ModelPart& rAdjointModelPart,
-            const std::function<void(ModelPart&)>& rUpdateModelPart,
-            const Variable<TDataType>& rVariable,
-            const std::function<void(Matrix&, typename TContainerType::data_type&, const ProcessInfo&)>& rCalculateElementResidualDerivatives,
-            const IndexType EquationOffset,
-            const IndexType DerivativeOffset,
-            const double Delta,
-            const double Tolerance);
-
-        ///@}
-    private:
-        ///@name Private Operations
-        ///@{
-
-        static void CalculateResidual(
-            Vector& residual,
-            typename TContainerType::data_type& rEntity,
-            const ProcessInfo& rProcessInfo);
-
-        ///@}
-    };
-
-    ///@}
-private:
-    ///@name Private Operations
-    ///@{
-
     template<class TDataType>
-    static std::function<double&(NodeType&, const IndexType)> GetPerturbationMethod(
-        const Variable<TDataType>& rPerturbationVariable);
-
-    template<class TDataType>
-    static IndexType GetVariableDimension(
+    static void RunAdjointEntityDerivativesTest(
+        ModelPart& rPrimalModelPart,
+        ModelPart& rAdjointModelPart,
+        const std::function<void(ModelPart&)>& rUpdateModelPart,
         const Variable<TDataType>& rVariable,
-        const ProcessInfo& rProcessInfo);
+        const std::function<void(Matrix&, ConditionType&, const ProcessInfo&)>& rCalculateElementResidualDerivatives,
+        const IndexType EquationOffset,
+        const IndexType DerivativeOffset,
+        const double Delta,
+        const double Tolerance);
+
+    template<class TDataType>
+    static void RunAdjointEntityDerivativesTest(
+        ModelPart& rPrimalModelPart,
+        ModelPart& rAdjointModelPart,
+        const std::function<void(ModelPart&)>& rUpdateModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::function<void(Matrix&, ElementType&, const ProcessInfo&)>& rCalculateElementResidualDerivatives,
+        const IndexType EquationOffset,
+        const IndexType DerivativeOffset,
+        const double Delta,
+        const double Tolerance);
 
     ///@}
 };

@@ -27,19 +27,19 @@
 namespace Kratos
 {
 
-template<class TDataType>
-TDataType FluidAdjointTestUtilities::CalculateRelaxedVariableRate(
-    const double BossakAlpha,
-    const Variable<TDataType>& rVariable,
-    const NodeType& rNode)
+namespace FluidAdjointTestUtilitiesHelper
 {
-    return (1 - BossakAlpha) * rNode.FastGetSolutionStepValue(rVariable) +
-           BossakAlpha * rNode.FastGetSolutionStepValue(rVariable, 1);
-}
 
+using IndexType = std::size_t;
+
+using NodeType = ModelPart::NodeType;
+
+template<class TDataType>
+std::function<double&(NodeType&, const IndexType)> GetPerturbationMethod(
+    const Variable<TDataType>& rPerturbationVariable);
 
 template<>
-std::function<double&(ModelPart::NodeType&, const IndexType)> FluidAdjointTestUtilities::GetPerturbationMethod(
+std::function<double&(ModelPart::NodeType&, const IndexType)> GetPerturbationMethod(
     const Variable<double>& rPerturbationVariable)
 {
     auto perturbation_method = [&rPerturbationVariable](
@@ -60,7 +60,7 @@ std::function<double&(ModelPart::NodeType&, const IndexType)> FluidAdjointTestUt
 }
 
 template <>
-std::function<double&(ModelPart::NodeType&, const IndexType)> FluidAdjointTestUtilities::GetPerturbationMethod(
+std::function<double&(ModelPart::NodeType&, const IndexType)> GetPerturbationMethod(
     const Variable<array_1d<double, 3>>& rPerturbationVariable)
 {
     if (rPerturbationVariable == SHAPE_SENSITIVITY) {
@@ -91,8 +91,13 @@ std::function<double&(ModelPart::NodeType&, const IndexType)> FluidAdjointTestUt
     }
 }
 
+template<class TDataType>
+IndexType GetVariableDimension(
+    const Variable<TDataType>& rVariable,
+    const ProcessInfo& rProcessInfo);
+
 template <>
-IndexType FluidAdjointTestUtilities::GetVariableDimension(
+IndexType GetVariableDimension(
     const Variable<double>& rVariable,
     const ProcessInfo& rProcessInfo)
 {
@@ -100,17 +105,17 @@ IndexType FluidAdjointTestUtilities::GetVariableDimension(
 }
 
 template <>
-IndexType FluidAdjointTestUtilities::GetVariableDimension(
+IndexType GetVariableDimension(
     const Variable<array_1d<double, 3>>& rVariable,
     const ProcessInfo& rProcessInfo)
 {
     return rProcessInfo[DOMAIN_SIZE];
 }
 
-template<class TContainerType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::CalculateResidual(
+template<class TEntityType>
+void CalculateResidual(
     Vector& residual,
-    typename TContainerType::data_type& rEntity,
+    TEntityType& rEntity,
     const ProcessInfo& rProcessInfo)
 {
     // QSVMS also supports BDF2 time scheme
@@ -182,9 +187,8 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::CalculateResidual(
     }
 }
 
-template<class TContainerType>
-template<class TDataType>
-void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityDerivativesTest(
+template<class TContainerType, class TDataType>
+void RunAdjointEntityDerivativesTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     const std::function<void(ModelPart&)>& rUpdateModelPart,
@@ -310,17 +314,63 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::RunAdjointEntityDerivat
     KRATOS_CATCH("");
 }
 
+}
+
+template<class TDataType>
+TDataType FluidAdjointTestUtilities::CalculateRelaxedVariableRate(
+    const double BossakAlpha,
+    const Variable<TDataType>& rVariable,
+    const NodeType& rNode)
+{
+    return (1 - BossakAlpha) * rNode.FastGetSolutionStepValue(rVariable) +
+           BossakAlpha * rNode.FastGetSolutionStepValue(rVariable, 1);
+}
+
+template<class TDataType>
+void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    const std::function<void(ModelPart&)>& rUpdateModelPart,
+    const Variable<TDataType>& rVariable,
+    const std::function<void(Matrix&, ConditionType&, const ProcessInfo&)>& rCalculateElementResidualDerivatives,
+    const IndexType EquationOffset,
+    const IndexType DerivativeOffset,
+    const double Delta,
+    const double Tolerance)
+{
+    FluidAdjointTestUtilitiesHelper::RunAdjointEntityDerivativesTest<ModelPart::ConditionsContainerType>(
+        rPrimalModelPart, rAdjointModelPart, rUpdateModelPart, rVariable,
+        rCalculateElementResidualDerivatives, EquationOffset, DerivativeOffset,
+        Delta, Tolerance);
+}
+
+template<class TDataType>
+void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    const std::function<void(ModelPart&)>& rUpdateModelPart,
+    const Variable<TDataType>& rVariable,
+    const std::function<void(Matrix&, ElementType&, const ProcessInfo&)>& rCalculateElementResidualDerivatives,
+    const IndexType EquationOffset,
+    const IndexType DerivativeOffset,
+    const double Delta,
+    const double Tolerance)
+{
+    FluidAdjointTestUtilitiesHelper::RunAdjointEntityDerivativesTest<ModelPart::ElementsContainerType>(
+        rPrimalModelPart, rAdjointModelPart, rUpdateModelPart, rVariable,
+        rCalculateElementResidualDerivatives, EquationOffset, DerivativeOffset,
+        Delta, Tolerance);
+}
+
+
 // template instantiations
 template double FluidAdjointTestUtilities::CalculateRelaxedVariableRate(const double, const Variable<double>&, const NodeType&);
 template array_1d<double, 3> FluidAdjointTestUtilities::CalculateRelaxedVariableRate(const double, const Variable<array_1d<double, 3>>&, const NodeType&);
 
-template class FluidAdjointTestUtilities::Testing<ModelPart::ConditionsContainerType>;
-template class FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>;
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
 
-template void FluidAdjointTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
-template void FluidAdjointTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Condition&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
-
-template void FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
-template void FluidAdjointTestUtilities::Testing<ModelPart::ElementsContainerType>::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<double>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
+template void FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(ModelPart&, ModelPart&, const std::function<void(ModelPart&)>&, const Variable<array_1d<double, 3>>&, const std::function<void(Matrix&, Element&, const ProcessInfo&)>&, const IndexType, const IndexType, const double, const double);
 
 } // namespace Kratos
