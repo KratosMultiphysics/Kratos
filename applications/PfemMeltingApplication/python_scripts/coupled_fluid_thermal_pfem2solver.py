@@ -21,7 +21,7 @@ def CreateSolver(main_model_part, custom_settings):
     return PfemCoupledFluidThermalSolver(main_model_part, custom_settings)
 
 class PfemCoupledFluidThermalSolver(PythonSolver):
-    #pepeppepepepe 
+     
     @classmethod
     def GetDefaultParameters(cls):
 
@@ -30,6 +30,12 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             "solver_type" : "ThermallyCoupled1",
             "domain_size" : -1,
             "echo_level": 0,
+            "laser_import_settings": {
+                        "laser_filename": "LaserSettings.json"
+                },
+            "material_settings": {
+                        "material_filename": "MateralCharacterization.json"
+                },
             "fluid_solver_settings": {
                 "solver_type": "navier_stokes_solver_vmsmonolithic",
                 "model_import_settings": {
@@ -50,6 +56,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         }
         """)
 
+
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
@@ -69,11 +76,54 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
 
-                
+	#Laser settings                
+        #materials_filename =self.settings["laser_import_settings"]["laser_filename"]
 
-#self.sub_model_part_names     = Parameters["problem_domain_sub_model_part_list"]
+        materials_filename = self.settings["laser_import_settings"]["laser_filename"].GetString()
+        
+        material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+
+        with open(self.settings["laser_import_settings"]["laser_filename"].GetString(), 'r') as parameter_file:
+                materials = KratosMultiphysics.Parameters(parameter_file.read())  
 
 
+        mat = materials["properties"][0]["Material"]
+
+        self.variables = []
+        self.values = []
+        for key, value in mat["Variables"].items():
+            var = KratosMultiphysics.KratosGlobals.GetVariable(key)
+            self.variables.append(var)
+            self.values.append(value)
+
+        for key, table in mat["Tables"].items():
+            table_name = key
+
+            input_var = KratosMultiphysics.KratosGlobals.GetVariable(table["input_variable"].GetString())
+            output_var = KratosMultiphysics.KratosGlobals.GetVariable(table["output_variable"].GetString())
+            self.new_table = KratosMultiphysics.PiecewiseLinearTable()
+
+            for i in range(table["data"].size()):
+                self.new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
+            
+            #self.model.Properties.SetTable(input_var,output_var,new_table)
+
+        materials_filename = self.settings["material_settings"]["material_filename"].GetString()
+
+        material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+
+        with open(self.settings["material_settings"]["material_filename"].GetString(), 'r') as parameter_file:
+                materials = KratosMultiphysics.Parameters(parameter_file.read())  
+
+        mat = materials["properties"][0]["Material"]
+
+        self.variables_aux = []
+        self.values_aux = []
+        for key, value in mat["Variables"].items():
+            var = KratosMultiphysics.KratosGlobals.GetVariable(key)
+            self.variables_aux.append(var)
+            self.values_aux.append(value)
+             
 
         self.Mesher = MeshApp.TetGenPfemModeler()   
 
@@ -98,12 +148,12 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_BOUNDARY)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_FLUID)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_LAGRANGIAN_INLET)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_INTERFACE)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.ACTIVATION_ENERGY)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.ARRHENIUS_COEFFICIENT)
+
+
 
         self.thermal_solver.AddVariables()
-
-
-
 
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
 
@@ -129,7 +179,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                                       "EulerianConvDiff3D",
                                       "ThermalFace3D3N")
 
-      
+        
         # Set the saved convection diffusion settings to the new thermal model part
         self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
         
@@ -148,6 +198,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
             if(node.Y<0.00001): #if(node.Y>0.99999 or node.Y<0.00001):
                 node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0);
+
+        KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[0], self.values_aux[0].GetDouble(), self.fluid_solver.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[1], self.values_aux[1].GetDouble(), self.fluid_solver.main_model_part.Nodes)
+                
 
 
     def AddDofs(self):
@@ -181,25 +235,16 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
     def AdaptMesh(self):
         
-        
+
         for node in self.fluid_solver.main_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,0,0.15);
 
         self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
 
-
-
-
         for node in (self.fluid_solver.main_model_part).Nodes:
             node.Set(KratosMultiphysics.TO_ERASE, False)
 
-        #box_corner1 = Vector(3); 
-        #box_corner1[0]= -1.0; box_corner1[1]=-1.0; box_corner1[2]=-1.0;
-        #box_corner2 = Vector(3); 
-        #box_corner2[0]= 1.5; box_corner2[1]=1.5; box_corner2[2]=1.5;
 
-        
-        
         self.Pfem2Utils.MarkNodesTouchingWall(self.fluid_solver.main_model_part, 3, 0.15)
 
         self.node_erase_process.Execute()
@@ -419,18 +464,56 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
         
+
         for node in self.fluid_solver.main_model_part.Nodes:
-             Vx=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-             Vy=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-             Vz=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_X,0,Vx);
-             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Y,0,Vy);
-             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY_Z,0,Vz);
+            velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, velocity)
+
+        for node in self.fluid_solver.main_model_part.Nodes:
              node.SetSolutionStepValue(KratosMultiphysics.FACE_HEAT_FLUX,0,0.0);
+             
+        #print(self.variables)  
+        #print(self.values)  
 
-        self.faceheatflux.FaceHeatFluxDistribution(self.fluid_solver.main_model_part, 0.57102, 0.99997, 0.5299, 0.8, 100000.0)
+        #print("22222222222222222222222222222222222222")
+        #print("22222222222222222222222222222222222222")
+        #print("22222222222222222222222222222222222222")
+
+        #x=self.variables[2]
+        #y=self.values[2]
+
+        #print(x)
+        #print(y)
+        #sssssssssssssssssssssss 
+
+        x=self.values[1].GetDouble()
+        y=self.values[2].GetDouble()
+        z=self.values[3].GetDouble()
+        radius=self.values[4].GetDouble()
+        q=self.values[0].GetDouble()
+        
+        print("2222222222222222222222222222222222222222")
+        print("2222222222222222222222222222222222222222")
+        #print(self.new_table)
+        #print(self.fluid_solver.main_model_part)
+        #prop= self.fluid_solver.main_model_part.Properties
+        #self.fluid_solver.main_model_part.Properties.SetTable("TEMPERATUVE","VISCOSITY",new_table) 
+        #print(self.fluid_solver.main_model_part)
+        #ssssssssssssssssss
+        #for node in self.fluid_solver.main_model_part.Nodes:
+        #     node.SetSolutionStepValue(KratosMultiphysics.FACE_HEAT_FLUX,0,q);
+        #ssssssssssssssss
+
+        #self.faceheatflux.FaceHeatFluxDistribution(self.fluid_solver.main_model_part, 0.57102, 0.99997, 0.5299, 0.8, 10000000.0)
+
+        #print(x)
+
+        self.faceheatflux.FaceHeatFluxDistribution(self.fluid_solver.main_model_part, x, y, z, radius, q)
+
+
+        #sssssssssssssssssss 
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
-
+        
         self.CalculateViscosity()	
 
         return (fluid_is_converged and thermal_is_converged)

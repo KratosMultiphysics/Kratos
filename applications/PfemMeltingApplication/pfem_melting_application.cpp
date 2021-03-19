@@ -43,7 +43,11 @@ void KratosPfemMeltingApplication::Register() {
     "       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION" << std::endl;
 
     // Registering variables
+    KRATOS_REGISTER_VARIABLE(ACTIVATION_ENERGY)
+    KRATOS_REGISTER_VARIABLE(ARRHENIUS_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(RADIOUS)
 
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INITIAL_POSITION)
 
 
 }
