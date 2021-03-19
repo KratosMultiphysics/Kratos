@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -33,6 +34,14 @@ void GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>
         GetNameWithAscendants(rModelPart.GetParentModelPart(), rModelPartNames);
     }
 }
+
+std::string JoinModelPartNames(std::vector<std::string>::iterator VecBegin, std::vector<std::string>::iterator VecEnd)
+{
+    return std::accumulate(VecBegin, VecEnd, std::string(),
+                           [](std::string &ss, std::string &s)
+                           { return ss.empty() ? s : ss + "." + s; });
+}
+
 } // empty namespace for internal functions
 
 void Model::Reset()
@@ -40,20 +49,42 @@ void Model::Reset()
     mRootModelPartMap.clear();
 }
 
+void Model::CreateRootModelPart(const std::string ModelPartName, ModelPart::IndexType NewBufferSize)
+{
+    auto pvar_list = Kratos::make_intrusive<VariablesList>();
+
+    ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list, *this );
+    mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); // note that i create it separately since Model is friend of ModelPart but unique_ptr is not
+}
+
 ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize )
 {
     KRATOS_TRY
 
-    auto search = mRootModelPartMap.find(ModelPartName);
-    if( search == mRootModelPartMap.end()) {
-        auto pvar_list = Kratos::make_intrusive<VariablesList>();
+    KRATOS_ERROR_IF( ModelPartName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-            ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list, *this );
-        mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
-
-        return *(mRootModelPartMap[ModelPartName].get());
+    std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(ModelPartName);
+    if (subparts_list.size() == 1) { // it is a root model part
+        auto search = mRootModelPartMap.find(ModelPartName);
+        if (search == mRootModelPartMap.end()) {
+            CreateRootModelPart(ModelPartName, NewBufferSize);
+            return *(mRootModelPartMap[ModelPartName].get());
+        } else {
+            KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
+        }
     } else {
-        KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
+        const std::string root_mp_name = subparts_list[0];
+        ModelPart* p_model_part;
+        auto search = mRootModelPartMap.find(root_mp_name);
+        if (search != mRootModelPartMap.end()) {
+            p_model_part = search->second.get();
+
+        } else {
+            CreateRootModelPart(root_mp_name, NewBufferSize);
+            p_model_part = mRootModelPartMap[root_mp_name].get();
+        }
+
+        return p_model_part->CreateSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
     }
 
     KRATOS_CATCH("")
@@ -63,11 +94,11 @@ void Model::DeleteModelPart( const std::string ModelPartName  )
 {
     KRATOS_TRY
 
-    if(this->HasModelPart(ModelPartName))
+    if(this->HasModelPart(ModelPartName)) {
         mRootModelPartMap.erase(ModelPartName); //NOTE: the corresponding variable list should NOT be removed
-    else
-        KRATOS_WARNING("Info") << "attempting to delete inexisting modelpart : " << ModelPartName << std::endl;
-
+    } else {
+        KRATOS_WARNING("Model") << "attempting to delete inexisting modelpart : " << ModelPartName << std::endl;
+    }
 
     KRATOS_CATCH("")
 }
@@ -141,22 +172,10 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     else //it is a submodelpart with the full name provided
     {
         auto search = mRootModelPartMap.find(subparts_list[0]);
-        if(search != mRootModelPartMap.end())
-        {
+        if(search != mRootModelPartMap.end()) {
             ModelPart* p_model_part = (search->second).get();
-            for(unsigned int i=1; i<subparts_list.size(); ++i)
-            {
-                KRATOS_ERROR_IF_NOT(p_model_part->HasSubModelPart(subparts_list[i]))
-                    << "The ModelPart named : \"" << subparts_list[i]
-                    << "\" was not found as SubModelPart of : \""
-                    << subparts_list[i-1] << "\". The total input string was \""
-                    << rFullModelPartName << "\"" << std::endl;
-                p_model_part = &p_model_part->GetSubModelPart(subparts_list[i]);
-            }
-            return *p_model_part;
-        }
-        else
-        {
+            return p_model_part->GetSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
+        } else {
             KRATOS_ERROR << "root model part " << rFullModelPartName << " not found" << std::endl;
         }
 
@@ -214,22 +233,10 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
     else //it is a submodelpart with the full name provided
     {
         auto search = mRootModelPartMap.find(subparts_list[0]);
-        if(search != mRootModelPartMap.end())
-        {
+        if(search != mRootModelPartMap.end()) {
             ModelPart* p_model_part = (search->second).get();
-            for(unsigned int i=1; i<subparts_list.size(); ++i)
-            {
-                KRATOS_ERROR_IF_NOT(p_model_part->HasSubModelPart(subparts_list[i]))
-                    << "The ModelPart named : \"" << subparts_list[i]
-                    << "\" was not found as SubModelPart of : \""
-                    << subparts_list[i-1] << "\". The total input string was \""
-                    << rFullModelPartName << "\"" << std::endl;
-                p_model_part = &p_model_part->GetSubModelPart(subparts_list[i]);
-            }
-            return *p_model_part;
-        }
-        else
-        {
+            return p_model_part->GetSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
+        } else {
             KRATOS_ERROR << "root model part " << rFullModelPartName << " not found" << std::endl;
         }
 
@@ -247,21 +254,16 @@ bool Model::HasModelPart(const std::string& rFullModelPartName) const
 
     std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(rFullModelPartName);
 
-    //token 0 is the root
+    // token 0 is the root
     auto search = mRootModelPartMap.find(subparts_list[0]);
-    if(search != mRootModelPartMap.end())
-    {
-        ModelPart* mp = (search->second).get();
-        for(unsigned int i=1; i<subparts_list.size(); i++)
-        {
-            if(!mp->HasSubModelPart(subparts_list[i]))
-                return false;
-            mp = &(mp->GetSubModelPart(subparts_list[i]));
+    if(search != mRootModelPartMap.end()) {
+        if (subparts_list.size() == 1) {
+            return true;
+        } else {
+            ModelPart* p_model_part = (search->second).get();
+            return p_model_part->HasSubModelPart(JoinModelPartNames(subparts_list.begin()+1, subparts_list.end()));
         }
-        return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 

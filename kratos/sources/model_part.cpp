@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <sstream>
 
 // External includes
 
@@ -23,6 +23,22 @@
 
 namespace Kratos
 {
+
+namespace {
+
+std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName)
+{
+    std::vector<std::string> rSubPartsList;
+    std::istringstream iss(rFullModelPartName);
+    std::string token;
+    while (std::getline(iss, token, '.')) {
+        rSubPartsList.push_back(token);
+    }
+    return rSubPartsList;
+}
+
+}
+
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
@@ -1698,28 +1714,71 @@ void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
 ///@name Sub Model Parts
 ///@{
 
-ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart& ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
-    // Here a warning would be enough. To be disscussed. Pooyan.
-    KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
-        << "There is an already existing sub model part with name \"" << NewSubModelPartName
-        << "\" in model part: \"" << Name() << "\"" << std::endl;
+    const auto sub_model_parts_list = SplitSubModelPartHierarchy(NewSubModelPartName);
+    if (sub_model_parts_list.size() == 1) {
+        // Here a warning would be enough. To be disscussed. Pooyan.
+        KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
+            << "There is an already existing sub model part with name \"" << NewSubModelPartName
+            << "\" in model part: \"" << Name() << "\"" << std::endl;
 
-    ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-    Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
-    p_model_part->SetParentModelPart(this);
-    p_model_part->mBufferSize = this->mBufferSize;
-    p_model_part->mpProcessInfo = this->mpProcessInfo;
-    mSubModelParts.insert(p_model_part);
-    return *p_model_part;
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+        Kratos::shared_ptr<ModelPart> p_model_part(praw); //we need to construct first a raw pointer
+        p_model_part->SetParentModelPart(this);
+        p_model_part->mBufferSize = this->mBufferSize;
+        p_model_part->mpProcessInfo = this->mpProcessInfo;
+        mSubModelParts.insert(p_model_part);
+        return *p_model_part;
+
+    } else {
+        ModelPart* p_current_mp = this;
+        for (const auto& r_smp_name : sub_model_parts_list) {
+            if (!p_current_mp->HasSubModelPart(r_smp_name)) {
+                p_current_mp = &p_current_mp->CreateSubModelPart(r_smp_name);
+            } else {
+                p_current_mp = &p_current_mp->GetSubModelPart(r_smp_name);
+            }
+        }
+        return *p_current_mp;
+    }
 }
 
 ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
 {
-    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+    const auto sub_model_parts_list = SplitSubModelPartHierarchy(SubModelPartName);
+    if (sub_model_parts_list.size() == 1) {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if (i == mSubModelParts.end()) {
+            std::stringstream err_msg;
+            err_msg << "There is no sub model part with name \"" << SubModelPartName
+                    << "\" in model part \"" << Name() << "\"\n"
+                    << "The the following sub model parts are available:";
+            for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
+                err_msg << "\n\t" << r_avail_smp_name;
+            }
+            KRATOS_ERROR << err_msg.str() << std::endl;
+        }
+        return *i;
 
-    return *i;
+    } else {
+        ModelPart* p_current_mp = this;
+        for (const auto& r_smp_name : sub_model_parts_list) {
+            if (!p_current_mp->HasSubModelPart(r_smp_name)) {
+                std::stringstream err_msg;
+                err_msg << "There is no sub model part with name \"" << r_smp_name
+                        << "\" in model part \"" << p_current_mp->Name() << "\"\n"
+                        << "The total input string was \"" << SubModelPartName << "\"\n"
+                        << "The the following sub model parts are available:";
+                for (const auto& r_avail_smp_name : p_current_mp->GetSubModelPartNames()) {
+                    err_msg << "\n\t" << r_avail_smp_name;
+                }
+                KRATOS_ERROR << err_msg.str() << std::endl;
+            }
+            p_current_mp = &p_current_mp->GetSubModelPart(r_smp_name);
+        }
+        return *p_current_mp;
+    }
 }
 
 ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
@@ -1778,7 +1837,19 @@ const ModelPart& ModelPart::GetParentModelPart() const
 
 bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
 {
-    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    const auto sub_model_parts_list = SplitSubModelPartHierarchy(ThisSubModelPartName);
+    if (sub_model_parts_list.size() == 1) {
+        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    } else {
+        ModelPart* p_current_mp = const_cast<ModelPart*>(this);
+        for (const auto& r_smp_name : sub_model_parts_list) {
+            if (!p_current_mp->HasSubModelPart(r_smp_name)) {
+                return false;
+            }
+            p_current_mp = &p_current_mp->GetSubModelPart(r_smp_name);
+        }
+        return true;
+    }
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()
