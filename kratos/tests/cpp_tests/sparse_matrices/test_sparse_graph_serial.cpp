@@ -603,16 +603,9 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
         KRATOS_CHECK_EQUAL(item.second, converted_A_map[item.first]);
     for(const auto& item : converted_A_map)
         KRATOS_CHECK_EQUAL(item.second, reference_map[item.first]);
-KRATOS_WATCH(__LINE__)
+
     //matrix matrix multiplication
     CsrMatrix<double> C = AmgclCSRSpMMUtilities::SparseMultiply(A,Aconverted); //C=A*Aconverted
-KRATOS_WATCH(__LINE__)
-A.~CsrMatrix<double>();
-KRATOS_WATCH(__LINE__)
-Aconverted.~CsrMatrix<double>();
-KRATOS_WATCH(__LINE__)
-C.~CsrMatrix<double>();
-KRATOS_WATCH(__LINE__)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSuite)

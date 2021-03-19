@@ -16,6 +16,7 @@
 
 // System includes
 #include <iostream>
+#include <span/span.hpp>
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 
@@ -26,7 +27,6 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
-#include <span/span.hpp>
 
 namespace Kratos
 {
