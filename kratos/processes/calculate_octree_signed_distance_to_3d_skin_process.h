@@ -35,7 +35,6 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -362,8 +361,8 @@ private:
           std::vector<OctreeType::cell_type*> all_leaves;
           mOctree.GetAllLeavesVector(all_leaves);
 
-          block_for_each(all_leaves, [&](OctreeType::cell_type& rleaf){
-              *(rleaf.pGetDataPointer()) = ConfigurationType::AllocateData();
+          IndexPartition<std::size_t>(all_leaves.size()).for_each([&](std::size_t Index){
+              *(all_leaves[Index]->pGetDataPointer()) = ConfigurationType::AllocateData();
           });
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
@@ -459,7 +458,10 @@ private:
           ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
           int nodes_size = nodes.size();
           // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
-            VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
+
+        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
+            nodes[Index]->GetSolutionStepValue(DISTANCE) = 1.00;
+        });
 
             std::vector<CellType*> leaves;
 
@@ -469,11 +471,11 @@ private:
           for(int i = 0 ; i < leaves_size ; i++)
               CalculateNotEmptyLeavesDistance(leaves[i]);
 
-          block_for_each(nodes, [this](Node<3>& rNode){
-              CalculateNodeDistance(rNode);
-          });
+        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
+            CalculateNodeDistance(*(nodes[Index]));
+        });
 
-          Timer::Stop("Calculate Distances");
+        Timer::Stop("Calculate Distances");
 
       }
 
@@ -484,7 +486,9 @@ private:
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
 
-            VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
+        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
+            nodes[Index]->GetSolutionStepValue(DISTANCE) = 1.00;
+        });
 
             std::vector<CellType*> leaves;
 
