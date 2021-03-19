@@ -90,7 +90,8 @@ class FaceAnalyzerClass:
         for sub_part in self.model_part:
             if sub_part[IS_GHOST] == True:
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name])
+                self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name,
+                                                                                 analytic_face_watcher=self.face_watcher_dict[sub_part.Name])
 
         self.RemoveFiles()
 
