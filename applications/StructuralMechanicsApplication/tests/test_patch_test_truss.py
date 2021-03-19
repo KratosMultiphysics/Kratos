@@ -699,6 +699,90 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic(mp,time_i)
             time_step += 1
 
+    def test_truss3D2N_dynamic_energy(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        _add_explicit_variables(mp)
+        self._apply_material_properties(mp,dim)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,10.0)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e4)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.0)
+        self._add_constitutive_law(mp,True)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.5,0.0,0.0)
+        mp.CreateNewNode(3,1.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2,3])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([3])
+        bcs_neumann.AddConditions([1])
+        #create Elements
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_X = 100000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+        self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.01
+        time_delta = 0.00002
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        strategy = _create_dynamic_explicit_strategy(mp,"central_differences")
+
+        e_damp = 0.0
+        while (time_i <= time_end):
+
+            e_strain = 0.0
+            e_kin = 0.0
+            e_ext = 0.0
+
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+            #solve + compare
+            strategy.Solve()
+
+            e_ext += Force_X * mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
+
+            for element_i in mp.Elements:
+                e_strain += element_i.Calculate(KratosMultiphysics.STRAIN_ENERGY,mp.ProcessInfo)
+                e_kin    += element_i.Calculate(KratosMultiphysics.KINETIC_ENERGY,mp.ProcessInfo)
+                e_damp += time_delta*element_i.Calculate(StructuralMechanicsApplication.ENERGY_DAMPING_DISSIPATION,mp.ProcessInfo)
+                # adding external energy due to dead load
+                e_ext   += element_i.Calculate(KratosMultiphysics.EXTERNAL_ENERGY,mp.ProcessInfo)
+
+
+
+            # total energy should be ca. 0
+            e_total = sum([-e_ext,e_kin,e_strain,e_damp])
+            self.assertLessEqual(abs(e_total), 60.0)
+            # respective energy parts should be > or < 0 after first step
+            if time_step>0:
+                self.assertGreater(abs(e_ext), 0.0)
+                self.assertGreater(abs(e_damp), 0.0)
+                self.assertGreater(abs(e_kin), 0.0)
+                self.assertGreater(abs(e_strain), 0.0)
+
+            time_step += 1
+
     def test_truss3D2N_dynamic_consistent_mm(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
