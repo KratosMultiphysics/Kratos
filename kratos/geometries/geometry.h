@@ -31,6 +31,7 @@
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
+#include "integration/integration_info.h"
 
 namespace Kratos
 {
@@ -2110,11 +2111,15 @@ public:
      * @return integration points.
      */
     virtual void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const
     {
-        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
+        if (rIntegrationInfo.GetIntegrationMethod() == IntegrationMethod::NumberOfIntegrationMethods) {
+            rIntegrationPoints = IntegrationPoints(mpGeometryData->DefaultIntegrationMethod());
+        }
+        else {
+            rIntegrationPoints = IntegrationPoints(rIntegrationInfo.GetIntegrationMethod());
+        }
     }
 
     ///@}
@@ -2153,10 +2158,11 @@ public:
      */
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo)
     {
         IntegrationPointsArrayType IntegrationPoints;
-        CreateIntegrationPoints(IntegrationPoints);
+        CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
