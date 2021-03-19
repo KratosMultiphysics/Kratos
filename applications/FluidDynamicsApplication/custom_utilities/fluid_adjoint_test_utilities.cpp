@@ -113,6 +113,8 @@ void FluidAdjointTestUtilities::Testing<TContainerType>::CalculateResidual(
     typename TContainerType::data_type& rEntity,
     const ProcessInfo& rProcessInfo)
 {
+    // QSVMS also supports BDF2 time scheme
+    // TODO: check for the time scheme.
     const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
 
     Vector nodal_scalar_values, current_nodal_scalar_rate_values, old_nodal_scalar_rate_values;
