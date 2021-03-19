@@ -15,8 +15,6 @@
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
-#include "custom_processes/move_model_part_process.h"
-
 
 namespace Kratos
 {
@@ -70,7 +68,6 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         // Mark wake element and save their nodal distances to the wake
         if (is_wake_element && it_elem->Is(ACTIVE)) {
             it_elem->SetValue(WAKE, true);
-
             if (is_embedded){
                 it_elem->Set(STRUCTURE, true);
                 auto& r_geometry = it_elem->GetGeometry();
@@ -82,7 +79,6 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
             else{
-                // it_elem->SetValue(WAKE, true);
                 auto& r_geometry = it_elem->GetGeometry();
                 for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
