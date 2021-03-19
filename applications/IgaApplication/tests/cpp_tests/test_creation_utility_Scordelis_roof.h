@@ -33,7 +33,7 @@ namespace TestCreationUtilityScordelisRoof
     ///@name Operations
     ///@{
 
-    void AddDisplacementDofs(ModelPart& rModelPart) {
+    inline void AddDisplacementDofs(ModelPart& rModelPart) {
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.AddDof(DISPLACEMENT_X);
             r_node.AddDof(DISPLACEMENT_Y);
@@ -41,7 +41,7 @@ namespace TestCreationUtilityScordelisRoof
         }
     }
 
-    NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
+    inline NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
         
         SizeType p = PolynomialDegree;
         SizeType q = PolynomialDegree;
@@ -221,7 +221,7 @@ namespace TestCreationUtilityScordelisRoof
             points, p, q, knot_u, knot_v, weight);
     }
 
-    typename Geometry<NodeType>::Pointer GetQuadraturePointGeometry(
+    inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometry(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
     {
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
