@@ -22,7 +22,7 @@ namespace Kratos
 	///@name Initialize Functions
 	///@{
 
-	void Shell5pElement::Initialize()
+	void Shell5pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		const GeometryType& r_geometry = GetGeometry();
@@ -457,8 +457,8 @@ namespace Kratos
 
 	void Shell5pElement::EquationIdVector(
 		EquationIdVectorType& rResult,
-		ProcessInfo& rCurrentProcessInfo
-	)
+		const ProcessInfo& rCurrentProcessInfo
+	) const
 	{
 		KRATOS_TRY;
 		const SizeType number_of_control_points = GetGeometry().size();
@@ -481,8 +481,8 @@ namespace Kratos
 
 	void Shell5pElement::GetDofList(
 		DofsVectorType& rElementalDofList,
-		ProcessInfo& rCurrentProcessInfo
-	)
+		const ProcessInfo& rCurrentProcessInfo
+	) const
 	{
 		KRATOS_TRY;
 		const SizeType number_of_control_points = GetGeometry().size();

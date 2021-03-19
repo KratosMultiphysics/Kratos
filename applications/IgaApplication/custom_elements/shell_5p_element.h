@@ -264,8 +264,8 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    ) final;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -274,14 +274,14 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    ) final;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     ///@}
     ///@name Base Class Operations
     ///@{
 
-    void Initialize() final;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) final;
 
