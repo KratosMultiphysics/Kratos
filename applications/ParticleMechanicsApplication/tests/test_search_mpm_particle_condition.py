@@ -52,8 +52,7 @@ class TestSearchMPMParticleCondition(KratosUnittest.TestCase):
             model_part.CreateNewNode(13, 0.1, 0.1, 0.1)
 
 
-    def _create_background_nodes(self, model_part, dimension, geometry_element):
-        
+    def _create_background_nodes(self, model_part, dimension, geometry_element):  
         if geometry_element == "Triangle":
             model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
             model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -91,7 +90,6 @@ class TestSearchMPMParticleCondition(KratosUnittest.TestCase):
 
 
     def _create_background_elements(self, model_part, dimension, geometry_element):
-        
         if geometry_element == "Triangle":
             if (dimension == 2):
                 model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
