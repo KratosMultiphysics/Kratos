@@ -53,6 +53,7 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
@@ -62,7 +63,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_5p_element->Initialize();
+        p_shell_5p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
@@ -100,6 +101,7 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
@@ -109,7 +111,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_5p_element->Initialize();
+        p_shell_5p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
@@ -147,6 +149,7 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
@@ -156,7 +159,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_5p_element->Initialize();
+        p_shell_5p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
@@ -194,6 +197,7 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
@@ -203,7 +207,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_5p_element->Initialize();
+        p_shell_5p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;
@@ -258,6 +262,7 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
@@ -267,7 +272,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_5p_element->Initialize();
+        p_shell_5p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;
@@ -329,6 +334,7 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
@@ -338,7 +344,7 @@ namespace Testing
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
 
-        p_shell_5p_element->Initialize();
+        p_shell_5p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;

@@ -72,7 +72,7 @@ namespace Kratos
         {};
 
         /// Destructor
-        virtual ~MomentLoadCondition() override
+        virtual ~MomentLoadCondition() final
         {};
 
         ///@}
@@ -84,7 +84,7 @@ namespace Kratos
             IndexType NewId,
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties
-        ) const override
+        ) const final
         {
             return Kratos::make_intrusive<MomentLoadCondition>(
                 NewId, pGeom, pProperties);
@@ -95,7 +95,7 @@ namespace Kratos
             IndexType NewId,
             NodesArrayType const& ThisNodes,
             PropertiesType::Pointer pProperties
-        ) const override
+        ) const final
         {
             return Kratos::make_intrusive< MomentLoadCondition >(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
@@ -113,7 +113,7 @@ namespace Kratos
         */
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) final
         {
             MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -129,7 +129,7 @@ namespace Kratos
         */
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) final
         {
             VectorType right_hand_side_vector = Vector(0);
 
@@ -148,7 +148,7 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) final
         {
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo, true, true);
@@ -161,8 +161,8 @@ namespace Kratos
         */
         void EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo
-        ) override;
+            const ProcessInfo& rCurrentProcessInfo
+        ) const final;
 
         /**
         * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -171,8 +171,8 @@ namespace Kratos
         */
         void GetDofList(
             DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo
-        ) override;
+           const ProcessInfo& rCurrentProcessInfo
+        ) const final;
 
         /**
         * This functions calculates both the RHS and the LHS
@@ -185,7 +185,7 @@ namespace Kratos
         void CalculateAll(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
+            const ProcessInfo& rCurrentProcessInfo,
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag
         );
@@ -205,7 +205,7 @@ namespace Kratos
         ///@{
 
         /// Turn back information as a string.
-        std::string Info() const override
+        std::string Info() const final
         {
             std::stringstream buffer;
             buffer << "\"LoadCondition\" #" << Id();
@@ -213,13 +213,13 @@ namespace Kratos
         }
 
         /// Print information about this object.
-        void PrintInfo(std::ostream& rOStream) const override
+        void PrintInfo(std::ostream& rOStream) const final
         {
             rOStream << "\"LoadCondition\" #" << Id();
         }
 
         /// Print object's data.
-        void PrintData(std::ostream& rOStream) const override
+        void PrintData(std::ostream& rOStream) const final
         {
             pGetGeometry()->PrintData(rOStream);
         }
@@ -232,12 +232,12 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override
+        virtual void save(Serializer& rSerializer) const final
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
         }
 
-        virtual void load(Serializer& rSerializer) override
+        virtual void load(Serializer& rSerializer) final
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         }

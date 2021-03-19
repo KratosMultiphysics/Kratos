@@ -265,7 +265,7 @@ public:
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+    ) const final;
 
     /**
     * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
@@ -275,7 +275,7 @@ public:
     void GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
-    ) const override;
+    ) const final;
 
     ///@}
     ///@name Base Class Operations
