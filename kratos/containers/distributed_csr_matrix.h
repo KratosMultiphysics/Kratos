@@ -70,19 +70,19 @@ public:
     ///@name Life Cycle
     ///@{
     DistributedCsrMatrix() //default constructor. To be used for low level operations
-    : mrComm(ParallelEnvironment::GetDefaultDataCommunicator())
+        : mrComm(ParallelEnvironment::GetDefaultDataCommunicator())
     {}
 
     DistributedCsrMatrix(const DistributedSparseGraph<IndexType>& rSparseGraph)
         :
-            mrComm(rSparseGraph.GetComm())
+        mrComm(rSparseGraph.GetComm())
     {
         mpRowNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rSparseGraph.GetRowNumbering());
 
         //compute the columns size
         IndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         IndexType tot_col_size = max_col_index+1;
-        mpColNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm, tot_col_size, mrComm.Size()); 
+        mpColNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm, tot_col_size, mrComm.Size());
 
         mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
@@ -91,12 +91,16 @@ public:
         const IndexType nlocal_rows = local_graph.Size();
 
         IndexType diag_nnz = 0, offdiag_nnz=0;
-        for(const auto& entries : local_graph){
-            for(const auto& global_j : entries){
-                if(GetColNumbering().IsLocal(global_j)){ 
+        for(const auto& entries : local_graph)
+        {
+            for(const auto& global_j : entries)
+            {
+                if(GetColNumbering().IsLocal(global_j))
+                {
                     diag_nnz += 1;
                 }
-                else{
+                else
+                {
                     offdiag_nnz += 1;
                     mOffDiagonalLocalIds[global_j] = 0;
                 }
@@ -129,12 +133,15 @@ public:
         else
         {
             counter = 0;
-            for(const auto& entries : local_graph){
+            for(const auto& entries : local_graph)
+            {
                 unsigned int k = 0;
                 IndexType row_begin = mDiagonalBlock.index1_data()[counter];
-                for(auto global_j : entries){
-                    
-                    if(GetColNumbering().IsLocal(global_j)){
+                for(auto global_j : entries)
+                {
+
+                    if(GetColNumbering().IsLocal(global_j))
+                    {
                         IndexType local_j = GetColNumbering().LocalId(global_j);
                         mDiagonalBlock.index2_data()[row_begin+k] = local_j;
                         mDiagonalBlock.value_data()[row_begin+k] = 0.0;
@@ -146,38 +153,42 @@ public:
             }
 
             mDiagonalBlock.SetColSize(GetColNumbering().LocalSize());
-        }        
+        }
 #ifdef KRATOS_DEBUG
         mDiagonalBlock.CheckColSize();
 #endif
         //ensure columns are ordered
-        for(IndexType i = 0; i<nlocal_rows; ++i){
+        for(IndexType i = 0; i<nlocal_rows; ++i)
+        {
             IndexType row_begin = mDiagonalBlock.index1_data()[i];
             IndexType row_end = mDiagonalBlock.index1_data()[i+1];
 
             if(row_end - row_begin > 0)
-                std::sort(mDiagonalBlock.index2_data().begin() + row_begin ,mDiagonalBlock.index2_data().begin()+row_end); 
+                std::sort(mDiagonalBlock.index2_data().begin() + row_begin,mDiagonalBlock.index2_data().begin()+row_end);
         }
 
         //*******************************
         //construct offdiagonal block
-        
+
         //store off-diagonal block
-        mOffDiagonalBlock.reserve(nlocal_rows, offdiag_nnz); 
+        mOffDiagonalBlock.reserve(nlocal_rows, offdiag_nnz);
         if(offdiag_nnz == 0) //empty matrix
         {
             for(unsigned int i=0; i<nlocal_rows+1; ++i)
                 mOffDiagonalBlock.index1_data()[i] = 0;
-            mOffDiagonalBlock.SetColSize(mOffDiagonalLocalIds.size()); 
+            mOffDiagonalBlock.SetColSize(mOffDiagonalLocalIds.size());
         }
         else
         {
             counter = 0;
-            for(const auto& entries : local_graph){
+            for(const auto& entries : local_graph)
+            {
                 unsigned int k = 0;
                 IndexType row_begin = mOffDiagonalBlock.index1_data()[counter];
-                for(auto global_j : entries){
-                    if( ! GetColNumbering().IsLocal(global_j)){
+                for(auto global_j : entries)
+                {
+                    if( ! GetColNumbering().IsLocal(global_j))
+                    {
                         IndexType local_j = GetOffDiagonalBlockLocalId(global_j);
                         mOffDiagonalBlock.index2_data()[row_begin+k] = local_j;
                         mOffDiagonalBlock.value_data()[row_begin+k] = 0.0;
@@ -194,17 +205,18 @@ public:
 #endif
 
         //ensure columns are ordered
-        for(IndexType i = 0; i<nlocal_rows; ++i){
+        for(IndexType i = 0; i<nlocal_rows; ++i)
+        {
             IndexType row_begin = mOffDiagonalBlock.index1_data()[i];
             IndexType row_end = mOffDiagonalBlock.index1_data()[i+1];
             if(row_end - row_begin > 0)
-                std::sort(mOffDiagonalBlock.index2_data().begin() + row_begin ,mOffDiagonalBlock.index2_data().begin()+row_end); 
+                std::sort(mOffDiagonalBlock.index2_data().begin() + row_begin,mOffDiagonalBlock.index2_data().begin()+row_end);
         }
 
         PrepareNonLocalCommunications(rSparseGraph);
 
         //mount importer for SpMV calculations
-        auto pimporter = Kratos::make_unique<DistributedVectorImporter<TDataType,IndexType>>(GetComm(),mOffDiagonalGlobalIds, GetColNumbering()); 
+        auto pimporter = Kratos::make_unique<DistributedVectorImporter<TDataType,IndexType>>(GetComm(),mOffDiagonalGlobalIds, GetColNumbering());
         mpVectorImporter.swap(pimporter);
     }
 
@@ -261,7 +273,7 @@ public:
         mpVectorImporter = std::move(rOtherMatrix.mpVectorImporter);
     }
     /// Destructor.
-    virtual ~DistributedCsrMatrix(){}
+    virtual ~DistributedCsrMatrix() {}
 
     /// Assignment operator. TODO: decide if we do want to allow it
     DistributedCsrMatrix& operator=(DistributedCsrMatrix const& rOther)=delete;
@@ -281,27 +293,27 @@ public:
     {
         return *mpRowNumbering;
     }
-    
+
     inline const DistributedNumbering<IndexType>& GetColNumbering() const
     {
         return *mpColNumbering;
     }
 
 
-    inline typename DistributedNumbering<IndexType>::UniquePointer& pGetRowNumbering() 
+    inline typename DistributedNumbering<IndexType>::UniquePointer& pGetRowNumbering()
     {
         return mpRowNumbering;
-    }   
+    }
 
-    inline typename DistributedNumbering<IndexType>::UniquePointer& pGetColNumbering() 
+    inline typename DistributedNumbering<IndexType>::UniquePointer& pGetColNumbering()
     {
         return mpColNumbering;
-    } 
-    
-    inline typename DistributedVectorImporter<TDataType,IndexType>::UniquePointer& pGetVectorImporter() 
+    }
+
+    inline typename DistributedVectorImporter<TDataType,IndexType>::UniquePointer& pGetVectorImporter()
     {
         return mpVectorImporter;
-    } 
+    }
 
     void SetValue(const TDataType value)
     {
@@ -316,72 +328,88 @@ public:
 
     IndexType size2() const
     {
-        return GetColNumbering().Size(); 
+        return GetColNumbering().Size();
     }
 
-    inline IndexType local_nnz() const{
+    inline IndexType local_nnz() const
+    {
         return mDiagonalBlock.nnz();
     }
 
-    const DataCommunicator& GetComm() const {
+    const DataCommunicator& GetComm() const
+    {
         return mrComm;
     }
 
-    inline CsrMatrix<TDataType,IndexType>& GetDiagonalBlock(){
+    inline CsrMatrix<TDataType,IndexType>& GetDiagonalBlock()
+    {
         return mDiagonalBlock;
     }
-    inline CsrMatrix<TDataType,IndexType>& GetOffDiagonalBlock(){
+    inline CsrMatrix<TDataType,IndexType>& GetOffDiagonalBlock()
+    {
         return mOffDiagonalBlock;
     }
 
-    inline const CsrMatrix<TDataType,IndexType>& GetDiagonalBlock() const{
+    inline const CsrMatrix<TDataType,IndexType>& GetDiagonalBlock() const
+    {
         return mDiagonalBlock;
     }
-    inline const CsrMatrix<TDataType,IndexType>& GetOffDiagonalBlock() const{
+    inline const CsrMatrix<TDataType,IndexType>& GetOffDiagonalBlock() const
+    {
         return mOffDiagonalBlock;
     }
 
-    const std::map<IndexType, IndexType>& GetOffDiagonalLocalIds() const{
+    const std::map<IndexType, IndexType>& GetOffDiagonalLocalIds() const
+    {
         return mOffDiagonalLocalIds; //usage: mOffDiagonalLocalIds[global_id] contains the local_id associated to that global_id (for a off diagonal block entry)
     }
 
-    std::map<IndexType, IndexType>& GetOffDiagonalLocalIds(){
+    std::map<IndexType, IndexType>& GetOffDiagonalLocalIds()
+    {
         return mOffDiagonalLocalIds; //usage: mOffDiagonalLocalIds[global_id] contains the local_id associated to that global_id (for a off diagonal block entry)
     }
 
-    const DenseVector<IndexType>& GetOffDiagonalGlobalIds() const{
+    const DenseVector<IndexType>& GetOffDiagonalGlobalIds() const
+    {
         return mOffDiagonalGlobalIds;
     }
 
-    DenseVector<IndexType>& GetOffDiagonalGlobalIds(){
+    DenseVector<IndexType>& GetOffDiagonalGlobalIds()
+    {
         return mOffDiagonalGlobalIds;
     }
 
-    
 
-    IndexType GetOffDiagonalBlockLocalId(IndexType GlobalJ) const{
+
+    IndexType GetOffDiagonalBlockLocalId(IndexType GlobalJ) const
+    {
         auto it = mOffDiagonalLocalIds.find(GlobalJ);
         KRATOS_DEBUG_ERROR_IF( it == mOffDiagonalLocalIds.end() ) << "GlobalJ is not in the nonlocal list" << std::endl;
         return it->second;
     }
 
-    IndexType GetOffDiaGlobalId(IndexType LocalJ) const{
+    IndexType GetOffDiaGlobalId(IndexType LocalJ) const
+    {
         return mOffDiagonalGlobalIds[LocalJ];
     }
 
-    TDataType& GetLocalDataByGlobalId(IndexType GlobalI, IndexType GlobalJ){
+    TDataType& GetLocalDataByGlobalId(IndexType GlobalI, IndexType GlobalJ)
+    {
         KRATOS_DEBUG_ERROR_IF(  ! GetRowNumbering().IsLocal(GlobalI) ) << "non local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << std::endl;
 
         IndexType LocalI = GetRowNumbering().LocalId(GlobalI);
-        if(GetColNumbering().IsLocal(GlobalJ)){ 
+        if(GetColNumbering().IsLocal(GlobalJ))
+        {
             return mDiagonalBlock( LocalI, GetColNumbering().LocalId(GlobalJ) );
         }
-        else{
+        else
+        {
             return mOffDiagonalBlock( LocalI, GetOffDiagonalBlockLocalId(GlobalJ) );
         }
     }
 
-    TDataType& GetNonLocalCachedDataByGlobalId(IndexType GlobalI, IndexType GlobalJ){
+    TDataType& GetNonLocalCachedDataByGlobalId(IndexType GlobalI, IndexType GlobalJ)
+    {
         KRATOS_DEBUG_ERROR_IF(  GetRowNumbering().IsLocal(GlobalI) ) << " local row access for GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << " expected to be nonlocal" << std::endl;
         auto it = mNonLocalData.find(std::make_pair(GlobalI,GlobalJ));
         KRATOS_DEBUG_ERROR_IF(it == mNonLocalData.end()) << " entry GlobalI,GlobalJ = " << GlobalI << " " << GlobalJ << " not found in NonLocalData" << std::endl;
@@ -391,7 +419,8 @@ public:
     DenseVector<IndexType> GetDiagonalIndex2DataInGlobalNumbering() const
     {
         DenseVector<IndexType> tmp(GetDiagonalBlock().index2_data().size());
-        IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i){
+        IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i)
+        {
             tmp[i] = GetColNumbering().GlobalId(   GetDiagonalBlock().index2_data()[i]  );
         });
         return tmp;
@@ -400,7 +429,8 @@ public:
     DenseVector<IndexType> GetOffDiagonalIndex2DataInGlobalNumbering() const
     {
         DenseVector<IndexType> tmp(GetOffDiagonalBlock().index2_data().size());
-        IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i){
+        IndexPartition<IndexType>(tmp.size()).for_each([&](IndexType i)
+        {
             tmp[i] = GetOffDiaGlobalId(   GetOffDiagonalBlock().index2_data()[i]  );
         });
         return tmp;
@@ -420,7 +450,7 @@ public:
     //-
     //*
 
-    // y += A*x  -- where A is *this  
+    // y += A*x  -- where A is *this
     void SpMV(const DistributedSystemVector<TDataType,TIndexType>& x,
               DistributedSystemVector<TDataType,TIndexType>& y) const
     {
@@ -432,7 +462,7 @@ public:
 
     //y = alpha*y + beta*A*x
     void SpMV(const TDataType alpha,
-              const DistributedSystemVector<TDataType,TIndexType>& x, 
+              const DistributedSystemVector<TDataType,TIndexType>& x,
               const TDataType beta,
               DistributedSystemVector<TDataType,TIndexType>& y) const
     {
@@ -442,45 +472,45 @@ public:
         mDiagonalBlock.SpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
     }
 
-    // y += A^t*x  -- where A is *this    
-    DistributedVectorExporter<TIndexType>* TransposeSpMV(const DistributedSystemVector<TDataType,TIndexType>& x, 
-                       DistributedSystemVector<TDataType,TIndexType>& y, 
-                       DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
-                       ) const
+    // y += A^t*x  -- where A is *this
+    DistributedVectorExporter<TIndexType>* TransposeSpMV(const DistributedSystemVector<TDataType,TIndexType>& x,
+            DistributedSystemVector<TDataType,TIndexType>& y,
+            DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
+                                                        ) const
     {
         mDiagonalBlock.TransposeSpMV(x.GetLocalData(),y.GetLocalData());
 
         DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagonalBlock.size2());
         mOffDiagonalBlock.TransposeSpMV(x.GetLocalData(),non_local_transpose_data);
 
-        if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight 
+        if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight
         {
             //constructing the exporter requires communication, so the efficiency of the TransposeSpMV can be increased by passing a constructed exporter
-            pTransposeExporter = new DistributedVectorExporter<TIndexType>(GetComm(),mOffDiagonalGlobalIds,y.GetNumbering()); 
+            pTransposeExporter = new DistributedVectorExporter<TIndexType>(GetComm(),mOffDiagonalGlobalIds,y.GetNumbering());
         }
         pTransposeExporter->Apply(y,non_local_transpose_data);
 
         return pTransposeExporter;
     }
 
-    // y += A^t*x  -- where A is *this    
+    // y += A^t*x  -- where A is *this
     DistributedVectorExporter<TIndexType>* TransposeSpMV(
-                       TDataType alpha,
-                       const DistributedSystemVector<TDataType,TIndexType>& x, 
-                       TDataType beta,
-                       DistributedSystemVector<TDataType,TIndexType>& y, 
-                       DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
-                       ) const
+        TDataType alpha,
+        const DistributedSystemVector<TDataType,TIndexType>& x,
+        TDataType beta,
+        DistributedSystemVector<TDataType,TIndexType>& y,
+        DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
+    ) const
     {
         mDiagonalBlock.TransposeSpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
 
         DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagonalBlock.size2());
         mOffDiagonalBlock.TransposeSpMV(alpha,x.GetLocalData(),beta,non_local_transpose_data);
 
-        if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight 
+        if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight
         {
             //constructing the exporter requires communication, so the efficiency of the TransposeSpMV can be increased by passing a constructed exporter
-            pTransposeExporter = new DistributedVectorExporter<TIndexType>(GetComm(),mOffDiagonalGlobalIds,y.GetNumbering()); 
+            pTransposeExporter = new DistributedVectorExporter<TIndexType>(GetComm(),mOffDiagonalGlobalIds,y.GetNumbering());
         }
         pTransposeExporter->Apply(y,non_local_transpose_data);
 
@@ -497,14 +527,16 @@ public:
     }
 
 
-    void BeginAssemble(){
-        //set to zero non local data 
+    void BeginAssemble()
+    {
+        //set to zero non local data
         for(auto& item : mNonLocalData)
             item.second = 0.0;
 
-    } 
+    }
 
-    void FinalizeAssemble(){
+    void FinalizeAssemble()
+    {
         //communicate data to finalize the assembly
         auto& rComm = GetComm();
 
@@ -521,13 +553,13 @@ public:
 
                 send_data.resize(direct_senddata_access.size());
                 recv_data.resize(direct_recvdata_access.size());
-                
+
                 for(IndexType i=0; i<send_data.size(); ++i)
                 {
                     send_data[i] = *(direct_senddata_access[i]);
                 }
 
-                rComm.SendRecv(send_data, color, 0, recv_data, color, 0); 
+                rComm.SendRecv(send_data, color, 0, recv_data, color, 0);
 
                 for(IndexType i=0; i<recv_data.size(); ++i)
                 {
@@ -537,7 +569,7 @@ public:
         }
 
 
-    } 
+    }
 
 
 
@@ -552,11 +584,12 @@ public:
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
 
-        for(unsigned int i=0; i<EquationId.size(); ++i){
+        for(unsigned int i=0; i<EquationId.size(); ++i)
+        {
             const IndexType global_i = EquationId[i];
             if(GetRowNumbering().IsLocal(global_i))
             {
-               for(unsigned int j = 0; j<EquationId.size(); ++j)
+                for(unsigned int j = 0; j<EquationId.size(); ++j)
                 {
                     const IndexType global_j = EquationId[j];
                     TDataType& value = GetLocalDataByGlobalId(global_i,global_j);
@@ -570,7 +603,7 @@ public:
                     const IndexType global_j = EquationId[j];
                     TDataType& value = GetNonLocalCachedDataByGlobalId(global_i,global_j);
                     AtomicAdd(value, rMatrixInput(i,j));
-                }                
+                }
 
             }
         }
@@ -587,8 +620,8 @@ public:
         {
             TDataType& v = GetNonLocalCachedDataByGlobalId(GlobalI,GlobalJ);
             AtomicAdd(v, Value);
-        }                
-    }   
+        }
+    }
 
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
@@ -600,12 +633,13 @@ public:
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != RowEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != ColEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
 
-        for(unsigned int i=0; i<RowEquationId.size(); ++i){
+        for(unsigned int i=0; i<RowEquationId.size(); ++i)
+        {
             const IndexType global_i = RowEquationId[i];
 
             if(GetRowNumbering().IsLocal(global_i))
             {
-               for(unsigned int j = 0; j<ColEquationId.size(); ++j)
+                for(unsigned int j = 0; j<ColEquationId.size(); ++j)
                 {
                     const IndexType global_j = ColEquationId[j];
                     TDataType& value = GetLocalDataByGlobalId(global_i,global_j);
@@ -619,7 +653,7 @@ public:
                     const IndexType global_j = ColEquationId[j];
                     TDataType& value = GetNonLocalCachedDataByGlobalId(global_i,global_j);
                     AtomicAdd(value, rMatrixInput(i,j));
-                }                
+                }
 
             }
         }
@@ -632,22 +666,24 @@ public:
         {
             IndexType row_begin = mDiagonalBlock.index1_data()[i];
             IndexType row_end   = mDiagonalBlock.index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k){
+            for(IndexType k = row_begin; k < row_end; ++k)
+            {
                 IndexType j = mDiagonalBlock.index2_data()[k];
                 TDataType v = mDiagonalBlock.value_data()[k];
-                value_map[{GetRowNumbering().GlobalId(i),GetColNumbering().GlobalId(j)}] = v;
-            }  
+                value_map[ {GetRowNumbering().GlobalId(i),GetColNumbering().GlobalId(j)}] = v;
+            }
         }
 
         for(unsigned int i=0; i<local_size1(); ++i)
         {
             IndexType row_begin = mOffDiagonalBlock.index1_data()[i];
             IndexType row_end   = mOffDiagonalBlock.index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k){
+            for(IndexType k = row_begin; k < row_end; ++k)
+            {
                 IndexType j = mOffDiagonalBlock.index2_data()[k];
                 TDataType v = mOffDiagonalBlock.value_data()[k];
-                value_map[{GetRowNumbering().GlobalId(i),mOffDiagonalGlobalIds[j]}] = v;
-            }  
+                value_map[ {GetRowNumbering().GlobalId(i),mOffDiagonalGlobalIds[j]}] = v;
+            }
         }
 
         return value_map;
@@ -687,14 +723,18 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedCsrMatrix";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "DistributedCsrMatrix";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    virtual void PrintData(std::ostream& rOStream) const
+    {
         std::cout << "--- Diagonal Block: ---" << std::endl;
         std::cout << "size1 : " << GetDiagonalBlock().size1() <<std::endl;
         std::cout << "size2 : " << GetDiagonalBlock().size2() <<std::endl;
-        std::cout << "nnz : " << GetDiagonalBlock().nnz() <<std::endl; 
+        std::cout << "nnz : " << GetDiagonalBlock().nnz() <<std::endl;
         std::cout << "index1_data : " << std::endl;
         for(auto item : GetDiagonalBlock().index1_data())
             std::cout << item << ",";
@@ -706,17 +746,17 @@ public:
         std::cout << "index2_data in global numbering: " << std::endl;
         for(auto item : GetDiagonalIndex2DataInGlobalNumbering())
             std::cout << item << ",";
-        std::cout << std::endl;        
+        std::cout << std::endl;
         std::cout << "value_data  : " << std::endl;
         for(auto item : GetDiagonalBlock().value_data())
             std::cout << item << ",";
-        std::cout << std::endl; 
+        std::cout << std::endl;
         //std::cout << "as map      : " << GetDiagonalBlock().ToMap() << std::endl;
         std::cout << std::endl;
         std::cout << "--- OffDiagonal Block: ---" << std::endl;
         std::cout << "size1 : " << GetOffDiagonalBlock().size1() <<std::endl;
         std::cout << "size2 : " << GetOffDiagonalBlock().size2() <<std::endl;
-        std::cout << "nnz : " << GetOffDiagonalBlock().nnz() <<std::endl; 
+        std::cout << "nnz : " << GetOffDiagonalBlock().nnz() <<std::endl;
         std::cout << "index1_data : " << std::endl;
         for(auto item : GetOffDiagonalBlock().index1_data())
             std::cout << item << ",";
@@ -724,11 +764,11 @@ public:
         std::cout << "index2_data in local numbering: " << std::endl;
         for(auto item : GetOffDiagonalBlock().index2_data())
             std::cout << item << ",";
-        std::cout << std::endl;   
+        std::cout << std::endl;
         std::cout << "index2_data in global numbering: " << std::endl;
         for(auto item : GetOffDiagonalIndex2DataInGlobalNumbering())
             std::cout << item << ",";
-        std::cout << std::endl;        
+        std::cout << std::endl;
         std::cout << "value_data  : " << std::endl;
         for(auto item : GetOffDiagonalBlock().value_data())
             std::cout << item << ",";
@@ -758,44 +798,45 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    // A non-recursive binary search function. It returns 
-    // location of x in given array arr[l..r] is present, 
+    // A non-recursive binary search function. It returns
+    // location of x in given array arr[l..r] is present,
     // otherwise -1
-    template< class TVectorType > 
-    inline IndexType BinarySearch(const TVectorType& arr, 
-                        IndexType l, IndexType r, IndexType x) 
-    { 
-        while (l <= r) { 
-            int m = l + (r - l) / 2; 
-    
-            // Check if x is present at mid 
-            if (arr[m] == x) 
-                return m; 
-    
-            // If x greater, ignore left half 
-            if (arr[m] < x) 
-                l = m + 1; 
-    
-            // If x is smaller, ignore right half 
+    template< class TVectorType >
+    inline IndexType BinarySearch(const TVectorType& arr,
+                                  IndexType l, IndexType r, IndexType x)
+    {
+        while (l <= r)
+        {
+            int m = l + (r - l) / 2;
+
+            // Check if x is present at mid
+            if (arr[m] == x)
+                return m;
+
+            // If x greater, ignore left half
+            if (arr[m] < x)
+                l = m + 1;
+
+            // If x is smaller, ignore right half
             else
-                r = m - 1; 
-        } 
-    
-        // if we reach here, then element was not present 
-        return -1; 
-    } 
+                r = m - 1;
+        }
+
+        // if we reach here, then element was not present
+        return -1;
+    }
 
     ///@}
     ///@name Protected Operations
     ///@{
     void PrepareNonLocalCommunications(const DistributedSparseGraph<IndexType>& rSparseGraph)
-    {        
+    {
         auto& rComm = GetComm();
         const auto& nonlocal_graphs = rSparseGraph.GetNonLocalGraphs();
         std::vector<int> send_list;
         for(unsigned int id = 0; id<nonlocal_graphs.size(); ++id)
-                if( !nonlocal_graphs[id].IsEmpty())
-                    send_list.push_back(id);
+            if( !nonlocal_graphs[id].IsEmpty())
+                send_list.push_back(id);
 
         mfem_assemble_colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, rComm);
 
@@ -813,7 +854,8 @@ protected:
                     const auto remote_local_I = row_it.GetRowIndex();
                     const auto remote_global_I = GetRowNumbering().RemoteGlobalId(remote_local_I, color);
 
-                    for(auto J : *row_it){
+                    for(auto J : *row_it)
+                    {
                         TDataType& value = mNonLocalData[std::make_pair(remote_global_I,J)]; //here we create the I,J entry in the nonlocal data (entry was there in the graph!)
                         direct_senddata_access.push_back(&value); //storing a direct pointer to the value contained in the data structure
                         send_ij.push_back(remote_global_I);
@@ -821,7 +863,7 @@ protected:
                     }
                 }
 
-                //NOTE: this can be made nonblocking 
+                //NOTE: this can be made nonblocking
                 mRecvCachedIJ[color] = rComm.SendRecv(send_ij, color, color);
                 auto& recv_ij = mRecvCachedIJ[color];
 
@@ -932,11 +974,11 @@ private:
     ///@{
     void ReconstructDirectAccessVectors()
     {
-        //compute direct pointers to data 
+        //compute direct pointers to data
         for(auto color : mfem_assemble_colors)
         {
             if(color >= 0) //-1 would imply no communication
-            { 
+            {
                 const auto& send_ij = mSendCachedIJ[color];
                 const auto& recv_ij = mRecvCachedIJ[color];
 
@@ -948,7 +990,7 @@ private:
                     auto& value = GetNonLocalCachedDataByGlobalId(I,J);
                     direct_senddata_access.push_back(&value);
                 }
-                
+
                 auto& direct_recvdata_access = mPointersToRecvValues[color];
                 for(IndexType k=0; k<recv_ij.size(); k+=2)
                 {
@@ -996,14 +1038,15 @@ private:
 /// input stream function
 template< class TDataType>
 inline std::istream& operator >> (std::istream& rIStream,
-                DistributedCsrMatrix<TDataType>& rThis){
-                    return rIStream;
-                }
+                                  DistributedCsrMatrix<TDataType>& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 template< class TDataType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const DistributedCsrMatrix<TDataType>& rThis)
+                                  const DistributedCsrMatrix<TDataType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

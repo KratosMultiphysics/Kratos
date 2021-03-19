@@ -65,7 +65,7 @@ namespace Kratos
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
 template< class TIndexType=std::size_t >
-class DistributedSparseGraph 
+class DistributedSparseGraph
 {
 public:
     ///@name Type Definitions
@@ -85,9 +85,9 @@ public:
     /// constructor.
     DistributedSparseGraph(const IndexType LocalSize,
                            DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
-    :
-      mrComm(rComm),
-      mLocalGraph(LocalSize)
+        :
+        mrComm(rComm),
+        mLocalGraph(LocalSize)
     {
         mNonLocalGraphs.resize(mrComm.Size(),false);
         mNonLocalLocks.resize(mrComm.Size());
@@ -97,7 +97,7 @@ public:
 
 
     /// Destructor.
-    virtual ~DistributedSparseGraph(){}
+    virtual ~DistributedSparseGraph() {}
 
     inline const DataCommunicator& GetComm() const
     {
@@ -109,11 +109,13 @@ public:
         return *mpRowNumbering;
     }
 
-    inline IndexType Size() const{ 
+    inline IndexType Size() const
+    {
         return mpRowNumbering->Size();
     }
 
-    inline IndexType LocalSize() const{
+    inline IndexType LocalSize() const
+    {
         return mpRowNumbering->LocalSize();
     }
 
@@ -127,7 +129,7 @@ public:
     {
         rMaxJ = 0;
         rMinJ = 0;
-        for(IndexType local_i = 0; local_i<mLocalGraph.Size();++local_i)
+        for(IndexType local_i = 0; local_i<mLocalGraph.Size(); ++local_i)
         {
             for(auto J : mLocalGraph[local_i] ) //J here is the global index
             {
@@ -150,7 +152,7 @@ public:
     ///@{
     const typename LocalGraphType::GraphType::value_type& operator[](const IndexType& LocalPosition) const
     {
-		return mLocalGraph[LocalPosition];
+        return mLocalGraph[LocalPosition];
     }
 
     void Clear()
@@ -161,10 +163,12 @@ public:
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
     {
-        if(GetRowNumbering().IsLocal(RowIndex)){
+        if(GetRowNumbering().IsLocal(RowIndex))
+        {
             mLocalGraph.AddEntry(GetRowNumbering().LocalId(RowIndex), ColIndex);
         }
-        else{
+        else
+        {
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
             mNonLocalLocks[owner].SetLock();
             mNonLocalGraphs[owner].AddEntry(GetRowNumbering().RemoteLocalId(RowIndex,owner), ColIndex);
@@ -175,10 +179,12 @@ public:
     template<class TContainerType>
     void AddEntries(const IndexType RowIndex, const TContainerType& rColIndices)
     {
-        if(GetRowNumbering().IsLocal(RowIndex)){
+        if(GetRowNumbering().IsLocal(RowIndex))
+        {
             mLocalGraph.AddEntries(GetRowNumbering().LocalId(RowIndex), rColIndices);
         }
-        else{
+        else
+        {
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
             mNonLocalLocks[owner].SetLock();
             mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(RowIndex,owner), rColIndices);
@@ -190,12 +196,14 @@ public:
     void AddEntries(const IndexType RowIndex,
                     const TIteratorType& rColBegin,
                     const TIteratorType& rColEnd
-                    )
+                   )
     {
-        if(GetRowNumbering().IsLocal(RowIndex)){
+        if(GetRowNumbering().IsLocal(RowIndex))
+        {
             mLocalGraph.AddEntries(GetRowNumbering().LocalId(RowIndex), rColBegin, rColEnd);
         }
-        else{
+        else
+        {
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
             mNonLocalLocks[owner].SetLock();
             mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(RowIndex,owner), rColBegin, rColEnd);
@@ -208,10 +216,12 @@ public:
     {
         for(auto I : rIndices)
         {
-            if(GetRowNumbering().IsLocal(I)){
+            if(GetRowNumbering().IsLocal(I))
+            {
                 mLocalGraph.AddEntries(GetRowNumbering().LocalId(I), rIndices);
             }
-            else{
+            else
+            {
                 IndexType owner = GetRowNumbering().OwnerRank(I);
                 mNonLocalLocks[owner].SetLock();
                 mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(I,owner), rIndices);;
@@ -250,7 +260,7 @@ public:
             if(color >= 0) //-1 would imply no communication
             {
                 //TODO: this can be made nonblocking
-                
+
                 //using serialization
                 //const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
                 // for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
@@ -269,15 +279,18 @@ public:
 
     }
 
-    const LocalGraphType& GetLocalGraph() const{
+    const LocalGraphType& GetLocalGraph() const
+    {
         return mLocalGraph;
     }
 
-    const NonLocalGraphType& GetNonLocalGraph(IndexType Rank) const{
+    const NonLocalGraphType& GetNonLocalGraph(IndexType Rank) const
+    {
         return mNonLocalGraphs[Rank];
     }
 
-    const DenseVector<NonLocalGraphType>& GetNonLocalGraphs() const{
+    const DenseVector<NonLocalGraphType>& GetNonLocalGraphs() const
+    {
         return mNonLocalGraphs;
     }
 
@@ -310,7 +323,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSparseGraph";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "DistributedSparseGraph";
+    }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -431,14 +447,15 @@ private:
 /// input stream function
 template<class TIndexType>
 inline std::istream& operator >> (std::istream& rIStream,
-                DistributedSparseGraph<TIndexType>& rThis){
-                    return rIStream;
-                }
+                                  DistributedSparseGraph<TIndexType>& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 template<class TIndexType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const DistributedSparseGraph<TIndexType>& rThis)
+                                  const DistributedSparseGraph<TIndexType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
