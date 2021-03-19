@@ -10,12 +10,12 @@
 //
 // ==============================================================================
 
-#if !defined(KRATOS_RESIDUAL_BASED_STATIC_SIMP_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_STATIC_SIMP_SCHEME
+#if !defined(KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SIMP_SCHEME_H)
+#define  KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SIMP_SCHEME_H
 
 
 // External includes
-
+#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -96,7 +96,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {}
+    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() override {} 
     ///virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {} alte Version 14.12
 
 
@@ -119,15 +119,16 @@ public:
         LocalSystemVectorType& RHS,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
     	KRATOS_TRY
+
 		//Initializing the non linear iteration for the current element
 		(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
     	//basic operations for the element considered
     	(rCurrentElement)->CalculateLocalSystem(LSH,RHS,CurrentProcessInfo);
-
+        
 
     	//Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
     	double E_min     = (rCurrentElement)->GetValue(E_MIN);
@@ -146,7 +147,6 @@ public:
     	// I.e. RHS = -K*u_init. Hence we can directly factorize LHS and RHS to obtained the modified stiffnesses
     	LSH *= factor;
     	RHS *= factor;
-
     	//Continuation of the basic operations
     	(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 
