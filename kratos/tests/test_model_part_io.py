@@ -1,12 +1,11 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import os
+﻿import os
 import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
+from KratosMultiphysics.testing.utilities import ReadModelPart
 
 structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 if structural_mechanics_is_available:
@@ -44,6 +43,14 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
+
+        self.assertEqual(model_part[KratosMultiphysics.AMBIENT_TEMPERATURE], 250.0)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_X], 2.1)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Y], 3.2)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Z], 4.3)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_X], 3.8)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Y], 4.9)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Z], 0.0)
 
         self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
         self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
@@ -291,6 +298,67 @@ class TestModelPartIO(KratosUnittest.TestCase):
     #    model_part= current_model.CreateModelPart("Main")
     #    model_part_io = ModelPartIO("test_model_part_io")
     #    model_part_io.ReadProperties(model_part.Properties)
+
+
+class TestModelPartIOMPI(KratosUnittest.TestCase):
+    def test_model_part_io_read_entity_data(self):
+        # testing if the assignment of entity data works correctly in serial and MPI
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCES_VECTOR)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions"), model_part)
+
+        def GetScalar(entity_id):
+            return entity_id**2
+
+        def GetArray3(entity_id):
+            return [entity_id+1.5, entity_id-23, entity_id*2]
+
+        def GetVector(entity_id):
+            vec = [entity_id+1, entity_id-23, entity_id*2]
+            if entity_id > 10:
+                vec.append(entity_id*1.5)
+            if entity_id > 25:
+                vec.append(entity_id**2)
+            if entity_id > 60:
+                vec.append(entity_id/2.5)
+            return vec
+
+        def GetMatrix(entity_id):
+            mat = KratosMultiphysics.Matrix(2,3)
+            for i in range(mat.Size1()):
+                for j in range(mat.Size2()):
+                    mat[i,j] = i+j+entity_id
+            return mat
+
+        for node in model_part.Nodes:
+            if node.Id in [1,10,55,81]:
+                self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.BULK_MODULUS), GetScalar(node.Id))
+                self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.NODAL_VAUX), GetArray3(node.Id))
+                self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.EXTERNAL_FORCES_VECTOR), GetVector(node.Id))
+                self.assertMatrixAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.LOCAL_AXES_MATRIX), GetMatrix(node.Id))
+
+        def CheckEntities(entites, ids_to_check):
+            for ent in entites:
+                if ent.Id in ids_to_check:
+                    self.assertAlmostEqual(ent.GetValue(KratosMultiphysics.TEMPERATURE), GetScalar(ent.Id))
+                    self.assertVectorAlmostEqual(ent.GetValue(KratosMultiphysics.MESH_VELOCITY), GetArray3(ent.Id))
+                    self.assertVectorAlmostEqual(ent.GetValue(KratosMultiphysics.INITIAL_STRAIN), GetVector(ent.Id))
+                    self.assertMatrixAlmostEqual(ent.GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR), GetMatrix(ent.Id))
+
+        elem_ids_to_check = [5,64,33,214]
+        cond_ids_to_check = [2,13,22,121]
+
+        CheckEntities(model_part.Elements, elem_ids_to_check)
+        CheckEntities(model_part.Conditions, cond_ids_to_check)
+
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

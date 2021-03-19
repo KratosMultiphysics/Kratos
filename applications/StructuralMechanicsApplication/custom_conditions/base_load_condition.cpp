@@ -16,7 +16,9 @@
 
 // Project includes
 #include "custom_conditions/base_load_condition.h"
+#include "includes/variables.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -306,9 +308,6 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     // Base check
     Condition::Check(rCurrentProcessInfo);
 
-    // Verify variable exists
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : this->GetGeometry().Points()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
@@ -319,6 +318,14 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     }
 
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool BaseLoadCondition::HasRotDof() const
+{
+    return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
 }
 
 /***********************************************************************************/
@@ -354,8 +361,7 @@ void BaseLoadCondition::AddExplicitContribution(
 
             array_1d<double, 3 >& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for(SizeType j=0; j<dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHS[index + j];
+                AtomicAdd(r_force_residual[j], rRHS[index + j]);
             }
         }
     }

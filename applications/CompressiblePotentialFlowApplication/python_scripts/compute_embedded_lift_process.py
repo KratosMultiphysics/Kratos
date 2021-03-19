@@ -52,7 +52,7 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         KratosMultiphysics.Logger.PrintInfo('ComputeEmbeddedLiftProcess',' Cd = ', self.drag_coefficient)
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DRAG_COEFFICIENT, self.drag_coefficient)
 
     def _ComputeMomentFromPressure(self):
         # TODO Add implementation for embedded bodies

@@ -718,7 +718,7 @@ namespace Kratos {
                 std::string message = "An element (Id " + std::to_string(this->Id()) + ") found a neighbor (had contact area) but the neighbor (Id " \
                                                         + std::to_string(r_continuum_ini_neighbour->Id()) + ") did not have area for that element  ";
 
-                KRATOS_THROW_ERROR(std::runtime_error, message, 0);
+                KRATOS_ERROR << message << std::endl;
             }
 
             bool neigh_is_skin = r_continuum_ini_neighbour->IsSkin();
@@ -745,8 +745,7 @@ namespace Kratos {
         if (rVariable == DELTA_TIME) {
             double coeff = r_process_info[NODAL_MASS_COEFF];
             double mass = GetMass();
-
-            if (coeff > 1.0) { KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", coeff) }
+            KRATOS_ERROR_IF(coeff > 1.0) << "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= "<< coeff << std::endl;
             else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) { Output = 9.0E09; }
             else {
                 if (r_process_info[VIRTUAL_MASS_OPTION]) { mass /= 1 - coeff; }
@@ -785,7 +784,6 @@ namespace Kratos {
     void SphericContinuumParticle::CalculateOnContinuumContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
 
         KRATOS_TRY
-
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)

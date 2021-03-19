@@ -13,7 +13,7 @@ namespace Kratos {
     }
 
     std::string DEMContinuumConstitutiveLaw::GetTypeOfLaw() {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
         std::string type_of_law = "";
         return type_of_law;
     }
@@ -115,7 +115,7 @@ namespace Kratos {
                                                                        double ViscoLocalRotationalMoment[3],
                                                                        double equiv_poisson,
                                                                        double indentation) {
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) should not be called.","")
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor,
@@ -126,9 +126,7 @@ namespace Kratos {
     double DEMContinuumConstitutiveLaw::LocalMaxSearchDistance(const int i,
                                           SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2) {
-
-        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) should not be called.","")
-
+        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) shouldn't be accessed, use derived class instead"<<std::endl;
     }
 
     double DEMContinuumConstitutiveLaw::LocalPeriod(const int i, SphericContinuumParticle* element1,

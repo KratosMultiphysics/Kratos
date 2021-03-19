@@ -153,7 +153,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
+   void PointRigidContactCondition::GetValuesVector(Vector& rValues, int Step) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -176,7 +176,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void PointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -199,7 +199,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void PointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();

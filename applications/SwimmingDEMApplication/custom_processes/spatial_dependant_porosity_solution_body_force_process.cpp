@@ -149,23 +149,23 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPor
     const double nu = mViscosity;
 
     // BodyForce and Porosity fields at time 0.0
-    for (int i_node = 1; i_node <= static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+    for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
 
-        int it_node = i_node;
 
-        const double x1 = mrModelPart.GetNode(it_node).X();
-        const double x2 = mrModelPart.GetNode(it_node).Y();
 
-        double& r_alpha = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(FLUID_FRACTION);
+        const double x1 = it_node->X();
+        const double x2 = it_node->Y();
 
-        double& r_alpha1 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_X);
-        double& r_alpha2 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_Y);
+        double& r_alpha = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
 
-        double& r_body_force1 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(BODY_FORCE_X);
-        double& r_body_force2 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(BODY_FORCE_Y);
+        double& r_alpha1 = it_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_X);
+        double& r_alpha2 = it_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_Y);
 
-        double& r_u1 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(EXACT_VELOCITY_X);
-        double& r_u2 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(EXACT_VELOCITY_Y);
+        double& r_body_force1 = it_node->FastGetSolutionStepValue(BODY_FORCE_X);
+        double& r_body_force2 = it_node->FastGetSolutionStepValue(BODY_FORCE_Y);
+
+        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
+        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
 
         r_alpha = -independent_term * x1 - independent_term * x2 + maximum_alpha;
 
@@ -220,6 +220,9 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyForceAndPor
         r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
         r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
 
+        it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
+        it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+
         }
 
 }
@@ -235,22 +238,21 @@ void SpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndPorosityFi
     const double nu = mViscosity;
 
     // Computation of the BodyForce and Porosity fields
-    for (int i_node = 1; i_node <= static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+    for (auto it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++){
 
-        int it_node = i_node;
-        const double x1 = mrModelPart.GetNode(it_node).X();
-        const double x2 = mrModelPart.GetNode(it_node).Y();
+        const double x1 = it_node->X();
+        const double x2 = it_node->Y();
 
-        double& r_alpha = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(FLUID_FRACTION);
+        double& r_alpha = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
 
-        double& r_alpha1 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_X);
-        double& r_alpha2 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_Y);
+        double& r_alpha1 = it_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_X);
+        double& r_alpha2 = it_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT_Y);
 
-        double& r_body_force1 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(BODY_FORCE_X);
-        double& r_body_force2 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(BODY_FORCE_Y);
+        double& r_body_force1 = it_node->FastGetSolutionStepValue(BODY_FORCE_X);
+        double& r_body_force2 = it_node->FastGetSolutionStepValue(BODY_FORCE_Y);
 
-        double& r_u1 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(EXACT_VELOCITY_X);
-        double& r_u2 = mrModelPart.GetNode(it_node).FastGetSolutionStepValue(EXACT_VELOCITY_Y);
+        double& r_u1 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_X);
+        double& r_u2 = it_node->FastGetSolutionStepValue(EXACT_VELOCITY_Y);
 
         r_alpha = -independent_term * x1 - independent_term * x2 + maximum_alpha;
 

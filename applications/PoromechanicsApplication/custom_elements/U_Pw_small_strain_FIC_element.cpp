@@ -34,11 +34,11 @@ Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::Create(IndexType NewI
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize()
+void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    UPwElement<TDim,TNumNodes>::Initialize();
+    UPwElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     unsigned int VoigtSize = 6;
     if(TDim == 2) VoigtSize = 3;

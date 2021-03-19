@@ -20,7 +20,7 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
             "model_part_name_list" : ["FluidMOdelPart.first", "FluidMOdelPart.second"],
             "output_file_settings": {
                     "file_name"  : "test_flow_data_output.dat",
-                    "folder_name": ""
+                    "output_path": ""
             }
         }
         """)

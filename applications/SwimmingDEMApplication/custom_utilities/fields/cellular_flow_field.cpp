@@ -64,7 +64,7 @@ double CellularFlowField::U2(const int i){return 0.0;}
 // First-order derivatives
 
 double CellularFlowField::U0DT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -82,7 +82,7 @@ double CellularFlowField::U0D1(const int i)
 double CellularFlowField::U0D2(const int i){return 0.0;}
 
 double CellularFlowField::U1DT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -106,7 +106,7 @@ double CellularFlowField::U2D2(const int i){return 0.0;}
 // Second-order derivatives
 
 double CellularFlowField::U0DTDT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -115,7 +115,7 @@ double CellularFlowField::U0DTDT(const int i)
 }
 double CellularFlowField::U0DTD0(const int i)
 {
-    if (mOmega == 0.0){
+    if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
             return 0.0;
     }
     else {
@@ -123,7 +123,7 @@ double CellularFlowField::U0DTD0(const int i)
     }
 }
 double CellularFlowField::U0DTD1(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -148,7 +148,7 @@ double CellularFlowField::U0D1D2(const int i){return 0.0;}
 double CellularFlowField::U0D2D2(const int i){return 0.0;}
 
 double CellularFlowField::U1DTDT(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -156,7 +156,7 @@ double CellularFlowField::U1DTDT(const int i)
     }
 }
 double CellularFlowField::U1DTD0(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {
@@ -164,7 +164,7 @@ double CellularFlowField::U1DTD0(const int i)
     }
 }
 double CellularFlowField::U1DTD1(const int i)
-{   if (mOmega == 0.0){
+{   if (std::abs(mOmega) < std::numeric_limits<double>::epsilon()){
         return 0.0;
     }
     else {

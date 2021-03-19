@@ -140,18 +140,11 @@ namespace Kratos {
 
             array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
 
-            if ((inlet_velocity[0] == 0.0) &&
-                (inlet_velocity[1] == 0.0) &&
-                (inlet_velocity[2] == 0.0)) {
-
-                KRATOS_THROW_ERROR(std::runtime_error, "The inlet velocity cannot be zero for group ", identifier);
-            }
+            KRATOS_ERROR_IF((inlet_velocity[0] == 0.0) && (inlet_velocity[1] == 0.0) && (inlet_velocity[2] == 0.0)) << "The inlet velocity cannot be zero for group " << identifier << std::endl;
 
             double max_rand_dev_angle = mp[MAX_RAND_DEVIATION_ANGLE];
-            if (max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
 
-                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 89.5 degrees for group ", identifier);
-            }
+            KRATOS_ERROR_IF(max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) << "The velocity deviation angle must be between 0 and 89.5 degrees for group "<< identifier << std::endl;
 
             int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();
             PropertiesProxy* p_fast_properties = NULL;
@@ -173,17 +166,17 @@ namespace Kratos {
 
             for (int i = 0; i < mesh_size; i++) {
                 Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
-                                                             max_Id+1,
-                                                             all_nodes[i],
-                                                             dummy_element_pointer,
-                                                             p_properties,
-                                                             mp,
-                                                             r_reference_element,
-                                                             p_fast_properties,
-                                                             mBallsModelPartHasSphericity,
-                                                             mBallsModelPartHasRotation,
-                                                             true,
-                                                             mp.Elements());
+                                                                                max_Id+1,
+                                                                                all_nodes[i],
+                                                                                dummy_element_pointer,
+                                                                                p_properties,
+                                                                                mp,
+                                                                                r_reference_element,
+                                                                                p_fast_properties,
+                                                                                mBallsModelPartHasSphericity,
+                                                                                mBallsModelPartHasRotation,
+                                                                                true,
+                                                                                mp.Elements());
 
                 FixInjectorConditions(p_element);
                 max_Id++;
@@ -205,7 +198,7 @@ namespace Kratos {
         int dimension = r_process_info[DOMAIN_SIZE];
 
         std::vector<unsigned int> ElementPartition;
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
@@ -314,7 +307,7 @@ namespace Kratos {
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
             std::vector<unsigned int> ElementPartition;
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
             #pragma omp parallel
             {
