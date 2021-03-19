@@ -596,9 +596,7 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 
     KRATOS_CHECK_EQUAL(sum,496);
 
-    CsrMatrix<double> Aconverted;
-    AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl,Aconverted); //NOTE that A,Aconverted and pAmgcl all have the same data!
-KRATOS_WATCH(__LINE__)
+    CsrMatrix<double> Aconverted = AmgclCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl); //NOTE that A,Aconverted and pAmgcl all have the same data!
     auto reference_map = A.ToMap();
     auto converted_A_map = Aconverted.ToMap();
     for(const auto& item : reference_map)
@@ -607,8 +605,7 @@ KRATOS_WATCH(__LINE__)
         KRATOS_CHECK_EQUAL(item.second, reference_map[item.first]);
 KRATOS_WATCH(__LINE__)
     //matrix matrix multiplication
-    CsrMatrix<double> C;
-    AmgclCSRSpMMUtilities::SparseMultiply(A,Aconverted,C); //C=A*Aconverted
+    CsrMatrix<double> C = AmgclCSRSpMMUtilities::SparseMultiply(A,Aconverted); //C=A*Aconverted
 KRATOS_WATCH(__LINE__)
 A.~CsrMatrix<double>();
 KRATOS_WATCH(__LINE__)
@@ -671,8 +668,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallRectangularMatricMatrixMultiply, KratosCoreFastSu
         {{2,0},35.0}, {{2,2},42.0}
         };
 
-    CsrMatrix<double> C;
-    AmgclCSRSpMMUtilities::SparseMultiply(A,B,C); //C=A*B
+    CsrMatrix<double> C = AmgclCSRSpMMUtilities::SparseMultiply(A,B); //C=A*B
 
     for(const auto& item : Cref)
     {

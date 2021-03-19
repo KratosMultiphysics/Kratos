@@ -117,6 +117,26 @@ public:
         });
     }
 
+    //move constructor
+    CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
+    {
+        rOtherMatrix.mIsOwnerOfData=false;
+        mIsOwnerOfData=true;
+
+        //swap the pointers to take owership of data
+        mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
+        mpColIndicesData = rOtherMatrix.mpColIndicesData;
+        mpValuesVectorData = rOtherMatrix.mpValuesVectorData;
+
+        //here we assign the span
+        mRowIndices = rOtherMatrix.mRowIndices;
+        mColIndices = rOtherMatrix.mColIndices;
+        mValuesVector = rOtherMatrix.mValuesVector;
+        
+        mNrows = rOtherMatrix.mNrows;
+        mNcols = rOtherMatrix.mNcols;
+
+    }
 
     /// Destructor.
     virtual ~CsrMatrix(){
@@ -129,18 +149,35 @@ public:
 
         // mpRowIndicesData = nullptr;
         // mpColIndicesData = nullptr;
-        // mpValuesVectorData = nullptr;
-        KRATOS_WATCH("entered in destructor")
+        // mpValuesVectorData = nullptr
         AssignIndex1Data(nullptr,0);
         AssignIndex2Data(nullptr,0);
-        AssignValueData(nullptr,0);
-        KRATOS_WATCH("finished destructor")
-        
+        AssignValueData(nullptr,0);        
     }
 
     /// Assignment operator. 
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
  
+    //move assignement operator
+    CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
+    {
+        rOtherMatrix.mIsOwnerOfData=false;
+        mIsOwnerOfData=true;
+
+        //swap the pointers to take owership of data
+        mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
+        mpColIndicesData = rOtherMatrix.mpColIndicesData;
+        mpValuesVectorData = rOtherMatrix.mpValuesVectorData;
+
+        //here we assign the span
+        mRowIndices = rOtherMatrix.mRowIndices;
+        mColIndices = rOtherMatrix.mColIndices;
+        mValuesVector = rOtherMatrix.mValuesVector;
+        
+        mNrows = rOtherMatrix.mNrows;
+        mNcols = rOtherMatrix.mNcols;
+        return *this;
+    }
     ///@}
     ///@name Operators
     ///@{
@@ -254,7 +291,7 @@ public:
         if(mpColIndicesData != nullptr)
             delete [] mpColIndicesData;
         mpColIndicesData = new TIndexType[DataSize];
-        mRowIndices = span<TIndexType>(mpColIndicesData, DataSize);
+        mColIndices = span<TIndexType>(mpColIndicesData, DataSize);
     }
 
     void ResizeValueData(TIndexType DataSize){
@@ -303,16 +340,19 @@ public:
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
-        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
-        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
-        IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
-            IndexType row_begin = index1_data()[i];
-            IndexType row_end   = index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k){
-                IndexType col = index2_data()[k];
-                y(i) += value_data()[k] * x(col);
-            }  
-        });
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between row sizes : " << size1()  << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between col sizes : " << size2()  << " and input vector size " << x.size() << std::endl;
+        if(nnz() != 0)
+        {
+            IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
+                IndexType row_begin = index1_data()[i];
+                IndexType row_end   = index1_data()[i+1];
+                for(IndexType k = row_begin; k < row_end; ++k){
+                    IndexType col = index2_data()[k];
+                    y(i) += value_data()[k] * x(col);
+                }  
+            });
+        }
     }
 
     //y = alpha*y + beta*A*x
@@ -561,7 +601,23 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const {
+        std::cout << "size1 : " << size1() <<std::endl;
+        std::cout << "size2 : " << size2() <<std::endl;
+        std::cout << "nnz : " << nnz() <<std::endl; 
+        std::cout << "index1_data : " << std::endl;
+        for(auto item : index1_data())
+            std::cout << item << ",";
+        std::cout << std::endl;
+        std::cout << "index2_data : " << std::endl;
+        for(auto item : index2_data())
+            std::cout << item << ",";
+        std::cout << std::endl;        
+        std::cout << "value_data  : " << std::endl;
+        for(auto item : value_data())
+            std::cout << item << ",";
+        std::cout << std::endl;
+    }
 
     ///@}
     ///@name Friends

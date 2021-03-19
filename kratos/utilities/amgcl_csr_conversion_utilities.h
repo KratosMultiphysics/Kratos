@@ -51,54 +51,26 @@ public:
 	}
 
     template< class TDataType, class TIndexType >
-	static void ConvertToCsrMatrix(
-			typename amgcl::backend::builtin<TDataType>::matrix& rA,
-            CsrMatrix<TDataType, TIndexType>& rAconverted
+	static CsrMatrix<TDataType, TIndexType> ConvertToCsrMatrix(
+			typename amgcl::backend::builtin<TDataType>::matrix& rA
 			)
 	{
-        if(rA.own_data == false){ //if rA is not the owner, rAconverted cannot be
-            rAconverted.SetIsOwnerOfData(false);
+        CsrMatrix<TDataType, TIndexType> Aconverted;
+
+        if(rA.own_data == false){ //if rA is not the owner, Aconverted cannot be
+            Aconverted.SetIsOwnerOfData(false);
         }
         else{ //if rA is the owner, transfer ownership to the csr_matrix
             rA.own_data = false;
-            rAconverted.SetIsOwnerOfData(true);
+            Aconverted.SetIsOwnerOfData(true);
         }
 
-        rAconverted.SetRowSize(rA.nrows);
-        rAconverted.SetColSize(rA.ncols);
-        rAconverted.AssignIndex1Data((TIndexType*)(rA.ptr), rA.nrows+1);
-        rAconverted.AssignIndex2Data((TIndexType*)(rA.col), rA.nnz);
-        rAconverted.AssignValueData((TDataType*)(rA.val), rA.nnz);
-//        rAconverted.index1_data() = span<TIndexType>(&rA.ptr, rA.nrows+1);
-//        rAconverted.index1_data(); // = span<TIndexType>(std::static_cast<TIndexType*>(rA.ptr) ,rA.nrows+1);
-        //rAconverted.index2_data() = span<TIndexType>(std::static_cast<TIndexType*>(rA.col) ,rA.nnz);
-        //rAconverted.value_data() = span<TDataType>(rA.val ,rA.nnz);
-
-
-        //TODO: find a way to avoid this copying!! the prolem as of now is that ublas does not allow initializing by moving data
-/*        rAconverted.index1_data().resize(rA.nrows+1,false);
-        rAconverted.index2_data().resize(rA.nnz,false);
-        rAconverted.value_data().resize(rA.nnz,false);
-
-        rAconverted.SetRowSize(rA.nrows);
-        rAconverted.SetColSize(rA.ncols);
-
-        IndexPartition<IndexType>(rAconverted.index1_data().size()).for_each( [&](IndexType i){
-            rAconverted.index1_data()[i] = rA.ptr[i];
-        });
-
-        IndexPartition<IndexType>(rAconverted.index2_data().size()).for_each( [&](IndexType i){
-            rAconverted.index2_data()[i] = rA.col[i];
-        });
-
-        IndexPartition<IndexType>(rAconverted.value_data().size()).for_each( [&](IndexType i){
-            rAconverted.value_data()[i] = rA.val[i];
-        });
-
-        rA.free_data();
-        rA.nnz = 0;
-        rA.ncols = 0;
-        rA.nrows = 0;*/
+        Aconverted.SetRowSize(rA.nrows);
+        Aconverted.SetColSize(rA.ncols);
+        Aconverted.AssignIndex1Data((TIndexType*)(rA.ptr), rA.nrows+1);
+        Aconverted.AssignIndex2Data((TIndexType*)(rA.col), rA.nnz);
+        Aconverted.AssignValueData((TDataType*)(rA.val), rA.nnz);
+        return Aconverted;
 	}	
 
 

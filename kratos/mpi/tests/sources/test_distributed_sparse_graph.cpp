@@ -26,6 +26,7 @@
 #include "utilities/openmp_utils.h"
 
 #include "mpi/utilities/amgcl_distributed_csr_conversion_utilities.h"
+#include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
 
 namespace Kratos {
 namespace Testing {
@@ -281,8 +282,6 @@ std::vector<TIndexType> ComputeBounds( TIndexType N,
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosMPICoreFastSuite)
 {
-    typedef std::size_t IndexType;
-
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
@@ -432,7 +431,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     KRATOS_CHECK_NEAR(x[2] ,  4 , 1e-14 );
     KRATOS_CHECK_NEAR(x[3] ,  2 , 1e-14 );
 
-
     //Test SPMV 
     DistributedCsrMatrix<double, DistTestingInternals::IndexType> A(Agraph);
     A.BeginAssemble();   
@@ -447,7 +445,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     y.SetValue(0.0);
     b.SetValue(1.0);
 
-    A.SpMV(b,y);
+    A.SpMV(b,y); //y+=A*b
 
     std::vector<double> reference_spmv_res{4,12,8,12,12,12,20,24,16,16,8,16,12,4,24,12,20,12,24,12,0,4,16,4,16,16,24,4,20,8,8,12,4,16,4,20,8,16,4,12};
     for(unsigned int i=0; i<y.LocalSize(); ++i)
@@ -457,9 +455,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     }
 
     //testing AMGCL interface
+    bool move_to_backend = true;
     auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
-    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
-    
+    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2,move_to_backend);
+
     y.SetValue(0.0);
     b.SetValue(1.0);
     pAmgcl->mul(1.0,b,1.0,y);
@@ -470,7 +469,23 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
         KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
     }
 
+    //check round trip krtos_csr->amgcl->kratos_csr
+    move_to_backend = false; //note that the "move_to_backend needs to be set to false to be able to do the round trip"
+    offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
+    pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2,move_to_backend);
 
+    //convert back to CSR matrix
+    auto Areconverted = AmgclDistributedCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl);
+
+    y.SetValue(0.0);
+    b.SetValue(1.0);
+
+    Areconverted.SpMV(b,y); //y+=A*b
+    for(unsigned int i=0; i<y.LocalSize(); ++i)
+    {
+        DistTestingInternals::IndexType global_i = y.GetNumbering().GlobalId(i);
+        KRATOS_CHECK_NEAR(y[i] ,  reference_spmv_res[global_i] , 1e-14 );
+    }
 }
 
 
@@ -515,7 +530,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
 
     Aserial.SpMV(xserial,yserial);
 
-
     //*************************************************************************
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
@@ -526,7 +540,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
 
     DistributedSparseGraph<DistTestingInternals::IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
-
     IndexPartition<DistTestingInternals::IndexType>(connectivities.size()).for_each([&](DistTestingInternals::IndexType i)
     {
         std::vector<DistTestingInternals::IndexType> row_ids = connectivities[i];
@@ -536,6 +549,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
     Agraph.Finalize();
 
     DistributedCsrMatrix<double, DistTestingInternals::IndexType> A(Agraph);
+
     A.BeginAssemble();   
     for(const auto& c : connectivities){   
         std::vector<DistTestingInternals::IndexType> row_ids = c;
@@ -568,7 +582,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
 
     DistributedSystemVector<> x(A.GetColNumbering()); //origin vector
     x.SetValue(1.0);
-
     A.SpMV(x,y);
 
     for(DistTestingInternals::IndexType i_local=0; i_local<y.LocalSize(); ++i_local)
@@ -588,7 +601,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
         DistTestingInternals::IndexType global_i = x.GetNumbering().GlobalId(i);
         KRATOS_CHECK_NEAR(x[i] ,  reference_transpose_spmv_res[global_i] , 1e-14 );
     }
-
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)
@@ -640,7 +652,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, Krat
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
-
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
     int world_size =rComm.Size();
     int my_rank = rComm.Rank();
@@ -651,10 +662,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
     Matrix local_matrix(2,2); //we will assemble a 1D laplacian
     local_matrix(0,0) = 1.0;  local_matrix(0,1) = -1.0; 
     local_matrix(1,0) = -1.0; local_matrix(1,1) = 1.0; 
-
     DenseVector<IndexType> connectivities(2);
 
     DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+
     for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
     {
         if(i+1<max_size)
@@ -664,10 +675,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
             Agraph.AddEntries(connectivities);
         }
     }
+
     Agraph.Finalize();
+
     //Test SPMV 
     DistributedCsrMatrix<double, IndexType> A(Agraph);
+
     A.BeginAssemble();   
+
     for(IndexType i=dofs_bounds[0]; i<dofs_bounds[1]; ++i)
     {
         if(i+1<max_size)
@@ -678,10 +693,122 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
         }
     }
     A.FinalizeAssemble();
+
     auto offdiag_global_index2 = A.GetOffDiagonalIndex2DataInGlobalNumbering();
-    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2);
+
+    bool move_to_backend=false;
+    auto pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2,move_to_backend);
+
+    auto Areconverted = AmgclDistributedCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl);
 
 }
+
+
+
+
+
+KRATOS_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMultiply, KratosMPICoreFastSuite)
+{
+    typedef std::size_t IndexType;
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    // matrix A
+    //[[1,0,0,7,2],
+    // [0,3,0,0,0],
+    // [0,0,0,7,7]]
+    DistTestingInternals::MatrixMapType Amap{
+        {{0,0},1.0}, {{0,3},7.0}, {{0,4},2.0},
+        {{1,1},3.0},
+        {{2,3},7.0}, {{2,4},7.0}
+        };
+
+    IndexType Asize1 = 3;
+    auto dofs_bounds = DistTestingInternals::ComputeBounds<IndexType>(Asize1, world_size, my_rank);
+
+    DistributedSparseGraph<IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    for(const auto& item : Amap){
+        IndexType I = item.first.first;
+        IndexType J = item.first.second;
+        if( Agraph.GetRowNumbering().IsLocal(I))
+            Agraph.AddEntry(I,J);
+    }
+    Agraph.Finalize();
+
+    DistributedCsrMatrix<double, IndexType> A(Agraph);
+    A.BeginAssemble();   
+    for(const auto& item : Amap){
+        IndexType I = item.first.first;
+        IndexType J = item.first.second;
+        double value = item.second;
+        if( A.GetRowNumbering().IsLocal(I))
+            A.AssembleEntry(value,I,J);
+    }
+    A.FinalizeAssemble();
+
+    // matrix B
+    // [[1,0,0],
+    // [0,2,3],
+    // [0,3,0],
+    // [0,0,0],
+    // [5,0,6]]
+    DistTestingInternals::MatrixMapType Bmap{
+        {{0,0},1.0}, 
+        {{1,1},2.0}, {{1,2},3.0},
+        {{2,1},3.0},
+        //empty row
+        {{4,0},5.0}, {{4,2},6.0},
+        };
+
+    IndexType Bsize1 = 5;
+    dofs_bounds = DistTestingInternals::ComputeBounds<IndexType>(Bsize1, world_size, my_rank);
+
+    DistributedSparseGraph<IndexType> Bgraph(dofs_bounds[1]-dofs_bounds[0], rComm);
+    for(const auto& item : Bmap){
+        IndexType I = item.first.first;
+        IndexType J = item.first.second;
+        if( Bgraph.GetRowNumbering().IsLocal(I))
+            Bgraph.AddEntry(I,J);
+    }
+    Bgraph.Finalize();
+
+    DistributedCsrMatrix<double, IndexType> B(Bgraph);
+    B.BeginAssemble();   
+    for(const auto& item : Bmap){
+        IndexType I = item.first.first;
+        IndexType J = item.first.second;
+        double value = item.second;
+        if( B.GetRowNumbering().IsLocal(I))
+            B.AssembleEntry(value,I,J);
+    }
+    B.FinalizeAssemble();
+
+    // //Cref = A@B
+    //[[11,  0, 12],
+    // [ 0,  6,  9],
+    // [35,  0, 42]]
+    DistTestingInternals::MatrixMapType Cref{
+        {{0,0},11.0}, {{0,2},12.0},
+        {{1,1},6.0}, {{1,2},9.0},
+        {{2,0},35.0}, {{2,2},42.0}
+        };
+
+    auto C = DistributedAmgclCSRSpMMUtilities::SparseMultiply<double,IndexType>(A,B); //C=A*B
+
+    for(const auto& item : Cref)
+    {
+        IndexType I = item.first.first;
+        if( C.GetRowNumbering().IsLocal(I))
+        {
+            IndexType J = item.first.second;
+            double ref_value = item.second;
+            std::cout << I << " " << J << " " << ref_value << std::endl;
+            KRATOS_CHECK_EQUAL(ref_value,C.GetLocalDataByGlobalId(I,J));
+        }
+    }
+}
+
 
 
 
