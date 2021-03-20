@@ -331,7 +331,7 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const final {
         pGetGeometry()->PrintData(rOStream);
     }
 
@@ -423,7 +423,7 @@ private:
 
 
     /// Helper
-    void CalculateSVKMaterialTangent() ;
+    void CalculateSVKMaterialTangent();
 
 
     template< typename ContainerType, typename NodeFunctor, typename ...Args>

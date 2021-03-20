@@ -149,7 +149,6 @@ namespace Kratos
         KinematicVariables rKin;
         VariationVariables rVar;
         rKin.setZero();
-        const SizeType number_of_nodes = GetGeometry().size();
 
         rKin.t = InterpolateVariable(row(m_N, IntegrationPointIndex), m_GetValueFunctor, DIRECTOR);
         rKin.dtd1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetValueFunctor, DIRECTOR);
@@ -574,7 +573,7 @@ namespace Kratos
 
         if (compute_director) {
             auto& r_parent_geometry = GetGeometry().GetGeometryParent(0);
-            for (auto& node : GetGeometry())
+            for (auto& node : r_parent_geometry)
             {
                 const double normt = node.GetValue(DIRECTORLENGTH);
                 array_1d<double, 3 > director = node.GetValue(DIRECTOR) / normt;
