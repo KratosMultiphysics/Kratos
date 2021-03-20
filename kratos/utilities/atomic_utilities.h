@@ -50,11 +50,12 @@ inline void AtomicAdd(TDataType& target, const TDataType& value)
  * Specialization for array_1d<double,3>
  * Note that the update is not really atomic, but rather is done component by component
  */
-inline void AtomicAdd(array_1d<double,3>& target, const array_1d<double,3>& value)
+template <std::size_t ArraySize>
+inline void AtomicAdd(array_1d<double,ArraySize>& target, const array_1d<double,ArraySize>& value)
 {
-    AtomicAdd(target[0], value[0]);
-    AtomicAdd(target[1], value[1]);
-    AtomicAdd(target[2], value[2]);
+    for (std::size_t i=0; i<ArraySize; ++i) {
+        AtomicAdd(target[i], value[i]);
+    }
 }
 
 /** 
