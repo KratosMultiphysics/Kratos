@@ -39,5 +39,7 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
+        self.director_utilities = IGA.DirectorUtilities(self.model_part, settings)
+
     def ExecuteInitialize(self):
-        IGA.DirectorUtilities(self.model_part, settings).ComputeDirectors()
+        self.director_utilities.ComputeDirectors()

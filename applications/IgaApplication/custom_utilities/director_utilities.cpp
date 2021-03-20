@@ -33,37 +33,36 @@ namespace Kratos
     {
         Vector brep_ids = mParameters["brep_ids"].GetVector();
         for (IndexType i = 0; i < brep_ids.size(); ++i) {
-            auto geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
+            auto& r_geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
 
-            size_t number_of_control_points = geometry.size();
+            size_t number_of_control_points = r_geometry.size();
 
             std::vector<IndexType> eqID(number_of_control_points);
             for (SizeType inodes = 0; inodes < number_of_control_points; ++inodes)
-                eqID[inodes] = geometry[inodes].GetId();
+                eqID[inodes] = r_geometry[inodes].GetId();
 
             SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*4); //inital guess how much non-zero are there
             // Can't we solve each patch independently? -> much more efficient
             Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
 
             SparseSpaceType::SetToZero(NTN);
-            Matrix Nele;
             Matrix NTNele;
             Matrix RhsEle;
 
             RhsEle = zero_matrix<double>(number_of_control_points,3);
             NTNele = zero_matrix<double>(number_of_control_points);
 
-            Nele = geometry.ShapeFunctionsValues();
-            const SizeType r_number_of_integration_points = geometry.IntegrationPointsNumber();
-            for (SizeType iP = 0; iP < r_number_of_integration_points; ++iP)
+            PointerVector<Geometry<Node<3>>> quad_points;
+            r_geometry.CreateQuadraturePointGeometries(quad_points, 3);
+            for (SizeType iP = 0; iP < quad_points.size(); ++iP)
             {
-                const Vector& Nip = row(Nele, iP);
-                const array_1d<double, 3> A3 = geometry.UnitNormal(iP);
+                const Matrix& r_N = quad_points[iP].ShapeFunctionsValues();
+                const array_1d<double, 3> A3 = quad_points[iP].UnitNormal(iP);
 
-                NTNele += outer_prod(Nip, Nip);
+                NTNele += outer_prod(row(r_N,0), row(r_N, 0));
 
                 for(SizeType inodes=0; inodes< number_of_control_points;++inodes)
-                   row( RhsEle,inodes) += Nip[inodes]*trans(A3);
+                   row( RhsEle,inodes) += r_N(0, inodes)*trans(A3);
             }
 
             for (SizeType inodes = 0; inodes < number_of_control_points; ++inodes)
@@ -93,9 +92,10 @@ namespace Kratos
             for (SizeType i = 0; i < number_of_control_points; ++i)
             {
                 std::cout << row(nodalDirectors, i) << std::endl;
-                geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
-                geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
-                geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
+                r_geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
+                r_geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
+                KRATOS_WATCH(Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)))
+                r_geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
             }
             KRATOS_WATCH(nodalDirectors)
         }
