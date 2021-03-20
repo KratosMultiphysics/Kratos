@@ -10,8 +10,8 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MOMENT_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_MOMENT_LOAD_CONDITION_H_INCLUDED
 
 
 // System includes
@@ -248,4 +248,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LOAD_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_MOMENT_LOAD_CONDITION_H_INCLUDED  defined
