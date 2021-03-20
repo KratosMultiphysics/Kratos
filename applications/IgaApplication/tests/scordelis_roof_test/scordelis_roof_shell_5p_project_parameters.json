@@ -97,7 +97,16 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "additional_processes_list": [],
+        "additional_processes_list": [
+            {
+                "python_module": "set_directors_process",
+                "kratos_module": "KratosMultiphysics.IgaApplication",
+                "Parameters": {
+                    "model_part_name": "IgaModelPart.StructuralAnalysis",
+                    "brep_ids": [2]
+                }
+            }
+        ],
         "neumann_process_list": [{
             "python_module": "assign_vector_variable_to_conditions_process",
             "kratos_module": "KratosMultiphysics",
