@@ -17,7 +17,7 @@
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_materials.json"
+            "materials_filename": "scordelis_roof_test/scordelis_roof_shell_3p_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -51,7 +51,7 @@
                 "modeler_name": "CadIoModeler",
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
-                    "geometry_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_geometry.cad.json"
+                    "geometry_file_name": "scordelis_roof_test/scordelis_roof_geometry.cad.json"
                 }
             },
             {
@@ -59,7 +59,7 @@
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
                     "analysis_model_part_name": "IgaModelPart",
-                    "physics_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_physics.iga.json"
+                    "physics_file_name": "scordelis_roof_test/scordelis_roof_shell_3p_physics.iga.json"
                 }
             }
         ],
@@ -116,7 +116,7 @@
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
 	            "gauss_points_check_variables" : [],
-                "input_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_result.json",
+                "input_file_name": "scordelis_roof_test/scordelis_roof_shell_3p_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0
             }
