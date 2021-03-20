@@ -7,12 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
-//
 
 #if !defined(KRATOS_MOMENT_LOAD_CONDITION_H_INCLUDED )
 #define  KRATOS_MOMENT_LOAD_CONDITION_H_INCLUDED
-
 
 // System includes
 

@@ -31,7 +31,7 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = r_geometry.WorkingSpaceDimension() * number_of_nodes;
+        const SizeType mat_size = 2 * number_of_nodes;
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
