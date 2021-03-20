@@ -39,25 +39,5 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        self.director_utilities = IGA.DirectorUtilities(self.model_part, settings)
-
     def ExecuteInitialize(self):
-        director = KratosMultiphysics.Vector(3) 
-        director[0] = 0
-        director[1] = 0
-        director[2] = 1
-
-        dirTang = KratosMultiphysics.Matrix(3,2) 
-        dirTang[0,0] = 1
-        dirTang[1,0] = 0
-        dirTang[2,0] = 0
-
-        dirTang[0,1] = 0
-        dirTang[1,1] = 1
-        dirTang[2,1] = 0
-        for node in self.model_part.Nodes:
-            node.SetValue(IGA.DIRECTOR, director)
-            node.SetValue(IGA.DIRECTORTANGENTSPACE, dirTang)
-            node.SetValue(IGA.DIRECTORLENGTH, 1.0)
-
-        #self.director_utilities.ComputeDirectors()
+        IGA.DirectorUtilities(self.model_part, settings).ComputeDirectors()
