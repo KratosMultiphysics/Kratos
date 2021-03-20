@@ -13,7 +13,7 @@
         "buffer_size": 2,
         "analysis_type": "linear",
         "model_import_settings": {
-		"input_type": "use_input_model_part"
+            "input_type": "use_input_model_part"
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
@@ -51,7 +51,7 @@
                 "modeler_name": "CadIoModeler",
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
-                    "geometry_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_geometry.cad.json"
+                    "geometry_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_geometry.cad.json"
                 }
             },
             {
