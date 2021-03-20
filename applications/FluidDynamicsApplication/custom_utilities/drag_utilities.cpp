@@ -20,6 +20,7 @@
 #include "geometries/geometry_data.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "drag_utilities.h"
@@ -27,95 +28,101 @@
 
 namespace Kratos
 {
+    DragUtilities::DragUtilities()
+    {
+        mComputeBodyFittedDragOnNode = [](Node<3>& rNode) {
+            return -rNode.GetSolutionStepValue(REACTION, 0);
+        };
+
+        mComputeEmbeddedDragOnElement = [this](Element& rElement) {
+            array_1d<double,3> elem_drag;
+            rElement.Calculate(DRAG_FORCE, elem_drag, mpModelPart->GetProcessInfo());
+            return elem_drag;
+        };
+
+
+    }
+
     /* Public functions *******************************************************/
 
     array_1d<double, 3> DragUtilities::CalculateBodyFittedDrag(ModelPart& rModelPart) {
-        // Sum the reactions in the model part of interest.
-        // Note that the reactions are assumed to be already computed.
-        VariableUtils variable_utils;
-        auto drag_force = variable_utils.SumHistoricalVariable<array_1d<double,3>>(REACTION, rModelPart, 0);
-        drag_force *= -1.0;
+        mpModelPart = &rModelPart;
+        
+        auto result_tuple = OperateAndReduceOnComponents<array_1d<double,3>>(
+            rModelPart,
+            rModelPart.GetCommunicator().LocalMesh().Nodes(),
+            std::make_tuple(mComputeBodyFittedDragOnNode)
+        );
 
-        return drag_force;
+        return std::get<0>(result_tuple);
     }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
-
-        // Initialize total drag force
-        array_1d<double, 3> drag_force = ZeroVector(3);
-        double& drag_x = drag_force[0];
-        double& drag_y = drag_force[1];
-        double& drag_z = drag_force[2];
-
-        // Iterate the model part elements to compute the drag
-        array_1d<double, 3> elem_drag;
-
-        // Auxiliary var to make the reduction
-        double drag_x_red = 0.0;
-        double drag_y_red = 0.0;
-        double drag_z_red = 0.0;
-
-        #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) private(elem_drag) schedule(dynamic)
-        for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
-            drag_x_red += elem_drag[0];
-            drag_y_red += elem_drag[1];
-            drag_z_red += elem_drag[2];
-        }
-
-        drag_x += drag_x_red;
-        drag_y += drag_y_red;
-        drag_z += drag_z_red;
-
-        // Perform MPI synchronization
-        drag_force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_force);
-
-        return drag_force;
+        mpModelPart = &rModelPart;
+        
+        auto result_tuple = OperateAndReduceOnComponents<array_1d<double,3>>(
+            rModelPart,
+            rModelPart.Elements(), 
+            std::make_tuple(mComputeEmbeddedDragOnElement)
+        );
+        
+        return std::get<0>(result_tuple);
     }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDragCenter(const ModelPart& rModelPart)
     {
-        // Initialize total drag force
-        double tot_cut_area = 0.0;
-        array_1d<double, 3> drag_force_center = ZeroVector(3);
-        double& r_drag_center_x = drag_force_center[0];
-        double& r_drag_center_y = drag_force_center[1];
-        double& r_drag_center_z = drag_force_center[2];
+        auto compute_embedded_drag_center_utils = [&rModelPart](Element& rElement)
+        {
+            double cut_area; 
+            array_1d<double,3> drag_center;
+            rElement.Calculate(CUTTED_AREA, cut_area, rModelPart.GetProcessInfo());
+            rElement.Calculate(DRAG_FORCE_CENTER, drag_center, rModelPart.GetProcessInfo());
 
-        // Iterate the model part elements to compute the drag
-        double elem_cut_area;
-        array_1d<double, 3> elem_drag_center;
+            drag_center *= cut_area;
+            return array_1d<double,4> {drag_center[0], drag_center[1], drag_center[2], cut_area};
+        };
 
-        // Auxiliary var to make the reduction
-        double drag_x_center_red = 0.0;
-        double drag_y_center_red = 0.0;
-        double drag_z_center_red = 0.0;
+        auto reduced_objects = OperateAndReduceOnComponents<array_1d<double,4>>(
+            rModelPart,
+            rModelPart.Elements(),
+            std::make_tuple(compute_embedded_drag_center_utils)
+        );
 
-        #pragma omp parallel for reduction(+:drag_x_center_red) reduction(+:drag_y_center_red) reduction(+:drag_z_center_red) reduction(+:tot_cut_area) private(elem_drag_center, elem_cut_area) schedule(dynamic)
-        for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Calculate(CUTTED_AREA, elem_cut_area, rModelPart.GetProcessInfo());
-            it_elem->Calculate(DRAG_FORCE_CENTER, elem_drag_center, rModelPart.GetProcessInfo());
-            tot_cut_area += elem_cut_area;
-            drag_x_center_red += elem_cut_area * elem_drag_center[0];
-            drag_y_center_red += elem_cut_area * elem_drag_center[1];
-            drag_z_center_red += elem_cut_area * elem_drag_center[2];
-        }
+        auto& r_reduced_utils = std::get<0>(reduced_objects);
 
-        r_drag_center_x = drag_x_center_red;
-        r_drag_center_y = drag_y_center_red;
-        r_drag_center_z = drag_z_center_red;
+        array_1d<double,3> drag_force_center {r_reduced_utils[0], r_reduced_utils[1], r_reduced_utils[2]};
+        auto& r_tot_cut_area = r_reduced_utils[3];
 
+        // Note: shouldn't this division happen AFTER summing up with MPI?
+        // (with the total cut area as denominator also synchronized with MPI)
         const double tol = 1.0e-12;
-        if (tot_cut_area > tol) {
-            drag_force_center /= tot_cut_area;
+        if (r_tot_cut_area > tol) {
+            drag_force_center /= r_tot_cut_area;
         }
 
         // Perform MPI synchronization
         drag_force_center = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(drag_force_center);
 
         return drag_force_center;
+    }
+
+    DragUtilities::NodalVectorFunctor DragUtilities::MakeComputeMomentOnNodeFunctor(const array_1d<double,3>& rReferencePoint) const
+    {
+        return [rReferencePoint](Node<3>& rNode)
+        {
+            auto reaction = rNode.GetSolutionStepValue(REACTION, 0);
+            return MathUtils<double>::CrossProduct<array_1d<double,3>>(reaction, rNode-rReferencePoint);
+        };
+    }
+
+    DragUtilities::NodalVectorFunctor DragUtilities::GetBodyFittedDragFunctor() const
+    {
+        return mComputeBodyFittedDragOnNode;
+    }
+
+    DragUtilities::ElementVectorFunctor DragUtilities::GetEmbeddedDragFunctor() const
+    {
+        return mComputeEmbeddedDragOnElement;
     }
 
     /* External functions *****************************************************/

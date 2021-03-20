@@ -235,6 +235,57 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(drag_force_center[2], 0.0, 1e-6);
 	    }
 
+        /**
+	     * Checks the general computation utility
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(OperateAndReduceOnComponents, FluidDynamicsApplicationFastSuite)
+		{
+            // Create a test element inside a modelpart
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTestModelPart(model_part);
+            Element::Pointer p_element = model_part.pGetElement(1);
+
+            // Initialize the fluid element
+            const auto& r_process_info = model_part.GetProcessInfo();
+            p_element->Initialize(r_process_info);
+
+            // Set the reaction values manually. Note that the body fitted drag utilities assume
+            // that the REACTION has been already computed. Since this is assumed to be done by
+            // the builder and solver, which is out of the scope of this test, we do it manually.
+            model_part.GetNode(1).FastGetSolutionStepValue(REACTION_X) = 5.0;
+            model_part.GetNode(1).FastGetSolutionStepValue(REACTION_Y) = 10.0;
+            model_part.GetNode(2).FastGetSolutionStepValue(REACTION_X) = -20.0;
+            model_part.GetNode(2).FastGetSolutionStepValue(REACTION_Y) = -40.0;
+
+            // Reference point to compute the reaction moment on
+            array_1d<double,3> reference_point {0.5, 0.5, 0.0};
+
+            // Compute the body fitted drag its and moment on the reference point
+            DragUtilities drag_utilities;
+            auto results = drag_utilities.OperateAndReduceOnComponents<array_1d<double,3>,array_1d<double,3>>(
+                model_part.GetSubModelPart("DragModelPart"),
+                model_part.GetSubModelPart("DragModelPart").Nodes(),
+                std::make_tuple(
+                    drag_utilities.GetBodyFittedDragFunctor(),
+                    drag_utilities.MakeComputeMomentOnNodeFunctor(reference_point)
+                )
+            );
+
+            auto& drag_force = std::get<0>(results);
+            auto& drag_moment = std::get<1>(results);
+
+            // Check computed values
+            KRATOS_CHECK_NEAR(drag_force[0], 15.0, 1e-6);
+            KRATOS_CHECK_NEAR(drag_force[1], 30.0, 1e-6);
+            KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
+
+            const double moment_z = std::sqrt(2.0) / 2.0 * ( std::sqrt(125.0) + std::sqrt(2000.0) );
+            KRATOS_CHECK_NEAR(drag_moment[0], 0.0, 1e-6);
+            KRATOS_CHECK_NEAR(drag_moment[1], 0.0, 1e-6);
+            KRATOS_CHECK_NEAR(drag_moment[2], moment_z, 1e-6);
+	    }
+
 
     } // namespace Testing
 }  // namespace Kratos.

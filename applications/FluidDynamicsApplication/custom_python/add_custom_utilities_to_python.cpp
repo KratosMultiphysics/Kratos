@@ -149,6 +149,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<>())
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
+        .def("SumNodalValues", &DragUtilities::SumNodalValues<std::tuple<DragUtilities::NodalVectorFunctor,DragUtilities::NodalVectorFunctor>,array_1d<double,3>,array_1d<double,3>>)
+        .def("SumElementValues", &DragUtilities::SumElementValues<std::tuple<DragUtilities::ElementVectorFunctor,DragUtilities::ElementVectorFunctor>,array_1d<double,3>,array_1d<double,3>>)
+        .def("MakeComputeMomentOnNodeFunctor", &DragUtilities::MakeComputeMomentOnNodeFunctor)
+        .def("GetBodyFittedDragFunctor", &DragUtilities::GetBodyFittedDragFunctor)
+        .def("GetEmbeddedDragFunctor", &DragUtilities::GetEmbeddedDragFunctor)
         ;
 
     py::class_<
