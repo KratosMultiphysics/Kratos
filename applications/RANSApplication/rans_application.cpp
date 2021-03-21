@@ -195,6 +195,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( RANS_SCALAR_2_ADJOINT_3 )
     KRATOS_REGISTER_VARIABLE( RANS_AUX_ADJOINT_SCALAR_2 )
 
+    // primal solution location storage variables
+    KRATOS_REGISTER_VARIABLE(RANS_PRIMAL_SOLUTION_LOCATION_1)
+
     // registering elements
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
