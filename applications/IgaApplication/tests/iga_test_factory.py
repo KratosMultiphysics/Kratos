@@ -56,5 +56,9 @@ class Shell5pHierarchicLinearScordelisTest(IgaTestFactory):
 class Shell5pHierarchicNonLinearThickBeamTest(IgaTestFactory):
     file_name = "nonlinear_beam_thick_p2_nCP22/shell_5p"
 
+# 5p Shell Director
+class ScordelisRoofShell5pTest(IgaTestFactory):
+    file_name = "scordelis_roof_test/scordelis_roof_shell_5p"
+
 if __name__ == '__main__':
     KratosUnittest.main()
