@@ -105,7 +105,7 @@
                     "model_part_name": "IgaModelPart.StructuralAnalysis",
                     "brep_ids": [ 2 ],
                     "linear_solver_settings": {
-                        "solver_type": "amgcl"
+                        "solver_type": "skyline_lu_factorization"
                     }
                 }
             }
