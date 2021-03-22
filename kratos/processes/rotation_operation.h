@@ -167,20 +167,15 @@ public:
 		{
 			const int mesh_id=mgroup_ids[mesh_index];
 			ModelPart::MeshType& current_mesh = mr_model_part.GetMesh(mesh_id);
-			ModelPart::NodesContainerType::iterator inodebegin = current_mesh.NodesBegin();
-			//ModelPart::NodesContainerType::iterator inodeend = mgroup_container(mesh_id).NodesEnd();
-			#pragma omp parallel for
-			for(int ii=0; ii< static_cast<int>(current_mesh.Nodes().size()); ii++)
-			{
-				ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
-				//pnode->Coordinates()=pnode->X0()+translation(0);
-				const array_1d<double,3> relative_position = pnode->GetInitialPosition().Coordinates() - reference_point;
+
+            block_for_each(current_mesh.Nodes(), [&](Node<3>& rNode){
+                const array_1d<double,3>& relative_position = rNode.GetInitialPosition().Coordinates() - reference_point;
 				const array_1d<double,3> new_position = prod(rotation_matrix,relative_position) + reference_point ;
-								
-				if (pnode->SolutionStepsDataHas(DISPLACEMENT_X)) //
-					pnode->FastGetSolutionStepValue(DISPLACEMENT) = new_position - pnode->GetInitialPosition().Coordinates();
-				pnode->Coordinates()  = new_position;
-			}
+				if (rNode.SolutionStepsDataHas(DISPLACEMENT_X))
+					rNode.FastGetSolutionStepValue(DISPLACEMENT) = new_position - rNode.GetInitialPosition().Coordinates();
+				rNode.Coordinates()  = new_position;
+            });
+
 		}
 		// = (i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO));
         KRATOS_CATCH("")

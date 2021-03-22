@@ -595,24 +595,6 @@ public:
         if (Check != 0) {
             return Check;
         } else {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
-            if(MESH_VELOCITY.Key() == 0)
-                KRATOS_ERROR << "MESH_VELOCITY Key is 0. Check if the application was correctly registered.";
-            if(ACCELERATION.Key() == 0)
-                KRATOS_ERROR << "ACCELERATION Key is 0. Check if the application was correctly registered.";
-            if(PRESSURE.Key() == 0)
-                KRATOS_ERROR << "PRESSURE Key is 0. Check if the application was correctly registered.";
-            if(DENSITY.Key() == 0)
-                KRATOS_ERROR << "DENSITY Key is 0. Check if the application was correctly registered.";
-            if(DYNAMIC_VISCOSITY.Key() == 0)
-                KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
-            if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
-            if(DISTANCE.Key() == 0)
-                KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-
             // Checks on nodes
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
             for(unsigned int i = 0; i < rGeom.size(); ++i) {

@@ -16,12 +16,6 @@
 
 // External includes
 
-//this defines are to minimize compilation problems under windows. We could actually use them only when compiling with msvc
-#define AMGCL_RUNTIME_DISABLE_MULTICOLOR_GS
-#define AMGCL_RUNTIME_DISABLE_PARALLEL_ILU0
-#define AMGCL_RUNTIME_DISABLE_SPAI1
-#define AMGCL_RUNTIME_DISABLE_CHEBYSHEV
-
 // Project includes
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"

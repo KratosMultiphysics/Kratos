@@ -298,7 +298,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-                                                            std::vector<double>& rValues,
+                                                            const std::vector<double>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
 
@@ -308,7 +308,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                            std::vector<Vector>& rValues,
+                                                            const std::vector<Vector>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
 
@@ -319,7 +319,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                            std::vector<Matrix>& rValues,
+                                                            const std::vector<Matrix>& rValues,
                                                             const ProcessInfo& rCurrentProcessInfo )
   {
 
@@ -1699,14 +1699,6 @@ namespace Kratos
 
     const double domain_size = this->GetGeometry().DomainSize();
     KRATOS_WARNING_IF( "DomainSize", domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
-
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)

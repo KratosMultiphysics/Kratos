@@ -280,9 +280,10 @@ private:
             midpoint_tot_ener = midpoint_rho * (c_v * midpoint_temp + 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v));
         } else {
             // Get required midpoint values
-            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_rho, DENSITY));
-            // If the formulation is not energy coupled, the total energy equals the kinetic one
-            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v);
+            double midpoint_p;
+            FluidCalculationUtilities::EvaluateInPoint(r_geom, r_N, std::tie(r_midpoint_v, VELOCITY), std::tie(midpoint_p, PRESSURE), std::tie(midpoint_rho, DENSITY));
+            // If the formulation is not energy coupled, the total energy equals the kinetic energy plus the potential one
+            midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v) + midpoint_p;
         }
 
         // Calculate common values
@@ -303,7 +304,8 @@ private:
             const double h_beta = h_ref * norm_2(r_grad_rho) / std::sqrt(CalculateProjectedInverseMetricElementSize(r_inv_metric_tensor, r_grad_rho) + eps);
 
             // Dilatation sensor (activates in shock waves)
-            const double s_omega = -h_beta * div_v / k / c_star;
+            // Critical speed of sound might be zero if zero initial condition is prescribed (i.e. thermally uncoupled framework)
+            const double s_omega = c_star > 0.0 ? -h_beta * div_v / (k * c_star) : 0.0;
 
             // Vorticity sensor (vanishes in vorticity dominated regions)
             const double div_v_pow = std::pow(div_v, 2);

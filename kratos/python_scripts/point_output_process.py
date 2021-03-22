@@ -63,7 +63,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         elif self.params["search_configuration"].GetString() == "current":
             self.search_configuration = KratosMultiphysics.Configuration.Current
         else:
-            raise Exception( "Invalid configuration: {configuration} (Expecting 'Initial' or 'Current')".format( configuration=self.params["search_configuration"].GetString()) )
+            raise Exception( "Invalid configuration: {configuration} (Expecting 'initial' or 'current')".format( configuration=self.params["search_configuration"].GetString()) )
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -185,7 +185,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
         if my_rank == writing_rank and my_rank > -1:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
-            file_header = GetFileHeader(entity_type, found_id, self.point, self.output_variables[0])
+            file_header = GetFileHeader(self.params["search_configuration"].GetString(),
+                entity_type, found_id, self.point, self.output_variables[0])
 
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)
@@ -202,13 +203,20 @@ class PointOutputProcess(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
 
-def GetFileHeader(entity_type, entity_id, point, output_variables):
+def GetFileHeader(search_config, entity_type, entity_id, point, output_variables):
     header  = '# Results for "' + entity_type + '" '
-    header += 'with Id # ' + str(entity_id) + ' at position: '
-    header += 'x: ' + "{0:.12g}".format(point.X) + '; '
-    header += 'y: ' + "{0:.12g}".format(point.Y) + '; '
-    header += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
+    header += 'with Id # ' + str(entity_id)
+    header += ' for search config "' + search_config + '" at position: '
+    if search_config == "initial":
+        header += 'x0: ' + "{0:.12g}".format(point.X) + '; '
+        header += 'y0: ' + "{0:.12g}".format(point.Y) + '; '
+        header += 'z0: ' + "{0:.12g}".format(point.Z) + '\n'
+    elif search_config == "current":
+        header += 'x: ' + "{0:.12g}".format(point.X) + '; '
+        header += 'y: ' + "{0:.12g}".format(point.Y) + '; '
+        header += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
     header += '# time'
+
     for var in output_variables:
         # if this is a Variable< array_1d< double,3 > >
         if IsArrayVariable(var):

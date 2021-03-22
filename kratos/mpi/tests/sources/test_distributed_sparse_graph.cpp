@@ -9,10 +9,14 @@
 //
 //  Main authors:    Riccardo Rossi
 
+// System includes
 #include <utility>
 #include <iostream>
 #include <random>
 
+// External includes
+
+// Project includes
 #include "testing/testing.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "containers/sparse_contiguous_row_graph.h"
@@ -20,10 +24,9 @@
 #include "containers/distributed_csr_matrix.h"
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_vector_importer.h"
-
-
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/builtin_timer.h"
 
 #include "mpi/utilities/amgcl_distributed_csr_conversion_utilities.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
@@ -228,7 +231,7 @@ ElementConnectivityType RandomElementConnectivities(
 
     std::cout << std::endl;
     std::cout << "beginning generation" << std::endl;
-    double start = OpenMPUtils::GetCurrentTime();
+    const auto timer = BuiltinTimer();
     //generating random indices
     ElementConnectivityType connectivities((index_end-index_begin)*block_size);
 
@@ -266,8 +269,7 @@ ElementConnectivityType RandomElementConnectivities(
             }
         }
     }
-    double end_gen = OpenMPUtils::GetCurrentTime();
-    std::cout << "finishing generation - time = " << end_gen-start << std::endl;
+    std::cout << "Finishing generation - time = " << timer.ElapsedSeconds() << std::endl;
 
     return connectivities;
 }
@@ -380,7 +382,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
                           ndof,
                           standard_dev);
     rComm.Barrier(); //to ensure fair timings
-    double start_graph = OpenMPUtils::GetCurrentTime();
+    auto timer =  BuiltinTimer();
     DistributedSparseGraph<DistTestingInternals::IndexType> Agraph(dofs_bounds[1]-dofs_bounds[0], rComm);
 
     IndexPartition<DistTestingInternals::IndexType>(connectivities.size()).for_each([&](DistTestingInternals::IndexType i)
@@ -389,8 +391,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, 
     });
     Agraph.Finalize();
     rComm.Barrier(); //to ensure fair timings
-    double end_graph = OpenMPUtils::GetCurrentTime();
-    std::cout << "graph - time = " << end_graph-start_graph << std::endl;
+    std::cout << "graph - time = " << timer.ElapsedSeconds() << std::endl;
 
 }
 

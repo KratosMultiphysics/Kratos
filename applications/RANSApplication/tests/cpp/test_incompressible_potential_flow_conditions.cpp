@@ -37,12 +37,15 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     };
 
+    const auto set_properties = [](Properties& rProperties) {
+    };
+
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, "Element2D3N",
         "RansIncompressiblePotentialFlowVelocityInlet2D2N",
-        add_variables_function, VELOCITY_POTENTIAL, 1);
+        add_variables_function, set_properties, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
     RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);

@@ -224,8 +224,6 @@ int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
-
     return 0;
 
     KRATOS_CATCH("");
@@ -1052,7 +1050,7 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(
+void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     const Variable<double> &rVariable,
     std::vector<double> &rValues,
     const ProcessInfo &rCurrentProcessInfo )

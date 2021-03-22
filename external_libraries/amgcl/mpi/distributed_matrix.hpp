@@ -184,6 +184,25 @@ class comm_pattern {
             AMGCL_TOC("communication pattern");
         }
 
+        template <class OtherBackend>
+        comm_pattern(const comm_pattern<OtherBackend> &C) :
+            comm(C.comm),
+            idx(C.idx),
+            loc_beg(C.loc_beg),
+            loc_cols(C.loc_cols)
+        {
+            send.nbr = C.send.nbr;
+            send.ptr = C.send.ptr;
+            send.col = C.send.col;
+            send.val.resize(C.send.val.size());
+            send.req.resize(C.send.req.size());
+
+            recv.nbr = C.recv.nbr;
+            recv.ptr = C.recv.ptr;
+            recv.val.resize(C.recv.val.size());
+            recv.req.resize(C.recv.req.size());
+        }
+
         void move_to_backend(const backend_params &bprm = backend_params()) {
             x_rem  = Backend::create_vector(recv.count(), bprm);
             gather = std::make_shared<Gather>(loc_cols, send.col, bprm);
@@ -284,6 +303,9 @@ class comm_pattern {
         std::unordered_map<ptrdiff_t, std::tuple<int, int> > idx;
         std::shared_ptr<Gather> gather;
         ptrdiff_t loc_beg, loc_cols;
+
+        template <class B>
+        friend class comm_pattern;
 };
 
 template <class Backend>
@@ -320,6 +342,24 @@ class distributed_matrix {
             n_glob_rows     = comm.reduce(MPI_SUM, n_loc_rows);
             n_glob_cols     = comm.reduce(MPI_SUM, n_loc_cols);
             n_glob_nonzeros = comm.reduce(MPI_SUM, n_loc_nonzeros);
+        }
+
+        // Copy the distributed_matrix from another backend
+        template <class OtherBackend>
+        distributed_matrix(const distributed_matrix<OtherBackend> &A)
+            : a_loc(std::make_shared<build_matrix>(*A.local())),
+              a_rem(std::make_shared<build_matrix>(*A.remote()))
+        {
+            C = std::make_shared<CommPattern>(A.cpat());
+
+            this->a_rem->ncols = C->recv.count();
+
+            n_loc_rows      = A.loc_rows();
+            n_loc_cols      = A.loc_cols();
+            n_loc_nonzeros  = A.loc_nonzeros();
+            n_glob_rows     = A.glob_rows();
+            n_glob_cols     = A.glob_cols();
+            n_glob_nonzeros = A.glob_nonzeros();
         }
 
         template <class Matrix>

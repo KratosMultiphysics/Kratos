@@ -61,7 +61,7 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
 mode = "c"                          # Output mode to a c++ file
 is_explicit = True                  # Explicit (True) or implicit (False) time integration
 do_simplifications = False          # Simplify resulting differenctiations
-dim_vector = [2,3]                  # Spatial dimensions to be computed  
+dim_vector = [2,3]                  # Spatial dimensions to be computed
 shock_capturing = True              # Add physics-based shock capturing contribution
 subscales_vector = ["ASGS","OSS"]   # Subscales types to be computed
 
@@ -117,7 +117,7 @@ for dim in dim_vector:
     # External terms definition
     m_ext = DefineVector('m_ext',n_nodes)        # Mass source term
     r_ext = DefineVector('r_ext',n_nodes)        # Thermal sink/source term
-    f_ext = DefineMatrix('f_ext',n_nodes,dim)    # Forcing term 
+    f_ext = DefineMatrix('f_ext',n_nodes,dim)    # Forcing term
 
     # Nodal artificial magnitudes
     mu_sc_nodes = DefineVector('mu_sc_nodes',n_nodes) # Nodal artificial dynamic viscosity
@@ -329,7 +329,10 @@ for dim in dim_vector:
                 acc_gauss = dUdt.transpose()*N
 
             ## Gauss pt. stabilization matrix calculation
-            tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
+            if shock_capturing:
+                tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss, lamb_sc_gauss)
+            else:
+                tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
 
             ## If OSS, residual projections interpolation
             if subscales_type == "OSS":
