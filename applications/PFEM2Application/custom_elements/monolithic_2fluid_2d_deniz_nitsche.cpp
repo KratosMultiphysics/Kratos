@@ -160,7 +160,7 @@ namespace Kratos
 
         const SizeType NumNodes = TDim + 1;
         const SizeType LocalSize = (TDim + 1) * (TDim + 1);
-        GeometryType &rGeom = this->GetGeometry();
+        const GeometryType &rGeom = this->GetGeometry();
 
         array_1d<double, NumNodes> distances;
 
@@ -227,7 +227,7 @@ namespace Kratos
 
         const SizeType NumNodes = TDim + 1;
         const SizeType LocalSize = (TDim + 1) * (TDim + 1);
-        GeometryType &rGeom = this->GetGeometry();
+        const GeometryType &rGeom = this->GetGeometry();
 
         array_1d<double, NumNodes> distances;
 
