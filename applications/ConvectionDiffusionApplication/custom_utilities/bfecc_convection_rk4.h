@@ -67,8 +67,7 @@ public:
         //do movement
         Vector N(TDim + 1);
         Vector N_valid(TDim + 1);
-//         const int max_results = 10000;
-        const int max_results = 100000;
+        const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         
         const int nparticles = rModelPart.Nodes().size();
@@ -107,7 +106,6 @@ public:
             }
             else
             {
-                
              bool has_valid_elem_pointer = false;
              bool is_found = ConvectByRK4(dt,bckPos,vel, N,N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, conv_var, has_valid_elem_pointer); 
              found[i] = is_found;
@@ -127,8 +125,8 @@ public:
              else
              {
              
-             //OneStep could not found, let's try with 100 substeps
-             const double substeps=1000.0;
+             //OneStep could not found, let's try with 500 substeps
+             const double substeps=500.0;
              N=ZeroVector(TDim + 1);
              N_valid=ZeroVector(TDim + 1);
              result_begin = results.begin();
@@ -206,8 +204,8 @@ public:
              }
              else
              {
-              //OneStep could not found, let's try with 100 substeps
-              const double substeps=1000.0;
+              //OneStep could not found, let's try with 500 substeps
+              const double substeps=500.0;
               N=ZeroVector(TDim + 1);
               N_valid=ZeroVector(TDim + 1);
               result_begin = results.begin();
@@ -518,7 +516,7 @@ public:
                     has_valid_elem_pointer = true;
                     substep++;
                 }
-             else
+               else
                  break;
             }
         }
@@ -597,18 +595,18 @@ public:
         }
         
         void TransferOldVelocityToOldBFECC(ModelPart::NodesContainerType &rNodes)
-    {
+        {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
         vector<unsigned int> node_partition;
-#ifdef _OPENMP
+        #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
-#else
+        #else
         int number_of_threads = 1;
-#endif
+        #endif
         OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int kkk = 0; kkk < number_of_threads; kkk++)
         {
             for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
@@ -628,14 +626,14 @@ public:
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
         vector<unsigned int> node_partition;
-#ifdef _OPENMP
+        #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
-#else
+        #else
         int number_of_threads = 1;
-#endif
+        #endif
         OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int kkk = 0; kkk < number_of_threads; kkk++)
         {
             for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
