@@ -26,7 +26,7 @@ namespace Kratos
 {
 
 /**
-Utilities to convert the distributed_csr matrix to other libraries
+Utilities to convert the distributed_csr matrix to an AMGCL matrix
  */
 class AmgclCSRConversionUtilities
 {
