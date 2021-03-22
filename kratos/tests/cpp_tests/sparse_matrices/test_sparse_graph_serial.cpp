@@ -579,9 +579,7 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 
     auto pAmgcl = AmgclCSRConversionUtilities::ConvertToAmgcl(A);
 
-    std::vector<double> x(A.size1());
-    for(auto& item : x)
-       item = 1.0;
+    std::vector<double> x(A.size1(), 1.0);
 
     std::vector<double> y(A.size1());
     for(auto& item : y)
