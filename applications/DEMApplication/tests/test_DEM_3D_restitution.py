@@ -90,6 +90,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
+        properties[DEM.FRICTION_DECAY] = 0.0
         properties[DEM.PARTICLE_COHESION] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 1.0
         self.coeff = 1.0963606640305437
@@ -100,6 +101,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
         properties_walls[DEM.STATIC_FRICTION] = 0.0
         properties_walls[DEM.DYNAMIC_FRICTION] = 0.0
+        properties_walls[DEM.FRICTION_DECAY] = 0.0
         properties_walls[DEM.WALL_COHESION] = 0.0
         properties_walls[DEM.COMPUTE_WEAR] = 0
         properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001
@@ -119,6 +121,7 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
+        properties[DEM.FRICTION_DECAY] = 0.0
         properties[DEM.PARTICLE_COHESION] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
         self.coeff = 0.5472000544114178
@@ -129,6 +132,7 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
 
         properties_walls[DEM.STATIC_FRICTION] = 0.0
         properties_walls[DEM.DYNAMIC_FRICTION] = 0.0
+        properties_walls[DEM.FRICTION_DECAY] = 0.0
         properties_walls[DEM.WALL_COHESION] = 0.0
         properties_walls[DEM.COMPUTE_WEAR] = 0
         properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001

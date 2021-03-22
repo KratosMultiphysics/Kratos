@@ -245,6 +245,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties[KratosMultiphysics.POISSON_RATIO] = 0.30
         properties[STATIC_FRICTION] = 0.0
         properties[DYNAMIC_FRICTION] = 0.0
+        properties[FRICTION_DECAY] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 1.0
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
@@ -254,6 +255,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
         properties_walls[STATIC_FRICTION] = 0.0
         properties_walls[DYNAMIC_FRICTION] = 0.0
+        properties[FRICTION_DECAY] = 0.0
         properties_walls[WALL_COHESION] = 0.0
         properties_walls[COMPUTE_WEAR] = 0
         properties_walls[SEVERITY_OF_WEAR] = 0.001
