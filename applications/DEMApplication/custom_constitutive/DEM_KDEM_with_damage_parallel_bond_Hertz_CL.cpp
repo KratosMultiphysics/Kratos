@@ -108,4 +108,47 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
+
+    double DEM_KDEM_with_damage_parallel_bond_Hertz::LocalMaxSearchDistance(const int i,
+                                            SphericContinuumParticle* element1,
+                                            SphericContinuumParticle* element2) {
+
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+        double tension_limit;
+
+        // calculation of equivalent Young modulus
+        double myUnbondedYoung = element1->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS];
+        double otherUnbondedYoung = element2->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS];
+        double unbonded_equivalent_young = 2.0 * myUnbondedYoung * otherUnbondedYoung / (myUnbondedYoung + otherUnbondedYoung);
+        const double equivalent_young = 0.5 * (element1->GetProperties()[YOUNG_MODULUS] + element2->GetProperties()[YOUNG_MODULUS]);
+        const double bonded_equivalent_young = equivalent_young - unbonded_equivalent_young;
+
+        const double my_radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        double calculation_area = 0.0;
+
+        Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
+        GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
+
+        double radius_sum = my_radius + other_radius;
+        double initial_delta = element1->GetInitialDelta(i);
+        double initial_dist = radius_sum - initial_delta;
+
+        // calculation of elastic constants
+        double kn_el = bonded_equivalent_young * calculation_area / initial_dist;
+
+        if (&element1_props == &element2_props) {
+            tension_limit = GetContactSigmaMax(element1);
+        } else {
+            tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
+        }
+
+        const double Ntstr_el = tension_limit * calculation_area;
+        double u1 = Ntstr_el / kn_el;
+        if (u1 > 2.0 * radius_sum) {
+            u1 = 2.0 * radius_sum;
+        } // avoid error in special cases with too high tensile
+        return u1;
+    }
 } // namespace Kratos
