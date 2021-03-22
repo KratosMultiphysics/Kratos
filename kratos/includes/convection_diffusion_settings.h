@@ -82,6 +82,7 @@ public:
 		mis_defined_SurfaceSourceVar=false;
 		mis_defined_ProjectionVar=false;
 		mis_defined_ConvectionVar=false;
+        mis_defined_GradientVar = false;
 		mis_defined_MeshVelocityVar=false;
 		mis_defined_TransferCoefficientVar=false;
 		mis_defined_VelocityVar=false;
@@ -96,6 +97,7 @@ public:
         mpSurfaceSourceVar(rOther.mpSurfaceSourceVar),
         mpProjectionVar(rOther. mpProjectionVar),
         mpConvectionVar(rOther.mpConvectionVar),
+        mpGradientVar(rOther.mpGradientVar),
         mpMeshVelocityVar(rOther.mpMeshVelocityVar),
         mpTransferCoefficientVar(rOther.mpTransferCoefficientVar),
         mpVelocityVar(rOther.mpVelocityVar),
@@ -108,6 +110,7 @@ public:
 		mis_defined_SurfaceSourceVar(rOther.mis_defined_SurfaceSourceVar),
 		mis_defined_ProjectionVar(rOther.mis_defined_ProjectionVar),
 		mis_defined_ConvectionVar(rOther.mis_defined_ConvectionVar),
+        mis_defined_GradientVar(rOther.mis_defined_GradientVar),
 		mis_defined_MeshVelocityVar(rOther.mis_defined_MeshVelocityVar),
 		mis_defined_TransferCoefficientVar(rOther.mis_defined_TransferCoefficientVar),
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
@@ -220,6 +223,20 @@ public:
 		return mis_defined_ConvectionVar;
 	}
 
+    void SetGradientVariable(const Variable<array_1d<double,3> >& rvar)
+    {
+        mpGradientVar = &rvar;
+		mis_defined_GradientVar=true;
+    }
+    const Variable<array_1d<double,3> >& GetGradientVariable()
+    {
+        return *mpGradientVar;
+    }
+    bool IsDefinedGradientVariable()
+    {
+		return mis_defined_GradientVar;
+	}
+
     void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpMeshVelocityVar = &rvar;
@@ -321,6 +338,7 @@ public:
 		mis_defined_SurfaceSourceVar = rOther.mis_defined_SurfaceSourceVar;
 		mis_defined_ProjectionVar = rOther.mis_defined_ProjectionVar;
 		mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
+        mis_defined_GradientVar = rOther.mis_defined_GradientVar;
 		mis_defined_MeshVelocityVar = rOther.mis_defined_MeshVelocityVar;
 		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar;
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
@@ -382,6 +400,7 @@ protected:
     const Variable<double>* mpSurfaceSourceVar;
     const Variable<double>* mpProjectionVar;
     const Variable<array_1d<double,3> >* mpConvectionVar;
+    const Variable<array_1d<double,3> >* mpGradientVar;
     const Variable<array_1d<double,3> >* mpMeshVelocityVar;
     const Variable<double>* mpTransferCoefficientVar;
     const Variable<array_1d<double,3> >* mpVelocityVar;
@@ -394,6 +413,7 @@ protected:
     bool mis_defined_SurfaceSourceVar;
     bool mis_defined_ProjectionVar;
     bool mis_defined_ConvectionVar;
+    bool mis_defined_GradientVar;
     bool mis_defined_MeshVelocityVar;
     bool mis_defined_TransferCoefficientVar;
     bool mis_defined_VelocityVar;
@@ -457,6 +477,7 @@ private:
         rSerializer.save("SurfaceSourceVar",mpSurfaceSourceVar);
         rSerializer.save("ProjectionVar",mpProjectionVar);
         rSerializer.save("ConvectionVar",mpConvectionVar);
+        rSerializer.save("GradientVar",mpGradientVar);
         rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
         rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
 		rSerializer.save("VelocityVar",mpVelocityVar);
@@ -475,6 +496,7 @@ private:
         rSerializer.load("SurfaceSourceVar",mpSurfaceSourceVar);
         rSerializer.load("ProjectionVar",mpProjectionVar);
         rSerializer.load("ConvectionVar",mpConvectionVar);
+        rSerializer.load("GradientVar",mpGradientVar);
         rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
         rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
         rSerializer.load("VelocityVar",mpVelocityVar);

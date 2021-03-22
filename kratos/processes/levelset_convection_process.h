@@ -28,6 +28,7 @@
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "geometries/geometry_data.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -145,6 +146,7 @@ public:
         , mMaxAllowedCFL(MaxCFL)
         , mMaxSubsteps(MaxSubsteps)
         , mIsBfecc(false)
+        , mIsAlgebraicStabilization(false)
         , mPartialConvection(false)
         , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
@@ -324,7 +326,8 @@ public:
             "max_substeps" : 0,
             "levelset_splitting" : false,
             "eulerian_error_compensation" : false,
-            "cross_wind_stabilization_factor" : 0.7
+            "cross_wind_stabilization_factor" : 0.7,
+            "algebraic_stabilization" : false
         })");
 
         return default_parameters;
@@ -387,6 +390,8 @@ protected:
 
     bool mIsBfecc;
 
+    bool mIsAlgebraicStabilization;
+
     bool mPartialConvection;
 
     Vector mError;
@@ -426,7 +431,10 @@ protected:
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         CheckAndAssignSettings(ThisParameters);
 
-        SetConvectionProblemSettings(ThisParameters["cross_wind_stabilization_factor"].GetDouble());
+        if (!mIsAlgebraicStabilization)
+            SetConvectionProblemSettings(ThisParameters["cross_wind_stabilization_factor"].GetDouble());
+        else
+            SetConvectionProblemSettings();
     }
 
     /// Constructor without linear solver for derived classes
@@ -438,6 +446,7 @@ protected:
         const double MaxCFL = 1.0,
         const unsigned int MaxSubsteps = 0,
         const bool IsBFECC = false,
+        const bool IsAlgebraicStabilization = false,
         const bool PartialDt = false)
         : mrBaseModelPart(rBaseModelPart),
           mrModel(rBaseModelPart.GetModel()),
@@ -447,6 +456,7 @@ protected:
           mMaxAllowedCFL(MaxCFL),
           mMaxSubsteps(MaxSubsteps),
           mIsBfecc(IsBFECC),
+          mIsAlgebraicStabilization(IsAlgebraicStabilization),
           mPartialConvection(PartialDt),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
@@ -480,6 +490,26 @@ protected:
 
         // Set up the cross wind stabilization factor
         r_process_info.SetValue(CROSS_WIND_STABILIZATION_FACTOR, CrossWindStabilizationFactor);
+    }
+
+    /**
+     * @brief Set the level set convection formulation settings for algebraic stabilization
+     * This method sets the convection diffusion settings specifying the variable to be convect, its gradient, and the convection variable
+     */
+    void SetConvectionProblemSettings()
+    {
+        // Get the base model part process info
+        // Note that this will be shared with the auxiliary model part used in the convection resolution
+        auto& r_process_info = mrBaseModelPart.GetProcessInfo();
+
+        // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
+        if(!r_process_info.Has(CONVECTION_DIFFUSION_SETTINGS)){
+            ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
+            r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
+            p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
+            p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
+            p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+        }
     }
 
     virtual void ReGenerateConvectionModelPart(ModelPart& rBaseModelPart){
@@ -607,6 +637,7 @@ protected:
     {
         const double epsilon = 1.0e-15;
         const double power_bfecc = 2.0;
+        const double power_elemental_limiter = 4.0;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
@@ -701,13 +732,28 @@ protected:
 
             const double fraction = std::abs(numerator) / (denominator + epsilon);
             mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+
+            if (mIsAlgebraicStabilization)
+                it_node->SetValue(LIMITER_COEFFICIENT, (1.0 - std::pow(fraction, power_elemental_limiter)) );
         }
         );
+
+            #pragma omp parallel for
+            for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->NumberOfElements()); ++i_elem) {
+                auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
+                auto& r_geometry = it_elem->GetGeometry();
+
+                double elemental_limiter = 1.0;
+
+                for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
+                    elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
+                    it_elem->SetValue(LIMITER_COEFFICIENT, elemental_limiter);
+                }
+            }
     }
 
     /**
      * @brief Eulerian error calculation and correction
-     * BLA BLA
      */
     void ErrorCalculationAndCorrection()
     {
@@ -787,11 +833,12 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
+        mIsAlgebraicStabilization = ThisParameters["algebraic_stabilization"].GetBool();
         mPartialConvection = ThisParameters["levelset_splitting"].GetBool();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        mpLevelSetGradientVar = mIsBfecc ? &(KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
+        mpLevelSetGradientVar = (mIsBfecc || mIsAlgebraicStabilization) ? &(KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
     }
 
