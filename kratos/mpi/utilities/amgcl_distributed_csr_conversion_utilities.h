@@ -22,7 +22,7 @@
 #include "amgcl/mpi/distributed_matrix.hpp"
 #include "amgcl/adapter/zero_copy.hpp"
 #include "utilities/amgcl_csr_conversion_utilities.h"
-
+#include "mpi/includes/mpi_data_communicator.h"
 namespace Kratos
 {
 
@@ -72,7 +72,8 @@ public:
 
 	template< class TDataType, class TIndexType >
 	static DistributedCsrMatrix<TDataType, TIndexType> ConvertToCsrMatrix(
-			amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>& rA //cannot be made const since i need to modify some data in-place
+			amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>& rA, //cannot be made const since i need to modify some data in-place,
+			DataCommunicator& kratos_comm=ParallelEnvironment::GetDefaultDataCommunicator()
 			)
 	{
 		if(!rA.local())
@@ -80,7 +81,9 @@ public:
 
 		DistributedCsrMatrix<TDataType, TIndexType> Aconverted;
 
-		DataCommunicator& kratos_comm=ParallelEnvironment::GetDefaultDataCommunicator();
+		MPI_Comm amgcl_raw_comm = rA.comm();
+		if(amgcl_raw_comm != MPIDataCommunicator::GetMPICommunicator( kratos_comm) )
+			KRATOS_ERROR << "MPI communicator mismatch between the communicator passed to the conversion function and the one used internally by amgcl" << std::endl;
 
 		rA.local()->own_data=false;
 		rA.remote()->own_data=false;

@@ -592,21 +592,21 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {
-        std::cout << "size1 : " << size1() <<std::endl;
-        std::cout << "size2 : " << size2() <<std::endl;
-        std::cout << "nnz : " << nnz() <<std::endl; 
-        std::cout << "index1_data : " << std::endl;
+        rOStream << "size1 : " << size1() <<std::endl;
+        rOStream << "size2 : " << size2() <<std::endl;
+        rOStream << "nnz : " << nnz() <<std::endl; 
+        rOStream << "index1_data : " << std::endl;
         for(auto item : index1_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "index2_data : " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "index2_data : " << std::endl;
         for(auto item : index2_data())
-            std::cout << item << ",";
-        std::cout << std::endl;        
-        std::cout << "value_data  : " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;        
+        rOStream << "value_data  : " << std::endl;
         for(auto item : value_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
     }
 
     ///@}
@@ -705,17 +705,14 @@ private:
     {
         rSerializer.save("IsOwnerOfData",mIsOwnerOfData);
 
-        //rSerializer.save("mpRowIndicesData",mpRowIndicesData);
         rSerializer.save("nrows",mRowIndices.size());
         for(IndexType i=0; i<mRowIndices.size(); ++i)
             rSerializer.save("i",mRowIndices[i]);
 
-        //rSerializer.save("mpColIndicesData",mpColIndicesData);
         rSerializer.save("cols_size",mColIndices.size());
         for(IndexType i=0; i<mColIndices.size(); ++i)
             rSerializer.save("i",mColIndices[i]);
 
-        //rSerializer.save("mpValuesVectorData",mpValuesVectorData);
         rSerializer.save("val_size",mValuesVector.size());
         for(IndexType i=0; i<mValuesVector.size(); ++i)
             rSerializer.save("d",mValuesVector[i]);
@@ -734,7 +731,6 @@ private:
         }
 
         IndexType rows_size;
-        //rSerializer.load("mpRowIndicesData",mpRowIndicesData);
         rSerializer.load("nrows",rows_size);
         mpRowIndicesData = new TIndexType[rows_size];
         mRowIndices = span<TIndexType>(mpRowIndicesData, rows_size);
@@ -742,7 +738,6 @@ private:
             rSerializer.load("i",mRowIndices[i]);
 
         IndexType cols_size;
-        //rSerializer.load("mpColIndicesData",mpColIndicesData);
         rSerializer.load("cols_size",cols_size);
         mpColIndicesData = new TIndexType[cols_size];
         mColIndices = span<TIndexType>(mpRowIndicesData, cols_size);
@@ -750,7 +745,6 @@ private:
             rSerializer.load("i",mColIndices[i]);
 
         IndexType vals_size;
-        //rSerializer.load("mpValuesVectorData",mpValuesVectorData);
         rSerializer.load("val_size",vals_size);
         mpValuesVectorData = new TDataType[vals_size];
         mValuesVector = span<TDataType>(mpValuesVectorData, vals_size);

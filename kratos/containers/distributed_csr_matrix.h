@@ -69,8 +69,8 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    DistributedCsrMatrix() //default constructor. To be used for low level operations
-        : mrComm(ParallelEnvironment::GetDefaultDataCommunicator())
+    DistributedCsrMatrix(const DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator()) //default constructor. To be used for low level operations
+        : mrComm(rComm)
     {}
 
     DistributedCsrMatrix(const DistributedSparseGraph<IndexType>& rSparseGraph)
@@ -731,49 +731,49 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        std::cout << "--- Diagonal Block: ---" << std::endl;
-        std::cout << "size1 : " << GetDiagonalBlock().size1() <<std::endl;
-        std::cout << "size2 : " << GetDiagonalBlock().size2() <<std::endl;
-        std::cout << "nnz : " << GetDiagonalBlock().nnz() <<std::endl;
-        std::cout << "index1_data : " << std::endl;
+        rOStream << "--- Diagonal Block: ---" << std::endl;
+        rOStream << "size1 : " << GetDiagonalBlock().size1() <<std::endl;
+        rOStream << "size2 : " << GetDiagonalBlock().size2() <<std::endl;
+        rOStream << "nnz : " << GetDiagonalBlock().nnz() <<std::endl;
+        rOStream << "index1_data : " << std::endl;
         for(auto item : GetDiagonalBlock().index1_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "index2_data in local numbering: " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "index2_data in local numbering: " << std::endl;
         for(auto item : GetDiagonalBlock().index2_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "index2_data in global numbering: " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "index2_data in global numbering: " << std::endl;
         for(auto item : GetDiagonalIndex2DataInGlobalNumbering())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "value_data  : " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "value_data  : " << std::endl;
         for(auto item : GetDiagonalBlock().value_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        //std::cout << "as map      : " << GetDiagonalBlock().ToMap() << std::endl;
-        std::cout << std::endl;
-        std::cout << "--- OffDiagonal Block: ---" << std::endl;
-        std::cout << "size1 : " << GetOffDiagonalBlock().size1() <<std::endl;
-        std::cout << "size2 : " << GetOffDiagonalBlock().size2() <<std::endl;
-        std::cout << "nnz : " << GetOffDiagonalBlock().nnz() <<std::endl;
-        std::cout << "index1_data : " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        //rOStream << "as map      : " << GetDiagonalBlock().ToMap() << std::endl;
+        rOStream << std::endl;
+        rOStream << "--- OffDiagonal Block: ---" << std::endl;
+        rOStream << "size1 : " << GetOffDiagonalBlock().size1() <<std::endl;
+        rOStream << "size2 : " << GetOffDiagonalBlock().size2() <<std::endl;
+        rOStream << "nnz : " << GetOffDiagonalBlock().nnz() <<std::endl;
+        rOStream << "index1_data : " << std::endl;
         for(auto item : GetOffDiagonalBlock().index1_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "index2_data in local numbering: " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "index2_data in local numbering: " << std::endl;
         for(auto item : GetOffDiagonalBlock().index2_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "index2_data in global numbering: " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "index2_data in global numbering: " << std::endl;
         for(auto item : GetOffDiagonalIndex2DataInGlobalNumbering())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        std::cout << "value_data  : " << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        rOStream << "value_data  : " << std::endl;
         for(auto item : GetOffDiagonalBlock().value_data())
-            std::cout << item << ",";
-        std::cout << std::endl;
-        //std::cout << "as map      : " << GetOffDiagonalBlock().ToMap() << std::endl;
+            rOStream << item << ",";
+        rOStream << std::endl;
+        //rOStream << "as map      : " << GetOffDiagonalBlock().ToMap() << std::endl;
 
 
     }
