@@ -3,13 +3,12 @@ import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication as ksm
 import KratosMultiphysics.TopologyOptimizationApplication as kto
 import KratosMultiphysics.LinearSolversApplication as kls
-from KratosMultiphysics import process_factory
 import os
 import OptimizationParameters as opt_parameters
 from importlib import import_module
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
+from KratosMultiphysics import process_factory
 
 
 parameter_file = open("ProjectParameters.json",'r')
@@ -73,25 +72,10 @@ def solve_structure(opt_itr):
     gid_output.ExecuteInitializeSolutionStep() 
 
     #solve problem
-    linear_solver = km.AMGCLSolver()
-    builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
-    scheme = kto.ResidualBasedIncrementalUpdateStaticSIMPScheme()
-    compute_reactions = True
-    reform_step_dofs = True
-    calculate_norm_dx = True
-    move_mesh_flag = True
-
-    strategy = km.ResidualBasedLinearStrategy(
-        model_part,
-        scheme,
-        builder_and_solver,
-        compute_reactions,
-        reform_step_dofs,
-        calculate_norm_dx,
-        move_mesh_flag)
-
-    strategy.Solve()
-
+    solver.InitializeSolutionStep()
+    solver.SolveSolutionStep()
+    solver.FinalizeSolutionStep()
+   
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
     gid_output.ExecuteFinalizeSolutionStep()
