@@ -35,6 +35,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -459,9 +460,7 @@ private:
           int nodes_size = nodes.size();
           // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
 
-        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
-            nodes[Index]->GetSolutionStepValue(DISTANCE) = 1.00;
-        });
+        VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
 
             std::vector<CellType*> leaves;
 
@@ -486,9 +485,7 @@ private:
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
 
-        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
-            nodes[Index]->GetSolutionStepValue(DISTANCE) = 1.00;
-        });
+        VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
 
             std::vector<CellType*> leaves;
 
