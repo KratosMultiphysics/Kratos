@@ -1037,12 +1037,8 @@ class DEMFEMProcedures(object):
         self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
-<<<<<<< HEAD
-    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print = False):
-=======
     def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
         self.KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
->>>>>>> origin/master
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
