@@ -1592,7 +1592,7 @@ public:
         ) const override
     {
         // Max number of iterations
-        const std::size_t max_number_of_iterations = 100;
+        const std::size_t max_number_of_iterations = 10;
 
         // We do a first guess in the center of the geometry
         noalias(rProjectedPointGlobalCoordinates) = this->Center();
@@ -1614,12 +1614,15 @@ public:
             noalias(normal) = this->UnitNormal(rProjectedPointGlobalCoordinates);
         }
 
-        // We do check to print warning
-        KRATOS_WARNING_IF("Quadrilateral3D4", iter >= max_number_of_iterations - 1) << "The point " << rPointGlobalCoordinates << " has not converged when projecting the point after" << max_number_of_iterations << " iterations" << std::endl;
-
         PointLocalCoordinates( rProjectedPointLocalCoordinates, rProjectedPointGlobalCoordinates );
 
-        return 1;
+        // We do check to print warning
+	if (iter >= max_number_of_iterations - 1) {
+	    KRATOS_WARNING("Quadrilateral3D4") << "The point " << rPointGlobalCoordinates << " has not converged when projecting the point after" << max_number_of_iterations << " iterations" << std::endl;
+	    return 0;
+	} else {
+            return 1;
+	}
     }
 
     ///@}
