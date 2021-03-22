@@ -431,6 +431,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
@@ -460,7 +461,6 @@ class Procedures(object):
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(LOCAL_CONTACT_FORCE)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
@@ -523,7 +523,6 @@ class Procedures(object):
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
@@ -1038,7 +1037,12 @@ class DEMFEMProcedures(object):
         self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
+<<<<<<< HEAD
     def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print = False):
+=======
+    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
+        self.KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
+>>>>>>> origin/master
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step

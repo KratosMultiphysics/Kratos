@@ -275,7 +275,8 @@ public:
     // }
 
     //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const
+    Vector& LumpingFactors( Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod) const override
     {
         KRATOS_ERROR << "'LumpingFactors' not available for arbitrarty noded line" << std::endl;
         return rResult;

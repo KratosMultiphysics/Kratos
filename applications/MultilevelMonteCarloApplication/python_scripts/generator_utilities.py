@@ -1,14 +1,11 @@
-# Import Python libraries
 import numpy as np
 
-def GenerateSample(problem_name):
-    """
-    Function handling the generation of random variables for the
-    MultilevelMonteCarloApplication algorithms and implementations.
+# TODO: move in an external file and create a generator class, e.g. MonteCarlo.generator.Generate()
 
-    Input:
-    - problem_name: string containing the problem definition.
-    """
+'''
+function generating the random variable
+'''
+def GenerateSample(problem_name):
 
     # Poisson equation
     if (problem_name == "poisson_square_2d"):
