@@ -10,10 +10,10 @@ In this last case, the appropriate import has to be changed in xmc/distributedEn
 
 Dependencies
 ------------
-- KratosMultiphysics ≥ 9.0."Dev"-14ca0bbc78, and applications:
-   - ConvectionDiffusionApplication, 
-   - LinearSolversApplication,  
-   - MeshingApplication and 
+- KratosMultiphysics ≥ 9.0."Dev"-8d4dafd96f, and applications:
+   - ConvectionDiffusionApplication,
+   - LinearSolversApplication,
+   - MeshingApplication and
    - MultilevelMonteCarloApplication.
 - COMPSs ≥ 2.8 (to run in parallel).
 """
@@ -68,11 +68,6 @@ class TestXMCAlgorithm(unittest.TestCase):
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
-            # add path of the problem folder to python path
-            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(
-                os.path.join(problem_id)
-            )
             # SolverWrapper
             parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
             # SampleGenerator
@@ -175,11 +170,6 @@ class TestXMCAlgorithm(unittest.TestCase):
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
-            # add path of the problem folder to python path
-            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
-            sys.path.append(
-                os.path.join(problem_id)
-            )
             # SolverWrapper
             parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
             # SampleGenerator

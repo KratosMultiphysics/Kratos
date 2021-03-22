@@ -620,7 +620,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::DetMat(J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
@@ -1614,8 +1614,9 @@ void BaseSolidElement::CalculateAndAddKg(
     KRATOS_TRY
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( StressVector );
-    Matrix reduced_Kg = prod( DN_DX, IntegrationWeight * Matrix( prod( stress_tensor, trans( DN_DX ) ) ) ); //to be optimized
+    const Matrix stress_tensor_x_weigth = IntegrationWeight * MathUtils<double>::StressVectorToTensor( StressVector );
+    Matrix reduced_Kg(DN_DX.size1(), DN_DX.size1());
+    MathUtils<double>::BDBtProductOperation(reduced_Kg, stress_tensor_x_weigth, DN_DX);
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
 
     KRATOS_CATCH( "" )

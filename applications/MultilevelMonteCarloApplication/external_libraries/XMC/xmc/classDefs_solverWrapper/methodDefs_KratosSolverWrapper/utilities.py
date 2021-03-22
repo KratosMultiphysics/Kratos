@@ -69,7 +69,7 @@ class UnfolderManager(object):
         return list_unfolded
 
     @ExaquteTask(aux_qoi_array_contributions={Type: COLLECTION_IN, Depth: 2},returns='OUTPUT_QUANTITIES')
-    def PostprocessContributionsPerInstance(self,aux_qoi_array_contributions,qoi_estimators):
+    def PostprocessContributionsPerInstance_Task(self,aux_qoi_array_contributions,qoi_estimators):
         """
         Task method summing multiple contribution of a specific realization and calling UnfoldNValues.
 

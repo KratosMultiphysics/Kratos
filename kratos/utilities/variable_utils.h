@@ -1393,15 +1393,17 @@ private:
     {
     public:
         typedef array_1d<double,3> value_type;
-        array_1d<double,3> mValue = ZeroVector(3);
+        typedef array_1d<double,3> return_type;
+
+        return_type mValue = ZeroVector(3);
 
         /// access to reduced value
-        array_1d<double,3> GetValue() const
+        return_type GetValue() const
         {
             return mValue;
         }
 
-        void LocalReduce(const array_1d<double,3>&value)
+        void LocalReduce(const value_type& value)
         {
             mValue += value;
         }
