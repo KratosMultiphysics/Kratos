@@ -140,16 +140,6 @@ public:
 
     /// Destructor.
     virtual ~CsrMatrix(){
-        // if(mpRowIndicesData != nullptr) 
-        //     delete [] mpRowIndicesData;
-        // if(mpColIndicesData != nullptr) 
-        //     delete [] mpColIndicesData;
-        // if(mpValuesVectorData != nullptr) 
-        //     delete [] mpValuesVectorData;
-
-        // mpRowIndicesData = nullptr;
-        // mpColIndicesData = nullptr;
-        // mpValuesVectorData = nullptr
         AssignIndex1Data(nullptr,0);
         AssignIndex2Data(nullptr,0);
         AssignValueData(nullptr,0);        
