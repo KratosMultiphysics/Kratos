@@ -581,9 +581,7 @@ KRATOS_TEST_CASE_IN_SUITE(ToAMGCLMatrix, KratosCoreFastSuite)
 
     std::vector<double> x(A.size1(), 1.0);
 
-    std::vector<double> y(A.size1());
-    for(auto& item : y)
-       item = 0.0;
+    std::vector<double> y(A.size1(), 0.0);
 
     amgcl::backend::spmv(1.0,*pAmgcl, x, 1.0, y);
 
