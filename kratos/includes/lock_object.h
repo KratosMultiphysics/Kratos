@@ -94,12 +94,22 @@ namespace Kratos
 #endif
 		}
 
+		KRATOS_DEPRECATED inline void SetLock() const
+		{
+			this->lock();
+		}
+
 		inline void unlock() const
 		{
 			//does nothing if openMP is not present
 #ifdef KRATOS_SMP_OPENMP
 			omp_unset_lock(&mLock);
 #endif
+		}
+
+		KRATOS_DEPRECATED inline void UnSetLock() const
+		{
+			this->unlock();
 		}
 
     inline bool try_lock() const
