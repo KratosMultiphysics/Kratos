@@ -123,7 +123,7 @@ public:
         IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
             double diag_Aii = rA(Index,Index);
             if(diag_Aii != zero)
-                mDiagonal[Index] = 1.00 / sqrt(fabs(diag_Aii));
+                mDiagonal[Index] = 1.00 / std::sqrt(std::abs(diag_Aii));
             else
                 KRATOS_THROW_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
         });
