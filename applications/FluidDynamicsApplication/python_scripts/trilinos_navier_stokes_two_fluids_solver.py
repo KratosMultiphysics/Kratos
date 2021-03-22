@@ -141,7 +141,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
     def _CreateLevelSetConvectionProcess(self):
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        linear_solver = self._GetLinearSolver()
+        levelset_linear_solver = self._GetLevelsetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self._GetEpetraCommunicator()
 
@@ -150,13 +150,13 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess2D(
                 epetra_communicator,
                 computing_model_part,
-                linear_solver,
+                levelset_linear_solver,
                 levelset_convection_settings)
         else:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess3D(
                 epetra_communicator,
                 computing_model_part,
-                linear_solver,
+                levelset_linear_solver,
                 levelset_convection_settings)
 
         return level_set_convection_process
@@ -164,21 +164,21 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
-        linear_solver = self._GetLinearSolver()
+        redistancing_linear_solver = self._GetRedistancingLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self._GetEpetraCommunicator()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
                 epetra_communicator,
                 computing_model_part,
-                linear_solver,
+                redistancing_linear_solver,
                 maximum_iterations,
                 KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
                 epetra_communicator,
                 computing_model_part,
-                linear_solver,
+                redistancing_linear_solver,
                 maximum_iterations,
                 KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 

@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#ifndef CO_SIM_IO_H_INCLUDED
-#define CO_SIM_IO_H_INCLUDED
+#ifndef CO_SIM_IO_INCLUDED
+#define CO_SIM_IO_INCLUDED
 
 /*
 This file defines the IO of Kratos-CoSimulation for the exchange of data with external solvers.
@@ -37,6 +37,7 @@ Note that this introduces dependencies such as e.g. boost (header-only version) 
 // Project includes
 #include "impl/define.hpp"
 #include "impl/info.hpp"
+#include "impl/model_part.hpp"
 
 namespace CoSimIO {
 
@@ -61,20 +62,13 @@ inline Info ExportData(
     const TContainerType& rData);
 
 
-template<class TDoubleContainerType, class TIntContainerType>
 inline Info ImportMesh(
     const Info& I_Info,
-    TDoubleContainerType& rNodalCoordinates,
-    TIntContainerType& rElementConnectivities,
-    TIntContainerType& rElementTypes);
+    ModelPart& O_ModelPart);
 
-template<class TDoubleContainerType, class TIntContainerType>
 inline Info ExportMesh(
     const Info& I_Info,
-    const TDoubleContainerType& rNodalCoordinates,
-    const TIntContainerType& rElementConnectivities,
-    const TIntContainerType& rElementTypes);
-
+    const ModelPart& I_ModelPart);
 
 inline Info ImportInfo(
     const Info& I_Info);
@@ -82,8 +76,6 @@ inline Info ImportInfo(
 inline Info ExportInfo(
     const Info& I_Info);
 
-
-inline Info IsConverged(const Info& I_Info);
 
 inline Info Run(const Info& I_Info);
 
@@ -96,4 +88,4 @@ inline Info Register(
 
 #include "impl/co_sim_io_impl.hpp"
 
-#endif // CO_SIM_IO_H_INCLUDED
+#endif // CO_SIM_IO_INCLUDED
