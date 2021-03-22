@@ -1,0 +1,63 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "ModalDerivative",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "modal_derivative",
+        "derivative_type"                 : "dynamic",
+        "finite_difference_type"          : "central",
+        "finite_difference_step_size"     : 1e-3,
+        "mass_orthonormalize"             : false,
+        "rom_parameters_filename"         :"InitialRomParameters.json",
+        "rom_settings":
+        {
+            "nodal_unknowns": ["ROTATION_X","ROTATION_Y","ROTATION_Z","DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"]
+        },
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 1,
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "ModalDerivative"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "StructuralMaterials.json"
+        },
+        
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "rotation_dofs"                   : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_DBC_Truss_Bottom",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_DBC_Volume_Bottom",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
+    }
+}

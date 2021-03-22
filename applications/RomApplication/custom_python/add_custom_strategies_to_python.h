@@ -11,19 +11,18 @@
 //
 //
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ROM_ADD_STRATEGIES_PYTHON_H_INCLUDED )
+#define  KRATOS_ROM_ADD_STRATEGIES_PYTHON_H_INCLUDED
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
 
 // Project includes
 #include "includes/define_python.h"
-#include "custom_strategies/rom_builder_and_solver.h"
 
 
 namespace Kratos {

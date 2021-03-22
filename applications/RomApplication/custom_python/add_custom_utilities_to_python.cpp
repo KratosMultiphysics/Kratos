@@ -9,22 +9,21 @@
 //
 //  Main authors:   Raul Bravo
 //
+//  Contributors:   Altug Emiroglu, http://github.com/emiroglu
+//
 //
 
 
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
-
 
 // Project includes
-#include "includes/define.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/rom_residuals_utility.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
+// Utilities
+#include "custom_utilities/rom_residuals_utility.h"
 
 namespace Kratos {
 namespace Python {
