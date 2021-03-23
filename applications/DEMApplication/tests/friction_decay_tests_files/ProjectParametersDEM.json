@@ -46,7 +46,7 @@
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 1e-4,
-"FinalTime"                        : 0.3,
+"FinalTime"                        : 0.075,
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 50,
 
