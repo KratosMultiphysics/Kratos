@@ -25,7 +25,7 @@ class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
         return "::[ROM Simulation]:: "
 
     def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
+        """Here is where the ROM_BASIS is imposed to each node"""
         super().ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
@@ -41,7 +41,6 @@ class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
                     for i in range(rom_dofs):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
-                node.SetValue(romapp.AUX_ID, counter) # Aux ID
                 counter+=1
 
 
