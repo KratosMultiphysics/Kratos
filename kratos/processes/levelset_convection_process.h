@@ -547,10 +547,18 @@ protected:
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
-                it_elem->Id(),
-                it_elem->pGetGeometry(),
-                it_elem->pGetProperties());
+            Element::Pointer p_element;
+            if (mIsAlgebraicStabilization){
+                p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexAlgebraicStabilization < TDim, TDim+1 > >(
+                    it_elem->Id(),
+                    it_elem->pGetGeometry(),
+                    it_elem->pGetProperties());
+            } else {
+                p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+                    it_elem->Id(),
+                    it_elem->pGetGeometry(),
+                    it_elem->pGetProperties());
+            }
 
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
@@ -739,7 +747,7 @@ protected:
         }
         );
 
-        block_for_each(mpDistanceModelPart->Elementss(), [&](ElementType& rElement){
+        block_for_each(mpDistanceModelPart->Elements(), [&](Element& rElement){
             auto& r_geometry = rElement.GetGeometry();
             double elemental_limiter = 1.0;
             for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
