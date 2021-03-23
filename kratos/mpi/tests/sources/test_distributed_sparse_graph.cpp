@@ -724,7 +724,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(Small1dLaplacianAmgclConstruction, KratosM
 
 
 
-KRATOS_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMultiply, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMultiply, KratosMPICoreFastSuite)
 {
     typedef std::size_t IndexType;
     DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
