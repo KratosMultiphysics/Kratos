@@ -112,8 +112,9 @@ public:
     /// This function calculates a new Youngs Modulus based on the densities and multiplies it into the
     /// LHS and RHS contributions of the complete system
   
-  
-    virtual void CalculateSystemContributions(
+
+
+    void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LSH,
         LocalSystemVectorType& RHS,
@@ -122,7 +123,7 @@ public:
     ) override
     {
     	KRATOS_TRY
-
+        std::cout << ResidualBasedIncrementalUpdateStaticSIMPScheme().Info() << "\n";
 		//Initializing the non linear iteration for the current element
 		(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
@@ -153,6 +154,7 @@ public:
     	KRATOS_CATCH( "" )
     }
 
+  
     /*@} */
     /**@name Operations */
     /*@{ */
