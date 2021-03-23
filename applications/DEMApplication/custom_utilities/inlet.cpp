@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <random>
+#include <functional>
 
 #include "inlet.h"
 #include "create_and_destroy.h"
