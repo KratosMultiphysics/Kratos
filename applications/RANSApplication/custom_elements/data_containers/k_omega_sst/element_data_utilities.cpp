@@ -24,6 +24,12 @@ namespace Kratos
 {
 namespace KOmegaSSTElementData
 {
+double CalculateTanh(const double value)
+{
+    const double inv_exp2x = std::exp(-2.0 * value);
+    return (1.0 - inv_exp2x) / (1 + inv_exp2x);
+}
+
 double CalculateBlendedPhi(
     const double Phi1,
     const double Phi2,
@@ -77,7 +83,7 @@ double CalculateF1(
 
     const double arg6 = std::min(arg5, 10.0);
 
-    return std::tanh(std::pow(arg6, 4));
+    return CalculateTanh(std::pow(arg6, 4));
 
     KRATOS_CATCH("");
 }

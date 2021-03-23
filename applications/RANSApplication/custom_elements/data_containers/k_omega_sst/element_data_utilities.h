@@ -28,6 +28,8 @@ namespace Kratos
 
 namespace KOmegaSSTElementData
 {
+double CalculateTanh(const double value);
+
 double CalculateBlendedPhi(
     const double Phi1,
     const double Phi2,
