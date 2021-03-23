@@ -21,6 +21,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -122,11 +123,11 @@ public:
 
         mdamping_factor = damping_factor;
 
-        //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        mMass.resize(NumThreads);
-        mDamp.resize(NumThreads);
-        mvel.resize(NumThreads);
+        // Allocate auxiliary memory
+        const int num_threads = ParallelUtilities::GetNumThreads();
+        mMass.resize(num_threads);
+        mDamp.resize(num_threads);
+        mvel.resize(num_threads);
 
         //std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
     }
