@@ -325,6 +325,7 @@ public:
         mpSurfaceSourceVar = rOther.mpSurfaceSourceVar;
         mpProjectionVar = rOther.mpProjectionVar;
         mpConvectionVar = rOther.mpConvectionVar;
+        mpGradientVar = rOther.mpGradientVar;
         mpMeshVelocityVar = rOther.mpMeshVelocityVar;
         mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         mpVelocityVar = rOther.mpVelocityVar;
