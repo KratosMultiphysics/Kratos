@@ -244,7 +244,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties[KratosMultiphysics.YOUNG_MODULUS] = 7.0e6
         properties[KratosMultiphysics.POISSON_RATIO] = 0.30
         properties[STATIC_FRICTION] = 0.0
-        properties[KINEMATIC_FRICTION] = 0.0
+        properties[DYNAMIC_FRICTION] = 0.0
         properties[FRICTION_DECAY] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 1.0
@@ -254,7 +254,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
 
         properties_walls[STATIC_FRICTION] = 0.0
-        properties_walls[KINEMATIC_FRICTION] = 0.0
+        properties_walls[DYNAMIC_FRICTION] = 0.0
         properties[FRICTION_DECAY] = 0.0
         properties_walls[WALL_COHESION] = 0.0
         properties_walls[COMPUTE_WEAR] = 0

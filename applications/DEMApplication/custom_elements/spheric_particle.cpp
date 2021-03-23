@@ -2134,7 +2134,7 @@ double SphericParticle::SlowGetRollingFriction() const          { return GetProp
 double SphericParticle::SlowGetRollingFrictionWithWalls() const { return GetProperties()[ROLLING_FRICTION_WITH_WALLS]; }
 double SphericParticle::SlowGetPoisson() const                  { return GetProperties()[POISSON_RATIO];               }
 double SphericParticle::SlowGetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];             }
-double SphericParticle::SlowGetTgOfDynamicFrictionAngle() const { return GetProperties()[KINEMATIC_FRICTION];            }
+double SphericParticle::SlowGetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION];            }
 double SphericParticle::SlowGetFrictionDecayCoefficient() const { return GetProperties()[FRICTION_DECAY];              }
 double SphericParticle::SlowGetCoefficientOfRestitution() const { return GetProperties()[COEFFICIENT_OF_RESTITUTION];  }
 double SphericParticle::SlowGetDensity() const                  { return GetProperties()[PARTICLE_DENSITY];            }

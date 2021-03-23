@@ -689,11 +689,11 @@ class ExplicitStrategy():
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             self.Procedures.KratosPrintWarning("  WARNING: Property FRICTION is deprecated since April 6th, 2020, ")
-            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION, KINEMATIC_FRICTION and FRICTION_DECAY")
+            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION, DYNAMIC_FRICTION and FRICTION_DECAY")
             self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             properties[STATIC_FRICTION] = properties[FRICTION]
-            properties[KINEMATIC_FRICTION] = properties[FRICTION]
+            properties[DYNAMIC_FRICTION] = properties[FRICTION]
             properties[FRICTION_DECAY]  = 0.0
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)

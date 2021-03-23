@@ -13,7 +13,7 @@ proc WriteMdpaDEM { basename dir problemtypedir } {
 	puts $FileVar "  YOUNG_MODULUS                           [GiD_AccessValue get gendata Young_Modulus]"
 	puts $FileVar "  POISSON_RATIO                           [GiD_AccessValue get gendata Poisson_Ratio]"
 	puts $FileVar "  STATIC_FRICTION                         [GiD_AccessValue get gendata Static_Friction]"
-	puts $FileVar "  KINEMATIC_FRICTION                      [GiD_AccessValue get gendata Dynamic_Friction]"
+	puts $FileVar "  DYNAMIC_FRICTION                      [GiD_AccessValue get gendata Dynamic_Friction]"
 	puts $FileVar "  FRICTION_DECAY                          [GiD_AccessValue get gendata Friction_Decay]"
 	puts $FileVar "  PARTICLE_COHESION                       [GiD_AccessValue get gendata Cohesion]"
 	puts $FileVar "  COEFFICIENT_OF_RESTITUTION              [GiD_AccessValue get gendata Coefficion_of_Restitution]"

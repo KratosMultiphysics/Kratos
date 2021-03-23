@@ -40,15 +40,15 @@ namespace Kratos {
                 pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
             }
         }
-        if(!pProp->Has(KINEMATIC_FRICTION)) {
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
             if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
                 KRATOS_WARNING("DEM")<<std::endl;
-                KRATOS_WARNING("DEM")<<"WARNING: Variable KINEMATIC_FRICTION or FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
                 KRATOS_WARNING("DEM")<<std::endl;
-                pProp->GetValue(KINEMATIC_FRICTION) = 0.0;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
             }
             else {
-                pProp->GetValue(KINEMATIC_FRICTION) = pProp->GetValue(FRICTION);
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
             }
         }
         if(!pProp->Has(FRICTION_DECAY)) {
