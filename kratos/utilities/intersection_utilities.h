@@ -84,7 +84,7 @@ public:
     ///@{
 
     /**
-     * Find the 3D intersection of a ray with a triangle
+     * Find the 3D intersection of a line (bounded) with a triangle (bounded)
      * @param rTriangleGeometry Is the triangle to intersect
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
@@ -166,7 +166,7 @@ public:
     }
 
     /**
-     * Find the 2D intersection of two lines
+     * Find the 2D intersection of two lines (both bounded)
      * @param rLineGeometry Is the line to intersect
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
@@ -230,6 +230,56 @@ public:
         }
         // Otherwise, the lines are non-parallel but do not intersect
         return 0;
+    }
+
+    /**
+     * @brief Find the 3D intersection of a plane (infinite) with a segment (bounded)
+     * @param rPlaneBasePoint Base point of the plane to intersect with
+     * @param rPlaneNormal Normal vector of the plane to intersect qith
+     * @param rLinePoint1 Coordinates of the first point of the segment
+     * @param rLinePoint2 Coordinates of the second point of the segment
+     * @param rIntersectionPoint The intersection point coordinates
+     * @return The intersection type index:
+     * 0 (parallel or out of bounds - no intersection)
+     * 1 (unique intersection point)
+     * 2 (edge and plane coincide - no intersection)
+     */
+    static int ComputePlaneLineIntersection(
+        const array_1d<double,3>& rPlaneBasePoint,
+        const array_1d<double,3>& rPlaneNormal,
+        const array_1d<double,3>& rLinePoint1,
+        const array_1d<double,3>& rLinePoint2,
+        array_1d<double,3>& rIntersectionPoint,
+        const double epsilon = 1e-12)
+    {
+        // This is the adaption of the implemnetation provided in:
+        // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
+        // (Intersection of a Segment with a Plane)
+
+        // Get direction vector of edge
+        const array_1d<double,3> line_dir = rLinePoint2 - rLinePoint1;
+
+        // Check if the segment is parallel to the plane or even coincides with it
+        const double a = inner_prod(rPlaneNormal,( rPlaneBasePoint - rLinePoint1 ));
+        const double b = inner_prod(rPlaneNormal,line_dir);
+        if (std::abs(b) < epsilon){
+            if (std::abs(a) < epsilon){
+                return 2;    // Segment lies in the plane
+            } else {
+                return 0;    // Segment does not lie in the plane, but is parallel to it
+            }
+        }
+
+        // Compute the intersection point and check if it is inside the bounds of the segment
+        const double r = a / b;
+        if (r < 0.0){
+            return 0;    // Intersection point lies outside the bounds of the segment
+        } else if (r > 1.0) {
+            return 0;    // Intersection point lies outside the bounds of the segment
+        }
+        rIntersectionPoint = rLinePoint1 + r * line_dir;
+
+        return 1;
     }
 
     /**

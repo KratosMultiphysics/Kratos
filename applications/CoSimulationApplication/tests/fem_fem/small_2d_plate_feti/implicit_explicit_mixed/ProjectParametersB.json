@@ -49,18 +49,18 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "list_other_processes"     : [],
-        "print_output_process" : [{
-            "python_module"   : "json_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "JsonOutputProcess",
-            "Parameters"            : {
-                "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
-                "output_file_name" : "fem_fem/small_2d_plate_feti/implicit_explicit_mixed/implicit_explicit_mixed_domainB_results.json",
-                "model_part_name"  : "Structure",
-                "time_frequency"   : 0.1
-            }
-        }]
-    }
+        "list_other_processes"     : []
+    },
+    "print_output_process" : [{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "output_file_name" : "fem_fem/small_2d_plate_feti/implicit_explicit_mixed/implicit_explicit_mixed_domainB_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : 0.1
+        }
+    }]
 }
