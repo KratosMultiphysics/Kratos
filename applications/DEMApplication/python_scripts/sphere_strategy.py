@@ -694,7 +694,10 @@ class ExplicitStrategy():
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             properties[STATIC_FRICTION] = properties[FRICTION]
             properties[DYNAMIC_FRICTION] = properties[FRICTION]
-            properties[FRICTION_DECAY]  = 0.0
+            properties[FRICTION_DECAY] = 500.0
+
+        if not properties.Has(FRICTION_DECAY):
+            properties[FRICTION_DECAY] = 500.0
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

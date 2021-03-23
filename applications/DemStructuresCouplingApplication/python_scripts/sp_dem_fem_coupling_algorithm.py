@@ -150,7 +150,6 @@ class SPAlgorithm(Algorithm):
         # NOTE: this should be more general
         props[Dem.STATIC_FRICTION] = 0.2
         props[Dem.DYNAMIC_FRICTION] = 0.2
-        props[Dem.FRICTION_DECAY] = 0.0
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001

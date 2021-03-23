@@ -4,8 +4,7 @@ Begin Properties 1
   YOUNG_MODULUS                           1.5e6
   POISSON_RATIO                           0.2
   STATIC_FRICTION                         0.5773502691896257
-  DYNAMIC_FRICTION                      0.5773502691896257
-  FRICTION_DECAY                          0.0
+  DYNAMIC_FRICTION                        0.5773502691896257
   PARTICLE_COHESION                       0.0
   COEFFICIENT_OF_RESTITUTION              0.9
   PARTICLE_MATERIAL                       1
