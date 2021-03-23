@@ -310,7 +310,7 @@ class PreUtilities
         outputfile << "YOUNG_MODULUS 35e9\n";
         outputfile << "POISSON_RATIO 0.20\n";
         outputfile << "STATIC_FRICTION 0.5773502691896257\n";
-        outputfile << "DYNAMIC_FRICTION 0.5773502691896257\n";
+        outputfile << "KINEMATIC_FRICTION 0.5773502691896257\n";
         outputfile << "FRICTION_DECAY 0.0\n";
         outputfile << "PARTICLE_COHESION 0.0\n";
         outputfile << "COEFFICIENT_OF_RESTITUTION 0.2\n";

@@ -81,8 +81,8 @@ class ElementSizeModifier(DEMAnalysisStage):
         for props in self.spheres_model_part.Properties:
             self.list_of_static_frictions_at_start.append(props[DEM.STATIC_FRICTION])
             props.SetValue(DEM.STATIC_FRICTION, self.size_modifier_parameters["material_settings"]["static_friction"].GetDouble())
-            self.list_of_dynamic_frictions_at_start.append(props[DEM.DYNAMIC_FRICTION])
-            props.SetValue(DEM.DYNAMIC_FRICTION, self.size_modifier_parameters["material_settings"]["dynamic_friciton"].GetDouble())
+            self.list_of_dynamic_frictions_at_start.append(props[DEM.KINEMATIC_FRICTION])
+            props.SetValue(DEM.KINEMATIC_FRICTION, self.size_modifier_parameters["material_settings"]["dynamic_friciton"].GetDouble())
             self.list_of_friction_decays_at_start.append(props[DEM.FRICTION_DECAY])
             props.SetValue(DEM.FRICTION_DECAY, self.size_modifier_parameters["material_settings"]["dynamic_friciton"].GetDouble())
             self.list_of_young_modulus_at_start.append(props[KratosMultiphysics.YOUNG_MODULUS])
@@ -106,7 +106,7 @@ class ElementSizeModifier(DEMAnalysisStage):
         counter = 0
         for props in self.spheres_model_part.Properties:
             props.SetValue(DEM.STATIC_FRICTION, self.list_of_static_frictions_at_start[counter])
-            props.SetValue(DEM.DYNAMIC_FRICTION, self.list_of_dynamic_frictions_at_start[counter])
+            props.SetValue(DEM.KINEMATIC_FRICTION, self.list_of_dynamic_frictions_at_start[counter])
             props.SetValue(DEM.FRICTION_DECAY, self.list_of_friction_decays_at_start[counter])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.list_of_young_modulus_at_start[counter])
             props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.list_of_young_modulus_at_start[counter])

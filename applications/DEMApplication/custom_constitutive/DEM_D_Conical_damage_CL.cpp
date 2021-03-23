@@ -519,7 +519,7 @@ namespace Kratos {
         double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
         const double my_tg_of_dynamic_friction_angle        = element->GetTgOfDynamicFrictionAngle();
-        const double neighbour_tg_of_dynamic_friction_angle = wall->GetProperties()[DYNAMIC_FRICTION];
+        const double neighbour_tg_of_dynamic_friction_angle = wall->GetProperties()[KINEMATIC_FRICTION];
         double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
 
         const double my_friction_decay_coefficient          = element->GetFrictionDecayCoefficient();

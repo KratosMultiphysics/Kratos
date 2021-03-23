@@ -174,7 +174,7 @@ namespace Kratos {
             aux_pointer = &( props_it->GetValue(STATIC_FRICTION) );
             vector_of_proxies[properties_counter].SetTgOfStaticFrictionAngleFromProperties(aux_pointer);
 
-            aux_pointer = &( props_it->GetValue(DYNAMIC_FRICTION) );
+            aux_pointer = &( props_it->GetValue(KINEMATIC_FRICTION) );
             vector_of_proxies[properties_counter].SetTgOfDynamicFrictionAngleFromProperties(aux_pointer);
 
             aux_pointer = &( props_it->GetValue(FRICTION_DECAY) );
