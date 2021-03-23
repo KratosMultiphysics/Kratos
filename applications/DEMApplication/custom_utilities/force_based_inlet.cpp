@@ -1,6 +1,5 @@
 // Author: Guillermo Casas (gcasas@cimne.upc.edu)
 
-#include "<random>"
 #include "force_based_inlet.h"
 #include "custom_elements/spheric_particle.h"
 
