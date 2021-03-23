@@ -797,8 +797,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	if (DamageParameterCompressionSoftening > DamageParameterTensionSoftening)
 	{
 		DamageParameterTensionSoftening = DamageParameterCompressionSoftening;
-		const double limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
-		TensionMaxHistoricalStrain = limit_softening_stress / data.YoungModulus; // so that unloading corresponds to the new damage
+		TensionMaxHistoricalStrain = (1.0 - DamageParameterCompressionSoftening) * yield_tension / data.YoungModulus; // so that unloading corresponds to the new damage
 	}
 
 	// Calc eq strain
