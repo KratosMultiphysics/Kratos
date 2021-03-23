@@ -79,7 +79,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "max_substeps" : 0,
                 "levelset_splitting" : false,
                 "eulerian_error_compensation" : false,
-                "cross_wind_stabilization_factor" : 0.7
+                "cross_wind_stabilization_factor" : 0.7,
+                "algebraic_stabilization" : false
             },
             "distance_reinitialization": "variational",
             "distance_smoothing": false,

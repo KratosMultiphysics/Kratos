@@ -733,23 +733,21 @@ protected:
             const double fraction = std::abs(numerator) / (denominator + epsilon);
             mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
 
-            if (mIsAlgebraicStabilization)
+            if (mIsAlgebraicStabilization){
                 it_node->SetValue(LIMITER_COEFFICIENT, (1.0 - std::pow(fraction, power_elemental_limiter)) );
+            }
         }
         );
 
-            #pragma omp parallel for
-            for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->NumberOfElements()); ++i_elem) {
-                auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
-                auto& r_geometry = it_elem->GetGeometry();
-
-                double elemental_limiter = 1.0;
-
-                for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
-                    elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
-                    it_elem->SetValue(LIMITER_COEFFICIENT, elemental_limiter);
-                }
+        block_for_each(mpDistanceModelPart->Elementss(), [&](ElementType& rElement){
+            auto& r_geometry = rElement.GetGeometry();
+            double elemental_limiter = 1.0;
+            for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
+                elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
+                rElement.SetValue(LIMITER_COEFFICIENT, elemental_limiter);
             }
+        }
+        );
     }
 
     /**
