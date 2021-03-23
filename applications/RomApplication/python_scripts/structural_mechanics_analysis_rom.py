@@ -35,9 +35,9 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
     def _GetSimulationName(self):
         return "::[ROM Simulation]:: "
 
-    def ModifyInitialGeometry(self):
+    def ModifyAfterSolverInitialize(self):
         """Here is where the ROM_BASIS is imposed to each node"""
-        super().ModifyInitialGeometry()
+        super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
             data = json.load(f)
@@ -53,11 +53,6 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 counter+=1
-
-
-
-    def ModifyAfterSolverInitialize(self):
-        super().ModifyAfterSolverInitialize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
