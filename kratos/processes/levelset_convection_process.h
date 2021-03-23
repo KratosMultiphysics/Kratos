@@ -759,8 +759,8 @@ protected:
                     rElement.SetValue(LIMITER_COEFFICIENT, elemental_limiter);
                 }
             }
+            );
         }
-        );
     }
 
     /**
