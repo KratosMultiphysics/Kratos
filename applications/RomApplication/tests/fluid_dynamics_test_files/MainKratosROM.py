@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.fluid_dynamics_analysis_rom import FluidDynamicsAnalysisROM
 
@@ -15,7 +13,7 @@ class TestFluidDynamicsROM(FluidDynamicsAnalysisROM):
         self.time_step_solution_container = []
 
     def FinalizeSolutionStep(self):
-        super(TestFluidDynamicsROM,self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         ArrayOfResults = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             ArrayOfResults.append(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0))
