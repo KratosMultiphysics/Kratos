@@ -549,8 +549,6 @@ namespace Kratos {
             }
 
             if (number_of_particles_to_insert) {
-                //randomizing mesh
-                std::mt19937 random_generator(r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
                 int valid_elements_length = 0;
