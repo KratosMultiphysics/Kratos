@@ -166,8 +166,7 @@ def GetDefaultInputParameters():
         },
 
         "dem_parameters" : {
-            "seed" : 42,
-            "use_external_seed" : false
+            "seed" : 42
         },
 
         "custom_dem" : {

@@ -296,11 +296,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.report.total_steps_expected = int(self.end_time / self._GetSolver().dt)
 
         super().Initialize()
-        
-        self.use_external_seed = self.DEM_parameters["use_external_seed"].GetBool()
+
         self.seed = self.DEM_parameters["seed"].GetInt()
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
-        #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part      
+        #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         self.SetInlet()
 
         self.SetInitialNodalValues()
@@ -470,7 +469,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed, self.use_external_seed)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):

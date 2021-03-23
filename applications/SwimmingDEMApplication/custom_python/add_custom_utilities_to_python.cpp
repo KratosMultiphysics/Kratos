@@ -516,7 +516,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     py::class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
-        .def(py::init<ModelPart&, array_1d<double, 3>, int&, bool& >())
+        .def(py::init<ModelPart&, array_1d<double, 3>, int& >())
         ;
 
     py::class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")

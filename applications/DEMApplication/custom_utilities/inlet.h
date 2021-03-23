@@ -47,7 +47,7 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Inlet);
 
         /// Constructor:
-        DEM_Inlet(ModelPart& inlet_modelpart, int& seed, bool& use_external_seed);
+        DEM_Inlet(ModelPart& inlet_modelpart, int& seed);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
