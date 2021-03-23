@@ -2,7 +2,6 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
@@ -55,6 +54,7 @@ class TestFrictionDecay(KratosUnittest.TestCase):
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(FrictionDecayTestSolution, model, parameters_file_name, 1)
 
+    @classmethod
     def tearDown(self):
         file_to_remove = os.path.join("friction_decay_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
