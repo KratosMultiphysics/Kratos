@@ -88,6 +88,7 @@ namespace Kratos
         }
         */
 
+
         // Initially check if the bounding box volume scalar is less than the element volume scalar
         if (mp_volume_vec[0] <= rParentGeom.DomainSize()) {
             if (CheckAllPointsAreInGeom(master_domain_points, rParentGeom, Tolerance)) {
@@ -195,7 +196,10 @@ namespace Kratos
             if (std::abs(ips[0].Weight() - 1.0) > Tolerance)
             {
                 KRATOS_INFO("MPMSearchElementUtility")
-                    << "Boost intersection did not cover the whole single geometry\n";
+                    << "Boost intersection did not cover the whole single geometry\n"
+                    << "Global position = " << rCoordinates
+                    << "\nPQMPM bounding box points:\n\tlow = " << point_low << "\n\thigh = " << point_high << "\n";
+
                 KRATOS_ERROR << "ERROR";
             }
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
