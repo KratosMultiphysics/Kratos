@@ -24,6 +24,7 @@
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
 #include "includes/model_part.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 // Teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
