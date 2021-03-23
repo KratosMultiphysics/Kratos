@@ -101,7 +101,7 @@ namespace Kratos
             double pressure = iNode->FastGetSolutionStepValue(PRESSURE);
             double mod_rho = mrho_0*std::pow((pressure - mp_0)/mk_0 + 1,1/mtheta);
             double modified_c = std::pow(mk_0*mtheta*std::pow(mod_rho/mrho_0,mtheta - 1)/mrho_0,0.5); 
-            iNode->FastGetSolutionStepValue(DENSITY,0) = mod_rho;
+            iNode->FastGetSolutionStepValue(DENSITY) = mod_rho;
             iNode->SetValue(SOUND_VELOCITY,modified_c);
         }
 

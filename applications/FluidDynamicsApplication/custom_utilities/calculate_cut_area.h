@@ -50,9 +50,10 @@ namespace Kratos
 			#pragma omp parallel for reduction(+: neg_vol)
 
 			//getting data for the given geometry
-			for(ModelPart::ElementsContainerType::iterator ielem = mr_model_part.ElementsBegin(); //looping the elements
-				ielem!=mr_model_part.ElementsEnd(); ielem++)
-			{
+            for (int i_elem = 0; i_elem < static_cast<int>(mr_model_part.NumberOfElements()); ++i_elem){ // iteration over all elements
+                
+                const auto ielem = mr_model_part.ElementsBegin() + i_elem;
+
 				Matrix shape_functions;
                 GeometryType::ShapeFunctionsGradientsType shape_derivatives;
                 Geometry<Node<3>> & rGeom = ielem->GetGeometry(); 

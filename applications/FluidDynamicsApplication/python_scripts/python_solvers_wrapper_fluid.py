@@ -15,7 +15,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "Monolithic"):
-            solver_module_name = "navier_stokes_solver_vmsmonolithic"
+            solver_module_name = "navier_stokes_solver_vmsmonolithic_old"
 
         elif (solver_type == "MonolithicLS"):
             solver_module_name = "navier_stokes_solver_levelset"

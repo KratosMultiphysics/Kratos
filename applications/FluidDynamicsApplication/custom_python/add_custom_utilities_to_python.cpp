@@ -39,6 +39,7 @@
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/calculate_cut_area.h"
+#include "custom_utilities/calculate_normal_vector.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -68,6 +69,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<CalculateCutArea > (m,"CalculateCutArea")
         .def(py::init<ModelPart& >())  
         .def("Execute", &CalculateCutArea::Calculate)  
+        ; 
+
+    py::class_<CalculateNormalVector > (m,"CalculateNormalVector")
+        .def(py::init<ModelPart& >())  
+        .def("Execute", &CalculateNormalVector::Calculate)  
         ; 
 
     // Estimate time step utilities
