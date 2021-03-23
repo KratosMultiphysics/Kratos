@@ -6,7 +6,7 @@
 
 namespace Kratos {
 
-Bentonite_Force_Based_Inlet::Bentonite_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force, int& seed):
+Bentonite_Force_Based_Inlet::Bentonite_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1d<double, 3> injection_force, const int seed):
     BaseClass(inlet_modelpart, injection_force, seed)
 {
     // we want to keep only the direction of the input force (mInjectionForce), since its modulus

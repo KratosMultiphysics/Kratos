@@ -42,7 +42,7 @@ namespace Kratos {
 
     /// Constructor
 
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, int& seed): mInletModelPart(inlet_modelpart)
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed): mInletModelPart(inlet_modelpart)
     {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
         mPartialParticleToInsert.resize(number_of_submodelparts);
@@ -51,9 +51,8 @@ namespace Kratos {
         mLayerRemoved.resize(number_of_submodelparts);
         mNumberOfParticlesInjected.resize(number_of_submodelparts);
         mMassInjected.resize(number_of_submodelparts);
-        mSeed = seed;
 
-        std::mt19937 gen(mSeed);
+        std::mt19937 gen(seed);
         mGenerator = gen;
 
         int smp_iterator_number = 0;
@@ -604,7 +603,7 @@ namespace Kratos {
 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);
 
-                std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
+                //std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
 
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
@@ -615,7 +614,9 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = distrib(mGenerator);
+                    //int random_pos = distrib(mGenerator);
+
+                    int random_pos = mGenerator() % valid_elements_length;
 
                     Element* p_injector_element = valid_elements[random_pos].get();
 
