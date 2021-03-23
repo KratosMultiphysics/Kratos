@@ -262,7 +262,7 @@ public:
             );
 
             // Storing the levelset variable for error calculation and Evaluating the limiter
-            if (mIsBfecc) {
+            if (mIsBfecc || mIsAlgebraicStabilization) {
                 EvaluateLimiter();
             }
 
@@ -739,7 +739,10 @@ protected:
             }
 
             const double fraction = std::abs(numerator) / (denominator + epsilon);
-            mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+
+            if (mIsBfecc){
+                mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+            }
 
             if (mIsAlgebraicStabilization){
                 it_node->SetValue(LIMITER_COEFFICIENT, (1.0 - std::pow(fraction, power_elemental_limiter)) );
@@ -747,12 +750,14 @@ protected:
         }
         );
 
-        block_for_each(mpDistanceModelPart->Elements(), [&](Element& rElement){
-            auto& r_geometry = rElement.GetGeometry();
-            double elemental_limiter = 1.0;
-            for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
-                elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
-                rElement.SetValue(LIMITER_COEFFICIENT, elemental_limiter);
+        if (mIsAlgebraicStabilization){
+            block_for_each(mpDistanceModelPart->Elements(), [&](Element& rElement){
+                auto& r_geometry = rElement.GetGeometry();
+                double elemental_limiter = 1.0;
+                for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
+                    elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
+                    rElement.SetValue(LIMITER_COEFFICIENT, elemental_limiter);
+                }
             }
         }
         );
