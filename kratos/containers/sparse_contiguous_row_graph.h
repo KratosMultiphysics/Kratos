@@ -69,7 +69,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef TIndexType IndexType;
-    typedef DenseVector<std::unordered_set<IndexType> > GraphType; 
+    typedef DenseVector<std::unordered_set<IndexType> > GraphType;
     typedef typename GraphType::const_iterator const_row_iterator;
 
     /// Pointer definition of SparseContiguousRowGraph
@@ -107,7 +107,7 @@ public:
     //     return *this;
     // }
 
-    /// Copy constructor. 
+    /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
         this->AddEntries(rOther);
@@ -147,17 +147,17 @@ public:
 
     void AddEntry(const IndexType RowIndex, const IndexType ColIndex)
     {
-        mLocks[RowIndex].SetLock();
+        mLocks[RowIndex].lock();
         mGraph[RowIndex].insert(ColIndex);
-        mLocks[RowIndex].UnSetLock();
+        mLocks[RowIndex].unlock();
     }
 
     template<class TContainerType>
     void AddEntries(const IndexType RowIndex, const TContainerType& rColIndices)
     {
-        mLocks[RowIndex].SetLock();
+        mLocks[RowIndex].lock();
         mGraph[RowIndex].insert(rColIndices.begin(), rColIndices.end());
-        mLocks[RowIndex].UnSetLock();
+        mLocks[RowIndex].unlock();
     }
 
     template<class TIteratorType>
@@ -166,9 +166,9 @@ public:
                     const TIteratorType& rColEnd
                     )
     {
-        mLocks[RowIndex].SetLock();
+        mLocks[RowIndex].lock();
         mGraph[RowIndex].insert(rColBegin, rColEnd);
-        mLocks[RowIndex].UnSetLock();
+        mLocks[RowIndex].unlock();
     }
 
     //adds a square FEM matrix, identified by rIndices
@@ -178,9 +178,9 @@ public:
         for(auto I : rIndices){
             KRATOS_DEBUG_ERROR_IF(I > this->Size()) << "Index : " << I
                 << " exceeds the graph size : " << Size() << std::endl;
-            mLocks[I].SetLock();
+            mLocks[I].lock();
             mGraph[I].insert(rIndices.begin(), rIndices.end());
-            mLocks[I].UnSetLock();
+            mLocks[I].unlock();
         }
     }
 
@@ -273,7 +273,7 @@ public:
             col_indices[i] = 0;
         });
 
-        //count the entries 
+        //count the entries
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
 
             IndexType start = row_indices[i];
@@ -294,9 +294,9 @@ public:
     }
 
     //this function returns the Graph as a single vector
-    //in the form of 
-    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
-    //every row is pushed back one after the other 
+    //in the form of
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row
+    //every row is pushed back one after the other
     std::vector<IndexType> ExportSingleVectorRepresentation()
     {
         std::vector< IndexType > IJ;
