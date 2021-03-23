@@ -47,12 +47,51 @@ namespace Kratos
 		if (rThisVariable == MP_TEMPERATURE
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
-			|| rThisVariable == MP_HARDENING_RATIO
 			|| rThisVariable == MP_EQUIVALENT_STRESS
 			|| rThisVariable == MP_DAMAGE
 			|| rThisVariable == EQ_STRAIN_RATE)
 			return true;
 		else return false;
+	}
+
+	void JohnsonCookThermalPlastic3DLaw::ComputeCharacteristicLength(
+		const GeometryType& geom,
+		const Properties& rMaterialProperties,
+		double& rCharacteristicLength)
+	{
+		// Updated for MPM - we take the material point volume
+		rCharacteristicLength = 0.0;
+		double area = geom.GetValue(MP_VOLUME);
+		if (rMaterialProperties.Has(THICKNESS)) area /= rMaterialProperties[THICKNESS];
+		rCharacteristicLength = std::sqrt(area);
+
+		KRATOS_ERROR << "FIX THE ABOVE FOR 3D!";
+
+		KRATOS_ERROR_IF(rCharacteristicLength == 0.0) << "Characteristic length not set properly!\n"
+			<< "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
+	}
+
+
+	double JohnsonCookThermalPlastic3DLaw::CalculateDamageOnsetPlasticStrain(const double HydrostaticStress,
+		const double EqStress, const double PlasticStrainRate,
+		const double Temperature, const Properties& MaterialProperties)
+	{
+		if (MaterialProperties.Has(JC_D1))
+		{
+			// Calc normalized temp
+			double temp_norm = (Temperature - MaterialProperties[REFERENCE_TEMPERATURE]) /
+				(MaterialProperties[MELD_TEMPERATURE] - MaterialProperties[REFERENCE_TEMPERATURE]);
+			temp_norm = std::max(0.0, temp_norm);
+			temp_norm = std::min(1.0, temp_norm);
+
+			double damage_onset_plastic_strain = MaterialProperties[JC_D1] +
+				MaterialProperties[JC_D2] * std::exp(MaterialProperties[JC_D3] * HydrostaticStress / EqStress);
+			damage_onset_plastic_strain *= (1.0 + MaterialProperties[JC_D4] * std::log(PlasticStrainRate / MaterialProperties[REFERENCE_STRAIN_RATE]));
+			damage_onset_plastic_strain *= (1.0 + MaterialProperties[JC_D5] * temp_norm);
+
+			return damage_onset_plastic_strain;
+		}
+		else return 0.0;
 	}
 
 
@@ -65,10 +104,8 @@ namespace Kratos
 		mPlasticStrainRateOld = 0.0;
 		mEnergyInternal = 0.0;
 		mEnergyDissipated = 0.0;
-		mTemperatureOld = rMaterialProperties[TEMPERATURE];
+		mTemperatureOld = rMaterialProperties[REFERENCE_TEMPERATURE];
 		mGammaOld = 1e-8;
-		mHardeningRatio = 1.0;
-		mFailurePlasticStrain = rMaterialProperties[FAILURE_PLASTIC_STRAIN];
 		mStrainRate = 0.0;
 
 		if (rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] == 0.0) {
@@ -77,6 +114,15 @@ namespace Kratos
 
 		mYieldStressOld = CalculateHardenedYieldStress(rMaterialProperties, mEquivalentPlasticStrainOld, mPlasticStrainRateOld, mTemperatureOld);
 		mYieldStressVirgin = mYieldStressOld;
+
+		// Initialize damage law
+		const double fracture_toughness = (rMaterialProperties.Has(FRACTURE_TOUGHNESS)) ? rMaterialProperties[FRACTURE_TOUGHNESS] : 0.0; // default is sudden failure instead of progressive damage
+		const double poisson = rMaterialProperties[POISSON_RATIO];
+		const double young_mod = rMaterialProperties[YOUNG_MODULUS];
+		const double fracture_energy = (1.0 - poisson * poisson) / young_mod * fracture_toughness;
+		mFailureDisp = 2.0 * fracture_energy / mYieldStressVirgin;
+
+		this->ComputeCharacteristicLength(rElementGeometry, rMaterialProperties, mCharLength);
 	}
 
 
@@ -130,8 +176,10 @@ namespace Kratos
 
 		// Assume current yield stress is the same as the old (elastic predictor)
 		double yield_stress = mYieldStressOld;
+		const double yield_stress_failure_ratio = 1e-3; // particle fails if current_yield/virgin_yield < yield_stress_failure_ratio
+		double delta_plastic_strain = 0.0;
 
-		if (j2_stress_trial > yield_stress && mEquivalentPlasticStrainOld < MaterialProperties[FAILURE_PLASTIC_STRAIN])
+		if (j2_stress_trial > yield_stress && mDamage < 0.99)
 		{
 			// Newton raphson setup
 			double gamma = mGammaOld;
@@ -194,19 +242,22 @@ namespace Kratos
 				iteration += 1;
 				if (iteration == iteration_limit)
 				{
-					if (predicted_eps > MaterialProperties[FAILURE_PLASTIC_STRAIN])
-					{
-						// Material has failed!
-						predicted_eps = MaterialProperties[FAILURE_PLASTIC_STRAIN];
-						gamma = (predicted_eps - mEquivalentPlasticStrainOld) / GetSqrt23();
-						predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
-						predicted_temperature = mTemperatureOld;
-						predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
-							/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
-
-					}
-					else
-					{
+					//if (yield_stress <= yield_stress_failure_ratio * mYieldStressVirgin)
+					//{
+					//	// Material has failed!
+					//	mIsFailed = true;
+					//	if (yield_stress < 0.0) yield_stress = 0.0;
+					//
+					//	// We take the initial prediction with zero yield stress
+					//	gamma = mGammaOld;
+					//	predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
+					//	predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
+					//	predicted_temperature = mTemperatureOld;
+					//	predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
+					//		/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
+					//}
+					//else
+					//{
 						KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded\n";
 						KRATOS_WATCH(gamma)
 							KRATOS_WATCH(mEquivalentPlasticStrainOld)
@@ -215,38 +266,58 @@ namespace Kratos
 							KRATOS_WATCH(delta_gamma)
 							KRATOS_WATCH(yield_function)
 							KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
-					}
+					//}
 				}
 			}
 			// Correct trial stress
 			stress_deviatoric_converged = stress_deviatoric_trial - 2.0 * shear_modulus_G * gamma * flow_direction_normalized;
 
 			// Store plastic deformation quantities
+			delta_plastic_strain = predicted_eps - mEquivalentPlasticStrainOld;
 			mEnergyDissipated += gamma / GetSqrt6() / MaterialProperties[DENSITY] * (mYieldStressOld + yield_stress);
 			mEquivalentPlasticStrainOld = predicted_eps;
 			mPlasticStrainRateOld = predicted_eps_rate;
 			mTemperatureOld = predicted_temperature;
 			mYieldStressOld = yield_stress;
-			mHardeningRatio = yield_stress / mYieldStressVirgin;
 		}
 		else
 		{
-			if (mEquivalentPlasticStrainOld - MaterialProperties[FAILURE_PLASTIC_STRAIN] > -1e-6)
+			if (mDamage > 0.99)
 			{
-				// Particle has failed. It can only take compressive volumetric stresses!
+				// Particle has already failed. It can only take compressive volumetric stresses!
 				stress_deviatoric_converged.clear();
 				if (stress_hydrostatic_new > 0.0) stress_hydrostatic_new = 0.0;
-				mHardeningRatio = 0.0;
 			}
 			else
 			{
 				stress_deviatoric_converged = stress_deviatoric_trial;
 			}
 		}
+
 		// Update equivalent stress
 		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
 		mEquivalentStress = std::sqrt(3.0 / 2.0 *
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
+
+		// Update damage
+		if (delta_plastic_strain > 1e-12)
+		{
+			// Evolution
+			const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
+				mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
+			mDamageInitiation += delta_plastic_strain / plastic_damage_onset;
+
+			if (mDamageInitiation >= 1.0)
+			{
+				// True material damage
+				if (mDamage == 0.0) mDamageInitiationDisp = mCharLength * mEquivalentPlasticStrainOld;
+
+				// Softening regularised with Hillerborg approach
+				mDamage = 1.0 - (mCharLength * mEquivalentPlasticStrainOld - mDamageInitiationDisp)/( mFailureDisp - mDamageInitiationDisp); // simple linear damage law
+				mDamage = std::min(1.0, mDamage);
+			}
+		}
+
 
 		// Store stresses and strains
 		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
@@ -269,7 +340,6 @@ namespace Kratos
 		KRATOS_ERROR_IF (JC_PARAMETER_B.Key()==0 || rMaterialProperties[JC_PARAMETER_B] < 0.0) << "JC_PARAMETER_B has key zero or invalid value (expected positive number ~500MPa)" << std::endl;
 		KRATOS_ERROR_IF (JC_PARAMETER_C.Key()==0 || rMaterialProperties[JC_PARAMETER_C] < 0.0) << "JC_PARAMETER_C has key zero or invalid value (expected positive number ~0.01)" << std::endl;
 		KRATOS_ERROR_IF (JC_PARAMETER_n.Key()==0 || rMaterialProperties[JC_PARAMETER_n] < 0.0) << "JC_PARAMETER_n has key zero or invalid value (expected positive number ~0.25)" << std::endl;
-		KRATOS_ERROR_IF (FAILURE_PLASTIC_STRAIN.Key()==0 || rMaterialProperties[FAILURE_PLASTIC_STRAIN] < 0.0) << "FAILURE_PLASTIC_STRAIN has key zero or invalid value (expected positive number ~1.0)" << std::endl;
 		KRATOS_ERROR_IF (REFERENCE_STRAIN_RATE.Key()==0 || rMaterialProperties[REFERENCE_STRAIN_RATE] <= 0.0) << "REFERENCE_STRAIN_RATE has key zero or invalid value (expected positive number ~1.0)" << std::endl;
 		KRATOS_ERROR_IF (TAYLOR_QUINNEY_COEFFICIENT.Key()==0 || rMaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] < 0.0) << "TAYLOR_QUINNEY_COEFFICIENT has key zero or invalid value (expected positive number ~0.9)" << std::endl;
 
@@ -279,7 +349,6 @@ namespace Kratos
 			KRATOS_ERROR_IF(JC_PARAMETER_m.Key() == 0 || rMaterialProperties[JC_PARAMETER_m] < 0.0) << "JC_PARAMETER_m has key zero or invalid value (expected positive number ~1.0)" << std::endl;
 			KRATOS_ERROR_IF(MELD_TEMPERATURE.Key() == 0 || rMaterialProperties[MELD_TEMPERATURE] <= 0.0) << "MELD_TEMPERATURE has key zero or invalid value (expected positive number ~1700K)" << std::endl;
 			KRATOS_ERROR_IF(REFERENCE_TEMPERATURE.Key() == 0 || rMaterialProperties[REFERENCE_TEMPERATURE] <= 0.0) << "REFERENCE_TEMPERATURE has key zero or invalid value (expected positive number ~293K)" << std::endl;
-			KRATOS_ERROR_IF(TEMPERATURE.Key() == 0 || rMaterialProperties[TEMPERATURE] <= 0.0) << "TEMPERATURE has key zero or invalid value (expected positive number ~293K)" << std::endl;
 			KRATOS_ERROR_IF(SPECIFIC_HEAT.Key() == 0 || rMaterialProperties[SPECIFIC_HEAT] < 0.0) << "SPECIFIC_HEAT has key zero or invalid value (expected positive number ~450.0)" << std::endl;
 		}
 
@@ -350,6 +419,9 @@ namespace Kratos
 			std::pow(EquivalentPlasticStrain, MaterialProperties[JC_PARAMETER_n]);
 		hardened_stress *= CalculateStrainRateHardeningFactor(MaterialProperties, PlasticStrainRate);
 		hardened_stress *= CalculateThermalHardeningFactor(MaterialProperties, Temperature);
+
+		// include damage too
+		hardened_stress *= (1.0 - mDamage);
 
 		return hardened_stress;
 	}
@@ -471,17 +543,13 @@ namespace Kratos
 		{
 			rValue = mPlasticStrainRateOld;
 		}
-		else if (rThisVariable == MP_HARDENING_RATIO)
-		{
-			rValue = mHardeningRatio;
-		}
 		else if (rThisVariable == MP_EQUIVALENT_STRESS)
 		{
 			rValue = mEquivalentStress;
 		}
 		else if (rThisVariable == MP_DAMAGE)
 		{
-			rValue = mEquivalentPlasticStrainOld / mFailurePlasticStrain;
+			rValue = mDamage;
 		}
 		else if (rThisVariable == EQ_STRAIN_RATE)
 		{

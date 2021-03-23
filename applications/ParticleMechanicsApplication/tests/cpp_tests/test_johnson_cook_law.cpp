@@ -66,7 +66,6 @@ namespace Testing
         material_properties.SetValue(MELD_TEMPERATURE, 1793.0);
         material_properties.SetValue(SPECIFIC_HEAT, 477.0);
         material_properties.SetValue(TAYLOR_QUINNEY_COEFFICIENT, 0.9);
-        material_properties.SetValue(FAILURE_PLASTIC_STRAIN, 1.0);
 
         test_model_part.GetProcessInfo().SetValue(DELTA_TIME, 0.001);
         test_model_part.GetProcessInfo().SetValue(IS_EXPLICIT, true);

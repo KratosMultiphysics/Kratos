@@ -138,8 +138,12 @@ protected:
     double mYieldStressOld;
     double mYieldStressVirgin;
     double mHardeningRatio;
-    double mFailurePlasticStrain;
     double mStrainRate;
+    double mFailureDisp = 0.0;
+    double mCharLength = 0.0;
+    double mDamage = 0.0;
+    double mDamageInitiation = 0.0;
+    double mDamageInitiationDisp = 0.0;
 
     ///@}
     ///@name Protected Operators
@@ -176,6 +180,12 @@ private:
 
     double CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
+
+    void ComputeCharacteristicLength(const GeometryType& geom, const Properties& rMaterialProperties,
+        double& rCharacteristicLength);
+
+    double CalculateDamageOnsetPlasticStrain(const double Pressure, const double EqStress, const double PlasticStrainRate,
+        const double Temperature, const Properties& MaterialProperties);
 
     inline double GetSqrt32() { return 1.2247448713915900000; } //sqrt(3.0/2.0)
 
