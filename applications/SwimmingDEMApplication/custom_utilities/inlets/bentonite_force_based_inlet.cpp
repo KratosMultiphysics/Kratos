@@ -1,6 +1,5 @@
 // Author: Guillermo Casas (gcasas@cimne.upc.edu)
 
-#include <random>
 #include "../../../DEMApplication/custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "../../../DEMApplication/custom_elements/spheric_particle.h"
 #include "bentonite_force_based_inlet.h"
