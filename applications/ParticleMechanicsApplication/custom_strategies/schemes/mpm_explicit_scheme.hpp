@@ -624,7 +624,7 @@ namespace Kratos {
                         }
                     }
 
-                    if (i->Y0() > 0.11) i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false;
+                    //if (i->Y0() > 0.11) i->FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE) = false; // dodgy hack for example
                 }
 
 
