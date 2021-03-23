@@ -46,7 +46,7 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Inlet);
 
         /// Constructor:
-        DEM_Inlet(ModelPart& inlet_modelpart);
+        DEM_Inlet(ModelPart& inlet_modelpart, int& seed, bool& use_external_seed);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
@@ -96,7 +96,9 @@ namespace Kratos {
         std::vector<int> mNumberOfParticlesInjected;
         std::map<int, std::string> mOriginInletSubmodelPartIndexes;
         double mTotalMassInjected;
+        int mSeed;
         std::vector<double> mMassInjected;
+        std::mt19937 mGenerator;
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle
         // and for allowing a new one to be injected. admissible_indentation_ratio_for_release should be smaller
         // (more strict), since we want to make sure that the particle is taken far enough to avoid interferences
