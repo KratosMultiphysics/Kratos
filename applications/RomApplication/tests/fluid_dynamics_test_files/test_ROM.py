@@ -11,7 +11,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class ROMFluidDynamics(KratosUnittest.TestCase):
 #########################################################################################
 
-    def test_Fluid_Dynamic_ROM_2D(self):
+    def test_Fluid_Dynamics_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             with open("ProjectParameters.json",'r') as parameter_file:
@@ -23,12 +23,10 @@ class ROMFluidDynamics(KratosUnittest.TestCase):
             ExpectedOutput = np.load('ExpectedOutput.npy')
 
             for i in range (np.shape(ObtainedOutput)[1]):
-                UP=0
-                DOWN=0
-                UP = sum((ExpectedOutput[:,i] - ObtainedOutput[:,i])**2)
-                DOWN = sum((ExpectedOutput[:,i])**2)
-                L2 = np.sqrt(UP/DOWN)
-                self.assertLess(L2, 1e-12)
+                up = sum((ExpectedOutput[:,i] - ObtainedOutput[:,i])**2)
+                down = sum((ExpectedOutput[:,i])**2)
+                l2 = np.sqrt(up/down)
+                self.assertLess(l2, 1e-12)
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 

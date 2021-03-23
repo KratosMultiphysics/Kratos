@@ -38,7 +38,7 @@ def AssembleTestSuites():
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_ROM_2D'))
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_HROM_2D'))
     smallSuite.addTest(ROMDynamicStruct('test_Struct_Dynamic_ROM_2D'))
-    smallSuite.addTest(ROMFluidDynamics('test_Fluid_Dynamic_ROM_2D'))
+    smallSuite.addTest(ROMFluidDynamics('test_Fluid_Dynamics_ROM_2D'))
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
 

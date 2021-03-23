@@ -1,10 +1,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.fluid_dynamics_analysis_rom import FluidDynamicsAnalysisROM
 
-import sys
-import time
 import numpy as np
-import pdb
 
 class TestFluidDynamicsROM(FluidDynamicsAnalysisROM):
 

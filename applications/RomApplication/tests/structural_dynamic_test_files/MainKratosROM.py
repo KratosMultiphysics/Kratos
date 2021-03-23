@@ -3,7 +3,6 @@ import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import StructuralMechanicsAnalysisROM
 
 import numpy as np
-import json
 
 class TestStructuralMechanicsDynamicROM(StructuralMechanicsAnalysisROM):
 
