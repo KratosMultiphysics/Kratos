@@ -61,7 +61,9 @@ gid_output = GiDOutputProcess(computing_model_part,
                               output_settings)
 
 gid_output.ExecuteInitialize()
+print(solver)
 solver.Initialize()
+print(solver)
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 gid_output.ExecuteBeforeSolutionLoop()
@@ -99,6 +101,7 @@ def Analyzer(controls, response, opt_itr):
     response_analyzer = kto.StructureResponseFunctionUtilities(model_part)
     linear_solver = km.python_linear_solver_factory.ConstructSolver(ProjectParameters["solver_settings"]["linear_solver_settings"])
     sensitivity_solver = kto.StructureAdjointSensitivityStrategy(model_part, linear_solver,ProjectParameters["solver_settings"]["domain_size"].GetInt())
+    
     # Compute objective function value Call the Solid Mechanics Application to compute objective function value
     if(controls["strain_energy"]["calc_func"]):
         # Compute structure solution to get displacement field u
