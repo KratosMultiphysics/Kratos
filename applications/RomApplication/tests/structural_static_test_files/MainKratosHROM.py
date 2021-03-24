@@ -8,8 +8,8 @@ class TestStructuralMechanicsStaticHROM(StructuralMechanicsAnalysisROM):
     def __init__(self,model,project_parameters):
         super().__init__(model,project_parameters)
 
-    def ModifyInitialGeometry(self):
-        super().ModifyInitialGeometry()
+    def ModifyAfterSolverInitialize(self):
+        super().ModifyAfterSolverInitialize()
         computing_model_part = self._solver.GetComputingModelPart()
 
         ## Adding the weights to the corresponding elements
