@@ -1,8 +1,13 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
-import numpy as np
 
-from .MainKratosROM import TestConvectionDiffusionStationaryROM
+try:
+    import numpy as np
+    numpy_available = True
+    from .MainKratosROM import TestConvectionDiffusionStationaryROM
+except:
+    numpy_available = False
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
@@ -11,6 +16,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class ROMStationaryConvDiff(KratosUnittest.TestCase):
 #########################################################################################
 
+    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
     def test_ConvDiff_Stationary_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):

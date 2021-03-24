@@ -299,19 +299,14 @@ private:
 
         double area = CalculateVol(x0,y0,x1,y1,x2,y2);
         double inv_area = 0.0;
-        if (area == 0.0)
-        {
+        if (std::abs(area) < std::numeric_limits<double>::epsilon()) {
 
-// 				KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
             //The interpolated node will not be inside an elemente with zero area
             return false;
-
         }
-        else
-        {
+        else {
             inv_area = 1.0 / area;
         }
-
 
         N[0] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
         N[1] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;
@@ -352,7 +347,6 @@ private:
         if (vol < 0.0000000000001)
         {
 
-// 				KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
             //The interpolated node will not be inside an elemente with zero volume
             return false;
         }
@@ -388,7 +382,6 @@ private:
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
     {
-// 		  		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 2D","")
 
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -423,9 +416,7 @@ private:
         const array_1d<double,4>& N,
         Node<3>::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable)
- {
-            // 		  	KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
+        Variable<array_1d<double,3> >& rDestinationVariable) {
 
             //Geometry element of the rOrigin_ModelPart
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
@@ -450,9 +441,7 @@ private:
         const array_1d<double,3>& N,
         Node<3>::Pointer pnode,
         Variable<double>& rOriginVariable,
-        Variable<double>& rDestinationVariable)
-    {
-// 		  	  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE SCALAR 2D","")
+        Variable<double>& rDestinationVariable) {
 
         //Geometry element of the rOrigin_ModelPart
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
@@ -506,9 +495,7 @@ private:
         Node<3>::Pointer pnode,
         Variable<array_1d<double,3> >& rDestinationVariable,
         Variable<array_1d<double,3> >& rOriginVariable,
-        int n_particles_per_depth_distance)
-    {
-// 		  		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 2D","")
+        int n_particles_per_depth_distance) {
 
             //Geometry element of the rOrigin_ModelPart
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
@@ -541,7 +528,6 @@ private:
         Variable<array_1d<double,3> >& rDestinationVariable)
 
     {
-// 		  	KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
 
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();

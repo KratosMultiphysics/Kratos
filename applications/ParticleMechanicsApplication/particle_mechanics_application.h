@@ -252,6 +252,11 @@ private:
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
     // Particle Conditions:
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
+    const MPMParticlePenaltyCouplingInterfaceCondition mMPMParticlePenaltyCouplingInterfaceCondition;
+    const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
+    
+    // Deprecated Conditions
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;

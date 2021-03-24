@@ -223,7 +223,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const
     {
-        rOStream << "("  << this->operator[](0)
+        rOStream << " ("  << this->operator[](0)
                  << ", " << this->operator[](1)
                  << ", " << this->operator[](2)
                  << ")";

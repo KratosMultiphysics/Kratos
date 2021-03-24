@@ -1815,6 +1815,84 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap Ba
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsPureSlip()
+{
+    KRATOS_TRY
+
+    return this->Is(PURE_SLIP);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsNotPureSlip()
+{
+    KRATOS_TRY
+
+    return this->IsNot(PURE_SLIP);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsMultipleSearchs()
+{
+    KRATOS_TRY
+
+    return this->Is(MULTIPLE_SEARCHS);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsNotMultipleSearchs()
+{
+    KRATOS_TRY
+
+    return this->IsNot(MULTIPLE_SEARCHS);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsInvertedSearch()
+{
+    KRATOS_TRY
+
+    return this->Is(INVERTED_SEARCH);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsNotInvertedSearch()
+{
+    KRATOS_TRY
+
+    return this->IsNot(INVERTED_SEARCH);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 const Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters() const
 {
     KRATOS_TRY

@@ -8,7 +8,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla (based on Elisa Magliozzi previous work)
+//  Main authors:    Ruben Zorrilla
 //
 
 #if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED)
@@ -16,7 +16,9 @@
 
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
@@ -28,6 +30,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
+
 
 namespace Kratos
 {
@@ -61,23 +64,32 @@ namespace Kratos
  * @tparam TDim The space dimension (2 or 3)
  * @tparam TNumNodes The number of nodes
  */
-template< unsigned int TDim, unsigned int TNumNodes = TDim + 1, unsigned int TBlockSize = TDim + 2 >
+template< unsigned int TDim, unsigned int TNumNodes>
 class CompressibleNavierStokesExplicit : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// Block size
+    constexpr static unsigned int BlockSize = TDim + 2;
+
     /// Counted pointer of
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokesExplicit);
 
     struct ElementDataStruct
     {
-        BoundedMatrix<double, TNumNodes, TBlockSize> U;
+        BoundedMatrix<double, TNumNodes, BlockSize> U;
+        BoundedMatrix<double, TNumNodes, BlockSize> dUdt;
+        BoundedMatrix<double, TNumNodes, BlockSize> ResProj;
         BoundedMatrix<double, TNumNodes, TDim> f_ext;
-        array_1d<double, TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
-        array_1d<double, TDim> f_gauss;
-        double r_gauss;
+        array_1d<double, TNumNodes> m_ext;
+        array_1d<double, TNumNodes> r_ext;
+        array_1d<double, TNumNodes> nu_sc_node;
+        array_1d<double, TNumNodes> alpha_sc_node;
+        array_1d<double, TNumNodes> mu_sc_nodes;
+        array_1d<double, TNumNodes> beta_sc_nodes;
+        array_1d<double, TNumNodes> lamb_sc_nodes;
 
         array_1d<double, TNumNodes > N;
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
@@ -91,6 +103,9 @@ public:
         double lambda_sc;   // Heat conductivity (shock capturing)
         double c_v;         // Heat capacity at constant volume
         double gamma;       // Heat capacity ratio
+
+        bool UseOSS;         // Use orthogonal subscales
+        bool ShockCapturing; // Activate shock capturing
     };
 
     ///@}
@@ -208,6 +223,17 @@ public:
         const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
+     * @brief Calculate the lumped mass vector
+     * This is called during the assembling process in order
+     * to calculate the elemental lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -216,6 +242,31 @@ public:
      * @return 0 if no errors were found.
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix & Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double,3>>& rVariable,
+        std::vector<array_1d<double,3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -271,7 +322,7 @@ protected:
      */
     void EquationIdVector(
         EquationIdVectorType &rResult,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * Determines the elemental list of DOFs
@@ -281,14 +332,6 @@ protected:
     void GetDofList(
         DofsVectorType &ElementalDofList,
         const ProcessInfo &rCurrentProcessInfo) const override;
-
-    /**
-     * @brief Calculates the shock capturing values
-     * This function is intended to calculate the shock capturing values
-     * These are the shock capturing viscosity and thermal diffusivity
-     * @param rData Reference to the element data container
-     */
-    void CalculateShockCapturingValues(ElementDataStruct &rData) const;
 
     ///@}
     ///@name Protected Operators
@@ -311,23 +354,42 @@ protected:
         const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief Calculate the element size
-     * This function calculates and returns the element size from the shape function gradients
-     * @param rDN_DX Reference to the shape functions container
-     * @return double The computed element size
-     */
-    double CalculateElementSize(const BoundedMatrix<double,TNumNodes, TDim>& rDN_DX);
-
-    /**
      * @brief Internal CalculateRightHandSide() method
      * This auxiliary RHS calculated method is created to bypass the element API
      * In this way bounded vectors can be used in the explicit residual calculation
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
-     * @param rCurrentProcessInfo Refeecen to the current process inf
+     * @param rCurrentProcessInfo Reference to the current process info
      */
     void CalculateRightHandSideInternal(
-        BoundedVector<double, TBlockSize * TNumNodes>& rRightHandSideBoundedVector,
+        BoundedVector<double, BlockSize * TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the momentum projection
+     * Auxiliary method to calculate the momentum projections for the OSS.
+     * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
+     * The division by the lumped mass matrix values requires to be done at the strategy level.
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the density projection
+     * Auxiliary method to calculate the denstiy projections for the OSS.
+     * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
+     * The division by the lumped mass matrix values requires to be done at the strategy level.
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the total energy projection
+     * Auxiliary method to calculate the total energy projections for the OSS.
+     * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
+     * The division by the lumped mass matrix values requires to be done at the strategy level.
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access
@@ -375,6 +437,47 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculate the midpoint velocity divergence
+     * This method calculates the velocity divergence in the midpoint of the element
+     * @return double Velocity divergence in the midpoint
+     */
+    double CalculateMidPointVelocityDivergence() const;
+
+    /**
+     * @brief Calculate the midpoint sound velocity
+     * This method calculates the speed of sound velocity in the midpoint of the element
+     * @return double Speed of sound velocity in the midpoint
+     */
+    double CalculateMidPointSoundVelocity() const;
+
+    /**
+     * @brief Calculate the midpoint density gradient
+     * This method calculates the gradient of the density in the midpoint of the element
+     * @return array_1d<double,3> Density gradient in the midpoint
+     */
+    array_1d<double,3> CalculateMidPointDensityGradient() const;
+
+    /**
+     * @brief Calculate the midpoint temperature gradient
+     * This method calculates the gradient of the temperature in the midpoint of the element
+     * @return array_1d<double,3> Temperature gradient in the midpoint
+     */
+    array_1d<double,3> CalculateMidPointTemperatureGradient() const;
+
+    /**
+     * @brief Calculate the midpoint velocity rotational
+     * This method calculates the rotational of the velocity in the midpoint of the element
+     * @return array_1d<double,3> Velocity rotational in the midpoint
+     */
+    array_1d<double,3> CalculateMidPointVelocityRotational() const;
+
+    /**
+     * @brief Calculate the midpoint velocity gradient
+     * This method calculates the gradient of the velocity in the midpoint of the element
+     * @return BoundedMatrix<double, 3, 3> Velocity gradient in the midpoint
+     */
+    BoundedMatrix<double, 3, 3> CalculateMidPointVelocityGradient() const;
 
     ///@}
     ///@name Private  Access

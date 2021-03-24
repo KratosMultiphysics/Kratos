@@ -37,6 +37,7 @@ def Factory(settings, Model):
     |                       |            | "file_access_mode": "exclusive"           |
     |                       |            | "file_driver": "sec2"                     |
     |                       |            | "file_name": "kratos"                     |
+    |                       |            | "max_files_to_keep": "unlimited"          |
     |                       |            | "io_type": "serial_hdf5_file_io"          |
     +-----------------------+------------+-------------------------------------------+
     | "list_of_operations"  | Parameters | [{                                        |

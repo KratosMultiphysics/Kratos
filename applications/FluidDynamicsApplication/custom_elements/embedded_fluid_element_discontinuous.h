@@ -175,7 +175,7 @@ public:
     /** For EmbeddedFluidElementDiscontinuous, this initializes the discontinuous
      * level set (ELEMENTAL_DISTANCES) and the nodal imposed velocity (EMBEDDED_VELOCITY)
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Calculates both LHS and RHS contributions
     /**
@@ -187,7 +187,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Computes an elemental double value
     /**
@@ -370,8 +370,12 @@ protected:
     /**
      * This method computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
+     * @param rN the current Gauss pt. shape functions vector
+     * @return double The normal penalty coefficient value
      */
-    double ComputeNormalPenaltyCoefficient(const EmbeddedDiscontinuousElementData& rData) const;
+    double ComputeNormalPenaltyCoefficient(
+        const EmbeddedDiscontinuousElementData& rData,
+        const Vector& rN) const;
 
     /**
      * This method computes the Nitsche coefficients for the Nitsche normal imposition
@@ -454,6 +458,19 @@ private:
         EmbeddedDiscontinuousElementData& rData,
         array_1d<double,3>& rDragForceLocation) const;
 
+    /**
+     * @brief Auxiliary method to get the density value
+     * This auxiliary method interfaces the density get in order to make possible the
+     * use of the embedded element with both property-based and nodal-based density formulations.
+     * For the standard case (property-based formulations) the method is not specialized.
+     * In case a nodal density base formulation is used, it needs to be specialized.
+     * @param rData Embedded element data container
+     * @param NodeIndex The local index node for which the density is retrieved (only used in nodal density formulations)
+     * @return double The density value
+     */
+    inline double AuxiliaryDensityGetter(
+        const EmbeddedDiscontinuousElementData& rData,
+        const unsigned int NodeIndex) const;
 
     ///@}
     ///@name Private  Access

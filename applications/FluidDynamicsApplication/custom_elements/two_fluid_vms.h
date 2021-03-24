@@ -185,7 +185,7 @@ public:
      * expected to contain values for DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int local_size = (TDim+1)*(TDim+1);
         Matrix tmp(local_size,local_size);
@@ -200,7 +200,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::logic_error,"MassMatrix function shall not be called when using this type of element","");
     }
@@ -212,7 +212,7 @@ public:
     /// on the cut elements
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo) override
+                                          const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -637,35 +637,7 @@ KRATOS_WATCH(Ngauss);  */
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if (ErrorCode != 0) return ErrorCode;
-        // Check that all required variables have been registered
-        if (DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.", "");
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "MESH_VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check if the application was correctly registered.", "");
-        if (DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY Key is 0. Check if the application was correctly registered.", "");
-        if (VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VISCOSITY Key is 0. Check if the application was correctly registered.", "");
-        if (DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DYNAMIC_TAU Key is 0. Check if the application was correctly registered.", "");
-        if (DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check if the application was correctly registered.", "");
-//         if (ADVPROJ.Key() == 0)
-//             KRATOS_THROW_ERROR(std::invalid_argument, "ADVPROJ Key is 0. Check if the application was correctly registered.", "");
-//         if (DIVPROJ.Key() == 0)
-//             KRATOS_THROW_ERROR(std::invalid_argument, "DIVPROJ Key is 0. Check if the application was correctly registered.", "");
-        if (NODAL_AREA.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "NODAL_AREA Key is 0. Check if the application was correctly registered.", "");
-        if (C_SMAGORINSKY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "C_SMAGORINSKY Key is 0. Check if the application was correctly registered.", "");
-        if (ERROR_RATIO.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "ERROR_RATIO Key is 0. Check if the application was correctly registered.", "");
-        // Additional variables, only required to print results:
-        // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
+
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)

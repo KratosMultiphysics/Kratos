@@ -85,7 +85,7 @@ void StatisticsRecord::SampleIntegrationPointResults(ModelPart& rModelPart)
     for( int i = 0; i < number_of_elements; i++)
     {
         auto it_elem = rModelPart.ElementsBegin() + i;
-        it_elem->GetValueOnIntegrationPoints(UPDATE_STATISTICS,dummy,r_process_info);
+        it_elem->CalculateOnIntegrationPoints(UPDATE_STATISTICS,dummy,r_process_info);
     }
 }
 

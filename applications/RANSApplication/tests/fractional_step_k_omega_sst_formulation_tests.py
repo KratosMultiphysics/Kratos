@@ -8,7 +8,7 @@ class FractionalStepKOmegaSSTTest(turbulence_modelling_test_case.TurbulenceModel
     def setUpClass(cls):
         super(FractionalStepKOmegaSSTTest, cls).setUpCase(
             "BackwardFacingStepTest",
-            "backward_facing_step_fractional_step_k_omega_sst_parameters.json",
+            "backward_facing_step_fs_kwsst_parameters.json",
             False)
 
         cls.transient_scheme_type = "bdf2"

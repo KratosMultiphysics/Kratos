@@ -63,15 +63,15 @@ public:
 
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) override;
     virtual void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
-    virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
+    virtual void CalculateElasticForces(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info );
     virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
     virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
     virtual void CalculateNormal(array_1d<double, 3>& rnormal);
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                         const Variable<VectorType>& rRHSVariable,
-                                        Variable<array_1d<double,3> >& rDestinationVariable,
+                                        const Variable<array_1d<double,3> >& rDestinationVariable,
                                         const ProcessInfo& r_process_info) override;
 
     virtual void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);

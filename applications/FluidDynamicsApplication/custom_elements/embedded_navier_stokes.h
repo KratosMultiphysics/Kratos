@@ -236,7 +236,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override {
+        const ProcessInfo& rCurrentProcessInfo) override {
 
         KRATOS_TRY;
 
@@ -371,10 +371,6 @@ public:
         }
 
         // Specific embedded element check
-        if (DISTANCE.Key() == 0){
-            KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-        }
-
         for (unsigned int i = 0; i < (this->GetGeometry()).size(); ++i){
             if (this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false){
                 KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();

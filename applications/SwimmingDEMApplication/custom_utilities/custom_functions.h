@@ -149,7 +149,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
             mLastPressureVariation = pressure_spatial_variation;
             const double characteristic_pressure_variation = 0.5 * (pressure_spatial_variation + mLastPressureVariation);
 
-            if (characteristic_pressure_variation == 0.0 || reciprocal_of_characteristic_time == 0.0){ // unlikely
+            if (std::abs(characteristic_pressure_variation) < std::numeric_limits<double>::epsilon() || std::abs(reciprocal_of_characteristic_time) < std::numeric_limits<double>::epsilon()){ // unlikely
                 std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
                 if (max_pressure_change_rate <= tol){ // go with the absolute value
@@ -161,7 +161,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
         }
 
         else {
-            KRATOS_THROW_ERROR(std::runtime_error, "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
+            KRATOS_ERROR << "Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)" << std::endl;
         }
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
@@ -179,12 +179,12 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 //**************************************************************************************************************************************************
 double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     double added_volume = 0.0;
 
     #pragma omp parallel for reduction(+ : added_volume)
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             added_volume += CalculateElementalVolume(it->GetGeometry());
@@ -200,17 +200,17 @@ double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 
 void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, array_1d <double, 3>& force)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_dem_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_dem_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
-    added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_force_vect.resize(ParallelUtilities::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
     }
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_dem_model_part, k); it != GetElementPartitionEnd(r_dem_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -241,12 +241,12 @@ void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, arr
 
 void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array_1d <double, 3>& instantaneous_force, array_1d <double, 3>& mean_force)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
-    added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_force_vect.resize(ParallelUtilities::GetNumThreads());
     std::vector<array_1d <double, 3> > added_mean_force_vect;
-    added_mean_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_mean_force_vect.resize(ParallelUtilities::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
@@ -254,7 +254,7 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
     }
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -298,12 +298,12 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
 
 double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     double added_fluid_volume = 0.0;
 
     #pragma omp parallel for reduction(+ : added_fluid_volume)
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -627,8 +627,8 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+    if (std::abs(vol) < std::numeric_limits<double>::epsilon()){
+        KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 
     return vol;
@@ -659,9 +659,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -702,9 +700,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
@@ -745,9 +741,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMas
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    if (vol == 0.0){
-        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
-    }
+    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
     N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
     N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);

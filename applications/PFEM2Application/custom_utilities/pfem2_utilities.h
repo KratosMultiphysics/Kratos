@@ -35,7 +35,6 @@
 #include "pfem_2_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
-#include "includes/c2c_variables.h"
 #include "includes/deprecated_variables.h"
 
 #include "processes/process.h"
