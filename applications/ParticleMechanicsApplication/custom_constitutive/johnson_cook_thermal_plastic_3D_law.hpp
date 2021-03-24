@@ -141,6 +141,7 @@ protected:
     double mStrainRate;
     double mFailureDisp = 0.0;
     double mCharLength = 0.0;
+    double mFractureEnergy = 0.0;
     double mDamage = 0.0;
     double mDamageInitiation = 0.0;
     double mDamageInitiationDisp = 0.0;

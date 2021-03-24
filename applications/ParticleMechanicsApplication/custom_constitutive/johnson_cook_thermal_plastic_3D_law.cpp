@@ -119,8 +119,7 @@ namespace Kratos
 		const double fracture_toughness = (rMaterialProperties.Has(FRACTURE_TOUGHNESS)) ? rMaterialProperties[FRACTURE_TOUGHNESS] : 0.0; // default is sudden failure instead of progressive damage
 		const double poisson = rMaterialProperties[POISSON_RATIO];
 		const double young_mod = rMaterialProperties[YOUNG_MODULUS];
-		const double fracture_energy = (1.0 - poisson * poisson) / young_mod * fracture_toughness;
-		mFailureDisp = 2.0 * fracture_energy / mYieldStressVirgin;
+		mFractureEnergy = (1.0 - poisson * poisson) / young_mod * fracture_toughness;
 
 		this->ComputeCharacteristicLength(rElementGeometry, rMaterialProperties, mCharLength);
 	}
@@ -310,11 +309,35 @@ namespace Kratos
 			if (mDamageInitiation >= 1.0)
 			{
 				// True material damage
-				if (mDamage == 0.0) mDamageInitiationDisp = mCharLength * mEquivalentPlasticStrainOld;
+				if (mDamage == 0.0)
+				{
+					// We have just started damage - store the current plastic displacement
+					mDamageInitiationDisp = mCharLength * mEquivalentPlasticStrainOld;
+					mFailureDisp = 2.0 * mFractureEnergy / yield_stress; //value of the yield stress at the time when the failure criterion is reached
 
-				// Softening regularised with Hillerborg approach
-				mDamage = 1.0 - (mCharLength * mEquivalentPlasticStrainOld - mDamageInitiationDisp)/( mFailureDisp - mDamageInitiationDisp); // simple linear damage law
-				mDamage = std::min(1.0, mDamage);
+					if (mFractureEnergy < 1e-9) mDamage = 1.0;
+				}
+
+				if (mDamage < 1.0)
+				{
+					// Softening regularised with Hillerborg approach
+					const bool is_exponential_softening = true;
+					const double plastic_disp_after_onset = mCharLength * mEquivalentPlasticStrainOld - mDamageInitiationDisp;
+					if (is_exponential_softening)
+					{
+						// https://abaqus-docs.mit.edu/2017/English/SIMACAEMATRefMap/simamat-c-damageevolductile.htm
+						const double undamaged_yield = yield_stress / (1.0 - mDamage);
+						mDamage = 1.0 - std::exp(-1.0 * plastic_disp_after_onset * undamaged_yield / mFractureEnergy);
+					}
+					else
+					{
+						// simple linear damage evolution
+						if (mFailureDisp - mDamageInitiationDisp < 1e-9)  mDamage = 1.0;
+						else mDamage = plastic_disp_after_onset / (mFailureDisp - mDamageInitiationDisp); // simple linear damage law
+					}
+					mDamage = std::min(1.0, mDamage);
+					mDamage = std::max(0.0, mDamage);
+				}
 			}
 		}
 
