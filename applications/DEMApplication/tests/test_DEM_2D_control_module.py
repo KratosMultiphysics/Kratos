@@ -77,7 +77,6 @@ class TestDEM2DControlModule(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, 1)
 
-    @classmethod
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_control_module_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))

@@ -46,7 +46,6 @@ class TestPostProcess(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(TestPostProcessClass1, model, parameters_file_name, 1)
 
-    @classmethod
     def tearDown(self):
         file_to_remove = os.path.join("post_process_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))

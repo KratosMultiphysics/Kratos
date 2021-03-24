@@ -73,7 +73,6 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, 1)
 
-    @classmethod
     def tearDown(self):
         file_to_remove = os.path.join("forces_and_moments_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))

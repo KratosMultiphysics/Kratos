@@ -51,7 +51,6 @@ class TestDEM3DContact(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ContactTestSolution, model, parameters_file_name, 1)
 
-    @classmethod
     def tearDown(self):
         file_to_remove = os.path.join("DEM3D_contact_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
