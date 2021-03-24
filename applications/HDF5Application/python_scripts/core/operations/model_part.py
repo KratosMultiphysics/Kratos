@@ -128,6 +128,18 @@ class ElementFlagValueInput(VariableIO):
             self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements,
                                                                             model_part.GetCommunicator())
 
+class ElementIntegrationPointOutput(VariableIO):
+    '''Write element integration point values to a file.'''
+
+    def __init__(self, settings):
+        super().__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementIntegrationPointOutput(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteElementIntegrationPointValues(
+                model_part.Elements,
+                model_part.ProcessInfo)
+
 class ConditionDataValueOutput(VariableIO):
     '''Writes non-historical element data values to a file.'''
 
@@ -171,6 +183,18 @@ class ConditionFlagValueInput(VariableIO):
         KratosHDF5.HDF5ConditionFlagValueIO(
             self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions,
                                                                               model_part.GetCommunicator())
+
+class ConditionIntegrationPointOutput(VariableIO):
+    '''Write condition integration point values to a file.'''
+
+    def __init__(self, settings):
+        super().__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionIntegrationPointOutput(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionIntegrationPointValues(
+                model_part.Conditions,
+                model_part.ProcessInfo)
 
 
 class NodalSolutionStepDataOutput(VariableIO):
@@ -316,6 +340,8 @@ def Create(settings):
         return ElementDataValueInput(settings)
     elif operation_type == 'element_flag_value_input':
         return ElementFlagValueInput(settings)
+    elif operation_type == 'element_integration_point_output':
+        return ElementIntegrationPointOutput(settings)
     elif operation_type == 'condition_data_value_output':
         return ConditionDataValueOutput(settings)
     elif operation_type == 'condition_flag_value_output':
@@ -324,6 +350,8 @@ def Create(settings):
         return ConditionDataValueInput(settings)
     elif operation_type == 'condition_flag_value_input':
         return ConditionFlagValueInput(settings)
+    elif operation_type == 'condition_integration_point_output':
+        return ConditionIntegrationPointOutput(settings)
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':
