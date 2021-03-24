@@ -70,6 +70,8 @@ public:
                     rVariable, rContainer, data, number_of_gauss_points, rProcessInfo)) {
                 rFile.WriteDataSet(rPath + "/" + rVariable.Name(), data, rInfo);
                 rFile.WriteAttribute(rPath + "/" + rVariable.Name(), "NumberOfGaussPoints", number_of_gauss_points);
+            } else {
+                KRATOS_WARNING("WriteIntegrationPointValuesFunctor") << "No integration point values were found for " << rVariable.Name() << ".";
             }
         }
     };
