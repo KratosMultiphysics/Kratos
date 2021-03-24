@@ -22,11 +22,9 @@
 #include <pybind11/pybind11.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/io.hpp> 
+
 // Project includes
-//#include "includes/define.h"
-//#include "includes/element.h"
-//#include "includes/model_part.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/node.h"
@@ -36,8 +34,6 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-
-#include "custom_elements/small_displacement_simp_element.hpp"
 
 
 namespace Kratos
@@ -114,6 +110,7 @@ public:
 
 		clock_t begin = clock();
 		std::cout<<"  Start calculating strain energy."<<std::endl;
+	/* 	std::cout<< "respones function bevor Schleife:" << std::endl;  */
 
 		double Out = 0.0;
 		double Global_Strain_Energy = 0.0;
@@ -122,8 +119,9 @@ public:
 		for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
 				element_i++ )
 		{
-			const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
-			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, ConstProcessInfo);
+		/* 	std::cout<< "respones function VOR CALCULATE:" << std::endl;  */
+			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, mr_structure_model_part.GetProcessInfo());
+		/* 	std::cout<< "respones function NACH CALCULATE:" << std::endl;  */
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
 			///std::cout<< "Globalstrain ist: " << Global_Strain_Energy << " Wert"<< std::endl; 
 			///std::cout<< "LocalStrain ist: " << element_i->GetValue(LOCAL_STRAIN_ENERGY) << " Wert"<< std::endl;
@@ -159,10 +157,9 @@ public:
 
 		// Calculate and return the Global Volume Fraction by knowing how many elements the model has
 		Global_Volume_Fraction = Global_Volume_Fraction/number_elements;
-
+		std::cout<< "GlobalVolume ist: " << Global_Volume_Fraction << " Wert"<< std::endl; 
 		clock_t end = clock();
-		std::cout << "  Volume fraction calculated                 [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
-
+		std::cout << "  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 		return Global_Volume_Fraction;
 
 		KRATOS_CATCH("");

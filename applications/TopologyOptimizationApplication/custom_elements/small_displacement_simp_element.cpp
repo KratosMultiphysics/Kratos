@@ -39,9 +39,9 @@ SmallDisplacementSIMPElement::SmallDisplacementSIMPElement( IndexType NewId, Geo
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const 
 {
-    return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+	return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -49,7 +49,7 @@ Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArr
 
 Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, pGeom, pProperties );
+	return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -95,7 +95,7 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 //************************************************************************************
 //************************************************************************************
 
-/* void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+ void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 		std::vector<double>& rValues,
 		const ProcessInfo& rCurrentProcessInfo )
 {
@@ -117,6 +117,7 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 
 		for ( SizeType ii = 0; ii < integration_points.size(); ii++ )
       	{
+		rValues[ii] = 0.0;
         rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
       	}
 
@@ -124,7 +125,7 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 	}
 
 	KRATOS_CATCH( "" )
-} */
+} 
 
 //************************************************************************************
 //************************************************************************************
@@ -133,7 +134,6 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 {
 	KRATOS_TRY
 
-	std::cout<< "Variable ist: " << rVariable << " Wert"<< std::endl; 
 	if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
 	{
 		// Get values
@@ -148,9 +148,11 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 		MatrixType Ke0 = Matrix();
 		this->CalculateLeftHandSide(Ke0, const_cast <ProcessInfo&>(rCurrentProcessInfo));
 		double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
-		double factor    = (1/E_current)*E_new;
+
+		///Normalize the youngs modulus
+		double factor    = (1/E_current)*E_new; 
 		MatrixType Ke = Ke0 * factor;
-		std::cout<< "Variable ist: " << Ke << " Wert"<< std::endl; 
+		/* std::cout<< "Velocity times stiffness: " << Ke0 << " Wert"<< std::endl; */
 
 		// Loop through nodes of elements and create elemental displacement vector "ue"
 		Element::GeometryType& rGeom = this->GetGeometry();
@@ -166,6 +168,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 			ue[3 * node_i + 0] = CurrentDisplacement[0];
 			ue[3 * node_i + 1] = CurrentDisplacement[1];
 			ue[3 * node_i + 2] = CurrentDisplacement[2];
+
 		}
 
 		// Calculate trans(ue)*Ke0*ue
@@ -173,20 +176,22 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 		intermediateVector.resize(NumNodes * 3);
 		intermediateVector = prod(trans(ue), Ke0);
 		double ue_Ke0_ue = inner_prod(intermediateVector, ue);
+		/* std::cout<< "Velocity times stiffness: " << ue_Ke0_ue << " Wert"<< std::endl; */
 
 		if (rVariable == DCDX)
 		{
 			// Calculation of the compliance sensitivities DCDX
-			double dcdx = (-penalty) * (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
-			this->SetValue(DCDX, dcdx);
-			std::cout<< "Variable ist: " << dcdx << " Wert"<< std::endl; 
+			// Do they have to be normalized?
+			double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+			this->SetValue(DCDX, dcdx); 
+			/* std::cout<< "Velocity times stiffness: " << dcdx << " Wert"<< std::endl;  */
 		}
 		if (rVariable == LOCAL_STRAIN_ENERGY)
 		{
 			// Calculation of the local strain energy (requires Ke)
-		
 			double local_strain_energy = factor * ue_Ke0_ue;
 			this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
+/* 			std::cout<< "Local_strain: " << local_strain_energy << " Wert"<< std::endl; */
 		}
 
 	} else if (rVariable == DVDX) {
@@ -206,8 +211,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 		const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
-	std::cout<< "Variable ist: " << rVariable << " Wert"<< std::endl; 
-	// Additional part for post-processing of the topology optimized model part
+/* 	// Additional part for post-processing of the topology optimized model part
 	if (rVariable == X_PHYS)
 		CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
@@ -227,7 +231,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
       	}
 
 
-	}
+	} */
 
 	// From original SmallDisplacementElement
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);

@@ -10,23 +10,23 @@
 //
 // ==============================================================================
 
-#if !defined(KRATOS_RESIDUAL_BASED_STATIC_SIMP_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_STATIC_SIMP_SCHEME
+#if !defined(KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SIMP_SCHEME_H)
+#define  KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SIMP_SCHEME_H
 
 
 // External includes
-
+#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-///#include "includes/define.h"
-///#include "includes/model_part.h"
-///#include "solving_strategies/schemes/scheme.h"
-///#include "includes/variables.h"
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "includes/variables.h"
 
 //#include "solid_mechanics_application.h"
 ///#include "structural_mechanics_application.h"
-///#include "topology_optimization_application.h"
+#include "topology_optimization_application.h"
 
 // Application includes
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -83,6 +83,10 @@ public:
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+
+    /// The definition of the vector containing the equation ids
+    typedef Element::EquationIdVectorType                              EquationIdVectorType;
+
     /*@} */
     /**@name Life Cycle
     */
@@ -96,7 +100,7 @@ public:
 
     /** Destructor.
     */
-    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {}
+    ~ResidualBasedIncrementalUpdateStaticSIMPScheme() override {} 
     ///virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {} alte Version 14.12
 
 
@@ -111,28 +115,31 @@ public:
 
     /// This function calculates a new Youngs Modulus based on the densities and multiplies it into the
     /// LHS and RHS contributions of the complete system
-    virtual void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LSH,
-        LocalSystemVectorType& RHS,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
-    )
+  
+
+
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
     {
     	KRATOS_TRY
 		//Initializing the non linear iteration for the current element
-		(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+		rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
     	//basic operations for the element considered
-    	(rCurrentElement)->CalculateLocalSystem(LSH,RHS,CurrentProcessInfo);
-
+    	rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution,rCurrentProcessInfo);
+        
 
     	//Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-    	double E_min     = (rCurrentElement)->GetValue(E_MIN);
-    	double E_initial = (rCurrentElement)->GetValue(E_0);
-    	double E_current = (rCurrentElement)->GetValue(YOUNG_MODULUS);
-    	double penalty   = (rCurrentElement)->GetValue(PENAL);
-    	double x_phys    = (rCurrentElement)->GetValue(X_PHYS);
+    	double E_min     = rCurrentElement.GetValue(E_MIN);
+    	double E_initial = rCurrentElement.GetValue(E_0);
+    	double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
+    	double penalty   = rCurrentElement.GetValue(PENAL);
+    	double x_phys    = rCurrentElement.GetValue(X_PHYS);
 
     	double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
@@ -142,15 +149,15 @@ public:
     	// Factorize LHS and RHS according SIMP approach
     	// Note that when this function is called, all the contributions from the force conditions are missing.
     	// I.e. RHS = -K*u_init. Hence we can directly factorize LHS and RHS to obtained the modified stiffnesses
-    	LSH *= factor;
-    	RHS *= factor;
-
+    	rLHSContribution *= factor;
+    	rRHSContribution *= factor;
     	//Continuation of the basic operations
-    	(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+    	rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
     	KRATOS_CATCH( "" )
     }
 
+  
     /*@} */
     /**@name Operations */
     /*@{ */

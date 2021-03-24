@@ -3,13 +3,12 @@ import KratosMultiphysics as km
 import KratosMultiphysics.StructuralMechanicsApplication as ksm
 import KratosMultiphysics.TopologyOptimizationApplication as kto
 import KratosMultiphysics.LinearSolversApplication as kls
-from KratosMultiphysics import process_factory
 import os
 import OptimizationParameters as opt_parameters
 from importlib import import_module
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
+from KratosMultiphysics import process_factory
 
 
 parameter_file = open("ProjectParameters.json",'r')
@@ -24,9 +23,9 @@ solver = import_module(mod).CreateSolver(current_model, ProjectParameters["solve
 solver.AddVariables()
 solver.ImportModelPart()
 solver.AddDofs()
-model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 200.0e9)
-model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.4)
-model_part.GetProperties()[1].SetValue(km.DENSITY, 1.0)
+model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1)
+model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
+model_part.GetProperties()[1].SetValue(km.DENSITY, 1)
 
 cons_law = ksm.LinearElastic3DLaw()
 model_part.GetProperties()[1].SetValue(km.CONSTITUTIVE_LAW, cons_law)
@@ -73,25 +72,10 @@ def solve_structure(opt_itr):
     gid_output.ExecuteInitializeSolutionStep() 
 
     #solve problem
-    linear_solver = km.SkylineLUFactorizationSolver()
-    builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
-    scheme = km.ResidualBasedIncrementalUpdateStaticScheme()
-    compute_reactions = True
-    reform_step_dofs = True
-    calculate_norm_dx = False
-    move_mesh_flag = True
-
-    strategy = km.ResidualBasedLinearStrategy(
-        model_part,
-        scheme,
-        builder_and_solver,
-        compute_reactions,
-        reform_step_dofs,
-        calculate_norm_dx,
-        move_mesh_flag)
-
-    strategy.Solve()
-
+    solver.InitializeSolutionStep()
+    solver.SolveSolutionStep()
+    solver.FinalizeSolutionStep()
+   
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
     gid_output.ExecuteFinalizeSolutionStep()
@@ -115,6 +99,7 @@ def Analyzer(controls, response, opt_itr):
     response_analyzer = kto.StructureResponseFunctionUtilities(model_part)
     linear_solver = km.python_linear_solver_factory.ConstructSolver(ProjectParameters["solver_settings"]["linear_solver_settings"])
     sensitivity_solver = kto.StructureAdjointSensitivityStrategy(model_part, linear_solver,ProjectParameters["solver_settings"]["domain_size"].GetInt())
+    
     # Compute objective function value Call the Solid Mechanics Application to compute objective function value
     if(controls["strain_energy"]["calc_func"]):
         # Compute structure solution to get displacement field u
