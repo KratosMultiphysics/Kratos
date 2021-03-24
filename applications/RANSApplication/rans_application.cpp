@@ -198,6 +198,12 @@ void KratosRANSApplication::Register()
     // primal solution location storage variables
     KRATOS_REGISTER_VARIABLE(RANS_PRIMAL_SOLUTION_LOCATION_1)
 
+    // gauss point quantity variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RANS_GAUSS_EFFECTIVE_VELOCITY )
+    KRATOS_REGISTER_VARIABLE( RANS_GAUSS_EFFECTIVE_KINEMATIC_VISCOSITY )
+    KRATOS_REGISTER_VARIABLE( RANS_GAUSS_REACTION_TERM )
+    KRATOS_REGISTER_VARIABLE( RANS_GAUSS_SOURCE_TERM )
+
     // registering elements
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
