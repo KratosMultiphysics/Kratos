@@ -603,8 +603,6 @@ namespace Kratos {
 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);
 
-                //std::uniform_int_distribution<> distrib(0, valid_elements_length - 1);
-
                 int i=0;
                 for (i = 0; i < number_of_particles_to_insert; i++) {
 
@@ -613,8 +611,6 @@ namespace Kratos {
                             break;
                         }
                     }
-
-                    //int random_pos = distrib(mGenerator);
 
                     int random_pos = mGenerator() % valid_elements_length;
 
