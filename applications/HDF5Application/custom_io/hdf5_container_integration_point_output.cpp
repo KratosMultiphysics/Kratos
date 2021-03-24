@@ -301,8 +301,6 @@ bool SetDataBuffer(Variable<TDataType> const& rVariable,
 {
     KRATOS_TRY;
 
-    using tls_type = std::tuple<std::vector<TDataType>, Vector<double>>;
-
     std::vector<TDataType> values;
     rContainer.begin()->CalculateOnIntegrationPoints(rVariable, values, rProcessInfo);
     NumberOfGaussPoints = values.size();
@@ -313,14 +311,18 @@ bool SetDataBuffer(Variable<TDataType> const& rVariable,
 
         rData.resize(rContainer.size(), flat_data_size);
 
-        IndexPartition<int>(rContainer.size()).for_each(tls_type(), [&](const int ItemIndex, tls_type& rTLS){
-            auto& r_values = std::get<0>(rTLS);
-            auto& r_flatted_values = std::get<1>(rTLS);
+        struct tls_type
+        {
+            tls_type(const std::size_t FlatDataSize) : mFlattedGaussPointValues(FlatDataSize) {}
+            std::vector<TDataType> mGaussPointValues;
+            Vector<double> mFlattedGaussPointValues;
+        };
 
-            rContainer[ItemIndex].CalculateOnIntegrationPoints(rVariable, r_values, rProcessInfo);
-            FlattenData(r_flatted_values, r_values);
-            for (std::size_t i = 0; i < r_flatted_values.size(); ++i) {
-                rData(ItemIndex, i) = r_flatted_values[i];
+        IndexPartition<int>(rContainer.size()).for_each(tls_type(flat_data_size), [&](const int ItemIndex, tls_type& rTLS){
+            rContainer[ItemIndex].CalculateOnIntegrationPoints(rVariable, rTLS.mGaussPointValues, rProcessInfo);
+            FlattenData(rTLS.mFlattedGaussPointValues, rTLS.mGaussPointValues);
+            for (std::size_t i = 0; i < rTLS.mFlattedGaussPointValues.size(); ++i) {
+                rData(ItemIndex, i) = rTLS.mFlattedGaussPointValues[i];
             }
         });
 
