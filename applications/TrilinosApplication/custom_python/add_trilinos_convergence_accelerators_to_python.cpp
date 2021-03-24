@@ -63,6 +63,7 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
         .def("Finalize",                     &TrilinosBaseConvergenceAcceleratorType::Finalize)
         .def("GetEchoLevel",                 &TrilinosBaseConvergenceAcceleratorType::GetEchoLevel)
         .def("SetEchoLevel",                 &TrilinosBaseConvergenceAcceleratorType::SetEchoLevel)
+        .def("IsBlockNewton",                &TrilinosBaseConvergenceAcceleratorType::IsBlockNewton)
     ;
 
     // Convergence accelerators (from FSIApplication)

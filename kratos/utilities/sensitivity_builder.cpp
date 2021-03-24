@@ -31,7 +31,7 @@
 // Include base h
 #include "utilities/sensitivity_builder.h"
 
-namespace sensitivity_builder_cpp // cotire guard
+namespace sensitivity_builder_cpp // unity build guard
 {
 using namespace Kratos;
 
