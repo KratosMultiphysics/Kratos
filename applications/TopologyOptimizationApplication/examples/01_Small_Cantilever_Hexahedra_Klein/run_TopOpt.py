@@ -61,9 +61,7 @@ gid_output = GiDOutputProcess(computing_model_part,
                               output_settings)
 
 gid_output.ExecuteInitialize()
-print(solver)
 solver.Initialize()
-print(solver)
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 gid_output.ExecuteBeforeSolutionLoop()

@@ -83,6 +83,10 @@ public:
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+
+    /// The definition of the vector containing the equation ids
+    typedef Element::EquationIdVectorType                              EquationIdVectorType;
+
     /*@} */
     /**@name Life Cycle
     */
@@ -115,28 +119,27 @@ public:
 
 
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LSH,
-        LocalSystemVectorType& RHS,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
-    ) override
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
     {
     	KRATOS_TRY
-        std::cout << ResidualBasedIncrementalUpdateStaticSIMPScheme().Info() << "\n";
 		//Initializing the non linear iteration for the current element
-		(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+		rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
     	//basic operations for the element considered
-    	(rCurrentElement)->CalculateLocalSystem(LSH,RHS,CurrentProcessInfo);
+    	rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution,rCurrentProcessInfo);
         
 
     	//Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-    	double E_min     = (rCurrentElement)->GetValue(E_MIN);
-    	double E_initial = (rCurrentElement)->GetValue(E_0);
-    	double E_current = (rCurrentElement)->GetValue(YOUNG_MODULUS);
-    	double penalty   = (rCurrentElement)->GetValue(PENAL);
-    	double x_phys    = (rCurrentElement)->GetValue(X_PHYS);
+    	double E_min     = rCurrentElement.GetValue(E_MIN);
+    	double E_initial = rCurrentElement.GetValue(E_0);
+    	double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
+    	double penalty   = rCurrentElement.GetValue(PENAL);
+    	double x_phys    = rCurrentElement.GetValue(X_PHYS);
 
     	double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
@@ -146,10 +149,10 @@ public:
     	// Factorize LHS and RHS according SIMP approach
     	// Note that when this function is called, all the contributions from the force conditions are missing.
     	// I.e. RHS = -K*u_init. Hence we can directly factorize LHS and RHS to obtained the modified stiffnesses
-    	LSH *= factor;
-    	RHS *= factor;
+    	rLHSContribution *= factor;
+    	rRHSContribution *= factor;
     	//Continuation of the basic operations
-    	(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+    	rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
     	KRATOS_CATCH( "" )
     }
