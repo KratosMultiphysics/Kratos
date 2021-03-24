@@ -74,7 +74,6 @@ public:
 
     /// Default constructor.
     ConvectionDiffusionSettings()
-    : mpGradientVar(nullptr)
     {
         mis_defined_DensityVar=false;
         mis_defined_DiffusionVar=false;
