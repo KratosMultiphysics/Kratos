@@ -400,7 +400,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
+void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
 
     if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
@@ -424,7 +428,6 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
     } else {
         return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
-    return false;
 }
 
 /***********************************************************************************/
@@ -463,10 +466,9 @@ int& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
+double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
-    const double& rValue,
-    const ProcessInfo& rCurrentProcessInfo
+    double& rValue
     )
 {
 
@@ -491,20 +493,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-bool& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if (rThisVariable == CYCLE_INDICATOR) {
-        rValue = mNewCycleIndicator;
-    }
     return rValue;
 }
 
@@ -523,41 +511,6 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     } else {
         return this->GetValue(rThisVariable, rValue);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    if (rThisVariable == DAMAGE || rThisVariable == UNIAXIAL_STRESS || rThisVariable == THRESHOLD) {
-        BaseType::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
-        rValue = mFatigueReductionFactor;
-    } else if (rThisVariable == WOHLER_STRESS) {
-        rValue = mWohlerStress;
-    } else if (rThisVariable == CYCLES_TO_FAILURE) {
-        rValue = mCyclesToFailure;
-    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
-        rValue = mReversionFactorRelativeError;
-    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
-        rValue = mMaxStressRelativeError;
-    } else if (rThisVariable == MAX_STRESS) {
-        rValue = mMaxStress;
-    } else if (rThisVariable == THRESHOLD_STRESS) {
-        rValue = mThresholdStress;
-    } else if (rThisVariable == PREVIOUS_CYCLE) {
-        rValue = mPreviousCycleTime;
-    } else if (rThisVariable == CYCLE_PERIOD) {
-        rValue = mPeriod;
-    } else {
-        return BaseType::GetValue(rThisVariable, rValue);
-    }
-    return rValue;
 }
 
 /***********************************************************************************/
