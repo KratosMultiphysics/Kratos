@@ -2,8 +2,8 @@
 //   Author:   Joaquín Irazábal González
 //
 
-#if !defined(KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_PROCESS )
-#define  KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_PROCESS
+#if !defined(KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_TO_WALLS_PROCESS )
+#define  KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_TO_WALLS_PROCESS
 
 #include "includes/table.h"
 #include "includes/kratos_flags.h"
@@ -16,20 +16,20 @@
 namespace Kratos
 {
 
-class ApplyExternalForcesAndMomentsProcess : public Process
+class ApplyExternalForcesAndMomentsToWallsProcess : public Process
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyExternalForcesAndMomentsProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyExternalForcesAndMomentsToWallsProcess);
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    ApplyExternalForcesAndMomentsProcess(ModelPart& model_part,
-                                   Parameters rParameters
-                                   ) : Process(Flags()) , mrModelPart(model_part), mParameters(rParameters), mInterval(rParameters)
+    ApplyExternalForcesAndMomentsToWallsProcess(ModelPart& model_part,
+                                                Parameters rParameters
+                                                ) : Process(Flags()) , mrModelPart(model_part), mParameters(rParameters), mInterval(rParameters)
     {
         KRATOS_TRY
 
@@ -89,11 +89,11 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    ~ApplyExternalForcesAndMomentsProcess() override {}
+    ~ApplyExternalForcesAndMomentsToWallsProcess() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Execute method is used to execute the ApplyExternalForcesAndMomentsProcess algorithms.
+    /// Execute method is used to execute the ApplyExternalForcesAndMomentsToWallsProcess algorithms.
     void Execute() override
     {
     }
@@ -109,39 +109,30 @@ public:
 
         if(!mInterval.IsInInterval(time)) return;
 
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++) {
-                ModelPart::NodesContainerType::iterator it_node = it_begin + i;
-
-                array_1d<double, 3>& force = it_node->FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-                array_1d<double, 3>& moment = it_node->FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
-
-                for(int i=0; i<3; i++) {
-                    double force_value = 0.0;
-                    if(mForceValueIsNumeric[i]) {
-                        force_value = mForceValues[i];
-                    }
-                    else {
-                        force_value = mForceFunctions[i].CallFunction(it_node->X(), it_node->Y(), it_node->Z(), time);
-                    }
-                    force[i] = force_value;
-
-                    double moment_value = 0.0;
-                    if(mMomentValueIsNumeric[i]) {
-                        moment_value = mMomentValues[i];
-                    }
-                    else {
-                            moment_value = mMomentFunctions[i].CallFunction(it_node->X(), it_node->Y(), it_node->Z(), time);
-                    }
-                    moment[i] = moment_value;
-                }
+        for(int i=0; i<3; i++) {
+            double force_value = 0.0;
+            if(mForceValueIsNumeric[i]) {
+                force_value = mForceValues[i];
             }
+            else {
+                force_value = mForceFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
+                                                              mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
+                                                              mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
+                                                              time);
+            }
+            mrModelPart[EXTERNAL_APPLIED_FORCE][i] = force_value;
+
+            double moment_value = 0.0;
+            if(mMomentValueIsNumeric[i]) {
+                moment_value = mMomentValues[i];
+            }
+            else {
+                    moment_value = mMomentFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
+                                                                    mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
+                                                                    mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
+                                                                    time);
+            }
+            mrModelPart[EXTERNAL_APPLIED_MOMENT][i] = moment_value;
         }
 
         KRATOS_CATCH("");
@@ -156,19 +147,8 @@ public:
 
         if(mInterval.IsInInterval(time)) return;
 
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++) {
-                ModelPart::NodesContainerType::iterator it_node = it_begin + i;
-                it_node->FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
-                it_node->FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
-            }
-        }
+        mrModelPart[EXTERNAL_APPLIED_FORCE] = ZeroVector(3);
+        mrModelPart[EXTERNAL_APPLIED_MOMENT] = ZeroVector(3);
 
         KRATOS_CATCH("");
     }
@@ -176,13 +156,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ApplyExternalForcesAndMomentsProcess";
+        return "ApplyExternalForcesAndMomentsToWallsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ApplyExternalForcesAndMomentsProcess";
+        rOStream << "ApplyExternalForcesAndMomentsToWallsProcess";
     }
 
     /// Print object's data.
@@ -212,20 +192,20 @@ protected:
 private:
 
     /// Assignment operator.
-    ApplyExternalForcesAndMomentsProcess& operator=(ApplyExternalForcesAndMomentsProcess const& rOther);
+    ApplyExternalForcesAndMomentsToWallsProcess& operator=(ApplyExternalForcesAndMomentsToWallsProcess const& rOther);
 
     /// Copy constructor.
-    //ApplyExternalForcesAndMomentsProcess(ApplyExternalForcesAndMomentsProcess const& rOther);
+    //ApplyExternalForcesAndMomentsToWallsProcess(ApplyExternalForcesAndMomentsToWallsProcess const& rOther);
 
-}; // Class ApplyExternalForcesAndMomentsProcess
+}; // Class ApplyExternalForcesAndMomentsToWallsProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyExternalForcesAndMomentsProcess& rThis);
+                                  ApplyExternalForcesAndMomentsToWallsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyExternalForcesAndMomentsProcess& rThis)
+                                  const ApplyExternalForcesAndMomentsToWallsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -236,4 +216,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif /* KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_PROCESS defined */
+#endif /* KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_TO_WALLS_PROCESS defined */

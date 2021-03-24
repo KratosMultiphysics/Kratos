@@ -27,6 +27,7 @@ class TestGUIs(KratosUnittest.TestCase):
         f2_absolute_path = GetFilePath(f2)
         self.assertTrue(filecmp.cmp(f1_absolute_path, f2_absolute_path))
 
+    @classmethod
     def tearDown(self):
         pass
 

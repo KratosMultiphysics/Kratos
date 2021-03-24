@@ -29,23 +29,23 @@
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball",
 		"force_settings" : {
-                    "value"                : [10.0, "3*t", "x+y"]
+                    "value"                : [100.0, "30.0*t", "200.0*(x+y)"]
                 },
                 "moment_settings" : {
-                    "value"                : [10.0, "3*t", "x+y"]
+                    "value"                : [-50.0, "15.0*(x+z)", "60.0*t"]
                 },
                 "interval"             : [0.0, 0.2]
             }
         },{
-            "python_module" : "processes.apply_external_forces_and_moments_process",
+            "python_module" : "processes.apply_external_forces_and_moments_to_walls_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube",
 		"force_settings" : {
-                    "value"                : ["-10.0*t", 0.0, 0.0]
+                    "value"                : ["-90.0*t", 300.0, "250.0*(x+y)"]
                 },
                 "moment_settings" : {
-                    "value"                : [0.0, 0.0, 0.0]
+                    "value"                : ["(y**2+z)", "-700.0*t", 800.0]
                 },
                 "interval"             : [0.2, 0.4]
             }
@@ -70,8 +70,8 @@
     "OutputTimeStep"                 : 0.01,
     "PostBoundingBox"                : false,
     "PostLocalContactForce"          : false,
-    "PostDisplacement"               : true,
-    "PostRadius"                     : true,
+    "PostDisplacement"               : false,
+    "PostRadius"                     : false,
     "PostVelocity"                   : true,
     "PostAngularVelocity"            : true,
     "PostElasticForces"              : false,
@@ -80,6 +80,7 @@
     "PostStressStrainOption"         : false,
     "PostTangentialElasticForces"    : false,
     "PostTotalForces"                : false,
+    "PostAppliedForces"              : true,
     "PostPressure"                   : false,
     "PostShearStress"                : false,
     "PostNonDimensionalVolumeWear"   : false,
