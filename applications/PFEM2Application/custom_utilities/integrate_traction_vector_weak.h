@@ -195,9 +195,11 @@ namespace Kratos
              array_1d<double,TDim> normal_vector = ZeroVector(TDim); 
 
              GlobalPointersVector< Element >& neighbor_els = it_condition->GetValue(NEIGHBOUR_ELEMENTS);
-             if (it_condition->GetValue(NEIGHBOUR_ELEMENTS).size()>1)
+            //  if (it_condition->GetValue(NEIGHBOUR_ELEMENTS).size()>1)
+             if (it_condition->GetValue(Kratos::NEIGHBOUR_ELEMENTS).size()>1)
                KRATOS_THROW_ERROR(std::invalid_argument,"NEIGHBOUR_ELEMENTS is more than one","");
-             if (it_condition->GetValue(NEIGHBOUR_ELEMENTS).size()<1)
+            //  if (it_condition->GetValue(NEIGHBOUR_ELEMENTS).size()<1)
+             if (it_condition->GetValue(Kratos::NEIGHBOUR_ELEMENTS).size()<1)
                KRATOS_THROW_ERROR(std::invalid_argument,"NEIGHBOUR_ELEMENTS does not exist","");
              for(GlobalPointersVector< Element >::iterator ielem = neighbor_els.begin(); ielem!=neighbor_els.end(); ielem++)
              {

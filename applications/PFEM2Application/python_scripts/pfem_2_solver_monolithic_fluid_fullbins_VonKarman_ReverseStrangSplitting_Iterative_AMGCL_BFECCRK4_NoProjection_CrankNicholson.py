@@ -1,7 +1,7 @@
 from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
-from KratosMultiphysics.LinearSolversApplication import *
+#from KratosMultiphysics.LinearSolversApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 import KratosMultiphysics as kratoscore
 #from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
@@ -232,7 +232,7 @@ class PFEM2Solver:
 
           '''{
              "preconditioner_type"            : "amg",
-             "solver_type"                    : "AMGCL",
+             "solver_type"                    : "amgcl",
              "smoother_type"                  : "ilu0",
              "krylov_type"                    : "gmres",
              "coarsening_type"                : "aggregation",
