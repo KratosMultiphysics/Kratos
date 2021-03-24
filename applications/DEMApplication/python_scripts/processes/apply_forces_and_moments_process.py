@@ -5,10 +5,10 @@ import KratosMultiphysics.DEMApplication as DEM
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyExternalForcesAndMomentsToWallsProcess(Model, settings["Parameters"])
+    return ApplyForcesAndMomentsProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplyExternalForcesAndMomentsToWallsProcess(KratosMultiphysics.Process):
+class ApplyForcesAndMomentsProcess(KratosMultiphysics.Process):
     """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
 
     Only the member variables listed below should be accessed directly.
@@ -49,7 +49,7 @@ class ApplyExternalForcesAndMomentsToWallsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.cplusplus_version_of_this_process = DEM.ApplyExternalForcesAndMomentsToWallsProcess(self.model_part, settings)
+        self.cplusplus_version_of_this_process = DEM.ApplyForcesAndMomentsProcess(self.model_part, settings)
 
 
     def ExecuteInitializeSolutionStep(self):

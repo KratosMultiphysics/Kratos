@@ -24,20 +24,20 @@
     },
     "processes"        : {
         "constraints_process_list" : [{
-            "python_module" : "processes.apply_external_forces_and_moments_process",
+            "python_module" : "processes.apply_forces_and_moments_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball",
 		"force_settings" : {
-                    "value"                : [100.0, "30.0*t", "200.0*(x+y)"]
+                    "value"                : [100.0, "30.0*t", "2000.0*(x+y)"]
                 },
                 "moment_settings" : {
-                    "value"                : [-50.0, "15.0*(x+z)", "60.0*t"]
+                    "value"                : [-50.0, "15.0*(x+z)", "600.0*t"]
                 },
                 "interval"             : [0.0, 0.2]
             }
         },{
-            "python_module" : "processes.apply_external_forces_and_moments_to_walls_process",
+            "python_module" : "processes.apply_forces_and_moments_to_walls_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube",
@@ -63,7 +63,7 @@
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
     "MaxTimeStep"                    : 0.0002,
-    "FinalTime"                      : 0.61,
+    "FinalTime"                      : 0.4,
     "NeighbourSearchFrequency"       : 50,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
@@ -87,5 +87,5 @@
     "PostParticleMoment"             : false,
     "PostEulerAngles"                : false,
     "PostRollingResistanceMoment"    : false,
-    "problem_name"                   : "external_forces_and_moments_process"
+    "problem_name"                   : "forces_and_moments_process"
 }

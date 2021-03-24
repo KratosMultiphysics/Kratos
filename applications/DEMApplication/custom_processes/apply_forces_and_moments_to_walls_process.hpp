@@ -2,8 +2,8 @@
 //   Author:   Joaquín Irazábal González
 //
 
-#if !defined(KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_TO_WALLS_PROCESS )
-#define  KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_TO_WALLS_PROCESS
+#if !defined(KRATOS_APPLY_FORCES_AND_MOMENTS_TO_WALLS_PROCESS )
+#define  KRATOS_APPLY_FORCES_AND_MOMENTS_TO_WALLS_PROCESS
 
 #include "includes/table.h"
 #include "includes/kratos_flags.h"
@@ -16,18 +16,18 @@
 namespace Kratos
 {
 
-class ApplyExternalForcesAndMomentsToWallsProcess : public Process
+class ApplyForcesAndMomentsToWallsProcess : public Process
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyExternalForcesAndMomentsToWallsProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyForcesAndMomentsToWallsProcess);
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    ApplyExternalForcesAndMomentsToWallsProcess(ModelPart& model_part,
+    ApplyForcesAndMomentsToWallsProcess(ModelPart& model_part,
                                                 Parameters rParameters
                                                 ) : Process(Flags()) , mrModelPart(model_part), mParameters(rParameters), mInterval(rParameters)
     {
@@ -89,11 +89,11 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    ~ApplyExternalForcesAndMomentsToWallsProcess() override {}
+    ~ApplyForcesAndMomentsToWallsProcess() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Execute method is used to execute the ApplyExternalForcesAndMomentsToWallsProcess algorithms.
+    /// Execute method is used to execute the ApplyForcesAndMomentsToWallsProcess algorithms.
     void Execute() override
     {
     }
@@ -156,13 +156,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ApplyExternalForcesAndMomentsToWallsProcess";
+        return "ApplyForcesAndMomentsToWallsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ApplyExternalForcesAndMomentsToWallsProcess";
+        rOStream << "ApplyForcesAndMomentsToWallsProcess";
     }
 
     /// Print object's data.
@@ -192,20 +192,20 @@ protected:
 private:
 
     /// Assignment operator.
-    ApplyExternalForcesAndMomentsToWallsProcess& operator=(ApplyExternalForcesAndMomentsToWallsProcess const& rOther);
+    ApplyForcesAndMomentsToWallsProcess& operator=(ApplyForcesAndMomentsToWallsProcess const& rOther);
 
     /// Copy constructor.
-    //ApplyExternalForcesAndMomentsToWallsProcess(ApplyExternalForcesAndMomentsToWallsProcess const& rOther);
+    //ApplyForcesAndMomentsToWallsProcess(ApplyForcesAndMomentsToWallsProcess const& rOther);
 
-}; // Class ApplyExternalForcesAndMomentsToWallsProcess
+}; // Class ApplyForcesAndMomentsToWallsProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyExternalForcesAndMomentsToWallsProcess& rThis);
+                                  ApplyForcesAndMomentsToWallsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyExternalForcesAndMomentsToWallsProcess& rThis)
+                                  const ApplyForcesAndMomentsToWallsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -216,4 +216,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif /* KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_TO_WALLS_PROCESS defined */
+#endif /* KRATOS_APPLY_FORCES_AND_MOMENTS_TO_WALLS_PROCESS defined */

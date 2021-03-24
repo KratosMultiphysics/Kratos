@@ -2,8 +2,8 @@
 //   Author:   Joaquín Irazábal González
 //
 
-#if !defined(KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_PROCESS )
-#define  KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_PROCESS
+#if !defined(KRATOS_APPLY_FORCES_AND_MOMENTS_PROCESS )
+#define  KRATOS_APPLY_FORCES_AND_MOMENTS_PROCESS
 
 #include "includes/table.h"
 #include "includes/kratos_flags.h"
@@ -16,18 +16,18 @@
 namespace Kratos
 {
 
-class ApplyExternalForcesAndMomentsProcess : public Process
+class ApplyForcesAndMomentsProcess : public Process
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyExternalForcesAndMomentsProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyForcesAndMomentsProcess);
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    ApplyExternalForcesAndMomentsProcess(ModelPart& model_part,
+    ApplyForcesAndMomentsProcess(ModelPart& model_part,
                                    Parameters rParameters
                                    ) : Process(Flags()) , mrModelPart(model_part), mParameters(rParameters), mInterval(rParameters)
     {
@@ -89,11 +89,11 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    ~ApplyExternalForcesAndMomentsProcess() override {}
+    ~ApplyForcesAndMomentsProcess() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Execute method is used to execute the ApplyExternalForcesAndMomentsProcess algorithms.
+    /// Execute method is used to execute the ApplyForcesAndMomentsProcess algorithms.
     void Execute() override
     {
     }
@@ -176,13 +176,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ApplyExternalForcesAndMomentsProcess";
+        return "ApplyForcesAndMomentsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ApplyExternalForcesAndMomentsProcess";
+        rOStream << "ApplyForcesAndMomentsProcess";
     }
 
     /// Print object's data.
@@ -212,20 +212,20 @@ protected:
 private:
 
     /// Assignment operator.
-    ApplyExternalForcesAndMomentsProcess& operator=(ApplyExternalForcesAndMomentsProcess const& rOther);
+    ApplyForcesAndMomentsProcess& operator=(ApplyForcesAndMomentsProcess const& rOther);
 
     /// Copy constructor.
-    //ApplyExternalForcesAndMomentsProcess(ApplyExternalForcesAndMomentsProcess const& rOther);
+    //ApplyForcesAndMomentsProcess(ApplyForcesAndMomentsProcess const& rOther);
 
-}; // Class ApplyExternalForcesAndMomentsProcess
+}; // Class ApplyForcesAndMomentsProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyExternalForcesAndMomentsProcess& rThis);
+                                  ApplyForcesAndMomentsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyExternalForcesAndMomentsProcess& rThis)
+                                  const ApplyForcesAndMomentsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -236,4 +236,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif /* KRATOS_APPLY_EXTERNAL_FORCES_AND_MOMENTS_PROCESS defined */
+#endif /* KRATOS_APPLY_FORCES_AND_MOMENTS_PROCESS defined */
