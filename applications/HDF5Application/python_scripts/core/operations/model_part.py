@@ -138,6 +138,7 @@ class ElementIntegrationPointOutput(VariableIO):
         KratosHDF5.HDF5ElementIntegrationPointOutput(
             self.GetSettings(model_part).Get(), hdf5_file).WriteElementIntegrationPointValues(
                 model_part.Elements,
+                model_part.GetCommunicator().GetDataCommunicator(),
                 model_part.ProcessInfo)
 
 class ConditionDataValueOutput(VariableIO):
@@ -194,6 +195,7 @@ class ConditionIntegrationPointOutput(VariableIO):
         KratosHDF5.HDF5ConditionIntegrationPointOutput(
             self.GetSettings(model_part).Get(), hdf5_file).WriteConditionIntegrationPointValues(
                 model_part.Conditions,
+                model_part.GetCommunicator().GetDataCommunicator(),
                 model_part.ProcessInfo)
 
 

@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/data_communicator.h"
 #include "includes/process_info.h"
 
 // Application includes
@@ -71,6 +72,7 @@ protected:
 
     void WriteContainerIntegrationPointsValues(
         TContainerType& rContainerItems,
+        const DataCommunicator& rDataCommunicator,
         const ProcessInfo& rProcessInfo);
 
     ///@}

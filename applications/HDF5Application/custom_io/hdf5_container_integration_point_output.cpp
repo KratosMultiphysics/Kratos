@@ -43,10 +43,11 @@ void FlattenData(
     const std::vector<TDataType>& rData);
 
 template <typename TContainerType, typename TDataType>
-bool SetDataBuffer(Variable<TDataType> const&,
+void SetDataBuffer(Variable<TDataType> const&,
                    TContainerType&,
                    Matrix<double>&,
                    int&,
+                   const DataCommunicator& rDataCommunicator,
                    const ProcessInfo&);
 
 template <typename TContainerType>
@@ -62,17 +63,15 @@ public:
                         File& rFile,
                         std::string const& rPath,
                         WriteInfo& rInfo,
+                        const DataCommunicator& rDataCommunicator,
                         const ProcessInfo& rProcessInfo)
         {
             Matrix<double> data;
             int number_of_gauss_points;
-            if (SetDataBuffer<TContainerType, typename TVariableType::Type>(
-                    rVariable, rContainer, data, number_of_gauss_points, rProcessInfo)) {
-                rFile.WriteDataSet(rPath + "/" + rVariable.Name(), data, rInfo);
-                rFile.WriteAttribute(rPath + "/" + rVariable.Name(), "NumberOfGaussPoints", number_of_gauss_points);
-            } else {
-                KRATOS_WARNING("WriteIntegrationPointValuesFunctor") << "No integration point values were found for " << rVariable.Name() << ".";
-            }
+            SetDataBuffer<TContainerType, typename TVariableType::Type>(rVariable, rContainer, data, number_of_gauss_points, rDataCommunicator, rProcessInfo);
+            KRATOS_WARNING_IF("WriteIntegrationPointValuesFunctor", number_of_gauss_points == 0) << "No integration point values were found for " << rVariable.Name() << ".\n";
+            rFile.WriteDataSet(rPath + "/" + rVariable.Name(), data, rInfo);
+            rFile.WriteAttribute(rPath + "/" + rVariable.Name(), "NumberOfGaussPoints", number_of_gauss_points);
         }
     };
 };
@@ -155,6 +154,7 @@ void ContainerIntegrationPointOutput<ConditionsContainerType,
 template <typename TContainerType, typename... TComponents>
 void ContainerIntegrationPointOutput<TContainerType, TComponents...>::WriteContainerIntegrationPointsValues(
     TContainerType& rContainer,
+    const DataCommunicator& rDataCommunicator,
     const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY;
@@ -167,7 +167,7 @@ void ContainerIntegrationPointOutput<TContainerType, TComponents...>::WriteConta
     // Write each variable.
     for (const std::string& r_component_name : mVariableNames)
         WriteRegisteredIntegrationPointValues(r_component_name, rContainer, *mpFile,
-                                 mVariablePath, info, rProcessInfo);
+                                 mVariablePath, info, rDataCommunicator, rProcessInfo);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mVariablePath, info);
@@ -293,43 +293,41 @@ void FlattenData(
 }
 
 template <typename TContainerType, typename TDataType>
-bool SetDataBuffer(Variable<TDataType> const& rVariable,
+void SetDataBuffer(Variable<TDataType> const& rVariable,
                    TContainerType& rContainer,
                    Matrix<double>& rData,
                    int& NumberOfGaussPoints,
+                   const DataCommunicator& rDataCommunicator,
                    const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY;
 
-    std::vector<TDataType> values;
-    rContainer.begin()->CalculateOnIntegrationPoints(rVariable, values, rProcessInfo);
-    NumberOfGaussPoints = values.size();
-
-    const std::size_t flat_data_size = GetSize(values);
-
-    if (flat_data_size > 0) {
-
-        rData.resize(rContainer.size(), flat_data_size);
-
-        struct tls_type
-        {
-            tls_type(const std::size_t FlatDataSize) : mFlattedGaussPointValues(FlatDataSize) {}
-            std::vector<TDataType> mGaussPointValues;
-            Vector<double> mFlattedGaussPointValues;
-        };
-
-        IndexPartition<int>(rContainer.size()).for_each(tls_type(flat_data_size), [&](const int ItemIndex, tls_type& rTLS){
-            rContainer[ItemIndex].CalculateOnIntegrationPoints(rVariable, rTLS.mGaussPointValues, rProcessInfo);
-            FlattenData(rTLS.mFlattedGaussPointValues, rTLS.mGaussPointValues);
-            for (std::size_t i = 0; i < rTLS.mFlattedGaussPointValues.size(); ++i) {
-                rData(ItemIndex, i) = rTLS.mFlattedGaussPointValues[i];
-            }
-        });
-
-        return true;
-    } else {
-        return false;
+    std::size_t flat_data_size = 0;
+    NumberOfGaussPoints = 0;
+    if (rContainer.size() > 0) {
+        std::vector<TDataType> values;
+        rContainer.begin()->CalculateOnIntegrationPoints(rVariable, values, rProcessInfo);
+        NumberOfGaussPoints = values.size();
+        flat_data_size = GetSize(values);
     }
+
+    NumberOfGaussPoints = rDataCommunicator.MaxAll(NumberOfGaussPoints);
+    flat_data_size = rDataCommunicator.MaxAll(flat_data_size);
+
+    rData.resize(rContainer.size(), flat_data_size);
+
+    struct tls_type
+    {
+        tls_type(const std::size_t FlatDataSize) : mFlattedGaussPointValues(FlatDataSize) {}
+        std::vector<TDataType> mGaussPointValues;
+        Vector<double> mFlattedGaussPointValues;
+    };
+
+    IndexPartition<int>(rContainer.size()).for_each(tls_type(flat_data_size), [&](const int ItemIndex, tls_type& rTLS){
+        (rContainer.begin() + ItemIndex)->CalculateOnIntegrationPoints(rVariable, rTLS.mGaussPointValues, rProcessInfo);
+        FlattenData(rTLS.mFlattedGaussPointValues, rTLS.mGaussPointValues);
+        row(rData, ItemIndex) = rTLS.mFlattedGaussPointValues;
+    });
 
     KRATOS_CATCH("");
 }
