@@ -1,8 +1,8 @@
 {
     "system_parameters":{
-        "mass": 4.36e-2,
-        "stiffness" : 3.0,
-        "damping": 0.0
+        "mass": 6.48e-4,
+        "stiffness" : 0.80,
+        "damping": 0.0033
     },
     "time_integration_parameters":{
         "alpha_m": -0.3,

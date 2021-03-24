@@ -181,6 +181,20 @@
 
         }],
         "auxiliar_process_list"            : [{
+            "python_module" : "compute_body_fitted_drag_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters"    : {
+                "model_part_name"        : "FluidModelPart.NoSlip2D_FSI_Interface",
+                "write_drag_output_file" : true,
+                "print_drag_to_screen"   : false,
+                "interval"               : [0.0,"End"],
+                "output_file_settings": {
+                    "file_name"  : "fsi_sdof_cfd_results_force.dat",
+                    "output_path": "fsi_sdof"
+                }
+            }
+        },{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "point_output_process",
             "help"            : "",

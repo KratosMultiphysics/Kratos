@@ -69,6 +69,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
     def _GetSolver(self, solver_name):
         solver_name, *sub_solver_names = solver_name.split(".")
+        print(solver_name)
+        print(*sub_solver_names)
+        wait=input("check")
+
         solver = self.solver_wrappers[solver_name]
         if len(sub_solver_names) > 0:
             return solver._GetSolver(".".join(sub_solver_names))
