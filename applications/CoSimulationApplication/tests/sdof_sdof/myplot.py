@@ -1,16 +1,3 @@
-#===============================================================================
-'''
-Project:Lecture - Structural Wind Engineering WS19-20
-        Chair of Structural Analysis @ TUM - R. Wuchner, M. Pentek
-
-Author: philipp.bucher@tum.de, mate.pentek@tum.de
-
-Description: Script for plotting aerodynamic forces and moments
-
-Created on:  05.12.2015
-Last update: 04.12.2019
-'''
-#===============================================================================
 import sys
 from matplotlib.pylab import *
 import numpy as np
