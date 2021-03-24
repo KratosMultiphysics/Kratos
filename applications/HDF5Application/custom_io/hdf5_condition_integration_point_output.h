@@ -78,9 +78,10 @@ public:
 
     void WriteConditionIntegrationPointValues(
         ConditionsContainerType& rConditions,
+        const DataCommunicator& rDataCommunicator,
         const ProcessInfo& rProcessInfo)
     {
-        this->WriteContainerIntegrationPointsValues(rConditions, rProcessInfo);
+        this->WriteContainerIntegrationPointsValues(rConditions, rDataCommunicator, rProcessInfo);
     }
 
     ///@}

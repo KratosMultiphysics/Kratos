@@ -78,9 +78,10 @@ public:
 
     void WriteElementIntegrationPointValues(
         ElementsContainerType& rElements,
+        const DataCommunicator& rDataCommunicator,
         const ProcessInfo& rProcessInfo)
     {
-        this->WriteContainerIntegrationPointsValues(rElements, rProcessInfo);
+        this->WriteContainerIntegrationPointsValues(rElements, rDataCommunicator, rProcessInfo);
     }
 
     ///@}
