@@ -82,6 +82,9 @@ namespace Kratos
 
 		void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput) override;
 
+		void ComputeCharacteristicLength(const GeometryType& geom, const Properties& rMaterialProperties,
+			double& rCharacteristicLength) override;
+
 	private:
 
 		friend class Serializer;

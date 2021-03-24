@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -64,6 +65,25 @@ namespace Kratos
 
       // Fill symmetry
 	  rOutput(1, 0) = rOutput(0, 1);
+  }
+
+  void JohnsonCookThermalPlastic2DAxisymLaw::ComputeCharacteristicLength(
+	  const GeometryType& geom,
+	  const Properties& rMaterialProperties,
+	  double& rCharacteristicLength)
+  {
+
+	  // Updated for MPM - we take the material point volume
+	  rCharacteristicLength = 0.0;
+	  double area = geom.GetValue(MP_VOLUME);
+
+	  const double radius = geom.GetGeometryParent(0).Center()[0];
+	  area /= (Globals::Pi * 2.0 * radius);
+
+	  rCharacteristicLength = std::sqrt(area);
+
+	  KRATOS_ERROR_IF(rCharacteristicLength == 0.0) << "Characteristic length not set properly!\n"
+		  << "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
   }
 
 } // Namespace Kratos

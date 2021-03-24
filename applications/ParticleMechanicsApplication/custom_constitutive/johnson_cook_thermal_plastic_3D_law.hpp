@@ -162,6 +162,9 @@ protected:
 
     virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
 
+    virtual void ComputeCharacteristicLength(const GeometryType& geom, const Properties& rMaterialProperties,
+        double& rCharacteristicLength);
+
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
 private:
@@ -181,9 +184,6 @@ private:
 
     double CalculatePlasticStrainDerivative(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
-
-    void ComputeCharacteristicLength(const GeometryType& geom, const Properties& rMaterialProperties,
-        double& rCharacteristicLength);
 
     double CalculateDamageOnsetPlasticStrain(const double Pressure, const double EqStress, const double PlasticStrainRate,
         const double Temperature, const Properties& MaterialProperties);

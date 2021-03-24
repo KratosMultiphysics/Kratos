@@ -41,6 +41,7 @@ namespace Kratos
 		typedef std::size_t             SizeType;
 		typedef Properties::Pointer            PropertiesPointer;
 
+
 		/// Counted pointer of JohnsonCookThermalPlastic2DPlaneStrainLaw
 		KRATOS_CLASS_POINTER_DEFINITION(JohnsonCookThermalPlastic2DPlaneStrainLaw);
 
@@ -87,6 +88,9 @@ namespace Kratos
 		void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput) override;
 
 		void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput) override;
+
+		void ComputeCharacteristicLength(const GeometryType& geom, const Properties& rMaterialProperties,
+			double& rCharacteristicLength) override;
 
 	private:
 

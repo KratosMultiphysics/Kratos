@@ -63,25 +63,7 @@ namespace Kratos
 		// Updated for MPM - we take the material point volume
 		rCharacteristicLength = 0.0;
 		double area = geom.GetValue(MP_VOLUME);
-		const size_t working_dim = geom.WorkingSpaceDimension();
-		if (working_dim == 2)
-		{
-			const bool is_axissym = (rMaterialProperties.Has(IS_AXISYMMETRIC))
-				? rMaterialProperties[IS_AXISYMMETRIC]
-				: false;
-
-			if (is_axissym)
-			{
-				const double radius =  geom.GetGeometryParent(0).Center()[0];
-				area /= (Globals::Pi * 2.0 * radius);
-			}
-			else
-			{
-				if (rMaterialProperties.Has(THICKNESS)) area /= rMaterialProperties[THICKNESS];
-				else KRATOS_ERROR << "2D ANALYSIS SHOULD HAVE THICKNESS IN MATERIAL PROPERTIES!\n";
-			}
-		}
-		rCharacteristicLength = std::pow(area,1.0/double(working_dim));
+		rCharacteristicLength = std::pow(area,1.0/3.0);
 
 		KRATOS_ERROR_IF(rCharacteristicLength == 0.0) << "Characteristic length not set properly!\n"
 			<< "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
@@ -100,10 +82,30 @@ namespace Kratos
 			temp_norm = std::max(0.0, temp_norm);
 			temp_norm = std::min(1.0, temp_norm);
 
-			double damage_onset_plastic_strain = MaterialProperties[JC_D1] +
-				MaterialProperties[JC_D2] * std::exp(MaterialProperties[JC_D3] * HydrostaticStress / EqStress);
-			damage_onset_plastic_strain *= (1.0 + MaterialProperties[JC_D4] * std::log(PlasticStrainRate / MaterialProperties[REFERENCE_STRAIN_RATE]));
-			damage_onset_plastic_strain *= (1.0 + MaterialProperties[JC_D5] * temp_norm);
+			const double pressure = HydrostaticStress * -1.0;
+			double parameter_d3 = MaterialProperties[JC_D3];
+			if (parameter_d3 < 0.0) parameter_d3 *= -1.0; // use positive d3 and pressure as per abaqus docs
+
+			double main_plastic_strain = MaterialProperties[JC_D1] +
+				MaterialProperties[JC_D2] * std::exp(parameter_d3 * pressure / EqStress);
+
+			double rate_factor = (1.0 + MaterialProperties[JC_D4] * std::log(PlasticStrainRate / MaterialProperties[REFERENCE_STRAIN_RATE]));
+			double temp_factor = (1.0 + MaterialProperties[JC_D5] * temp_norm);
+
+			double damage_onset_plastic_strain = main_plastic_strain * rate_factor * temp_factor;
+
+			if (damage_onset_plastic_strain/ MaterialProperties[JC_D1] > 1e6)
+			{
+				//KRATOS_WATCH("something is wrong");
+				//KRATOS_WATCH(damage_onset_plastic_strain);
+				//KRATOS_WATCH(MaterialProperties[JC_D1]);
+				//KRATOS_WATCH(main_plastic_strain);
+				//KRATOS_WATCH(rate_factor);
+				//KRATOS_WATCH(temp_factor);
+
+				//KRATOS_ERROR << "ASDF";
+
+			}
 
 			return damage_onset_plastic_strain;
 		}
@@ -139,7 +141,7 @@ namespace Kratos
 		const double fracture_toughness = (rMaterialProperties.Has(FRACTURE_TOUGHNESS)) ? rMaterialProperties[FRACTURE_TOUGHNESS] : 0.0; // default is sudden failure instead of progressive damage
 		const double poisson = rMaterialProperties[POISSON_RATIO];
 		const double young_mod = rMaterialProperties[YOUNG_MODULUS];
-		mFractureEnergy = (1.0 - poisson * poisson) / young_mod * fracture_toughness;
+		mFractureEnergy = (1.0 - poisson * poisson) / young_mod * fracture_toughness* fracture_toughness;
 
 		this->ComputeCharacteristicLength(rElementGeometry, rMaterialProperties, mCharLength);
 
@@ -209,9 +211,9 @@ namespace Kratos
 			double gamma_min = 0.0;
 			double gamma_max = j2_stress_trial / GetSqrt6() / shear_modulus_G;
 			bool is_converged = false;
-			const SizeType iteration_limit = 100;
+			const SizeType iteration_limit = 1000;
 			IndexType iteration = 0;
-			const double tolerance_delta_gamma = 1e-9;
+			const double tolerance_delta_gamma = 1e-6;
 			double yield_function, yield_function_gradient, dYield_dGamma,
 				delta_gamma, predicted_eps, predicted_eps_rate,
 				predicted_temperature;
@@ -281,14 +283,20 @@ namespace Kratos
 					//}
 					//else
 					//{
-						KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded\n";
-						KRATOS_WATCH(gamma)
-							KRATOS_WATCH(mEquivalentPlasticStrainOld)
-							KRATOS_WATCH(yield_stress)
-							KRATOS_WATCH(yield_stress / mYieldStressVirgin)
-							KRATOS_WATCH(delta_gamma)
-							KRATOS_WATCH(yield_function)
+					#pragma omp critical
+					{
+						KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded"
+							<< "\ngamma = " << gamma
+							<< "\ndamage = " << mDamage
+							<< "\nplastic strain old = " << mEquivalentPlasticStrainOld
+							<< "\nyield stress / virgin yield = " << yield_stress / mYieldStressVirgin
+							<< "\ndelta_gamma = " << delta_gamma
+							<< "\nyield_function" << yield_function
+							<< "\n\n\n";
+
 							KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
+					}
+
 					//}
 				}
 			}
@@ -326,19 +334,22 @@ namespace Kratos
 		if (delta_plastic_strain > 1e-12)
 		{
 			// Evolution
-			const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
-				mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
-			mDamageInitiation += delta_plastic_strain / plastic_damage_onset;
+			if (mDamageInitiation < 1.0)
+			{
+				const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
+					mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
 
-			if (mDamageInitiation >= 1.0)
+				mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
+			}
+			else
 			{
 				// True material damage
-				if (mDamage == 0.0)
+				if (mDamageInitiationDisp < 1e-12)
 				{
 					// We have just started damage - store the current plastic displacement
 					mDamageInitiationDisp = mCharLength * mEquivalentPlasticStrainOld;
 					mFailureDisp = 2.0 * mFractureEnergy / yield_stress; //value of the yield stress at the time when the failure criterion is reached
-
+					mDamage = 1e-9;
 					if (mFractureEnergy < 1e-9) mDamage = 1.0;
 				}
 
@@ -352,15 +363,25 @@ namespace Kratos
 						// https://abaqus-docs.mit.edu/2017/English/SIMACAEMATRefMap/simamat-c-damageevolductile.htm
 						const double undamaged_yield = yield_stress / (1.0 - mDamage);
 						mDamage = 1.0 - std::exp(-1.0 * plastic_disp_after_onset * undamaged_yield / mFractureEnergy);
+						//KRATOS_WATCH(mDamage);
 					}
 					else
 					{
 						// simple linear damage evolution
 						if (mFailureDisp - mDamageInitiationDisp < 1e-9)  mDamage = 1.0;
 						else mDamage = plastic_disp_after_onset / (mFailureDisp - mDamageInitiationDisp); // simple linear damage law
+
+						KRATOS_WATCH(mFailureDisp)
+						KRATOS_WATCH(mFractureEnergy)
+						KRATOS_WATCH(mDamageInitiationDisp)
+						KRATOS_WATCH(mFailureDisp- mDamageInitiationDisp)
+						KRATOS_WATCH(plastic_disp_after_onset)
+						KRATOS_WATCH(mDamage);
+						KRATOS_WATCH(mCharLength);
 					}
 					mDamage = std::min(1.0, mDamage);
 					mDamage = std::max(0.0, mDamage);
+					if (mDamage > 0.99) mDamage = 1.0;
 				}
 			}
 		}
