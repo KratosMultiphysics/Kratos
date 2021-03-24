@@ -339,7 +339,7 @@ public:
 		mis_defined_SurfaceSourceVar = rOther.mis_defined_SurfaceSourceVar;
 		mis_defined_ProjectionVar = rOther.mis_defined_ProjectionVar;
 		mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
-        mis_defined_GradientVar = rOther.mis_defined_GradientVar;
+            mis_defined_GradientVar = rOther.mis_defined_GradientVar;
 		mis_defined_MeshVelocityVar = rOther.mis_defined_MeshVelocityVar;
 		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar;
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
