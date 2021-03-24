@@ -82,12 +82,12 @@ namespace Kratos
 			temp_norm = std::max(0.0, temp_norm);
 			temp_norm = std::min(1.0, temp_norm);
 
-			const double pressure = HydrostaticStress * -1.0;
 			double parameter_d3 = MaterialProperties[JC_D3];
-			if (parameter_d3 < 0.0) parameter_d3 *= -1.0; // use positive d3 and pressure as per abaqus docs
+			if (parameter_d3 > 0.0) parameter_d3 *= -1.0; // use negative d3 and mean normal stress as per [john1985]
+			const double pressure_ratio = std::min(1.5, HydrostaticStress / EqStress); // as per [john1985]
 
 			double main_plastic_strain = MaterialProperties[JC_D1] +
-				MaterialProperties[JC_D2] * std::exp(parameter_d3 * pressure / EqStress);
+				MaterialProperties[JC_D2] * std::exp(parameter_d3 * pressure_ratio);
 
 			double rate_factor = (1.0 + MaterialProperties[JC_D4] * std::log(PlasticStrainRate / MaterialProperties[REFERENCE_STRAIN_RATE]));
 			double temp_factor = (1.0 + MaterialProperties[JC_D5] * temp_norm);
