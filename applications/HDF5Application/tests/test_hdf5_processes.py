@@ -36,6 +36,10 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True)
         self.patcher10 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True)
+        self.patcher11 = patch(
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementIntegrationPointOutput', autospec=True)
+        self.patcher12 = patch(
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionIntegrationPointOutput', autospec=True)
         self.HDF5FileSerial = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
@@ -46,6 +50,10 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5NodalFlagValueIO = self.patcher8.start()
         self.HDF5ConditionFlagValueIO = self.patcher9.start()
         self.HDF5ConditionDataValueIO = self.patcher10.start()
+        self.HDF5ConditionDataValueIO = self.patcher10.start()
+        self.HDF5ConditionDataValueIO = self.patcher10.start()
+        self.HDF5ElementIntegrationPointOutput = self.patcher11.start()
+        self.HDF5ConditionIntegrationPointOutput = self.patcher12.start()
 
     def tearDown(self):
         self.patcher1.stop()
@@ -58,6 +66,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.patcher8.stop()
         self.patcher9.stop()
         self.patcher10.stop()
+        self.patcher11.stop()
+        self.patcher12.stop()
 
     def test_SingleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -85,11 +95,17 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                     "element_flag_value_settings": {
                         "prefix": "/ResultsData/ElementFlagValues"
                     },
+                    "element_integration_point_value_settings": {
+                        "prefix": "/ResultsData/ElementIntegrationPointValues"
+                    },
                     "condition_data_value_settings": {
                         "prefix": "/ResultsData/ConditionDataValues"
                     },
                     "condition_flag_value_settings": {
                         "prefix": "/ResultsData/ConditionFlagValues"
+                    },
+                    "condition_integration_point_value_settings": {
+                        "prefix": "/ResultsData/ConditionIntegrationPointValues"
                     },
                     "output_time_settings": {
                         "time_frequency": 0.2,
@@ -167,6 +183,16 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.assert_called_with(
             self.model_part.Elements)
 
+        self.assertEqual(self.HDF5ElementIntegrationPointOutput.call_count, 2)
+        self.assertEqual(self.HDF5ElementIntegrationPointOutput.call_args[0][0]['prefix'].GetString(
+        ), '/ResultsData/ElementIntegrationPointValues')
+        self.assertEqual(
+            self.HDF5ElementIntegrationPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5ElementIntegrationPointOutput.return_value.WriteElementIntegrationPointValues.call_count, 2)
+        self.HDF5ElementIntegrationPointOutput.return_value.WriteElementIntegrationPointValues.assert_called_with(
+            self.model_part.Elements, self.model_part.ProcessInfo)
+
         self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 2)
         self.assertEqual(self.HDF5ConditionDataValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ConditionDataValues')
@@ -186,6 +212,16 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.call_count, 2)
         self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.assert_called_with(
             self.model_part.Conditions)
+
+        self.assertEqual(self.HDF5ConditionIntegrationPointOutput.call_count, 2)
+        self.assertEqual(self.HDF5ConditionIntegrationPointOutput.call_args[0][0]['prefix'].GetString(
+        ), '/ResultsData/ConditionIntegrationPointValues')
+        self.assertEqual(
+            self.HDF5ConditionIntegrationPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5ConditionIntegrationPointOutput.return_value.WriteConditionIntegrationPointValues.call_count, 2)
+        self.HDF5ConditionIntegrationPointOutput.return_value.WriteConditionIntegrationPointValues.assert_called_with(
+            self.model_part.Conditions, self.model_part.ProcessInfo)
 
     def test_MultipleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
