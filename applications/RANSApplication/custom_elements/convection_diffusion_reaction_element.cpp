@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <functional>
+#include <vector>
 
 // External includes
 
@@ -29,6 +31,7 @@
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "rans_application_variables.h"
 
 // Include base h
 #include "convection_diffusion_reaction_element.h"
@@ -288,6 +291,105 @@ template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionR
 GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
+void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const IndexType num_gauss_points = gauss_weights.size();
+
+    const auto& r_geometry = this->GetGeometry();
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
+
+    std::function<array_1d<double, TDim>(const TConvectionDiffusionReactionData&)> calculate_method;
+
+    if (rVariable == RANS_GAUSS_EFFECTIVE_VELOCITY) {
+        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetEffectiveVelocity(); };
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested in "
+                        "CalculateOnIntegrationPoints [ rVariable.Name() = "
+                     << rVariable.Name() << " ].\n";
+    }
+
+    if (rOutput.size() != num_gauss_points) {
+        rOutput.resize(num_gauss_points);
+    }
+
+    r_current_data.CalculateConstants(rCurrentProcessInfo);
+
+    for (IndexType g = 0; g < num_gauss_points; ++g) {
+        const Matrix& r_shape_derivatives = shape_derivatives[g];
+        const Vector& r_shape_functions = row(shape_functions, g);
+
+        r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+        auto& r_output = rOutput[g];
+        r_output.clear();
+        const auto& value = calculate_method(r_current_data);
+        for (IndexType i = 0; i < TDim; ++i) {
+            r_output[i] = value[i];
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
+void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const IndexType num_gauss_points = gauss_weights.size();
+
+    const auto& r_geometry = this->GetGeometry();
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
+
+    std::function<double(const TConvectionDiffusionReactionData&)> calculate_method;
+
+    if (rVariable == RANS_GAUSS_EFFECTIVE_KINEMATIC_VISCOSITY) {
+        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetEffectiveKinematicViscosity(); };
+    } else if (rVariable == RANS_GAUSS_REACTION_TERM) {
+        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetReactionTerm(); };
+    } else if (rVariable == RANS_GAUSS_SOURCE_TERM) {
+        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetSourceTerm(); };
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested in "
+                        "CalculateOnIntegrationPoints [ rVariable.Name() = "
+                     << rVariable.Name() << " ].\n";
+    }
+
+    if (rOutput.size() != num_gauss_points) {
+        rOutput.resize(num_gauss_points);
+    }
+
+    r_current_data.CalculateConstants(rCurrentProcessInfo);
+
+    for (IndexType g = 0; g < num_gauss_points; ++g) {
+        const Matrix& r_shape_derivatives = shape_derivatives[g];
+        const Vector& r_shape_functions = row(shape_functions, g);
+
+        r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+        rOutput[g] = calculate_method(r_current_data);
+    }
+
+    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
