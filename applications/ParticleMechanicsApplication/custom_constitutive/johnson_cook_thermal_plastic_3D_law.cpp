@@ -59,13 +59,29 @@ namespace Kratos
 		const Properties& rMaterialProperties,
 		double& rCharacteristicLength)
 	{
+
 		// Updated for MPM - we take the material point volume
 		rCharacteristicLength = 0.0;
 		double area = geom.GetValue(MP_VOLUME);
-		if (rMaterialProperties.Has(THICKNESS)) area /= rMaterialProperties[THICKNESS];
-		rCharacteristicLength = std::sqrt(area);
+		const size_t working_dim = geom.WorkingSpaceDimension();
+		if (working_dim == 2)
+		{
+			const bool is_axissym = (rMaterialProperties.Has(IS_AXISYMMETRIC))
+				? rMaterialProperties[IS_AXISYMMETRIC]
+				: false;
 
-		KRATOS_ERROR << "FIX THE ABOVE FOR 3D!";
+			if (is_axissym)
+			{
+				const double radius =  geom.GetGeometryParent(0).Center()[0];
+				area /= (Globals::Pi * 2.0 * radius);
+			}
+			else
+			{
+				if (rMaterialProperties.Has(THICKNESS)) area /= rMaterialProperties[THICKNESS];
+				else KRATOS_ERROR << "2D ANALYSIS SHOULD HAVE THICKNESS IN MATERIAL PROPERTIES!\n";
+			}
+		}
+		rCharacteristicLength = std::pow(area,1.0/double(working_dim));
 
 		KRATOS_ERROR_IF(rCharacteristicLength == 0.0) << "Characteristic length not set properly!\n"
 			<< "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
@@ -97,6 +113,10 @@ namespace Kratos
 
 	void JohnsonCookThermalPlastic3DLaw::InitializeMaterial(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const Vector& rShapeFunctionsValues)
 	{
+		KRATOS_TRY
+
+
+
 		BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
 		mStrainOld = ZeroVector(GetStrainSize());
@@ -122,11 +142,15 @@ namespace Kratos
 		mFractureEnergy = (1.0 - poisson * poisson) / young_mod * fracture_toughness;
 
 		this->ComputeCharacteristicLength(rElementGeometry, rMaterialProperties, mCharLength);
+
+		KRATOS_CATCH("")
 	}
 
 
 	void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponseKirchhoff(Kratos::ConstitutiveLaw::Parameters& rValues)
 	{
+		KRATOS_TRY
+
 		// Check if the constitutive parameters are passed correctly to the law calculation
 		CheckParameters(rValues);
 
@@ -352,6 +376,7 @@ namespace Kratos
 				mEnergyInternal += 0.5 * (stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / MaterialProperties[DENSITY];
 			}
 		}
+		KRATOS_CATCH("")
 	}
 
 
