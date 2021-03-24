@@ -625,6 +625,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "surface_source_variable", default_conv_diff_variables["surface_source_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "projection_variable", default_conv_diff_variables["projection_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "convection_variable", default_conv_diff_variables["convection_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "gradient_variable", default_conv_diff_variables["gradient_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "mesh_velocity_variable", default_conv_diff_variables["mesh_velocity_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "transfer_coefficient_variable", default_conv_diff_variables["transfer_coefficient_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "velocity_variable", default_conv_diff_variables["velocity_variable"].GetString())
