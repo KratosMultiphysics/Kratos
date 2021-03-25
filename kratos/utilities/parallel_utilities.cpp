@@ -29,7 +29,13 @@ namespace Kratos
 
 int ParallelUtilities::GetNumThreads()
 {
+#ifdef KRATOS_SMP_OPENMP
+    return omp_get_max_threads();
+#elif defined(KRATOS_SMP_CXX11)
     return GetNumberOfThreads();
+#else
+    return 1;
+#endif
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
@@ -110,13 +116,13 @@ int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
         LockObject lock;
-        lock.SetLock();
+        lock.lock();
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
             mspNumThreads = &num_threads;
         }
-        lock.UnSetLock();
+        lock.unlock();
     }
 
     return *mspNumThreads;
