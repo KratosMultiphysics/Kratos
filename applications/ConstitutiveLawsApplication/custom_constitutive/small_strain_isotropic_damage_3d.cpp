@@ -73,9 +73,8 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<Vector>& rThisVariable)
 {
     if(rThisVariable == INTERNAL_VARIABLES){
         return true;
-    }
-
-    if(rThisVariable == STRAIN){
+        
+    } else if(rThisVariable == STRAIN){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
     }
@@ -326,15 +325,18 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
 
         rValue = 0.5 * ((1. - damage_variable) * inner_prod(r_strain_vector,
                                         prod(constitutive_matrix, r_strain_vector)));
-    }
-
-    if (rThisVariable == DAMAGE_VARIABLE){
+        
+    } else if (rThisVariable == DAMAGE_VARIABLE){
         const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
         const double stress_like_variable = EvaluateHardeningLaw(
                                                 mStrainVariable,
                                                 r_material_properties);
 
         rValue = 1. - stress_like_variable / mStrainVariable;
+        
+    } else {
+        ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+
     }
 
     return(rValue);
@@ -349,7 +351,7 @@ Vector& SmallStrainIsotropicDamage3D::CalculateValue(
     Vector& rValue
     )
 {
-    //Expliciting getting STRAIN and INITAL_STRAIN_VECTOR calculated in base class
+    //Explicitly having STRAIN and INITAL_STRAIN_VECTOR calculated in base class
     ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
     return(rValue);
 }
