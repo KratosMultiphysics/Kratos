@@ -16,6 +16,8 @@
 
 // Project includes
 #include "processes/simple_mortar_mapper_process.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 /* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
@@ -181,20 +183,15 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
     // We apply the coeffcient if different of one
     if (mMappingCoefficient != 1.0) {
         auto& r_nodes_array = mDestinationModelPart.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
         if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
-            #pragma omp parallel for
-            for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
-                auto it_node = it_node_begin + k;
-                it_node->FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
-            }
+            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+                rNode.FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
+            });
         } else {
-            #pragma omp parallel for
-            for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
-                auto it_node = it_node_begin + k;
-                it_node->GetValue(*mpDestinationVariable) *= mMappingCoefficient;
-            }
+            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+                rNode.GetValue(*mpDestinationVariable) *= mMappingCoefficient;
+            });
         }
     }
 
