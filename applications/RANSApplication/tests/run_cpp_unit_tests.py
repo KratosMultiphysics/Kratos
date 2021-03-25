@@ -5,7 +5,7 @@ from KratosMultiphysics.RANSApplication import *
 
 def run():
     Tester.SetVerbosity(Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
-    Tester.RunTestSuite("KratosRansFastSuite")
+    Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
 
 
 if __name__ == '__main__':

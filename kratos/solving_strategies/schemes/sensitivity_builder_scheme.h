@@ -592,29 +592,46 @@ private:
     {
         KRATOS_TRY;
 
+        std::cout << "T1 \n";
+
         const auto k = OpenMPUtils::ThisThread();
 
+        std::cout << "T2 \n";
+
         rCurrentEntity.CalculateSensitivityMatrix(rVariable, mSensitivityMatrices[k], rCurrentProcessInfo);
+
+        std::cout << "T3 \n";
         rCurrentEntity.GetValuesVector(mAdjointVectors[k]);
+        std::cout << "T4 \n";
 
         KRATOS_ERROR_IF(mAdjointVectors[k].size() != mSensitivityMatrices[k].size2())
             << "mAdjointVectors.size(): " << mAdjointVectors[k].size()
             << " incompatible with mSensitivityMatrices[k].size1(): "
             << mSensitivityMatrices[k].size2() << ". Variable: " << rVariable << std::endl;
 
+        std::cout << "T5 \n";
+
         rResponseFunction.CalculatePartialSensitivity(
             rCurrentEntity, rVariable, mSensitivityMatrices[k], mPartialSensitivity[k], rCurrentProcessInfo);
+
+        std::cout << "T6 \n";
 
         KRATOS_ERROR_IF(mPartialSensitivity[k].size() != mSensitivityMatrices[k].size1())
             << "mPartialSensitivity.size(): " << mPartialSensitivity[k].size()
             << " incompatible with mSensitivityMatrices.size1(): "
             << mSensitivityMatrices[k].size1() << ". Variable: " << rVariable << std::endl;
 
+        std::cout << "T7 \n";
+
         if (rSensitivity.size() != mSensitivityMatrices[k].size1()) {
             rSensitivity.resize(mSensitivityMatrices[k].size1(), false);
         }
 
+        std::cout << "T8 \n";
+
         noalias(rSensitivity) = prod(mSensitivityMatrices[k], mAdjointVectors[k]) + mPartialSensitivity[k];
+
+        std::cout << "T9 \n";
 
         KRATOS_CATCH("");
     }
