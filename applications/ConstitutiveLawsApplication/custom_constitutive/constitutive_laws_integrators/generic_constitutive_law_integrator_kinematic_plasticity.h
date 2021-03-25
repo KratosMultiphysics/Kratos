@@ -485,11 +485,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const double CompressionIndicatorFactor,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        ConstitutiveLaw::Parameters& rValues
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
         GenericConstitutiveLawIntegratorPlasticity<YieldSurfaceType>::CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
-            PlasticDissipation,TensileIndicatorFactor,CompressionIndicatorFactor,rEquivalentStressThreshold,rSlope,rValues);
+            PlasticDissipation,TensileIndicatorFactor,CompressionIndicatorFactor,rEquivalentStressThreshold,rSlope,rValues,CharacteristicLength);
     }
 
     /**
