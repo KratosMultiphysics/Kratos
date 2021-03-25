@@ -110,7 +110,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.p_count = self.p_frequency
 
         #self._solver = self._GetSolver()
-        self.SetDt()
         self.SetFinalTime()
         self.AddVariables()
         super().__init__(model, self.DEM_parameters)
@@ -147,27 +146,14 @@ class DEMAnalysisStage(AnalysisStage):
         # is this being used? TODO
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
 
-
     def SetAnalyticFaceWatcher(self):
-        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
-        self.face_watcher_dict = dict()
-        self.face_watcher_analysers = dict()
-        for sub_part in self.rigid_face_model_part.SubModelParts:
-            if sub_part[IS_GHOST] == True:
-                name = sub_part.Name
-                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
     def MakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
+        self.FaceAnalyzerClass.MakeAnalyticsMeasurements()
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
-
-    def SetDt(self):
-        self._GetSolver().dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
@@ -311,6 +297,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         super().Initialize()
 
+        self.seed = self.DEM_parameters["seed"].GetInt()
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         self.SetInlet()
@@ -463,13 +450,9 @@ class DEMAnalysisStage(AnalysisStage):
                 submp[CLUSTER_FILE_NAME] = os.path.join(self.main_path, cluster_file_name)
 
     def RunAnalytics(self, time, is_time_to_print=True):
-        for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.FaceAnalyzerClass.RemoveOldFile()
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:
+            self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
 
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
@@ -486,7 +469,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):

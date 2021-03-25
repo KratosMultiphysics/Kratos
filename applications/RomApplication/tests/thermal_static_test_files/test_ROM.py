@@ -29,8 +29,8 @@ class ROMStationaryConvDiff(KratosUnittest.TestCase):
             ObtainedOutput = simulation.EvaluateQuantityOfInterest()
             ExpectedOutput = np.load('ExpectedOutput.npy')
             NodalArea = simulation.EvaluateQuantityOfInterest2()
-            L2 = np.sqrt(      (sum(NodalArea*((1 - ObtainedOutput/ExpectedOutput )**2)))  /     (sum(NodalArea))      )*100
-            self.assertLess(L2, 1e-12) #percent
+            l2 = np.sqrt(      (sum(NodalArea*((1 - ObtainedOutput/ExpectedOutput )**2)))  /     (sum(NodalArea))      )*100
+            self.assertLess(l2, 1e-12) #percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
