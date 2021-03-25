@@ -363,18 +363,6 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 
     std::function<double(const TConvectionDiffusionReactionData&)> calculate_method;
 
-    if (rVariable == RANS_GAUSS_EFFECTIVE_KINEMATIC_VISCOSITY) {
-        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetEffectiveKinematicViscosity(); };
-    } else if (rVariable == RANS_GAUSS_REACTION_TERM) {
-        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetReactionTerm(); };
-    } else if (rVariable == RANS_GAUSS_SOURCE_TERM) {
-        calculate_method = [&](const TConvectionDiffusionReactionData& rCurrentData) { return r_current_data.GetSourceTerm(); };
-    } else {
-        KRATOS_ERROR << "Unsupported variable requested in "
-                        "CalculateOnIntegrationPoints [ rVariable.Name() = "
-                     << rVariable.Name() << " ].\n";
-    }
-
     if (rOutput.size() != num_gauss_points) {
         rOutput.resize(num_gauss_points);
     }
@@ -386,6 +374,19 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         const Vector& r_shape_functions = row(shape_functions, g);
 
         r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+
+        if (rVariable == RANS_GAUSS_EFFECTIVE_KINEMATIC_VISCOSITY) {
+            rOutput[g] = r_current_data.GetEffectiveKinematicViscosity();
+        } else if (rVariable == RANS_GAUSS_REACTION_TERM) {
+            rOutput[g] = r_current_data.GetReactionTerm();
+        } else if (rVariable == RANS_GAUSS_SOURCE_TERM) {
+            rOutput[g] = r_current_data.GetSourceTerm();
+        } else {
+            r_current_data.CalculateOnIntegrationPoints(
+                rOutput[g], rVariable, r_shape_functions, r_shape_derivatives,
+                rCurrentProcessInfo);
+        }
+
         rOutput[g] = calculate_method(r_current_data);
     }
 

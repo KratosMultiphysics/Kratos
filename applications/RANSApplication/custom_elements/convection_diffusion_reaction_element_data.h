@@ -99,6 +99,42 @@ public:
     {
     }
 
+    virtual void CalculateOnIntegrationPoints(
+        double& rOutput,
+        const Variable<double>& rVariable,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        array_1d<double, 3>& rOutput,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        Vector& rOutput,
+        const Variable<Vector>& rVariable,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(
+        Matrix& rOutput,
+        const Variable<Matrix>& rVariable,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     ///@}
     ///@name Access
     ///@{

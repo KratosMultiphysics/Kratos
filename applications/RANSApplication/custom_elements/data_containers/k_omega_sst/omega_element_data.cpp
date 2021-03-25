@@ -187,6 +187,47 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     KRATOS_CATCH("");
 }
 
+template <unsigned int TDim>
+void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
+    double& rOutput,
+    const Variable<double>& rVariable,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    using namespace RansCalculationUtilities;
+
+    const auto& r_geometry = this->GetGeometry();
+
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mWallDistance, DISTANCE),
+        std::tie(mEffectiveVelocity, VELOCITY));
+
+    KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
+
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mTurbulentKineticEnergyGradient, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentSpecificEnergyDissipationRateGradient, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+        std::tie(mVelocityGradient, VELOCITY));
+
+    mCrossDiffusion = KOmegaSSTElementData::CalculateCrossDiffusionTerm<TDim>(
+        mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
+        mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
+
+    rOutput = KOmegaSSTElementData::CalculateF1(
+        mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
+        mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
+
+    KRATOS_CATCH("");
+}
+
+
 // template instantiations
 
 template class OmegaElementData<2>;

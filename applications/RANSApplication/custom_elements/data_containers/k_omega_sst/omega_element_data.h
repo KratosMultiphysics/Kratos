@@ -89,6 +89,13 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
+    void CalculateOnIntegrationPoints(
+        double& rOutput,
+        const Variable<double>& rVariable,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
 protected:
