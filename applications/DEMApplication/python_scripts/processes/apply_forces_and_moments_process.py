@@ -33,7 +33,6 @@ def Factory(settings, Model):
     else: # using default name
         computing_model_part = Model["DEM"]
 
-    process_settings.RemoveValue("computing_model_part_name")
     process_settings.RemoveValue("help")
 
     return DEM.ApplyForcesAndMomentsProcess(computing_model_part, process_settings)

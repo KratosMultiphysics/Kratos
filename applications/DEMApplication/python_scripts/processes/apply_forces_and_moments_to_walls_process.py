@@ -14,7 +14,7 @@ def Factory(settings, Model):
     process_settings = settings["Parameters"]
 
     folder_settings = KratosMultiphysics.Parameters("""{
-            "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
+            "help"                 : "This process applies constraints to the rigid walls in a certain submodelpart, for a certain time interval",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "force_settings" : {
@@ -31,9 +31,8 @@ def Factory(settings, Model):
     if process_settings.Has("model_part_name"):
         computing_model_part = Model[process_settings["model_part_name"].GetString()]
     else: # using default name
-        computing_model_part = Model["DEM"]
+        computing_model_part = Model["DEM_FEM_boundary"]
 
-    process_settings.RemoveValue("computing_model_part_name")
     process_settings.RemoveValue("help")
 
     return DEM.ApplyForcesAndMomentsToWallsProcess(computing_model_part, process_settings)

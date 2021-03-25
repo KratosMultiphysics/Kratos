@@ -76,7 +76,7 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      ApplyForcesAndMomentsToWallsProcess(ModelPart& rModelPart, Parameters& rParameters);
+      ApplyForcesAndMomentsToWallsProcess(ModelPart& rModelPart, Parameters rParameters);
 
       /// Destructor.
       ~ApplyForcesAndMomentsToWallsProcess() override;

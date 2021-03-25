@@ -5,7 +5,7 @@ namespace Kratos
     /* Public functions *******************************************************/
     ApplyForcesAndMomentsToWallsProcess::ApplyForcesAndMomentsToWallsProcess(
         ModelPart& rModelPart,
-        Parameters& rParameters
+        Parameters rParameters
         ) : Process(Flags()) , mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
     {
         KRATOS_TRY

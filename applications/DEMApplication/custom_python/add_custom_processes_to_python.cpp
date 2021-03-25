@@ -44,11 +44,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyForcesAndMomentsProcess, ApplyForcesAndMomentsProcess::Pointer, Process>
     (m, "ApplyForcesAndMomentsProcess")
-    .def(py::init < ModelPart&, Parameters& >());
+    .def(py::init < ModelPart&, Parameters >());
 
     py::class_<ApplyForcesAndMomentsToWallsProcess, ApplyForcesAndMomentsToWallsProcess::Pointer, Process>
     (m, "ApplyForcesAndMomentsToWallsProcess")
-    .def(py::init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters >());
 
     py::class_<ControlModule2DProcess, ControlModule2DProcess::Pointer, Process>
     (m, "ControlModule2DProcess")

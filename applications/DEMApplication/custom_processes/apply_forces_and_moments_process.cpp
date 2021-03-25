@@ -1,11 +1,12 @@
 #include "apply_forces_and_moments_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
     /* Public functions *******************************************************/
     ApplyForcesAndMomentsProcess::ApplyForcesAndMomentsProcess(
         ModelPart& rModelPart,
-        Parameters& rParameters
+        Parameters rParameters
         ) : Process(Flags()) , mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
     {
         KRATOS_TRY
