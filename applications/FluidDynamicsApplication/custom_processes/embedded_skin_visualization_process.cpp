@@ -90,8 +90,10 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
         r_visualization_variables_list.Add(r_var);
     }
 
-    // Set the default communicator in the ParallelEnvironment in order to perform all the IsDistributed checks
-    r_visualization_model_part.SetCommunicator(ParallelEnvironment::CreateCommunicator(r_visualization_model_part));
+    // Create a communicator for the visualization model part as a clone of the origin model part
+    // Note that we are retrieving the data communicator from the origin one to keep it unique
+    const auto& r_data_communicator = r_origin_model_part.GetCommunicator().GetDataCommunicator();
+    r_visualization_model_part.SetCommunicator(r_origin_model_part.GetCommunicator().Create(r_data_communicator));
 
     // If MPI, add the PARTITION_INDEX variable to the visualization model part variables
     if (r_visualization_model_part.IsDistributed()) {
