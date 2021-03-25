@@ -361,8 +361,6 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     const auto& r_geometry = this->GetGeometry();
     TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
-    std::function<double(const TConvectionDiffusionReactionData&)> calculate_method;
-
     if (rOutput.size() != num_gauss_points) {
         rOutput.resize(num_gauss_points);
     }
@@ -386,8 +384,6 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
                 rOutput[g], rVariable, r_shape_functions, r_shape_derivatives,
                 rCurrentProcessInfo);
         }
-
-        rOutput[g] = calculate_method(r_current_data);
     }
 
     KRATOS_CATCH("")
