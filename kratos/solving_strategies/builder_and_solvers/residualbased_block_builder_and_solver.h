@@ -477,6 +477,8 @@ public:
         else
             norm_b = 0.00;
 
+        KRATOS_WATCH(norm_b);
+
         if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
@@ -1609,19 +1611,19 @@ protected:
                 lock_array[ids[i]].UnSetLock();
             }
         }
-             
+
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             Element::EquationIdVectorType master_ids(3, 0);
             Element::EquationIdVectorType slave_ids(3, 0);
-            
+
             const int nmasterSlaveConstraints = rModelPart.MasterSlaveConstraints().size();
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
-            
+
             #pragma omp parallel for firstprivate(nmasterSlaveConstraints, slave_ids, master_ids)
             for (int iii = 0; iii<nmasterSlaveConstraints; ++iii) {
                 auto i_const = const_begin + iii;
                 i_const->EquationIdVector(slave_ids, master_ids, CurrentProcessInfo);
-                
+
                 for (std::size_t i = 0; i < slave_ids.size(); i++) {
                     lock_array[slave_ids[i]].SetLock();
                     auto& row_indices = indices[slave_ids[i]];
