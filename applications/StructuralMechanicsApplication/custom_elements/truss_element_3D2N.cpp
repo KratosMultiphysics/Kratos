@@ -356,7 +356,54 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
     }
 }
 
+void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == STRAIN_ENERGY) {
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double A = GetProperties()[CROSS_AREA];
 
+        // material strain energy
+        double strain_energy(0.00);
+        Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+        strain_vector[0] = CalculateGreenLagrangeStrain();
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        Values.SetStrainVector(strain_vector);
+        mpConstitutiveLaw->CalculateValue(Values,STRAIN_ENERGY,strain_energy);
+
+        // constant pre_stress strain energy
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            const double pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
+            strain_energy += pre_stress * strain_vector[0];
+        }
+
+        // integration over reference domain
+        strain_energy *= A * L0;
+
+        rOutput = strain_energy;
+    }
+    else if (rVariable == KINETIC_ENERGY) {
+        Matrix mass_matrix = ZeroMatrix(msLocalSize,msLocalSize);
+        CalculateMassMatrix(mass_matrix,rCurrentProcessInfo);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        rOutput = 0.50 * inner_prod(current_nodal_velocities,prod(mass_matrix,current_nodal_velocities));
+    }
+    else if (rVariable == ENERGY_DAMPING_DISSIPATION) {
+        // Attention! this is only the current state and must be integrated over time (*dt)
+        Matrix damping_matrix = ZeroMatrix(msLocalSize,msLocalSize);
+        CalculateDampingMatrix(damping_matrix,rCurrentProcessInfo);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        rOutput = inner_prod(current_nodal_velocities,prod(damping_matrix,current_nodal_velocities));
+    }
+    else if (rVariable == EXTERNAL_ENERGY) {
+        // Dead Load contribution to external energy
+        Vector dead_load_rhs = CalculateBodyForces();
+        Vector current_nodal_displacements = ZeroVector(msLocalSize);
+        GetValuesVector(current_nodal_displacements, 0);
+        rOutput = inner_prod(dead_load_rhs,current_nodal_displacements);
+    }
+}
 
 
 

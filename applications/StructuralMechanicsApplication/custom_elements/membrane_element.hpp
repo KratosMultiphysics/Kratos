@@ -147,6 +147,9 @@ namespace Kratos
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(const Variable<double>& rVariable,
+     double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
@@ -263,7 +266,7 @@ namespace Kratos
     void MaterialResponse(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
       const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
-      Matrix& rTangentModulus);
+      Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -289,7 +292,7 @@ namespace Kratos
      * @param rInternalForces The internal forces
      * @param ThisMethod numerical integration method
      */
-    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod);
+    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -297,7 +300,7 @@ namespace Kratos
      * @param rStiffnessMatrix The stiffness matrix
      * @param ThisMethod numerical integration method
      */
-    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod);
+    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
