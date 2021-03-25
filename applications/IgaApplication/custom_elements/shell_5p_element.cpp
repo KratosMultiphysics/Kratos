@@ -377,7 +377,7 @@ namespace Kratos
                 const Matrix23d Temp2 = prod(BLAI_T, Temp); //useless temp due to nonworking ublas prod(prod())
                 noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) = prod(Temp2, BLAJ);
             }
-            const double kgT = -inner_prod(r_geometry[i].GetValue(DIRECTOR),
+            const double kgT = -inner_prod(r_geometry[i].GetValue(DIRECTOR)/r_geometry[i].GetValue(DIRECTORLENGTH),
                 prod(WI1, rActKin.a1) * S[3] +
                 prod(WI2, rActKin.a2) * S[4] +
                 prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2) * S[5] +
@@ -570,14 +570,11 @@ namespace Kratos
             GetGeometry().GetGeometryParent(0).SetValue(DIRECTOR_COMPUTED, true);
             compute_director = true;
         }
-
         if (compute_director) {
-            auto& r_parent_geometry = GetGeometry().GetGeometryParent(0);
-            for (auto& node : r_parent_geometry)
+            for (auto& node : GetGeometry())
             {
                 const double normt = node.GetValue(DIRECTORLENGTH);
                 array_1d<double, 3 > director = node.GetValue(DIRECTOR) / normt;
-
                 array_1d<double, 2 > inc2d;
                 inc2d[0] = node.FastGetSolutionStepValue(DIRECTORINC_X) / normt;
                 inc2d[1] = node.FastGetSolutionStepValue(DIRECTORINC_Y) / normt;
@@ -585,9 +582,8 @@ namespace Kratos
                 const Matrix32d BLA = node.GetValue(DIRECTORTANGENTSPACE);
                 const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 
-                director = director + inc3d; //
+                director = director + inc3d;
                 director *= normt / norm_2(director);
-
                 node.SetValue(DIRECTOR, director);
                 node.SetValue(DIRECTORINC_X, 0);
                 node.SetValue(DIRECTORINC_Y, 0);
