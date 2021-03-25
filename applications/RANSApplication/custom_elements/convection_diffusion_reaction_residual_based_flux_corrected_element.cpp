@@ -333,6 +333,127 @@ GeometryData::IntegrationMethod ConvectionDiffusionReactionResidualBasedFluxCorr
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
+void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == RANS_GAUSS_STABILIZATION_TAU) {
+        const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
+        const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
+        const double bossak_gamma = TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
+        const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double element_length = this->GetGeometry().Length();
+
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const IndexType num_gauss_points = gauss_weights.size();
+
+        const auto& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
+
+        if (rOutput.size() != num_gauss_points) {
+            rOutput.resize(num_gauss_points);
+        }
+
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
+        for (IndexType g = 0; g < num_gauss_points; ++g) {
+            const Matrix& r_shape_derivatives = shape_derivatives[g];
+            const Vector& r_shape_functions = row(shape_functions, g);
+
+            r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+
+            const auto& velocity = r_current_data.GetEffectiveVelocity();
+            const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
+            const double reaction = r_current_data.GetReactionTerm();
+            const double velocity_magnitude = norm_2(velocity);
+
+            rOutput[g] = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
+                element_length, velocity_magnitude, reaction, effective_kinematic_viscosity,
+                bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
+        }
+
+    } else if (rVariable == RANS_GAUSS_SCALAR_CONSISTENCY_MULTIPLIER) {
+        const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
+        const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
+        const double bossak_gamma = TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
+        const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double element_length = this->GetGeometry().Length();
+
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const IndexType num_gauss_points = gauss_weights.size();
+
+        const auto& r_geometry = this->GetGeometry();
+        TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
+
+        if (rOutput.size() != num_gauss_points) {
+            rOutput.resize(num_gauss_points);
+        }
+
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+        double variable_value, relaxed_variable_acceleration;
+        array_1d<double, TDim> variable_gradient;
+
+        const Variable<double>& primal_variable = TConvectionDiffusionReactionData::GetScalarVariable();
+        const Variable<double>& relaxed_primal_rate_variable = primal_variable.GetTimeDerivative().GetTimeDerivative();
+
+        for (IndexType g = 0; g < num_gauss_points; ++g) {
+            const Matrix& r_shape_derivatives = shape_derivatives[g];
+            const Vector& r_shape_functions = row(shape_functions, g);
+
+            r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+
+            const auto& velocity = r_current_data.GetEffectiveVelocity();
+            const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
+            const double reaction = r_current_data.GetReactionTerm();
+            const double source = r_current_data.GetSourceTerm();
+            const double velocity_magnitude = norm_2(velocity);
+
+            const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
+                element_length, velocity_magnitude, reaction, effective_kinematic_viscosity,
+                bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
+
+            FluidCalculationUtilities::EvaluateGradientInPoint(
+                r_geometry, r_shape_derivatives,
+                std::tie(variable_gradient, primal_variable));
+
+            const double velocity_dot_variable_gradient = inner_prod(velocity, variable_gradient);
+
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, r_shape_functions,
+                std::tie(variable_value, primal_variable),
+                std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
+
+            double residual = relaxed_variable_acceleration;
+            residual += velocity_dot_variable_gradient;
+            residual += reaction * variable_value;
+            residual -= source;
+
+            if (variable_value > 0.0) {
+                rOutput[g] = std::abs(residual) * tau / variable_value;
+            } else {
+                rOutput[g] = 0.0;
+            }
+        }
+
+    } else {
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetDeltaTime(
     const ProcessInfo& rProcessInfo) const
 {
