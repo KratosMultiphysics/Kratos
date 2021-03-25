@@ -23,7 +23,8 @@
         "strategy"                          : "sphere_strategy"
     },
     "processes"        : {
-        "constraints_process_list" : [{
+        "constraints_process_list" : [],
+        "loads_process_list"       : [{
             "python_module" : "processes.apply_forces_and_moments_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
@@ -50,7 +51,6 @@
                 "interval"             : [0.2, 0.4]
             }
         }],
-        "loads_process_list"       : [],
         "list_other_processes"     : []
     },
     "VirtualMassCoefficient"         : 1.0,
