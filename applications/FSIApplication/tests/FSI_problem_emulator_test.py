@@ -22,7 +22,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-@UnitTest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication, LinearSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "LinearSolversApplication")
 class FSIProblemEmulatorTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -49,23 +49,27 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
             except FileNotFoundError as e:
                 pass
 
-    def testFSIProblemEmulatorWithAitken(self):
+    def test_FSI_problem_emulator_with_aitken(self):
         self.coupling_utility = AitkenConvergenceAccelerator(self.initial_relaxation)
         self.RunTestCase()
 
-    def testFSIProblemEmulatorWithMVQN(self):
+    def test_FSI_problem_emulator_with_MVQN(self):
         abs_cut_off = 1.0e-2
         used_in_block_newton = False
         self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation, abs_cut_off, used_in_block_newton)
         self.RunTestCase()
 
-    def testFSIProblemEmulatorWithIBNMVQN(self):
+    def test_FSI_problem_emulator_with_IBQN_MVQN(self):
         abs_cut_off = 1.0e-2
         self.fluid_emulator_stiffness = 1000.0
-        self.coupling_utility = IBQNMVQNConvergenceAccelerator(self.initial_relaxation, abs_cut_off)
+        ibqn_mvqn_settings = Parameters(r'''{
+            "w_0" : 0.825,
+            "abs_cut_off_tol" : 1e-2
+        }''')
+        self.coupling_utility = IBQNMVQNConvergenceAccelerator(ibqn_mvqn_settings)
         self.RunTestCaseIBN()
 
-    def testFSIProblemEmulatorWithMVQNRecursive(self):
+    def test_FSI_problem_emulator_with_MVQN_recursive(self):
         buffer_size = 7
         abs_cut_off = 1.0e-2
         self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size, abs_cut_off)
@@ -456,8 +460,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = FSIProblemEmulatorTest()
     test.setUp()
-    # test.testFSIProblemEmulatorWithAitken()
-    # test.testFSIProblemEmulatorWithMVQN()
-    test.testFSIProblemEmulatorWithIBNMVQN()
-    # test.testFSIProblemEmulatorWithMVQNRecursive()
+    # test.test_FSI_problem_emulator_with_aitken()
+    # test.test_FSI_problem_emulator_with_MVQN()
+    test.test_FSI_problem_emulator_with_IBQN_MVQN()
+    # test.test_FSI_problem_emulator_with_MVQN_recursive()
     test.tearDown()
