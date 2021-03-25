@@ -191,7 +191,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ElementIntegrationPointOutput.return_value.WriteElementIntegrationPointValues.call_count, 2)
         self.HDF5ElementIntegrationPointOutput.return_value.WriteElementIntegrationPointValues.assert_called_with(
-            self.model_part.Elements, self.model_part.ProcessInfo)
+            self.model_part.Elements, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
         self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 2)
         self.assertEqual(self.HDF5ConditionDataValueIO.call_args[0][0]['prefix'].GetString(
@@ -221,7 +221,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(
             self.HDF5ConditionIntegrationPointOutput.return_value.WriteConditionIntegrationPointValues.call_count, 2)
         self.HDF5ConditionIntegrationPointOutput.return_value.WriteConditionIntegrationPointValues.assert_called_with(
-            self.model_part.Conditions, self.model_part.ProcessInfo)
+            self.model_part.Conditions, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
     def test_MultipleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
