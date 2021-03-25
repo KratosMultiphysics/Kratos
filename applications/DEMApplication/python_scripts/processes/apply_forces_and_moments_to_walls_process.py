@@ -1,36 +1,19 @@
-# Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
+# Import applications
 import KratosMultiphysics.DEMApplication as DEM
 
+# Other imports
+import os
+
 def Factory(settings, Model):
-    if not isinstance(settings, KratosMultiphysics.Parameters):
+    if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyForcesAndMomentsToWallsProcess(Model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
-class ApplyForcesAndMomentsToWallsProcess(KratosMultiphysics.Process):
-    """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
+    process_settings = settings["Parameters"]
 
-    Only the member variables listed below should be accessed directly.
-
-    Public member variables:
-    Model -- the container of the different model parts.
-    settings -- Kratos parameters containing solver settings.
-    """
-
-    def __init__(self, Model, settings):
-        """ The default constructor of the class
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        Model -- the container of the different model parts.
-        settings -- Kratos parameters containing solver settings.
-        """
-
-        KratosMultiphysics.Process.__init__(self)
-
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+    folder_settings = KratosMultiphysics.Parameters("""{
             "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
@@ -41,20 +24,16 @@ class ApplyForcesAndMomentsToWallsProcess(KratosMultiphysics.Process):
                 "value"                : [10.0, "3*t", "x+y"]
             },
             "interval"             : [0.0, 1e30]
-        }
-        """
-        )
-        #example of admissible values for "value" : [10.0, "3*t", "x+y"]
+        }""" )
 
-        settings.ValidateAndAssignDefaults(default_settings)
+    process_settings.AddMissingParameters(folder_settings)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
-        self.cplusplus_version_of_this_process = DEM.ApplyForcesAndMomentsToWallsProcess(self.model_part, settings)
+    if process_settings.Has("model_part_name"):
+        computing_model_part = Model[process_settings["model_part_name"].GetString()]
+    else: # using default name
+        computing_model_part = Model["DEM"]
 
+    process_settings.RemoveValue("computing_model_part_name")
+    process_settings.RemoveValue("help")
 
-    def ExecuteInitializeSolutionStep(self):
-        self.cplusplus_version_of_this_process.ExecuteInitializeSolutionStep()
-
-    def ExecuteFinalizeSolutionStep(self):
-        self.cplusplus_version_of_this_process.ExecuteFinalizeSolutionStep()
-
+    return DEM.ApplyForcesAndMomentsToWallsProcess(computing_model_part, process_settings)
