@@ -62,7 +62,7 @@ namespace Kratos
   /** This process sets the EXTERNAL_APPLIED_FORCE and EXTERNAL_APPLIED_MOMENT variables
       over walls.
    */
-  class KRATOS_API(DEM_APPLICATION) ApplyForcesAndMomentsToWallsProcess: public Process
+  class ApplyForcesAndMomentsToWallsProcess: public Process
   {
   public:
       ///@name Type Definitions

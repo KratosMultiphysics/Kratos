@@ -62,7 +62,7 @@ namespace Kratos
   /** This process sets the EXTERNAL_APPLIED_FORCE and EXTERNAL_APPLIED_MOMENT variables
       over particles.
    */
-  class KRATOS_API(DEM_APPLICATION) ApplyForcesAndMomentsProcess: public Process
+  class ApplyForcesAndMomentsProcess: public Process
   {
   public:
       ///@name Type Definitions
