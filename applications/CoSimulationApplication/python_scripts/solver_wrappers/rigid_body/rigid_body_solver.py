@@ -7,8 +7,8 @@ import numpy as np
 import json
 import os
 
-class SDoFSolver(object):
-    """ This class implements an SDof solver, independent of Kratos
+class RigidBodySolver(object):
+    """ This class implements an Rigid Body solver, independent of Kratos
     Several types of applying loads are available
     """
     def __init__(self, input_name):
@@ -58,7 +58,7 @@ class SDoFSolver(object):
                 },
                 "output_parameters":{
                     "write_output_file": True,
-                    "file_name" : "sdof_solver/results_sdof.dat"
+                    "file_name" : "rigid_body_solver/results_rigid_body.dat"
                 }}
 
         RecursivelyValidateAndAssignDefaults(default_settings, parameters)
@@ -136,18 +136,18 @@ class SDoFSolver(object):
     def InitializeOutput(self):
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
-            with open(self.output_file_name, "w") as results_sdof:
-                results_sdof.write("time"+ " " +
-                                   "displacement" + " " +
-                                   "velocity" + " " +
-                                   "acceleration" + " " +
-                                   "root point displacement" + " " +
-                                   "root point velocity" + " " +
-                                   "root point acceleration" + " " +
-                                   "relative displacement" + " " +
-                                   "relative velocity" + " " +
-                                   "relative accleration" + " " +
-                                   "reaction" + "\n")
+            with open(self.output_file_name, "w") as results_rigid_body:
+                results_rigid_body.write("time"+ " " +
+                                        "displacement" + " " +
+                                        "velocity" + " " +
+                                        "acceleration" + " " +
+                                        "root point displacement" + " " +
+                                        "root point velocity" + " " +
+                                        "root point acceleration" + " " +
+                                        "relative displacement" + " " +
+                                        "relative velocity" + " " +
+                                        "relative accleration" + " " +
+                                        "reaction" + "\n")
             self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
@@ -155,9 +155,9 @@ class SDoFSolver(object):
         if data_comm.Rank()==0:
             reaction = self.CalculateReaction()
             if self.write_output_file:
-                with open(self.output_file_name, "a") as results_sdof:
+                with open(self.output_file_name, "a") as results_rigid_body:
                     #outputs results
-                    results_sdof.write(str(np.around(self.time, 3)) + " " +
+                    results_rigid_body.write(str(np.around(self.time, 3)) + " " +
                                     str(self.dx[0]) + " " +
                                     str(self.dx[1]) + " " +
                                     str(self.dx[2]) + " " +
