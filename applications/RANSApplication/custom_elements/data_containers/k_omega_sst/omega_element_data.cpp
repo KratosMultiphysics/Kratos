@@ -220,9 +220,34 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
         mSigmaOmega2, mTurbulentSpecificEnergyDissipationRate,
         mTurbulentKineticEnergyGradient, mTurbulentSpecificEnergyDissipationRateGradient);
 
-    rOutput = KOmegaSSTElementData::CalculateF1(
-        mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
-        mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
+    if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1) {
+        rOutput = KOmegaSSTElementData::CalculateF1(
+            mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
+            mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1_ARG_1) {
+        rOutput = KOmegaSSTElementData::CalculateArg1(mBetaStar, mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate, mWallDistance);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1_ARG_2) {
+        rOutput = KOmegaSSTElementData::CalculateArg2(mKinematicViscosity, mTurbulentSpecificEnergyDissipationRate, mWallDistance * mWallDistance);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1_ARG_3) {
+        rOutput = KOmegaSSTElementData::CalculateArg3(mSigmaOmega2, mTurbulentKineticEnergy, mCrossDiffusion, mWallDistance * mWallDistance);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1_ARG_4) {
+        const double arg1 = KOmegaSSTElementData::CalculateArg1(mBetaStar, mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate, mWallDistance);
+        const double arg2 = KOmegaSSTElementData::CalculateArg2(mKinematicViscosity, mTurbulentSpecificEnergyDissipationRate, mWallDistance * mWallDistance);
+        rOutput = std::max(arg1, arg2);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1_ARG_5) {
+        const double arg1 = KOmegaSSTElementData::CalculateArg1(mBetaStar, mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate, mWallDistance);
+        const double arg2 = KOmegaSSTElementData::CalculateArg2(mKinematicViscosity, mTurbulentSpecificEnergyDissipationRate, mWallDistance * mWallDistance);
+        const double arg3 = KOmegaSSTElementData::CalculateArg3(mSigmaOmega2, mTurbulentKineticEnergy, mCrossDiffusion, mWallDistance * mWallDistance);
+        const double arg4 = std::max(arg1, arg2);
+        rOutput = std::min(arg4, arg3);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F1_ARG_6) {
+        const double arg1 = KOmegaSSTElementData::CalculateArg1(mBetaStar, mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate, mWallDistance);
+        const double arg2 = KOmegaSSTElementData::CalculateArg2(mKinematicViscosity, mTurbulentSpecificEnergyDissipationRate, mWallDistance * mWallDistance);
+        const double arg3 = KOmegaSSTElementData::CalculateArg3(mSigmaOmega2, mTurbulentKineticEnergy, mCrossDiffusion, mWallDistance * mWallDistance);
+        const double arg4 = std::max(arg1, arg2);
+        const double arg5 = std::min(arg4, arg3);
+        rOutput = std::min(arg5, 10.0);
+    }
 
     KRATOS_CATCH("");
 }
