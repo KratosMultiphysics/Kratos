@@ -20,7 +20,6 @@ def GetDefaultInputParameters():
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
             "dem_inlet_option"                 : true,
-            "use_external_seed"                : false,
             "seed"                             : 42,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,

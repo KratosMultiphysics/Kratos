@@ -10,7 +10,6 @@
 #include <string>
 #include <iostream>
 #include <random>
-#include <functional>
 
 // External includes
 
@@ -48,7 +47,7 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Inlet);
 
         /// Constructor:
-        DEM_Inlet(ModelPart& inlet_modelpart);
+        DEM_Inlet(ModelPart& inlet_modelpart, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
@@ -98,7 +97,7 @@ namespace Kratos {
         std::vector<int> mNumberOfParticlesInjected;
         std::map<int, std::string> mOriginInletSubmodelPartIndexes;
         double mTotalMassInjected;
-        int mSeed;
+        //int mSeed;
         std::vector<double> mMassInjected;
         std::mt19937 mGenerator;
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle

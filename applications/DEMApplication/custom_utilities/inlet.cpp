@@ -42,7 +42,7 @@ namespace Kratos {
 
     /// Constructor
 
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed): mInletModelPart(inlet_modelpart)
     {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
         mPartialParticleToInsert.resize(number_of_submodelparts);
@@ -52,16 +52,7 @@ namespace Kratos {
         mNumberOfParticlesInjected.resize(number_of_submodelparts);
         mMassInjected.resize(number_of_submodelparts);
 
-        if(inlet_modelpart.GetProcessInfo()[USE_EXTERNAL_SEED]) {
-            std::random_device rd;
-            mSeed = inlet_modelpart.GetProcessInfo()[SEED];
-        }
-        else {
-            std::random_device rd;
-            mSeed = rd();
-        }
-
-        std::mt19937 gen(mSeed);
+        std::mt19937 gen(seed);
         mGenerator = gen;
 
         int smp_iterator_number = 0;
@@ -559,7 +550,6 @@ namespace Kratos {
             }
 
             if (number_of_particles_to_insert) {
-                //randomizing mesh
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
 
@@ -622,7 +612,7 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = distrib(mGenerator);
+                    int random_pos = mGenerator() % valid_elements_length;
 
                     Element* p_injector_element = valid_elements[random_pos].get();
 

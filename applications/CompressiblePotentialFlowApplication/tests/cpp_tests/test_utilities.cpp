@@ -28,17 +28,17 @@ void AssignPotentialsToNormalElement(Element& rElement, const std::array<double,
 template <int NumNodes>
 void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, NumNodes>& rDistances, const std::array<double, 2*NumNodes>& rPotential)
 {
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < NumNodes; i++){
         if (rDistances(i) > 0.0)
             rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
             rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < NumNodes; i++){
         if (rDistances(i) < 0.0)
-            rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
+            rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+NumNodes];
         else
-            rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
+            rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+NumNodes];
     }
 }
 
@@ -103,7 +103,7 @@ template <int NumNodes>
 void ComputeWakeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 2*NumNodes> rPotential){
     Element::Pointer p_element = rModelPart.pGetElement(1);
 
-    BoundedVector<double,3> distances = AssignDistancesToElement<NumNodes>();
+    BoundedVector<double, NumNodes> distances = AssignDistancesToElement<NumNodes>();
     p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
     p_element->GetValue(WAKE) = true;
 
