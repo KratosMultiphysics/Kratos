@@ -40,6 +40,8 @@ int ParallelUtilities::GetNumThreads()
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
 {
+    KRATOS_ERROR_IF(NumThreads==0) << "Attempting to set NumThreads to 0. This is not allowed" << std::endl;
+    
 #ifdef KRATOS_SMP_NONE
     // do nothing if is shared memory parallelization is disabled
     return;
