@@ -12,13 +12,13 @@ import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solution):
 
     def Info(self):
-        print("FEM part of the FEMDEM application") 
+        print("FEM part of the FEMDEM application")
 
 
     def Initialize(self):
 
         #### INITIALIZE ####
-        
+
         # Add variables (always before importing the model part)
         self.solver.AddVariables()
 
@@ -91,7 +91,7 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.ACCELERATION_BACKUP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_BACKUP)
-        
+
         # Read model_part (note: the buffer_size is set here) (restart is read here)
         self.solver.ImportModelPart()
 
@@ -104,7 +104,7 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
 
         # Add materials (assign material to model_parts if Materials.json exists)
         self.AddMaterials()
-        
+
         # Add processes
         self.model_processes = self.AddProcesses()
         self.model_processes.ExecuteInitialize()
@@ -126,7 +126,7 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
 
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
-        
+
         self.GraphicalOutputExecuteInitialize()
 
         print(" ")
@@ -136,7 +136,7 @@ class FEM_for_PFEM_coupling_Solution(MainFEM_for_coupling.FEM_for_coupling_Solut
 
         self.model_processes.ExecuteBeforeSolutionLoop()
 
-        self.GraphicalOutputExecuteBeforeSolutionLoop()        
+        self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
         self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
