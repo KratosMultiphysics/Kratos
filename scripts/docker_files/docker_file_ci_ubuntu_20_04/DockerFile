@@ -18,7 +18,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential \
         ccache \
         clang \
-        clang-9 \
         cmake \
         gfortran-7 \
         git \
