@@ -20,8 +20,6 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: Release
-      MKLVARS_ARCHITECTURE: intel64
-      MKLVARS_INTERFACE: lp64
       FC: gfortran-7
 
     container:
@@ -50,34 +48,29 @@ jobs:
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
-        . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh # maybe use different configure script in the future
         bash configure.sh
 
     - name: Running tests
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
     - name: Running Python MPI tests (2 Cores)
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 -f--oversubscribe
 
     - name: Running Python MPI tests (4 Cores)
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 -f--oversubscribe
