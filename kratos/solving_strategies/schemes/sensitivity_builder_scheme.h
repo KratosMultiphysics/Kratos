@@ -77,7 +77,7 @@ public:
         // and in there we don't usually pass the model part. Hence, we
         // can not call SensitivityBuilderScheme::Initialize
         // method.
-        const int number_of_threads = ParallelUtilities::GetNumThreads();
+        const int number_of_threads = std::max(ParallelUtilities::GetNumThreads(), 1);
         mSensitivityMatrices.resize(number_of_threads);
         mAdjointVectors.resize(number_of_threads);
         mPartialSensitivity.resize(number_of_threads);
