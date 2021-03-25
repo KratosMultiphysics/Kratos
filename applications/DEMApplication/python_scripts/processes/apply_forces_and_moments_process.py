@@ -1,11 +1,9 @@
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Import applications
 import KratosMultiphysics.DEMApplication as DEM
 
 # Other imports
-import os
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
