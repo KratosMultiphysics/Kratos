@@ -193,15 +193,15 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("sdof_sdof", "cosim_sdof_sdof")
             self._runTest()
 
-    # def test_sdof_fsi(self):
-    #     if not numpy_available:
-    #         self.skipTest("Numpy not available")
-    #     if not have_fsi_dependencies:
-    #         self.skipTest("FSI dependencies are not available!")
+    def test_sdof_fsi(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fsi_dependencies:
+            self.skipTest("FSI dependencies are not available!")
 
-    #     with KratosUnittest.WorkFolderScope(".", __file__):
-    #         self._createTest("fsi_sdof", "cosim_sdof_fsi")
-    #         self._runTest()
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_sdof", "cosim_sdof_fsi")
+            self._runTest()
 
 
 

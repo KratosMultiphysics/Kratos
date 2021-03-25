@@ -27,6 +27,6 @@
      },
      "output_parameters":{
         "write_output_file": true,
-        "file_name" : "fsi_sdof/results_sdof.dat"
+        "file_name" : "fsi_sdof/results_sdof_structure.dat"
      }
 }

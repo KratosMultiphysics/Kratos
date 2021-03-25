@@ -77,7 +77,7 @@
             {
                 "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "fsi_sdof/ProjectParametersSdof"
+                    "input_file"  : "fsi_sdof/ProjectParametersSdof_structure"
                 },
                 "data" : {
                     "disp" : {
