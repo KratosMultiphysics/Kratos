@@ -15,6 +15,7 @@
 #include "test_creation_utility_Scordelis_roof.h"
 
 #include "custom_elements/shell_5p_element.h"
+#include "custom_utilities/director_utilities.h"
 
 namespace Kratos
 {
@@ -57,6 +58,10 @@ namespace Testing
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.953089922969332, 0.953089922969332, 0.0, 0.014033587215607);
         auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 4, integration_point);
@@ -105,6 +110,10 @@ namespace Testing
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.619309593041599, 0.966234757101576, 0.0, 0.020041279329452);
         auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 5, integration_point);

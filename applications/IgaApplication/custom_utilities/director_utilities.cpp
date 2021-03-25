@@ -32,6 +32,7 @@ namespace Kratos
 
     void DirectorUtilities::ComputeDirectors()
     {
+        std::cout << "Beginning" << std::endl;
         Vector brep_ids = mParameters["brep_ids"].GetVector();
         for (IndexType i = 0; i < brep_ids.size(); ++i) {
             auto& r_geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
@@ -68,13 +69,14 @@ namespace Kratos
             auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
 
             solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
-
+            std::cout << "ComputeDirectors" << std::endl;
             for (IndexType i = 0; i < number_of_control_points; ++i)
             {
                 r_geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
                 r_geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
                 r_geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
             }
+            std::cout << "ComputeDirectorsafter" << std::endl;
         }
     }
 }  // namespace Kratos.

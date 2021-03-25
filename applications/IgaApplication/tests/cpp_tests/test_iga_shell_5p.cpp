@@ -15,6 +15,7 @@
 #include "test_creation_utility.h"
 
 #include "custom_elements/shell_5p_element.h"
+#include "custom_utilities/director_utilities.h"
 
 namespace Kratos
 {
@@ -44,30 +45,43 @@ namespace Testing
         auto p_quadrature_point = TestCreationUtility::GetQuadraturePointGeometry(
             rModelPart, PolynomialDegree, IntegrationPoint);
 
+
         return Kratos::make_intrusive<Shell5pElement>(1, p_quadrature_point, p_elem_prop);
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP3, KratosIgaFast5PSuite)
     {
+        std::cout << std::endl;
+        std::cout << "TEST0" << std::endl;
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
+
+
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
+        std::cout << "TEST1" << std::endl;
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
 
+        Parameters dummyParaMeters;
+
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        std::cout << "TEST1.1" << std::endl;
+        directorUtilities.ComputeDirectors();
+        std::cout << "TEST2" << std::endl;
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
-
+        std::cout << "TEST3" << std::endl;
         TestCreationUtility::AddDisplacementDofs(r_model_part);
-
+        std::cout << "TEST4" << std::endl;
         p_shell_5p_element->Initialize(r_process_info);
-
+        std::cout << "TEST5" << std::endl;
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
         p_shell_5p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
+        std::cout << "TEST6" << std::endl;
         std::cout << "===============IgaShell5pElementP3START===================" << std::endl;
         std::cout << left_hand_side_matrix << std::endl;
         std::cout << "==================================" << std::endl;
@@ -105,6 +119,10 @@ namespace Testing
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 4, integration_point);
@@ -154,6 +172,11 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
 
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
+
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 5, integration_point);
 
@@ -201,6 +224,10 @@ namespace Testing
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
@@ -266,6 +293,10 @@ namespace Testing
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 4, integration_point);
@@ -338,6 +369,10 @@ namespace Testing
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+
+        Parameters dummyParaMeters;
+        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
+        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 5, integration_point);
