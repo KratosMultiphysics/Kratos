@@ -55,8 +55,8 @@ jobs:
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-std=c++11 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=clang-9
-          export CXX=clang++-9
+          export CC=clang
+          export CXX=clang++
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           if [ ${{ matrix.build-type }} = FullDebug ]; then
             export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
@@ -142,7 +142,7 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
-
+        
     - name: Download boost
       run: |
         $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
@@ -167,7 +167,7 @@ jobs:
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/temp_run.py
+        python kratos/python_scripts/run_tests.py -l small -c python
 
 
   centos:
