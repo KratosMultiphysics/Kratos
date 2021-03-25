@@ -16,7 +16,6 @@
 #include "mpi.h"
 
 // Module includes
-#include "mpi/includes/mpi_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "add_mpi_communicator_to_python.h"
@@ -33,8 +32,6 @@ void InitializeMPIParallelRun()
 {
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
     ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
-    // Register the MPICommunicator to be used as factory for the communicator.
-    ParallelEnvironment::RegisterCommunicatorFactory([](ModelPart& rModelPart)->Communicator::Pointer{return Communicator::Pointer(new MPICommunicator(&(rModelPart.GetNodalSolutionStepVariablesList())));});
     // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
     ParallelEnvironment::RegisterFillCommunicatorFactory([](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new ParallelFillCommunicator(rModelPart));});
 }
