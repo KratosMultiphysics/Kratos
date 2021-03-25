@@ -1,13 +1,12 @@
 import KratosMultiphysics
-import KratosMultiphysics.ConvectionDiffusionApplication
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
-
-from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import json
 
-class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
+class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
     def __init__(self,model,project_parameters):
         super().__init__(model,project_parameters)
@@ -42,6 +41,3 @@ class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 counter+=1
-
-
-

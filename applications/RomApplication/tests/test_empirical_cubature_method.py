@@ -1,5 +1,6 @@
 #import python class test
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 #import python packages
 try:
@@ -31,6 +32,8 @@ class TestEmpiricalCubatureMethod(KratosUnittest.TestCase):
             ElementSelector.Calculate()
 
             self.assertEqual( len(ElementSelector.z) , degree + 1 ) #for a polynomial of degree n, n+1 points are to be selected
+    # Cleaning
+    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
 if __name__=='__main__':
     KratosUnittest.main()
