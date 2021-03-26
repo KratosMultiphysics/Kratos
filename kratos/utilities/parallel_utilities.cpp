@@ -66,13 +66,13 @@ int ParallelUtilities::GetNumProcs()
 {
 #ifdef KRATOS_SMP_OPENMP
     int num_procs =  omp_get_num_procs();
-    KRATOS_ERROR_IF("ParallelUtilities", num_procs <= 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
+    KRATOS_ERROR_IF(num_procs <= 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
     return num_procs;
 
 #elif defined(KRATOS_SMP_CXX11)
     // NOTE: std::thread::hardware_concurrency() can return 0 in some systems!
     int num_procs = std::thread::hardware_concurrency();
-    KRATOS_ERROR_IF("ParallelUtilities", num_procs <= 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
+    KRATOS_ERROR_IF(num_procs <= 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
     return std::max(1, num_procs);
 
 #else
