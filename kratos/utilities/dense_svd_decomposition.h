@@ -118,6 +118,8 @@ public:
     /**
      * @brief Right singular vectors matrix getter
      * If computed, this method sets the right singular vectors matrix in the provided array
+     * Note that this method is understood to return V (not its transpose). This means that
+     * this matrix needs to be transposed in order to reconstruct the input matrix
      * @param rMatrixV
      */
     virtual void MatrixV(MatrixType& rMatrixV) = 0;
