@@ -31,11 +31,11 @@ int ParallelUtilities::GetNumThreads()
 {
 #ifdef KRATOS_SMP_OPENMP
     int nthreads = omp_get_max_threads();
-    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
+    KRATOS_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
     return nthreads;
 #elif defined(KRATOS_SMP_CXX11)
     int nthreads = GetNumberOfThreads();
-    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
+    KRATOS_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
     return nthreads;
 #else
     return 1;
@@ -65,14 +65,14 @@ void ParallelUtilities::SetNumThreads(const int NumThreads)
 int ParallelUtilities::GetNumProcs()
 {
 #ifdef KRATOS_SMP_OPENMP
-    return omp_get_num_procs();
+    int num_procs =  omp_get_num_procs();
+    KRATOS_ERROR_IF("ParallelUtilities", num_procs <= 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
+    return num_procs;
 
 #elif defined(KRATOS_SMP_CXX11)
     // NOTE: std::thread::hardware_concurrency() can return 0 in some systems!
     int num_procs = std::thread::hardware_concurrency();
-
-    KRATOS_WARNING_IF("ParallelUtilities", num_procs == 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
-
+    KRATOS_ERROR_IF("ParallelUtilities", num_procs <= 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
     return std::max(1, num_procs);
 
 #else
