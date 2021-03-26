@@ -251,21 +251,30 @@ public:
         if(IsOwnerOfData() && mpRowIndicesData != nullptr)
             delete [] mpRowIndicesData;
         mpRowIndicesData = pExternalData;
-        mRowIndices = span<TIndexType>(mpRowIndicesData, DataSize);
+        if(DataSize!=0)
+            mRowIndices = span<TIndexType>(mpRowIndicesData, DataSize);
+        else
+            mRowIndices = span<TIndexType>();
     }
 
     void AssignIndex2Data(TIndexType* pExternalData, TIndexType DataSize){
         if(IsOwnerOfData() && mpColIndicesData != nullptr)
             delete [] mpColIndicesData;
         mpColIndicesData = pExternalData;
-        mColIndices = span<TIndexType>(mpColIndicesData, DataSize);
+        if(DataSize!=0)
+            mColIndices = span<TIndexType>(mpColIndicesData, DataSize);
+        else
+            mColIndices = span<TIndexType>();
     }
 
     void AssignValueData(TDataType* pExternalData, TIndexType DataSize){
         if(IsOwnerOfData() && mpValuesVectorData != nullptr)
             delete [] mpValuesVectorData;
         mpValuesVectorData = pExternalData;
-        mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
+        if(DataSize!=0)
+            mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
+        else
+            mColIndices = span<TIndexType>();
     }
 
     void ResizeIndex1Data(TIndexType DataSize){
