@@ -178,27 +178,27 @@ class GenericConstitutiveLawIntegratorPlasticity
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
 
-            // Backward Euler
-            while (is_converged == false && iteration <= max_iter) {
-                plastic_consistency_factor_increment = F * rPlasticDenominator;
-                if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
-                noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
-                noalias(rPlasticStrain) += rPlasticStrainIncrement;
-                noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
+        // Backward Euler
+        while (is_converged == false && iteration <= max_iter) {
+            plastic_consistency_factor_increment = F * rPlasticDenominator;
+            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
+            noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
+            noalias(rPlasticStrain) += rPlasticStrainIncrement;
+            noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
 
-                noalias(rPredictiveStressVector) -= delta_sigma;
+            noalias(rPredictiveStressVector) -= delta_sigma;
 
-                F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
-                                            rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
-                                            rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
+            F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
+                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
+                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
 
-                if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
-                    is_converged = true;
-                } else {
-                    iteration++;
-                }
+            if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+                is_converged = true;
+            } else {
+                iteration++;
             }
-            KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }
+        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
 
     }
 
@@ -554,10 +554,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
-        if (minimum_characteristic_fracture_energy_exponential_softening >= characteristic_fracture_energy_compression){ // Exponential softening
+        if ( characteristic_fracture_energy_compression >= minimum_characteristic_fracture_energy_exponential_softening){ // Exponential softening
+        //     KRATOS_WATCH("ahora")
             rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
             rSlope = - initial_threshold;
         } else { //Linear softening which is the one that requires minimum fracture energy
+            KRATOS_WATCH("here")
             CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
                 PlasticDissipation, TensileIndicatorFactor,
                 CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope,
@@ -733,12 +735,13 @@ class GenericConstitutiveLawIntegratorPlasticity
     }
 
     /**
-     * @brief This method computes the uniaxial threshold using a linear softening
+     * @brief This method computes the uniaxial threshold using a linear-exponential softening, which changes from one to the other through the platic_dissipation_limit
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
      * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
+     * @param CharacteristicLength Characteristic length of the finite element
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressThresholdHardeningCurveLinearExponentialSoftening(
