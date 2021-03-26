@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
-#include "utilities/qr_utility.h"
 #include "utilities/svd_utils.h"
 #include "utilities/parallel_utilities.h"
 
@@ -61,8 +60,6 @@ public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( MVQNFullJacobianConvergenceAccelerator );
-
-    typedef std::size_t                                                    SizeType;
 
     typedef ConvergenceAccelerator<TSparseSpace, TDenseSpace>              BaseType;
     typedef typename BaseType::Pointer                              BaseTypePointer;
@@ -202,78 +199,6 @@ public:
             mpJac_n = mpJac_k1;
         }
 
-        // Compute ((trans(V)*V)^-1)*trans(V)
-        MatrixType aux_M;
-        CalculateAuxiliaryOperationsV(aux_M);
-
-        KRATOS_WATCH(aux_M.size1())
-        KRATOS_WATCH(aux_M.size2())
-
-        // Do the truncated SVD decomposition of the current Jacobian approximation to save it for the next iteration
-        MatrixType y;
-        MultiplyRight(aux_M, *mpOmega, y);
-        KRATOS_WATCH(y.size1())
-        KRATOS_WATCH(y.size2())
-
-        //TODO: Substitute y.size2() by mModesNumber for the sake of clarity
-        QR<double, row_major> qr_util;
-        qr_util.compute(y.size1(), y.size2(), &(y(0,0)));
-        qr_util.compute_q();
-        MatrixType Q(mProblemSize, y.size2());
-        for (SizeType i = 0; i < mProblemSize; ++i) { //TODO: This can be parallel
-            for (SizeType j = 0; j < y.size2(); ++j) {
-                Q(i,j) = qr_util.Q(i,j);
-            }
-        }
-
-        KRATOS_WATCH(Q.size1())
-        KRATOS_WATCH(Q.size2())
-
-        MatrixType phi;
-        MultiplyTransposeLeft(aux_M, Q, phi);
-
-        KRATOS_WATCH(phi.size1())
-        KRATOS_WATCH(phi.size2())
-        KRATOS_WATCH("Before SVD")
-
-        MatrixType u_svd; // Orthogonal matrix (m x m)
-        MatrixType w_svd; // Rectangular diagonal matrix (m x n)
-        MatrixType v_svd; // Orthogonal matrix (n x n)
-        std::string svd_type = "Jacobi"; // SVD decomposition type
-        double svd_rel_tol = 1.0e-4; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-        const MatrixType trans_phi = trans(phi);
-        SVDUtils<double>::SingularValueDecomposition(trans_phi, u_svd, w_svd, v_svd, svd_type, svd_rel_tol, 10);
-
-        KRATOS_WATCH("After SVD")
-
-        KRATOS_WATCH(u_svd.size1())
-        KRATOS_WATCH(u_svd.size2())
-        KRATOS_WATCH(w_svd.size1())
-        KRATOS_WATCH(w_svd.size2())
-        KRATOS_WATCH(v_svd.size1())
-        KRATOS_WATCH(v_svd.size2())
-
-        auto p_aux_QU = Kratos::make_unique<MatrixType>(prod(Q, trans(v_svd)));
-        auto p_aux_SigmaV = Kratos::make_unique<MatrixType>(prod(trans(w_svd), trans(u_svd)));
-        std::swap(mpOldJacQU, p_aux_QU);
-        std::swap(mpOldJacSigmaV, p_aux_SigmaV);
-
-        KRATOS_WATCH(mpOldJacQU->size1())
-        KRATOS_WATCH(mpOldJacQU->size2())
-        KRATOS_WATCH(mpOldJacSigmaV->size1())
-        KRATOS_WATCH(mpOldJacSigmaV->size2())
-
-        Matrix reconstructed_jacobian = prod(*mpOldJacQU, *mpOldJacSigmaV);
-        double error_norm = 0.0;
-        const auto& r_current_jac = *mpJac_k1;
-        for (SizeType i = 0; i < reconstructed_jacobian.size1(); ++i) {
-            for (SizeType j = 0; j < reconstructed_jacobian.size2(); ++j) {
-                const double aux = i == j ? 1.0 + reconstructed_jacobian(i,j) : reconstructed_jacobian(i,j);
-                error_norm += std::pow(aux - r_current_jac(i,j), 2);
-            }
-        }
-        std::cout << "Jacobian error norm: " << std::sqrt(error_norm) << std::endl;
-
         KRATOS_CATCH( "" );
     }
 
@@ -323,11 +248,6 @@ protected:
                 // This is required since the first iteration needs to be performed with the previous step Jacobian
                 MatrixPointerType p_aux_jac_n = Kratos::make_shared<MatrixType>(*mpJac_n);
                 std::swap(p_aux_jac_n, mpJac_k1);
-            }
-
-            if (!mRandomValuesAreInitialized) {
-                // If not initialized yet, create the random values matrix for the truncated SVD
-                InitializeRandomValuesMatrix();
             }
         } else {
             // Store current observation information
@@ -460,7 +380,6 @@ private:
     unsigned int mProblemSize = 0;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration = 0;              // Convergence accelerator iteration counter
     bool mJacobiansAreInitialized = false;                          // Indicates that the Jacobian matrices have been already initialized
-    bool mRandomValuesAreInitialized = false;                       // Indicates if the random values for the truncated SVD have been already set
     bool mConvergenceAcceleratorFirstCorrectionPerformed = false;   // Indicates that the initial fixed point iteration has been already performed
 
     VectorPointerType mpResidualVector_0;       // Previous iteration residual vector
@@ -472,10 +391,6 @@ private:
     MatrixPointerType mpJac_k1;                 // Current iteration Jacobian approximation
     MatrixPointerType mpObsMatrixV;             // Residual increment observation matrix
     MatrixPointerType mpObsMatrixW;             // Solution increment observation matrix
-
-    Kratos::unique_ptr<MatrixType> mpOmega;     // Matrix with random values for truncated SVD
-    Kratos::unique_ptr<MatrixType> mpOldJacQU = nullptr;
-    Kratos::unique_ptr<MatrixType> mpOldJacSigmaV = nullptr;
 
 
     ///@}
@@ -597,154 +512,6 @@ private:
         // Set the member observation matrices pointers
         std::swap(mpObsMatrixV,p_aux_V);
         std::swap(mpObsMatrixW,p_aux_W);
-    }
-
-    void InitializeRandomValuesMatrix()
-    {
-        // Set the random values matrix pointer
-        const SizeType n_modes = 10; //TODO: MAKE THIS USER-DEFINABLE
-        auto p_aux_omega = Kratos::make_unique<MatrixType>(mProblemSize, n_modes);
-        std::swap(p_aux_omega, mpOmega);
-
-        // Create the random values generator
-        std::random_device rd;  //Will be used to obtain a seed for the random number engine
-        std::mt19937 generator(rd()); //Standard mersenne_twister_engine seeded with rd()
-        std::uniform_real_distribution<> distribution(0.0, 1.0);
-
-        // Fill the random values matrix
-        auto& r_omega_matrix = *mpOmega;
-        for (SizeType i = 0; i < mProblemSize; ++i) {
-            for (SizeType j = 0; j < n_modes; ++j) {
-                // Use distribution to transform the random unsigned int generated by generator into a
-                // double in [0.0, 1.0). Each call to distribution(generator) generates a new random double
-                r_omega_matrix(i,j) = distribution(generator);
-            }
-        }
-    }
-
-    void MultiplyRight(
-        const Matrix& rAuxM,
-        const Matrix& rRightMatrix,
-        Matrix& rSolution)
-    {
-        KRATOS_ERROR_IF(rRightMatrix.size1() != mProblemSize) << "Obtained right multiplication matrix size " << rRightMatrix.size1() << " does not match the problem size " << mProblemSize << " expected one." << std::endl;
-
-        // Add to the solution matrix
-        MatrixType aux_prod_omega = prod(rAuxM, rRightMatrix);
-        rSolution = prod(*mpObsMatrixW, aux_prod_omega);
-        if (mpOldJacQU == nullptr && mpOldJacSigmaV == nullptr) {
-            for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) -= rRightMatrix(i,j);
-                }
-            }
-        } else {
-            KRATOS_WATCH(mpOldJacQU->size1())
-            KRATOS_WATCH(mpOldJacQU->size2())
-            KRATOS_WATCH(mpOldJacSigmaV->size1())
-            KRATOS_WATCH(mpOldJacSigmaV->size2())
-            const auto& r_V = *mpObsMatrixV;
-            MatrixType V_aux_prod_omega = prod(r_V, aux_prod_omega);
-            MatrixType aux_old_jac_1 = prod(*mpOldJacSigmaV, rRightMatrix);
-            MatrixType aux_old_jac_2 = prod(*mpOldJacSigmaV, V_aux_prod_omega);
-            MatrixType aux_1 = prod(*mpOldJacQU, aux_old_jac_1);
-            MatrixType aux_2 = prod(*mpOldJacQU, aux_old_jac_2);
-            for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) += aux_1(i,j) - aux_2(i,j) - V_aux_prod_omega(i,j);
-                }
-            }
-        }
-    }
-
-    void MultiplyTransposeLeft(
-        const Matrix& rAuxM,
-        const Matrix& rLeftMatrix,
-        Matrix& rSolution)
-    {
-        KRATOS_ERROR_IF(rLeftMatrix.size1() != mProblemSize) << "Obtained left multiplication matrix size " << rLeftMatrix.size1() << " does not match the problem size " << mProblemSize << " expected one." << std::endl;
-
-        // Compute first (common) term
-        //TODO: DO THIS PARALLEL
-        const auto& r_W = *mpObsMatrixW;
-        const SizeType n_data_cols = r_W.size2();
-        const SizeType n_modes = rLeftMatrix.size2();
-        rSolution = ZeroMatrix(n_modes, mProblemSize);
-        for (SizeType i = 0; i < n_modes; ++i) {
-            for (SizeType j = 0; j < mProblemSize; ++j) {
-                double& r_solution_ij = rSolution(i,j);
-                for (SizeType k = 0; k < mProblemSize; ++k) {
-                    const double aux_trans_Q = rLeftMatrix(k,i);
-                    for (SizeType m = 0; m < n_data_cols; ++m) {
-                        r_solution_ij += aux_trans_Q * r_W(k,m) * rAuxM(m,j);
-                    }
-                }
-            }
-        }
-
-        // Add to the solution matrix
-        if (mpOldJacQU == nullptr && mpOldJacSigmaV == nullptr) {
-            for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) -= rLeftMatrix(j,i);
-                }
-            }
-        } else {
-            const auto& r_V = *mpObsMatrixV;
-            MatrixType aux_left_V = prod(trans(rLeftMatrix), r_V);
-            MatrixType aux_left_V_M = prod(aux_left_V, rAuxM);
-            MatrixType aux_left_jac_1 = prod(trans(rLeftMatrix), *mpOldJacQU);
-            MatrixType aux_left_jac_2 = prod(aux_left_jac_1, *mpOldJacSigmaV);
-            //TODO: 3 AND 4 CAN BE DONE IN A UNIQUE NESTED LOOP
-            MatrixType aux_left_jac_3 = prod(aux_left_jac_2, r_V);
-            MatrixType aux_left_jac_4 = prod(aux_left_jac_3, rAuxM);
-            for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) += aux_left_jac_2(i,j) - aux_left_V_M(i,j) - aux_left_jac_4(i,j);
-                }
-            }
-        }
-    }
-
-    void CalculateAuxiliaryOperationsV(MatrixType& rAuxM)
-    {
-        // Compute (trans(V)*V)^-1
-        const auto& r_V = *mpObsMatrixV;
-        const SizeType n_data_cols = r_V.size2();
-        MatrixType transV_V(n_data_cols, n_data_cols);
-        noalias(transV_V) = prod(trans(r_V), r_V);
-
-        // Perform the observation matrix V Singular Value Decomposition (SVD) such that
-        // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
-        MatrixType u_svd; // Orthogonal matrix (m x m)
-        MatrixType w_svd; // Rectangular diagonal matrix (m x n)
-        MatrixType v_svd; // Orthogonal matrix (n x n)
-        std::string svd_type = "Jacobi"; // SVD decomposition type
-        double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
-
-        // Compute the matrix pseudo-inverse
-        // Note that we take advantage of the fact that the matrix is always squared
-        MatrixType transV_V_inv = ZeroMatrix(n_data_cols, n_data_cols);
-        for (std::size_t i = 0; i < n_data_cols; ++i) {
-            for (std::size_t j = 0; j < n_data_cols; ++j) {
-                const double aux = v_svd(j,i) / w_svd(j,j);
-                for (std::size_t k = 0; k < n_data_cols; ++k) {
-                    transV_V_inv(i,k) += aux * u_svd(k,j);
-                }
-            }
-        }
-
-        //TODO: PARALLELIZE THIS
-        // Compute ((trans(V)*V)^-1)*trans(V)
-        rAuxM = ZeroMatrix(n_data_cols, mProblemSize);
-        for (SizeType i = 0; i < n_data_cols; ++i) {
-            for (SizeType j = 0; j < mProblemSize; ++j) {
-                for (SizeType k = 0; k < n_data_cols; ++k) {
-                    rAuxM(i,j) += transV_V_inv(i,k) * r_V(j,k);
-                }
-            }
-        }
     }
 
     ///@}
