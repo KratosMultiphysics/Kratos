@@ -70,6 +70,10 @@ class NodesOutputProcess(KM.Process):
         # Delete the previous files
         self._DeleteExistingFiles()
 
+        # Initialize output control variables
+        self.printing_times = self.settings["printing_times"].GetVector()
+        self.is_printed = [False] * len(self.printing_times)
+
     def ExecuteBeforeSolutionLoop(self):
         """The model part related variables are initialized:
         The list of nodes and the list of variables are created.
@@ -109,24 +113,24 @@ class NodesOutputProcess(KM.Process):
         msg = 'The {} point was not found in the domain. Please, check the geometry or the relative tolerance'
         if self.settings["use_mesh_nodes"].GetBool():
             if locator.FindNode(start_point, configuration, tolerance) < 0:
-                raise Exception(msg.format('starting'))
+                KM.Logger.PrintWarning(msg.format('starting'))
             if locator.FindNode(end_point, configuration, tolerance) < 0:
-                raise Exception(msg.format('ending'))
+                KM.Logger.PrintWarning(msg.format('ending'))
         else:
             area_coords = KM.Vector()
             if locator.FindElement(start_point, area_coords, configuration, tolerance) < 0:
-                raise Exception(msg.format('starting'))
+                KM.Logger.PrintWarning(msg.format('starting'))
             if locator.FindElement(end_point, area_coords, configuration, tolerance) < 0:
-                raise Exception(msg.format('ending'))
+                KM.Logger.PrintWarning(msg.format('ending'))
 
     def IsOutputStep(self):
         """This method checks if the current time step is
         near enough to the specified printing times.
         """
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
-        delta_time = self.model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
-        for printing_time in self.settings["printing_times"].GetVector():
-            if 2 * abs(time - printing_time) < delta_time:
+        for i in range(len(self.printing_times)):
+            if time >= self.printing_times[i] and not self.is_printed[i]:
+                self.is_printed[i] = True
                 return True
         return False
 
