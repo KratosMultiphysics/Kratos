@@ -45,7 +45,7 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
         decomposition.Compute(A, S, U, V, settings)
 
         # Reconstruct the sampling matrix with the SVD arrays
-        aux_S_mat = KratosMultiphysics.Matrix(S.Size(), V.Size1(), 0.0)
+        aux_S_mat = KratosMultiphysics.Matrix(S.Size(), V.Size2(), 0.0)
         for i in range(S.Size()):
             aux_S_mat[i,i] = S[i]
 
