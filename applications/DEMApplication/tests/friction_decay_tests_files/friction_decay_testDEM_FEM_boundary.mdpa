@@ -1,0 +1,84 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 3
+STATIC_FRICTION 0.6
+DYNAMIC_FRICTION 0.4
+FRICTION_DECAY 500.0
+WALL_COHESION 0.0
+COMPUTE_WEAR 0
+SEVERITY_OF_WEAR 0.001
+IMPACT_WEAR_SEVERITY 0.001
+BRINELL_HARDNESS 200.0
+YOUNG_MODULUS 1e6
+POISSON_RATIO 0.20
+End Properties
+
+Begin Properties 4
+STATIC_FRICTION 0.6
+DYNAMIC_FRICTION 0.4
+FRICTION_DECAY 5.0
+WALL_COHESION 0.0
+COMPUTE_WEAR 0
+SEVERITY_OF_WEAR 0.001
+IMPACT_WEAR_SEVERITY 0.001
+BRINELL_HARDNESS 200.0
+YOUNG_MODULUS 1e6
+POISSON_RATIO 0.20
+End Properties
+
+Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-wall1
+3 -0.25 -0.25 0.00
+4 -0.25  0.25 0.00
+5  2.25  0.25 0.00
+6  2.25 -0.25 0.00
+7 -0.25  0.75 0.00
+8 -0.25  1.25 0.00
+9  2.25  1.25 0.00
+10 2.25  0.75 0.00
+End Nodes
+
+Begin Conditions RigidFace3D4N // GUI DEM-FEM-Wall group identifier: DEM-wall1
+3 3 3 4 5 6
+End Conditions
+
+Begin Conditions RigidFace3D4N // GUI DEM-FEM-Wall group identifier: DEM-wall2
+4 4 7 8 9 10
+End Conditions
+
+Begin SubModelPart 3 // DEM-FEM-Wall. Group name: DEM-wall1
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
+  PROPERTIES_ID 3
+  IDENTIFIER DEM-wall1
+  End SubModelPartData
+  Begin SubModelPartNodes
+  3
+  4
+  5
+  6
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+  3
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
+End SubModelPart
+
+Begin SubModelPart 4 // DEM-FEM-Wall. Group name: DEM-wall2
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall2
+  PROPERTIES_ID 4
+  IDENTIFIER DEM-wall2
+  End SubModelPartData
+  Begin SubModelPartNodes
+  7
+  8
+  9
+  10
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+  4
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
+End SubModelPart

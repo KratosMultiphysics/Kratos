@@ -178,6 +178,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
         .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const int>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
             ,py::arg("model_part")
@@ -188,6 +189,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
+        .def(py::init<ModelPart&, array_1d<double, 3>, const int>())
         .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
