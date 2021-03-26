@@ -247,6 +247,16 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
         const double arg4 = std::max(arg1, arg2);
         const double arg5 = std::min(arg4, arg3);
         rOutput = std::min(arg5, 10.0);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_BLENDED_GAMMA) {
+        const double f1 = KOmegaSSTElementData::CalculateF1(
+            mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
+            mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
+        const double gamma_1 = KOmegaSSTElementData::CalculateGamma(
+            mBeta1, mBetaStar, mSigmaOmega1, mKappa);
+        const double gamma_2 = KOmegaSSTElementData::CalculateGamma(
+            mBeta2, mBetaStar, mSigmaOmega2, mKappa);
+
+        rOutput = KOmegaSSTElementData::CalculateBlendedPhi(gamma_1, gamma_2, f1);
     }
 
     KRATOS_CATCH("");
