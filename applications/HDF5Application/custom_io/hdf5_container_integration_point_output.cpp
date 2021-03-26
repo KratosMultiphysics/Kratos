@@ -318,7 +318,7 @@ void SetDataBuffer(Variable<TDataType> const& rVariable,
 
     struct tls_type
     {
-        tls_type(const std::size_t FlatDataSize) : mFlattedGaussPointValues(FlatDataSize) {}
+        explicit tls_type(const std::size_t FlatDataSize) : mFlattedGaussPointValues(FlatDataSize) {}
         std::vector<TDataType> mGaussPointValues;
         Vector<double> mFlattedGaussPointValues;
     };
