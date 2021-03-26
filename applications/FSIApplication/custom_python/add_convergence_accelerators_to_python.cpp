@@ -72,7 +72,6 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef typename IBQNMVQNConvergenceAcceleratorType::Pointer IBQNMVQNConvergenceAcceleratorPointerType;
     py::class_<IBQNMVQNConvergenceAcceleratorType, IBQNMVQNConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "IBQNMVQNConvergenceAccelerator")
         .def(py::init<Parameters>())
-        .def(py::init<const double, const double>())
         .def("UpdateSolutionLeft", &IBQNMVQNConvergenceAcceleratorType::UpdateSolutionLeft)
         .def("UpdateSolutionRight", &IBQNMVQNConvergenceAcceleratorType::UpdateSolutionRight)
     ;

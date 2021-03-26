@@ -86,22 +86,13 @@ public:
      * MVQN convergence accelerator Json settings constructor
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
-    explicit IBQNMVQNConvergenceAccelerator(
-        const double InitialOmega = 0.825,
-        const double AbsCutOff = 1e-8)
-        : mInitialOmega(InitialOmega)
-        , mpConvergenceAcceleratorLeft(Kratos::make_unique<MVQNType>(mInitialOmega, AbsCutOff, true))
-        , mpConvergenceAcceleratorRight(Kratos::make_unique<MVQNType>(mInitialOmega, AbsCutOff, true))
-    {
-    }
 
     explicit IBQNMVQNConvergenceAccelerator(Parameters rParameters)
     {
         Parameters mvqn_default_parameters(R"({
             "solver_type"            : "IBQN_MVQN",
             "w_0"                    : 0.825,
-            "abs_cut_off_tol"        : 1e-8,
-            "interface_block_newton" : true
+            "abs_cut_off_tol"        : 1e-8
         })");
         rParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
 
