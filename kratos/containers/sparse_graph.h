@@ -201,10 +201,27 @@ public:
         IndexType* pColIndicesData=nullptr;
         IndexType ColIndicesDataSize=0;
         ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
-        rRowIndices = span<IndexType>(pRowIndicesData,RowIndicesDataSize); //here a copy happens!
-        rColIndices = span<IndexType>(pColIndicesData,ColIndicesDataSize);; //here a copy happens!
+        if(rRowIndices.size() != RowIndicesDataSize)
+            rRowIndices.resize(RowIndicesDataSize);
+        IndexPartition<IndexType>(RowIndicesDataSize).for_each( 
+            [&](IndexType i){rRowIndices[i] = pRowIndicesData[i];}
+        );
+        
+        delete [] pRowIndicesData;
+        if(rColIndices.size() != ColIndicesDataSize)
+            rColIndices.resize(ColIndicesDataSize);
+        IndexPartition<IndexType>(ColIndicesDataSize).for_each( 
+            [&](IndexType i){rColIndices[i] = pColIndicesData[i];}
+        );
+        delete [] pColIndicesData;
+
         return rRowIndices.size();
     }
+
+    IndexType ExportCSRArrays(
+        span<IndexType>& rRowIndices,
+        span<IndexType>& rColIndices
+    ) const = delete;
 
     IndexType ExportCSRArrays(
         IndexType*& pRowIndicesData,

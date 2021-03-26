@@ -316,13 +316,11 @@ KRATOS_TEST_CASE_IN_SUITE(GraphConstruction, KratosCoreFastSuite)
     SparseTestingInternals::CheckGraph(Agraph, reference_A_map);
 
     //check exporting
-    span<SparseTestingInternals::IndexType> row_index_span;
-    span<SparseTestingInternals::IndexType> col_index_span;
-    Agraph.ExportCSRArrays(row_index_span, col_index_span);
+    std::vector<IndexType> row_index;
+    std::vector<IndexType> col_index;
+    Agraph.ExportCSRArrays(row_index, col_index);
 
-    SparseTestingInternals::CheckCSRGraphArrays(row_index_span, col_index_span, reference_A_map);
-    delete [] row_index_span.begin();
-    delete [] col_index_span.begin();
+    SparseTestingInternals::CheckCSRGraphArrays(row_index, col_index, reference_A_map);
 
 }
 
