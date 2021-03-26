@@ -37,23 +37,23 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         return self._rigid_body_solver.AdvanceInTime(current_time)
 
     def SolveSolutionStep(self):
-        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.SCALAR_ROOT_POINT_DISPLACEMENT], 0)
-        self._rigid_body_solver.SetSolutionStepValue("LOAD",                    self.mp[KMC.SCALAR_FORCE], 0)
+        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.ROOT_POINT_DISPLACEMENT], 0)
+        self._rigid_body_solver.SetSolutionStepValue("LOAD",                    self.mp[KMC.FORCE], 0)
 
         self._rigid_body_solver.SolveSolutionStep()
 
-        self.mp[KMC.SCALAR_DISPLACEMENT]        = self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
-        self.mp[KMC.SCALAR_REACTION]            = self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
-        self.mp[KMC.SCALAR_VOLUME_ACCELERATION] = self._rigid_body_solver.GetSolutionStepValue("VOLUME_ACCELERATION", 0)
+        self.mp[KMC.DISPLACEMENT]        = self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        self.mp[KMC.REACTION]            = self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
+        self.mp[KMC.VOLUME_ACCELERATION] = self._rigid_body_solver.GetSolutionStepValue("VOLUME_ACCELERATION", 0)
 
     def Check(self):
         # making sure only a set of vaiables can be used
         admissible_variables = [
-            "SCALAR_ROOT_POINT_DISPLACEMENT",
-            "SCALAR_FORCE",
-            "SCALAR_DISPLACEMENT",
-            "SCALAR_REACTION",
-            "SCALAR_VOLUME_ACCELERATION",
+            "ROOT_POINT_DISPLACEMENT",
+            "FORCE",
+            "DISPLACEMENT",
+            "REACTION",
+            "VOLUME_ACCELERATION",
         ]
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:
