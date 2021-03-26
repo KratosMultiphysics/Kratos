@@ -49,6 +49,7 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
+    typedef typename NurbsCurveType::Pointer NurbsCurvePointerType;
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
@@ -230,6 +231,21 @@ public:
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
+    }
+
+    ///@}
+    ///@name Set/ Get functions
+    ///@{
+    /// Returns the NurbsCurve::Pointer of this CurveOnSurface.
+    NurbsCurvePointerType pGetCurve()
+    {
+        return mpNurbsCurve;
+    }
+
+    /// Returns the const NurbsCurveOnSurface::Pointer of this brep.
+    const NurbsCurvePointerType pGetCurve() const
+    {
+        return mpNurbsCurve;
     }
 
     ///@}
@@ -458,12 +474,12 @@ public:
     {
         // Compute the coordinates of the embedded curve in the parametric space of the surface
         CoordinatesArrayType result_local = mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
-        
+
         // Compute and return the coordinates of the surface in the geometric space
         return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
-    /** 
+    /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
     * From ANurbs library (https://github.com/oberbichler/ANurbs)
@@ -485,7 +501,7 @@ public:
         // Compute the gradients of the embedded curve in the parametric space of the surface
         std::vector<array_1d<double, 3>> curve_derivatives;
         mpNurbsCurve->GlobalSpaceDerivatives(curve_derivatives, rCoordinates, DerivativeOrder);
-        
+
         // Compute the gradients of the surface in the geometric space
         array_1d<double, 3> surface_coordinates =  ZeroVector(3);
         surface_coordinates[0] = curve_derivatives[0][0];
