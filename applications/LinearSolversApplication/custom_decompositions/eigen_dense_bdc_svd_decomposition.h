@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/dense_svd_decomposition.h"
 
 namespace Kratos {
 
@@ -41,8 +42,8 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TDenseSpaceType>
-class EigenDenseBDCSVD
+template<class TDenseSpace>
+class EigenDenseBDCSVD : public DenseSingularValueDecomposition<TDenseSpace>
 {
 public:
 
@@ -52,9 +53,9 @@ public:
     /// Definition of the shared pointer of the class
     KRATOS_CLASS_POINTER_DEFINITION(EigenDenseBDCSVD);
 
-    typedef typename TDenseSpaceType::DataType DataType;
-    typedef typename TDenseSpaceType::VectorType VectorType;
-    typedef typename TDenseSpaceType::MatrixType MatrixType;
+    typedef typename TDenseSpace::DataType DataType;
+    typedef typename TDenseSpace::VectorType VectorType;
+    typedef typename TDenseSpace::MatrixType MatrixType;
 
     using EigenVector = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using EigenMatrix = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
@@ -176,11 +177,6 @@ public:
     void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << "EigenDecomposition <" << Name() << "> finished.";
-    }
-
-    std::string GetSolverErrorMessages() const
-    {
-        return "No additional information";
     }
 
     ///@}
