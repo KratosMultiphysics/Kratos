@@ -186,6 +186,9 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     /* Reset equations ids "flag" */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESET_EQUATION_IDS);
 
+    /* Reset displacement "flag" needed for GeoMechanicalApplication*/
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESET_DISPLACEMENTS)
+
     /* Hencky strain */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HENCKY_STRAIN_VECTOR);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HENCKY_STRAIN_TENSOR);

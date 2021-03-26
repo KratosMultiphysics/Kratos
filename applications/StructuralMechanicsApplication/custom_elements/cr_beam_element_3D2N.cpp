@@ -96,6 +96,50 @@ void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
+void CrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+
+    KRATOS_TRY
+
+    mIsInitialization = true;
+
+    KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (mIsInitialization)
+    {
+        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS))
+        {
+            if (rCurrentProcessInfo[RESET_DISPLACEMENTS])
+                noalias(mInternalForcesFinalizedPrevious) = mInternalForcesFinalized;
+            else
+                noalias(mInternalForcesFinalized) = mInternalForcesFinalizedPrevious;
+        }
+        else
+        {
+            noalias(mInternalForcesFinalized) = ZeroVector(msElementSize);
+            noalias(mInternalForcesFinalizedPrevious) = ZeroVector(msElementSize);
+        }
+    }
+    mIsInitialization = false;
+
+    KRATOS_CATCH("")
+
+}
+
+void CrBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    noalias(mInternalForcesFinalized) = CalculateGlobalNodalForces() + mInternalForcesFinalizedPrevious;
+
+    KRATOS_CATCH("");
+}
+
 void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
@@ -1054,6 +1098,8 @@ void CrBeamElement3D2N::ConstCalculateRightHandSide(
     Vector internal_forces = CalculateGlobalNodalForces();
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
+
+    noalias(rRightHandSideVector) -= mInternalForcesFinalizedPrevious;
     // add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
@@ -1744,6 +1790,8 @@ void CrBeamElement3D2N::save(Serializer& rSerializer) const
     rSerializer.save("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.save("QuaternionScaA", mQuaternionSCA_A);
     rSerializer.save("QuaternionScaB", mQuaternionSCA_B);
+    rSerializer.save("InternalForceFinalized", mInternalForcesFinalized);
+    rSerializer.save("InternalForceFinalizedPrevious", mInternalForcesFinalizedPrevious);
 }
 
 void CrBeamElement3D2N::load(Serializer& rSerializer)
@@ -1755,6 +1803,8 @@ void CrBeamElement3D2N::load(Serializer& rSerializer)
     rSerializer.load("QuaternionVecB", mQuaternionVEC_B);
     rSerializer.load("QuaternionScaA", mQuaternionSCA_A);
     rSerializer.load("QuaternionScaB", mQuaternionSCA_B);
+    rSerializer.load("InternalForceFinalized", mInternalForcesFinalized);
+    rSerializer.load("InternalForceFinalizedPrevious", mInternalForcesFinalizedPrevious);
 }
 
 } // namespace Kratos.

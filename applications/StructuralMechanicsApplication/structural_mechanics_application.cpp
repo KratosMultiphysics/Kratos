@@ -363,6 +363,9 @@ void KratosStructuralMechanicsApplication::Register() {
     // Reset equations ids "flag"
     KRATOS_REGISTER_VARIABLE(RESET_EQUATION_IDS);
 
+    // Reset displacements to zero
+    KRATOS_REGISTER_VARIABLE( RESET_DISPLACEMENTS )
+
     // Adding the SPRISM additional variables
     KRATOS_REGISTER_VARIABLE(ANG_ROT);
 

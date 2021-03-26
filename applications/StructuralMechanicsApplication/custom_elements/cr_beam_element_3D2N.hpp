@@ -43,6 +43,9 @@ protected:
     static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
     static constexpr unsigned int msElementSize = msLocalSize * 2;
 
+    Vector mInternalForcesFinalized = ZeroVector(msElementSize);
+    Vector mInternalForcesFinalizedPrevious = ZeroVector(msElementSize);
+
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElement3D2N);
 
@@ -99,6 +102,11 @@ public:
     void GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override;
+
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
@@ -320,6 +328,7 @@ private:
     double mQuaternionSCA_A = 1.00;
     double mQuaternionSCA_B = 1.00;
 
+    bool mIsInitialization = false;
 
 
 

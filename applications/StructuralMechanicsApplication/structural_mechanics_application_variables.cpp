@@ -157,6 +157,9 @@ KRATOS_CREATE_VARIABLE(bool, PURE_EXPLICIT_RHS_COMPUTATION);
 // Reset equations ids "flag"
 KRATOS_CREATE_VARIABLE(bool, RESET_EQUATION_IDS);
 
+// reset displacements to zero
+KRATOS_CREATE_VARIABLE(bool, RESET_DISPLACEMENTS)
+
 // Adding the SPRISM additional variables
 KRATOS_CREATE_VARIABLE(double, ANG_ROT);
 
