@@ -96,6 +96,13 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+        Matrix& rOutput,
+        const Variable<Matrix>& rVariable,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
 protected:

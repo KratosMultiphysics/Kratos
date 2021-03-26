@@ -264,6 +264,35 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
     KRATOS_CATCH("");
 }
 
+template <unsigned int TDim>
+void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
+    Matrix& rOutput,
+    const Variable<Matrix>& rVariable,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    using namespace RansCalculationUtilities;
+
+    const auto& r_geometry = this->GetGeometry();
+
+    FluidCalculationUtilities::EvaluateGradientInPoint(
+        this->GetGeometry(), rShapeFunctionDerivatives,
+        std::tie(mVelocityGradient, VELOCITY));
+
+    if (rVariable == RANS_GAUSS_VELOCITY_GRADIENT) {
+        if (rOutput.size1() != TDim || rOutput.size2() != TDim) {
+            rOutput.resize(TDim, TDim);
+        }
+
+        noalias(rOutput) = mVelocityGradient;
+    }
+
+    KRATOS_CATCH("");
+}
+
 
 // template instantiations
 

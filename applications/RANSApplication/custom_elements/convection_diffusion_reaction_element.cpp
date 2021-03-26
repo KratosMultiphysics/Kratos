@@ -390,6 +390,44 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
+void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const IndexType num_gauss_points = gauss_weights.size();
+
+    const auto& r_geometry = this->GetGeometry();
+    TConvectionDiffusionReactionData r_current_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
+
+    if (rOutput.size() != num_gauss_points) {
+        rOutput.resize(num_gauss_points);
+    }
+
+    r_current_data.CalculateConstants(rCurrentProcessInfo);
+
+    for (IndexType g = 0; g < num_gauss_points; ++g) {
+        const Matrix& r_shape_derivatives = shape_derivatives[g];
+        const Vector& r_shape_functions = row(shape_functions, g);
+
+        r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+
+        r_current_data.CalculateOnIntegrationPoints(
+            rOutput[g], rVariable, r_shape_functions, r_shape_derivatives,
+            rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateGeometryData(
     Vector& rGaussWeights,
     Matrix& rNContainer,
