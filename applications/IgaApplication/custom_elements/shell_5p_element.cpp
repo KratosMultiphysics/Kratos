@@ -92,25 +92,23 @@ namespace Kratos
     {
         KRATOS_TRY
         const auto& r_geometry = GetGeometry();
-        std::cout << "CalculateAll" << std::endl;
+
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType mat_size = number_of_nodes * 5;
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
         Matrix BOperator(8, mat_size);
-        std::cout << "CalculateAll1" << std::endl;
+
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-            std::cout << "CalculateAll2" << std::endl;
+
             KinematicVariables kinematic_variables;
             VariationVariables variation_variables;
             std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number);
-            std::cout << "CalculateAll3" << std::endl;
-            std::cout << kinematic_variables.a1 << std::endl;
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
                 GetGeometry(), GetProperties(), rCurrentProcessInfo);
-            std::cout << "CalculateAll3.5" << std::endl;
+
             ConstitutiveVariables constitutive_variables(8); //0..2 membrane, 3..5 curvature, 6..7 transverse shear
             CalculateConstitutiveVariables(
                 point_number,
@@ -118,11 +116,11 @@ namespace Kratos
                 constitutive_variables,
                 constitutive_law_parameters,
                 ConstitutiveLaw::StressMeasure_PK2);
-            std::cout << "CalculateAll3.75" << std::endl;
+
             BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);
-            std::cout << "CalculateAll3.8" << std::endl;
+
             double integration_weight = r_integration_points[point_number].Weight() * m_dA_vector[point_number];
-            std::cout << "CalculateAll4" << std::endl;
+
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
             {
@@ -138,7 +136,7 @@ namespace Kratos
             if (CalculateResidualVectorFlag == true)
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BOperator), constitutive_variables.StressVector);
         }
-        std::cout << "CalculateAll5" << std::endl;
+
         KRATOS_CATCH("");
     }
 
@@ -152,8 +150,6 @@ namespace Kratos
     {
         KinematicVariables rKin;
         VariationVariables rVar;
-        rKin.setZero();
-        std::cout <<"SDADASDSADSA: "<< GetGeometry()[0].GetValue(DIRECTOR) << std::endl;
         rKin.t = InterpolateVariable(row(m_N, IntegrationPointIndex), m_GetValueFunctor, DIRECTOR);
         rKin.dtd1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetValueFunctor, DIRECTOR);
         rKin.dtd2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetValueFunctor, DIRECTOR);
@@ -163,7 +159,7 @@ namespace Kratos
         rKin.A2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetInitialPositionFunctor);
         rKin.dud1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
         rKin.dud2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
-        std::cout << "rKin.t: " << rKin.t << std::endl;
+
         double invL_t = 1.0 / norm_2(rKin.t);
         rKin.t *= invL_t;
 
@@ -278,11 +274,7 @@ namespace Kratos
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType num_dof = number_of_nodes * 5;
-        std::cout << "iP: " << iP << std::endl;
-        std::cout << "number_of_nodes: " << number_of_nodes << std::endl;
-        std::cout << "num_dof: " << num_dof << std::endl;
-        std::cout << "rVariations.Q1: " << rVariations.Q1 << std::endl;
-        std::cout << "rVariations.P: " << rVariations.P << std::endl;
+
         Matrix rB{ ZeroMatrix(8, num_dof) };
         for (SizeType r = 0; r < number_of_nodes; r++)
         {

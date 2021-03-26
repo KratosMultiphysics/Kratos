@@ -81,7 +81,7 @@ namespace Kratos
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
                         const IndexType index = 2 * i;
-                        subrange(f, index, index + 1) = r_N(point_number, i) * d_weight * prod(r_geometry[i].GetValue(DIRECTORTANGENTSPACE), momentload);
+                        subrange(f, index, index + 1) = r_N(point_number, i) * d_weight * prod(trans(r_geometry[i].GetValue(DIRECTORTANGENTSPACE)), momentload);
                     }
                 }
 
@@ -107,8 +107,10 @@ namespace Kratos
         double invL_t = 1.0 / norm_2(t);
         t *= invL_t;
 
-       const BoundedMatrix<double,3,3> P = (IdentityMatrix(3) - outer_prod(t, t))*invL_t;
-       return prod(P, momentload);
+     //  const BoundedMatrix<double,3,3> P = (IdentityMatrix(3) - outer_prod(t, t))*invL_t;
+       array_1d<double, 3> momentloadtranformed;
+       MathUtils<double>::CrossProduct(momentloadtranformed, momentload, t);
+       return  momentloadtranformed;
     }
 
     void MomentLoadCondition::DeterminantOfJacobianInitial(
@@ -146,7 +148,7 @@ namespace Kratos
     void MomentLoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
-    ) const 
+    ) const
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
