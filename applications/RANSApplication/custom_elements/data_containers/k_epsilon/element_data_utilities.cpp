@@ -64,8 +64,8 @@ double CalculateProductionTerm(
     noalias(symmetric_velocity_gradient) = rVelocityGradient + trans(rVelocityGradient);
 
     BoundedMatrix<double, TDim, TDim> reynolds_stress_tensor = symmetric_velocity_gradient;
-    noalias(reynolds_stress_tensor) -= (2.0 / 3.0) * velocity_divergence * identity;
-    noalias(reynolds_stress_tensor) *= TurbulentKinematicViscosity;
+    noalias(reynolds_stress_tensor) -= identity * ((2.0 / 3.0) * velocity_divergence);
+    noalias(reynolds_stress_tensor) = reynolds_stress_tensor * TurbulentKinematicViscosity;
 
     double source = 0.0;
     for (unsigned int i = 0; i < TDim; ++i) {
