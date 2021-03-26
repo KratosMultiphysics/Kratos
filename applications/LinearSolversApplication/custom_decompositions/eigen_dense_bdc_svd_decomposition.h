@@ -83,7 +83,7 @@ public:
 
     void Compute(
         MatrixType& rInputMatrix,
-        Parameters Settings)
+        Parameters Settings) override
     {
         // Check user defined options
         Parameters default_settings = Parameters(R"(
@@ -114,7 +114,7 @@ public:
         VectorType& rVectorS,
         MatrixType& rMatrixU,
         MatrixType& rMatrixV,
-        Parameters Settings)
+        Parameters Settings) override
     {
         Compute(rInputMatrix, Settings);
         SingularValues(rVectorS);
@@ -122,7 +122,7 @@ public:
         MatrixV(rMatrixV);
     }
 
-    void MatrixU(MatrixType& rMatrixU)
+    void MatrixU(MatrixType& rMatrixU) override
     {
         KRATOS_ERROR_IF_NOT(mBDCSVD.computeU()) << "Matrix U has not been computed. Switch \'compute_U\' to \'true\' in the \'Compute\' input settings." << std::endl;
 
@@ -137,7 +137,7 @@ public:
         matrix_u_map = r_matrix_U;
     }
 
-    void MatrixV(MatrixType& rMatrixV)
+    void MatrixV(MatrixType& rMatrixV) override
     {
         KRATOS_ERROR_IF_NOT(mBDCSVD.computeV()) << "Matrix V has not been computed. Switch \'compute_V\' to \'true\' in the \'Compute\' input settings." << std::endl;
 
@@ -152,7 +152,7 @@ public:
         matrix_v_map = r_matrix_V;
     }
 
-    void SingularValues(VectorType& rVectorS)
+    void SingularValues(VectorType& rVectorS) override
     {
         const auto& r_vector_S = mBDCSVD.singularValues();
         const std::size_t m = r_vector_S.rows();
@@ -164,17 +164,17 @@ public:
         vector_s_map = r_vector_S;
     }
 
-    std::size_t NonZeroSingularValues()
+    std::size_t NonZeroSingularValues() override
     {
         return mBDCSVD.nonzeroSingularValues();
     }
 
-    std::size_t Rank()
+    std::size_t Rank() override
     {
         return mBDCSVD.rank();
     }
 
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "EigenDecomposition <" << Name() << "> finished.";
     }
