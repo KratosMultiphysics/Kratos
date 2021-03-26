@@ -257,6 +257,8 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
             mBeta2, mBetaStar, mSigmaOmega2, mKappa);
 
         rOutput = KOmegaSSTElementData::CalculateBlendedPhi(gamma_1, gamma_2, f1);
+    } else if (rVariable == RANS_GAUSS_PRODUCTION_TERM) {
+        rOutput = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, 1.0);
     }
 
     KRATOS_CATCH("");

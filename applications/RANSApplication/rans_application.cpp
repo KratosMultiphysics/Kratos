@@ -213,6 +213,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( RANS_GAUSS_K_OMEGA_SST_F1_ARG_4 )
     KRATOS_REGISTER_VARIABLE( RANS_GAUSS_K_OMEGA_SST_F1_ARG_5 )
     KRATOS_REGISTER_VARIABLE( RANS_GAUSS_K_OMEGA_SST_F1_ARG_6 )
+    KRATOS_REGISTER_VARIABLE( RANS_GAUSS_PRODUCTION_TERM )
 
     // registering elements
     // registering incompressible potential flow elements
