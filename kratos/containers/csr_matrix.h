@@ -274,7 +274,7 @@ public:
         if(DataSize!=0)
             mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
         else
-            mColIndices = span<TIndexType>();
+            mColIndices = span<TDataType>();
     }
 
     void ResizeIndex1Data(TIndexType DataSize){
