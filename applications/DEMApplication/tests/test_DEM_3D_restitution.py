@@ -157,9 +157,10 @@ class TestDEM3DRestitution(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution_2, model, parameters_file_name, 1)
 
-
     def tearDown(self):
         file_to_remove = os.path.join("DEM3D_restitution_tests_files", "TimesPartialRelease")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+        file_to_remove = os.path.join("DEM3D_restitution_tests_files", "flux_data_new.hdf5")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
 
