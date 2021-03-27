@@ -256,7 +256,7 @@ void RunRansKOmegaQSVMSRFCAdjointTest(
         }
     };
 
-    FluidAdjointTestUtilities::Testing<ModelPart::ConditionsContainerType>::RunAdjointEntityDerivativesTest(
+    FluidAdjointTestUtilities::RunAdjointEntityDerivativesTest(
         r_primal_model_part, r_adjoint_model_part, update_function, rVariable,
         rDerivativesRetrievalFunction, EquationOffset, DerivativesOffset, Delta, Tolerance);
 }
