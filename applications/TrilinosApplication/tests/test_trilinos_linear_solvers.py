@@ -295,6 +295,7 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
             }
             """)
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AztecSolver'), "AztecSolver was explicitly disabled.")
 class TestAztecLinearSolvers(TestLinearSolvers):
     def test_aztec_cg(self):
         self._RunParametrized("""
@@ -378,6 +379,7 @@ class TestAztecLinearSolvers(TestLinearSolvers):
             }
             """)
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
 class TestMLLinearSolvers(TestLinearSolvers):
     def test_ml_symmetric(self):
         self._RunParametrized("""

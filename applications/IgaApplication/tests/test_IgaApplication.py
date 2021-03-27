@@ -8,6 +8,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+# Membrane tests
+from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
+from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
+from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as MembraneSinglePatchFourPointSailImplicitDynamic
 # 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
 from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
@@ -35,7 +39,11 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # Import test
         SinglePatchTest,
+        # Membrane tests
+        MembraneSinglePatchFourPointSailLinearStatic,
+        MembraneSinglePatchFourPointSailNonLinearStatic,
         # 3p Shell KL
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
@@ -46,6 +54,8 @@ def AssembleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # Membrane tests
+        MembraneSinglePatchFourPointSailImplicitDynamic,
         # 5p Shell Hierarchic
         TShell5pHierarchicLinearThickBeamTest,
         TShell5pHierarchicLinearScordelisTest,

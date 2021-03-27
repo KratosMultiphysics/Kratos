@@ -39,6 +39,16 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
+# Membrane
+class MembraneSinglePatchFourPointSailLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_linear_static"
+
+class MembraneSinglePatchFourPointSailNonLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_non_linear_static"
+
+class MembraneSinglePatchFourPointSailImplicitDynamic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic"
+
 # 3p Kirchhoff-Love Shell
 class ScordelisRoofShell3pTest(IgaTestFactory):
     file_name = "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p"
