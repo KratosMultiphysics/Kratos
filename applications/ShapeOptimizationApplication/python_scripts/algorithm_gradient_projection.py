@@ -23,7 +23,6 @@ from . import mapper_factory
 from . import data_logger_factory
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-from .termination_criteria import CreateTerminationCriteria
 
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
@@ -34,10 +33,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             "name"                    : "penalized_projection",
             "max_correction_share"    : 0.75,
             "max_iterations"          : 100,
-            "termination_settings"    : {
-                "termination_criteria"    : "relative_value",
-                "relative_tolerance"      : 1e-3
-            },
+            "relative_tolerance"      : 1e-3,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
@@ -45,8 +41,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             }
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
-        self.algorithm_settings.ValidateAndAssignDefaults(default_algorithm_settings)
-        self.algorithm_settings["line_search"].ValidateAndAssignDefaults(default_algorithm_settings["line_search"])
+        self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
         self.optimization_settings = optimization_settings
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
@@ -74,8 +69,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
-
-        self.termination_criteria = CreateTerminationCriteria(self.algorithm_settings["termination_settings"])
+        self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
@@ -304,9 +298,11 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
                 return True
 
-            if self.termination_criteria.IsConverged(self.data_logger, self.optimization_iteration):
+            # Check for relative tolerance
+            relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
+            if abs(relative_change_of_objective_value) < self.relative_tolerance:
                 KM.Logger.Print("")
-                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged.")
+                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------
