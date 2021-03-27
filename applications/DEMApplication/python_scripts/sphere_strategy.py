@@ -110,7 +110,7 @@ class ExplicitStrategy():
 
 
         # TIME RELATED PARAMETERS
-        self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
+        self.dt = DEM_parameters["MaxTimeStep"].GetDouble()
         self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
         self.end_time = DEM_parameters["FinalTime"].GetDouble()
 
@@ -268,7 +268,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
-        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
 
         #-----os.chdir('..')   # check functionality
 
@@ -689,11 +689,15 @@ class ExplicitStrategy():
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             self.Procedures.KratosPrintWarning("  WARNING: Property FRICTION is deprecated since April 6th, 2020, ")
-            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION and DYNAMIC_FRICTION")
+            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION, DYNAMIC_FRICTION and FRICTION_DECAY")
             self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             properties[STATIC_FRICTION] = properties[FRICTION]
             properties[DYNAMIC_FRICTION] = properties[FRICTION]
+            properties[FRICTION_DECAY] = 500.0
+
+        if not properties.Has(FRICTION_DECAY):
+            properties[FRICTION_DECAY] = 500.0
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

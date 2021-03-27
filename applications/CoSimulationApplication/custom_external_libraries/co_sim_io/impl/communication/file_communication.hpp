@@ -10,85 +10,31 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#ifndef CO_SIM_IO_FILE_COMMUNICATION_H_INCLUDED
-#define CO_SIM_IO_FILE_COMMUNICATION_H_INCLUDED
+#ifndef CO_SIM_IO_FILE_COMMUNICATION_INCLUDED
+#define CO_SIM_IO_FILE_COMMUNICATION_INCLUDED
 
 // System includes
 #include <chrono>
 #include <thread>
 #include <iomanip>
 #include <algorithm>
-
-// std::filesystem is needed for file communication in a folder
-// std::filesystem is part of C++17 and not supported by every compiler. Here we check if it is available.
-#if defined(__cplusplus) && __cplusplus >= 201703L
-    #if defined(__has_include) && __has_include(<filesystem>) // has_include is C++17, hence has to be checked in a separate line
-        #define CO_SIM_IO_FILESYSTEM_AVAILABLE
-        #include <filesystem>
-        namespace fs = std::filesystem;
-    #elif __has_include(<experimental/filesystem>)
-        #define CO_SIM_IO_FILESYSTEM_AVAILABLE
-        #include <experimental/filesystem>
-        namespace fs = std::experimental::filesystem;
-    #endif
-#endif
-
+#include <limits>
+#include <system_error>
 
 // Project includes
 #include "communication.hpp"
+#include "../vtk_utilities.hpp"
+#include "../filesystem_inc.hpp"
 
 namespace CoSimIO {
 namespace Internals {
 
 namespace { // helpers namespace
 
-static double ElapsedSeconds(const std::chrono::steady_clock::time_point& rStartTime)
-{
-    using namespace std::chrono;
-    return duration_cast<duration<double>>(steady_clock::now() - rStartTime).count();
-}
-
-static bool FileExists(const std::string& rFileName)
-{
-    std::ifstream infile(rFileName);
-    return infile.good(); // no need to close manually
-}
-
-static void RemoveFile(const std::string& rFileName)
-{
-    if (std::remove(rFileName.c_str()) != 0) {
-        CO_SIM_IO_INFO("CoSimIO") << "Warning: \"" << rFileName << "\" could not be deleted!" << std::endl;
-    }
-}
-
 template <typename T>
-static void CheckStream(const T& rStream, const std::string& rFileName)
+static void CheckStream(const T& rStream, const fs::path& rPath)
 {
-    CO_SIM_IO_ERROR_IF_NOT(rStream.is_open()) << rFileName << " could not be opened!" << std::endl;
-}
-
-static int GetNumNodesForVtkCellType(const int VtkCellType)
-{
-    const std::unordered_map<int, int> vtk_cell_type_map {
-        { /*Point3D,          */ 1 ,  1},
-        { /*Line3D2,          */ 3 ,  2},
-        { /*Triangle3D3,      */ 5 ,  3},
-        { /*Quadrilateral3D4, */ 9 ,  4},
-        { /*Tetrahedra3D4,    */ 10 , 4},
-        { /*Hexahedra3D8,     */ 12 , 8},
-        { /*Prism3D6,         */ 13 , 6},
-        { /*Line3D3,          */ 21 , 3},
-        { /*Triangle3D6,      */ 22 , 6},
-        { /*Quadrilateral3D8, */ 23 , 7},
-        { /*Tetrahedra3D10,   */ 24,  10}
-    };
-
-    if (vtk_cell_type_map.count(VtkCellType) > 0) {
-        return vtk_cell_type_map.at(VtkCellType);
-    } else {
-        CO_SIM_IO_ERROR << "Unsupported cell type: " << VtkCellType << std::endl;
-        return 0;
-    }
+    CO_SIM_IO_ERROR_IF_NOT(rStream.is_open()) << rPath << " could not be opened!" << std::endl;
 }
 
 } // helpers namespace
@@ -97,61 +43,161 @@ static int GetNumNodesForVtkCellType(const int VtkCellType)
 class FileCommunication : public Communication
 {
 public:
-    explicit FileCommunication(const std::string& rName, const Info& I_Settings, const bool IsConnectionMaster)
-        : Communication(rName, I_Settings, IsConnectionMaster)
+    explicit FileCommunication(const Info& I_Settings) : Communication(I_Settings)
     {
-        if (I_Settings.Has("use_folder_for_communication")) {
-            mCommInFolder = I_Settings.Get<bool>("use_folder_for_communication");
-        }
-
-        mCommFolder = ".CoSimIOFileComm_"+rName;
-
-        #ifndef CO_SIM_IO_FILESYSTEM_AVAILABLE
-        CO_SIM_IO_ERROR_IF(mCommInFolder) << "Communication is a folder can only be used if std::filesystem (C++17) is available" << std::endl;
-        #endif
-
-        if (mCommInFolder && GetIsConnectionMaster()) {
-            #ifdef CO_SIM_IO_FILESYSTEM_AVAILABLE
-            // delete and recreate directory to remove potential leftovers
-            fs::remove_all(mCommFolder);
-            fs::create_directory(mCommFolder);
-            #endif
-        }
+        mCommFolder = GetWorkingDirectory();
+        mCommFolder /= ".CoSimIOFileComm_" + GetConnectionName();
+        mCommInFolder = I_Settings.Get<bool>("use_folder_for_communication", true);
     }
 
     ~FileCommunication() override
     {
         if (GetIsConnected()) {
             CO_SIM_IO_INFO("CoSimIO") << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
-            Disconnect();
+            Info tmp;
+            Disconnect(tmp);
         }
     }
 
 private:
 
-    std::string mCommFolder = "";
-    bool mCommInFolder = false;
+    fs::path mCommFolder;
+    bool mCommInFolder = true;
+    mutable int mFileIndex = 0;
 
-    bool ConnectDetail() override
+    Info ConnectDetail(const Info& I_Info) override
     {
-        return true; // nothing needed here for file-based communication (maybe do sth here?)
-        // master could write a file that gets deleted by slave to aknowledge connection... Probably not a bad idea! => slave returns once it found and deleted file, master waits for deletion of file
+        if (mCommInFolder) {
+            if (GetIsPrimaryConnection()) {
+                // delete and recreate directory to remove potential leftovers
+                std::error_code ec;
+                fs::remove_all(mCommFolder, ec);
+                if (ec) {
+                    CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
+                }
+                if (!fs::exists(mCommFolder)) {
+                    fs::create_directory(mCommFolder);
+                }
+            }
+        }
+
+        ExchangeSyncFileWithPartner("connect");
+
+        Info info;
+        info.Set("is_connected", true);
+        return info;
     }
 
-    bool DisconnectDetail() override
+    Info DisconnectDetail(const Info& I_Info) override
     {
-        return true; // nothing needed here for file-based communication (maybe do sth here?)
+        ExchangeSyncFileWithPartner("disconnect");
+
+        if (mCommInFolder && GetIsPrimaryConnection()) {
+            // delete directory to remove potential leftovers
+            std::error_code ec;
+            fs::remove_all(mCommFolder, ec);
+            if (ec) {
+                CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
+            }
+        }
+
+        Info info;
+        info.Set("is_connected", false);
+        return info;
     }
 
-     void ImportDataImpl(
-        const std::string& rIdentifier,
-        CoSimIO::Internals::DataContainer<double>& rData) override
+    void ExchangeSyncFileWithPartner(const std::string& rIdentifier) const
     {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + GetConnectionName() + "_" + rIdentifier + ".dat"));
+        const fs::path file_name_primary(GetFileName("CoSimIO_primary_" + rIdentifier + "_" + GetConnectionName(), "sync"));
+        const fs::path file_name_secondary(GetFileName("CoSimIO_secondary_" + rIdentifier + "_" + GetConnectionName(), "sync"));
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        if (GetIsPrimaryConnection()) {
+            std::ofstream sync_file;
+            sync_file.open(GetTempFileName(file_name_primary));
+            sync_file.close();
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
+            MakeFileVisible(file_name_primary);
 
-        WaitForFile(file_name);
+            WaitForPath(file_name_secondary);
+            RemovePath(file_name_secondary);
+
+            WaitUntilFileIsRemoved(file_name_primary);
+        } else {
+            WaitForPath(file_name_primary);
+            RemovePath(file_name_primary);
+
+            std::ofstream sync_file;
+            sync_file.open(GetTempFileName(file_name_secondary));
+            sync_file.close();
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
+            MakeFileVisible(file_name_secondary);
+
+            WaitUntilFileIsRemoved(file_name_secondary);
+        }
+    }
+
+    Info ImportInfoImpl(const Info& I_Info) override
+    {
+        const std::string identifier = I_Info.Get<std::string>("identifier");
+        CheckEntry(identifier, "identifier");
+
+        const fs::path file_name(GetFileName("CoSimIO_info_" + GetConnectionName() + "_" + identifier, "dat"));
+
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to import Info in file " << file_name << " ..." << std::endl;
+
+        WaitForPath(file_name);
+
+        std::ifstream input_file(file_name);
+        CheckStream(input_file, file_name);
+
+        Info imported_info;
+        imported_info.Load(input_file);
+
+        input_file.close(); // TODO check return value?
+        RemovePath(file_name);
+
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished importing Info" << std::endl;
+
+        return imported_info;
+    }
+
+    Info ExportInfoImpl(const Info& I_Info) override
+    {
+        const std::string identifier = I_Info.Get<std::string>("identifier");
+        CheckEntry(identifier, "identifier");
+
+        const fs::path file_name(GetFileName("CoSimIO_info_" + GetConnectionName() + "_" + identifier, "dat"));
+
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to export Info in file " << file_name << " ..." << std::endl;
+
+        WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
+
+        std::ofstream output_file;
+        output_file.open(GetTempFileName(file_name));
+        CheckStream(output_file, file_name);
+
+        I_Info.Save(output_file);
+
+        output_file.close();
+        MakeFileVisible(file_name);
+
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished exporting Info" << std::endl;
+
+        return Info(); // TODO use
+    }
+
+    Info ImportDataImpl(
+        const Info& I_Info,
+        Internals::DataContainer<double>& rData) override
+    {
+        const std::string identifier = I_Info.Get<std::string>("identifier");
+        CheckEntry(identifier, "identifier");
+
+        const fs::path file_name(GetFileName("CoSimIO_data_" + GetConnectionName() + "_" + identifier, "dat"));
+
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to import array \"" << identifier << "\" in file " << file_name << " ..." << std::endl;
+
+        WaitForPath(file_name);
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -169,23 +215,29 @@ private:
             input_file >> rData[i];
         }
 
-        RemoveFile(file_name);
+        input_file.close();
+        RemovePath(file_name);
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving array with size: " << size_read << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished importing array with size: " << size_read << std::endl;
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Importing Array \"" << identifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+
+        return Info(); // TODO use
     }
 
-    void ExportDataImpl(
-        const std::string& rIdentifier,
-        const CoSimIO::Internals::DataContainer<double>& rData) override
+    Info ExportDataImpl(
+        const Info& I_Info,
+        const Internals::DataContainer<double>& rData) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + GetConnectionName() + "_" + rIdentifier + ".dat"));
+        const std::string identifier = I_Info.Get<std::string>("identifier");
+        CheckEntry(identifier, "identifier");
+
+        const fs::path file_name(GetFileName("CoSimIO_data_" + GetConnectionName() + "_" + identifier, "dat"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
         const std::size_t size = rData.size();
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to export array \"" << identifier << "\" with size: " << size << " in file " << file_name << " ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -206,22 +258,25 @@ private:
         output_file.close();
         MakeFileVisible(file_name);
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending array" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished exporting array" << std::endl;
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Exporting Array \"" << identifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+
+        return Info(); // TODO use
     }
 
-    void ImportMeshImpl(
-        const std::string& rIdentifier,
-        CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
-        CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
-        CoSimIO::Internals::DataContainer<int>& rElementTypes) override
+    Info ImportMeshImpl(
+        const Info& I_Info,
+        ModelPart& O_ModelPart) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetConnectionName() + "_" + rIdentifier + ".vtk"));
+        const std::string identifier = I_Info.Get<std::string>("identifier");
+        CheckEntry(identifier, "identifier");
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        const fs::path file_name(GetFileName("CoSimIO_mesh_" + GetConnectionName() + "_" + identifier, "vtk"));
 
-        WaitForFile(file_name);
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to import mesh \"" << identifier << "\" in file " << file_name << " ..." << std::endl;
+
+        WaitForPath(file_name);
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -230,90 +285,116 @@ private:
 
         // reading file
         std::string current_line;
-        bool nodes_read = false;
-        bool cells_read = false;
+        std::vector<double> nodal_coords;
+        std::vector<IdType> nodal_ids;
+        std::vector<IdType> element_ids;
+        std::vector<ElementType> element_types;
+        std::vector<ConnectivitiesType> element_connectivities;
 
         while (std::getline(input_file, current_line)) {
             // reading nodes
             if (current_line.find("POINTS") != std::string::npos) {
-                CO_SIM_IO_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
-                CO_SIM_IO_ERROR_IF(cells_read) << "The cells were read already!" << std::endl;
-                nodes_read = true;
-
-                int num_nodes;
+                std::size_t num_nodes;
                 current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
                 std::istringstream line_stream(current_line);
                 line_stream >> num_nodes;
 
                 CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
-                rNodalCoordinates.resize(3*num_nodes);
+                nodal_coords.resize(3*num_nodes);
+                nodal_ids.resize(num_nodes);
 
-                for (int i=0; i<num_nodes*3; ++i) {
-                    input_file >> rNodalCoordinates[i];
+                for (std::size_t i=0; i<num_nodes*3; ++i) {
+                    input_file >> nodal_coords[i];
                 }
             }
 
-            // reading cells
+            // reading connectivities
             if (current_line.find("CELLS") != std::string::npos) {
-                CO_SIM_IO_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
-                CO_SIM_IO_ERROR_IF(cells_read) << "The cells were read already!" << std::endl;
-                cells_read = true;
-
-                int num_nodes_per_cell, num_cells, elem_conn, cell_list_size;
+                std::size_t num_elems, num_nodes_per_elem;
                 current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
                 std::istringstream line_stream(current_line);
-                line_stream >> num_cells;
-                line_stream >> cell_list_size;
+                line_stream >> num_elems;
 
-                rElementConnectivities.resize(cell_list_size-num_cells); // the first in number in each line is the number of connectivities, which is not needed bcs it can be derived form the elements-type
-                rElementTypes.resize(num_cells);
+                element_ids.resize(num_elems);
+                element_types.resize(num_elems);
+                element_connectivities.resize(num_elems);
 
-                CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_cells << " Elements" << std::endl;
+                CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Mesh contains " << num_elems << " Elements" << std::endl;
 
-                int counter=0;
-                for (int i=0; i<num_cells; ++i) {
-                    input_file >> num_nodes_per_cell;
-                    for (int j=0; j<num_nodes_per_cell; ++j) {
-                        input_file >> elem_conn;
-                        rElementConnectivities[counter++] = elem_conn;
+                for (std::size_t i=0; i<num_elems; ++i) {
+                    input_file >> num_nodes_per_elem;
+                    element_connectivities[i].resize(num_nodes_per_elem);
+                    for (std::size_t j=0; j<num_nodes_per_elem; ++j) {
+                        input_file >> element_connectivities[i][j];
                     }
                 }
             }
 
-            // reading cell types
-            if (current_line.find("CELL_TYPES") != std::string::npos) {
-                CO_SIM_IO_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
-                CO_SIM_IO_ERROR_IF_NOT(cells_read) << "The cells were not yet read!" << std::endl;
-
-                for (std::size_t i=0; i<rElementTypes.size(); ++i) { // rElementTypes was resized to correct size above
-                    input_file >> rElementTypes[i];
+            // reading node Ids
+            if (current_line.find("NODE_ID") != std::string::npos) {
+                for (std::size_t i=0; i<nodal_ids.size(); ++i) { // nodal_ids was resized to correct size above
+                    input_file >> nodal_ids[i];
                 }
+            }
 
+            // reading element Ids
+            if (current_line.find("ELEMENT_ID") != std::string::npos) {
+                for (std::size_t i=0; i<element_ids.size(); ++i) { // element_ids was resized to correct size above
+                    input_file >> element_ids[i];
+                }
+            }
+
+            // reading element types
+            if (current_line.find("ELEMENT_TYPE") != std::string::npos) {
+                int enum_temp;
+                for (std::size_t i=0; i<element_types.size(); ++i) { // element_types was resized to correct size above
+                    input_file >> enum_temp; // using a temp variable as enums cannot be read directly
+                    element_types[i] = static_cast<CoSimIO::ElementType>(enum_temp);
+                }
             }
         }
 
-        RemoveFile(file_name);
+        // filling ModelPart with read information
+        for (std::size_t i=0; i<nodal_ids.size(); ++i) {
+            O_ModelPart.CreateNewNode(
+                nodal_ids[i],
+                nodal_coords[i*3],
+                nodal_coords[i*3+1],
+                nodal_coords[i*3+2]);
+        }
+        for (std::size_t i=0; i<element_ids.size(); ++i) {
+            for (auto& conn : element_connectivities[i]) {
+                conn = nodal_ids[conn]; // transforming vtk Ids back to original Ids
+            }
+            O_ModelPart.CreateNewElement(
+                element_ids[i],
+                element_types[i],
+                element_connectivities[i]);
+        }
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
+        input_file.close();
+        RemovePath(file_name);
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished importing mesh" << std::endl;
+
+        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Importing Mesh \"" << identifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+
+        return Info(); // TODO use
     }
 
-    void ExportMeshImpl(
-        const std::string& rIdentifier,
-        const CoSimIO::Internals::DataContainer<double>& rNodalCoordinates,
-        const CoSimIO::Internals::DataContainer<int>& rElementConnectivities,
-        const CoSimIO::Internals::DataContainer<int>& rElementTypes) override
+    Info ExportMeshImpl(
+        const Info& I_Info,
+        const ModelPart& I_ModelPart) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetConnectionName() + "_" + rIdentifier + ".vtk"));
+        const std::string identifier = I_Info.Get<std::string>("identifier");
+        CheckEntry(identifier, "identifier");
+
+        const fs::path file_name(GetFileName("CoSimIO_mesh_" + GetConnectionName() + "_" + identifier, "vtk"));
 
         WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
 
-        const std::size_t num_nodes = rNodalCoordinates.size()/3;
-        const std::size_t num_elems = rElementTypes.size();
-
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_elems << " Elements in file \"" << file_name << "\" ..." << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to export mesh \"" << identifier << "\" with " << I_ModelPart.NumberOfNodes() << " Nodes | " << I_ModelPart.NumberOfElements() << " Elements in file " << file_name << " ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -325,149 +406,147 @@ private:
 
         // write file header
         output_file << "# vtk DataFile Version 4.0\n";
-        output_file << "vtk output\n";
+        output_file << "CoSimIO FileCommunication\n";
         output_file << "ASCII\n";
         output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
-        // write nodes
-        output_file << "POINTS " << num_nodes << " float\n";
-        for (std::size_t i=0; i<num_nodes; ++i) {
-            output_file << rNodalCoordinates[i*3] << " " << rNodalCoordinates[i*3+1] << " " << rNodalCoordinates[i*3+2] << "\n";
+        // write nodes and create Id map
+        std::unordered_map<IdType, IdType> id_map;
+        IdType vtk_id = 0;
+        output_file << "POINTS " << I_ModelPart.NumberOfNodes() << " float\n";
+        for (auto node_it=I_ModelPart.NodesBegin(); node_it!=I_ModelPart.NodesEnd(); ++node_it) {
+            output_file << (*node_it)->X() << " " << (*node_it)->Y() << " " << (*node_it)->Z() << "\n";
+            id_map[(*node_it)->Id()] = vtk_id++;
         }
         output_file << "\n";
 
-        // get connectivity information
+        // get cells size information
         std::size_t cell_list_size = 0;
-        std::size_t counter = 0;
-        int connectivities_offset = std::numeric_limits<int>::max(); //in paraview the connectivities start from 0, hence we have to check beforehand what is the connectivities offset
-        for (std::size_t i=0; i<num_elems; ++i) {
-            const std::size_t num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
-            cell_list_size += num_nodes_cell + 1; // +1 for size of connectivity
-            for (std::size_t j=0; j<num_nodes_cell; ++j) {
-                connectivities_offset = std::min(connectivities_offset, rElementConnectivities[counter++]);
-            }
+        for (auto elem_it=I_ModelPart.ElementsBegin(); elem_it!=I_ModelPart.ElementsEnd(); ++elem_it) {
+            cell_list_size += (*elem_it)->NumberOfNodes() + 1; // +1 for size of connectivity
         }
 
-        CO_SIM_IO_ERROR_IF(num_elems > 0 && connectivities_offset != 0) << "Connectivities have an offset of " << connectivities_offset << " which is not allowed!" << std::endl;
-
         // write cells connectivity
-        counter = 0;
-        output_file << "CELLS " << num_elems << " " << cell_list_size << "\n";
-        for (std::size_t i=0; i<num_elems; ++i) {
-            const std::size_t num_nodes_cell = GetNumNodesForVtkCellType(rElementTypes[i]);
+        const auto const_id_map = id_map; // const reference to not accidentially modify the map
+        output_file << "CELLS " << I_ModelPart.NumberOfElements() << " " << cell_list_size << "\n";
+        for (auto elem_it=I_ModelPart.ElementsBegin(); elem_it!=I_ModelPart.ElementsEnd(); ++elem_it) {
+            const std::size_t num_nodes_cell = (*elem_it)->NumberOfNodes();
             output_file << num_nodes_cell << " ";
-            for (std::size_t j=0; j<num_nodes_cell; ++j) {
-                output_file << (rElementConnectivities[counter++]-connectivities_offset);
-                if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
+            std::size_t node_counter = 0;
+            for (auto node_it=(*elem_it)->NodesBegin(); node_it!=(*elem_it)->NodesEnd(); ++node_it) {
+                const IdType node_id = (*node_it)->Id();
+                auto id_iter = const_id_map.find(node_id);
+                CO_SIM_IO_ERROR_IF(id_iter == const_id_map.end()) << "The node with Id " << node_id << " is not part of the ModelPart but used for Element with Id " << (*elem_it)->Id() << std::endl;
+                output_file << id_iter->second;
+                if (node_counter++<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
             }
             output_file << "\n";
         }
-
         output_file << "\n";
 
         // write cell types
-        output_file << "CELL_TYPES " << num_elems << "\n";
-        for (std::size_t i=0; i<num_elems; ++i) {
-            output_file << rElementTypes[i] << "\n";
+        output_file << "CELL_TYPES " << I_ModelPart.NumberOfElements() << "\n";
+        for (auto elem_it=I_ModelPart.ElementsBegin(); elem_it!=I_ModelPart.ElementsEnd(); ++elem_it) {
+            output_file << static_cast<int>(GetVtkCellTypeForElementType((*elem_it)->Type())) << "\n";
+        }
+        output_file << "\n";
+
+        // writing node Ids
+        output_file << "POINT_DATA " << I_ModelPart.NumberOfNodes() << "\n";
+        output_file << "FIELD FieldData 1" << "\n";
+        output_file << "NODE_ID 1 " << I_ModelPart.NumberOfNodes() << " int\n";
+        for (auto node_it=I_ModelPart.NodesBegin(); node_it!=I_ModelPart.NodesEnd(); ++node_it) {
+            output_file << (*node_it)->Id() << "\n";
+        }
+        output_file << "\n";
+
+        // writing element Ids
+        output_file << "CELL_DATA " << I_ModelPart.NumberOfElements() << "\n";
+        output_file << "FIELD FieldData 1" << "\n";
+        output_file << "ELEMENT_ID 1 " << I_ModelPart.NumberOfElements() << " int\n";
+        for (auto elem_it=I_ModelPart.ElementsBegin(); elem_it!=I_ModelPart.ElementsEnd(); ++elem_it) {
+            output_file << (*elem_it)->Id() << "\n";
+        }
+        output_file << "\n";
+
+        // writing element types
+        output_file << "CELL_DATA " << I_ModelPart.NumberOfElements() << "\n";
+        output_file << "FIELD FieldData 1" << "\n";
+        output_file << "ELEMENT_TYPE 1 " << I_ModelPart.NumberOfElements() << " int\n";
+        for (auto elem_it=I_ModelPart.ElementsBegin(); elem_it!=I_ModelPart.ElementsEnd(); ++elem_it) {
+            output_file << static_cast<int>((*elem_it)->Type()) << "\n";
         }
 
         output_file.close();
         MakeFileVisible(file_name);
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished exporting mesh" << std::endl;
 
-        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetPrintTiming()) << "Exporting Mesh \"" << identifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+
+        return Info(); // TODO use
     }
 
-    void SendControlSignalDetail(const std::string& rIdentifier, const CoSimIO::ControlSignal Signal) override
-    {
-        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
-
-        WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
-
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to send control signal in file \"" << file_name << "\" ..." << std::endl;
-
-        std::ofstream output_file;
-        output_file.open(GetTempFileName(file_name));
-        CheckStream(output_file, file_name);
-
-        output_file << static_cast<int>(Signal) << " " << rIdentifier;
-
-        output_file.close();
-        MakeFileVisible(file_name);
-
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished sending control signal" << std::endl;
-    }
-
-    CoSimIO::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
-    {
-        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetConnectionName() + ".dat"));
-
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Attempting to receive control signal in file \"" << file_name << "\" ..." << std::endl;
-
-        WaitForFile(file_name);
-
-        std::ifstream input_file(file_name);
-        CheckStream(input_file, file_name);
-
-        int control_signal;
-        input_file >> control_signal;
-        input_file >> rIdentifier;
-
-        RemoveFile(file_name);
-
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
-
-        return static_cast<CoSimIO::ControlSignal>(control_signal);
-    }
-
-    std::string GetTempFileName(const std::string& rFileName)
+    fs::path GetTempFileName(const fs::path& rPath) const
     {
         if (mCommInFolder) {
-            // TODO check this
-            return std::string(rFileName).insert(mCommFolder.length()+1, ".");
+            return rPath.string().insert(mCommFolder.string().length()+1, ".");
         } else {
-            return "." + rFileName;
+            return "." + rPath.string();
         }
     }
 
-    std::string GetFullPath(const std::string& rFileName)
+    fs::path GetFileName(const fs::path& rPath, const std::string& rExtension) const
     {
+        fs::path local_copy(rPath);
+        local_copy += "_" + std::to_string((mFileIndex++)%100) + "." + rExtension;
+
         if (mCommInFolder) {
-            // TODO check this
-            return mCommFolder + "/" + rFileName;  // using portable separator "/"
+            return mCommFolder / local_copy;
         } else {
-            return rFileName;
+            return local_copy;
         }
     }
 
-    void WaitForFile(const std::string& rFileName)
+    void WaitForPath(const fs::path& rPath) const
     {
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
-        while(!FileExists(rFileName)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
-            CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << std::endl;
+        while(!fs::exists(rPath)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
         }
-        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found file: \"" << rFileName << "\"" << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found: " << rPath << std::endl;
     }
 
-    void WaitUntilFileIsRemoved(const std::string& rFileName)
+    void WaitUntilFileIsRemoved(const fs::path& rPath) const
     {
-        if (FileExists(rFileName)) { // only issue the wating message if the file exists initially
-            CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
-            while(FileExists(rFileName)) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(50)); // wait 0.05s before next check
-                CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>2) << "    Waiting" << std::endl;
+        if (fs::exists(rPath)) { // only issue the wating message if the file exists initially
+            CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << " to be removed" << std::endl;
+            while(fs::exists(rPath)) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
             }
-            CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
+            CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << rPath << " was removed" << std::endl;
         }
     }
 
-    void MakeFileVisible(const std::string& rFinalFileName)
+    void MakeFileVisible(const fs::path& rPath) const
     {
-        if (std::rename(GetTempFileName(rFinalFileName).c_str(), rFinalFileName.c_str()) != 0) {
-            CO_SIM_IO_INFO("CoSimIO") << "Warning: \"" << rFinalFileName << "\" could not be made visible!" << std::endl;
+        std::error_code ec;
+        fs::rename(GetTempFileName(rPath), rPath, ec);
+        CO_SIM_IO_ERROR_IF(ec) << rPath << " could not be made visible!\nError code: " << ec.message() << std::endl;
+    }
+
+    void RemovePath(const fs::path& rPath) const
+    {
+        // In windows the file cannot be removed if another file handle is using it
+        // this can be the case here if the partner checks if the file (still) exists
+        // hence we try multiple times to delete it
+        std::error_code ec;
+        for (std::size_t i=0; i<5; ++i) {
+            if (fs::remove(rPath, ec)) {
+                return; // if file could be removed succesfully then return
+            }
         }
+        CO_SIM_IO_ERROR << rPath << " could not be deleted!\nError code: " << ec.message() << std::endl;
     }
 
 };
@@ -475,4 +554,4 @@ private:
 } // namespace Internals
 } // namespace CoSimIO
 
-#endif // CO_SIM_IO_FILE_COMMUNICATION_H_INCLUDED
+#endif // CO_SIM_IO_FILE_COMMUNICATION_INCLUDED

@@ -183,6 +183,11 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * This is called in the beginning of each solution step
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
@@ -318,6 +323,9 @@ protected:
         double rel_dry_height;
         double gravity;
 
+        double damping;
+        array_1d<double,3> boundary_velocity;
+
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
@@ -450,6 +458,15 @@ protected:
         const array_1d<double,3>& rVeector);
 
     double StabilizationParameter(const ElementData& rData);
+
+    void ComputeDampingCoefficient(
+        double& rDamping,
+        const double DistanceThreshold,
+        const double MaximumDamping);
+
+    array_1d<double,9> ToNodalVector(const array_1d<double,3>& rVector);
+
+    array_1d<double,9> ToNodalVector(const double& rScalar);
 
     ///@}
     ///@name Protected  Access
