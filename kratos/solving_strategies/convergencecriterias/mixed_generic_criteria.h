@@ -495,17 +495,6 @@ private:
                     const auto &r_current_variable = it_dof->GetVariable();
                     int var_local_key = mLocalKeyMap[r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key()];
 
-                    if (r_current_variable.Name() == "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE") {
-                        if (dof_dx > 1e-3) {
-                            #pragma omp critical
-                            {
-                                KRATOS_WATCH(it_dof->Id());
-                                KRATOS_WATCH(dof_dx);
-                                KRATOS_WATCH(dof_value);
-                            }
-                        }
-                    }
-
                     var_solution_norm_reduction[var_local_key] += dof_value * dof_value;
                     var_correction_norm_reduction[var_local_key] += dof_dx * dof_dx;
                     dofs_counter_reduction[var_local_key]++;
