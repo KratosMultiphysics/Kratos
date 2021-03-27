@@ -75,7 +75,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 template <unsigned int TDim, unsigned int TNumNodes, class TElementDataType>
 GeometryData::IntegrationMethod ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes, TElementDataType>::GetIntegrationMethod()
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 /***************************************************************************************************/
