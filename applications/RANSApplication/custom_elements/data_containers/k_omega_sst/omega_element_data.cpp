@@ -292,7 +292,7 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
         if (rOutput.size1() != TDim || rOutput.size2() != TDim) {
             rOutput.resize(TDim, TDim);
         }
-        noalias(rOutput) =
+        noalias(rOutput) = mVelocityGradient + trans(mVelocityGradient);
     } else if (rVariable == RANS_GAUSS_REYNOLDS_STRESS_TENSOR) {
         if (rOutput.size1() != TDim || rOutput.size2() != TDim) {
             rOutput.resize(TDim, TDim);
