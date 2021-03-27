@@ -894,7 +894,11 @@ public:
      * @param rDerivativeVariable   Scalar derivative variable
      * @param rOutput               Output having the same type as the rFunctionVariable
      */
-    virtual void CalculateDerivative(Parameters& rParameterValues, const Variable<double>& rFunctionVariable, const Variable<double>& rDerivativeVariable, double& rOutput);
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput);
 
     /**
      * @brief Calculates derivatives of a given function
@@ -910,7 +914,11 @@ public:
      * @param rDerivativeVariable   Scalar derivative variable
      * @param rOutput               Output having the same type as the rFunctionVariable
      */
-    virtual void CalculateDerivative(Parameters& rParameterValues, const Variable<Vector>& rFunctionVariable, const Variable<double>& rDerivativeVariable, Vector& rOutput);
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput);
 
     /**
      * @brief Calculates derivatives of a given function
@@ -926,7 +934,11 @@ public:
      * @param rDerivativeVariable   Scalar derivative variable
      * @param rOutput               Output having the same type as the rFunctionVariable
      */
-    virtual void CalculateDerivative(Parameters& rParameterValues, const Variable<Matrix>& rFunctionVariable, const Variable<double>& rDerivativeVariable, Matrix& rOutput);
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput);
 
     /**
      * @brief Calculates derivatives of a given function
@@ -942,7 +954,11 @@ public:
      * @param rDerivativeVariable   Scalar derivative variable
      * @param rOutput               Output having the same type as the rFunctionVariable
      */
-    virtual void CalculateDerivative(Parameters& rParameterValues, const Variable<array_1d<double, 3>>& rFunctionVariable, const Variable<double>& rDerivativeVariable, array_1d<double, 3>& rOutput);
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<array_1d<double, 3>>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        array_1d<double, 3>& rOutput);
 
 
      /**

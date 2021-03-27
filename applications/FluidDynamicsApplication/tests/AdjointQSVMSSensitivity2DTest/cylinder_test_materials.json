@@ -9,7 +9,6 @@
                 },
                 "Variables": {
                     "DENSITY": 1.0E+03,
-                    "VISCOSITY": 1.0E-06,
                     "DYNAMIC_VISCOSITY": 1.0E-03
                 },
                 "Tables": {}

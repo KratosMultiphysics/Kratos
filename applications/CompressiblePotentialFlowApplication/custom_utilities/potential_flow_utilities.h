@@ -181,6 +181,9 @@ void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
 
 template <int Dim, int NumNodes>
 void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer);
 } // namespace PotentialFlow
 } // namespace Kratos
 

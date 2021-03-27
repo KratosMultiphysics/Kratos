@@ -30,10 +30,10 @@ class ROMDynamicStruct(KratosUnittest.TestCase):
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
 
             for i in range (np.shape(ObtainedOutput)[1]):
-                UP = sum((ExpectedOutput[:,i] - ObtainedOutput[:,i])**2)
-                DOWN = sum((ExpectedOutput[:,i])**2)
-                L2 = np.sqrt(UP/DOWN)
-                self.assertLess(L2, 1e-10)
+                up = sum((ExpectedOutput[:,i] - ObtainedOutput[:,i])**2)
+                down = sum((ExpectedOutput[:,i])**2)
+                l2 = np.sqrt(up/down)
+                self.assertLess(l2, 1e-10)
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
