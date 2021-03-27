@@ -39,8 +39,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=OFF \
 -DPYBIND11_PYTHON_VERSION="3.5" \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11 -O0 -fopenmp -Wall" \
--DUSE_COTIRE=ON                              \
+-DCMAKE_UNITY_BUILD=ON                              \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1 && \
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install    -- -j1

@@ -65,6 +65,10 @@ int RansWallFunctionUpdateProcess::Check()
         << "VELOCITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
+    if (r_model_part.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE) == 0) {
+        return 0;
+    }
+
     block_for_each(r_model_part.Conditions(), [&](const ModelPart::ConditionType& rCondition) {
         KRATOS_ERROR_IF_NOT(rCondition.Has(GAUSS_RANS_Y_PLUS))
             << "GAUSS_RANS_Y_PLUS is not found in condition data value container [ Condition.Id() = "
@@ -98,6 +102,10 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
     KRATOS_TRY
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+    if (r_model_part.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE) == 0) {
+        return;
+    }
 
     const auto& r_process_info = r_model_part.GetProcessInfo();
     const double von_karman = r_process_info[VON_KARMAN];

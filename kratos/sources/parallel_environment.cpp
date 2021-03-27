@@ -153,12 +153,12 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
     // Using double-checked locking to ensure thread safety in the first creation of the singleton.
     if (!mpInstance) {
         LockObject lock;
-        lock.SetLock();
+        lock.lock();
         if (!mpInstance) {
             KRATOS_ERROR_IF(mDestroyed) << "Accessing ParallelEnvironment after its destruction" << std::endl;
             Create();
         }
-        lock.UnSetLock();
+        lock.unlock();
     }
 
     return *mpInstance;
