@@ -1,6 +1,5 @@
 ## Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
@@ -20,7 +19,7 @@ class AdjointMonolithicMPISolver(AdjointMonolithicSolver):
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(self.__class__, self).AddVariables()
+        super().AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
@@ -76,7 +75,7 @@ class AdjointMonolithicMPISolver(AdjointMonolithicSolver):
                 epetra_communicator,
                 guess_row_size,
                 trilinos_linear_solver,
-                KratosFluid.PATCH_INDEX)
+                KratosCFD.PATCH_INDEX)
         else:
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(
                 epetra_communicator,

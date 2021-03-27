@@ -91,11 +91,11 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, 1)
 
-
     def tearDown(self):
         file_to_remove = os.path.join("kinematic_constraints_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
+        file_to_remove = os.path.join("kinematic_constraints_tests_files", "flux_data_new.hdf5")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
 
 
