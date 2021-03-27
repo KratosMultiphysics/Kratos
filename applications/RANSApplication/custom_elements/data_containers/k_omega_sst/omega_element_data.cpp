@@ -288,6 +288,20 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
         }
 
         noalias(rOutput) = mVelocityGradient;
+    } else if (rVariable == RANS_GAUSS_SYMMETRIC_VELOCITY_GRADIENT) {
+        if (rOutput.size1() != TDim || rOutput.size2() != TDim) {
+            rOutput.resize(TDim, TDim);
+        }
+        noalias(rOutput) =
+    } else if (rVariable == RANS_GAUSS_REYNOLDS_STRESS_TENSOR) {
+        if (rOutput.size1() != TDim || rOutput.size2() != TDim) {
+            rOutput.resize(TDim, TDim);
+        }
+        const double velocity_divergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
+        identity_matrix<double> identity(TDim);
+        noalias(rOutput) = mVelocityGradient + trans(mVelocityGradient);
+        noalias(rOutput) -= identity * ((2.0 / 3.0) * velocity_divergence);
+        noalias(rOutput) = rOutput * 1.0;
     }
 
     KRATOS_CATCH("");
