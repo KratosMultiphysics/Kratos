@@ -42,7 +42,7 @@ namespace Kratos
 namespace
 {
 namespace test_solid_transient_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 struct PrimalTestSolver
 {
     std::function<ModelPart&()> ModelPartFactory;
@@ -159,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D8_SaintVenant_TransientSensitivity, K
 namespace // cpp internals
 {
 namespace test_solid_transient_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 typedef TUblasSparseSpace<double> SparseSpaceType;
 typedef TUblasDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;

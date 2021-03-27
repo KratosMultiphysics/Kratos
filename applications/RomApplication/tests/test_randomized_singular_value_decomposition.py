@@ -1,5 +1,6 @@
 #import python class test
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 #import python packages
 try:
@@ -30,6 +31,9 @@ class TestRandomizedSVD(KratosUnittest.TestCase):
 
             #check that the difference of the reconstruction is below tolerance
             self.assertLess( np.linalg.norm(Randomized_Reconstruction - TestMatrix), svd_truncation_tolerance*np.linalg.norm(TestMatrix))
+    # Cleaning
+    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+
 
 if __name__=='__main__':
     KratosUnittest.main()
