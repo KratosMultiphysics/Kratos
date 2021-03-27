@@ -447,20 +447,56 @@ array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
     return rValue;
 }
 
-void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<double>& rFunctionVariable, const Variable<double>& rDerivativeVariable, double& rOutput)
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<double>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    double& rOutput)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
 }
 
-void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<Vector>& rFunctionVariable, const Variable<double>& rDerivativeVariable, Vector& rOutput)
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Vector& rOutput)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
 }
 
-void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<Matrix>& rFunctionVariable, const Variable<double>& rDerivativeVariable, Matrix& rOutput)
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Matrix& rOutput)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
 }
 
-void ConstitutiveLaw::CalculateDerivative(Parameters& rParameterValues, const Variable<array_1d<double, 3>>& rFunctionVariable, const Variable<double>& rDerivativeVariable, array_1d<double, 3>& rOutput)
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<array_1d<double, 3>>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    array_1d<double, 3>& rOutput)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
 }
 
 /**

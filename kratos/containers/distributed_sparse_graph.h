@@ -16,6 +16,7 @@
 
 // System includes
 #include <iostream>
+#include <mutex>
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/parallel_environment.h"
@@ -65,7 +66,7 @@ namespace Kratos
  * IMPORTANT NOTE: it is BY DESIGN NOT threadsafe! (a graph should be computed in each thread and then merged)
 */
 template< class TIndexType=std::size_t >
-class DistributedSparseGraph 
+class DistributedSparseGraph
 {
 public:
     ///@name Type Definitions
@@ -109,7 +110,7 @@ public:
         return *mpRowNumbering;
     }
 
-    inline IndexType Size() const{ 
+    inline IndexType Size() const{
         return mpRowNumbering->Size();
     }
 
@@ -166,9 +167,8 @@ public:
         }
         else{
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
-            mNonLocalLocks[owner].SetLock();
+            const std::lock_guard<LockObject> scope_lock(mNonLocalLocks[owner]);
             mNonLocalGraphs[owner].AddEntry(GetRowNumbering().RemoteLocalId(RowIndex,owner), ColIndex);
-            mNonLocalLocks[owner].UnSetLock();
         }
     }
 
@@ -180,9 +180,9 @@ public:
         }
         else{
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
-            mNonLocalLocks[owner].SetLock();
+            mNonLocalLocks[owner].lock();
             mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(RowIndex,owner), rColIndices);
-            mNonLocalLocks[owner].UnSetLock();
+            mNonLocalLocks[owner].unlock();
         }
     }
 
@@ -197,9 +197,9 @@ public:
         }
         else{
             IndexType owner = GetRowNumbering().OwnerRank(RowIndex);
-            mNonLocalLocks[owner].SetLock();
+            mNonLocalLocks[owner].lock();
             mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(RowIndex,owner), rColBegin, rColEnd);
-            mNonLocalLocks[owner].UnSetLock();
+            mNonLocalLocks[owner].unlock();
         }
     }
 
@@ -213,9 +213,9 @@ public:
             }
             else{
                 IndexType owner = GetRowNumbering().OwnerRank(I);
-                mNonLocalLocks[owner].SetLock();
+                mNonLocalLocks[owner].lock();
                 mNonLocalGraphs[owner].AddEntries(GetRowNumbering().RemoteLocalId(I,owner), rIndices);;
-                mNonLocalLocks[owner].UnSetLock();
+                mNonLocalLocks[owner].unlock();
             }
         }
     }
@@ -250,7 +250,7 @@ public:
             if(color >= 0) //-1 would imply no communication
             {
                 //TODO: this can be made nonblocking
-                
+
                 //using serialization
                 //const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
                 // for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
