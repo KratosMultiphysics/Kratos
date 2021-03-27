@@ -290,7 +290,7 @@ int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReac
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_1;
+    return GeometryData::GI_GAUSS_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
