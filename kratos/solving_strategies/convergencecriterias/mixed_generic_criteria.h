@@ -499,7 +499,7 @@ private:
                         if (dof_dx > 1e-3) {
                             #pragma omp critical
                             {
-                                KRATOS_WATCH(it_dof.Id());
+                                KRATOS_WATCH(it_dof->Id());
                                 KRATOS_WATCH(dof_dx);
                                 KRATOS_WATCH(dof_value);
                             }
