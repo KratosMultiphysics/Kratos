@@ -29,14 +29,14 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             ExpectedOutput = np.load('ExpectedOutputROM.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
 
-            UP=0
-            DOWN=0
+            up=0
+            down=0
             for i in range (len(ObtainedOutput)):
                 if ExpectedOutput[i] != 0:
-                    UP += (NodalArea[i]*(   (1  - (ObtainedOutput[i] / ExpectedOutput[i] )    )**2)  )
-                    DOWN +=  NodalArea[i]
-            L2 = (np.sqrt(UP/DOWN)) *100
-            self.assertLess(L2, 1e-12)#percent
+                    up += (NodalArea[i]*(   (1  - (ObtainedOutput[i] / ExpectedOutput[i] )    )**2)  )
+                    down +=  NodalArea[i]
+            l2 = (np.sqrt(up/down)) *100
+            self.assertLess(l2, 1e-12)#percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
             kratos_utilities.DeleteDirectoryIfExisting("vtk_output")

@@ -185,7 +185,7 @@ template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 int FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     TAdjointElementData::Check(*this, rCurrentProcessInfo);
-    return 0;
+    return BaseType::Check(rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
