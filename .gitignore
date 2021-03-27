@@ -1,7 +1,7 @@
 ### ATTENTION ###
 # This is the GLOBAL gitignore, please do NOT change this file,
 # unless it should be available for everyone
-# Please change the LOCAL gitignore (.git/info/exclude) to cutomize
+# Please change the LOCAL gitignore (.git/info/exclude) to customize
 # exluding files/folders from being recognized by git
 
 # Recovery files

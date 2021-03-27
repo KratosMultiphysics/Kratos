@@ -89,6 +89,22 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
 void Newtonian3DLaw::CalculateDerivative(
     Parameters& rParameterValues,
+    const Variable<double>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    double& rOutput)
+{
+    if (rFunctionVariable == EFFECTIVE_VISCOSITY) {
+        // since EFFECTIVE_VISCOSITY is a constant for
+        // fluid domain, this derivative remains zero.
+        rOutput = 0.0;
+    } else {
+        FluidConstitutiveLaw::CalculateDerivative(
+            rParameterValues, rFunctionVariable, rDerivativeVariable, rOutput);
+    }
+}
+
+void Newtonian3DLaw::CalculateDerivative(
+    Parameters& rParameterValues,
     const Variable<Vector>& rFunctionVariable,
     const Variable<double>& rDerivativeVariable,
     Vector& rOutput)
@@ -106,10 +122,7 @@ void Newtonian3DLaw::CalculateDerivative(
         if (rDerivativeVariable.IsComponent() && rDerivativeVariable.GetSourceVariable() == STRAIN_RATE_3D) {
             // compute derivatives w.r.t. STRAIN_RATE
             const double mu = this->GetEffectiveViscosity(rParameterValues);
-            const double volumetric_part_derivative = (
-                (rDerivativeVariable.GetComponentIndex() == 0) +
-                (rDerivativeVariable.GetComponentIndex() == 1) +
-                (rDerivativeVariable.GetComponentIndex() == 2)) / 3.0;
+            const double volumetric_part_derivative = (rDerivativeVariable.GetComponentIndex() < 3) ? 1.0 / 3.0 : 0.0;
 
             rOutput[0] = 2.0 * mu * ((rDerivativeVariable.GetComponentIndex() == 0) - volumetric_part_derivative);
             rOutput[1] = 2.0 * mu * ((rDerivativeVariable.GetComponentIndex() == 1) - volumetric_part_derivative);
@@ -130,13 +143,13 @@ void Newtonian3DLaw::CalculateDerivative(
             rOutput[3] = r_strain_rate[3];
             rOutput[4] = r_strain_rate[4];
             rOutput[5] = r_strain_rate[5];
+        } else {
+            FluidConstitutiveLaw::CalculateDerivative(
+                rParameterValues, rFunctionVariable, rDerivativeVariable, rOutput);
         }
     } else {
-        KRATOS_ERROR << "Unsupported function derivative requested. [ "
-                        "rFunctionVariable = "
-                     << rFunctionVariable.Name()
-                     << ", rDerivativeVariable = " << rDerivativeVariable.Name()
-                     << " ].\n";
+        FluidConstitutiveLaw::CalculateDerivative(
+            rParameterValues, rFunctionVariable, rDerivativeVariable, rOutput);
     }
 
     KRATOS_CATCH("");
@@ -161,12 +174,13 @@ void Newtonian3DLaw::CalculateDerivative(
         if (rDerivativeVariable == EFFECTIVE_VISCOSITY) {
             // compute derivatives w.r.t. effective viscosity
             FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(1.0, rOutput);
+        } else {
+            FluidConstitutiveLaw::CalculateDerivative(
+                rParameterValues, rFunctionVariable, rDerivativeVariable, rOutput);
         }
     } else {
-        KRATOS_ERROR << "Unsupported function derivative requested. [ "
-                        "rFunctionVariable = "
-                     << rFunctionVariable.Name() << ", rDerivativeVariable = "
-                     << rDerivativeVariable.Name() << " ].\n";
+        FluidConstitutiveLaw::CalculateDerivative(
+            rParameterValues, rFunctionVariable, rDerivativeVariable, rOutput);
     }
 
     KRATOS_CATCH("");
