@@ -152,8 +152,8 @@ namespace Kratos
     };
 
 		//template<unsigned int TDim>
-		IntegrateTractionVectorWeakUtility(ModelPart& model_part, double& mu)
-			: mr_model_part(model_part)
+		IntegrateTractionVectorWeakUtility(ModelPart& model_part, double mu)
+			: mr_model_part(model_part), mr_mu(mu)
 		{
 			std::cout << "initializing IntegrateTractionVectorWeakUtility" << std::endl;
 			
@@ -250,7 +250,6 @@ namespace Kratos
 
               CalculateShapeFunctionsOnGaussPoints(geom,gp,N,m); 
               
-              
               Kvu_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
               Kvp_nitsche_large = ZeroMatrix(TDim*(TDim+1)*3/2,TDim*(TDim+1)*3/2); 
               
@@ -259,11 +258,11 @@ namespace Kratos
                 Kvu_nitsche_Cmatrix(i*TDim,0)  =N[i]; 
                 Kvu_nitsche_Cmatrix(i*TDim+1,1)=N[i]; 
                 
-                Kvu_nitsche_Dmatrix(0,i*TDim)  =2.0*mu*(DN(i,0)*normal_vector(0)+0.5*DN(i,1)*normal_vector(1));
-                Kvu_nitsche_Dmatrix(0,i*TDim+1)=2.0*mu*(0.5*DN(i,0)*normal_vector(1));
+                Kvu_nitsche_Dmatrix(0,i*TDim)  =2.0*mr_mu*(DN(i,0)*normal_vector(0)+0.5*DN(i,1)*normal_vector(1));
+                Kvu_nitsche_Dmatrix(0,i*TDim+1)=2.0*mr_mu*(0.5*DN(i,0)*normal_vector(1));
                 
-                Kvu_nitsche_Dmatrix(1,i*TDim)  =2.0*mu*(0.5*DN(i,1)*normal_vector(0));
-                Kvu_nitsche_Dmatrix(1,i*TDim+1)=2.0*mu*(DN(i,1)*normal_vector(1)+0.5*DN(i,0)*normal_vector(0));
+                Kvu_nitsche_Dmatrix(1,i*TDim)  =2.0*mr_mu*(0.5*DN(i,1)*normal_vector(0));
+                Kvu_nitsche_Dmatrix(1,i*TDim+1)=2.0*mr_mu*(DN(i,1)*normal_vector(1)+0.5*DN(i,0)*normal_vector(0));
               }
      
              Kvu_nitsche=prod(Kvu_nitsche_Cmatrix,Kvu_nitsche_Dmatrix);
@@ -344,7 +343,7 @@ namespace Kratos
 	
 
 	ModelPart& mr_model_part;
-  double mu;
+  double mr_mu;
 	double mDENSITY_WATER;
 	double mDENSITY_AIR;
 

@@ -117,7 +117,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ResetBoundaryConditions", &BFECCConvectionRK4<2>::ResetBoundaryConditions)
     .def("CopyVectorVarToPreviousTimeStep", &BFECCConvectionRK4<2>::CopyVectorVarToPreviousTimeStep)
     .def("TransferBFECCToVelocity", &BFECCConvectionRK4<2>::TransferBFECCToVelocity)
+    .def("TransferVelocityToBFECC", &BFECCConvectionRK4<2>::TransferVelocityToBFECC)
     .def("TransferOldVelocityToOldBFECC", &BFECCConvectionRK4<2>::TransferOldVelocityToOldBFECC)
+    .def("TransferOldVelocityToBFECC", &BFECCConvectionRK4<2>::TransferOldVelocityToBFECC)
     ;
 
     py::class_<BFECCConvectionRK4<3> > (m,"BFECCConvectionRK43D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
@@ -125,7 +127,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ResetBoundaryConditions", &BFECCConvectionRK4<3>::ResetBoundaryConditions)
     .def("CopyVectorVarToPreviousTimeStep", &BFECCConvectionRK4<3>::CopyVectorVarToPreviousTimeStep)
     .def("TransferBFECCToVelocity", &BFECCConvectionRK4<3>::TransferBFECCToVelocity)
+    .def("TransferVelocityToBFECC", &BFECCConvectionRK4<3>::TransferVelocityToBFECC)
     .def("TransferOldVelocityToOldBFECC", &BFECCConvectionRK4<3>::TransferOldVelocityToOldBFECC)
+    .def("TransferOldVelocityToBFECC", &BFECCConvectionRK4<3>::TransferOldVelocityToBFECC)
     ;  
 
     py::class_< MoveParticleUtilityScalarTransport<2> > (m,"MoveParticleUtilityScalarTransport2D").def(py::init<ModelPart& , int >())

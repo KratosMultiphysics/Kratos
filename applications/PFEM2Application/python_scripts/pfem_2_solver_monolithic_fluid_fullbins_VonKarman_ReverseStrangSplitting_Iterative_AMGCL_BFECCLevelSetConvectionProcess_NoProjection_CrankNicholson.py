@@ -369,14 +369,53 @@ class PFEM2Solver:
         locator.UpdateSearchDatabase()
         #construct the utility to move the points
         bfecc_utility = BFECCConvectionRK42D(locator)
-        bfecc_utility.TransferOldVelocityToOldBFECC(self.model_part.Nodes)
+        bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
 
         
         print("FIRST")
-        bfecc_utility.BFECCconvectRK4(self.model_part,SCALARPROJECTEDVEL_X,VELOCITY) 
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_X,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
         print("SECOND")
-        bfecc_utility.BFECCconvectRK4(self.model_part,SCALARPROJECTEDVEL_Y,VELOCITY)
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_Y,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
         
+
         bfecc_utility.TransferBFECCToVelocity(self.model_part.Nodes)
         (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY_FIRST,self.model_part.Nodes)
         
@@ -409,15 +448,52 @@ class PFEM2Solver:
         locator.UpdateSearchDatabase()
         #construct the utility to move the points
         bfecc_utility = BFECCConvectionRK42D(locator)
-        bfecc_utility.TransferOldVelocityToOldBFECC(self.model_part.Nodes)
+        bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
         
 
         
         print("THIRD")
-        bfecc_utility.BFECCconvectRK4(self.model_part,SCALARPROJECTEDVEL_X,VELOCITY) 
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_X,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
         print("FOURTH")
-        bfecc_utility.BFECCconvectRK4(self.model_part,SCALARPROJECTEDVEL_Y,VELOCITY)
-        
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_Y,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
 
         bfecc_utility.TransferBFECCToVelocity(self.model_part.Nodes)
         (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY_SECOND,self.model_part.Nodes)

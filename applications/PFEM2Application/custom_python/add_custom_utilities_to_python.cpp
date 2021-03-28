@@ -133,7 +133,7 @@ namespace py = pybind11;
    ;
 
 
- py::class_< IntegrateTractionVectorWeakUtility<2> > (m,"IntegrateTractionVectorWeakUtility").def(py::init<ModelPart&, double& >())
+ py::class_< IntegrateTractionVectorWeakUtility<2> > (m,"IntegrateTractionVectorWeakUtility").def(py::init<ModelPart&, double >())
    .def("ReturnDrag",&IntegrateTractionVectorWeakUtility<2>::ReturnDrag)  
    ;   
 

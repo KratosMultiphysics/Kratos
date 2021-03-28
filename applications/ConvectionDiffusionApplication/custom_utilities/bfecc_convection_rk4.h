@@ -620,6 +620,33 @@ public:
         }
         KRATOS_CATCH("")
     }
+
+    void TransferOldVelocityToBFECC(ModelPart::NodesContainerType &rNodes)
+        {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->GetSolutionStepValue(SCALARPROJECTEDVEL_X) = inode->GetSolutionStepValue(VELOCITY_X,1);
+                inode->GetSolutionStepValue(SCALARPROJECTEDVEL_Y) = inode->GetSolutionStepValue(VELOCITY_Y,1);
+                if (TDim == 3)
+                 inode->GetSolutionStepValue(SCALARPROJECTEDVEL_Z) = inode->GetSolutionStepValue(VELOCITY_Z,1);
+            }
+        }
+        KRATOS_CATCH("")
+    }
     
     void TransferBFECCToVelocity(ModelPart::NodesContainerType &rNodes)
     {
@@ -643,6 +670,33 @@ public:
                 inode->FastGetSolutionStepValue(VELOCITY_Y) = inode->FastGetSolutionStepValue(SCALARPROJECTEDVEL_Y);
                 if (TDim == 3)
                  inode->FastGetSolutionStepValue(VELOCITY_Z) = inode->FastGetSolutionStepValue(SCALARPROJECTEDVEL_Z);
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
+    void TransferVelocityToBFECC(ModelPart::NodesContainerType &rNodes)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->FastGetSolutionStepValue(SCALARPROJECTEDVEL_X) = inode->FastGetSolutionStepValue(VELOCITY_X);
+                inode->FastGetSolutionStepValue(SCALARPROJECTEDVEL_Y) = inode->FastGetSolutionStepValue(VELOCITY_Y);
+                if (TDim == 3)
+                 inode->FastGetSolutionStepValue(SCALARPROJECTEDVEL_Z) = inode->FastGetSolutionStepValue(VELOCITY_Z);
             }
         }
         KRATOS_CATCH("")
