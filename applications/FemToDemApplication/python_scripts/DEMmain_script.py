@@ -466,9 +466,10 @@ class Solution():
                 break
 
     def RunAnalytics(self, time, is_time_to_print=True):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
+        pass
+            # self.MakeAnalyticsMeasurements()
+            # if is_time_to_print:
+            #     self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
 
     def IsTimeToPrintPostProcess(self):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.solver.dt
