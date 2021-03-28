@@ -141,8 +141,9 @@ class Solution():
         self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
     def MakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
+        pass
+        # for face_watcher in self.face_watcher_dict.values():
+        #     face_watcher.MakeMeasurements()
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
