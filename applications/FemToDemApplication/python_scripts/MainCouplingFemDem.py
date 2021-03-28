@@ -969,6 +969,7 @@ class MainCoupledFemDem_Solution:
         self.created_props_id = max_id_properties + 1
         props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
+        props[KratosDEM.FRICTION_DECAY] = 500
         props[KratosDEM.WALL_COHESION] = 0.0
         props[KratosDEM.COMPUTE_WEAR] = False
         props[KratosDEM.SEVERITY_OF_WEAR] = 0.001
