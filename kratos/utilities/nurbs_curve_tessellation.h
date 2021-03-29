@@ -75,7 +75,7 @@ public:
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
     * @param rKnotSpanIntervals Reference to the knot span intervals laying in the DomainInterval
-    * @param Tolerance Tolerance for the choral error
+    * @param Tolerance Tolerance for the chordal error
     * @see ComputeTessellation
     */
     void Tessellate(

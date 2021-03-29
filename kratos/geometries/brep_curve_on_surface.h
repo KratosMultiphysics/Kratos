@@ -460,7 +460,6 @@ public:
     {
         return GeometryData::Kratos_Brep_Curve;
     }
-
     ///@}
     ///@name Input and output
     ///@{
