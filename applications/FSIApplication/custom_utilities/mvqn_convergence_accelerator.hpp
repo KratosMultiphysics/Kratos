@@ -225,7 +225,7 @@ protected:
     ///@name Protected  Operations
     ///@{
 
-    void UpdateInverseJacobianApproximation(
+    virtual void UpdateInverseJacobianApproximation(
         const VectorType& rResidualVector,
         const VectorType& rIterationGuess)
     {
@@ -251,18 +251,7 @@ protected:
             }
         } else {
             // Store current observation information
-            if (mConvergenceAcceleratorIteration == 1) {
-                // Resize and initalize the observation matrices
-                InitializeDataColumns();
-            } else {
-                // Reshape the existent observation matrices
-                const std::size_t n_old_cols = mpObsMatrixV->size2();
-                if (n_old_cols < mProblemSize) {
-                    AppendDataColumns();
-                } else {
-                    DropAndAppendDataColumns();
-                }
-            }
+            StoreCurrentIterationInformation();
 
             // Compute the jacobian approximation
             std::size_t data_cols = mpObsMatrixV->size2();
@@ -350,6 +339,22 @@ protected:
         }
     }
 
+    void StoreCurrentIterationInformation()
+    {
+        if (mConvergenceAcceleratorIteration == 1) {
+            // Resize and initalize the observation matrices
+            InitializeDataColumns();
+        } else {
+            // Reshape the existent observation matrices
+            const std::size_t n_old_cols = mpObsMatrixV->size2();
+            if (n_old_cols < mProblemSize) {
+                AppendDataColumns();
+            } else {
+                DropAndAppendDataColumns();
+            }
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -362,6 +367,16 @@ protected:
     MatrixPointerType pGetInverseJacobianApproximation() override
     {
         return mpJac_k1;
+    }
+
+    MatrixPointerType pGetResidualObservationMatrix()
+    {
+        return mpObsMatrixV;
+    }
+
+    MatrixPointerType pGetSolutionObservationMatrix()
+    {
+        return mpObsMatrixW;
     }
 
     ///@}
