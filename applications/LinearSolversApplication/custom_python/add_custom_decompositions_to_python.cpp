@@ -32,34 +32,34 @@ void AddCustomDecompositionsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef typename DenseSpaceType::MatrixType MatrixType;
-    typedef typename DenseSpaceType::VectorType VectorType;
-    typedef DenseSingularValueDecomposition<DenseSpaceType> BaseSVDType;
+    // typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    // typedef typename DenseSpaceType::MatrixType MatrixType;
+    // typedef typename DenseSpaceType::VectorType VectorType;
+    // typedef DenseSingularValueDecomposition<DenseSpaceType> BaseSVDType;
 
-    typedef EigenDenseBDCSVD<DenseSpaceType> BDCSVDType;
-    py::class_<BDCSVDType, typename BDCSVDType::Pointer, BaseSVDType>(m,"EigenDenseBDCSVD")
-        .def(py::init<>())
-        .def("Compute", [](BDCSVDType& rBDCSVD, MatrixType& rInputMatrix, Parameters Settings){rBDCSVD.Compute(rInputMatrix, Settings);})
-        .def("Compute", [](BDCSVDType& rBDCSVD, MatrixType& rInputMatrix, VectorType& rVectorS, MatrixType& rMatrixU, MatrixType& rMatrixV, Parameters Settings){rBDCSVD.Compute(rInputMatrix, rVectorS, rMatrixU, rMatrixV, Settings);})
-        .def("SingularValues", &BDCSVDType::SingularValues)
-        .def("MatrixU", &BDCSVDType::MatrixU)
-        .def("MatrixV", &BDCSVDType::MatrixV)
-        .def("Rank", &BDCSVDType::Rank)
-        .def("NonZeroSingularValues", &BDCSVDType::NonZeroSingularValues)
-        ;
+    // typedef EigenDenseBDCSVD<DenseSpaceType> BDCSVDType;
+    // py::class_<BDCSVDType, typename BDCSVDType::Pointer, BaseSVDType>(m,"EigenDenseBDCSVD")
+    //     .def(py::init<>())
+    //     .def("Compute", [](BDCSVDType& rBDCSVD, MatrixType& rInputMatrix, Parameters Settings){rBDCSVD.Compute(rInputMatrix, Settings);})
+    //     .def("Compute", [](BDCSVDType& rBDCSVD, MatrixType& rInputMatrix, VectorType& rVectorS, MatrixType& rMatrixU, MatrixType& rMatrixV, Parameters Settings){rBDCSVD.Compute(rInputMatrix, rVectorS, rMatrixU, rMatrixV, Settings);})
+    //     .def("SingularValues", &BDCSVDType::SingularValues)
+    //     .def("MatrixU", &BDCSVDType::MatrixU)
+    //     .def("MatrixV", &BDCSVDType::MatrixV)
+    //     .def("Rank", &BDCSVDType::Rank)
+    //     .def("NonZeroSingularValues", &BDCSVDType::NonZeroSingularValues)
+    //     ;
 
-    typedef EigenDenseJacobiSVD<DenseSpaceType> JacobiSVDType;
-    py::class_<JacobiSVDType, typename JacobiSVDType::Pointer, BaseSVDType>(m,"EigenDenseJacobiSVD")
-        .def(py::init<>())
-        .def("Compute", [](JacobiSVDType& rJacobiSVD, MatrixType& rInputMatrix, Parameters Settings){rJacobiSVD.Compute(rInputMatrix, Settings);})
-        .def("Compute", [](JacobiSVDType& rJacobiSVD, MatrixType& rInputMatrix, VectorType& rVectorS, MatrixType& rMatrixU, MatrixType& rMatrixV, Parameters Settings){rJacobiSVD.Compute(rInputMatrix, rVectorS, rMatrixU, rMatrixV, Settings);})
-        .def("SingularValues", &JacobiSVDType::SingularValues)
-        .def("MatrixU", &JacobiSVDType::MatrixU)
-        .def("MatrixV", &JacobiSVDType::MatrixV)
-        .def("Rank", &JacobiSVDType::Rank)
-        .def("NonZeroSingularValues", &JacobiSVDType::NonZeroSingularValues)
-        ;
+    // typedef EigenDenseJacobiSVD<DenseSpaceType> JacobiSVDType;
+    // py::class_<JacobiSVDType, typename JacobiSVDType::Pointer, BaseSVDType>(m,"EigenDenseJacobiSVD")
+    //     .def(py::init<>())
+    //     .def("Compute", [](JacobiSVDType& rJacobiSVD, MatrixType& rInputMatrix, Parameters Settings){rJacobiSVD.Compute(rInputMatrix, Settings);})
+    //     .def("Compute", [](JacobiSVDType& rJacobiSVD, MatrixType& rInputMatrix, VectorType& rVectorS, MatrixType& rMatrixU, MatrixType& rMatrixV, Parameters Settings){rJacobiSVD.Compute(rInputMatrix, rVectorS, rMatrixU, rMatrixV, Settings);})
+    //     .def("SingularValues", &JacobiSVDType::SingularValues)
+    //     .def("MatrixU", &JacobiSVDType::MatrixU)
+    //     .def("MatrixV", &JacobiSVDType::MatrixV)
+    //     .def("Rank", &JacobiSVDType::Rank)
+    //     .def("NonZeroSingularValues", &JacobiSVDType::NonZeroSingularValues)
+    //     ;
 
 }
 
