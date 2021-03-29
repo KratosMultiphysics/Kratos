@@ -12,7 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 
-
+@KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication")
 class ROMFluidDynamics(KratosUnittest.TestCase):
 #########################################################################################
 

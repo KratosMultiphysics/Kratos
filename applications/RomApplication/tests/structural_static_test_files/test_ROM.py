@@ -13,7 +13,7 @@ except:
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-
+@KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class ROMStaticStruct(KratosUnittest.TestCase):
 #########################################################################################
 
