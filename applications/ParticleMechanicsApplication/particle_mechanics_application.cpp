@@ -329,6 +329,7 @@ namespace Kratos
         // Solver related variables
         KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
         KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
+        KRATOS_REGISTER_VARIABLE(IS_DEFORM_MESH)
 
         // Explicit time integration variables
         KRATOS_REGISTER_VARIABLE(CALCULATE_MUSL_VELOCITY_FIELD)

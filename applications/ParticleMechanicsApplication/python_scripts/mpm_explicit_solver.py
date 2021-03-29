@@ -95,6 +95,10 @@ class MPMExplicitSolver(MPMSolver):
             is_fix_explicit_mp_on_grid_edge = self.settings["is_fix_explicit_mp_on_grid_edge"].GetBool()
             grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, is_fix_explicit_mp_on_grid_edge)
 
+        # Set mesh deformation option
+        is_deform_mesh = self.settings["is_deform_mesh"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_DEFORM_MESH, is_deform_mesh)
+
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()
 

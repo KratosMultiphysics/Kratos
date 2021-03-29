@@ -398,6 +398,40 @@ namespace Kratos {
                         std::vector<bool> dummy;
                         it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
                     }
+
+                    // calc displacements
+                    const bool is_deform_mesh = (rCurrentProcessInfo.Has(IS_DEFORM_MESH))
+                        ? rCurrentProcessInfo.GetValue(IS_DEFORM_MESH)
+                        : false;
+                    if (is_deform_mesh)
+                    {
+                        KRATOS_ERROR_IF(rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0)
+                            << "is_deform_mesh can only be used with USL or MUSL!\n";
+                        const auto it_node_begin = mr_grid_model_part.NodesBegin();
+                        const double dt = rCurrentProcessInfo[DELTA_TIME];
+                        const SizeType DomainSize = rCurrentProcessInfo[DOMAIN_SIZE];
+                        #pragma omp parallel for
+                        for (int i = 0; i < static_cast<int>(mr_grid_model_part.Nodes().size()); ++i) {
+                            auto it_node = it_node_begin + i;
+                            if (it_node->Is(ACTIVE))
+                            {
+                                array_1d<double, 3 >& nodal_disp = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                                const array_1d<double, 3 >& nodal_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+                                for (IndexType j = 0; j < DomainSize; ++j) {
+                                    nodal_disp[j] += nodal_vel[j] * dt;
+                                }
+                                it_node->X() += nodal_disp[0];
+                                it_node->X0() += nodal_disp[0];
+                                it_node->Y() += nodal_disp[1];
+                                it_node->Y0() += nodal_disp[1];
+                                if (DomainSize == 3) {
+                                    it_node->Z() += nodal_disp[2];
+                                    it_node->Z0() += nodal_disp[2];
+                                }
+                            }
+                        }
+                    }
+
                 }
 
                 // Finalizes solution step for all of the conditions

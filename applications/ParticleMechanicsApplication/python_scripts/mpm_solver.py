@@ -63,6 +63,7 @@ class MPMSolver(PythonSolver):
             "consistent_mass_matrix"             : false,
             "block_builder"                      : true,
             "move_mesh_flag"                     : false,
+            "is_deform_mesh"                     : false,
             "problem_domain_sub_model_part_list" : [],
             "processes_sub_model_part_list"      : [],
             "auxiliary_variables_list"           : [],
