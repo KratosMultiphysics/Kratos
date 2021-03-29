@@ -65,7 +65,7 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
 
     def test_eigen_dense_BDC_SVD_3x3(self):
         decomposition = LinearSolversApplication.EigenDenseBDCSVD()
-        self._execute_eigen_dense_decomposition_test(decomposition, lambda : self._square_matrix_3x3())
+        self._execute_eigen_dense_decomposition_test(decomposition, self._square_matrix_3x3)
 
     def test_eigen_dense_BDC_SVD_5x4_random(self):
         decomposition = LinearSolversApplication.EigenDenseBDCSVD()
