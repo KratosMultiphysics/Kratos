@@ -1536,7 +1536,16 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
         rValues[0] = mMP.volume;
     }
     else if (rVariable == MP_RADIUS) {
-        rValues[0] = std::sqrt(mMP.volume/ GetProperties()[THICKNESS]/ Globals::Pi);
+        if (rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC))
+        {
+            const double apparent_area = mMP.volume / (2.0 * Globals::Pi * mMP.xg[0]);
+            rValues[0] = std::sqrt(apparent_area/ Globals::Pi);
+        }
+        else
+        {
+            if (GetGeometry().WorkingSpaceDimension() == 3) rValues[0] = std::cbrt(mMP.volume);
+            else rValues[0] = std::sqrt(mMP.volume/ GetProperties()[THICKNESS]/ Globals::Pi);
+        }
     }
     else if (rVariable == MP_POTENTIAL_ENERGY) {
         rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
