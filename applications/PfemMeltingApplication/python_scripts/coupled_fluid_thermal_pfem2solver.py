@@ -132,7 +132,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #print("@@@@@@@@@@@@@@@@")
         #print(self.variables_aux)     
         #print(self.values_aux)
-        #jhgjhgjhgjhg
+        
         self.Mesher = MeshApp.TetGenPfemModeler()   
 
         self.modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -146,6 +146,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.Pfem2Utils = PFEM2.Pfem2Utils()
 
         self.faceheatflux = PfemM.FaceHeatFlux()
+
+        self.HeatSource = PfemM.HeatSource()
+
+
 
     def AddVariables(self):
         # Import the fluid and thermal solver variables. Then merge them to have them in both fluid and thermal solvers.
@@ -210,7 +214,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[0], self.values_aux[0].GetDouble(), self.fluid_solver.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[1], self.values_aux[1].GetDouble(), self.fluid_solver.main_model_part.Nodes)
-                
+        KratosMultiphysics.VariableUtils().SetVariable(self.variables_aux[2], self.values_aux[2].GetDouble(), self.fluid_solver.main_model_part.Nodes)
 
 
     def AddDofs(self):
@@ -518,8 +522,8 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #print(x)
 
         self.faceheatflux.FaceHeatFluxDistribution(self.fluid_solver.main_model_part, x, y, z, radius, q)
-
-
+        self.HeatSource.Heat_Source(self.fluid_solver.main_model_part)
+        #sssssssssssssss 
         #sssssssssssssssssss 
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
         

@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "custom_utilities/face_heat_distribution.h"
 #include "custom_utilities/streamline.h"
-
+#include "custom_utilities/heat_source.h"
 namespace Kratos
 {
 
@@ -88,6 +88,9 @@ namespace py = pybind11;
    .def("FaceHeatFluxDistribution", &FaceHeatFlux < 3 > ::FaceHeatFluxDistribution)
    ;
 
+ py::class_<HeatSource < 3 > >(m,"HeatSource").def(py::init<>())
+   .def("Heat_Source", &HeatSource < 3 > ::Heat_Source)
+   ;
 
 
 }
