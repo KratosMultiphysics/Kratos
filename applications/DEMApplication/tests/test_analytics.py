@@ -130,11 +130,11 @@ class TestAnalytics(KratosUnittest.TestCase):
     #     model = Kratos.Model()
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 
-
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
+        file_to_remove = os.path.join("analytics_tests_files", "flux_data_new.hdf5")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
 
 
