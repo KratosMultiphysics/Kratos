@@ -49,35 +49,41 @@ namespace Testing
         return Kratos::make_intrusive<Shell5pElement>(1, p_quadrature_point, p_elem_prop);
     }
 
+    Parameters GetDirectorParamaters()
+    {
+        return Parameters(R"(
+        {
+            "model_part_name": "ModelPart",
+            "brep_ids" : [1] ,
+            "linear_solver_settings" : {
+                "solver_type": "skyline_lu_factorization"
+            }
+        })");
+    }
+
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP3, KratosIgaFast5PSuite)
     {
-        std::cout << std::endl;
-        std::cout << "TEST0" << std::endl;
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
-
 
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
-        std::cout << "TEST1" << std::endl;
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
-        Parameters dummyParaMeters;
-
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        std::cout << "TEST1.1" << std::endl;
-        directorUtilities.ComputeDirectors();
-        std::cout << "TEST2" << std::endl;
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
-        std::cout << "TEST3" << std::endl;
+
         TestCreationUtility::AddDisplacementDofs(r_model_part);
-        std::cout << "TEST4" << std::endl;
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParamaters()).ComputeDirectors();
+
+        p_shell_5p_element->Check(r_process_info);
         p_shell_5p_element->Initialize(r_process_info);
-        std::cout << "TEST5" << std::endl;
+
         Matrix left_hand_side_matrix;
         Vector right_hand_side_vector;
         p_shell_5p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
@@ -118,16 +124,15 @@ namespace Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
-
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 4, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParamaters()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -170,17 +175,15 @@ namespace Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
-
-
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 5, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParamaters()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -223,16 +226,15 @@ namespace Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
-
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParamaters()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -292,23 +294,20 @@ namespace Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
-
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 4, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParamaters()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
         array_1d<double, 3> delta = ZeroVector(3);
         delta[2] = 0.002;
-
-        KRATOS_WATCH(delta)
 
         for (auto& node : p_shell_5p_element->GetGeometry()) // p_shell_3p_element->GetGeometry()[i].
         {
@@ -368,16 +367,15 @@ namespace Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
-
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
         auto p_shell_5p_element = GetShell5pElement(r_model_part, 5, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParamaters()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
