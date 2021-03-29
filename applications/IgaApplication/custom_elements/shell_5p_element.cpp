@@ -585,8 +585,6 @@ namespace Kratos
                 director = director + inc3d;
                 director *= normt / norm_2(director);
                 node.SetValue(DIRECTOR, director);
-                node.SetValue(DIRECTORINC_X, 0);
-                node.SetValue(DIRECTORINC_Y, 0);
                 node.FastGetSolutionStepValue(DIRECTORINC_X) = 0.0;
                 node.FastGetSolutionStepValue(DIRECTORINC_Y) = 0.0;
                 node.SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
