@@ -18,14 +18,15 @@ namespace Kratos
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "force_settings" : {
-                    "value"                : [10.0, "3*t", "x+y"]
+                    "value"            : [10.0, "3*t", "x+y"],
+                    "table"            : [0, 0, 0]
                 },
                 "moment_settings" : {
-                    "value"                : [10.0, "3*t", "x+y"]
+                    "value"            : [10.0, "3*t", "x+y"],
+                    "table"            : [0, 0, 0]
                 },
                 "interval"             : [0.0, 1e30]
             } )" );
-
 
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -38,6 +39,9 @@ namespace Kratos
         mForceFunctions.clear();
         mMomentFunctions.clear();
 
+        mpForceTable.clear();
+        mpMomentTable.clear();
+
         for(int i=0; i<3; i++) {
             if(rParameters["force_settings"]["value"][i].IsNumber()) {
                 mForceValueIsNumeric[i] = true;
@@ -48,6 +52,9 @@ namespace Kratos
                 mForceValueIsNumeric[i] = false;
                 mForceFunctions.push_back(PythonGenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
             }
+            mForceTableId[i] = rParameters["force_settings"]["table"][i].GetInt();
+            mpForceTable.push_back(mrModelPart.pGetTable(mForceTableId[i])); // because I can't construct an array_1d of these
+
             if(rParameters["moment_settings"]["value"][i].IsNumber()) {
                 mMomentValueIsNumeric[i] = true;
                 mMomentValues[i] = rParameters["moment_settings"]["value"][i].GetDouble();
@@ -57,6 +64,8 @@ namespace Kratos
                 mMomentValueIsNumeric[i] = false;
                 mMomentFunctions.push_back(PythonGenericFunctionUtility(rParameters["moment_settings"]["value"][i].GetString()));
             }
+            mMomentTableId[i] = rParameters["moment_settings"]["table"][i].GetInt();
+            mpMomentTable.push_back(mrModelPart.pGetTable(mMomentTableId[i])); // because I can't construct an array_1d of these
         }
 
         mParameters = rParameters;
@@ -89,23 +98,33 @@ namespace Kratos
             array_1d<double, 3>& moment = rNode.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
 
             for(int i=0; i<3; i++) {
-                double force_value = 0.0;
-                if(mForceValueIsNumeric[i]) {
-                    force_value = mForceValues[i];
+                if (mForceTableId[i] != 0) {
+                    force[i] = mpForceTable[i]->GetValue(time);
                 }
                 else {
-                    force_value = mForceFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                    double force_value = 0.0;
+                    if(mForceValueIsNumeric[i]) {
+                        force_value = mForceValues[i];
+                    }
+                    else {
+                        force_value = mForceFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                    }
+                    force[i] = force_value;
                 }
-                force[i] = force_value;
 
-                double moment_value = 0.0;
-                if(mMomentValueIsNumeric[i]) {
-                    moment_value = mMomentValues[i];
+                if (mMomentTableId[i] != 0) {
+                    moment[i] = mpMomentTable[i]->GetValue(time);
                 }
                 else {
+                    double moment_value = 0.0;
+                    if(mMomentValueIsNumeric[i]) {
+                        moment_value = mMomentValues[i];
+                    }
+                    else {
                         moment_value = mMomentFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                    }
+                    moment[i] = moment_value;
                 }
-                moment[i] = moment_value;
             }
         });
 

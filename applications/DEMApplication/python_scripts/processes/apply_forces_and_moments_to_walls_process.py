@@ -16,10 +16,12 @@ def Factory(settings, Model):
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "force_settings" : {
-                "value"                : [10.0, "3*t", "x+y"]
+                "value"            : [10.0, "3*t", "x+y"],
+                "table"            : [0, 0, 0]
             },
             "moment_settings" : {
-                "value"                : [10.0, "3*t", "x+y"]
+                "value"            : [10.0, "3*t", "x+y"],
+                "table"            : [0, 0, 0]
             },
             "interval"             : [0.0, 1e30]
         }""" )
