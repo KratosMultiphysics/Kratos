@@ -159,7 +159,7 @@ namespace MPMParticleGeneratorUtility
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
                         if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
                             element_type_name = "UpdatedLagrangianPQ";
-                            //KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
+                            KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
                         }
                     }
 
