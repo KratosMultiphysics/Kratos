@@ -20,120 +20,169 @@ class RigidBodySolver(object):
         elif isinstance(input_name, str):
             if not input_name.endswith(".json"):
                 input_name += ".json"
-
             with open(input_name,'r') as ProjectParameters:
                 parameters = json.load(ProjectParameters)
         else:
             raise Exception("The input has to be provided as a dict or a string")
 
+        # Degrees of freedom that can be activated from the parameters
         self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z']
 
-        self.dof_params, self.sol_params = self._ValidateAndAssignRigidBodySolverDefaults(parameters)
+        # Check that the activated dofs are not repeated and are among the available ones
+        self.active_dofs = self._CheckActiveDofs(parameters)
+
+        # Fill with defaults and check that mandatory fields are given
+        dof_params, sol_params = self._ValidateAndAssignRigidBodySolverDefaults(parameters)
         
-        self.mass = parameters["system_parameters"]["mass"]
-        self.stiffness = parameters["system_parameters"]["stiffness"]
-        self.damping = parameters["system_parameters"]["damping"]
-        self.modulus_self_weight = parameters["system_parameters"]["modulus_self_weight"]
+        # Safe all the filled data in their respective class variables
+        self._InitializeDofsVariables(dof_params)
+        self._InitializeSolutionVariables(sol_params)
 
-        self.alpha_m = parameters["time_integration_parameters"]["alpha_m"]
-        self.delta_t = parameters["time_integration_parameters"]["time_step"]
-        self.start_time = parameters["time_integration_parameters"]["start_time"]
+        # Calculate parameters for the system of equations that performs the time integration.
+        # The Left-hand-side (LHS) is always the same. The Right-hand-side (RHS) depends on the forces
+        # and previous situation. Here, only the constant part (RHS_matrix) is calculated.
+        self.LHS = {}
+        self.RHS_matrix = {}
+        for dof in self.active_dofs:
+            self.LHS[dof] = np.array([[1.0, 0.0, -self.delta_t**2 * self.beta],
+                                    [0.0, 1.0, -self.delta_t * self.gamma],
+                                    [self.stiffness[dof],
+                                    self.damping[dof],
+                                    (1-self.alpha_m) * self.mass[dof]]])
 
-        self.initial_displacement = parameters["initial_values"]["displacement"]
-        self.initial_velocity = parameters["initial_values"]["velocity"]
+            self.RHS_matrix[dof] = np.array([[1.0, self.delta_t, self.delta_t**2 * (0.5 - self.beta)],
+                                            [0.0, 1.0, self.delta_t*(1-self.gamma)],
+                                            [0.0,
+                                            0.0,
+                                            -self.alpha_m * self.mass[dof]]])
 
-        self.excitation_function_force = parameters["boundary_conditions"]["excitation_function_force"]
-        self.excitation_function_root_point_displacement = parameters["boundary_conditions"]["excitation_function_root_point_displacement"]
-        self.load_impulse = parameters["boundary_conditions"]["load_impulse"]
-        self.omega_force = parameters["boundary_conditions"]["omega_force"]
-        self.omega_root_point_displacement = parameters["boundary_conditions"]["omega_root_point_displacement"]
-        self.amplitude_root_point_displacement = parameters["boundary_conditions"]["amplitude_root_point_displacement"]
-        self.amplitude_force = parameters["boundary_conditions"]["amplitude_force"]
+    def _InitializeDofsVariables(self, dof_params):
+        
+        self.mass = {}
+        self.stiffness = {}
+        self.damping = {}
+        self.modulus_self_weight = {}
 
-        #calculate initial acceleration
-        factor = self.load_impulse - self.stiffness * self.initial_displacement
-        self.initial_acceleration = (1/self.mass) * factor
+        self.excitation_function_force = {}
+        self.excitation_function_root_point_displacement = {}
+        self.load_impulse = {}
+        self.omega_force = {}
+        self.omega_root_point_displacement = {}
+        self.amplitude_root_point_displacement = {}
+        self.amplitude_force = {}
 
+        self.initial_displacement = {}
+        self.initial_velocity = {}
+        self.initial_acceleration = {}
+
+        for dof in self.active_dofs:
+            print(dof_params)
+            self.mass[dof] = dof_params[dof]['system_parameters']['mass'].GetDouble()
+            self.stiffness[dof] = dof_params[dof]['system_parameters']['stiffness'].GetDouble()
+            self.damping[dof] = dof_params[dof]['system_parameters']['damping'].GetDouble()
+            self.modulus_self_weight[dof] = dof_params[dof]['system_parameters']['modulus_self_weight'].GetDouble()
+
+            self.excitation_function_force[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_force"].GetString()
+            self.excitation_function_root_point_displacement[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_root_point_displacement"].GetString()
+            self.load_impulse[dof] = dof_params[dof]["boundary_conditions"]["load_impulse"].GetDouble()
+            self.omega_force[dof] = dof_params[dof]["boundary_conditions"]["omega_force"].GetDouble()
+            self.omega_root_point_displacement[dof] = dof_params[dof]["boundary_conditions"]["omega_root_point_displacement"].GetDouble()
+            self.amplitude_root_point_displacement[dof] = dof_params[dof]["boundary_conditions"]["amplitude_root_point_displacement"].GetDouble()
+            self.amplitude_force[dof] = dof_params[dof]["boundary_conditions"]["amplitude_force"].GetDouble()
+
+            self.initial_displacement[dof] = dof_params[dof]["initial_values"]["displacement"].GetDouble()
+            self.initial_velocity[dof] = dof_params[dof]["initial_values"]["velocity"].GetDouble()
+            factor = self.load_impulse[dof] - self.stiffness[dof] * self.initial_displacement[dof]
+            self.initial_acceleration[dof] = (1/self.mass[dof]) * factor
+
+    def _InitializeSolutionVariables(self, sol_params):
+        
+        self.alpha_m = sol_params["time_integration_parameters"]["alpha_m"].GetDouble()
         self.beta = 0.25 * (1- self.alpha_m)**2
         self.gamma =  0.50 - self.alpha_m
 
-        self.LHS = np.array([[1.0, 0.0, -self.delta_t**2 * self.beta],
-                             [0.0, 1.0, -self.delta_t * self.gamma],
-                             [self.stiffness,
-                              self.damping,
-                               (1-self.alpha_m) * self.mass]])
-
-        self.RHS_matrix = np.array([[1.0, self.delta_t, self.delta_t**2 * (0.5 - self.beta)],
-                                    [0.0, 1.0, self.delta_t*(1-self.gamma)],
-                                    [0.0,
-                                     0.0,
-                                     -self.alpha_m * self.mass]])
-
-        self.buffer_size = parameters["solver_parameters"]["buffer_size"]
-        self.output_file_name = parameters["output_parameters"]["file_name"]
-        self.write_output_file = parameters["output_parameters"]["write_output_file"]
+        self.delta_t = sol_params["time_integration_parameters"]["time_step"].GetDouble()
+        self.start_time = sol_params["time_integration_parameters"]["start_time"].GetDouble()
+        self.buffer_size = sol_params["solver_parameters"]["buffer_size"].GetInt()
+        self.output_file_path = sol_params["output_parameters"]["file_path"].GetString()
+        self.write_output_file = sol_params["output_parameters"]["write_output_files"].GetBool()
         
     def Initialize(self):
-        #solution buffer
-        self.x = np.zeros((3, self.buffer_size))
-        #values at the root point buffer
-        self.x_f = np.zeros((3, self.buffer_size))
 
-        initial_values = np.array([self.initial_displacement,
-                                   self.initial_velocity,
-                                   self.initial_acceleration])
-        self.dx = initial_values
-        self.dx_f = np.zeros(3)
         self.time = self.start_time
 
-        self.root_point_displacement = 0.0
+        self.x = {}
+        self.x_f = {}
+        self.dx = {}
+        self.dx_f = {}
+        self.root_point_displacement = {}
+        self.load_vector = {}
 
-        #x and dx contain: [displacement, velocity, acceleration]
+        for dof in self.active_dofs:
+            #solution buffer
+            self.x[dof] = np.zeros((3, self.buffer_size))
+            #values at the root point buffer
+            self.x_f[dof] = np.zeros((3, self.buffer_size))
+
+            initial_values = np.array([self.initial_displacement[dof],
+                                        self.initial_velocity[dof],
+                                        self.initial_acceleration[dof]])
+            self.dx[dof] = initial_values
+            self.dx_f[dof] = np.zeros(3)
+
+            self.root_point_displacement[dof] = 0.0
+
+            #apply external load as an initial impulse
+            self.load_vector[dof] = np.array([0,
+                                            0,
+                                            self.load_impulse[dof]])
+
         if self.write_output_file:
-            if os.path.isfile(self.output_file_name):
-                os.remove(self.output_file_name)
             self.InitializeOutput()
 
-        #apply external load as an initial impulse
-        self.load_vector = np.array([0,
-                                     0,
-                                     self.load_impulse])
-
     def InitializeOutput(self):
+        
         data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
-            with open(self.output_file_name, "w") as results_rigid_body:
-                results_rigid_body.write("time"+ " " +
-                                        "displacement" + " " +
-                                        "velocity" + " " +
-                                        "acceleration" + " " +
-                                        "root point displacement" + " " +
-                                        "root point velocity" + " " +
-                                        "root point acceleration" + " " +
-                                        "relative displacement" + " " +
-                                        "relative velocity" + " " +
-                                        "relative accleration" + " " +
-                                        "reaction" + "\n")
+            self.output_file_name = {}
+            for dof in self.active_dofs:
+                self.output_file_name[dof] = os.path.join(self.output_file_path, dof + '.dat')
+                if os.path.isfile(self.output_file_name[dof]):
+                    os.remove(self.output_file_name[dof])
+                with open(self.output_file_name[dof], "w") as results_rigid_body:
+                    results_rigid_body.write("time"+ " " +
+                                            "displacement" + " " +
+                                            "velocity" + " " +
+                                            "acceleration" + " " +
+                                            "root point displacement" + " " +
+                                            "root point velocity" + " " +
+                                            "root point acceleration" + " " +
+                                            "relative displacement" + " " +
+                                            "relative velocity" + " " +
+                                            "relative accleration" + " " +
+                                            "reaction" + "\n")
             self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
         data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
-            reaction = self.CalculateReaction()
             if self.write_output_file:
-                with open(self.output_file_name, "a") as results_rigid_body:
-                    #outputs results
-                    results_rigid_body.write(str(np.around(self.time, 3)) + " " +
-                                    str(self.dx[0]) + " " +
-                                    str(self.dx[1]) + " " +
-                                    str(self.dx[2]) + " " +
-                                    str(self.dx_f[0]) + " " +
-                                    str(self.dx_f[1]) + " " +
-                                    str(self.dx_f[2]) + " " +
-                                    str(self.dx[0] - self.dx_f[0]) + " " +
-                                    str(self.dx[1] - self.dx_f[1]) + " " +
-                                    str(self.dx[2] - self.dx_f[2]) + " " +
-                                    str(reaction) + "\n")
+                reaction = self.CalculateReaction()
+                for dof in self.active_dofs:
+                    with open(self.output_file_name[dof], "a") as results_rigid_body:
+                        #outputs results
+                        #x and dx contain: [displacement, velocity, acceleration]
+                        results_rigid_body.write(str(np.around(self.time, 3)) + " " +
+                                                str(self.dx[dof][0]) + " " +
+                                                str(self.dx[dof][1]) + " " +
+                                                str(self.dx[dof][2]) + " " +
+                                                str(self.dx_f[dof][0]) + " " +
+                                                str(self.dx_f[dof][1]) + " " +
+                                                str(self.dx_f[dof][2]) + " " +
+                                                str(self.dx[dof][0] - self.dx_f[dof][0]) + " " +
+                                                str(self.dx[dof][1] - self.dx_f[dof][1]) + " " +
+                                                str(self.dx[dof][2] - self.dx_f[dof][2]) + " " +
+                                                str(reaction[dof]) + "\n")
 
 
     def AdvanceInTime(self, current_time):
@@ -182,8 +231,10 @@ class RigidBodySolver(object):
         self.dx = np.linalg.solve(self.LHS, b)
 
     def CalculateReaction(self, buffer_idx=0):
-        reaction = self.damping * ( self.dx[1] - self.dx_f[1]) \
-                 + self.stiffness * (self.dx[0] - self.dx_f[0])
+        reaction = {}
+        for dof in self.active_dofs:
+            reaction[dof] = self.damping[dof] * (self.dx[dof][1] - self.dx_f[dof][1]) \
+                        + self.stiffness[dof] * (self.dx[dof][0] - self.dx_f[dof][0])
         return reaction
 
     def CalculateSelfWeight(self):
@@ -219,6 +270,29 @@ class RigidBodySolver(object):
             self.root_point_displacement = value
         else:
             raise Exception("Identifier is unknown!")
+
+    def _CheckActiveDofs(self, parameters):
+
+        active_dofs = []
+        for single_dof_parameters in parameters["active_dof_list"]:
+
+            if "dof" not in single_dof_parameters:
+                msg = '"dof" must be specified in all the items in the list "active_dof_list". '
+                msg += 'It represents the name of the degree of freedom that is activated.'
+                raise Exception(msg)
+            dof = single_dof_parameters["dof"]
+
+            if dof not in self.available_dofs:
+                msg = 'The degree of freedom "' + dof + '" is not among the available ones. '
+                msg += 'Chose one of the following: ' + str(self.available_dofs)[1:-1] + '.'
+                raise Exception(msg)
+
+            if dof in active_dofs:
+                msg = 'The degree of freedom "' + dof + '" is repeated in the project parameters. '
+                raise Exception(msg)
+            active_dofs.append(dof)
+        
+        return active_dofs
 
     def _ValidateAndAssignRigidBodySolverDefaults(self, parameters):
         
@@ -258,33 +332,18 @@ class RigidBodySolver(object):
             },
             "output_parameters":{
                 "write_output_files": true,
-                "path" : "rigid_body_solver"
+                "file_path" : "results/rigid_body"
             }
         }''')
 
         dof_parameters = {}
-        active_dofs = []
         for single_dof_parameters in parameters["active_dof_list"]:
 
-            if "dof" not in single_dof_parameters:
-                msg = '"dof" must be specified in all the items in the list "active_dof_list". '
-                msg += 'It represents the name of the degree of freedom that is activated.'
-                raise Exception(msg)
             dof = single_dof_parameters["dof"]
-
-            if dof not in self.available_dofs:
-                msg = 'The degree of freedom "' + dof + '" is not among the available ones. '
-                msg += 'Chose one of the following: ' + str(self.available_dofs)[1:-1] + '.'
-                raise Exception(msg)
-
-            if dof in active_dofs:
-                msg = 'The degree of freedom "' + dof + '" is repeated in the project parameters. '
-                raise Exception(msg)
 
             single_dof_parameters = KratosMultiphysics.Parameters(json.dumps(single_dof_parameters))
             single_dof_parameters.RecursivelyValidateAndAssignDefaults(default_single_dof_parameters)
-
-            active_dofs.append(dof)
+            
             dof_parameters[dof] = single_dof_parameters
         
         solution_parameters = KratosMultiphysics.Parameters(json.dumps(parameters["solution_parameters"]))
