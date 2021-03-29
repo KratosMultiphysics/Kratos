@@ -1,6 +1,6 @@
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
-import KratosMultiphysics as KM
+import KratosMultiphysics
 
 # Other imports
 import numpy as np
@@ -8,66 +8,32 @@ import json
 import os
 
 class RigidBodySolver(object):
-    """ This class implements an Rigid Body solver, independent of Kratos
-    Several types of applying loads are available
+    """
+    This class implements a Rigid Body solver independent of Kratos.
+    Several types of load applications are available, and they can be applyed to each degree of freedom.
     """
     def __init__(self, input_name):
 
-        # mimicing two constructors
+        # Allow different formats for the input parameters
         if isinstance(input_name, dict):
             parameters = input_name
-
         elif isinstance(input_name, str):
             if not input_name.endswith(".json"):
                 input_name += ".json"
 
             with open(input_name,'r') as ProjectParameters:
                 parameters = json.load(ProjectParameters)
-
         else:
             raise Exception("The input has to be provided as a dict or a string")
 
-        default_settings = {
-                "system_parameters":{
-                    "mass"      : 100.0,
-                    "stiffness" : 4000.0,
-                    "damping"   : 0.0,
-                    "modulus_self_weight": 9.81
-                },
-                "time_integration_parameters":{
-                    "alpha_m"   : -0.3,
-                    "start_time": 0.0,
-                    "time_step" : 0.05,
-                },
-                "initial_values":{
-                    "displacement"  : 0.0,
-                    "velocity"      : 0.0,
-                    "acceleration"  : 0.0
-                },
-                "boundary_conditions":{
-                    "load_impulse" : 0.0,
-                    "omega_force"        : 0.0,
-                    "omega_root_point_displacement"        : 0.0,
-                    "excitation_function_force": "A * sin(omega * t)",
-                    "excitation_function_root_point_displacement": "A * sin(omega * t)",
-                    "amplitude_root_point_displacement": 0.0,
-                    "amplitude_force": 0.0
-                },
-                "solver_parameters": {
-                    "buffer_size"   : 2
-                },
-                "output_parameters":{
-                    "write_output_file": True,
-                    "file_name" : "rigid_body_solver/results_rigid_body.dat"
-                }}
+        self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z']
 
-        RecursivelyValidateAndAssignDefaults(default_settings, parameters)
+        dof_parameters, solution_parameters = self.ValidateAndAssignRigidBodySolverDefaults(parameters)
 
         self.mass = parameters["system_parameters"]["mass"]
         self.stiffness = parameters["system_parameters"]["stiffness"]
         self.damping = parameters["system_parameters"]["damping"]
         self.modulus_self_weight = parameters["system_parameters"]["modulus_self_weight"]
-
 
         self.alpha_m = parameters["time_integration_parameters"]["alpha_m"]
         self.delta_t = parameters["time_integration_parameters"]["time_step"]
@@ -134,7 +100,7 @@ class RigidBodySolver(object):
                                      self.load_impulse])
 
     def InitializeOutput(self):
-        data_comm = KM.DataCommunicator.GetDefault()
+        data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
             with open(self.output_file_name, "w") as results_rigid_body:
                 results_rigid_body.write("time"+ " " +
@@ -151,7 +117,7 @@ class RigidBodySolver(object):
             self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
-        data_comm = KM.DataCommunicator.GetDefault()
+        data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
             reaction = self.CalculateReaction()
             if self.write_output_file:
@@ -254,36 +220,91 @@ class RigidBodySolver(object):
         else:
             raise Exception("Identifier is unknown!")
 
-def ValidateAndAssignDefaults(defaults, settings, recursive=False):
-    for key, val in settings.items():
-        # check if the current entry also exists in the defaults
-        if not key in defaults.keys():
-            err_msg  = 'The item with name "' + key + '" is present in this '
-            err_msg += 'settings\nbut NOT in the defaults!\n'
-            err_msg += 'settings are:\n'
-            err_msg += json.dumps(settings, indent=4)
-            err_msg += '\ndefaults are:\n'
-            err_msg += json.dumps(defaults, indent=4)
-            raise Exception(err_msg)
+    def ValidateAndAssignRigidBodySolverDefaults(self, parameters):
+        
+        for key in ["active_dof_list", "solution_parameters"]:
+            if key not in parameters:
+                msg = 'The key "' + key + '" was not found in the project parameters '
+                msg += 'and it is necessary to run configure the RigidBodySolver.'
+                raise Exception(msg)
+        
+        if len(parameters["active_dof_list"]) == 0:
+            msg = 'At least an active degree of freedom is needed to use the solver '
+            msg += ' and none where provided in "active_dof_list".'
+            raise Exception(msg)
+        
+        msg = '"time_step" should be given as par of "time_integration_parameters" '
+        msg += 'in "solution_parameters".'
+        if "time_integration_parameters" not in parameters["solution_parameters"]:
+            raise Exception(msg)
+        else:
+            if "time_step" not in parameters["solution_parameters"]["time_integration_parameters"]:
+                raise Exception(msg)
 
-        # check if the type is the same in the defaults
-        if type(settings[key]) != type(defaults[key]):
-            err_msg  = 'The type of the item with name "' + key + '" (type: "'
-            err_msg += str(type(settings[key]).__name__)+'") in this '
-            err_msg += 'settings\nis NOT the same as in the defaults (type: "'
-            err_msg += str(type(defaults[key]).__name__)+'")!\n'
-            err_msg += 'settings are:\n'
-            err_msg += json.dumps(settings, indent=4)
-            err_msg += '\ndefaults are:\n'
-            err_msg += json.dumps(defaults, indent=4)
-            raise Exception(err_msg)
+        default_single_dof_parameters = KratosMultiphysics.Parameters('''{
+            "dof": "displacement_x",
+            "system_parameters":{
+                "mass"      : 100.0,
+                "stiffness" : 4000.0,
+                "damping"   : 0.0,
+                "modulus_self_weight": 0.0
+            },
+            "initial_values":{
+                "displacement"  : 0.0,
+                "velocity"      : 0.0,
+                "acceleration"  : 0.0
+            },
+            "boundary_conditions":{
+                "load_impulse": 0.0,
+                "omega_force": 0.0,
+                "omega_root_point_displacement": 0.0,
+                "excitation_function_force": "A * sin(omega * t)",
+                "excitation_function_root_point_displacement": "A * sin(omega * t)",
+                "amplitude_root_point_displacement": 0.0,
+                "amplitude_force": 0.0
+            }
+        }''')
+        default_solution_parameters = KratosMultiphysics.Parameters('''{
+            "time_integration_parameters":{
+                "alpha_m"   : -0.3,
+                "start_time": 0.0,
+                "time_step" : 0.05
+            },
+            "solver_parameters":{
+                "buffer_size"   : 2
+            },
+            "output_parameters":{
+                "write_output_file": true,
+                "file_name" : "rigid_body_solver/results_rigid_body.dat"
+            }
+        }''')
 
-    # loop the defaults and add the missing entries
-    for key_d, val_d in defaults.items():
-        if key_d not in settings: # add the default in case the setting is not present
-            settings[key_d] = val_d
-        elif recursive and type(val_d) is dict:
-            RecursivelyValidateAndAssignDefaults(val_d, settings[key_d])
+        dof_parameters = {}
+        active_dofs = []
+        for single_dof_parameters in parameters["active_dof_list"]:
 
-def RecursivelyValidateAndAssignDefaults(defaults, settings):
-    ValidateAndAssignDefaults(defaults, settings, recursive=True)
+            if "dof" not in single_dof_parameters:
+                msg = '"dof" must be specified in all the items in the list "active_dof_list". '
+                msg += 'It represents the name of the degree of freedom that is activated.'
+                raise Exception(msg)
+            dof = single_dof_parameters["dof"]
+
+            if dof not in self.available_dofs:
+                msg = 'The degree of freedom "' + dof + '" is not among the available ones. '
+                msg += 'Chose one of the following: ' + str(self.available_dofs)[1:-1] + '.'
+                raise Exception(msg)
+
+            if dof in active_dofs:
+                msg = 'The degree of freedom "' + dof + '" is repeated in the project parameters. '
+                raise Exception(msg)
+
+            single_dof_parameters = KratosMultiphysics.Parameters(json.dumps(single_dof_parameters))
+            single_dof_parameters.RecursivelyValidateAndAssignDefaults(default_single_dof_parameters)
+
+            active_dofs.append(dof)
+            dof_parameters[dof] = single_dof_parameters
+        
+        solution_parameters = KratosMultiphysics.Parameters(json.dumps(parameters["solution_parameters"]))
+        solution_parameters.RecursivelyValidateAndAssignDefaults(default_solution_parameters)
+
+        return dof_parameters, solution_parameters
