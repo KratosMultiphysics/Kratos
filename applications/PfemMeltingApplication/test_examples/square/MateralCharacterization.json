@@ -4,8 +4,9 @@
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
-                "ACTIVATION_ENERGY"           : 0.57102,
-                "ARRHENIUS_COEFFICIENT" : 0.99997
+                "ACTIVATION_ENERGY"           : 200000.0,
+                "ARRHENIUS_COEFFICIENT" : 1000000000.0,
+                "HEAT_OF_VAPORIZATION" : 1000.0
             },
             "Tables": {}
         }

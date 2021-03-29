@@ -31,7 +31,10 @@ namespace Kratos {
 
 
 KratosPfemMeltingApplication::KratosPfemMeltingApplication()
-    : KratosApplication("PfemMeltingApplication")
+    : KratosApplication("PfemMeltingApplication"),
+
+	mLagrangianFluidVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+	mLagrangianFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 
       {}
 
@@ -46,8 +49,14 @@ void KratosPfemMeltingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(ACTIVATION_ENERGY)
     KRATOS_REGISTER_VARIABLE(ARRHENIUS_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(RADIOUS)
+    KRATOS_REGISTER_VARIABLE(HEAT_OF_VAPORIZATION)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INITIAL_POSITION)
+
+    KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS2D",mLagrangianFluidVMS2D);
+    mLagrangianFluidVMS2D;
+    KRATOS_REGISTER_ELEMENT("LagrangianFluidVMS3D",mLagrangianFluidVMS3D);
+    mLagrangianFluidVMS3D;
 
 
 }

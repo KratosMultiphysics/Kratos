@@ -123,8 +123,16 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             var = KratosMultiphysics.KratosGlobals.GetVariable(key)
             self.variables_aux.append(var)
             self.values_aux.append(value)
-             
+            #print("##########")
+            #print(key)
+            #print(value)
+            #print(var)
 
+        #print("@@@@@@@@@@@@@@@@")
+        #print("@@@@@@@@@@@@@@@@")
+        #print(self.variables_aux)     
+        #print(self.values_aux)
+        #jhgjhgjhgjhg
         self.Mesher = MeshApp.TetGenPfemModeler()   
 
         self.modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -150,6 +158,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_LAGRANGIAN_INLET)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.ACTIVATION_ENERGY)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.ARRHENIUS_COEFFICIENT)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(PfemM.HEAT_OF_VAPORIZATION)
 
 
 
@@ -305,10 +314,10 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
             body_model_part_name.Conditions.clear()
 
 
-        (self.Mesher).ReGenerateMesh("VMS3D","ThermalFace3D3N", self.fluid_solver.main_model_part, self.node_erase_process, True, False, 1.4, 0.4)  
+        (self.Mesher).ReGenerateMesh("LagrangianFluidVMS3D","ThermalFace3D3N", self.fluid_solver.main_model_part, self.node_erase_process, True, False, 1.4, 0.4)  
 
-        
-
+        #LagrangianFluidVMS3D
+        #VMS3D 
         neighbor_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_solver.main_model_part)
         neighbor_search.Execute()
         neighbor_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(self.fluid_solver.main_model_part, 3, 20)
@@ -492,8 +501,8 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         radius=self.values[4].GetDouble()
         q=self.values[0].GetDouble()
         
-        print("2222222222222222222222222222222222222222")
-        print("2222222222222222222222222222222222222222")
+        #print("2222222222222222222222222222222222222222")
+        #print("2222222222222222222222222222222222222222")
         #print(self.new_table)
         #print(self.fluid_solver.main_model_part)
         #prop= self.fluid_solver.main_model_part.Properties
