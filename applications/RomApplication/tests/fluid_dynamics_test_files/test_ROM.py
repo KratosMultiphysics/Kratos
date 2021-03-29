@@ -1,8 +1,13 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
-import numpy as np
 
-from .MainKratosROM import TestFluidDynamicsROM
+try:
+    import numpy as np
+    from .MainKratosROM import TestFluidDynamicsROM
+    numpy_available = True
+except:
+    numpy_available = False
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
@@ -11,6 +16,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class ROMFluidDynamics(KratosUnittest.TestCase):
 #########################################################################################
 
+    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
     def test_Fluid_Dynamics_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
