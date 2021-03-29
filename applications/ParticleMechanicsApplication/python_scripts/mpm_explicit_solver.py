@@ -30,6 +30,7 @@ class MPMExplicitSolver(MPMSolver):
             "is_pqmpm"      : false,
             "is_make_normal_mp_if_pqmpm_fails" : false,
             "pqmpm_subpoint_min_volume_fraction" : 0.0,
+            "pqmpm_is_make_normal_mp_on_bc" : true,
             "is_explicit_contact_release" : false,
             "explicit_contact_release_modelpart" : "UNSPECIFIED"
         }""")
@@ -87,6 +88,8 @@ class MPMExplicitSolver(MPMSolver):
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS, is_make_normal_mp_if_pqmpm_fails)
         pqmpm_subpoint_min_volume_fraction = self.settings["pqmpm_subpoint_min_volume_fraction"].GetDouble()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_SUBPOINT_MIN_VOLUME_FRACTION, pqmpm_subpoint_min_volume_fraction)
+        pqmpm_is_make_normal_mp_on_bc = self.settings["pqmpm_is_make_normal_mp_on_bc"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.PQMPM_IS_MAKE_NORMAL_MP_ON_BC, pqmpm_is_make_normal_mp_on_bc)
 
         # Check if we are fixing MPs that lie directly on the edge of grid elements
         if is_pqmpm:

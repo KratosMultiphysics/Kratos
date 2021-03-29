@@ -197,15 +197,6 @@ namespace Kratos
             }
         }
         if (active_subpoint_index == 1) {
-            if (std::abs(ips[0].Weight() - 1.0) > Tolerance)
-            {
-                KRATOS_INFO("MPMSearchElementUtility")
-                    << "Boost intersection did not cover the whole single geometry\n"
-                    << "Global position = " << rCoordinates
-                    << "\nPQMPM bounding box points:\n\tlow = " << point_low << "\n\thigh = " << point_high << "\n";
-
-                KRATOS_ERROR << "ERROR";
-            }
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                 pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                 rParentGeom);
@@ -225,14 +216,19 @@ namespace Kratos
             for (size_t i = 0; i < active_node_index; ++i) nodes_list_active(i) = nodes_list(i);
         }
 
-        // check if there are any fixed nodes within the bounding box
-        if (CheckFixedNodesWithinBoundingBox(nodes_list_active, point_high, point_low, working_dim))
+
+        if (rBackgroundGridModelPart.GetProcessInfo().GetValue(PQMPM_IS_MAKE_NORMAL_MP_ON_BC))
         {
-            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                rParentGeom);
-            return;
+            // check if there are any fixed nodes within the bounding box
+            if (CheckFixedNodesWithinBoundingBox(nodes_list_active, point_high, point_low, working_dim))
+            {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    rParentGeom);
+                return;
+            }
         }
+
 
         // Check if any active nodes are CoSim interface nodes
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_COSIM_COUPLED))
@@ -278,6 +274,8 @@ namespace Kratos
                     << "\nTotal volume fraction = " << vol_sum << "\nIndividual volume fractions:\n";
                 for (size_t i = 0; i < ips_active.size(); ++i) std::cout << "\t" << ips_active[i].Weight()
                     << "\t\t" << ips_active[i].Coordinates() << std::endl;
+                std::cout << "\nBounding box points:\n\tlow = " << point_low << "\n\thigh = " << point_high << std::endl;
+
                 KRATOS_ERROR << "ERROR";
             }
         }
