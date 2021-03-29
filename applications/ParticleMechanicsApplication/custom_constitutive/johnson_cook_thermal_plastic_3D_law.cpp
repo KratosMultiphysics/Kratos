@@ -65,8 +65,13 @@ namespace Kratos
 		double area = geom.GetValue(MP_VOLUME);
 		rCharacteristicLength = std::pow(area,1.0/3.0);
 
-		KRATOS_ERROR_IF(rCharacteristicLength == 0.0) << "Characteristic length not set properly!\n"
-			<< "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
+		if (rCharacteristicLength == 0.0)
+		{
+			KRATOS_INFO("JohnsonCookThermalPlastic3DLaw::ComputeCharacteristicLength")
+			<< "Characteristic length not set properly!\n"
+				<< "Geom MP_VOLUME = " << geom.GetValue(MP_VOLUME) << "\n";
+			KRATOS_ERROR << "ERROR";
+		}
 	}
 
 
@@ -204,14 +209,14 @@ namespace Kratos
 		const double yield_stress_failure_ratio = 1e-3; // particle fails if current_yield/virgin_yield < yield_stress_failure_ratio
 		double delta_plastic_strain = 0.0;
 
-		if (j2_stress_trial > yield_stress && mDamage < 0.99)
+		if (j2_stress_trial > yield_stress && mDamage < 0.95)
 		{
 			// Newton raphson setup
 			double gamma = mGammaOld;
 			double gamma_min = 0.0;
 			double gamma_max = j2_stress_trial / GetSqrt6() / shear_modulus_G;
 			bool is_converged = false;
-			const SizeType iteration_limit = 1000;
+			const SizeType iteration_limit = 10000;
 			IndexType iteration = 0;
 			const double tolerance_delta_gamma = 1e-6;
 			double yield_function, yield_function_gradient, dYield_dGamma,
@@ -267,37 +272,24 @@ namespace Kratos
 				iteration += 1;
 				if (iteration == iteration_limit)
 				{
-					//if (yield_stress <= yield_stress_failure_ratio * mYieldStressVirgin)
-					//{
-					//	// Material has failed!
-					//	mIsFailed = true;
-					//	if (yield_stress < 0.0) yield_stress = 0.0;
-					//
-					//	// We take the initial prediction with zero yield stress
-					//	gamma = mGammaOld;
-					//	predicted_eps = mEquivalentPlasticStrainOld + GetSqrt23() * gamma; // eps = equivalent plastic strain
-					//	predicted_eps_rate = GetSqrt23() * gamma / CurrentProcessInfo[DELTA_TIME];
-					//	predicted_temperature = mTemperatureOld;
-					//	predicted_temperature += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / GetSqrt6() / MaterialProperties[DENSITY]
-					//		/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress + mYieldStressOld) * gamma;
-					//}
-					//else
-					//{
-					#pragma omp critical
+					if (gamma < 1e-6) is_converged = true;
+					else
 					{
-						KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded"
-							<< "\ngamma = " << gamma
-							<< "\ndamage = " << mDamage
-							<< "\nplastic strain old = " << mEquivalentPlasticStrainOld
-							<< "\nyield stress / virgin yield = " << yield_stress / mYieldStressVirgin
-							<< "\ndelta_gamma = " << delta_gamma
-							<< "\nyield_function" << yield_function
-							<< "\n\n\n";
+						#pragma omp critical
+						{
+							KRATOS_INFO("Johnson Cook Material Model") << " Johnson Cook iteration limit exceeded"
+								<< "\ngamma = " << gamma
+								<< "\ndamage = " << mDamage
+								<< "\ndamage initiation = " << mDamageInitiation
+								<< "\nplastic strain old = " << mEquivalentPlasticStrainOld
+								<< "\nyield stress / virgin yield = " << yield_stress / mYieldStressVirgin
+								<< "\ndelta_gamma = " << delta_gamma
+								<< "\nyield_function" << yield_function
+								<< "\n\n\n";
 
-							KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
+								KRATOS_ERROR << "Johnson Cook iteration limit exceeded";
+						}
 					}
-
-					//}
 				}
 			}
 			// Correct trial stress
@@ -313,7 +305,7 @@ namespace Kratos
 		}
 		else
 		{
-			if (mDamage > 0.99)
+			if (mDamage > 0.95)
 			{
 				// Particle has already failed. It can only take compressive volumetric stresses!
 				stress_deviatoric_converged.clear();
@@ -381,7 +373,7 @@ namespace Kratos
 					}
 					mDamage = std::min(1.0, mDamage);
 					mDamage = std::max(0.0, mDamage);
-					if (mDamage > 0.99) mDamage = 1.0;
+					if (mDamage > 0.95) mDamage = 1.0;
 				}
 			}
 		}
