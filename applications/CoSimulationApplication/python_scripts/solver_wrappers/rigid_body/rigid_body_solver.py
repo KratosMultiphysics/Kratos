@@ -28,8 +28,8 @@ class RigidBodySolver(object):
 
         self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z']
 
-        dof_parameters, solution_parameters = self.ValidateAndAssignRigidBodySolverDefaults(parameters)
-
+        self.dof_params, self.sol_params = self._ValidateAndAssignRigidBodySolverDefaults(parameters)
+        
         self.mass = parameters["system_parameters"]["mass"]
         self.stiffness = parameters["system_parameters"]["stiffness"]
         self.damping = parameters["system_parameters"]["damping"]
@@ -220,26 +220,9 @@ class RigidBodySolver(object):
         else:
             raise Exception("Identifier is unknown!")
 
-    def ValidateAndAssignRigidBodySolverDefaults(self, parameters):
+    def _ValidateAndAssignRigidBodySolverDefaults(self, parameters):
         
-        for key in ["active_dof_list", "solution_parameters"]:
-            if key not in parameters:
-                msg = 'The key "' + key + '" was not found in the project parameters '
-                msg += 'and it is necessary to run configure the RigidBodySolver.'
-                raise Exception(msg)
-        
-        if len(parameters["active_dof_list"]) == 0:
-            msg = 'At least an active degree of freedom is needed to use the solver '
-            msg += ' and none where provided in "active_dof_list".'
-            raise Exception(msg)
-        
-        msg = '"time_step" should be given as par of "time_integration_parameters" '
-        msg += 'in "solution_parameters".'
-        if "time_integration_parameters" not in parameters["solution_parameters"]:
-            raise Exception(msg)
-        else:
-            if "time_step" not in parameters["solution_parameters"]["time_integration_parameters"]:
-                raise Exception(msg)
+        self._CheckMandatoryInputParameters(parameters)
 
         default_single_dof_parameters = KratosMultiphysics.Parameters('''{
             "dof": "displacement_x",
@@ -274,8 +257,8 @@ class RigidBodySolver(object):
                 "buffer_size"   : 2
             },
             "output_parameters":{
-                "write_output_file": true,
-                "file_name" : "rigid_body_solver/results_rigid_body.dat"
+                "write_output_files": true,
+                "path" : "rigid_body_solver"
             }
         }''')
 
@@ -308,3 +291,24 @@ class RigidBodySolver(object):
         solution_parameters.RecursivelyValidateAndAssignDefaults(default_solution_parameters)
 
         return dof_parameters, solution_parameters
+
+    def _CheckMandatoryInputParameters(self, parameters):
+
+        for key in ["active_dof_list", "solution_parameters"]:
+            if key not in parameters:
+                msg = 'The key "' + key + '" was not found in the project parameters '
+                msg += 'and it is necessary to run configure the RigidBodySolver.'
+                raise Exception(msg)
+        
+        if len(parameters["active_dof_list"]) == 0:
+            msg = 'At least an active degree of freedom is needed to use the solver '
+            msg += ' and none where provided in "active_dof_list".'
+            raise Exception(msg)
+        
+        msg = '"time_step" should be given as par of "time_integration_parameters" '
+        msg += 'in "solution_parameters".'
+        if "time_integration_parameters" not in parameters["solution_parameters"]:
+            raise Exception(msg)
+        else:
+            if "time_step" not in parameters["solution_parameters"]["time_integration_parameters"]:
+                raise Exception(msg)
