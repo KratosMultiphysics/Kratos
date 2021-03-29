@@ -12,7 +12,7 @@ def Factory(settings, Model):
     process_settings = settings["Parameters"]
 
     folder_settings = KratosMultiphysics.Parameters("""{
-            "help"                 : "This process applies constraints to the rigid walls in a certain submodelpart, for a certain time interval",
+            "help"                 : "This process applies loads over the rigid walls in a certain submodelpart, for a certain time interval",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "force_settings" : {

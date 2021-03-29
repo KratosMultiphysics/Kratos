@@ -7,14 +7,14 @@ namespace Kratos
     ApplyForcesAndMomentsProcess::ApplyForcesAndMomentsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
-        ) : Process(Flags()) , mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
+        ) : mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
     {
         KRATOS_TRY
 
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
+                "help"                 : "This process applies loads over the particles in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "force_settings" : {

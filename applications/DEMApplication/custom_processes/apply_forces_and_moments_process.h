@@ -24,11 +24,8 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/table.h"
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "utilities/interval_utility.h"
 #include "utilities/python_function_callback_utility.h"

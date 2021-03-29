@@ -68,10 +68,27 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
                     expected_value = -10.0
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+
             if node.Id == 4:
                 if self.time > 0.22 and self.time < 0.25:
                     expected_value = 0.2192
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+
+            if node.Id == 5:
+                if self.time > 0.5999 and self.time < 0.6001:
+                    expected_value = 6.0
+                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
+                    expected_value = 5.998
+                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
+                    expected_value = 6.0
+                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
+                    expected_value = 6.0
+                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = 6.0
+                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                    expected_value = 6.0
+                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+                    expected_value = 6.0
 
     def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):
         self.assertAlmostEqual(velocity[component], expected_value, delta=tolerance)
