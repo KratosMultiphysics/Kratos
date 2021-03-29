@@ -28,7 +28,6 @@ jobs:
         CCACHE_COMPRESS: true
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
-        FC: gfortran-7
 
     steps:
     - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
@@ -168,8 +167,6 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
       options: --user 1001
-      env:
-        FC: gfortran-7
 
     steps:
     - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
