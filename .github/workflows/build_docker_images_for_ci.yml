@@ -32,7 +32,7 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Publish the Docker image
-      # if: ${{ github.event_name == 'push'}}
+      if: ${{ github.event_name == 'push'}}
       # only push the new image when the changes are merged to master
       run: docker push kratosmultiphysics/kratos-image-ci-ubuntu-20-04
 
