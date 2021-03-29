@@ -528,6 +528,28 @@ namespace Kratos {
         KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
+ 	  /** Checks the inside local space test for a given point respect to the tetrahedra
+	  * It performs 5 tests:
+	  * A Point inside the tetrahedra: Expected result 1
+	  * A Point outside the tetrahedra because of negaative cooridnate: Expected result 0
+	  * A Point outside the tetrahedra because of coordinate higher than 1: Expected result 0
+	  * Two Points on boundaries of the tetrahedra: Expected result 2
+	  */
+	  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4IsInsideLocalSpaceIsOutside, KratosCoreGeometriesFastSuite) {
+	      auto geom = GenerateTriRectangularTetrahedra3D4();
+	      Point PointInside(0.1666, 0.1666, 0.1666);
+	      Point PointOutside1(-0.01, 0.0, 0.0);
+	      Point PointOutside2(1.01, 0.0, 0.0);
+	      Point PointOnBoundary1(0.0, 0.33, 0.33);
+	      Point PointOnBoundary2(1.0, 0.33, 0.33);
+
+	      KRATOS_CHECK_EQUAL(geom->IsInsideLocalSpace(PointInside), 1);
+	      KRATOS_CHECK_EQUAL(geom->IsInsideLocalSpace(PointOutside1), 0);
+	      KRATOS_CHECK_EQUAL(geom->IsInsideLocalSpace(PointOutside2), 0);
+	      KRATOS_CHECK_EQUAL(geom->IsInsideLocalSpace(PointOnBoundary1), 2);
+	      KRATOS_CHECK_EQUAL(geom->IsInsideLocalSpace(PointOnBoundary2), 2);
+	  }
+
     /** Checks the point local coordinates for a given point respect to the
     * tetrahedra. The baricentre of the tetrahedra is selected due to its known
     * solution.
