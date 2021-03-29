@@ -16,7 +16,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class ROMFluidDynamics(KratosUnittest.TestCase):
 #########################################################################################
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_Fluid_Dynamics_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):

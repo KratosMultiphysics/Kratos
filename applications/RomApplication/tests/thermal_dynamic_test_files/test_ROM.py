@@ -15,7 +15,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 class ROMDynamicConvDiff(KratosUnittest.TestCase):
 #########################################################################################
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_ConvDiff_Dynamic_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
