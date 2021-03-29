@@ -310,7 +310,15 @@ public:
     * or that no common error is found.
     * @param rCurrentProcessInfo
     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const final { return 0; }
+    int Check(const ProcessInfo& rCurrentProcessInfo) const final {
+        auto& r_geometry = GetGeometry();
+        for (IndexType i = 0; i < r_geometry.size(); ++i) {
+            KRATOS_ERROR_IF_NOT(r_geometry[i].Has(DIRECTOR))
+                << "DIRECTOR not provided at node #" << r_geometry[i].Id() << std::endl;
+        }
+
+        return 0;
+    }
 
     ///@}
     ///@name Input and output
