@@ -17,6 +17,7 @@
 #include "custom_elements/shell_5p_element.h"
 #include "custom_utilities/director_utilities.h"
 
+
 namespace Kratos
 {
 namespace Testing
@@ -48,26 +49,46 @@ namespace Testing
         return Kratos::make_intrusive<Shell5pElement>(1, p_quadrature_point, p_elem_prop);
     }
 
+    Parameters GetDirectorParametersScordelisLoTest()
+    {
+        return Parameters(R"(
+        {
+            "model_part_name": "ModelPart",
+            "brep_ids" : [1] ,
+            "linear_solver_settings" : {
+                "solver_type": "skyline_lu_factorization"
+            }
+        })");
+    }
+
     // Tests the stiffness matrix of the Shell5pElement with a polynomial degree of p=4 (Scordelis Lo Roof).
     KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP4Scordelis, KratosIgaFast5PSuite)
     {
+        std::cout << "===============Test1===================" << std::endl;
         Model current_model;
+        std::cout << "===============Test2===================" << std::endl;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
+        std::cout << "===============Test3===================" << std::endl;
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        std::cout << "===============Test4===================" << std::endl;
         const auto& r_process_info = r_model_part.GetProcessInfo();
-
+        std::cout << "===============Test5===================" << std::endl;
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
-
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
-
+        std::cout << "===============Test6===================" << std::endl;
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
+        std::cout << "===============Test7===================" << std::endl;
         IntegrationPoint<3> integration_point(0.953089922969332, 0.953089922969332, 0.0, 0.014033587215607);
+        std::cout << "===============Test8===================" << std::endl;
         auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 4, integration_point);
-
+        std::cout << "===============Test9===================" << std::endl;
         TestCreationUtilityScordelisRoof::AddDisplacementDofs(r_model_part);
+        std::cout << "===============Test10===================" << std::endl;
+        TestCreationUtilityScordelisRoof::AddDirectorInc2DDofs(r_model_part);
+        std::cout << "===============Test11===================" << std::endl;
+        DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTest()).ComputeDirectors();
+        std::cout << "===============Test12===================" << std::endl;
 
+        p_shell_5p_element->Check(r_process_info);
         p_shell_5p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
@@ -75,9 +96,14 @@ namespace Testing
         p_shell_5p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
 
         //Check RHS and LHS results
-        const double tolerance = 1.0e-6;
+        const double tolerance = 1.0e-8;
         std::cout << "===============IgaShell5pElementP4ScordelisSTART===================" << std::endl;
-        std::cout << left_hand_side_matrix << std::endl;
+        std::cout<< std::setprecision(16) << std::endl;
+        std::cout << row(left_hand_side_matrix,0) << std::endl;
+        std::cout << "==================================" << std::endl;
+        std::cout << row(left_hand_side_matrix, 1) << std::endl;
+        std::cout << "==================================" << std::endl;
+        std::cout << row(left_hand_side_matrix, 2) << std::endl;
         std::cout << "==================================" << std::endl;
         std::cout << right_hand_side_vector << std::endl;
         std::cout << "=================IgaShell5pElementP4ScordelisEND=================" << std::endl;
@@ -109,17 +135,18 @@ namespace Testing
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(DIRECTOR);
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
-        Parameters dummyParaMeters;
-        auto directorUtilities = DirectorUtilities::DirectorUtilities(r_model_part, dummyParaMeters);
-        directorUtilities.ComputeDirectors();
 
         IntegrationPoint<3> integration_point(0.619309593041599, 0.966234757101576, 0.0, 0.020041279329452);
         auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 5, integration_point);
 
         TestCreationUtilityScordelisRoof::AddDisplacementDofs(r_model_part);
+        TestCreationUtilityScordelisRoof::AddDirectorInc2DDofs(r_model_part);
 
+        DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTest()).ComputeDirectors();
+
+        p_shell_5p_element->Check(r_process_info);
         p_shell_5p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
@@ -127,11 +154,11 @@ namespace Testing
         p_shell_5p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_model_part.GetProcessInfo());
 
         //Check RHS and LHS results
-        const double tolerance = 1.0e-6;
+        const double tolerance = 1.0e-8;
         std::cout << "===============IgaShell5pElementP5ScordelisSTART===================" << std::endl;
-        std::cout << left_hand_side_matrix << std::endl;
+        //std::cout << left_hand_side_matrix << std::endl;
         std::cout << "==================================" << std::endl;
-        std::cout << right_hand_side_vector << std::endl;
+        //std::cout << right_hand_side_vector << std::endl;
         std::cout << "=================IgaShell5pElementP5ScordelisEND=================" << std::endl;
         const std::array<double, 108> expected_LHS_row_105{-0.0365121097495112,-0.00148169014127313,0.00113667441254417,-0.286063463442857,-0.00816000191750132,0.00625992245447856,-0.895186849811542,-0.0138860575614221,0.0106526498904973,-1.39845801648961,-0.00198897959271944,0.00152584008433396,-1.09046487130985,0.0151390345719724,-0.0116138676699276,-0.339488309481346,0.0103776946409439,-0.0079612191719262,-3.86941189807431,-0.192162476744624,0.147416902011002,-30.0567555135908,-1.05828211650285,0.811858140628705,-93.1821392632363,-1.80090232018991,1.38155713521345,-144.088250363733,-0.257953558632089,0.197888344907188,-111.10046567761,1.96340266958451,-1.50621881989442,-34.1626374675073,1.345897802485,-1.0325017028659,-163.025044540636,-10.4302045389666,8.00150199208212,-1249.12999165348,-57.4414897333175,44.0660768264134,-3813.91438097237,-97.7494663499944,74.9882273930885,-5797.35793948495,-14.0012161774049,10.7409934979267,-4384.4185783252,106.569668454756,-81.7546205590273,-1318.76984498132,73.0527083449288,-56.0421791504824,-3320.22819989119,-298.4733792541,228.973011004997,-24805.6533187437,-1643.76024324751,1261.00603413033,-73546.1740384414,-2797.22352833731,2145.88213976748,-107994.496610979,-400.662354273576,307.36699495158,-78366.1978295033,3049.62466947285,-2339.51096325359,-22413.9194334742,2090.49483563967,-1603.71721660077,-29801.0978102749,-4503.05156387464,3454.50330568124,-209193.862761672,-24799.3209729072,19024.7291340905,-572585.883887545,-42201.5585284838,32374.8065891804,-755710.035847442,-6044.77104626932,4637.22905794497,-471719.919047284,46009.5207533043,-35296.0740690118,-106960.202754276,31539.1813582309,-24195.1940178852,-60048.0870747923,-28432.9079197312,21812.2251112593,-278745.317024063,-156586.43914968,120124.845117692,-224686.595295578,-266466.641718193,204419.132584221,744355.267500992,-38167.5439680175,29280.1236976731,1508238.35254338,290510.656707656,-222864.430863569,784451.17250335,199142.876047965,-152771.895647277};
         const std::array<double, 108> expected_LHS_row_106{-0.028589504465742,-0.0419772649372529,0.0323368591779443,-0.232547945158418,-0.338033942394766,0.260352732598042,-0.756620974136903,-1.08873369675989,0.838381251198945,-1.23087584823398,-1.75310242184669,1.34972463258284,-1.00119835793212,-1.41128989588255,1.0863556659016,-0.325751180629361,-0.454399134914215,0.349712486183971,-2.942625905852,-4.35707147816569,3.35333402822234,-23.9354133820609,-34.9975050163207,26.9300018879772,-77.8765676779785,-112.426609728337,86.4938982214083,-126.690099236978,-180.55061076956,138.877618324644,-103.050132557485,-144.952172431056,111.474324330799,-33.5285231729165,-46.5408625425934,35.7850184523907,-118.187132193356,-177.451535128073,136.445729249328,-961.337919258613,-1419.30794923465,1091.11965330959,-3127.82137227096,-4539.49322259554,3489.14059016127,-5088.35984769012,-7257.34172009897,5577.04064766197,-4138.88820012546,-5799.39367126299,4455.78002239364,-1346.63396818637,-1853.13693301312,1423.51923760015,-2193.55798218286,-3387.28275688987,2602.12937909089,-17842.4708953496,-26861.7866172858,20631.2064734532,-58052.491930867,-85150.9962279726,65386.9800658484,-94440.1658029814,-134868.492294533,103543.620322924,-76817.9333930741,-106728.509762083,81922.6558729156,-24993.5812399706,-33757.5848454581,25906.280900945,-15163.0289023081,-25578.5180948889,19631.2127254794,-123336.562822721,-197621.804769872,151638.219270497,-401289.421181739,-609029.85577898,467210.197559661,-652820.201353583,-935528.05814377,717509.95793418,-531006.043020412,-716018.514284338,549021.997900696,-172768.806565454,-218340.020314379,167374.621104699,17477.7452320946,-225.953396371241,170.828038060793,142164.539598656,64158.3232484073,-49249.5730962431,462548.367673529,423501.391161354,-324961.438008624,752476.64797934,1038366.60085574,-796559.616368056,612066.915944527,1128861.59427326,-865793.447486263,199142.876047965,459784.505147712,-352565.709528512};

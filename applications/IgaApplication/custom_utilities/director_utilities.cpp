@@ -31,19 +31,22 @@ namespace Kratos
 
     void DirectorUtilities::ComputeDirectors()
     {
+        std::cout << "===============Test11.1===================" << std::endl;
         Vector brep_ids = mParameters["brep_ids"].GetVector();
         for (IndexType i = 0; i < brep_ids.size(); ++i) {
+            std::cout << " brep_ids.size() " << brep_ids.size() << std::endl;
+            std::cout << " brep_ids " << brep_ids << std::endl;
             auto& r_geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
             size_t number_of_control_points = r_geometry.size();
-
+            std::cout << "===============Test11.2===================" << std::endl;
             std::vector<IndexType> eqID(number_of_control_points);
             for (IndexType inodes = 0; inodes < number_of_control_points; ++inodes)
                 eqID[inodes] = r_geometry[inodes].GetId();
-
+            std::cout << "===============Test11.2.1===================" << std::endl;
             SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*number_of_control_points); //inital guess how much non-zero are there
             Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
             SparseSpaceType::SetToZero(NTN);
-
+            std::cout << "===============Test11.2.2===================" << std::endl;
             PointerVector<Geometry<Node<3>>> quad_points;
             r_geometry.CreateQuadraturePointGeometries(quad_points, 3);
             for (IndexType iP = 0; iP < quad_points.size(); ++iP)
@@ -64,7 +67,7 @@ namespace Kratos
             if (!solver_parameters.Has("solver_type")) {
                 solver_parameters.AddString("solver_type", "skyline_lu_factorization");
             }
-
+            std::cout << "===============Test11.3===================" << std::endl;
             Matrix nodalDirectors = ZeroMatrix(number_of_control_points, 3);
             auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
 
@@ -75,6 +78,7 @@ namespace Kratos
                 r_geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
                 r_geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
             }
+            std::cout << "===============Test11.4===================" << std::endl;
         }
     }
 }  // namespace Kratos.

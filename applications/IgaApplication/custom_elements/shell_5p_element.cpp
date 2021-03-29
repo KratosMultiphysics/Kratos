@@ -183,6 +183,14 @@ namespace Kratos
         rVar.S2 = invL_t * (rKin.transShear[1] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a2, t) - outer_prod(t, a2));
 
         invL_t *= invL_t;
+        //std::cout << "invL_t" << invL_t << std::endl;
+        //std::cout << "inner_prod(t, dtd1)" << inner_prod(t, dtd1) << std::endl;
+        //std::cout << "outer_prod(a1, t)" << outer_prod(a1, t) << std::endl;
+        //std::cout << "rKin.transShear" << rKin.transShear << std::endl;
+        //std::cout << "tdyadt" << tdyadt << std::endl;
+        //std::cout << "inner_prod(a1, dtd1)" << inner_prod(a1, dtd1) << std::endl;
+        //std::cout << "outer_prod(dtd1, t)" << outer_prod(dtd1, t) << std::endl;
+        //std::cout << "outer_prod(a1, dtd1)" << outer_prod(a1, dtd1) << std::endl;
         rVar.Chi11 = invL_t * (3.0 * inner_prod(t, dtd1) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd1) * tdyadt + rKin.transShear[0] * outer_prod(dtd1, t)) - outer_prod(a1, dtd1) - inner_prod(a1, dtd1) * 0.5 * IdentityMatrix(3));
         rVar.Chi21 = invL_t * (3.0 * inner_prod(t, dtd1) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd1) * tdyadt + rKin.transShear[1] * outer_prod(dtd1, t)) - outer_prod(a2, dtd1) - inner_prod(a2, dtd1) * 0.5 * IdentityMatrix(3));
         rVar.Chi12 = invL_t * (3.0 * inner_prod(t, dtd2) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd2) * tdyadt + rKin.transShear[0] * outer_prod(dtd2, t)) - outer_prod(a1, dtd2) - inner_prod(a1, dtd2) * 0.5 * IdentityMatrix(3));
