@@ -19,7 +19,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         ccache \
         clang \
         cmake \
-        gfortran-7 \
+        gfortran \
         git \
         intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
         intel-oneapi-mpi-devel \
