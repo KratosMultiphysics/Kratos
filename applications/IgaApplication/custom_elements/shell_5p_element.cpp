@@ -169,6 +169,9 @@ namespace Kratos
         const array_1d<double, 3>& a1 = rKin.a1;
         const array_1d<double, 3>& a2 = rKin.a2;
 
+        rKin.transShear[0] = inner_prod(t, a1);
+        rKin.transShear[1] = inner_prod(t, a2);
+
         const Matrix tdyadt = outer_prod(t, t);
         rVar.P = IdentityMatrix(3) - tdyadt;
         rVar.P *= invL_t;
@@ -200,9 +203,6 @@ namespace Kratos
         rKin.curvature[0] = inner_prod(rKin.a1, dtd1);
         rKin.curvature[1] = inner_prod(rKin.a2, dtd2);
         rKin.curvature[2] = inner_prod(rKin.a1, dtd2) + inner_prod(a2, dtd1);
-
-        rKin.transShear[0] = inner_prod(t, a1);
-        rKin.transShear[1] = inner_prod(t, a2);
 
         return std::make_pair(rKin, rVar);
     }
@@ -543,8 +543,8 @@ namespace Kratos
 
         BoundedMatrix<double, 3, 2> BLA;
 
-        BLA(0, 0) = s2 - 4 * ys1;   BLA(0, 1) = -4 * y(0) * y(1);
-        BLA(1, 0) = -4 * y(0) * y(1);   BLA(1, 1) = s2 - 4 * ys2;
+        BLA(0, 0) = s2 - 4 * ys1;     BLA(0, 1) = -4 * y(0) * y(1);
+        BLA(1, 0) = -4 * y(0) * y(1); BLA(1, 1) = s2 - 4 * ys2;
         BLA(2, 0) = -st * 4 * y(0);   BLA(2, 1) = -st * 4 * y(1);
 
         const double normcol0 = norm_2(column(BLA, 0));
