@@ -15,6 +15,10 @@ if have_trilinos and is_distributed:
     except Exception as e:
         raise Exception("Trying to create a Trilinos convergence accelerator, but TrilinosApplication could not be found.")
 
+have_linear_solvers = KratosUtilities.CheckIfApplicationsAvailable("LinearSolversApplication")
+if have_linear_solvers:
+    import KratosMultiphysics.LinearSolversApplication as KratosLinearSolvers
+
 def CreateConvergenceAccelerator(configuration):
 
     if(type(configuration) != KratosMultiphysics.Parameters):
@@ -30,6 +34,13 @@ def CreateConvergenceAccelerator(configuration):
 
     elif(convergence_accelerator_type == "MVQN"):
         return KratosFSI.MVQNFullJacobianConvergenceAccelerator(configuration)
+
+    elif(convergence_accelerator_type == "MVQN_randomized_SVD"):
+        if not have_linear_solvers:
+            err_msg = "MVQN with randomized SVD Jacobian requires the \'LinearSolversApplication\'."
+            raise Exception(err_msg)
+        bdc_svd = KratosLinearSolvers.EigenDenseBDCSVD()
+        return KratosFSI.MVQNRandomizedSVDConvergenceAccelerator(bdc_svd, configuration)
 
     elif(convergence_accelerator_type == "MVQN_recursive"):
         return KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration)

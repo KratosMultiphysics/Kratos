@@ -20,11 +20,13 @@
 #include "processes/process.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
+#include "utilities/dense_svd_decomposition.h"
 
 // Application includes
 #include "custom_python/add_convergence_accelerators_to_python.h"
 #include "custom_utilities/constant_relaxation_convergence_accelerator.h"
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
+#include "custom_utilities/mvqn_randomized_svd_convergence_accelerator.h"
 #include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"
 #include "custom_utilities/aitken_convergence_accelerator.hpp"
 #include "custom_utilities/ibqn_mvqn_convergence_accelerator.h"
@@ -65,6 +67,14 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     py::class_<MVQNFullJacobianConvergenceAcceleratorType, MVQNFullJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
         .def(py::init<Parameters>())
         .def(py::init<const double, const double, const bool>())
+    ;
+
+    // MVQN randomized SVD convergence accelerator
+    typedef typename DenseSingularValueDecomposition<DenseSpaceType>::Pointer DenseSVDPointerType;
+    typedef MVQNRandomizedSVDConvergenceAccelerator<SparseSpaceType, DenseSpaceType> MVQNRandomizedSVDConvergenceAcceleratorType;
+    typedef typename MVQNRandomizedSVDConvergenceAcceleratorType::Pointer MVQNRandomizedSVDConvergenceAcceleratorPointerType;
+    py::class_<MVQNRandomizedSVDConvergenceAcceleratorType, MVQNRandomizedSVDConvergenceAcceleratorPointerType, MVQNFullJacobianConvergenceAcceleratorType>(m, "MVQNRandomizedSVDConvergenceAccelerator")
+        .def(py::init<DenseSVDPointerType, Parameters>())
     ;
 
     // MVQN convergence accelerator
