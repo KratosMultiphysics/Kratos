@@ -48,7 +48,7 @@ public:
         auto Camgcl = amgcl::backend::product(*pAamgcl, *pBamgcl);
         amgcl::backend::sort_rows(*Camgcl);
 
-        return AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl);
+        return std::move(AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl));
 	}
 
 

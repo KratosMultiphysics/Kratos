@@ -46,6 +46,7 @@ public:
                 rA.index2_data().begin(),
                 rA.value_data().begin()
             );
+        pAmgcl->ncols = rA.size2();
         pAmgcl->own_data = false;
         return pAmgcl;
 	}
