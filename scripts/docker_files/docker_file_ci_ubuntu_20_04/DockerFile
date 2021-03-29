@@ -18,6 +18,8 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential \
         ccache \
         clang \
+        llvm-10-dev \
+        libomp-10-dev \
         cmake \
         gfortran \
         git \
