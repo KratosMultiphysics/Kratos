@@ -52,15 +52,13 @@ namespace Kratos
 
 
         // If axisymmetric make normal MP
-        bool is_axisymm = false;
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC)) {
             if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)) {
-                is_axisymm = true;
-                //CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                //    pQuadraturePointGeometry, rLocalCoords,
-                //    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                //    rParentGeom);
-                //return;
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pQuadraturePointGeometry, rLocalCoords,
+                    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    rParentGeom);
+                return;
             }
         }
 
@@ -73,15 +71,14 @@ namespace Kratos
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
         rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume_vec, rBackgroundGridModelPart.GetProcessInfo());
-        if (rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2 && rMasterMaterialPoint.GetProperties().Has(THICKNESS) && !is_axisymm)
+        if (rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2 && rMasterMaterialPoint.GetProperties().Has(THICKNESS))
             mp_volume_vec[0] /= rMasterMaterialPoint.GetProperties()[THICKNESS];
-        if (is_axisymm) mp_volume_vec[0] /= (Globals::Pi * 2.0 * rCoordinates[0]);
 
         const double side_half_length = std::pow(mp_volume_vec[0], 1.0 / double(working_dim)) / 2.0;
         std::vector<array_1d<double, 3>> master_domain_points(std::pow(2.0, working_dim));
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
 
-
+        /*
         if (rCoordinates[0] - side_half_length < 1e-6)
         {
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
@@ -90,7 +87,7 @@ namespace Kratos
                 rParentGeom);
             return;
         }
-
+        */
 
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
