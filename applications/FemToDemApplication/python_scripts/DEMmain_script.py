@@ -480,12 +480,9 @@ class Solution():
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
-
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
+        self.solver._UpdateTimeInModelParts(self.time, self.IsTimeToPrintPostProcess())
 
-    def UpdateTimeInOneModelPart(self):
-        pass
 
     def SolverSolve(self):
         self.solver.SolveSolutionStep()
@@ -635,7 +632,7 @@ class Solution():
     def _UpdateTimeParameters(self):
         self.time = self.time + self.solver.dt
         self.step += 1
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
+        self.solver.UpdateTimeInModelParts(self.time, self.IsTimeToPrintPostProcess())
 
     def FinalizeSingleTimeStep(self):
         self.solver._MoveAllMeshes(self.time, self.solver.dt)
