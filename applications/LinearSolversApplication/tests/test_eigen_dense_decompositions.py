@@ -40,8 +40,8 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
         V = KratosMultiphysics.Matrix()
         settings = KratosMultiphysics.Parameters('''{}''')
         if thin_u_v:
-            settings.AddBool("compute_thin_U", True)
-            settings.AddBool("compute_thin_V", True)
+            settings.AddBool("compute_thin_u", True)
+            settings.AddBool("compute_thin_v", True)
         decomposition.Compute(A, S, U, V, settings)
 
         # Reconstruct the sampling matrix with the SVD arrays

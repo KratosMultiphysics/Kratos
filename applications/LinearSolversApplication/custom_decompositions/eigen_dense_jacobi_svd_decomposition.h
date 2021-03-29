@@ -88,20 +88,20 @@ public:
         // Check user defined options
         Parameters default_settings = Parameters(R"(
         {
-            "compute_U" : true,
-            "compute_V" : true,
-            "compute_thin_U" : true,
-            "compute_thin_V" : true
+            "compute_u" : true,
+            "compute_v" : true,
+            "compute_thin_u" : true,
+            "compute_thin_v" : true
         })");
         Settings.ValidateAndAssignDefaults(default_settings);
 
         // Set the Eigen decomposition options
         int decomposition_options = 0;
-        if (Settings["compute_U"].GetBool()) {
-            decomposition_options |= Settings["compute_thin_U"].GetBool() ? Eigen::ComputeThinU : Eigen::ComputeFullU;
+        if (Settings["compute_u"].GetBool()) {
+            decomposition_options |= Settings["compute_thin_u"].GetBool() ? Eigen::ComputeThinU : Eigen::ComputeFullU;
         }
-        if (Settings["compute_V"].GetBool()) {
-            decomposition_options |= Settings["compute_thin_V"].GetBool() ? Eigen::ComputeThinV : Eigen::ComputeFullV;
+        if (Settings["compute_v"].GetBool()) {
+            decomposition_options |= Settings["compute_thin_v"].GetBool() ? Eigen::ComputeThinV : Eigen::ComputeFullV;
         }
 
         // Compute the Bidiagonal Divide and Conquer Singular Value Decomposition (BDCSVD)
@@ -124,7 +124,7 @@ public:
 
     void MatrixU(MatrixType& rMatrixU) override
     {
-        KRATOS_ERROR_IF_NOT(mJacobiSVD.computeU()) << "Matrix U has not been computed. Switch \'compute_U\' to \'true\' in the \'Compute\' input settings." << std::endl;
+        KRATOS_ERROR_IF_NOT(mJacobiSVD.computeU()) << "Matrix U has not been computed. Switch \'compute_u\' to \'true\' in the \'Compute\' input settings." << std::endl;
 
         const auto& r_matrix_U = mJacobiSVD.matrixU();
         const std::size_t m = r_matrix_U.rows();
@@ -139,7 +139,7 @@ public:
 
     void MatrixV(MatrixType& rMatrixV) override
     {
-        KRATOS_ERROR_IF_NOT(mJacobiSVD.computeV()) << "Matrix V has not been computed. Switch \'compute_V\' to \'true\' in the \'Compute\' input settings." << std::endl;
+        KRATOS_ERROR_IF_NOT(mJacobiSVD.computeV()) << "Matrix V has not been computed. Switch \'compute_v\' to \'true\' in the \'Compute\' input settings." << std::endl;
 
         const auto& r_matrix_V = mJacobiSVD.matrixV();
         const std::size_t m = r_matrix_V.rows();
