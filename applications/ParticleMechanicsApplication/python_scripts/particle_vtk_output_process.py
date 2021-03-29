@@ -72,6 +72,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
             raise Exception(msg)
 
         self.output_frequency = self.param["output_frequency"].GetDouble()
+        self.next_output = self.output_frequency
 
         # Set Variable list to print
         self.variable_name_list = self.param["gauss_point_results"]
