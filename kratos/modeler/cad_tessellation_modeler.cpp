@@ -42,9 +42,13 @@ void CadTessellationModeler::SetupModelPart()
     KRATOS_ERROR_IF_NOT(mParameters.Has("skin_model_part_name"))
         << "Missing \"skin_model_part_name\" in CadTessellationModeler Parameters" << std::endl;
     const std::string skin_model_part_name = mParameters["skin_model_part_name"].GetString();
-    ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
-        ? mpModel->GetModelPart(skin_model_part_name)
-        :mpModel->CreateModelPart(skin_model_part_name); //TODO: If the skin model part is already there, I'd check that it is empty.
+    ModelPart &skin_model_part = mpModel->HasModelPart(skin_model_part_name)
+                                     ? mpModel->GetModelPart(skin_model_part_name)
+                                     : mpModel->CreateModelPart(skin_model_part_name);
+
+    KRATOS_ERROR_IF(skin_model_part.NumberOfNodes() != 0)
+        << "Skin model part should be empty. Current number of nodes: "
+        << skin_model_part.NumberOfNodes() << std::endl;
 
     IndexType node_id = 0;
     IndexType element_id = 0;
@@ -104,7 +108,7 @@ void CadTessellationModeler::SetupModelPart()
                 }
             }
 
-            Properties::Pointer p_properties(new Properties(0));
+            auto p_properties = Kratos::make_shared<Properties>(0);
 
             // create elements in skin_model_part
             for (IndexType element_i = 0; element_i < triangulation_uv.size(); ++element_i)
@@ -128,7 +132,7 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
 {
     KRATOS_ERROR_IF_NOT(mParameters.Has("absolute_chordal_error"))
         << "Missing \"absolute_chordal_error\" in CadTessellationModeler Parameters" << std::endl;
-    const auto chordal_error = mParameters["absolute_chordal_error"].GetDouble();
+    const double chordal_error = mParameters["absolute_chordal_error"].GetDouble();
 
     auto tessellation = NurbsCurveTessellation<2, ContainerNodeType>::ComputeTessellation(
         rBoundarySegment,
@@ -159,10 +163,10 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
 {
     KRATOS_ERROR_IF_NOT(mParameters.Has("absolute_triangulation_error"))
         << "Missing \"absolute_triangulation_error\" in CadTessellationModeler Parameters" << std::endl;
-    const auto absolute_triangulation_error = mParameters["absolute_triangulation_error"].GetDouble();
+    const double absolute_triangulation_error = mParameters["absolute_triangulation_error"].GetDouble();
     KRATOS_ERROR_IF_NOT(mParameters.Has("initial_triangle_area"))
         << "Missing \"initial_triangle_area\" in CadTessellationModeler Parameters" << std::endl;
-    auto aux_area = mParameters["initial_triangle_area"].GetDouble();
+    double aux_area = mParameters["initial_triangle_area"].GetDouble();
     KRATOS_ERROR_IF_NOT(mParameters.Has("max_triangulation_iteration"))
         << "Missing \"max_triangulation_iteration\" in CadTessellationModeler Parameters" << std::endl;
     const IndexType max_iteration = mParameters["max_triangulation_iteration"].GetInt();

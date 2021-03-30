@@ -185,8 +185,8 @@ private:
      * the exact surface.
      * @param rSurfaceGeometry reference of the surface on which the points are supposed to be maped
      * @param rPointsCoordinates reference of the list of points coordinates from the triangularization
-     * @param rTriangleConnectivities reference of the list of triangles connectivities from the triangularization 
-     * @return a vector containing each triangle Gauss points mapped onto the exact surface 
+     * @param rTriangleConnectivities reference of the list of triangles connectivities from the triangularization
+     * @return a vector containing each triangle Gauss points mapped onto the exact surface
      */
     std::vector<BoundedMatrix<double,3,3>> InsertGaussPointsExactSurface(
         const BrepSurfaceType& rSurfaceGeometry,
@@ -200,7 +200,7 @@ private:
      * @see InsertGaussPointsExactSurface
      * @param rSurfaceGeometry reference of the surface
      * @param rPointsCoordinates reference of the list of points coordinates from the triangularization
-     * @param rTriangleConnectivities reference of the list of triangles connectivities from the triangularization 
+     * @param rTriangleConnectivities reference of the list of triangles connectivities from the triangularization
      * @return a vector of each triangle Gauss points maped onto the triangulation of the surface
      */
     std::vector<BoundedMatrix<double,3,3>> InsertGaussPointsApproxSurface(
