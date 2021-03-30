@@ -7,11 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     Miguel Angel Celigueta
+//  Main author:     Joaquín Irazábal González
 //
 
-#if !defined(KRATOS_APPLY_KINEMATIC_CONSTRAINTS_PROCESS )
-#define  KRATOS_APPLY_KINEMATIC_CONSTRAINTS_PROCESS
+#if !defined(KRATOS_APPLY_KINEMATIC_CONSTRAINTS_TO_WALLS_PROCESS )
+#define  KRATOS_APPLY_KINEMATIC_CONSTRAINTS_TO_WALLS_PROCESS
 
 
 
@@ -60,14 +60,14 @@ namespace Kratos
   /** This process sets the EXTERNAL_APPLIED_FORCE and EXTERNAL_APPLIED_MOMENT variables
       over particles.
    */
-  class ApplyKinematicConstraintsProcess: public Process
+  class ApplyKinematicConstraintsToWallsProcess: public Process
   {
   public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of ApplyKinematicConstraintsProcess
-      KRATOS_CLASS_POINTER_DEFINITION(ApplyKinematicConstraintsProcess);
+      /// Pointer definition of ApplyKinematicConstraintsToWallsProcess
+      KRATOS_CLASS_POINTER_DEFINITION(ApplyKinematicConstraintsToWallsProcess);
 
       /// Defining a table with double argument and result type as table type.
       typedef Table<double,double> TableType;
@@ -77,10 +77,10 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      ApplyKinematicConstraintsProcess(ModelPart& rModelPart, Parameters rParameters);
+      ApplyKinematicConstraintsToWallsProcess(ModelPart& rModelPart, Parameters rParameters);
 
       /// Destructor.
-      ~ApplyKinematicConstraintsProcess() override;
+      ~ApplyKinematicConstraintsToWallsProcess() override;
 
 
       ///@}
@@ -215,15 +215,15 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      ApplyKinematicConstraintsProcess& operator=(ApplyKinematicConstraintsProcess const& rOther);
+      ApplyKinematicConstraintsToWallsProcess& operator=(ApplyKinematicConstraintsToWallsProcess const& rOther);
 
       /// Copy constructor.
-      ApplyKinematicConstraintsProcess(ApplyKinematicConstraintsProcess const& rOther);
+      ApplyKinematicConstraintsToWallsProcess(ApplyKinematicConstraintsToWallsProcess const& rOther);
 
 
       ///@}
 
-    }; // Class ApplyKinematicConstraintsProcess
+    }; // Class ApplyKinematicConstraintsToWallsProcess
 
   ///@}
 
@@ -239,7 +239,7 @@ namespace Kratos
   /// output stream function
   inline std::ostream& operator << (
       std::ostream& rOStream,
-      const ApplyKinematicConstraintsProcess& rThis);
+      const ApplyKinematicConstraintsToWallsProcess& rThis);
 
   ///@}
 
@@ -247,4 +247,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_APPLY_KINEMATIC_CONSTRAINTS_PROCESS  defined
+#endif // KRATOS_APPLY_KINEMATIC_CONSTRAINTS_TO_WALLS_PROCESS  defined

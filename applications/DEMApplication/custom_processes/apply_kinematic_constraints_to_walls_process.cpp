@@ -1,10 +1,10 @@
-#include "apply_kinematic_constraints_process.h"
+#include "apply_kinematic_constraints_to_walls_process.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
     /* Public functions *******************************************************/
-    ApplyKinematicConstraintsProcess::ApplyKinematicConstraintsProcess(
+    ApplyKinematicConstraintsToWallsProcess::ApplyKinematicConstraintsToWallsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
         ) : Process(Flags()) , mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
@@ -14,7 +14,7 @@ namespace Kratos
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
+                "help"                 : "This process applies constraints to the rigid walls in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "velocity_constraints_settings" : {
@@ -78,94 +78,16 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    ApplyKinematicConstraintsProcess::~ApplyKinematicConstraintsProcess()
+    ApplyKinematicConstraintsToWallsProcess::~ApplyKinematicConstraintsToWallsProcess()
     {
 
     }
 
-    void ApplyKinematicConstraintsProcess::Execute()
+    void ApplyKinematicConstraintsToWallsProcess::Execute()
     {
     }
 
-    void ApplyKinematicConstraintsProcess::ExecuteInitializeSolutionStep()
-    {
-        KRATOS_TRY;
-
-
-        const double time = mrModelPart.GetProcessInfo()[TIME];
-
-        if(!mInterval.IsInInterval(time)) return;
-
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
-        {
-
-            array_1d<double, 3>& vel = rNode.FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& ang_vel = rNode.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-
-            if(mVelocityIsConstrained[0]) {
-                rNode.Set(DEMFlags::FIXED_VEL_X, true);
-                rNode.pGetDof(VELOCITY_X)->FixDof();
-            }
-            if(mVelocityIsConstrained[1]) {
-                rNode.Set(DEMFlags::FIXED_VEL_Y, true);
-                rNode.pGetDof(VELOCITY_Y)->FixDof();
-            }
-            if(mVelocityIsConstrained[2]) {
-                rNode.Set(DEMFlags::FIXED_VEL_Z, true);
-                rNode.pGetDof(VELOCITY_Z)->FixDof();
-            }
-            if(mAngularVelocityIsConstrained[0]) {
-                rNode.Set(DEMFlags::FIXED_ANG_VEL_X, true);
-                rNode.pGetDof(ANGULAR_VELOCITY_X)->FixDof();
-            }
-            if(mAngularVelocityIsConstrained[1]) {
-                rNode.Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-                rNode.pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-            }
-            if(mAngularVelocityIsConstrained[2]) {
-                rNode.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-                rNode.pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
-            }
-
-            for(int i=0; i<3; i++) {
-                if (mVelocityTableId[i] != 0) {
-                    vel[i] = mpVelocityTable[i]->GetValue(time);
-                }
-                else {
-                    if(mVelocityIsConstrained[i]) {
-                        double velocity_value = 0.0;
-                        if(mVelocityValueIsNumeric[i]) {
-                            velocity_value = mVelocityValues[i];
-                        }
-                        else {
-                            velocity_value = mVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
-                        }
-                        vel[i] = velocity_value;
-                    }
-                }
-
-                if (mAngularVelocityTableId[i] != 0) {
-                    ang_vel[i] = mpAngularVelocityTable[i]->GetValue(time);
-                }
-                else {
-                    if(mAngularVelocityIsConstrained[i]) {
-                        double angular_velocity_value = 0.0;
-                        if(mAngularVelocityValueIsNumeric[i]) {
-                            angular_velocity_value = mAngularVelocityValues[i];
-                        }
-                        else {
-                            angular_velocity_value = mAngularVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
-                        }
-                        ang_vel[i] = angular_velocity_value;
-                    }
-                }
-            }
-        });
-
-        KRATOS_CATCH("");
-    }
-
-    void ApplyKinematicConstraintsProcess::ExecuteFinalizeSolutionStep()
+    void ApplyKinematicConstraintsToWallsProcess::ExecuteInitializeSolutionStep()
     {
         KRATOS_TRY;
 
@@ -174,36 +96,115 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
-        {
-            rNode.Set(DEMFlags::FIXED_VEL_X, false);
-            rNode.Set(DEMFlags::FIXED_VEL_Y, false);
-            rNode.Set(DEMFlags::FIXED_VEL_Z, false);
-            rNode.Set(DEMFlags::FIXED_ANG_VEL_X, false);
-            rNode.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-            rNode.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-            rNode.pGetDof(VELOCITY_X)->FreeDof();
-            rNode.pGetDof(VELOCITY_Y)->FreeDof();
-            rNode.pGetDof(VELOCITY_Z)->FreeDof();
-            rNode.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-            rNode.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-            rNode.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
-        });
+        ElementsArrayType& pElements = mrModelPart->Elements();
+        ElementsArrayType::iterator it = pElements.ptr_begin();
+        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+
+        array_1d<double, 3>& vel = rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3>& ang_vel = rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+        if(mVelocityIsConstrained[0]) {
+            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+            rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_X)->FixDof();
+        }
+        if(mVelocityIsConstrained[1]) {
+            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+            rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Y)->FixDof();
+        }
+        if(mVelocityIsConstrained[2]) {
+            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+            rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Z)->FixDof();
+        }
+        if(mAngularVelocityIsConstrained[0]) {
+            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+            rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+        }
+        if(mAngularVelocityIsConstrained[1]) {
+            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+            rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+        }
+        if(mAngularVelocityIsConstrained[2]) {
+            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+            rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+        }
+
+        for(int i=0; i<3; i++) {
+            if (mVelocityTableId[i] != 0) {
+                vel[i] = mpVelocityTable[i]->GetValue(time);
+            }
+            else {
+                if(mVelocityIsConstrained[i]) {
+                    double velocity_value = 0.0;
+                    if(mVelocityValueIsNumeric[i]) {
+                        velocity_value = mVelocityValues[i];
+                    }
+                    else {
+                        velocity_value = mVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                    }
+                    vel[i] = velocity_value;
+                }
+            }
+
+            if (mAngularVelocityTableId[i] != 0) {
+                ang_vel[i] = mpAngularVelocityTable[i]->GetValue(time);
+            }
+            else {
+                if(mAngularVelocityIsConstrained[i]) {
+                    double angular_velocity_value = 0.0;
+                    if(mAngularVelocityValueIsNumeric[i]) {
+                        angular_velocity_value = mAngularVelocityValues[i];
+                    }
+                    else {
+                        angular_velocity_value = mAngularVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                    }
+                    ang_vel[i] = angular_velocity_value;
+                }
+            }
+        }
 
         KRATOS_CATCH("");
     }
 
-    std::string ApplyKinematicConstraintsProcess::Info() const
+    void ApplyKinematicConstraintsToWallsProcess::ExecuteFinalizeSolutionStep()
     {
-        return "ApplyKinematicConstraintsProcess";
+        KRATOS_TRY;
+
+
+        const double time = mrModelPart.GetProcessInfo()[TIME];
+
+        if(!mInterval.IsInInterval(time)) return;
+
+        ElementsArrayType& pElements = mrModelPart->Elements();
+        ElementsArrayType::iterator it = pElements.ptr_begin();
+        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+
+        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_X)->FreeDof();
+        rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Y)->FreeDof();
+        rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Z)->FreeDof();
+        rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+        rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+        rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+
+        KRATOS_CATCH("");
     }
 
-    void ApplyKinematicConstraintsProcess::PrintInfo(std::ostream& rOStream) const
+    std::string ApplyKinematicConstraintsToWallsProcess::Info() const
     {
-        rOStream << "ApplyKinematicConstraintsProcess";
+        return "ApplyKinematicConstraintsToWallsProcess";
     }
 
-    void ApplyKinematicConstraintsProcess::PrintData(std::ostream& rOStream) const
+    void ApplyKinematicConstraintsToWallsProcess::PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "ApplyKinematicConstraintsToWallsProcess";
+    }
+
+    void ApplyKinematicConstraintsToWallsProcess::PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -212,7 +213,7 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const ApplyKinematicConstraintsProcess& rThis)
+        const ApplyKinematicConstraintsToWallsProcess& rThis)
     {
         rThis.PrintData(rOStream);
         return rOStream;
