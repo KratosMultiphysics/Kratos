@@ -147,8 +147,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Shell_thick_corotational
     # Truss part
     AppendGroupNames PutStrings Truss
-    # Cable part
-    AppendGroupNames PutStrings Cable
+    # Anchor part
+    AppendGroupNames PutStrings Anchor
     # Interface_drained Part
     AppendGroupNames PutStrings Interface_drained
     # Interface_undrained Part
@@ -225,7 +225,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Shell_thin_corotational
     AppendGroupNames PutStrings Shell_thick_corotational
     AppendGroupNames PutStrings Truss
-    AppendGroupNames PutStrings Cable
+    AppendGroupNames PutStrings Anchor
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {

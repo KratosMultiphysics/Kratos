@@ -2314,7 +2314,7 @@ VALUE: 0.0
 HELP: Units in kPa
 END CONDITION
 
-CONDITION: Cable
+CONDITION: Anchor
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: lines

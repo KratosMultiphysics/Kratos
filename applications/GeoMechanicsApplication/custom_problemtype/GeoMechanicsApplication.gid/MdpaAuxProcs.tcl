@@ -295,7 +295,7 @@ proc WriteAnchorElements {FileVar Group ElemType ElemName PropertyId Connectivit
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
         upvar $FileVar MyFileVar
-        #puts $MyFileVar $Entities
+
         set Nodes [GiD_Info Mesh Nodes]
         set MaxDist -1e20
         set MinDist 1e20
@@ -340,32 +340,10 @@ proc WriteAnchorElements {FileVar Group ElemType ElemName PropertyId Connectivit
         }
         puts $MyFileVar "Begin Elements $ElemName"
         puts $MyFileVar "  [lindex $Entities 0]  $PropertyId  $MinNodeNr $MaxNodeNr"
-        # for {set j 0} {$j < [llength $Entities]} {incr j} {
-            # puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType [lindex $Entities $j]]"
-        # }
         puts $MyFileVar "End Elements"
         puts $MyFileVar ""
-        
-        
-        #set Groups [GiD_Info conditions $CondName groups]
-        #puts [lindex $Group 1]  nodes
-        #GiD_EntitiesGroups assign [lindex $Group 1] [lindex $Entities 0]
-        #GiD_EntitiesGroups assign [lindex $Group 1] lines [lindex $Entities 0]]
-        
-                    # puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
-            # # Tables
-            # puts $MyFileVar "  Begin SubModelPartTables"
-            # puts $MyFileVar "  End SubModelPartTables"
-            # # Nodes
-            # set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
-            # puts $MyFileVar "  Begin SubModelPartNodes"
-            # for {set j 0} {$j < [llength $Entities]} {incr j} {
-                # puts $MyFileVar "    [lindex $Entities $j]"
-            #}
-        
     }
     return [list [lindex $Entities 0] $PropertyId  $MinNodeNr $MaxNodeNr $Entities]
-
 }
 
 #-------------------------------------------------------------------------------
@@ -384,7 +362,7 @@ proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType}
 }
 
 #-------------------------------------------------------------------------------
-proc WriteInterface2D4NElementsAs2D6N {FileVar Group ElemType ElemName PropertyId ConnectivityType1 ConnectivityType2} {
+proc WriteElementsTwoParts {FileVar Group ElemType ElemName PropertyId ConnectivityType1 ConnectivityType2} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
         upvar $FileVar MyFileVar
@@ -715,6 +693,22 @@ proc Line2D3Connectivities { ElemId } {
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
+}
+
+#-------------------------------------------------------------------------------
+proc Line2D2ConnectivitiesPart1 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 5]"
+}
+
+#-------------------------------------------------------------------------------
+proc Line2D2ConnectivitiesPart2 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 5] [lindex $ElementInfo 4]"
 }
 
 #-------------------------------------------------------------------------------
@@ -1295,19 +1289,16 @@ proc QuadrilateralInterface3D4Connectivities { ElemId } {
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-proc WriteCableElementSubmodelPart {FileVar CondName CableElementDict} {
+proc WriteAnchorElementSubmodelPart {FileVar CondName AnchorElementDict} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
 
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            #puts CableElementDict
+            #puts AnchorElementDict
             #set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
-            set CableList [dict get $CableElementDict $i]
-            
-            #set model_part_affected 0
-            #set affected_elements [lindex $CableList 4]
-            
+            set AnchorList [dict get $AnchorElementDict $i]
+
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
             # Tables
             puts $MyFileVar "  Begin SubModelPartTables"
@@ -1315,31 +1306,18 @@ proc WriteCableElementSubmodelPart {FileVar CondName CableElementDict} {
             # Nodes 
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
             puts $MyFileVar "  Begin SubModelPartNodes"
-            puts $MyFileVar "    [lindex $CableList 2]"
-            puts $MyFileVar "    [lindex $CableList 3]"
+            puts $MyFileVar "    [lindex $AnchorList 2]"
+            puts $MyFileVar "    [lindex $AnchorList 3]"
             puts $MyFileVar "  End SubModelPartNodes"    
             # Elements
             puts $MyFileVar "  Begin SubModelPartElements"
-            puts $MyFileVar "    [lindex $CableList 0]"
+            puts $MyFileVar "    [lindex $AnchorList 0]"
             puts $MyFileVar "  End SubModelPartElements"
             # Conditions
             puts $MyFileVar "  Begin SubModelPartConditions"
             puts $MyFileVar "  End SubModelPartConditions"
             puts $MyFileVar "End SubModelPart"
             puts $MyFileVar ""
-            
-            # for {set j 0} {$j < [llength $Entities]} {incr j} {
-
-                # if {[lindex $Entities $j] in $affected_elements} {
-                    # set model_part_affected 1
-                # } else {
-                    # puts $MyFileVar "    [lindex $Entities $j]"
-                # }        
-            # }
-            # if {$model_part_affected} {
-                # puts $MyFileVar "[lindex $CableList 0] [lindex $CableList 2] [lindex $CableList 3]"    
-            # }
-            # puts $MyFileVar "  End SubModelPartElements"
         }
     }
 }
@@ -1450,7 +1428,7 @@ proc WriteConstraintSubmodelPart {FileVar CondName TableDict} {
 
 #-------------------------------------------------------------------------------
 
-proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
+proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
  set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -1458,8 +1436,8 @@ proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
 
         set affected_elements {}
         set added_entities {}
-        dict for {k CableList} $CableElementDict {
-            set affected_elements [list {*}$affected_elements {*}[lindex $CableList 4]]
+        dict for {k AnchorList} $AnchorElementDict {
+            set affected_elements [list {*}$affected_elements {*}[lindex $AnchorList 4]]
         }
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -1475,26 +1453,26 @@ proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
             puts $MyFileVar "  End SubModelPartNodes"
 
             puts $MyFileVar "  Begin SubModelPartElements"
-            dict for {k CableList} $CableElementDict {
+            dict for {k AnchorList} $AnchorElementDict {
                 set model_part_affected 0
 
                 # Elements
                 set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
                         
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    # check if excavation is applied on cable or truss
+                    # check if excavation is applied on Anchor or truss
                     if {[lindex $Entities $j] in $affected_elements} {
-                        if {[lindex $Entities $j] in [lindex $CableList 4]} {
+                        if {[lindex $Entities $j] in [lindex $AnchorList 4]} {
                             set model_part_affected 1
                         }
-                    # write elements only when excavation is not applied on cable or truss
+                    # write elements only when excavation is not applied on Anchor or truss
                     } elseif {!([lindex $Entities $j] in $added_entities)} {
                         puts $MyFileVar "    [lindex $Entities $j]"
                         lappend added_entities  [lindex $Entities $j]
                     }
                 }
                 if {$model_part_affected} {
-                    puts $MyFileVar "    [lindex $CableList 0]"
+                    puts $MyFileVar "    [lindex $AnchorList 0]"
                 }
             }
             puts $MyFileVar "  End SubModelPartElements"

@@ -127,8 +127,8 @@ proc WriteMdpa { basename dir problemtypedir } {
             puts $FileVar ""
     }
 
-    # Cable part
-    set Groups [GiD_Info conditions Cable groups]
+    # Anchor part
+    set Groups [GiD_Info conditions Anchor groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr PropertyId
             dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -554,11 +554,12 @@ proc WriteMdpa { basename dir problemtypedir } {
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
             if {$Dim eq 2} {
-              # CrLinearBeamElement2D3N
-              WriteElements FileVar [lindex $Groups $i] line GeoCrBeamElementLinear2D3N $BodyElemsProp Line2D3Connectivities
+              # CrBeamElement2D2N twice
+              WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoCrBeamElementLinear2D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
+
             } else {
-              # CrLinearBeamElement3D3N
-              WriteElements FileVar [lindex $Groups $i] line GeoCrBeamElementLinear3D3N $BodyElemsProp Line3D3Connectivities
+              # GeoCrBeamElementLinear3D2N twice
+              WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoCrBeamElementLinear3D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
             }
         }
     }
@@ -591,8 +592,8 @@ proc WriteMdpa { basename dir problemtypedir } {
       }
 
 
-    set CableId 0
-    set CableElementDict [dict create]
+    set AnchorId 0
+    set AnchorElementDict [dict create]
 
     # Truss_Part
     set Groups [GiD_Info conditions Truss groups]
@@ -609,21 +610,21 @@ proc WriteMdpa { basename dir problemtypedir } {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
-            # TrussLinearElement3D3N
-            WriteElements FileVar [lindex $Groups $i] line GeoTrussLinearElement3D3N $BodyElemsProp Line2D3Connectivities
+            # TrussLinearElement3D2N twice
+            WriteElementsTwoParts FileVar [lindex $Groups $i] line GeoTrussLinearElement3D2N $BodyElemsProp Line2D2ConnectivitiesPart1 Line2D2ConnectivitiesPart2
         }
     }
 
-    # Cable_Part
-    set Groups [GiD_Info conditions Cable groups]
+    # Anchor_Part
+    set Groups [GiD_Info conditions Anchor groups]
     if {$IsQuadratic eq 0} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
             
             # CableElement3D2N
-            dict set CableElementDict $CableId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities] 
-            incr CableId
+            dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities] 
+            incr AnchorId
         }
     } elseif {$IsQuadratic eq 1} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -631,8 +632,8 @@ proc WriteMdpa { basename dir problemtypedir } {
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
             # CableElement3D3N
-            dict set CableElementDict $CableId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D3N $BodyElemsProp Line2D3Connectivities]
-            incr CableId
+            dict set AnchorElementDict $AnchorId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D3Connectivities]
+            incr AnchorId
         }
     }
 
@@ -672,7 +673,7 @@ proc WriteMdpa { basename dir problemtypedir } {
                     # Elements Property
                     set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
                     # UPwSmallStrainInterfaceElement2D4N twice
-                    WriteInterface2D4NElementsAs2D6N FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
+                    WriteElementsTwoParts FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
 
                     # UPwSmallStrainInterfaceElement3D6N twice
                     WriteInterface3D6NElementsAs3D12N FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp \
@@ -686,7 +687,7 @@ proc WriteMdpa { basename dir problemtypedir } {
                     # Elements Property
                     set LinkInterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
                     # UPwSmallStrainLinkInterfaceElement2D4N twice
-                    WriteInterface2D4NElementsAs2D6N FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainLinkInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
+                    WriteElementsTwoParts FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainLinkInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
                     WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp TriangleInterface2D4Connectivities
                     # UPwSmallStrainLinkInterfaceElement3D6N
                     # UPwSmallStrainInterfaceElement3D6N twice
@@ -956,8 +957,8 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteElementSubmodelPart FileVar Shell_thick_corotational
     # Truss part
     WriteElementSubmodelPart FileVar Truss
-    # Cable part
-    WriteCableElementSubmodelPart FileVar Cable $CableElementDict
+    # Anchor part
+    WriteAnchorElementSubmodelPart FileVar Anchor $AnchorElementDict
     # Interface drained Part
     WriteElementSubmodelPart FileVar Interface_drained
     # Interface undrained Part
@@ -976,7 +977,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Fluid_Pressure
     WriteConstraintSubmodelPart FileVar Fluid_Pressure $TableDict
     # Excavation, todo add conditions to excavation
-    WriteExcavationSubmodelPart FileVar Excavation $CableElementDict
+    WriteExcavationSubmodelPart FileVar Excavation $AnchorElementDict
     # Point_Load
     WriteLoadSubmodelPart FileVar Point_Load $TableDict $ConditionDict
     # Line_Load

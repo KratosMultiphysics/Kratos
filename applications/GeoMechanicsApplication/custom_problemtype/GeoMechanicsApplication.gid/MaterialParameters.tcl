@@ -1555,8 +1555,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
        puts $FileVar "      \}"
     }
 
-    # Cable part
-    set Groups [GiD_Info conditions Cable groups]
+    # Anchor part
+    set Groups [GiD_Info conditions Anchor groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
        incr PropertyId
        dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
