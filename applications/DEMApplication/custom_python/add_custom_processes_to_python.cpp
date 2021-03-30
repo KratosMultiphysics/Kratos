@@ -20,7 +20,7 @@
 #include "includes/kratos_parameters.h"
 
 // Processes
-#include "custom_processes/apply_kinematic_constraints_process.hpp"
+#include "custom_processes/apply_kinematic_constraints_process.h"
 #include "custom_processes/apply_kinematic_constraints_to_walls_process.h"
 #include "custom_processes/apply_forces_and_moments_process.h"
 #include "custom_processes/apply_forces_and_moments_to_walls_process.h"

@@ -6,21 +6,23 @@ namespace Kratos
     ApplyForcesAndMomentsToWallsProcess::ApplyForcesAndMomentsToWallsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
-        ) : Process(Flags()) , mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
+        ) : mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
     {
         KRATOS_TRY
 
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
+                "help"                 : "This process applies loads over the rigid walls in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "force_settings" : {
-                    "value"                : [10.0, "3*t", "x+y"]
+                    "value"            : [10.0, "3*t", "x+y"],
+                    "table"            : [0, 0, 0]
                 },
                 "moment_settings" : {
-                    "value"                : [10.0, "3*t", "x+y"]
+                    "value"            : [10.0, "3*t", "x+y"],
+                    "table"            : [0, 0, 0]
                 },
                 "interval"             : [0.0, 1e30]
             } )" );
@@ -37,6 +39,9 @@ namespace Kratos
         mForceFunctions.clear();
         mMomentFunctions.clear();
 
+        mpForceTable.clear();
+        mpMomentTable.clear();
+
         for(int i=0; i<3; i++) {
             if(rParameters["force_settings"]["value"][i].IsNumber()) {
                 mForceValueIsNumeric[i] = true;
@@ -47,6 +52,9 @@ namespace Kratos
                 mForceValueIsNumeric[i] = false;
                 mForceFunctions.push_back(PythonGenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
             }
+            mForceTableId[i] = rParameters["force_settings"]["table"][i].GetInt();
+            mpForceTable.push_back(mrModelPart.pGetTable(mForceTableId[i])); // because I can't construct an array_1d of these
+
             if(rParameters["moment_settings"]["value"][i].IsNumber()) {
                 mMomentValueIsNumeric[i] = true;
                 mMomentValues[i] = rParameters["moment_settings"]["value"][i].GetDouble();
@@ -56,6 +64,8 @@ namespace Kratos
                 mMomentValueIsNumeric[i] = false;
                 mMomentFunctions.push_back(PythonGenericFunctionUtility(rParameters["moment_settings"]["value"][i].GetString()));
             }
+            mMomentTableId[i] = rParameters["moment_settings"]["table"][i].GetInt();
+            mpMomentTable.push_back(mrModelPart.pGetTable(mMomentTableId[i])); // because I can't construct an array_1d of these
         }
 
         mParameters = rParameters;
@@ -82,29 +92,39 @@ namespace Kratos
         if(!mInterval.IsInInterval(time)) return;
 
         for(int i=0; i<3; i++) {
-            double force_value = 0.0;
-            if(mForceValueIsNumeric[i]) {
-                force_value = mForceValues[i];
+            if (mForceTableId[i] != 0) {
+                mrModelPart[EXTERNAL_APPLIED_FORCE][i] = mpForceTable[i]->GetValue(time);
             }
             else {
-                force_value = mForceFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
-                                                              mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
-                                                              mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
-                                                              time);
+                double force_value = 0.0;
+                if(mForceValueIsNumeric[i]) {
+                    force_value = mForceValues[i];
+                }
+                else {
+                    force_value = mForceFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
+                                                                  mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
+                                                                  mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
+                                                                  time);
+                }
+                mrModelPart[EXTERNAL_APPLIED_FORCE][i] = force_value;
             }
-            mrModelPart[EXTERNAL_APPLIED_FORCE][i] = force_value;
 
-            double moment_value = 0.0;
-            if(mMomentValueIsNumeric[i]) {
-                moment_value = mMomentValues[i];
+            if (mMomentTableId[i] != 0) {
+                mrModelPart[EXTERNAL_APPLIED_MOMENT][i] = mpMomentTable[i]->GetValue(time);
             }
             else {
-                    moment_value = mMomentFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
-                                                                    mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
-                                                                    mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
-                                                                    time);
+                double moment_value = 0.0;
+                if(mMomentValueIsNumeric[i]) {
+                    moment_value = mMomentValues[i];
+                }
+                else {
+                        moment_value = mMomentFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
+                                                                        mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
+                                                                        mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
+                                                                        time);
+                }
+                mrModelPart[EXTERNAL_APPLIED_MOMENT][i] = moment_value;
             }
-            mrModelPart[EXTERNAL_APPLIED_MOMENT][i] = moment_value;
         }
 
         KRATOS_CATCH("");
