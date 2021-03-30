@@ -50,7 +50,7 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DKRATOS_MPIEXEC_EXECUTABLE=/usr/bin/mpiexec.openmpi -DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMPIEXEC_EXECUTABLE=/usr/bin/mpiexec.openmpi -DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-std=c++11 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang
@@ -61,7 +61,7 @@ jobs:
           else
             export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11"
           fi
-          export KRATOS_CMAKE_OPTIONS_FLAGS="-DKRATOS_MPIEXEC_EXECUTABLE=/usr/bin/mpiexec.openmpi -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DMPIEXEC_EXECUTABLE=/usr/bin/mpiexec.openmpi -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
