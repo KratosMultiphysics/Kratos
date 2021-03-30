@@ -320,8 +320,9 @@ void ShallowWater2D3::AddDesingularizationTerm(
     MatrixType& rLHS,
     const ElementData& rData)
 {
-    const double epsilon = rData.rel_dry_height * GetGeometry().Length();
-    const double factor = 1e3 * (1.0 - ShallowWaterUtilities().WetFraction(rData.height, epsilon));
+    const double length = GetGeometry().Length();
+    const double epsilon = rData.rel_dry_height * length;
+    const double factor = 1e3 * (1.0 - ShallowWaterUtilities().WetFraction(rData.height, epsilon)) / length;
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rLHS(block, block) += factor;
