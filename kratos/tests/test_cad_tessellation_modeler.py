@@ -33,7 +33,7 @@ class TestCadTessellationModeler(KratosUnittest.TestCase):
             } }, {
             "modeler_name": "CadTessellationModeler",
             "Parameters": {
-                "echo_level": 1,
+                "echo_level": 0,
                 "cad_model_part_name": "CadModelPart",
                 "skin_model_part_name": "SkinModelPart",
                 "absolute_chordal_error"   : 1e-1,
