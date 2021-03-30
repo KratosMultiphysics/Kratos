@@ -54,13 +54,20 @@ namespace Kratos
                 const Matrix& r_N = quad_points[iP].ShapeFunctionsValues();
                 const array_1d<double, 3> A3 = quad_points[iP].UnitNormal(0);
 
-                NTN += outer_prod(row(r_N,0), row(r_N, 0));
+                Matrix NTN_local = outer_prod(row(r_N, 0), row(r_N, 0));
 
-                for (IndexType inodes = 0; inodes < quad_points.size(); ++inodes) {
+                for (IndexType inodes = 0; inodes < quad_points[iP].size(); ++inodes) {
                     auto it = find(eqID.begin(), eqID.end(), quad_points[iP][inodes].Id());
                     IndexType node_index = it - eqID.begin();
 
                     row(directorAtIntgrationPoints, node_index) += r_N(0, inodes) * trans(A3);
+
+                    for (IndexType inodes2 = 0; inodes2 < quad_points[iP].size(); ++inodes2) {
+                        auto it2 = find(eqID.begin(), eqID.end(), quad_points[iP][inodes2].Id());
+                        IndexType node_index_2 = it2 - eqID.begin();
+
+                        NTN(node_index, node_index_2) += NTN_local(inodes, inodes2);
+                    }
                 }
             }
             Parameters solver_parameters(mParameters["linear_solver_settings"]);
