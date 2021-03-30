@@ -98,7 +98,7 @@
                 "model_part_name" : "SpheresPart.Ball5",
 		"velocity_constraints_settings" : {
                     "constrained"          : [false, false, true],
-                    "value"                : [10000.0, 3000.0, 0.0],
+                    "value"                : [0.0, 0.0, 0.0],
                     "table"                : [1, 2, 3]
                 },
                 "angular_velocity_constraints_settings" : {
@@ -107,6 +107,40 @@
                     "table"                : [4, 5, 6]
                 },
                 "interval"             : [0.0, 1e30]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube1",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : ["-0.5*t", 0.6, "(x+y)"],
+                    "table"                : [0, 0, 0]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : ["(y**2+z)", "-2.0*t", 1.0],
+                    "table"                : [0, 0, 0]
+                },
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube2",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [7, 8, 9]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [10, 11, 12]
+                },
+                "interval"                 : [0.0, 1.0e30]
             }
         }],
         "loads_process_list"       : [],

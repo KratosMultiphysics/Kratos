@@ -112,6 +112,7 @@ set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
 
     # processes
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_to_walls_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_to_walls_process.cpp
 )

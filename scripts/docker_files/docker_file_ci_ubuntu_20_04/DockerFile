@@ -4,7 +4,7 @@ ENV HOME /root
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/external_libraries/mmg/mmg_5_4_1/lib:/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_5ffc6ad/lib
 
 RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get -y install \
+    apt-get -y install --no-install-recommends \
         gnupg2 \
         software-properties-common \
         wget && \
@@ -14,12 +14,13 @@ RUN apt-get update -y && apt-get upgrade -y && \
     echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get -y update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
         build-essential \
         ccache \
         clang \
+        libomp-10-dev \
         cmake \
-        gfortran-7 \
+        gfortran \
         git \
         intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
         intel-oneapi-mpi-devel \
@@ -45,8 +46,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         openmpi-bin \
         python3-dev \
         python3-h5py \
-        python3-pip \
-        valgrind && \
+        python3-pip && \
     /usr/sbin/update-ccache-symlinks && \
     echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc && \
     python3 -m pip install --upgrade pip && \

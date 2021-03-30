@@ -91,41 +91,42 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        for(int i=0; i<3; i++) {
-            if (mForceTableId[i] != 0) {
-                mrModelPart[EXTERNAL_APPLIED_FORCE][i] = mpForceTable[i]->GetValue(time);
-            }
-            else {
-                double force_value = 0.0;
-                if(mForceValueIsNumeric[i]) {
-                    force_value = mForceValues[i];
-                }
-                else {
-                    force_value = mForceFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
-                                                                  mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
-                                                                  mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
-                                                                  time);
-                }
-                mrModelPart[EXTERNAL_APPLIED_FORCE][i] = force_value;
-            }
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
+        {
 
-            if (mMomentTableId[i] != 0) {
-                mrModelPart[EXTERNAL_APPLIED_MOMENT][i] = mpMomentTable[i]->GetValue(time);
-            }
-            else {
-                double moment_value = 0.0;
-                if(mMomentValueIsNumeric[i]) {
-                    moment_value = mMomentValues[i];
+            array_1d<double, 3>& force = rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+            array_1d<double, 3>& moment = rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+
+            for(int i=0; i<3; i++) {
+                if (mForceTableId[i] != 0) {
+                    force[i] = mpForceTable[i]->GetValue(time);
                 }
                 else {
-                        moment_value = mMomentFunctions[i].CallFunction(mrModelPart[RIGID_BODY_CENTER_OF_MASS][0],
-                                                                        mrModelPart[RIGID_BODY_CENTER_OF_MASS][1],
-                                                                        mrModelPart[RIGID_BODY_CENTER_OF_MASS][2],
-                                                                        time);
+                    double force_value = 0.0;
+                    if(mForceValueIsNumeric[i]) {
+                        force_value = mForceValues[i];
+                    }
+                    else {
+                        force_value = mForceFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
+                    }
+                    force[i] = force_value;
                 }
-                mrModelPart[EXTERNAL_APPLIED_MOMENT][i] = moment_value;
+
+                if (mMomentTableId[i] != 0) {
+                    moment[i] = mpMomentTable[i]->GetValue(time);
+                }
+                else {
+                    double moment_value = 0.0;
+                    if(mMomentValueIsNumeric[i]) {
+                        moment_value = mMomentValues[i];
+                    }
+                    else {
+                        moment_value = mMomentFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
+                    }
+                    moment[i] = moment_value;
+                }
             }
-        }
+        });
 
         KRATOS_CATCH("");
     }
@@ -139,8 +140,11 @@ namespace Kratos
 
         if(mInterval.IsInInterval(time)) return;
 
-        mrModelPart[EXTERNAL_APPLIED_FORCE] = ZeroVector(3);
-        mrModelPart[EXTERNAL_APPLIED_MOMENT] = ZeroVector(3);
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
+        {
+            rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
+            rElement.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
+        });
 
         KRATOS_CATCH("");
     }
