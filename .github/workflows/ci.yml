@@ -45,6 +45,7 @@ jobs:
         restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
 
     - name: Build
+      shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
@@ -65,7 +66,7 @@ jobs:
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
-        . /opt/intel/oneapi/setvars.sh
+        source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
