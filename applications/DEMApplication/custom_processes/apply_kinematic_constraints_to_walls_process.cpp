@@ -96,71 +96,71 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        ElementsArrayType& pElements = mrModelPart->Elements();
-        ElementsArrayType::iterator it = pElements.ptr_begin();
-        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
+        {
 
-        array_1d<double, 3>& vel = rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3>& ang_vel = rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double, 3>& vel = rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& ang_vel = rElement.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
-        if(mVelocityIsConstrained[0]) {
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-            rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_X)->FixDof();
-        }
-        if(mVelocityIsConstrained[1]) {
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-            rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Y)->FixDof();
-        }
-        if(mVelocityIsConstrained[2]) {
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-            rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Z)->FixDof();
-        }
-        if(mAngularVelocityIsConstrained[0]) {
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-            rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FixDof();
-        }
-        if(mAngularVelocityIsConstrained[1]) {
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-            rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-        }
-        if(mAngularVelocityIsConstrained[2]) {
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-            rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
-        }
-
-        for(int i=0; i<3; i++) {
-            if (mVelocityTableId[i] != 0) {
-                vel[i] = mpVelocityTable[i]->GetValue(time);
+            if(mVelocityIsConstrained[0]) {
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                rElement.GetGeometry()[0].pGetDof(VELOCITY_X)->FixDof();
             }
-            else {
-                if(mVelocityIsConstrained[i]) {
-                    double velocity_value = 0.0;
-                    if(mVelocityValueIsNumeric[i]) {
-                        velocity_value = mVelocityValues[i];
+            if(mVelocityIsConstrained[1]) {
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                rElement.GetGeometry()[0].pGetDof(VELOCITY_Y)->FixDof();
+            }
+            if(mVelocityIsConstrained[2]) {
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                rElement.GetGeometry()[0].pGetDof(VELOCITY_Z)->FixDof();
+            }
+            if(mAngularVelocityIsConstrained[0]) {
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+            }
+            if(mAngularVelocityIsConstrained[1]) {
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+            }
+            if(mAngularVelocityIsConstrained[2]) {
+                rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+            }
+
+            for(int i=0; i<3; i++) {
+                if (mVelocityTableId[i] != 0) {
+                    vel[i] = mpVelocityTable[i]->GetValue(time);
+                }
+                else {
+                    if(mVelocityIsConstrained[i]) {
+                        double velocity_value = 0.0;
+                        if(mVelocityValueIsNumeric[i]) {
+                            velocity_value = mVelocityValues[i];
+                        }
+                        else {
+                            velocity_value = mVelocityFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
+                        }
+                        vel[i] = velocity_value;
                     }
-                    else {
-                        velocity_value = mVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
+                }
+
+                if (mAngularVelocityTableId[i] != 0) {
+                    ang_vel[i] = mpAngularVelocityTable[i]->GetValue(time);
+                }
+                else {
+                    if(mAngularVelocityIsConstrained[i]) {
+                        double angular_velocity_value = 0.0;
+                        if(mAngularVelocityValueIsNumeric[i]) {
+                            angular_velocity_value = mAngularVelocityValues[i];
+                        }
+                        else {
+                            angular_velocity_value = mAngularVelocityFunctions[i].CallFunction(rElement.GetGeometry()[0].X(), rElement.GetGeometry()[0].Y(), rElement.GetGeometry()[0].Z(), time);
+                        }
+                        ang_vel[i] = angular_velocity_value;
                     }
-                    vel[i] = velocity_value;
                 }
             }
-
-            if (mAngularVelocityTableId[i] != 0) {
-                ang_vel[i] = mpAngularVelocityTable[i]->GetValue(time);
-            }
-            else {
-                if(mAngularVelocityIsConstrained[i]) {
-                    double angular_velocity_value = 0.0;
-                    if(mAngularVelocityValueIsNumeric[i]) {
-                        angular_velocity_value = mAngularVelocityValues[i];
-                    }
-                    else {
-                        angular_velocity_value = mAngularVelocityFunctions[i].CallFunction(rNode.X(), rNode.Y(), rNode.Z(), time);
-                    }
-                    ang_vel[i] = angular_velocity_value;
-                }
-            }
-        }
+        });
 
         KRATOS_CATCH("");
     }
@@ -174,24 +174,24 @@ namespace Kratos
 
         if(!mInterval.IsInInterval(time)) return;
 
-        ElementsArrayType& pElements = mrModelPart->Elements();
-        ElementsArrayType::iterator it = pElements.ptr_begin();
-        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+        block_for_each(mrModelPart.Elements(), [&](Element& rElement)
+        {
 
-        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-        rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_X)->FreeDof();
-        rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Y)->FreeDof();
-        rigid_body_element.GetGeometry()[0].pGetDof(VELOCITY_Z)->FreeDof();
-        rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-        rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-        rigid_body_element.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+            rElement.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+            rElement.GetGeometry()[0].pGetDof(VELOCITY_X)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(VELOCITY_Y)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(VELOCITY_Z)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+            rElement.GetGeometry()[0].pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+        });
 
-        KRATOS_CATCH("");
+            KRATOS_CATCH("");
     }
 
     std::string ApplyKinematicConstraintsToWallsProcess::Info() const

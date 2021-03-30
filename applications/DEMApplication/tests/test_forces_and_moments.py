@@ -61,11 +61,11 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
                 velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
                 angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
                 if node.Id == 4:
-                    expected_value = -85.387
+                    expected_value = -85.265
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = 158.142
+                    expected_value = 157.177
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value =  28.073
+                    expected_value =  32.412
                     self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
                 if node.Id == 13:
                     expected_value = 6309.350
