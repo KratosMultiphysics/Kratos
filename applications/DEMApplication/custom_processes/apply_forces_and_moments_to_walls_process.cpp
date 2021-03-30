@@ -1,4 +1,5 @@
 #include "apply_forces_and_moments_to_walls_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
