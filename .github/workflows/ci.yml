@@ -50,16 +50,14 @@ jobs:
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
-          export KRATOS_MPI_CXX_COMPILER=/usr/bin/mpicxx.openmpi
-          export KRATOS_MPI_C_COMPILER=/usr/bin/mpicc.openmpi
+          export KRATOS_MPIEXEC_EXECUTABLE=/usr/bin/mpiexec.openmpi
 
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-std=c++11 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
-          export KRATOS_MPI_CXX_COMPILER=/usr/bin/mpicxx.openmpi
-          export KRATOS_MPI_C_COMPILER=/usr/bin/mpicc.openmpi
+          export KRATOS_MPIEXEC_EXECUTABLE=/usr/bin/mpiexec.openmpi
 
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           if [ ${{ matrix.build-type }} = FullDebug ]; then
