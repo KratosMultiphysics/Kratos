@@ -13,6 +13,7 @@
 #include "testing/testing.h"
 
 #include "test_creation_utility_Scordelis_roof.h"
+#include "test_creation_utility.h"
 
 #include "custom_elements/shell_5p_element.h"
 #include "custom_utilities/director_utilities.h"
@@ -81,9 +82,9 @@ namespace Testing
         std::cout << "===============Test8===================" << std::endl;
         auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 4, integration_point);
         std::cout << "===============Test9===================" << std::endl;
-        TestCreationUtilityScordelisRoof::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDisplacementDofs(r_model_part);
         std::cout << "===============Test10===================" << std::endl;
-        TestCreationUtilityScordelisRoof::AddDirectorInc2DDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
         std::cout << "===============Test11===================" << std::endl;
         DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTest()).ComputeDirectors();
         std::cout << "===============Test12===================" << std::endl;
@@ -137,16 +138,14 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
-
         IntegrationPoint<3> integration_point(0.619309593041599, 0.966234757101576, 0.0, 0.020041279329452);
         auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 5, integration_point);
 
-        TestCreationUtilityScordelisRoof::AddDisplacementDofs(r_model_part);
-        TestCreationUtilityScordelisRoof::AddDirectorInc2DDofs(r_model_part);
+        TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
         DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTest()).ComputeDirectors();
 
-        p_shell_5p_element->Check(r_process_info);
         p_shell_5p_element->Initialize(r_process_info);
 
         Matrix left_hand_side_matrix;
