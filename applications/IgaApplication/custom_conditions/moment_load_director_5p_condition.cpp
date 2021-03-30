@@ -15,13 +15,13 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/moment_load_condition.h"
+#include "custom_conditions/moment_load_director_5p_condition.h"
 #include "iga_application_variables.h"
 
 
 namespace Kratos
 {
-    void MomentLoadCondition::CalculateAll(
+    void MomentLoadDirector5pCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -91,7 +91,7 @@ namespace Kratos
         }
     }
 
-    array_1d<double, 3> MomentLoadCondition::calculateMomentLoadTimesDirectorTestFunction(
+    array_1d<double, 3> MomentLoadDirector5pCondition::calculateMomentLoadTimesDirectorTestFunction(
         const GeometryType& rGeometry,
         const Matrix& r_N,
         const IndexType& point_number,
@@ -113,7 +113,7 @@ namespace Kratos
        return  momentloadtranformed;
     }
 
-    void MomentLoadCondition::DeterminantOfJacobianInitial(
+    void MomentLoadDirector5pCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian)
     {
@@ -145,7 +145,7 @@ namespace Kratos
         }
     }
 
-    void MomentLoadCondition::EquationIdVector(
+    void MomentLoadDirector5pCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -164,7 +164,7 @@ namespace Kratos
         }
     }
 
-    void MomentLoadCondition::GetDofList(
+    void MomentLoadDirector5pCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
