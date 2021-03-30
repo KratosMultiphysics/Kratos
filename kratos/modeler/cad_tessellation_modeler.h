@@ -102,6 +102,11 @@ public:
         Model& rModel,
         const Parameters ModelParameters) const override;
 
+    /**
+     * @brief This method provides the defaults parameters, if they are not specified by the user
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Stages
     ///@{

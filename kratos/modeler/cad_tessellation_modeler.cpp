@@ -28,6 +28,19 @@ Modeler::Pointer CadTessellationModeler::Create(Model& rModel,
     return Kratos::make_shared<CadTessellationModeler>(rModel, ModelParameters);
 }
 
+const Parameters CadTessellationModeler::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "absolute_chordal_error"               : 1e-2,
+        "absolute_triangulation_error"         : 1e-2,
+        "initial_triangle_area"                : 1,
+        "max_triangulation_iteration"          : "10"
+    })");
+
+    return default_parameters;
+}
+
 ///@}
 ///@name Stages
 ///@{
@@ -130,9 +143,9 @@ void CadTessellationModeler::SetupModelPart()
 
 std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessellation(const BrepCurveOnSurfaceType& rBoundarySegment)
 {
-    KRATOS_ERROR_IF_NOT(mParameters.Has("absolute_chordal_error"))
-        << "Missing \"absolute_chordal_error\" in CadTessellationModeler Parameters" << std::endl;
-    const double chordal_error = mParameters["absolute_chordal_error"].GetDouble();
+    const double chordal_error = mParameters.Has("absolute_chordal_error")
+                                     ? mParameters["absolute_chordal_error"].GetDouble()
+                                     : GetDefaultParameters()["absolute_chordal_error"].GetDouble();
 
     auto tessellation = NurbsCurveTessellation<2, ContainerNodeType>::ComputeTessellation(
         rBoundarySegment,
@@ -161,15 +174,17 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
     const BrepSurfaceType& rSurfaceGeometry,
     const std::vector<array_1d<double, 2>>& rBoundaryLoop)
 {
-    KRATOS_ERROR_IF_NOT(mParameters.Has("absolute_triangulation_error"))
-        << "Missing \"absolute_triangulation_error\" in CadTessellationModeler Parameters" << std::endl;
-    const double absolute_triangulation_error = mParameters["absolute_triangulation_error"].GetDouble();
-    KRATOS_ERROR_IF_NOT(mParameters.Has("initial_triangle_area"))
-        << "Missing \"initial_triangle_area\" in CadTessellationModeler Parameters" << std::endl;
-    double aux_area = mParameters["initial_triangle_area"].GetDouble();
-    KRATOS_ERROR_IF_NOT(mParameters.Has("max_triangulation_iteration"))
-        << "Missing \"max_triangulation_iteration\" in CadTessellationModeler Parameters" << std::endl;
-    const IndexType max_iteration = mParameters["max_triangulation_iteration"].GetInt();
+    const double absolute_triangulation_error = mParameters.Has("absolute_triangulation_error")
+                                                    ? mParameters["absolute_triangulation_error"].GetDouble()
+                                                    : GetDefaultParameters()["absolute_triangulation_error"].GetDouble();
+
+    double aux_area = mParameters.Has("initial_triangle_area")
+                          ? mParameters["initial_triangle_area"].GetDouble()
+                          : GetDefaultParameters()["initial_triangle_area"].GetDouble();
+
+    const IndexType max_iteration = mParameters.Has("max_triangulation_iteration")
+                                        ? mParameters["max_triangulation_iteration"].GetInt()
+                                        : GetDefaultParameters()["max_triangulation_iteration"].GetInt();
 
     // Initialize a 1d list with the coordinates of the points (outer and inner polygons)
     SizeType n_boundary_points = rBoundaryLoop.size();
