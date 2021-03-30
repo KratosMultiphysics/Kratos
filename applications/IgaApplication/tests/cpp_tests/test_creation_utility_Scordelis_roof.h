@@ -35,22 +35,7 @@ namespace TestCreationUtilityScordelisRoof
     ///@name Operations
     ///@{
 
-    inline void AddDisplacementDofs(ModelPart& rModelPart) {
-        for (auto& r_node : rModelPart.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-    }
-
-    inline void AddDirectorInc2DDofs(ModelPart& rModelPart) {
-        for (auto& r_node : rModelPart.Nodes()) {
-            r_node.AddDof(DIRECTORINC_X);
-            r_node.AddDof(DIRECTORINC_Y);
-        }
-    }
-
-    inline NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
+    inline typename NurbsSurfaceType::Pointer GenerateScordelisNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
 
         SizeType p = PolynomialDegree;
         SizeType q = PolynomialDegree;
@@ -226,7 +211,7 @@ namespace TestCreationUtilityScordelisRoof
             weight[35] = 1.000000000000000;
         }
 
-        return NurbsSurfaceType(
+        return Kratos::make_shared<NurbsSurfaceType>(
             points, p, q, knot_u, knot_v, weight);
     }
 
@@ -237,8 +222,11 @@ namespace TestCreationUtilityScordelisRoof
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
 
-        GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
-                result_geometries, 3, integration_points);
+        auto p_nurbs_surface = GenerateScordelisNurbsSurface(rModelPart, PolynomialDegree);
+        p_nurbs_surface->SetId(1);
+        p_nurbs_surface->CreateQuadraturePointGeometries(
+            result_geometries, 3, integration_points);
+        rModelPart.AddGeometry(p_nurbs_surface);
 
         return result_geometries(0);
     }
