@@ -65,6 +65,7 @@ jobs:
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
+        source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
