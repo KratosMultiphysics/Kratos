@@ -289,11 +289,11 @@ namespace Testing
 
         KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.25, 1.0e-4);
         KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.35, 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], 0.0, 1.0e-4);
+        KRATOS_CHECK_NEAR(global_coords[2], 0.0, 1.0e-4);
 
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], -0.5, 1.0e-4);
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], -0.3, 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[2], 0.0, 1.0e-4);
+        KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
     }
 
 //     /** Checks if the volume of the quadrilateral is calculated correctly.
