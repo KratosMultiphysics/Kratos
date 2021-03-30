@@ -378,7 +378,7 @@ proc WriteElementsTwoParts {FileVar Group ElemType ElemName PropertyId Connectiv
 }
 
 #-------------------------------------------------------------------------------
-proc WriteInterface3D6NElementsAs3D12N {FileVar Group ElemType ElemName PropertyId \
+proc WriteElementsFourParts {FileVar Group ElemType ElemName PropertyId \
                                         ConnectivityType1 ConnectivityType2 \
                                         ConnectivityType3 ConnectivityType4} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
@@ -784,15 +784,50 @@ proc Triangle3D3Connectivities { ElemId } {
 
 
 #-------------------------------------------------------------------------------
-
 proc Triangle2D6Connectivities { ElemId } {
-
     #It is the same for the Prism3D6
 
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
     [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+}
+
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart1 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 6] [lindex $ElementInfo 8]"
+}
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart2 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+}
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart3 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 6] [lindex $ElementInfo 4] [lindex $ElementInfo 7]"
+}
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart4 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 8] [lindex $ElementInfo 7] [lindex $ElementInfo 5]"
 }
 
 #-------------------------------------------------------------------------------

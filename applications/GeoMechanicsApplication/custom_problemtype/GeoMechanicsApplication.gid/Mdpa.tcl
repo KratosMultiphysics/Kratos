@@ -567,6 +567,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     # Shell_thin_corotational_Part
     set Groups [GiD_Info conditions Shell_thin_corotational groups]
+    if {$IsQuadratic eq 0} {
       for {set i 0} {$i < [llength $Groups]} {incr i} {
           # Elements Property
           set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
@@ -577,9 +578,26 @@ proc WriteMdpa { basename dir problemtypedir } {
           # ShellThinElementCorotational3D4N
           WriteElements FileVar [lindex $Groups $i] quadrilateral ShellThinElementCorotational3D4N $BodyElemsProp Quadrilateral3D4Connectivities
       }
+    } elseif {$IsQuadratic eq 1} {
+      for {set i 0} {$i < [llength $Groups]} {incr i} {
+          # Elements Property
+          set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+          # ShellThinElementCorotational3D3N four times
+          WriteElementsFourParts FileVar [lindex $Groups $i] triangle ShellThinElementCorotational3D3N $BodyElemsProp \
+                                 Triangle3D3ConnectivitiesPart1\
+                                 Triangle3D3ConnectivitiesPart2\
+                                 Triangle3D3ConnectivitiesPart3\
+                                 Triangle3D3ConnectivitiesPart4
+
+          # ShellThinElementCorotational3D4N
+          WriteElements FileVar [lindex $Groups $i] quadrilateral ShellThinElementCorotational3D4N $BodyElemsProp Quadrilateral3D4Connectivities
+      }
+    }
 
     # Shell_thick_corotational_Part
     set Groups [GiD_Info conditions Shell_thick_corotational groups]
+    if {$IsQuadratic eq 0} {
       for {set i 0} {$i < [llength $Groups]} {incr i} {
           # Elements Property
           set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
@@ -590,10 +608,23 @@ proc WriteMdpa { basename dir problemtypedir } {
           # ShellThickElementCorotational3D4N
           WriteElements FileVar [lindex $Groups $i] quadrilateral ShellThickElementCorotational3D4N $BodyElemsProp Quadrilateral3D4Connectivities
       }
+    } elseif {$IsQuadratic eq 1} {
+      for {set i 0} {$i < [llength $Groups]} {incr i} {
+          # Elements Property
+          set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
 
+          # ShellThickElementCorotational3D3N four times
+          WriteElementsFourParts FileVar [lindex $Groups $i] triangle ShellThickElementCorotational3D3N $BodyElemsProp \
+                                 Triangle3D3ConnectivitiesPart1\
+                                 Triangle3D3ConnectivitiesPart2\
+                                 Triangle3D3ConnectivitiesPart3\
+                                 Triangle3D3ConnectivitiesPart4
 
-    set AnchorId 0
-    set AnchorElementDict [dict create]
+          # ShellThickElementCorotational3D4N
+          WriteElements FileVar [lindex $Groups $i] quadrilateral ShellThickElementCorotational3D4N $BodyElemsProp Quadrilateral3D4Connectivities
+      }
+    }
+
 
     # Truss_Part
     set Groups [GiD_Info conditions Truss groups]
@@ -616,6 +647,8 @@ proc WriteMdpa { basename dir problemtypedir } {
     }
 
     # Anchor_Part
+    set AnchorId 0
+    set AnchorElementDict [dict create]
     set Groups [GiD_Info conditions Anchor groups]
     if {$IsQuadratic eq 0} {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -676,7 +709,7 @@ proc WriteMdpa { basename dir problemtypedir } {
                     WriteElementsTwoParts FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4ConnectivitiesPart1 Quadrilateral2D4ConnectivitiesPart2
 
                     # UPwSmallStrainInterfaceElement3D6N twice
-                    WriteInterface3D6NElementsAs3D12N FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp \
+                    WriteElementsFourParts FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp \
                                                       PrismInterface3D6ConnectivitiesPart1 \
                                                       PrismInterface3D6ConnectivitiesPart2 \
                                                       PrismInterface3D6ConnectivitiesPart3 \
@@ -691,7 +724,7 @@ proc WriteMdpa { basename dir problemtypedir } {
                     WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp TriangleInterface2D4Connectivities
                     # UPwSmallStrainLinkInterfaceElement3D6N
                     # UPwSmallStrainInterfaceElement3D6N twice
-                    WriteInterface3D6NElementsAs3D12N FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $InterfaceElemsProp \
+                    WriteElementsFourParts FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $InterfaceElemsProp \
                                                       PrismInterface3D6ConnectivitiesPart1 \
                                                       PrismInterface3D6ConnectivitiesPart2 \
                                                       PrismInterface3D6ConnectivitiesPart3 \
