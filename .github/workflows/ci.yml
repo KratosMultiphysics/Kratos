@@ -54,8 +54,8 @@ jobs:
           export KRATOS_CMAKE_CXX_FLAGS="-std=c++11 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
           source /opt/intel/oneapi/setvars.sh
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=clang
-          export CXX=clang++
+          export CC=/usr/bin/clang
+          export CXX=/usr/bin/clang++
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           if [ ${{ matrix.build-type }} = FullDebug ]; then
             export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
