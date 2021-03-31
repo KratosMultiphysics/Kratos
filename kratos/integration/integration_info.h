@@ -238,7 +238,7 @@ public:
     IntegrationMethod GetIntegrationMethod(
         IndexType DimensionIndex) const
     {
-        GetIntegrationMethod(
+        return GetIntegrationMethod(
             GetNumberOfIntegrationPointsPerSpan(DimensionIndex),
             GetQuadratureMethodVector(DimensionIndex));
     }
