@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-    const double epsilon = std::numeric_limits<double>::epsilon();
+    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosCoreFastSuite)
     {
@@ -275,9 +275,9 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], epsilon, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangentOnNodeInteresected2D, KratosCoreFastSuite)
@@ -307,9 +307,9 @@ namespace Testing {
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
         KRATOS_CHECK(r_to_split);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], epsilon, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangentOnNodeNotInteresected2D, KratosCoreFastSuite)
@@ -340,9 +340,9 @@ namespace Testing {
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
         KRATOS_CHECK(!r_to_split);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], -1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -epsilon, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent2D, KratosCoreFastSuite)
@@ -371,9 +371,9 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointAndManyIntersectEdge2D, KratosCoreFastSuite)
@@ -409,9 +409,9 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -std::sqrt(2)/2.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -std::sqrt(2)/2.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], epsilon, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent2D, KratosCoreFastSuite)
@@ -465,7 +465,11 @@ namespace Testing {
 
         // Check values
         for (auto& r_node : fluid_part.Nodes()) {
-            KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), epsilon);
+            if (std::abs(r_node.Y()) < epsilon) {
+               KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), epsilon, 1e-16);
+            } else {
+               KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE), r_node.Y(), 1e-16);
+            }
         }
     }
 
@@ -501,10 +505,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], epsilon, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent3D, KratosCoreFastSuite)
@@ -538,10 +542,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 1e3*epsilon, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], epsilon, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleFaceTangent3D, KratosCoreFastSuite)
@@ -576,10 +580,10 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[1], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[2], 1e3*epsilon, epsilon);
-        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, epsilon);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], epsilon, 1e-16);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent3D, KratosCoreFastSuite)
@@ -624,7 +628,11 @@ namespace Testing {
         for (auto &elem : fluid_part.Elements()) {
             const auto& r_elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
             for (unsigned int i = 0; i < r_elem_dist.size(); i++) {
-                KRATOS_CHECK_NEAR(r_elem_dist[i], elem.GetGeometry()[i].Z(), epsilon);
+                if (std::abs(elem.GetGeometry()[i].Z()) < epsilon) {
+                    KRATOS_CHECK_NEAR(r_elem_dist[i], epsilon, 1e-16);
+                } else {
+                    KRATOS_CHECK_NEAR(r_elem_dist[i], elem.GetGeometry()[i].Z(), 1e-16);
+                }
             }
         }
     }
