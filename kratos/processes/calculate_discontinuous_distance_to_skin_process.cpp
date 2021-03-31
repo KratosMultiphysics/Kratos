@@ -29,7 +29,6 @@ namespace Kratos
 {
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES, 0);
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 1);
-    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_ZERO_DISTANCE_VALUES, 2);
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES, 3);
 
     template<std::size_t TDim>
@@ -41,7 +40,6 @@ namespace Kratos
         , mrVolumePart(rVolumePart)
         , mOptions(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse()
              | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse()
-             | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES.AsFalse()
              | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES.AsFalse())
     {
     }
@@ -432,10 +430,7 @@ namespace Kratos
         // Correct the distance values orientation
         CorrectDistanceOrientation(r_geometry, rIntersectedObjects, r_elemental_distances);
 
-        // Replace zero values of the distance with an epislon
-        if (mOptions.IsNot(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES)) {
-            ReplaceZeroDistances(r_elemental_distances);
-        }
+        ReplaceZeroDistances(r_elemental_distances);
     }
 
     template<std::size_t TDim>

@@ -269,9 +269,8 @@ namespace Testing {
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES;
         // Compute the discontinuous distance function
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
         // Check values
@@ -447,9 +446,8 @@ namespace Testing {
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES;
         // Compute the discontinuous distance function
-        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
         for (auto& r_node : fluid_part.Nodes()) {
@@ -618,9 +616,8 @@ namespace Testing {
 		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
 
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_ZERO_DISTANCE_VALUES;
         // Compute the discontinuous distance function
-        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part, options);
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part);
         disc_dist_proc.Execute();
 
         // Check values
