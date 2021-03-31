@@ -178,7 +178,7 @@ namespace Testing {
             KRATOS_CHECK_EQUAL(TruncatedPyramid.PointsNumber(), 196 );
 
             typename Geometry<NodeType>::IntegrationPointsArrayType integration_points;
-            IntegrationInfo integration_info;
+            IntegrationInfo integration_info = TruncatedPyramid.GetDefaultIntegrationInfo();
             TruncatedPyramid.CreateIntegrationPoints(integration_points, integration_info);
             KRATOS_CHECK_EQUAL( integration_points.size(), 1440);
             // Compute and check volume
@@ -334,7 +334,7 @@ namespace Testing {
         NurbsVolumeGeometry<PointerVector<Point>> DistortedCube = GenerateDistortedCube();
 
         typename Geometry<Point>::IntegrationPointsArrayType integration_points;
-        IntegrationInfo integration_info;
+        IntegrationInfo integration_info = DistortedCube.GetDefaultIntegrationInfo();
         DistortedCube.CreateIntegrationPoints(integration_points, integration_info);
         KRATOS_CHECK_EQUAL(DistortedCube.Dimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.WorkingSpaceDimension(), 3);
@@ -423,7 +423,7 @@ namespace Testing {
 
         // Check general information, input to ouput
         typename Geometry<NodeType>::IntegrationPointsArrayType integration_points;
-        IntegrationInfo integration_info;
+        IntegrationInfo integration_info = pyramid.GetDefaultIntegrationInfo();
         pyramid.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<NodeType>::GeometriesArrayType quadrature_points;

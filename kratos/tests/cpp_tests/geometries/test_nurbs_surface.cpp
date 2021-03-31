@@ -415,7 +415,7 @@ namespace Testing {
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        IntegrationInfo integration_info;
+        IntegrationInfo integration_info({3,2}, {IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS});
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 6);
@@ -432,7 +432,7 @@ namespace Testing {
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        IntegrationInfo integration_info;
+        IntegrationInfo integration_info({ 3,2 }, { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
