@@ -241,6 +241,10 @@ public:
             return IntegrationMethod::NumberOfIntegrationMethods;
             break;
         }
+        KRATOS_WARNING("Evaluation of Integration Method")
+            << "Chosen combination of number of points per span and quadrature method does not has a corresponding IntegrationMethod in the KRATOS core."
+            << "NumberOfIntegrationPointsPerSpan: " << NumberOfIntegrationPointsPerSpan << std::endl;
+        return IntegrationMethod::NumberOfIntegrationMethods;
     }
 
     ///@}
