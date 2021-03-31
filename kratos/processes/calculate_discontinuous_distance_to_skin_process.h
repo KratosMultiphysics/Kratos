@@ -211,6 +211,8 @@ private:
     static const std::size_t mNumNodes = TDim + 1;
     static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
 
+    const double mZeroToleranceMultiplier = 1e3;
+
     ///@}
     ///@name Private Operations
     ///@{

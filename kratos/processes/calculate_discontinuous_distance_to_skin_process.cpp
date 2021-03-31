@@ -532,7 +532,8 @@ namespace Kratos
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ReplaceZeroDistances(
         Vector& rElementalDistances)
     {
-        const double multiplicator = (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES))  ? -1e3 : 1e3;
+        const bool use_negative_epsilon = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES);
+        const double multiplicator = (use_negative_epsilon)  ? -mZeroToleranceMultiplier : mZeroToleranceMultiplier;
         for (auto& r_distance : rElementalDistances) {
             if (std::abs(r_distance) < std::numeric_limits<double>::epsilon()) {
                 r_distance = multiplicator*std::numeric_limits<double>::epsilon();
