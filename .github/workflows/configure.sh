@@ -65,7 +65,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DCMAKE_UNITY_BUILD=ON \
--DINCLUDE_MMG=ON                                    \
+-DINSTALL_RUNKRATOS=OFF \
+-DINCLUDE_MMG=OFF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install    -- -j1
