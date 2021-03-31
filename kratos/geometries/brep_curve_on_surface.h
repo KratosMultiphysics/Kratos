@@ -53,6 +53,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -72,12 +73,15 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// constructor for untrimmed surface
-    BrepCurveOnSurface( 
+    BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         bool SameCurveDirection = true)
@@ -210,6 +214,70 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepCurveOnSurface( ThisPoints ) );
+    }
+
+    ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the index.
+    *        Possible indices are:
+    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
+
+        if (Index == CURVE_ON_SURFACE_INDEX)
+            return mpCurveOnSurface;
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepCurveOnSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if the index is either
+    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @param Index of the geometry part.
+    * @return true if SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        return (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX);
+    }
+
+    ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            mpCurveOnSurface->Calculate(rVariable, rOutput);
+        }
     }
 
     ///@}
@@ -383,6 +451,15 @@ public:
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::Kratos_Brep;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::Kratos_Brep_Curve;
+    }
     ///@}
     ///@name Input and output
     ///@{

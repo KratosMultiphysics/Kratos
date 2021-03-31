@@ -94,14 +94,13 @@ public:
     {
         KRATOS_TRY;
 
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
-            for (auto& r_dof : (rModelPart.NodesBegin()+i)->GetDofs()) {
+        block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+            for (auto& r_dof : rNode.GetDofs()) {
                 if (r_dof->IsFree()) {
                     r_dof->GetSolutionStepValue() = 0.0;
                 }
             }
-        }
+        });
 
         BaseType::Initialize(rModelPart);
 

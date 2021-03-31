@@ -49,11 +49,11 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
         variables = [KM.ERROR_RATIO, KM.NODAL_ERROR]
 
         values = [1e-3, 1e-4]
-        DummyAnalysis(settings, variables, values)
+        self._AuxiliaryAnalysis(settings, variables, values)
         self._CheckValues(settings["Parameters"]["file_name"].GetString() + ".hdf5", "analysis_000", 0, variables, values)
 
         values = [2e-3, 2e-4]
-        DummyAnalysis(settings, variables, values)
+        self._AuxiliaryAnalysis(settings, variables, values)
         self._CheckValues(settings["Parameters"]["file_name"].GetString() + ".hdf5", "analysis_000", 1, variables, values)
 
         kratos_utils.DeleteFileIfExisting(settings["Parameters"]["file_name"].GetString() + ".hdf5")
@@ -76,52 +76,51 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
         }''')
         variables = [KM.ERROR_RATIO]
         values = [1e-3]
-        DummyAnalysis(settings, variables, values)
+        self._AuxiliaryAnalysis(settings, variables, values)
 
         settings["Parameters"]["analysis_attributes"]["density"].SetDouble(13.6)
-        DummyAnalysis(settings, variables, values)
+        self._AuxiliaryAnalysis(settings, variables, values)
 
         self._CheckTwoDatasets(settings["Parameters"]["file_name"].GetString() + ".hdf5", "analysis_000", "analysis_001", "density", 1.0, 13.6)
 
         kratos_utils.DeleteFileIfExisting(settings["Parameters"]["file_name"].GetString() + ".hdf5")
 
-def DummyAnalysis(settings, variables_list, values_list):
-    m = KM.Model()
-    mp = m.CreateModelPart("model_part")
+    @staticmethod
+    def _AuxiliaryAnalysis(settings, variables_list, values_list):
+        m = KM.Model()
+        mp = m.CreateModelPart("model_part")
 
-    mp.AddNodalSolutionStepVariable(KM.DISTANCE)
+        mp.AddNodalSolutionStepVariable(KM.DISTANCE)
 
-    mp.ProcessInfo[KM.DOMAIN_SIZE] = 2
-    mp.ProcessInfo[KM.GRAVITY_Z] = 9.81
+        mp.ProcessInfo[KM.DOMAIN_SIZE] = 2
+        mp.ProcessInfo[KM.GRAVITY_Z] = 9.81
 
-    KM.ModelPartIO("processes_tests/model_part").ReadModelPart(mp)
+        KM.ModelPartIO("processes_tests/model_part").ReadModelPart(mp)
 
-    process = convergence_output.Factory(settings, m)
-    process.Check()
+        process = convergence_output.Factory(settings, m)
+        process.Check()
 
-    step = 0
-    time = 0.0
-    end_time = 2.0
-    time_step = 0.1
-
-    mp.ProcessInfo[KM.STEP] = step
-    mp.ProcessInfo[KM.TIME] = time
-
-    process.ExecuteBeforeSolutionLoop()
-
-    while time < end_time:
-        step += 1
-        time += time_step
+        step = 0
+        time = 0.0
+        end_time = 2.0
+        time_step = 0.1
 
         mp.ProcessInfo[KM.STEP] = step
         mp.ProcessInfo[KM.TIME] = time
 
-        for (variable, value) in zip(variables_list, values_list):
-            KM.VariableUtils().SetNonHistoricalVariable(variable, value, mp.Nodes)
+        process.ExecuteBeforeSolutionLoop()
 
-        process.ExecuteFinalizeSolutionStep() # dummy call
+        while time < end_time:
+            step += 1
+            time += time_step
 
-    process.ExecuteFinalize()
+            mp.ProcessInfo[KM.STEP] = step
+            mp.ProcessInfo[KM.TIME] = time
+
+            for (variable, value) in zip(variables_list, values_list):
+                KM.VariableUtils().SetNonHistoricalVariable(variable, value, mp.Nodes)
+
+        process.PrintOutput()
 
 if __name__ == '__main__':
     KratosUnittest.main()

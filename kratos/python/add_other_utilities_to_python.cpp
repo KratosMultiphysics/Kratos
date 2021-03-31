@@ -23,6 +23,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
+#include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
 
 //Other utilities
@@ -51,6 +52,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/dense_svd_decomposition.h"
 
 namespace Kratos {
 namespace Python {
@@ -592,6 +594,17 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Clear", &FileNameDataCollector::FileNameData::Clear)
         .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
+
+    py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
+        .def(py::init<ModelPart& >() )
+        .def("Execute", &FillCommunicator::Execute)
+        .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
+    ;
+
+    typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
+    py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
+    ;
+
 }
 
 } // namespace Python.

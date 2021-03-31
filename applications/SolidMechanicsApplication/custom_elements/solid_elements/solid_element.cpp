@@ -279,7 +279,7 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 //************************************************************************************
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
     for ( SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -292,7 +292,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariab
 //************************************************************************************
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -308,7 +308,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariab
 
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
+        const std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -324,7 +324,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariab
 //************************************************************************************
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
   if(rVariable == CONSTITUTIVE_LAW)  //returns a vector of pointers, it do not clones the constitutives laws (it is not a copy)

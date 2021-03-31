@@ -34,6 +34,7 @@
 #include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
+#include "includes/initial_state.h"
 
 
 namespace Kratos
@@ -231,6 +232,8 @@ public:
       const ProcessInfo*   mpCurrentProcessInfo;
       const Properties*    mpMaterialProperties;
       const GeometryType*  mpElementGeometry;
+
+
 
 
     public:
@@ -540,6 +543,74 @@ public:
     virtual SizeType GetStrainSize();
 
     /**
+     * @return The initial state of strains/stresses/F
+     */
+    void SetInitialState(InitialState::Pointer pInitialState)
+    {
+        mpInitialState = pInitialState;
+    }
+
+    /**
+     * @return The initial state of strains/stresses/F
+     */
+    InitialState::Pointer pGetInitialState()
+    {
+        return mpInitialState;
+    }
+
+    /**
+     * @return The reference to initial state of strains/stresses/F
+     */
+    InitialState& GetInitialState()
+    {
+        return *mpInitialState;
+    }
+
+        /**
+     * @return The true if InitialState is defined
+     */
+    bool HasInitialState() const
+    {
+        return mpInitialState != nullptr;
+    }
+
+    /**
+     * @brief Adds the initial stress vector if it is defined in the InitialState
+     */
+    template<typename TVectorType>
+    void AddInitialStressVectorContribution(TVectorType& rStressVector) 
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStressVector) += r_initial_state.GetInitialStressVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    template<typename TVectorType>
+    void AddInitialStrainVectorContribution(TVectorType& rStrainVector)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            noalias(rStrainVector) -= r_initial_state.GetInitialStrainVector();
+        }
+    }
+
+    /**
+     * @brief Adds the initial strain vector if it is defined in the InitialState
+     */
+    template<typename TMatrixType>
+    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF)
+    {
+        if (this->HasInitialState()) {
+            const auto& r_initial_state = GetInitialState();
+            rF = prod(r_initial_state.GetInitialDeformationGradientMatrix(), rF);
+        }
+    }
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -780,6 +851,114 @@ public:
      */
     virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
                           array_1d<double, 6 > & rValue);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a scalar function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * Eg: Assume following function (gauss point evaluated):
+     *      \[
+     *          \nu = \nu_{fluid} + \nu_t = \nu_{fluid} + \left(\frac{y}{\omega}\right)^2 \frac{\partial k}{\partial x_i}\frac{\partial \omega}{\partial x_i}
+     *      \]
+     *
+     *      Then in here we use rFunctionVariable = EFFECTIVE_VISCOSITY
+     *
+     *      Then if we want to take derivatives w.r.t. $\omega$ (i.e. rDerivativeVariable = OMEGA).
+     *      So following steps needs to be used.
+     *
+     *           1. First calculate derivatives w.r.t. omega (rDerivativeVariable = OMEGA)
+     *              using the call:
+     *                   CalculateDerivative(Values, EFFECTIVE_VISCOSITY, OMEGA, output);
+     *              The output will hold the following:
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \omega} = \frac{\partial \nu_t}{\partial \omega} = -2\frac{y^2}{\omega^3}\frac{\partial k}{\partial x_i}\frac{\partial \omega}{\partial x_i}
+     *                   \]
+     *           2. Then calculate derivatives w.r.t. omega gradients (rDerivativeVariable = OMEGA_GRADIENT_X)
+     *              using the call: (where OMEGA_GRADIENT is a 3D vector with components)
+     *                   CalculateDerivative(Values, EFFECTIVE_VISCOSITY, OMEGA_GRADIENT_X, output);
+     *              The output will hold the following:
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \nabla\omega_x} = \frac{\partial \nu_t}{\partial \nabla\omega_x} =  \left(\frac{y}{\omega}\right)^2 \frac{\partial k}{\partial x_x}
+     *                   \]
+     *              Once you have these outputs, you can transform it to a nodal derivative (eg: discrete adjoint computation)
+     *              within your element by using the chain rule. [Where $c$ is the node index of the geometry.]
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \omega^c} = \frac{\partial \nu}{\partial \omega}\frac{\partial \omega}{\partial \omega^c} + \frac{\partial \nu}{\partial \nabla\omega_i}\frac{\partial \nabla\omega_i}{\partial \omega^c}
+     *                   \]
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Vector function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Matrix function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a array_1d<double, 3> function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<array_1d<double, 3>>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        array_1d<double, 3>& rOutput);
 
 
      /**
@@ -1173,6 +1352,7 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
 
+
     /**
      * @brief This method is used to check that tow Constitutive Laws are the same type (references)
      * @param rLHS The first argument
@@ -1327,7 +1507,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    InitialState::Pointer mpInitialState = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -1354,11 +1534,13 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
+        rSerializer.save("InitialState",mpInitialState);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
+        rSerializer.load("InitialState",mpInitialState);
     }
 
 

@@ -1,8 +1,8 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 import co_simulation_test_case
 import os
@@ -60,7 +60,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
-            self._runTestWithExternal(["python3", "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
+            self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
 
     def __ManipulateSettings(self, external_structure=False):
         self.cosim_parameters["solver_settings"]["convergence_accelerators"][0]["type"].SetString(self.accelerator_type)
@@ -71,8 +71,16 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             structure_settings.RemoveValue("solver_wrapper_settings")
 
             structure_settings["type"].SetString("solver_wrappers.external.external_solver_wrapper")
-            solver_wrapper_settings = KM.Parameters("""{ "import_meshes" : ["Structure.GENERIC_FSI"] }""")
-            io_settings = KM.Parameters("""{ "type" : "kratos_co_sim_io" }""")
+            solver_wrapper_settings = KM.Parameters("""{
+                "import_meshes" : ["Structure.GENERIC_FSI"],
+                "export_data"   : ["load"],
+                "import_data"   : ["disp"]
+            }""")
+            io_settings = KM.Parameters("""{
+                "type" : "kratos_co_sim_io",
+                "echo_level" : 3,
+                "connect_to" : "ext_structure"
+            }""")
             structure_settings.AddValue("solver_wrapper_settings", solver_wrapper_settings)
             structure_settings.AddValue("io_settings", io_settings)
 
@@ -93,7 +101,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_mok_cfd_results_disp.dat",
-                    "folder_name": "fsi_mok"
+                    "output_path": "fsi_mok"
                 },
                 "output_variables" : [
                     "MESH_DISPLACEMENT_X",
@@ -121,7 +129,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_mok_cfd_results_fluid.dat",
-                    "folder_name": "fsi_mok"
+                    "output_path": "fsi_mok"
                 },
                 "output_variables" : [
                     "VELOCITY_X",

@@ -22,6 +22,7 @@
 #include "containers/model.h"
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -346,19 +347,11 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 /***********************************************************************************/
 
 template<typename TContainerType>
-unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
+std::size_t VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
 {
-    unsigned int vtk_cell_list_size_container = 0;
-
-    const auto container_begin = rContainer.begin();
-    const int num_entities = static_cast<int>(rContainer.size());
-    #pragma omp parallel for reduction(+:vtk_cell_list_size_container)
-    for (int i=0; i<num_entities; ++i) {
-        const auto entity_i = container_begin + i;
-        vtk_cell_list_size_container += entity_i->GetGeometry().PointsNumber() + 1;
-    }
-
-    return vtk_cell_list_size_container;
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[](const typename TContainerType::data_type& rEntity){
+        return rEntity.GetGeometry().PointsNumber() + 1;
+    });
 }
 
 /***********************************************************************************/
