@@ -279,7 +279,7 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        IntegrationInfo integration_info;
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
         CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
@@ -315,16 +315,16 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
-            ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()
-            : mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
+        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
-        if (rIntegrationInfo.HasSpansInDirection(0)) {
-            spans = rIntegrationInfo.GetSpans(0);
+        if (!rIntegrationInfo.Has(SPANS_LOCAL_SPACE)) {
+            spans = rIntegrationInfo.GetValue(SPANS_LOCAL_SPACE);
+            Spans(spans);
             if (spans.size() < 1) {
                 this->Spans(spans);
             }
+            rIntegrationInfo.SetValue(SPANS_LOCAL_SPACE, spans);
         }
         else {
             this->Spans(spans);

@@ -382,7 +382,7 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        IntegrationInfo integration_info;
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
         CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
@@ -404,11 +404,10 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        std::vector<double> spans;
-        if (!rIntegrationInfo.HasSpansInDirection(0)) {
-            std::vector<double> spans;
+        if (!rIntegrationInfo.Has(SPANS_LOCAL_SPACE)) {
+            std::vector<double> spans = rIntegrationInfo.GetValue(SPANS_LOCAL_SPACE);
             Spans(spans);
-            rIntegrationInfo.SetSpans(spans, 0);
+            rIntegrationInfo.SetValue(SPANS_LOCAL_SPACE, spans);
         }
 
         mpCurveOnSurface->CreateIntegrationPoints(

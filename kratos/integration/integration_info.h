@@ -73,7 +73,7 @@ public:
 
     IntegrationInfo(SizeType LocalSpaceDimension,
         SizeType NumberOfIntegrationPointsPerSpan,
-        QuadratureMethod ThisQuadratureMethod)
+        QuadratureMethod ThisQuadratureMethod = QuadratureMethod::GAUSS)
     {
         mNumberOfIntegrationPointsPerSpanVector = std::vector<SizeType>(LocalSpaceDimension);
         mQuadratureMethodVector = std::vector<QuadratureMethod>(LocalSpaceDimension);
