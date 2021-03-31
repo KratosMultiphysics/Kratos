@@ -364,6 +364,11 @@ protected:
         return mProblemSize;
     }
 
+    bool IsUsedInBlockNewtonEquations() const
+    {
+        return mUsedInBlockNewtonEquations;
+    }
+
     MatrixPointerType pGetInverseJacobianApproximation() override
     {
         return mpJac_k1;
