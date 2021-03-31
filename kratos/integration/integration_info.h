@@ -18,8 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry_data.h"
-
-#include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
+#include "containers/data_value_container.h"
 
 namespace Kratos
 {
@@ -103,6 +102,56 @@ public:
     SizeType LocalSpaceDimension()
     {
         return mNumberOfIntegrationPointsPerSpanVector.size();
+    }
+
+    ///@}
+    ///@name Data Value Container
+    ///@{
+
+    /// Access Data Value Container
+    DataValueContainer& GetData()
+    {
+        return mData;
+    }
+
+    /// Const Access Data Value Container
+    DataValueContainer const& GetData() const
+    {
+        return mData;
+    }
+
+    /// Set Data Value Container
+    void SetData(DataValueContainer const& rThisData)
+    {
+        mData = rThisData;
+    }
+
+    /// Check if the Data exists.
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /// Set Data with SetValue and the Variable.
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /// Get Data with GetValue and the Variable.
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    /// Const Get Data with GetValue and the Variable.
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
     }
 
     ///@}
@@ -283,6 +332,8 @@ private:
     std::vector<QuadratureMethod> mQuadratureMethodVector;
 
     std::vector<SizeType> mNumberOfIntegrationPointsPerSpanVector;
+
+    DataValueContainer mData;
 
     ///@}
 
