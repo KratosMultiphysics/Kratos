@@ -61,129 +61,186 @@ public:
     ///@name Life Cycle
     ///@{
 
-    IntegrationInfo(IntegrationMethod ThisIntegrationMethod)
-        : mIntegrationMethod(ThisIntegrationMethod)
+    IntegrationInfo(SizeType LocalSpaceDimension,
+        IntegrationMethod ThisIntegrationMethod)
     {
-        SetNumberOfIntegrationPointsPerSpan(ThisIntegrationMethod);
+        mNumberOfIntegrationPointsPerSpanVector = std::vector<SizeType>(LocalSpaceDimension);
+        mQuadratureMethodVector = std::vector<QuadratureMethod>(LocalSpaceDimension);
+
+        for (IndexType i = 0; i < LocalSpaceDimension; ++i) {
+            SetIntegrationMethod(i, ThisIntegrationMethod);
+        }
     }
 
-    IntegrationInfo(SizeType NumberOfIntegrationPointsPerSpan,
-        QuadratureMethod ThisQuadratureMethod = QuadratureMethod::GAUSS)
-        : mQuadratureMethod(ThisQuadratureMethod)
-        , mNumberOfIntegrationPointsPerSpan(NumberOfIntegrationPointsPerSpan)
+    IntegrationInfo(SizeType LocalSpaceDimension,
+        SizeType NumberOfIntegrationPointsPerSpan,
+        QuadratureMethod ThisQuadratureMethod)
     {
-        SetIntegrationMethod(NumberOfIntegrationPointsPerSpan, ThisQuadratureMethod);
+        mNumberOfIntegrationPointsPerSpanVector = std::vector<SizeType>(LocalSpaceDimension);
+        mQuadratureMethodVector = std::vector<QuadratureMethod>(LocalSpaceDimension);
+
+        for (IndexType i = 0; i < LocalSpaceDimension; ++i) {
+            mNumberOfIntegrationPointsPerSpanVector[i] = NumberOfIntegrationPointsPerSpan;
+            mQuadratureMethodVector[i] = ThisQuadratureMethod;
+        }
+    }
+
+    IntegrationInfo(
+        std::vector<SizeType> NumberOfIntegrationPointsPerSpanVector,
+        std::vector<QuadratureMethod> ThisQuadratureMethodVector)
+        : mNumberOfIntegrationPointsPerSpanVector(NumberOfIntegrationPointsPerSpanVector)
+        , mQuadratureMethodVector(ThisQuadratureMethodVector)
+    {
+        KRATOS_ERROR_IF(NumberOfIntegrationPointsPerSpanVector.size() != ThisQuadratureMethodVector.size())
+            << "The sizes of the NumberOfIntegrationPointsPerSpanVector: " << NumberOfIntegrationPointsPerSpanVector.size()
+            << " and the ThisQuadratureMethodVector: " << ThisQuadratureMethodVector.size() << " does not coincide." << std::endl;
+    }
+
+    ///@}
+    ///@name Dimension
+    ///@{
+
+    SizeType LocalSpaceDimension()
+    {
+        return mNumberOfIntegrationPointsPerSpanVector.size();
     }
 
     ///@}
     ///@name integration rules
     ///@{
 
-    void SetNumberOfIntegrationPointsPerSpan(IntegrationMethod ThisIntegrationMethod)
+    void SetIntegrationMethod(
+        IndexType DimensionIndex,
+        IntegrationMethod ThisIntegrationMethod)
     {
         switch (ThisIntegrationMethod) {
         case IntegrationMethod::GI_GAUSS_1:
-            mNumberOfIntegrationPointsPerSpan = 1;
-            mQuadratureMethod = QuadratureMethod::GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 1;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::GAUSS;
             break;
         case IntegrationMethod::GI_GAUSS_2:
-            mNumberOfIntegrationPointsPerSpan = 2;
-            mQuadratureMethod = QuadratureMethod::GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 2;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::GAUSS;
             break;
         case IntegrationMethod::GI_GAUSS_3:
-            mNumberOfIntegrationPointsPerSpan = 3;
-            mQuadratureMethod = QuadratureMethod::GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 3;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::GAUSS;
             break;
         case IntegrationMethod::GI_GAUSS_4:
-            mNumberOfIntegrationPointsPerSpan = 4;
-            mQuadratureMethod = QuadratureMethod::GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 4;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::GAUSS;
             break;
         case IntegrationMethod::GI_GAUSS_5:
-            mNumberOfIntegrationPointsPerSpan = 5;
-            mQuadratureMethod = QuadratureMethod::GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 5;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::GAUSS;
             break;
         case IntegrationMethod::GI_EXTENDED_GAUSS_1:
-            mNumberOfIntegrationPointsPerSpan = 1;
-            mQuadratureMethod = QuadratureMethod::EXTENDED_GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 1;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
             break;
         case IntegrationMethod::GI_EXTENDED_GAUSS_2:
-            mNumberOfIntegrationPointsPerSpan = 2;
-            mQuadratureMethod = QuadratureMethod::EXTENDED_GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 2;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
             break;
         case IntegrationMethod::GI_EXTENDED_GAUSS_3:
-            mNumberOfIntegrationPointsPerSpan = 3;
-            mQuadratureMethod = QuadratureMethod::EXTENDED_GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 3;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
             break;
         case IntegrationMethod::GI_EXTENDED_GAUSS_4:
-            mNumberOfIntegrationPointsPerSpan = 4;
-            mQuadratureMethod = QuadratureMethod::EXTENDED_GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 4;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
             break;
         case IntegrationMethod::GI_EXTENDED_GAUSS_5:
-            mNumberOfIntegrationPointsPerSpan = 5;
-            mQuadratureMethod = QuadratureMethod::EXTENDED_GAUSS;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 5;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
             break;
         case IntegrationMethod::NumberOfIntegrationMethods:
-            mNumberOfIntegrationPointsPerSpan = 0;
-            mQuadratureMethod = QuadratureMethod::Default;
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 0;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::Default;
             break;
         }
     }
 
-    SizeType NumberOfIntegrationPointsPerSpan()
+    SizeType GetNumberOfIntegrationPointsPerSpan(IndexType DimensionIndex) const
     {
-        return mNumberOfIntegrationPointsPerSpan;
+        return mNumberOfIntegrationPointsPerSpanVector[DimensionIndex];
     }
 
-    void SetIntegrationMethod(SizeType NumberOfIntegrationPointsPerSpan,
-        QuadratureMethod ThisQuadratureMethod = QuadratureMethod::GAUSS)
+    void SetNumberOfIntegrationPointsPerSpan(IndexType DimensionIndex,
+        SizeType NumberOfIntegrationPointsPerSpan)
     {
-        mQuadratureMethod = ThisQuadratureMethod;
+        mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = NumberOfIntegrationPointsPerSpan;
+    }
 
+    QuadratureMethod GetQuadratureMethodVector(IndexType DimensionIndex) const
+    {
+        return mQuadratureMethodVector[DimensionIndex];
+    }
+
+    void SetQuadratureMethodVector(IndexType DimensionIndex,
+        QuadratureMethod ThisQuadratureMethod)
+    {
+        mQuadratureMethodVector[DimensionIndex] = ThisQuadratureMethod;
+    }
+
+    /* returns the IntegrationMethod to
+     * corresponding to the direction index.
+     */
+    IntegrationMethod GetIntegrationMethod(
+        IndexType DimensionIndex) const
+    {
+        GetIntegrationMethod(
+            GetNumberOfIntegrationPointsPerSpan(DimensionIndex),
+            GetQuadratureMethodVector(DimensionIndex));
+    }
+
+    /* Evaluates the corresponding IntegrationMethod to 
+     * the number of points and the quadrature method.
+     */
+    static IntegrationMethod GetIntegrationMethod(
+        SizeType NumberOfIntegrationPointsPerSpan,
+        QuadratureMethod ThisQuadratureMethod)
+    {
         switch (NumberOfIntegrationPointsPerSpan) {
         case 1:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                mIntegrationMethod = IntegrationMethod::GI_GAUSS_1;
+                return IntegrationMethod::GI_GAUSS_1;
             } else {
-                mIntegrationMethod = IntegrationMethod::GI_EXTENDED_GAUSS_1;
+                return IntegrationMethod::GI_EXTENDED_GAUSS_1;
             }
             break;
         case 2:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                mIntegrationMethod = IntegrationMethod::GI_GAUSS_2;
+                return IntegrationMethod::GI_GAUSS_2;
             } else {
-                mIntegrationMethod = IntegrationMethod::GI_EXTENDED_GAUSS_2;
+                return IntegrationMethod::GI_EXTENDED_GAUSS_2;
             }
             break;
         case 3:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                mIntegrationMethod = IntegrationMethod::GI_GAUSS_3;
+                return IntegrationMethod::GI_GAUSS_3;
             } else {
-                mIntegrationMethod = IntegrationMethod::GI_EXTENDED_GAUSS_3;
+                return IntegrationMethod::GI_EXTENDED_GAUSS_3;
             }
             break;
         case 4:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                mIntegrationMethod = IntegrationMethod::GI_GAUSS_4;
+                return IntegrationMethod::GI_GAUSS_4;
             } else {
-                mIntegrationMethod = IntegrationMethod::GI_EXTENDED_GAUSS_4;
+                return IntegrationMethod::GI_EXTENDED_GAUSS_4;
             }
             break;
         case 5:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                mIntegrationMethod = IntegrationMethod::NumberOfIntegrationMethods;
+                return IntegrationMethod::NumberOfIntegrationMethods;
             } else {
-                mIntegrationMethod = IntegrationMethod::GI_EXTENDED_GAUSS_5;
+                return IntegrationMethod::GI_EXTENDED_GAUSS_5;
             }
             break;
         case 0:
-            mIntegrationMethod = IntegrationMethod::NumberOfIntegrationMethods;
+            return IntegrationMethod::NumberOfIntegrationMethods;
             break;
         }
-    }
-
-    IntegrationMethod GetIntegrationMethod()
-    {
-        return mIntegrationMethod;
     }
 
     ///@}
@@ -194,23 +251,23 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << " Integration info. Number of integration points per span: "
-            << mNumberOfIntegrationPointsPerSpan;
+        buffer << " Integration info with local space dimension: " << mNumberOfIntegrationPointsPerSpanVector.size()
+            << " and number of integration points per spans: " << mNumberOfIntegrationPointsPerSpanVector;
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << " Integration info. Number of integration points per span: "
-            << mNumberOfIntegrationPointsPerSpan;
+        rOStream << " Integration info with local space dimension: " << mNumberOfIntegrationPointsPerSpanVector.size()
+            << " and number of integration points per spans: " << mNumberOfIntegrationPointsPerSpanVector;
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const
     {
-        rOStream << " Integration info. Number of integration points per span: "
-            << mNumberOfIntegrationPointsPerSpan;
+        rOStream << " Integration info with local space dimension: " << mNumberOfIntegrationPointsPerSpanVector.size()
+            << " and number of integration points per spans: " << mNumberOfIntegrationPointsPerSpanVector;
     }
 
     ///@}
@@ -219,13 +276,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    IntegrationMethod mIntegrationMethod;
+    std::vector<QuadratureMethod> mQuadratureMethodVector;
 
-    QuadratureMethod mQuadratureMethod;
-
-    SizeType mNumberOfIntegrationPointsPerSpan;
-
-    std::vector<std::vector<double>> mSpansVector;
+    std::vector<SizeType> mNumberOfIntegrationPointsPerSpanVector;
 
     ///@}
 
