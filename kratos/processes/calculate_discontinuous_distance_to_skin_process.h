@@ -42,7 +42,6 @@ class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
 public:
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED); /// Local flag to switch on/off the extrapolated elemental edge distances storage
-    KRATOS_DEFINE_LOCAL_FLAG(USE_ZERO_DISTANCE_VALUES); /// Local flag to switch on/off overwritting zero distance values.
     KRATOS_DEFINE_LOCAL_FLAG(USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES); /// Local flag to switch on/off using negative epsilon when replacing zero distance values.
 };
 
