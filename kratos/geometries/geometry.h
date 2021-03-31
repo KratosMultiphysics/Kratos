@@ -2114,12 +2114,12 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const
     {
-        if (rIntegrationInfo.GetIntegrationMethod() == IntegrationMethod::NumberOfIntegrationMethods) {
-            rIntegrationPoints = IntegrationPoints(mpGeometryData->DefaultIntegrationMethod());
+        IntegrationMethod integration_method = rIntegrationInfo.GetIntegrationMethod(0);
+        for (IndexType i = 1; i < LocalSpaceDimension(); ++i) {
+            KRATOS_ERROR_IF(integration_method != rIntegrationInfo.GetIntegrationMethod(i))
+                << "Default creation of integration points only valid if integration method is not varying per direction." << std::endl;
         }
-        else {
-            rIntegrationPoints = IntegrationPoints(rIntegrationInfo.GetIntegrationMethod());
-        }
+        rIntegrationPoints = IntegrationPoints(integration_method);
     }
 
     ///@}
