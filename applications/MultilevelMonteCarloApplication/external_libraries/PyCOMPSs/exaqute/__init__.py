@@ -1,4 +1,3 @@
-
 import os
 
 from .common import *  # noqa
@@ -15,6 +14,6 @@ if not exacute_backend:
 elif exacute_backend == "hyperloom":
     from .hyperloom import *  # noqa
 elif exacute_backend == "pycompss":
-    from .pycompss import *
+    from .pycompss import *  # noqa
 else:
     raise Exception("Unknown exaqute backend: {}".format(exacute_backend))

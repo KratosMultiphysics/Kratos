@@ -1,3 +1,2 @@
-
-from .exception import ExaquteException  # noqa
 from .consts import *  # noqa
+from .exception import ExaquteException  # noqa
