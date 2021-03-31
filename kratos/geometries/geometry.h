@@ -1820,6 +1820,11 @@ public:
         return mpGeometryData->DefaultIntegrationMethod();
     }
 
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        return IntegrationInfo(LocalSpaceDimension(), GetDefaultIntegrationMethod());
+    }
+
     /** This method is to know if this geometry is symmetric or
     not.
 
