@@ -14,6 +14,7 @@
 #define  KRATOS_MVQN_RANDOMIZED_SVD_CONVERGENCE_ACCELERATOR
 
 // System includes
+#include <random>
 
 // External includes
 
@@ -186,11 +187,12 @@ public:
         KRATOS_WATCH(v_svd.size2())
 
         auto p_aux_Q_U = Kratos::make_unique<MatrixType>(prod(Q, u_svd));
-        auto p_aux_sigma_V = Kratos::make_unique<MatrixType>(v_svd.size1(), v_svd.size2());
+        auto p_aux_sigma_V = Kratos::make_unique<MatrixType>(v_svd.size2(), v_svd.size1());
         auto& r_aux_sigma_V = *p_aux_sigma_V;
-        for (SizeType i = 0; i < v_svd.size1(); ++i) {
-            for (SizeType j = 0; j < v_svd.size2(); ++j) {
-                r_aux_sigma_V(i,j) = s_svd(i) * v_svd(j,i);
+        for (SizeType i = 0; i < r_aux_sigma_V.size1(); ++i) {
+            const double aux_s = s_svd(i);
+            for (SizeType j = 0; j < r_aux_sigma_V.size2(); ++j) {
+                r_aux_sigma_V(i,j) = aux_s * v_svd(j,i);
             }
         }
         std::swap(mpOldJacQU, p_aux_Q_U);
@@ -424,7 +426,7 @@ private:
     void InitializeRandomValuesMatrix()
     {
         // Set the random values matrix pointer
-        const SizeType n_modes = 50; //TODO: MAKE THIS USER-DEFINABLE
+        const SizeType n_modes = 20; //TODO: MAKE THIS USER-DEFINABLE
         const SizeType n_dofs = BaseType::GetProblemSize();
         auto p_aux_omega = Kratos::make_unique<MatrixType>(n_dofs, n_modes);
         std::swap(p_aux_omega, mpOmega);
