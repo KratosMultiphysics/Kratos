@@ -32,10 +32,13 @@ const Parameters CadTessellationModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "absolute_chordal_error"               : 1e-2,
-        "absolute_triangulation_error"         : 1e-2,
-        "initial_triangle_area"                : 1,
-        "max_triangulation_iteration"          : "10"
+        "cad_model_part_name": "",
+        "skin_model_part_name": "",
+        "absolute_chordal_error"   : 1e-2,
+        "absolute_triangulation_error"  : 1e-2,
+        "initial_triangle_area"         : 1,
+        "max_triangulation_iteration"   : 10,
+        "echo_level": 0
     })");
 
     return default_parameters;
@@ -47,6 +50,10 @@ const Parameters CadTessellationModeler::GetDefaultParameters() const
 
 void CadTessellationModeler::SetupModelPart()
 {
+
+    const Parameters default_parameters = this->GetDefaultParameters();
+    mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
     KRATOS_ERROR_IF_NOT(mParameters.Has("cad_model_part_name"))
         << "Missing \"cad_model_part_name\" in CadTessellationModeler Parameters" << std::endl;
     ModelPart& cad_model_part =
@@ -143,9 +150,7 @@ void CadTessellationModeler::SetupModelPart()
 
 std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessellation(const BrepCurveOnSurfaceType& rBoundarySegment)
 {
-    const double chordal_error = mParameters.Has("absolute_chordal_error")
-                                     ? mParameters["absolute_chordal_error"].GetDouble()
-                                     : GetDefaultParameters()["absolute_chordal_error"].GetDouble();
+    const double chordal_error = mParameters["absolute_chordal_error"].GetDouble();
 
     auto tessellation = NurbsCurveTessellation<2, ContainerNodeType>::ComputeTessellation(
         rBoundarySegment,
@@ -174,17 +179,9 @@ std::vector<BoundedMatrix<double,3,3>> CadTessellationModeler::ComputeSurfaceTri
     const BrepSurfaceType& rSurfaceGeometry,
     const std::vector<array_1d<double, 2>>& rBoundaryLoop)
 {
-    const double absolute_triangulation_error = mParameters.Has("absolute_triangulation_error")
-                                                    ? mParameters["absolute_triangulation_error"].GetDouble()
-                                                    : GetDefaultParameters()["absolute_triangulation_error"].GetDouble();
-
-    double aux_area = mParameters.Has("initial_triangle_area")
-                          ? mParameters["initial_triangle_area"].GetDouble()
-                          : GetDefaultParameters()["initial_triangle_area"].GetDouble();
-
-    const IndexType max_iteration = mParameters.Has("max_triangulation_iteration")
-                                        ? mParameters["max_triangulation_iteration"].GetInt()
-                                        : GetDefaultParameters()["max_triangulation_iteration"].GetInt();
+    const double absolute_triangulation_error = mParameters["absolute_triangulation_error"].GetDouble();
+    double aux_area = mParameters["initial_triangle_area"].GetDouble();
+    const IndexType max_iteration = mParameters["max_triangulation_iteration"].GetInt();
 
     // Initialize a 1d list with the coordinates of the points (outer and inner polygons)
     SizeType n_boundary_points = rBoundaryLoop.size();
