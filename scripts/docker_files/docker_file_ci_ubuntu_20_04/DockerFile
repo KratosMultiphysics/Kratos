@@ -18,11 +18,11 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential \
         ccache \
         clang \
+        libomp-10-dev \
         cmake \
         gfortran \
         git \
         intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
-        intel-oneapi-mpi-devel \
         intel-oneapi-mkl-devel \
         libboost-dev \
         libhdf5-dev \
@@ -45,8 +45,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         openmpi-bin \
         python3-dev \
         python3-h5py \
-        python3-pip \
-        valgrind && \
+        python3-pip && \
     /usr/sbin/update-ccache-symlinks && \
     echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc && \
     python3 -m pip install --upgrade pip && \
@@ -59,7 +58,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     mkdir -p /external_libraries/mmg/mmg_5_4_1 && \
     cd /tmp/mmg_5_4_1/build && \
     cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_4_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
-    make install && \
+    make -j2 install && \
     rm -r /tmp/mmg_5_4_1 && \
     cd / && \
     # install MMG 5.5
@@ -68,7 +67,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     mkdir -p /external_libraries/mmg/mmg_5_5_1 && \
     cd /tmp/mmg_5_5_1/build && \
     cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
-    make install && \
+    make -j2 install && \
     cd / && \
     # install PARMMG
     git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
@@ -76,7 +75,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     mkdir -p /external_libraries/ParMmg_5ffc6ad && \
     cd /tmp/ParMmg_5ffc6ad/build && git checkout 5ffc6ada4afb1af50a43e1fa6f4c409cff2ea25c && \
     cmake .. -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_5ffc6ad" -DUSE_SCOTCH=OFF -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_5_1" -DMMG_BUILDDIR="/tmp/mmg_5_5_1/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
-    make install && \
+    make -j2 install && \
     rm -r /tmp/mmg_5_5_1 && \
     rm -r /tmp/ParMmg_5ffc6ad && \
     cd / && \
