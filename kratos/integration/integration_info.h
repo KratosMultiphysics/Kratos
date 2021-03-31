@@ -61,14 +61,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    IntegrationInfo()
-        : mIntegrationMethod(IntegrationMethod::NumberOfIntegrationMethods)
-        , mQuadratureMethod(QuadratureMethod::Default)
-        , mNumberOfIntegrationPointsPerSpan(0)
-    {
-    }
-
     IntegrationInfo(IntegrationMethod ThisIntegrationMethod)
         : mIntegrationMethod(ThisIntegrationMethod)
     {
