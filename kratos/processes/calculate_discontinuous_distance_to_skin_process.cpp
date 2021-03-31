@@ -134,6 +134,9 @@ namespace Kratos
             for (int i = 0; i < number_of_elements; ++i) {
                 CalculateElementalAndEdgeDistances(*(r_elements[i]), rIntersectedObjects[i]);
             }
+            if (mDetectedZeroDistanceValues) {
+                CheckAndCorrectEdgeDistances();
+            }
         } else {
             #pragma omp parallel for schedule(dynamic)
             for (int i = 0; i < number_of_elements; ++i) {
@@ -537,6 +540,9 @@ namespace Kratos
         for (auto& r_distance : rElementalDistances) {
             if (std::abs(r_distance) < std::numeric_limits<double>::epsilon()) {
                 r_distance = multiplier*std::numeric_limits<double>::epsilon();
+                if (!mDetectedZeroDistanceValues) {
+                    mDetectedZeroDistanceValues = true;
+                }
             }
         }
     }
@@ -800,6 +806,78 @@ namespace Kratos
         }
 
         return is_shared;
+    }
+
+    template<std::size_t TDim>
+    void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CheckAndCorrectEdgeDistances() {
+
+        KRATOS_TRY;
+
+        std::unordered_map<std::set<IndexType>, bool, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> >  edge_to_intersected_bool;
+
+        for (auto& r_elem : mrVolumePart.Elements()) {
+            if (r_elem.Is(TO_SPLIT)) {
+                auto elemental_distances = r_elem.GetValue(ELEMENTAL_DISTANCES);
+                const auto r_edges_container = r_elem.GetGeometry().GenerateEdges();
+                std::unordered_map<IndexType, IndexType> global_id_to_local;
+                for (IndexType i = 0; i < mNumNodes; ++i) {
+                    global_id_to_local[r_elem.GetGeometry()[i].Id()] = i;
+                }
+                for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
+                    IndexType edge_i_id = r_edges_container[i_edge][0].Id();
+                    IndexType edge_j_id = r_edges_container[i_edge][1].Id();
+                    double i_distance = elemental_distances[global_id_to_local[edge_i_id]];
+                    double j_distance = elemental_distances[global_id_to_local[edge_j_id]];
+                    bool is_edge_cut = (i_distance*j_distance) < 0.0;
+                    std::set<IndexType> edge_node_set;
+                    edge_node_set.insert(edge_i_id);
+                    edge_node_set.insert(edge_j_id);
+                    if (edge_to_intersected_bool.find(edge_node_set) == edge_to_intersected_bool.end()) {
+                        edge_to_intersected_bool[edge_node_set] = is_edge_cut;
+                    }
+                }
+            }
+        }
+
+        for (auto& r_elem : mrVolumePart.Elements()) {
+            const auto r_edges_container = r_elem.GetGeometry().GenerateEdges();
+            auto& r_cut_edge_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES);
+            for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
+                // Edge initially cut with distances exactly 0
+                if (r_cut_edge_vector[i_edge] >= 0) {
+                    IndexType edge_i_id = r_edges_container[i_edge][0].Id();
+                    IndexType edge_j_id = r_edges_container[i_edge][1].Id();
+                    std::set<IndexType> edge_node_set;
+                    edge_node_set.insert(edge_i_id);
+                    edge_node_set.insert(edge_j_id);
+                    bool is_edge_cut = edge_to_intersected_bool[edge_node_set];
+                    // Correcting edge if not intersected after applying an epsilon
+                    if (!is_edge_cut) {
+                        r_cut_edge_vector[i_edge] = -1;
+                    }
+                }
+            }
+
+            if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
+                auto& r_cut_edge_extra_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+                for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
+                    // Edge initially cut with distances exactly 0
+                    if (r_cut_edge_extra_vector[i_edge] >= 0) {
+                        IndexType edge_i_id = r_edges_container[i_edge][0].Id();
+                        IndexType edge_j_id = r_edges_container[i_edge][1].Id();
+                        std::set<IndexType> edge_node_set;
+                        edge_node_set.insert(edge_i_id);
+                        edge_node_set.insert(edge_j_id);
+                        bool is_edge_cut = edge_to_intersected_bool[edge_node_set];
+                        // Correcting edge if not intersected after applying an epsilon
+                        if (!is_edge_cut) {
+                            r_cut_edge_extra_vector[i_edge] = -1;
+                        }
+                    }
+                }
+            }
+        }
+        KRATOS_CATCH(" ");
     }
 
     template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;

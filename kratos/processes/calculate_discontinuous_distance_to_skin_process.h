@@ -211,6 +211,7 @@ private:
     static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
 
     const double mZeroToleranceMultiplier = 1e3;
+    bool mDetectedZeroDistanceValues = false;
 
     ///@}
     ///@name Private Operations
@@ -543,6 +544,13 @@ private:
     void SetToSplitFlag(
         Element& rElement,
         const double ZeroTolerance);
+
+    /**
+     * @brief Checks the elemental edges distances if zero values of the distance
+     * are detected. This ensures that the elementes detected as incised and intersected
+     * are consistent with the zero-correction applied by the process.
+     */
+    void CheckAndCorrectEdgeDistances();
 
     ///@}
 
