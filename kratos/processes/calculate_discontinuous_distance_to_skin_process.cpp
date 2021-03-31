@@ -533,10 +533,10 @@ namespace Kratos
         Vector& rElementalDistances)
     {
         const bool use_negative_epsilon = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES);
-        const double multiplicator = (use_negative_epsilon)  ? -mZeroToleranceMultiplier : mZeroToleranceMultiplier;
+        const double multiplier = (use_negative_epsilon)  ? -mZeroToleranceMultiplier : mZeroToleranceMultiplier;
         for (auto& r_distance : rElementalDistances) {
             if (std::abs(r_distance) < std::numeric_limits<double>::epsilon()) {
-                r_distance = multiplicator*std::numeric_limits<double>::epsilon();
+                r_distance = multiplier*std::numeric_limits<double>::epsilon();
             }
         }
     }
