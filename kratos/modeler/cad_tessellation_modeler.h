@@ -72,10 +72,9 @@ public:
      * @param ModelerParameters Parameters of the discretization
      */
     CadTessellationModeler(
-        Model& rModel,
-        Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters)
-        , mpModel(&rModel)
+        Model &rModel,
+        Parameters ModelerParameters)
+        : Modeler(rModel, ModelerParameters), mpModel(&rModel)
     {
     }
 
