@@ -77,7 +77,7 @@ jobs:
         ccache -s
 
     - name: Running small tests
-      if: ${{ ${{ matrix.compiler }} != intel }}
+      if: ${{ matrix.compiler }} != intel
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
