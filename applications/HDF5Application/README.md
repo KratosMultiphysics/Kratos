@@ -71,6 +71,8 @@ There are few available HDF5 processes which can be integrated into work flow vi
 This process can be used to initialize a given model part using existing HDF5 files. Illustrated example reads in VELOCITY and PRESSURE variables from
 "hdf5_output/example_initialization_file.h5" file to nodal historical data value container, and nodal, elemental and condition non-historical data value containers. This process also can read FLAGS from HDF5 file and populate model part accordingly.
 
+For the ```list_of_variables``` in either ```nodal_data_value_settings```, ```element_data_value_settings```, ```condition_data_value_settings``` one can specify ```ALL_VARIABLES_FROM_FILE``` which will read all the variables available in the input hdf5 file and will populate the model part accordingly. This ```ALL_VARIABLES_FROM_FILE``` should be used alone (There can be only this entry in the list if it is used).
+
 ```json
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
@@ -265,6 +267,8 @@ For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one 
 ### Multiple mesh temporal output process
 This process is used to output model part variable data to HDF5 with mesh written for each time step. This is useful in the case if required to write down deformed mesh in each time step.
 
+For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one can specify ```ALL_VARIABLES_FROM_VARIABLES_LIST``` as the only item (Then this list should only have that entry) so it will write all the variables in the corresponding model's solution step variable list.
+
 ```json
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
@@ -341,6 +345,8 @@ This process is used to output model part variable data to HDF5 with mesh writte
 
 ### Single mesh xdmf output process for Paraview
 This process outputs model part variable data for each time step, additionally it writes down the XDMF file after each time step which is required to visualize HDF5 data in paraview. This process requires ```h5py``` to be installed in the ```python``` version (which is compiled with ```Kratos Multiphysics```)
+
+For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one can specify ```ALL_VARIABLES_FROM_VARIABLES_LIST``` as the only item (Then this list should only have that entry) so it will write all the variables in the corresponding model's solution step variable list.
 
 ```json
             {
