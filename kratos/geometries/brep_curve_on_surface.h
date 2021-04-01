@@ -276,6 +276,14 @@ public:
     ///@name Set/ Get functions
     ///@{
 
+    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
+    NurbsInterval DomainInterval() const
+    {
+        return mCurveNurbsInterval;
+    }
+
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
@@ -319,7 +327,6 @@ public:
         mpCurveOnSurface->Spans(rSpans, DirectionIndex,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
-
 
     ///@}
     ///@name Projection

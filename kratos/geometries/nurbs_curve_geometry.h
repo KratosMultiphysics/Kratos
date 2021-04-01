@@ -235,10 +235,9 @@ public:
         return mWeights;
     }
 
-    /* 
-    * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
-    * @return domain interval.
-    */
+    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
     NurbsInterval DomainInterval() const
     {
         return NurbsInterval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
