@@ -203,9 +203,8 @@ jobs:
         python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
 
 
-ubuntu-without-unity:
+  ubuntu-without-unity:
     runs-on: ubuntu-latest
-    strategy:
     env:
       KRATOS_BUILD_TYPE: Custom
 
