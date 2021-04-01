@@ -197,6 +197,44 @@ jobs:
         bash centos_configure.sh
 
     - name: Running small tests
+    
+
+ubuntu-without-unity:
+    runs-on: ubuntu-latest
+    strategy:
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+    - uses: actions/checkout@v2
+
+    - name: Build
+      shell: bash
+      run: |
+        export CC=/usr/bin/clang
+        export CXX=/usr/bin/clang++
+
+        export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
+        export KRATOS_BUILD="${KRATOS_SOURCE}/build"
+        export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+        export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
+        # Configure
+        cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+        -DUSE_MPI=ON \
+        -DPYBIND11_PYTHON_VERSION="3.8" \
+        -DINSTALL_RUNKRATOS=OFF
+
+        # Buid
+        cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
