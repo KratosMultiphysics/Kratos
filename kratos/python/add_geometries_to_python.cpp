@@ -148,7 +148,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
         {
-            IntegrationInfo integration_info;
+            IntegrationInfo integration_info = self.GetDefaultIntegrationInfo();
             return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info));
         })
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
