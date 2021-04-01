@@ -23,7 +23,6 @@
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/coordinate_transformation_utilities.h"
-#include "utilities/variable_utils.h"
 #include "processes/process.h"
 
 namespace Kratos {
@@ -103,14 +102,6 @@ public:
   void SetPressureRelaxationFactor(double factor)
   {
     mPressureRelaxationFactor = factor;
-  }
-
-  void Initialize(ModelPart& rModelPart) override
-  {
-      BaseType::Initialize(rModelPart);
-
-      // This is required only for steady state adjoints.
-      VariableUtils().SetNonHistoricalVariableToZero(RELAXED_ACCELERATION, rModelPart.Nodes());
   }
 
   void Update(ModelPart& rModelPart,

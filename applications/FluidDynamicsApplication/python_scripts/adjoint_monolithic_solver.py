@@ -160,6 +160,11 @@ class AdjointMonolithicSolver(AdjointFluidSolver):
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        # clear RELAXED_ACCELERATION if it is a steady adjoint problem
+        scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        if (scheme_type == "steady"):
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.RELAXED_ACCELERATION, self.main_model_part.Nodes)
+
         # Initialize the strategy and adjoint utilities
         solution_strategy.Initialize()
         self.GetResponseFunction().Initialize()
