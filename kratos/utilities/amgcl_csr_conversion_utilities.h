@@ -49,7 +49,7 @@ public:
         pAmgcl->ncols = rA.size2();
         pAmgcl->own_data = false;
 
-        return std::move(pAmgcl);
+        return pAmgcl;
 	}
 
     template< class TDataType, class TIndexType >
