@@ -372,6 +372,18 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        return IntegrationInfo(1,
+            mPolynomialDegree + 1,
+            QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 

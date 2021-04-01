@@ -304,6 +304,17 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        IndexType p = mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
+        return IntegrationInfo(1, p, QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -340,12 +351,12 @@ public:
      */
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        double StartParameter, double EndParameter) const
+        double StartParameter, double EndParameter,
+        IntegrationInfo& rIntegrationInfo) const
     {
         mpNurbsSurface->PolynomialDegreeU();
 
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
+        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
         Spans(spans, StartParameter, EndParameter);
