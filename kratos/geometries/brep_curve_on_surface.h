@@ -394,6 +394,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        return mpCurveOnSurface->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
