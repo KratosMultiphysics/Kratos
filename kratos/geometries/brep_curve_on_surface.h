@@ -89,6 +89,7 @@ public:
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
+        , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -103,7 +104,7 @@ public:
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
-        , mCurveNurbsInterval(CurveNurbsInterval)
+        , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -124,8 +125,8 @@ public:
         NurbsInterval CurveNurbsInterval,
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mCurveNurbsInterval(CurveNurbsInterval)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
+        , mCurveNurbsInterval(CurveNurbsInterval)
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -321,6 +322,12 @@ public:
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /// Provides the center of the underlying curve on surface
+    Point Center() const override
+    {
+        return mpCurveOnSurface->Center();
+    }
 
     /*
     * @brief This method maps from dimension space to working space.
