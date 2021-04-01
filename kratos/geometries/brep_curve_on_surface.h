@@ -342,7 +342,7 @@ public:
     ///@name IsInside
     ///@{
 
-    /// returns if rPointLocalCoordinates[0] is inside -> 1 or ouside -> 0
+    /// returns if rPointLocalCoordinates[0] is inside -> 1 or outside -> 0
     int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
