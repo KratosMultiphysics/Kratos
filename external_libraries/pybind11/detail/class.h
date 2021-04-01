@@ -129,7 +129,7 @@ extern "C" inline int pybind11_meta_setattro(PyObject* obj, PyObject* name, PyOb
     //   2. `Type.static_prop = other_static_prop` --> setattro:  replace existing `static_prop`
     //   3. `Type.regular_attribute = value`       --> setattro:  regular attribute assignment
     const auto static_prop = (PyObject *) get_internals().static_property_type;
-    const auto call_descr_set = descr && PyObject_IsInstance(descr, static_prop)
+    const auto call_descr_set = descr && value && PyObject_IsInstance(descr, static_prop)
                                 && !PyObject_IsInstance(value, static_prop);
     if (call_descr_set) {
         // Call `static_property.__set__()` instead of replacing the `static_property`.
@@ -339,8 +339,6 @@ inline PyObject *make_new_instance(PyTypeObject *type) {
     auto inst = reinterpret_cast<instance *>(self);
     // Allocate the value/holder internals:
     inst->allocate_layout();
-
-    inst->owned = true;
 
     return self;
 }
@@ -552,6 +550,12 @@ extern "C" inline int pybind11_getbuffer(PyObject *obj, Py_buffer *view, int fla
     }
     std::memset(view, 0, sizeof(Py_buffer));
     buffer_info *info = tinfo->get_buffer(obj, tinfo->get_buffer_data);
+    if ((flags & PyBUF_WRITABLE) == PyBUF_WRITABLE && info->readonly) {
+        delete info;
+        // view->obj = nullptr;  // Was just memset to 0, so not necessary
+        PyErr_SetString(PyExc_BufferError, "Writable buffer requested for readonly storage");
+        return -1;
+    }
     view->obj = obj;
     view->ndim = 1;
     view->internal = info;
@@ -561,12 +565,6 @@ extern "C" inline int pybind11_getbuffer(PyObject *obj, Py_buffer *view, int fla
     for (auto s : info->shape)
         view->len *= s;
     view->readonly = info->readonly;
-    if ((flags & PyBUF_WRITABLE) == PyBUF_WRITABLE && info->readonly) {
-        if (view)
-            view->obj = nullptr;
-        PyErr_SetString(PyExc_BufferError, "Writable buffer requested for readonly storage");
-        return -1;
-    }
     if ((flags & PyBUF_FORMAT) == PyBUF_FORMAT)
         view->format = const_cast<char *>(info->format.c_str());
     if ((flags & PyBUF_STRIDES) == PyBUF_STRIDES) {

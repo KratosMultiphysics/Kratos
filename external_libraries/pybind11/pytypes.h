@@ -812,18 +812,18 @@ PYBIND11_NAMESPACE_END(detail)
     : Parent(check_(o) ? o.release().ptr() : ConvertFun(o.ptr()), stolen_t{}) \
     { if (!m_ptr) throw error_already_set(); }
 
-#define PYBIND11_OBJECT_CHECK_FAILED(Name, o) \
+#define PYBIND11_OBJECT_CHECK_FAILED(Name, o_ptr) \
     ::pybind11::type_error("Object of type '" + \
-                           ::pybind11::detail::get_fully_qualified_tp_name(Py_TYPE(o.ptr())) + \
+                           ::pybind11::detail::get_fully_qualified_tp_name(Py_TYPE(o_ptr)) + \
                            "' is not an instance of '" #Name "'")
 
 #define PYBIND11_OBJECT(Name, Parent, CheckFun) \
     PYBIND11_OBJECT_COMMON(Name, Parent, CheckFun) \
     /* This is deliberately not 'explicit' to allow implicit conversion from object: */ \
     Name(const object &o) : Parent(o) \
-    { if (o && !check_(o)) throw PYBIND11_OBJECT_CHECK_FAILED(Name, o); } \
+    { if (m_ptr && !check_(m_ptr)) throw PYBIND11_OBJECT_CHECK_FAILED(Name, m_ptr); } \
     Name(object &&o) : Parent(std::move(o)) \
-    { if (o && !check_(o)) throw PYBIND11_OBJECT_CHECK_FAILED(Name, o); }
+    { if (m_ptr && !check_(m_ptr)) throw PYBIND11_OBJECT_CHECK_FAILED(Name, m_ptr); }
 
 #define PYBIND11_OBJECT_DEFAULT(Name, Parent, CheckFun) \
     PYBIND11_OBJECT(Name, Parent, CheckFun) \
@@ -1271,6 +1271,15 @@ public:
     detail::tuple_iterator end() const { return {*this, PyTuple_GET_SIZE(m_ptr)}; }
 };
 
+// We need to put this into a separate function because the Intel compiler
+// fails to compile enable_if_t<all_of<is_keyword_or_ds<Args>...>::value> part below
+// (tested with ICC 2021.1 Beta 20200827).
+template <typename... Args>
+constexpr bool args_are_all_keyword_or_ds()
+{
+  return detail::all_of<detail::is_keyword_or_ds<Args>...>::value;
+}
+
 class dict : public object {
 public:
     PYBIND11_OBJECT_CVT(dict, object, PyDict_Check, raw_dict)
@@ -1278,7 +1287,7 @@ public:
         if (!m_ptr) pybind11_fail("Could not allocate dict object!");
     }
     template <typename... Args,
-              typename = detail::enable_if_t<detail::all_of<detail::is_keyword_or_ds<Args>...>::value>,
+              typename = detail::enable_if_t<args_are_all_keyword_or_ds<Args...>()>,
               // MSVC workaround: it can't compile an out-of-line definition, so defer the collector
               typename collector = detail::deferred_t<detail::unpacking_collector<>, Args...>>
     explicit dict(Args &&...args) : dict(collector(std::forward<Args>(args)...).kwargs()) { }
