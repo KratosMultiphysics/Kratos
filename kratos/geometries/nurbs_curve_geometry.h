@@ -24,6 +24,8 @@
 
 #include "integration/integration_point_utilities.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
+
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
@@ -118,17 +120,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -138,17 +130,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// @brief Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType>
     NurbsCurveGeometry& operator=(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -314,6 +296,29 @@ public:
                 counter++;
             }
         }
+    }
+
+    ///@}
+    ///@name Projection Point
+    ///@{
+
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
+
+        return (success)
+            ? 1
+            : 0;
     }
 
     ///@}
