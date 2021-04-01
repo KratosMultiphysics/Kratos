@@ -1,31 +1,34 @@
 {
     "problem_data": {
-        "problem_name": "steady_cylinder_test",
-        "start_step": 2.0,
-        "nsteps": 1,
+        "problem_name": "one_element",
+        "start_step": 4.0,
+        "nsteps": 3,
         "echo_level": 0,
-        "parallel_type": "<PARALLEL_TYPE>"
+        "parallel_type": "OpenMP"
     },
-    "_output_processes": {},
     "solver_settings": {
         "solver_type": "Monolithic",
         "scheme_settings": {
-            "scheme_type": "steady"
+            "scheme_type": "bossak",
+            "alpha_bossak": -0.3
         },
         "response_function_settings": {
-            "response_type": "norm_square",
+            "response_type": "drag",
             "custom_settings": {
-                "main_model_part_name": "MainModelPart",
-                "norm_model_part_name": "MainModelPart.NoSlip2D_Cylinder",
-                "entities" : ["conditions"]
+                "structure_model_part_name": "Structure",
+                "drag_direction": [
+                    1.0,
+                    0.0,
+                    0.0
+                ]
             }
         },
         "sensitivity_settings": {
-            "sensitivity_model_part_name": "NoSlip2D_Cylinder",
+            "sensitivity_model_part_name": "Boundary",
             "nodal_solution_step_sensitivity_variables": [
                 "SHAPE_SENSITIVITY"
             ],
-            "build_mode": "static",
+            "build_mode": "integrate",
             "nodal_solution_step_sensitivity_calculation_is_thread_safe": true
         },
         "domain_size": 2,
@@ -33,32 +36,29 @@
         "model_part_name": "MainModelPart",
         "volume_model_part_name": "Parts_Fluid",
         "skin_parts": [
-            "Inlet2D_Inlet",
-            "Outlet2D_Outlet",
-            "NoSlip2D_Cylinder",
-            "NoSlip2D_Wall"
+            "Inlet",
+            "Outlet",
+            "Boundary",
+            "Structure"
         ],
         "linear_solver_settings": {
-            "solver_type": "amgcl",
-            "verbosity": 0,
-            "coarse_enough": 500,
-            "tolerance": 1e-7
+            "solver_type": "skyline_lu_factorization"
         },
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test"
+            "input_filename": "AdjointVMSSensitivity2DTest/one_element_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
+            "materials_filename": "AdjointQSVMSSensitivity2DTest/one_element_test_materials.json"
         },
         "time_stepping": {
             "automatic_time_step": false,
             "time_step": -1.0
         },
         "formulation": {
-            "element_type"            : "vms",
+            "element_type": "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau"             : 1.0
+            "dynamic_tau": 1.0
         }
     },
     "processes": {
@@ -69,7 +69,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.Inlet2D_Inlet",
+                    "model_part_name": "MainModelPart.Inlet",
                     "variable_name": "ADJOINT_FLUID_VECTOR_1",
                     "value": [
                         0.0,
@@ -83,7 +83,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignScalarVariableProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.Outlet2D_Outlet",
+                    "model_part_name": "MainModelPart.Outlet",
                     "variable_name": "ADJOINT_FLUID_SCALAR_1",
                     "value": 0
                 }
@@ -93,8 +93,27 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.NoSlip2D_Wall",
+                    "model_part_name": "MainModelPart.Boundary",
                     "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "constrained": [
+                        false,
+                        true,
+                        true
+                    ],
                     "value": [
                         0.0,
                         0.0,
@@ -112,27 +131,18 @@
                 "process_name": "",
                 "Parameters": {
                     "model_part_name": "MainModelPart",
+                    "file_settings": {
+                        "file_access_mode": "read_only"
+                    },
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": [
                             "VELOCITY",
-                            "PRESSURE",
-                            "NORMAL",
-                            "BODY_FORCE"
+                            "PRESSURE"
                         ]
                     },
                     "nodal_data_value_settings": {
                         "list_of_variables": [
-                            "Y_WALL"
-                        ]
-                    },
-                    "nodal_flag_value_settings": {
-                        "list_of_variables": [
-                            "SLIP"
-                        ]
-                    },
-                    "condition_flag_value_settings": {
-                        "list_of_variables": [
-                            "SLIP"
+                            "RELAXED_ACCELERATION"
                         ]
                     }
                 }

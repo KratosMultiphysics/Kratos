@@ -4,20 +4,22 @@
         "start_step": 2.0,
         "nsteps": 1,
         "echo_level": 0,
-        "parallel_type": "<PARALLEL_TYPE>"
+        "parallel_type": "OpenMP"
     },
-    "_output_processes": {},
     "solver_settings": {
         "solver_type": "Monolithic",
         "scheme_settings": {
             "scheme_type": "steady"
         },
         "response_function_settings": {
-            "response_type": "norm_square",
+            "response_type": "drag",
             "custom_settings": {
-                "main_model_part_name": "MainModelPart",
-                "norm_model_part_name": "MainModelPart.NoSlip2D_Cylinder",
-                "entities" : ["conditions"]
+                "structure_model_part_name": "NoSlip2D_Cylinder",
+                "drag_direction": [
+                    1.0,
+                    0.0,
+                    0.0
+                ]
             }
         },
         "sensitivity_settings": {
@@ -40,25 +42,24 @@
         ],
         "linear_solver_settings": {
             "solver_type": "amgcl",
-            "verbosity": 0,
             "coarse_enough": 500,
-            "tolerance": 1e-7
+            "tolerance": 1e-8
         },
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
         "material_import_settings": {
-            "materials_filename": "AdjointVMSSensitivity2DTest/steady_cylinder_test_materials.json"
+            "materials_filename": "AdjointQSVMSSensitivity2DTest/steady_cylinder_test_materials.json"
         },
         "time_stepping": {
             "automatic_time_step": false,
             "time_step": -1.0
         },
         "formulation": {
-            "element_type"            : "vms",
+            "element_type": "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau"             : 1.0
+            "dynamic_tau": 0
         }
     },
     "processes": {
@@ -93,6 +94,20 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
+                    "model_part_name": "MainModelPart.NoSlip2D_Cylinder",
+                    "variable_name": "ADJOINT_FLUID_VECTOR_1",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
                     "model_part_name": "MainModelPart.NoSlip2D_Wall",
                     "variable_name": "ADJOINT_FLUID_VECTOR_1",
                     "value": [
@@ -103,7 +118,24 @@
                 }
             }
         ],
-        "gravity": [],
+        "gravity": [
+            {
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Parts_Fluid",
+                    "variable_name": "BODY_FORCE",
+                    "modulus": 0.0,
+                    "constrained": false,
+                    "direction": [
+                        0.0,
+                        -1.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
         "auxiliar_process_list": [
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
@@ -115,24 +147,12 @@
                     "nodal_solution_step_data_settings": {
                         "list_of_variables": [
                             "VELOCITY",
-                            "PRESSURE",
-                            "NORMAL",
-                            "BODY_FORCE"
+                            "PRESSURE"
                         ]
                     },
                     "nodal_data_value_settings": {
                         "list_of_variables": [
-                            "Y_WALL"
-                        ]
-                    },
-                    "nodal_flag_value_settings": {
-                        "list_of_variables": [
-                            "SLIP"
-                        ]
-                    },
-                    "condition_flag_value_settings": {
-                        "list_of_variables": [
-                            "SLIP"
+                            "RELAXED_ACCELERATION"
                         ]
                     }
                 }

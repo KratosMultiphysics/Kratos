@@ -23,11 +23,14 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/acceleration_limitation_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_post_process_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_test_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_test_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_slip_utilities.cpp
 
   # elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms.cpp
@@ -51,6 +54,9 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/distance_smoothing_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_derivative_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_residual_derivatives.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weakly_compressible_navier_stokes.cpp
 
   # conditions

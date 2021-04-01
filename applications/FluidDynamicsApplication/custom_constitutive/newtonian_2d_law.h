@@ -86,6 +86,26 @@ public:
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
 
+    void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput) override;
+
+
+    void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput) override;
+
+
+    void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput) override;
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -159,4 +179,4 @@ private:
 
 }; // Class Newtonian2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED  defined
