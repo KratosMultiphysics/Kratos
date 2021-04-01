@@ -36,7 +36,7 @@ public:
      This function returns a shared pointer to an Amgcl distributed_matrix
      */
     template< class TDataType=double, class TIndexType=std::size_t >
-    static CsrMatrix<TDataType, TIndexType> SparseMultiply(
+    static typename CsrMatrix<TDataType, TIndexType>::Pointer SparseMultiply(
         const CsrMatrix<TDataType, TIndexType>& rA,
         const CsrMatrix<TDataType, TIndexType>& rB
         )
@@ -48,7 +48,7 @@ public:
         auto Camgcl = amgcl::backend::product(*pAamgcl, *pBamgcl);
         amgcl::backend::sort_rows(*Camgcl);
 
-        return std::move(AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl));
+        return AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl);
 	}
 
 

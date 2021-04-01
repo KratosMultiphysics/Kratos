@@ -487,12 +487,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     pAmgcl = AmgclDistributedCSRConversionUtilities::ConvertToAmgcl<double,IndexType>(A,offdiag_global_index2,move_to_backend);
 
     //convert back to CSR matrix
-    auto Areconverted = AmgclDistributedCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl);
+    DistributedCsrMatrix<double, DistTestingInternals::IndexType>::Pointer pAreconverted = AmgclDistributedCSRConversionUtilities::ConvertToCsrMatrix<double,IndexType>(*pAmgcl);
 
     y.SetValue(0.0);
     b.SetValue(1.0);
 
-    Areconverted.SpMV(b,y); //y+=A*b
+    pAreconverted->SpMV(b,y); //y+=A*b
     for(unsigned int i=0; i<y.LocalSize(); ++i)
     {
         DistTestingInternals::IndexType global_i = y.GetNumbering().GlobalId(i);
@@ -818,7 +818,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMul
         {{2,0},35.0}, {{2,2},42.0}
     };
 
-    auto C = DistributedAmgclCSRSpMMUtilities::SparseMultiply<double,IndexType>(A,B); //C=A*B
+    auto pC = DistributedAmgclCSRSpMMUtilities::SparseMultiply<double,IndexType>(A,B); //C=A*B
+    auto& C = *pC;
 
     for(const auto& item : Cref)
     {

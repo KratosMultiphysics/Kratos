@@ -52,26 +52,26 @@ public:
 	}
 
     template< class TDataType, class TIndexType >
-	static CsrMatrix<TDataType, TIndexType> ConvertToCsrMatrix(
+	static typename CsrMatrix<TDataType, TIndexType>::Pointer ConvertToCsrMatrix(
 			typename amgcl::backend::builtin<TDataType>::matrix& rA
 			)
 	{
-        CsrMatrix<TDataType, TIndexType> Aconverted;
+        auto pAconverted = Kratos::make_shared<CsrMatrix<TDataType, TIndexType>>();
 
         if(rA.own_data == false){ //if rA is not the owner, Aconverted cannot be
-            Aconverted.SetIsOwnerOfData(false);
+            pAconverted->SetIsOwnerOfData(false);
         }
         else{ //if rA is the owner, transfer ownership to the csr_matrix
             rA.own_data = false;
-            Aconverted.SetIsOwnerOfData(true);
+            pAconverted->SetIsOwnerOfData(true);
         }
 
-        Aconverted.SetRowSize(rA.nrows);
-        Aconverted.SetColSize(rA.ncols);
-        Aconverted.AssignIndex1Data((TIndexType*)(rA.ptr), rA.nrows+1);
-        Aconverted.AssignIndex2Data((TIndexType*)(rA.col), rA.nnz);
-        Aconverted.AssignValueData((TDataType*)(rA.val), rA.nnz);
-        return Aconverted;
+        pAconverted->SetRowSize(rA.nrows);
+        pAconverted->SetColSize(rA.ncols);
+        pAconverted->AssignIndex1Data((TIndexType*)(rA.ptr), rA.nrows+1);
+        pAconverted->AssignIndex2Data((TIndexType*)(rA.col), rA.nnz);
+        pAconverted->AssignValueData((TDataType*)(rA.val), rA.nnz);
+        return pAconverted;
 	}	
 
 

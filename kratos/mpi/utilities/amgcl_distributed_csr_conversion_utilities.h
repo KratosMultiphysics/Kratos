@@ -71,7 +71,7 @@ public:
 	}
 
 	template< class TDataType, class TIndexType >
-	static DistributedCsrMatrix<TDataType, TIndexType> ConvertToCsrMatrix(
+	static typename DistributedCsrMatrix<TDataType, TIndexType>::Pointer ConvertToCsrMatrix(
 			amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>& rA, //cannot be made const since i need to modify some data in-place,
 			DataCommunicator& kratos_comm=ParallelEnvironment::GetDefaultDataCommunicator()
 			)
@@ -79,7 +79,7 @@ public:
 		if(!rA.local())
 			KRATOS_ERROR << "matrix A was moved to backend, so it is impossible to convert it back to CSR matrix" << std::endl;
 
-		DistributedCsrMatrix<TDataType, TIndexType> Aconverted;
+		auto pAconverted = Kratos::make_shared<DistributedCsrMatrix<TDataType, TIndexType>>();
 
 		MPI_Comm amgcl_raw_comm = rA.comm();
 		if(amgcl_raw_comm != MPIDataCommunicator::GetMPICommunicator( kratos_comm) )
@@ -89,39 +89,39 @@ public:
 		rA.remote()->own_data=false;
 
 		//create row numbering and col numbering
-		Aconverted.pGetRowNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->nrows);
-		Aconverted.pGetColNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->ncols);
+		pAconverted->pGetRowNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->nrows);
+		pAconverted->pGetColNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->ncols);
 
 		//here we fill the global to local mapping
 		const auto& comm_pattern = rA.cpat();
 		for(TIndexType i=0; i<rA.remote()->nnz; ++i){  //TODO: i suspect there is a smarter way to do this
 			TIndexType id = rA.remote()->col[i]; 
 			TIndexType local_id = comm_pattern.local_index(id);
-			Aconverted.GetOffDiagonalLocalIds()[id] = local_id; 
+			pAconverted->GetOffDiagonalLocalIds()[id] = local_id; 
 			rA.remote()->col[i] = local_id; //note that here we overwrite the amgcl data!
 		}
 
 		//here we fill the local to global mapping (the inverse of the previous one)
-		Aconverted.GetOffDiagonalGlobalIds().resize(Aconverted.GetOffDiagonalLocalIds().size());
+		pAconverted->GetOffDiagonalGlobalIds().resize(pAconverted->GetOffDiagonalLocalIds().size());
 
-		for(auto item : Aconverted.GetOffDiagonalLocalIds()){
-			Aconverted.GetOffDiagonalGlobalIds()[item.second] = item.first; //item.second=local_id, item.first=global_id
+		for(auto item : pAconverted->GetOffDiagonalLocalIds()){
+			pAconverted->GetOffDiagonalGlobalIds()[item.second] = item.first; //item.second=local_id, item.first=global_id
 		}
 
 		//setting col size for both matrices
-		Aconverted.GetDiagonalBlock().SetColSize(rA.local()->ncols); 
-		Aconverted.GetOffDiagonalBlock().SetColSize(Aconverted.GetOffDiagonalGlobalIds().size()); 
+		pAconverted->GetDiagonalBlock().SetColSize(rA.local()->ncols); 
+		pAconverted->GetOffDiagonalBlock().SetColSize(pAconverted->GetOffDiagonalGlobalIds().size()); 
 
 		//convert diagonal block
-		Aconverted.GetDiagonalBlock() = std::move(AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,TIndexType>(*(rA.local().get())));
+		pAconverted->pGetDiagonalBlock() = std::move(AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,TIndexType>(*(rA.local().get())));
 
 		//convert off diagonal block. Note that we need to change the usage of the index2. We do it in place
-		Aconverted.GetOffDiagonalBlock() = std::move(AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,TIndexType>(*(rA.remote().get())));
+		pAconverted->pGetOffDiagonalBlock() = std::move(AmgclCSRConversionUtilities::ConvertToCsrMatrix<TDataType,TIndexType>(*(rA.remote().get())));
 
 		//fill the vector importer, so that the matrix can be used to do calculations
-		Aconverted.pGetVectorImporter() = Kratos::make_unique<DistributedVectorImporter<TDataType,IndexType>>(
-			kratos_comm,Aconverted.GetOffDiagonalGlobalIds(), 
-			Aconverted.GetColNumbering()
+		pAconverted->pGetVectorImporter() = Kratos::make_unique<DistributedVectorImporter<TDataType,IndexType>>(
+			kratos_comm,pAconverted->GetOffDiagonalGlobalIds(), 
+			pAconverted->GetColNumbering()
 			); 
 
 		//the following data are simply not available in Amgcl.
@@ -134,22 +134,22 @@ public:
 
 		//set ownership
         if(rA.local()->own_data == false){ //if rA is not the owner, Aconverted cannot be
-            Aconverted.GetDiagonalBlock().SetIsOwnerOfData(false);
+            pAconverted->GetDiagonalBlock().SetIsOwnerOfData(false);
         }
         else{ //if rA is the owner, transfer ownership to the csr_matrix
             rA.local()->own_data = false;
-            Aconverted.GetDiagonalBlock().SetIsOwnerOfData(true);
+            pAconverted->GetDiagonalBlock().SetIsOwnerOfData(true);
         }		
 
         if(rA.remote()->own_data == false){ //if rA is not the owner, Aconverted cannot be
-            Aconverted.GetOffDiagonalBlock().SetIsOwnerOfData(false);
+            pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(false);
         }
         else{ //if rA is the owner, transfer ownership to the csr_matrix
             rA.local()->own_data = false;
-            Aconverted.GetOffDiagonalBlock().SetIsOwnerOfData(true);
+            pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(true);
         }		
 
-		return Aconverted;
+		return pAconverted;
 
 
 	}	

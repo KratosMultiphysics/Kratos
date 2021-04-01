@@ -122,13 +122,13 @@ public:
 
         //*******************************
         //construct diagonal block
-        mDiagonalBlock.reserve(nlocal_rows, diag_nnz);
+        GetDiagonalBlock().reserve(nlocal_rows, diag_nnz);
 
         if(diag_nnz == 0) //empty matrix
         {
             for(unsigned int i=0; i<nlocal_rows+1; ++i)
-                mDiagonalBlock.index1_data()[i] = 0;
-            mDiagonalBlock.SetColSize(GetColNumbering().LocalSize());
+                GetDiagonalBlock().index1_data()[i] = 0;
+            GetDiagonalBlock().SetColSize(GetColNumbering().LocalSize());
         }
         else
         {
@@ -136,47 +136,47 @@ public:
             for(const auto& entries : local_graph)
             {
                 unsigned int k = 0;
-                IndexType row_begin = mDiagonalBlock.index1_data()[counter];
+                IndexType row_begin = GetDiagonalBlock().index1_data()[counter];
                 for(auto global_j : entries)
                 {
 
                     if(GetColNumbering().IsLocal(global_j))
                     {
                         IndexType local_j = GetColNumbering().LocalId(global_j);
-                        mDiagonalBlock.index2_data()[row_begin+k] = local_j;
-                        mDiagonalBlock.value_data()[row_begin+k] = 0.0;
+                        GetDiagonalBlock().index2_data()[row_begin+k] = local_j;
+                        GetDiagonalBlock().value_data()[row_begin+k] = 0.0;
                         k++;
                     }
                 }
-                mDiagonalBlock.index1_data()[counter+1] = row_begin + k;
+                GetDiagonalBlock().index1_data()[counter+1] = row_begin + k;
                 counter++;
             }
 
-            mDiagonalBlock.SetColSize(GetColNumbering().LocalSize());
+            GetDiagonalBlock().SetColSize(GetColNumbering().LocalSize());
         }
 #ifdef KRATOS_DEBUG
-        mDiagonalBlock.CheckColSize();
+        GetDiagonalBlock().CheckColSize();
 #endif
         //ensure columns are ordered
         for(IndexType i = 0; i<nlocal_rows; ++i)
         {
-            IndexType row_begin = mDiagonalBlock.index1_data()[i];
-            IndexType row_end = mDiagonalBlock.index1_data()[i+1];
+            IndexType row_begin = GetDiagonalBlock().index1_data()[i];
+            IndexType row_end = GetDiagonalBlock().index1_data()[i+1];
 
             if(row_end - row_begin > 0)
-                std::sort(mDiagonalBlock.index2_data().begin() + row_begin,mDiagonalBlock.index2_data().begin()+row_end);
+                std::sort(GetDiagonalBlock().index2_data().begin() + row_begin,GetDiagonalBlock().index2_data().begin()+row_end);
         }
 
         //*******************************
         //construct offdiagonal block
 
         //store off-diagonal block
-        mOffDiagonalBlock.reserve(nlocal_rows, offdiag_nnz);
+        GetOffDiagonalBlock().reserve(nlocal_rows, offdiag_nnz);
         if(offdiag_nnz == 0) //empty matrix
         {
             for(unsigned int i=0; i<nlocal_rows+1; ++i)
-                mOffDiagonalBlock.index1_data()[i] = 0;
-            mOffDiagonalBlock.SetColSize(mOffDiagonalLocalIds.size());
+                GetOffDiagonalBlock().index1_data()[i] = 0;
+            GetOffDiagonalBlock().SetColSize(mOffDiagonalLocalIds.size());
         }
         else
         {
@@ -184,33 +184,33 @@ public:
             for(const auto& entries : local_graph)
             {
                 unsigned int k = 0;
-                IndexType row_begin = mOffDiagonalBlock.index1_data()[counter];
+                IndexType row_begin = GetOffDiagonalBlock().index1_data()[counter];
                 for(auto global_j : entries)
                 {
                     if( ! GetColNumbering().IsLocal(global_j))
                     {
                         IndexType local_j = GetOffDiagonalBlockLocalId(global_j);
-                        mOffDiagonalBlock.index2_data()[row_begin+k] = local_j;
-                        mOffDiagonalBlock.value_data()[row_begin+k] = 0.0;
+                        GetOffDiagonalBlock().index2_data()[row_begin+k] = local_j;
+                        GetOffDiagonalBlock().value_data()[row_begin+k] = 0.0;
                         k++;
                     }
                 }
-                mOffDiagonalBlock.index1_data()[counter+1] = row_begin + k;
+                GetOffDiagonalBlock().index1_data()[counter+1] = row_begin + k;
                 counter++;
             }
-            mOffDiagonalBlock.SetColSize(mOffDiagonalLocalIds.size());
+            GetOffDiagonalBlock().SetColSize(mOffDiagonalLocalIds.size());
         }
 #ifdef KRATOS_DEBUG
-        mOffDiagonalBlock.CheckColSize();
+        GetOffDiagonalBlock().CheckColSize();
 #endif
 
         //ensure columns are ordered
         for(IndexType i = 0; i<nlocal_rows; ++i)
         {
-            IndexType row_begin = mOffDiagonalBlock.index1_data()[i];
-            IndexType row_end = mOffDiagonalBlock.index1_data()[i+1];
+            IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
+            IndexType row_end = GetOffDiagonalBlock().index1_data()[i+1];
             if(row_end - row_begin > 0)
-                std::sort(mOffDiagonalBlock.index2_data().begin() + row_begin,mOffDiagonalBlock.index2_data().begin()+row_end);
+                std::sort(GetOffDiagonalBlock().index2_data().begin() + row_begin,GetOffDiagonalBlock().index2_data().begin()+row_end);
         }
 
         PrepareNonLocalCommunications(rSparseGraph);
@@ -225,8 +225,8 @@ public:
         mrComm(rOtherMatrix.mrComm),
         mpRowNumbering(Kratos::make_unique< DistributedNumbering<IndexType> >( rOtherMatrix.GetRowNumbering())),
         mpColNumbering(Kratos::make_unique< DistributedNumbering<IndexType> >( rOtherMatrix.GetColNumbering())),
-        mDiagonalBlock(rOtherMatrix.mDiagonalBlock),
-        mOffDiagonalBlock(rOtherMatrix.mOffDiagonalBlock),
+        mpDiagonalBlock(Kratos::make_shared<>(rOtherMatrix.GetDiagonalBlock())),
+        mpOffDiagonalBlock(Kratos::make_shared<>(rOtherMatrix.GetOffDiagonalBlock())),
         mNonLocalData(rOtherMatrix.mNonLocalData),
         mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
         mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
@@ -245,8 +245,8 @@ public:
     {
         mpRowNumbering.swap(rOtherMatrix.pGetRowNumbering());
         mpColNumbering.swap(rOtherMatrix.pGetColNumbering());
-        mDiagonalBlock = std::move(rOtherMatrix.mDiagonalBlock);
-        mOffDiagonalBlock = std::move(rOtherMatrix.mOffDiagonalBlock);
+        mpDiagonalBlock = std::move(rOtherMatrix.mpDiagonalBlock);
+        mpOffDiagonalBlock = std::move(rOtherMatrix.mpOffDiagonalBlock);
         mNonLocalData = std::move(rOtherMatrix.mNonLocalData);
         mSendCachedIJ = std::move(rOtherMatrix.mSendCachedIJ);
         mRecvCachedIJ = std::move(rOtherMatrix.mRecvCachedIJ);
@@ -262,8 +262,8 @@ public:
         mrComm = rOtherMatrix.mrComm,
         mpRowNumbering.swap(rOtherMatrix.pGetRowNumbering());
         mpColNumbering.swap(rOtherMatrix.pGetColNumbering());
-        mDiagonalBlock = std::move(rOtherMatrix.mDiagonalBlock);
-        mOffDiagonalBlock = std::move(rOtherMatrix.mOffDiagonalBlock);
+        mpDiagonalBlock = std::move(rOtherMatrix.mpDiagonalBlock);
+        mpOffDiagonalBlock = std::move(rOtherMatrix.mpOffDiagonalBlock);
         mNonLocalData = std::move(rOtherMatrix.mNonLocalData);
         mSendCachedIJ = std::move(rOtherMatrix.mSendCachedIJ);
         mRecvCachedIJ = std::move(rOtherMatrix.mRecvCachedIJ);
@@ -317,13 +317,13 @@ public:
 
     void SetValue(const TDataType value)
     {
-        mDiagonalBlock.SetValue(value);
-        mOffDiagonalBlock.SetValue(value);
+        GetDiagonalBlock().SetValue(value);
+        GetOffDiagonalBlock().SetValue(value);
     }
 
     IndexType local_size1() const
     {
-        return mDiagonalBlock.size1();
+        return GetDiagonalBlock().size1();
     }
 
     IndexType size2() const
@@ -333,7 +333,7 @@ public:
 
     inline IndexType local_nnz() const
     {
-        return mDiagonalBlock.nnz();
+        return GetDiagonalBlock().nnz();
     }
 
     const DataCommunicator& GetComm() const
@@ -341,22 +341,31 @@ public:
         return mrComm;
     }
 
+    inline typename CsrMatrix<TDataType,IndexType>::Pointer pGetDiagonalBlock()
+    {
+        return mpDiagonalBlock;
+    }
+    inline typename CsrMatrix<TDataType,IndexType>::Pointer pGetOffDiagonalBlock()
+    {
+        return mpOffDiagonalBlock;
+    }
+
     inline CsrMatrix<TDataType,IndexType>& GetDiagonalBlock()
     {
-        return mDiagonalBlock;
+        return *mpDiagonalBlock;
     }
     inline CsrMatrix<TDataType,IndexType>& GetOffDiagonalBlock()
     {
-        return mOffDiagonalBlock;
+        return *mpOffDiagonalBlock;
     }
 
     inline const CsrMatrix<TDataType,IndexType>& GetDiagonalBlock() const
     {
-        return mDiagonalBlock;
+        return *mpDiagonalBlock;
     }
     inline const CsrMatrix<TDataType,IndexType>& GetOffDiagonalBlock() const
     {
-        return mOffDiagonalBlock;
+        return *mpOffDiagonalBlock;
     }
 
     const std::map<IndexType, IndexType>& GetOffDiagonalLocalIds() const
@@ -400,11 +409,11 @@ public:
         IndexType LocalI = GetRowNumbering().LocalId(GlobalI);
         if(GetColNumbering().IsLocal(GlobalJ))
         {
-            return mDiagonalBlock( LocalI, GetColNumbering().LocalId(GlobalJ) );
+            return GetDiagonalBlock()( LocalI, GetColNumbering().LocalId(GlobalJ) );
         }
         else
         {
-            return mOffDiagonalBlock( LocalI, GetOffDiagonalBlockLocalId(GlobalJ) );
+            return GetOffDiagonalBlock()( LocalI, GetOffDiagonalBlockLocalId(GlobalJ) );
         }
     }
 
@@ -456,8 +465,8 @@ public:
     {
         //get off diagonal terms (requires communication)
         auto off_diag_x = mpVectorImporter->ImportData(x);
-        mOffDiagonalBlock.SpMV(off_diag_x,y.GetLocalData());
-        mDiagonalBlock.SpMV(x.GetLocalData(),y.GetLocalData());
+        GetOffDiagonalBlock().SpMV(off_diag_x,y.GetLocalData());
+        GetDiagonalBlock().SpMV(x.GetLocalData(),y.GetLocalData());
     }
 
     //y = alpha*y + beta*A*x
@@ -468,8 +477,8 @@ public:
     {
         //get off diagonal terms (requires communication)
         auto off_diag_x = mpVectorImporter->ImportData(x);
-        mOffDiagonalBlock.SpMV(alpha,off_diag_x,beta,y.GetLocalData());
-        mDiagonalBlock.SpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
+        GetOffDiagonalBlock().SpMV(alpha,off_diag_x,beta,y.GetLocalData());
+        GetDiagonalBlock().SpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
     }
 
     // y += A^t*x  -- where A is *this
@@ -478,10 +487,10 @@ public:
             DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
                                                         ) const
     {
-        mDiagonalBlock.TransposeSpMV(x.GetLocalData(),y.GetLocalData());
+        GetDiagonalBlock().TransposeSpMV(x.GetLocalData(),y.GetLocalData());
 
-        DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagonalBlock.size2());
-        mOffDiagonalBlock.TransposeSpMV(x.GetLocalData(),non_local_transpose_data);
+        DenseVector<TDataType> non_local_transpose_data = ZeroVector(GetOffDiagonalBlock().size2());
+        GetOffDiagonalBlock().TransposeSpMV(x.GetLocalData(),non_local_transpose_data);
 
         if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight
         {
@@ -502,10 +511,10 @@ public:
         DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
     ) const
     {
-        mDiagonalBlock.TransposeSpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
+        GetDiagonalBlock().TransposeSpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
 
-        DenseVector<TDataType> non_local_transpose_data = ZeroVector(mOffDiagonalBlock.size2());
-        mOffDiagonalBlock.TransposeSpMV(alpha,x.GetLocalData(),beta,non_local_transpose_data);
+        DenseVector<TDataType> non_local_transpose_data = ZeroVector(GetOffDiagonalBlock().size2());
+        GetOffDiagonalBlock().TransposeSpMV(alpha,x.GetLocalData(),beta,non_local_transpose_data);
 
         if(pTransposeExporter == nullptr) //if a nullptr is passed the DistributedVectorExporter is constructed on the flight
         {
@@ -519,8 +528,8 @@ public:
 
     TDataType NormFrobenius() const
     {
-        TDataType diag_norm = mDiagonalBlock.NormFrobenius();
-        TDataType off_diag_norm = mOffDiagonalBlock.NormFrobenius();
+        TDataType diag_norm = GetDiagonalBlock().NormFrobenius();
+        TDataType off_diag_norm = GetOffDiagonalBlock().NormFrobenius();
         TDataType sum_squared = std::pow(diag_norm,2) + std::pow(off_diag_norm,2);
         sum_squared = GetComm().SumAll(sum_squared);
         return std::sqrt(sum_squared);
@@ -664,24 +673,24 @@ public:
         MatrixMapType value_map;
         for(unsigned int i=0; i<local_size1(); ++i)
         {
-            IndexType row_begin = mDiagonalBlock.index1_data()[i];
-            IndexType row_end   = mDiagonalBlock.index1_data()[i+1];
+            IndexType row_begin = GetDiagonalBlock().index1_data()[i];
+            IndexType row_end   = GetDiagonalBlock().index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k)
             {
-                IndexType j = mDiagonalBlock.index2_data()[k];
-                TDataType v = mDiagonalBlock.value_data()[k];
+                IndexType j = GetDiagonalBlock().index2_data()[k];
+                TDataType v = GetDiagonalBlock().value_data()[k];
                 value_map[ {GetRowNumbering().GlobalId(i),GetColNumbering().GlobalId(j)}] = v;
             }
         }
 
         for(unsigned int i=0; i<local_size1(); ++i)
         {
-            IndexType row_begin = mOffDiagonalBlock.index1_data()[i];
-            IndexType row_end   = mOffDiagonalBlock.index1_data()[i+1];
+            IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
+            IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
             for(IndexType k = row_begin; k < row_end; ++k)
             {
-                IndexType j = mOffDiagonalBlock.index2_data()[k];
-                TDataType v = mOffDiagonalBlock.value_data()[k];
+                IndexType j = GetOffDiagonalBlock().index2_data()[k];
+                TDataType v = GetOffDiagonalBlock().value_data()[k];
                 value_map[ {GetRowNumbering().GlobalId(i),mOffDiagonalGlobalIds[j]}] = v;
             }
         }
@@ -913,8 +922,8 @@ private:
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering;
     typename DistributedNumbering<IndexType>::UniquePointer mpColNumbering;
 
-    CsrMatrix<TDataType,IndexType> mDiagonalBlock;
-    CsrMatrix<TDataType,IndexType> mOffDiagonalBlock;
+    typename CsrMatrix<TDataType,IndexType>::Pointer mpDiagonalBlock;
+    typename CsrMatrix<TDataType,IndexType>::Pointer mpOffDiagonalBlock;
     MatrixMapType mNonLocalData; //data which is assembled locally and needs to be communicated to the owner
 
     //this map tells for an index J which does not belong to the local diagonal block which is the corresponding localJ
@@ -939,8 +948,8 @@ private:
         rSerializer.save("CSRcommunicator",mrComm);
         rSerializer.save("RowNumbering",mpRowNumbering);
         rSerializer.save("ColNumbering",mpColNumbering);
-        rSerializer.save("mDiagonalBlock",mDiagonalBlock);
-        rSerializer.save("mOffDiagonalBlock",mOffDiagonalBlock);
+        rSerializer.save("mpDiagonalBlock",mpDiagonalBlock);
+        rSerializer.save("mpOffDiagonalBlock",mpOffDiagonalBlock);
         rSerializer.save("mNonLocalData",mNonLocalData);
         rSerializer.save("mSendCachedIJ",mSendCachedIJ);
         rSerializer.save("mRecvCachedIJ",mRecvCachedIJ);
@@ -956,8 +965,8 @@ private:
         rSerializer.load("CSRcommunicator",mrComm);
         rSerializer.load("RowNumbering",mpRowNumbering);
         rSerializer.load("ColNumbering",mpColNumbering);
-        rSerializer.load("mDiagonalBlock",mDiagonalBlock);
-        rSerializer.load("mOffDiagonalBlock",mOffDiagonalBlock);
+        rSerializer.load("mpDiagonalBlock",mpDiagonalBlock);
+        rSerializer.load("mpOffDiagonalBlock",mpOffDiagonalBlock);
         rSerializer.load("mNonLocalData",mNonLocalData);
         rSerializer.load("mSendCachedIJ",mSendCachedIJ);
         rSerializer.load("mRecvCachedIJ",mRecvCachedIJ);
