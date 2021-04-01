@@ -1820,6 +1820,7 @@ public:
         return mpGeometryData->DefaultIntegrationMethod();
     }
 
+    /// Provides the default integration per geometry.
     virtual IntegrationInfo GetDefaultIntegrationInfo() const
     {
         return IntegrationInfo(LocalSpaceDimension(), GetDefaultIntegrationMethod());
