@@ -128,6 +128,8 @@ This process can be used to initialize a given model part using existing HDF5 fi
 
 This process is used to initialize model part variables at each time step from hdf5 files. You can specify the list of hdf5 files to read from by changing the "file_name" with tags ```<time>``` as shown in following example. If no ```<time>``` tag is present in "file_name", then same file will be read at each time step and the variables specified will be initialized. In this process, mesh is only read from the initial time step file. Results for each container will be read from time series h5 files.
 
+For the ```list_of_variables``` in either ```nodal_data_value_settings```, ```element_data_value_settings```, ```condition_data_value_settings``` one can specify ```ALL_VARIABLES_FROM_FILE``` which will read all the variables available in the input hdf5 file and will populate the model part accordingly. This ```ALL_VARIABLES_FROM_FILE``` should be used alone (There can be only this entry in the list if it is used).
+
 ```json
 
             {
@@ -186,6 +188,9 @@ This process is used to initialize model part variables at each time step from h
 ### Single mesh temporal output process
 This process can be used to output data from model parts to HDF5. This will write mesh only in the first time step h5 file. Rest of the time series h5 files will contain only results for each nodal/element/condition containers.
 
+For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one can specify ```ALL_VARIABLES_FROM_VARIABLES_LIST``` as the only item (Then this list should only have that entry) so it will write all the variables in the corresponding model's solution step variable list.
+
+
 ```json
             {
                 "kratos_module": "KratosMultiphysics.HDF5Application",
@@ -220,12 +225,24 @@ This process can be used to output data from model parts to HDF5. This will writ
                             "PRESSURE"
                         ]
                     },
+                    "element_integration_point_value_settings" : {
+                        "list_of_variables": [
+                            "VELOCITY",
+                            "PRESSURE"
+                        ]                    
+                    },
                     "condition_data_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
                         ]
                     },
+                    "condition_integration_point_value_settings" : {
+                        "list_of_variables": [
+                            "VELOCITY",
+                            "PRESSURE"
+                        ]                    
+                    },                    
                     "nodal_flag_value_settings": {
                         "list_of_variables": [
                             "SLIP"
@@ -285,12 +302,24 @@ This process is used to output model part variable data to HDF5 with mesh writte
                             "PRESSURE"
                         ]
                     },
+                    "element_integration_point_value_settings" : {
+                        "list_of_variables": [
+                            "VELOCITY",
+                            "PRESSURE"
+                        ]                    
+                    },                      
                     "condition_data_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
                         ]
                     },
+                    "condition_integration_point_value_settings" : {
+                        "list_of_variables": [
+                            "VELOCITY",
+                            "PRESSURE"
+                        ]                    
+                    },                      
                     "nodal_flag_value_settings": {
                         "list_of_variables": [
                             "SLIP"
