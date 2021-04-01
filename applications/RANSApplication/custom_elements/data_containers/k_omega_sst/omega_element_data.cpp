@@ -259,6 +259,46 @@ void OmegaElementData<TDim>::CalculateOnIntegrationPoints(
         rOutput = KOmegaSSTElementData::CalculateBlendedPhi(gamma_1, gamma_2, f1);
     } else if (rVariable == RANS_GAUSS_PRODUCTION_TERM) {
         rOutput = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, 1.0);
+    } else if (rVariable == RANS_GAUSS_TURBULENT_KINEMATIC_VISCOSITY) {
+        double tke_old, omega_old;
+        FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+            this->GetGeometry(), rShapeFunctions,
+            std::tie(tke_old, TURBULENT_KINETIC_ENERGY),
+            std::tie(omega_old, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+        const double f_2 = KOmegaSSTElementData::CalculateF2(tke_old, omega_old, mKinematicViscosity, mWallDistance, mBetaStar);
+
+        const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+            (mVelocityGradient + trans(mVelocityGradient)) * 0.5;
+
+        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+
+        rOutput = std::max(KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke_old, omega_old, t, f_2, mA1), 1e-12);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_BLENDED_SIGMA_OMEGA) {
+        const double f1 = KOmegaSSTElementData::CalculateF1(
+            mTurbulentKineticEnergy, mTurbulentSpecificEnergyDissipationRate,
+            mKinematicViscosity, mWallDistance, mBetaStar, mCrossDiffusion, mSigmaOmega2);
+        rOutput = KOmegaSSTElementData::CalculateBlendedPhi(mSigmaOmega1, mSigmaOmega2, f1);
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_TKE_OLD) {
+        FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+            this->GetGeometry(), rShapeFunctions,
+            std::tie(rOutput, TURBULENT_KINETIC_ENERGY));
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_OMEGA_OLD) {
+        FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+            this->GetGeometry(), rShapeFunctions,
+            std::tie(rOutput, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_VORTICITY_NORM) {
+        const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+            (mVelocityGradient + trans(mVelocityGradient)) * 0.5;
+
+        rOutput = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+    } else if (rVariable == RANS_GAUSS_K_OMEGA_SST_F2) {
+        double tke_old, omega_old;
+        FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+            this->GetGeometry(), rShapeFunctions,
+            std::tie(tke_old, TURBULENT_KINETIC_ENERGY),
+            std::tie(omega_old, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+        rOutput = KOmegaSSTElementData::CalculateF2(tke_old, omega_old, mKinematicViscosity, mWallDistance, mBetaStar);
     }
 
     KRATOS_CATCH("");
