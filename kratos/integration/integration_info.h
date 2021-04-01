@@ -329,9 +329,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<QuadratureMethod> mQuadratureMethodVector;
-
     std::vector<SizeType> mNumberOfIntegrationPointsPerSpanVector;
+
+    std::vector<QuadratureMethod> mQuadratureMethodVector;
 
     DataValueContainer mData;
 
