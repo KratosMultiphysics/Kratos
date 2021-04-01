@@ -120,8 +120,8 @@ public:
     //move constructor
     CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
     {
+        mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
-        mIsOwnerOfData=true;
 
         //swap the pointers to take owership of data
         mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
@@ -151,8 +151,8 @@ public:
     //move assignement operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
+        mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
-        mIsOwnerOfData=true;
 
         //swap the pointers to take owership of data
         mpRowIndicesData = rOtherMatrix.mpRowIndicesData;

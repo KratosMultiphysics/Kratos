@@ -48,7 +48,8 @@ public:
             );
         pAmgcl->ncols = rA.size2();
         pAmgcl->own_data = false;
-        return pAmgcl;
+
+        return std::move(pAmgcl);
 	}
 
     template< class TDataType, class TIndexType >
@@ -73,9 +74,7 @@ public:
         pAconverted->AssignValueData((TDataType*)(rA.val), rA.nnz);
         return pAconverted;
 	}	
-
-
-
+	
 };
 
 }
