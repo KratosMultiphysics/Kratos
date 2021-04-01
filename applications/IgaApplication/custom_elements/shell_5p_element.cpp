@@ -208,9 +208,9 @@ namespace Kratos
         rKin.metricChange[1] = inner_prod(rKin.A2, rKin.dud2) + 0.5 * norm_2_square(rKin.dud2);
         rKin.metricChange[2] = inner_prod(rKin.a1, rKin.a2);
 
-        rKin.curvature[0] = inner_prod(rKin.a1, dtd1);
-        rKin.curvature[1] = inner_prod(rKin.a2, dtd2);
-        rKin.curvature[2] = inner_prod(rKin.a1, dtd2) + inner_prod(a2, dtd1);
+        rKin.curvature[0] = inner_prod(a1, dtd1);
+        rKin.curvature[1] = inner_prod(a2, dtd2);
+        rKin.curvature[2] = inner_prod(a1, dtd2) + inner_prod(a2, dtd1);
 
         return std::make_pair(rKin, rVar);
     }
@@ -544,16 +544,16 @@ namespace Kratos
         double st = (director[2] > 0) ? 1 : ((director[2] < 0) ? -1 : 1);
         double s = 1 / (1 + fabs(director[2]));
 
-        array_1d<double, 2 > y(director[0] * s, director[1] * s);
+        const array_1d<double, 2 > y{ director[0] * s, director[1] * s };
         const double ys1 = y[0] * y[0];
         const double ys2 = y[1] * y[1];
         const double s2 = 2 * (1 + ys1 + ys2);
 
         BoundedMatrix<double, 3, 2> BLA;
 
-        BLA(0, 0) = s2 - 4 * ys1;     BLA(0, 1) = -4 * y(0) * y(1);
-        BLA(1, 0) = -4 * y(0) * y(1); BLA(1, 1) = s2 - 4 * ys2;
-        BLA(2, 0) = -st * 4 * y(0);   BLA(2, 1) = -st * 4 * y(1);
+        BLA(0, 0) = s2 - 4 * ys1;     BLA(0, 1) = -4 * y[0] * y[1];
+        BLA(1, 0) = -4 * y[0] * y[1]; BLA(1, 1) = s2 - 4 * ys2;
+        BLA(2, 0) = -st * 4 * y[0];   BLA(2, 1) = -st * 4 * y[1];
 
         const double normcol0 = norm_2(column(BLA, 0));
         const double normcol1 = norm_2(column(BLA, 1));

@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher, Alexander Müller
+//  Main authors:    Tobias Teschemacher, Alexander Mï¿½ller
 //
 
 // System includes
@@ -71,7 +71,7 @@ namespace Kratos
             {
                 // Differential area
                 const double integration_weight = integration_points[point_number].Weight();
-                const double d_weight = integration_weight * determinat_jacobian_vector[point_number];
+                const double d_weight = integration_weight * determinat_jacobian_vector_initial[point_number];
 
                 // Line loads
                 if (this->Has(MOMENT_LINE_LOAD))
