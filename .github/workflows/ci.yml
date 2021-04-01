@@ -77,7 +77,7 @@ jobs:
         ccache -s
 
     - name: Running small tests
-      if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
+      # if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -113,7 +113,7 @@ jobs:
         mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
-      if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
+      # if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -122,7 +122,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
 
     - name: Running Python MPI tests (3 Cores)
-      if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
+      # if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
@@ -131,7 +131,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3 -f--oversubscribe
 
     - name: Running Python MPI tests (4 Cores)
-      if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
+      # if: ${{ matrix.compiler != 'intel' }} # crrenty there are some problems with Intel, hence skipping until fixed
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
