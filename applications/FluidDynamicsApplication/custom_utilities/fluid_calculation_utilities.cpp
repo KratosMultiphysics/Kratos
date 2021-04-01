@@ -74,11 +74,6 @@ void FluidCalculationUtilities::AssignGradientValue(
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2)
-        << "Unsupported Direction Index. DirectionIndex should be  less than 3 "
-           "[ DirectionIndex = "
-        << DirectionIndex << " ].\n";
-
     rOutput[DirectionIndex] = rInput * rShapeFunctionDerivative;
 
     KRATOS_CATCH("");

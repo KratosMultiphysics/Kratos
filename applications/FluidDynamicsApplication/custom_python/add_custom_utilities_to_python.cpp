@@ -178,12 +178,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<FluidTestUtilities>(m, "FluidTestUtilities")
         .def_static("RandomFillNodalHistoricalVariable", &FluidTestUtilities::RandomFillNodalHistoricalVariable<double>)
         .def_static("RandomFillNodalHistoricalVariable", &FluidTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>)
-        .def_static("RandomFillNodalNonHistoricalVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, double>)
-        .def_static("RandomFillNodalNonHistoricalVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, double>)
-        .def_static("RandomFillConditionVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, double>)
-        .def_static("RandomFillElementVariable", &FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        .def_static("RandomFillNodalNonHistoricalVariable", [](ModelPart::NodesContainerType& rNodesContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillContainerNonHistoricalVariable(rNodesContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNodalNonHistoricalVariable", [](ModelPart::NodesContainerType& rNodesContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillContainerNonHistoricalVariable(rNodesContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNodalNonHistoricalVariable", [](ModelPart::ConditionsContainerType& rConditionsContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillContainerNonHistoricalVariable(rConditionsContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNodalNonHistoricalVariable", [](ModelPart::ConditionsContainerType& rConditionsContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillContainerNonHistoricalVariable(rConditionsContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNodalNonHistoricalVariable", [](ModelPart::ElementsContainerType& rElementsContainer, const Variable<double>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillContainerNonHistoricalVariable(rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);})
+        .def_static("RandomFillNodalNonHistoricalVariable", [](ModelPart::ElementsContainerType& rElementsContainer, const Variable<array_1d<double, 3>>& rVariable, const IndexType DomainSize, const double MinValue, const double MaxValue) { FluidTestUtilities::RandomFillContainerNonHistoricalVariable(rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);})
         ;
 
 }

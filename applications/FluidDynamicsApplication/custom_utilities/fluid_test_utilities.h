@@ -44,6 +44,12 @@ public:
 
     using EquationIdVectorType = std::vector<std::size_t>;
 
+    using NodesContainerType = ModelPart::NodesContainerType;
+
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
+
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+
     ///@}
     ///@name Static operations
     ///@{
@@ -75,9 +81,25 @@ public:
         const double MaxValue = 1.0,
         const int Step = 0);
 
-    template<class TContainerType, class TDataType>
+    template<class TDataType>
     static void RandomFillContainerNonHistoricalVariable(
-        TContainerType& rContainer,
+        NodesContainerType& rNodesContainer,
+        const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
+        const double MinValue = 0.0,
+        const double MaxValue = 1.0);
+
+    template<class TDataType>
+    static void RandomFillContainerNonHistoricalVariable(
+        ConditionsContainerType& rConditionsContainer,
+        const Variable<TDataType>& rVariable,
+        const IndexType DomainSize,
+        const double MinValue = 0.0,
+        const double MaxValue = 1.0);
+
+    template<class TDataType>
+    static void RandomFillContainerNonHistoricalVariable(
+        ElementsContainerType& rElementsContainer,
         const Variable<TDataType>& rVariable,
         const IndexType DomainSize,
         const double MinValue = 0.0,

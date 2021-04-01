@@ -29,6 +29,25 @@
 
 namespace Kratos
 {
+namespace FluidTestUtilitiesHelper
+{
+template <class TContainerType, class TDataType>
+void RandomFillContainerNonHistoricalVariable(
+    TContainerType& rContainer,
+    const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
+    const double MinValue,
+    const double MaxValue)
+{
+    for (auto& item : rContainer) {
+        std::stringstream seed;
+        seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
+        TDataType value = rVariable.Zero();
+        FluidTestUtilities::AssignRandomValues(value, seed.str(), DomainSize, MinValue, MaxValue);
+        item.SetValue(rVariable, value);
+    }
+}
+} // namespace FluidTestUtilitiesHelper
 
 //// Static Operations ///////////////////////////////////////////////////////////////////
 
@@ -131,21 +150,40 @@ void FluidTestUtilities::RandomFillNodalHistoricalVariable(
     }
 }
 
-template<class TContainerType, class TDataType>
+template<class TDataType>
 void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
-    TContainerType& rContainer,
+    NodesContainerType& rNodesContainer,
     const Variable<TDataType>& rVariable,
     const IndexType DomainSize,
     const double MinValue,
     const double MaxValue)
 {
-    for (auto& item : rContainer) {
-        std::stringstream seed;
-        seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
-        TDataType value = rVariable.Zero();
-        AssignRandomValues(value, seed.str(), DomainSize, MinValue, MaxValue);
-        item.SetValue(rVariable, value);
-    }
+    FluidTestUtilitiesHelper::RandomFillContainerNonHistoricalVariable(
+        rNodesContainer, rVariable, DomainSize, MinValue, MaxValue);
+}
+
+template<class TDataType>
+void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
+    ConditionsContainerType& rConditionsContainer,
+    const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
+    const double MinValue,
+    const double MaxValue)
+{
+    FluidTestUtilitiesHelper::RandomFillContainerNonHistoricalVariable(
+        rConditionsContainer, rVariable, DomainSize, MinValue, MaxValue);
+}
+
+template<class TDataType>
+void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
+    ElementsContainerType& rElementsContainer,
+    const Variable<TDataType>& rVariable,
+    const IndexType DomainSize,
+    const double MinValue,
+    const double MaxValue)
+{
+    FluidTestUtilitiesHelper::RandomFillContainerNonHistoricalVariable(
+        rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);
 }
 
 template<class TContainerType>
@@ -311,14 +349,14 @@ ModelPart::ConditionsContainerType& FluidTestUtilities::Testing<ModelPart::Condi
 template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNodalHistoricalVariable<double>(ModelPart&, const Variable<double>&, const double, const double, const int);
 template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double, const int);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, double>(ModelPart::NodesContainerType&, const Variable<double>&, const std::size_t, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<double>(ModelPart::NodesContainerType&, const Variable<double>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<array_1d<double, 3>>(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, double>(ModelPart::ConditionsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<double>(ModelPart::ConditionsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<array_1d<double, 3>>(ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, double>(ModelPart::ElementsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<double>(ModelPart::ElementsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<array_1d<double, 3>>(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
 
 template class FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>;
 template class FluidTestUtilities::Testing<ModelPart::ElementsContainerType>;
