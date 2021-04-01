@@ -197,7 +197,11 @@ jobs:
         bash centos_configure.sh
 
     - name: Running small tests
-    
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
+
 
 ubuntu-without-unity:
     runs-on: ubuntu-latest
@@ -234,8 +238,3 @@ ubuntu-without-unity:
 
         # Buid
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
-
-      run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
