@@ -311,7 +311,7 @@ public:
     virtual IntegrationInfo GetDefaultIntegrationInfo() const
     {
         IndexType p = mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
-        return IntegrationInfo(1, p, QuadratureMethod::GAUSS);
+        return IntegrationInfo(1, p, IntegrationInfo::QuadratureMethod::GAUSS);
     }
 
     ///@}

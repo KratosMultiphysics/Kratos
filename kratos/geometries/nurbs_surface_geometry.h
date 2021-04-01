@@ -430,9 +430,9 @@ public:
     /// Provides the default integration dependent on the polynomial degree of the underlying surface.
     virtual IntegrationInfo GetDefaultIntegrationInfo() const
     {
-        return IntegrationInfo(2,
+        return IntegrationInfo(
             { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1 },
-            { QuadratureMethod::GAUSS, QuadratureMethod::GAUSS });
+            { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
     }
 
     ///@}

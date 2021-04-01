@@ -380,7 +380,7 @@ public:
     {
         return IntegrationInfo(1,
             mPolynomialDegree + 1,
-            QuadratureMethod::GAUSS);
+            IntegrationInfo::QuadratureMethod::GAUSS);
     }
 
     ///@}

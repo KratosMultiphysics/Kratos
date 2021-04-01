@@ -542,6 +542,19 @@ public:
 
         return result;
     }
+
+    ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        return IntegrationInfo(
+            { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },
+            { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+    }
+
     ///@}
     ///@name Integration Points
     ///@{
