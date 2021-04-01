@@ -374,7 +374,7 @@ public:
     /* Returns if rPointLocalCoordinates[0] is 
      *         on boundary -> 2
      *         inside -> 1
-     *         ouside -> 0
+     *         outside -> 0
      * and sets it to the closest border */
     int ClosestPointLocalSpace(
         CoordinatesArrayType& rPointLocalCoordinates,
