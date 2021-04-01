@@ -548,7 +548,7 @@ public:
     ///@{
 
     /// Provides the default integration dependent on the polynomial degree of the underlying surface.
-    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    IntegrationInfo GetDefaultIntegrationInfo() const override
     {
         return IntegrationInfo(
             { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },

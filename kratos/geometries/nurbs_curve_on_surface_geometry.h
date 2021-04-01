@@ -308,7 +308,7 @@ public:
     ///@{
 
     /// Provides the default integration dependent on the polynomial degree of the underlying surface.
-    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    IntegrationInfo GetDefaultIntegrationInfo() const override
     {
         IndexType p = mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
         return IntegrationInfo(1, p, IntegrationInfo::QuadratureMethod::GAUSS);

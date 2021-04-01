@@ -398,7 +398,7 @@ public:
     ///@{
 
     /// Provides the default integration dependent on the polynomial degree.
-    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    IntegrationInfo GetDefaultIntegrationInfo() const override
     {
         return mpCurveOnSurface->GetDefaultIntegrationInfo();
     }
