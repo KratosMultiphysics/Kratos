@@ -26,6 +26,7 @@
 
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos
 {
