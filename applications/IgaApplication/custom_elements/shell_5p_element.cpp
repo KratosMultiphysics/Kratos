@@ -579,7 +579,8 @@ namespace Kratos
             compute_director = true;
         }
         if (compute_director) {
-            for (auto& node : GetGeometry())
+auto points = GetGeometry().GetGeometryParent(0).pGetGeometryPart(-1).Points();
+            for (auto& node : points)
             {
                 const double normt = node.GetValue(DIRECTORLENGTH);
                 array_1d<double, 3 > director = node.GetValue(DIRECTOR) / normt;
