@@ -35,6 +35,8 @@ ModelPart& RansKOmegaOmegaKBasedWall2D2NSetUp(
     auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2NSetUp(
         rModel, "RansKOmegaOmegaKBasedWall2D2N");
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
@@ -43,6 +45,8 @@ ModelPart& RansKOmegaOmegaUBasedWall2D2NSetUp(
 {
     auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2NSetUp(
         rModel, "RansKOmegaOmegaUBasedWall2D2N");
+
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
     return r_model_part;
 }

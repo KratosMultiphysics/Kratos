@@ -32,11 +32,12 @@ double CalculateBlendedPhi(
     return F1 * Phi1 + (1.0 - F1) * Phi2;
 }
 
+template<unsigned int TDim>
 double CalculateCrossDiffusionTerm(
     const double SigmaTurbulentSpecificEnergyDissipationRate2,
     const double TurbulentSpecificEnergyDissipationRate,
-    const array_1d<double, 3>& rTurbulentKineticEnergyGradient,
-    const array_1d<double, 3>& rTurbulentSpecificEnergyDissipationRate)
+    const array_1d<double, TDim>& rTurbulentKineticEnergyGradient,
+    const array_1d<double, TDim>& rTurbulentSpecificEnergyDissipationRate)
 {
     KRATOS_TRY
 
@@ -118,28 +119,6 @@ double CalculateTurbulentKinematicViscosity(
     KRATOS_CATCH("");
 }
 
-template <>
-array_1d<double, 3> CalculateVorticity<2>(
-    const BoundedMatrix<double, 2, 2>& rVelocityGradient)
-
-{
-    array_1d<double, 3> value = ZeroVector(3);
-    value[2] = rVelocityGradient(1, 0) - rVelocityGradient(0, 1);
-    return value;
-}
-
-template <>
-array_1d<double, 3> CalculateVorticity<3>(
-    const BoundedMatrix<double, 3, 3>& rVelocityGradient)
-
-{
-    array_1d<double, 3> value;
-    value[0] = rVelocityGradient(2, 1) - rVelocityGradient(1, 2);
-    value[1] = rVelocityGradient(0, 2) - rVelocityGradient(2, 0);
-    value[2] = rVelocityGradient(1, 0) - rVelocityGradient(0, 1);
-    return value;
-}
-
 double CalculateGamma(
     const double Beta,
     const double BetaStar,
@@ -148,6 +127,11 @@ double CalculateGamma(
 {
     return Beta / BetaStar - Sigma * std::pow(Kappa, 2) / std::sqrt(BetaStar);
 }
+
+// template instantiations
+
+template double CalculateCrossDiffusionTerm<2>(const double, const double, const array_1d<double, 2>&, const array_1d<double, 2>&);
+template double CalculateCrossDiffusionTerm<3>(const double, const double, const array_1d<double, 3>&, const array_1d<double, 3>&);
 
 } // namespace KOmegaSSTElementData
 

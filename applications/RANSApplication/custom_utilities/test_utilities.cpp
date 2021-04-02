@@ -126,9 +126,6 @@ ModelPart& CreateTestModelPart(
 
     RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
 
-    r_element.Check(r_model_part.GetProcessInfo());
-    r_model_part.Conditions().front().Check(r_model_part.GetProcessInfo());
-
     return r_model_part;
 }
 
@@ -224,6 +221,19 @@ void TestGetDofList(
             KRATOS_CHECK_EQUAL(dofs[i_node]->GetVariable(), rVariable);
             KRATOS_CHECK_EQUAL(dofs[i_node]->EquationId(), r_geometry[i_node].Id());
         }
+    }
+}
+
+void CheckElementsAndConditions(
+    const ModelPart& rModelPart)
+{
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+    for (const auto& r_element : rModelPart.Elements()) {
+        r_element.Check(r_process_info);
+    }
+
+    for (const auto& r_condition : rModelPart.Conditions()) {
+        r_condition.Check(r_process_info);
     }
 }
 

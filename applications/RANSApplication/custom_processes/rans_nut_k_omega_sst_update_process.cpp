@@ -203,7 +203,9 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
         constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
         nu /= rho;
 
-        CalculateGradient<TDim>(velocity_gradient, r_geometry, VELOCITY, r_shape_derivatives);
+        FluidCalculationUtilities::EvaluateGradientInPoint(
+            r_geometry, r_shape_derivatives,
+            std::tie(velocity_gradient, VELOCITY));
 
         const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
 
