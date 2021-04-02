@@ -57,7 +57,7 @@ public:
 			global_index2.data().begin(),
 			rA.GetOffDiagonalBlock().value_data().begin()
 		);
-		loc_a->ncols = rA.GetDiagonalBlock().size2(); //important if the matrix is not square
+		rem_a->ncols = rA.GetOffDiagonalBlock().size2(); //important if the matrix is not square
 
 		auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator( rA.GetComm());
 		amgcl::mpi::communicator comm(raw_mpi_comm);
@@ -71,7 +71,7 @@ public:
 	}
 
 	template< class TDataType, class TIndexType >
-	static typename DistributedCsrMatrix<TDataType, TIndexType>::Pointer ConvertToCsrMatrix(
+	static typename DistributedCsrMatrix<TDataType, TIndexType>::UniquePointer ConvertToCsrMatrix(
 			amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>& rA, //cannot be made const since i need to modify some data in-place,
 			DataCommunicator& kratos_comm=ParallelEnvironment::GetDefaultDataCommunicator()
 			)
@@ -79,14 +79,14 @@ public:
 		if(!rA.local())
 			KRATOS_ERROR << "matrix A was moved to backend, so it is impossible to convert it back to CSR matrix" << std::endl;
 
-		auto pAconverted = Kratos::make_shared<DistributedCsrMatrix<TDataType, TIndexType>>();
+		auto pAconverted = Kratos::make_unique<DistributedCsrMatrix<TDataType, TIndexType>>();
 
 		MPI_Comm amgcl_raw_comm = rA.comm();
 		if(amgcl_raw_comm != MPIDataCommunicator::GetMPICommunicator( kratos_comm) )
 			KRATOS_ERROR << "MPI communicator mismatch between the communicator passed to the conversion function and the one used internally by amgcl" << std::endl;
 
-		rA.local()->own_data=false;
-		rA.remote()->own_data=false;
+		// rA.local()->own_data=false;
+		// rA.remote()->own_data=false;
 
 		//create row numbering and col numbering
 		pAconverted->pGetRowNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->nrows);
@@ -133,21 +133,21 @@ public:
         // mfem_assemble_colors
 
 		//set ownership
-        if(rA.local()->own_data == false){ //if rA is not the owner, Aconverted cannot be
-            pAconverted->GetDiagonalBlock().SetIsOwnerOfData(false);
-        }
-        else{ //if rA is the owner, transfer ownership to the csr_matrix
-            rA.local()->own_data = false;
-            pAconverted->GetDiagonalBlock().SetIsOwnerOfData(true);
-        }		
+        // if(rA.local()->own_data == false){ //if rA is not the owner, Aconverted cannot be
+        //     pAconverted->GetDiagonalBlock().SetIsOwnerOfData(false);
+        // }
+        // else{ //if rA is the owner, transfer ownership to the csr_matrix
+        //     rA.local()->own_data = false;
+        //     pAconverted->GetDiagonalBlock().SetIsOwnerOfData(true);
+        // }		
 
-        if(rA.remote()->own_data == false){ //if rA is not the owner, Aconverted cannot be
-            pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(false);
-        }
-        else{ //if rA is the owner, transfer ownership to the csr_matrix
-            rA.local()->own_data = false;
-            pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(true);
-        }		
+        // if(rA.remote()->own_data == false){ //if rA is not the owner, Aconverted cannot be
+        //     pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(false);
+        // }
+        // else{ //if rA is the owner, transfer ownership to the csr_matrix
+        //     rA.local()->own_data = false;
+        //     pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(true);
+        // }		
 
 		return pAconverted;
 

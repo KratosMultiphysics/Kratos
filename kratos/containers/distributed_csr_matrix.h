@@ -225,8 +225,8 @@ public:
         mrComm(rOtherMatrix.mrComm),
         mpRowNumbering(Kratos::make_unique< DistributedNumbering<IndexType> >( rOtherMatrix.GetRowNumbering())),
         mpColNumbering(Kratos::make_unique< DistributedNumbering<IndexType> >( rOtherMatrix.GetColNumbering())),
-        mpDiagonalBlock(Kratos::make_shared<>(rOtherMatrix.GetDiagonalBlock())),
-        mpOffDiagonalBlock(Kratos::make_shared<>(rOtherMatrix.GetOffDiagonalBlock())),
+        mpDiagonalBlock(Kratos::make_unique<>(rOtherMatrix.GetDiagonalBlock())),
+        mpOffDiagonalBlock(Kratos::make_unique<>(rOtherMatrix.GetOffDiagonalBlock())),
         mNonLocalData(rOtherMatrix.mNonLocalData),
         mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
         mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
@@ -341,11 +341,11 @@ public:
         return mrComm;
     }
 
-    inline typename CsrMatrix<TDataType,IndexType>::Pointer pGetDiagonalBlock()
+    inline typename CsrMatrix<TDataType,IndexType>::UniquePointer& pGetDiagonalBlock()
     {
         return mpDiagonalBlock;
     }
-    inline typename CsrMatrix<TDataType,IndexType>::Pointer pGetOffDiagonalBlock()
+    inline typename CsrMatrix<TDataType,IndexType>::UniquePointer& pGetOffDiagonalBlock()
     {
         return mpOffDiagonalBlock;
     }
@@ -922,8 +922,8 @@ private:
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering;
     typename DistributedNumbering<IndexType>::UniquePointer mpColNumbering;
 
-    typename CsrMatrix<TDataType,IndexType>::Pointer mpDiagonalBlock;
-    typename CsrMatrix<TDataType,IndexType>::Pointer mpOffDiagonalBlock;
+    typename CsrMatrix<TDataType,IndexType>::UniquePointer mpDiagonalBlock = Kratos::make_unique<CsrMatrix<TDataType,IndexType>>();
+    typename CsrMatrix<TDataType,IndexType>::UniquePointer mpOffDiagonalBlock = Kratos::make_unique<CsrMatrix<TDataType,IndexType>>();
     MatrixMapType mNonLocalData; //data which is assembled locally and needs to be communicated to the owner
 
     //this map tells for an index J which does not belong to the local diagonal block which is the corresponding localJ

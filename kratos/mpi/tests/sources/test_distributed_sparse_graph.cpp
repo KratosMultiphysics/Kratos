@@ -573,8 +573,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
         A.Assemble(data,row_ids, col_ids);
     }
     A.FinalizeAssemble();
-    auto Amap = A.ToMap();
 
+    auto Amap = A.ToMap();
     //check that all "local" values in reference_A_map also appear in A_map
     for(const auto& item : reference_A_map)
     {
@@ -616,6 +616,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
         DistTestingInternals::IndexType global_i = x.GetNumbering().GlobalId(i);
         KRATOS_CHECK_NEAR(x[i],  reference_transpose_spmv_res[global_i], 1e-14 );
     }
+
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, KratosMPICoreFastSuite)

@@ -52,12 +52,14 @@ public:
         return pAmgcl;
 	}
 
+    
+    //Note that we deliberately return a unique_ptr as it can be moved to a shared_ptr as needed
     template< class TDataType, class TIndexType >
-	static typename CsrMatrix<TDataType, TIndexType>::Pointer ConvertToCsrMatrix(
+	static typename CsrMatrix<TDataType, TIndexType>::UniquePointer ConvertToCsrMatrix(
 			typename amgcl::backend::builtin<TDataType>::matrix& rA
-			)
-	{
-        auto pAconverted = Kratos::make_shared<CsrMatrix<TDataType, TIndexType>>();
+			)	
+    {
+        auto pAconverted = Kratos::make_unique<CsrMatrix<TDataType, TIndexType>>();
 
         if(rA.own_data == false){ //if rA is not the owner, Aconverted cannot be
             pAconverted->SetIsOwnerOfData(false);
@@ -73,7 +75,7 @@ public:
         pAconverted->AssignIndex2Data((TIndexType*)(rA.col), rA.nnz);
         pAconverted->AssignValueData((TDataType*)(rA.val), rA.nnz);
         return pAconverted;
-	}	
+	}
 	
 };
 
