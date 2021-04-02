@@ -922,8 +922,8 @@ private:
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering;
     typename DistributedNumbering<IndexType>::UniquePointer mpColNumbering;
 
-    typename CsrMatrix<TDataType,IndexType>::UniquePointer mpDiagonalBlock = Kratos::make_unique<CsrMatrix<TDataType,IndexType>>();
-    typename CsrMatrix<TDataType,IndexType>::UniquePointer mpOffDiagonalBlock = Kratos::make_unique<CsrMatrix<TDataType,IndexType>>();
+    typename CsrMatrix<TDataType,IndexType>::UniquePointer mpDiagonalBlock = Kratos::make_unique< CsrMatrix<TDataType,IndexType> >();
+    typename CsrMatrix<TDataType,IndexType>::UniquePointer mpOffDiagonalBlock = Kratos::make_unique< CsrMatrix<TDataType,IndexType> >();
     MatrixMapType mNonLocalData; //data which is assembled locally and needs to be communicated to the owner
 
     //this map tells for an index J which does not belong to the local diagonal block which is the corresponding localJ
