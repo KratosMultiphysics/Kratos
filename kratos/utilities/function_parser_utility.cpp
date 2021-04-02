@@ -28,7 +28,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
 {
     // Correcting function from python style to tinyexpr
     // NOTE: tinyexpr does not support capital letters
-    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"},{"X","x0"},{"Y","y0"},{"Z","z0"}});
+    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"}});
     for (auto& r_pair : aux_replace_letters) {
         mFunctionBody = StringUtilities::ReplaceAllSubstrings(mFunctionBody, r_pair.first, r_pair.second);
     }
@@ -39,7 +39,10 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     // Check if it depends on space
     if (mFunctionBody.find(std::string("x")) == std::string::npos &&
         mFunctionBody.find(std::string("y")) == std::string::npos &&
-        mFunctionBody.find(std::string("z")) == std::string::npos) {
+        mFunctionBody.find(std::string("z")) == std::string::npos &&
+        mFunctionBody.find(std::string("X")) == std::string::npos &&
+        mFunctionBody.find(std::string("Y")) == std::string::npos &&
+        mFunctionBody.find(std::string("Z")) == std::string::npos) {
         mDependsOnSpace = false;
     }
 }
@@ -70,7 +73,7 @@ BasicGenericFunctionUtility::~BasicGenericFunctionUtility()
 std::string BasicGenericFunctionUtility::FunctionBody()
 {
     std::string aux_string = mFunctionBody;
-    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"},{"X","x0"},{"Y","y0"},{"Z","z0"}});
+    std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"}});
     for (auto& r_pair : aux_replace_letters) {
          aux_string = StringUtilities::ReplaceAllSubstrings(aux_string, r_pair.second, r_pair.first);
     }
@@ -136,7 +139,7 @@ void BasicGenericFunctionUtility::InitializeParser()
         double& Z = mValues[6];
 
         /* Store variable names and pointers. */
-        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"x0", &X}, {"y0", &Y}, {"z0", &Z}};
+        const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
         /* Compile the expression with variables. */
         mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
