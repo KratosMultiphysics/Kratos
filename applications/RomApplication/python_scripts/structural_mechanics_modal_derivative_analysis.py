@@ -34,7 +34,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         self.WriteRomParameters()
     
     def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node."""
+        """Here is the place where the ROM_BASIS is imposed to each node."""
         super().ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
 
@@ -72,7 +72,6 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                     for j in range(self.number_of_initial_rom_dofs):
                         aux[i,j] = nodal_modes[Counter][i][j]
                 node.SetValue(RomApplication.ROM_BASIS, aux ) # ROM basis
-                node.SetValue(RomApplication.AUX_ID, counter) # Aux ID
                 counter+=1
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Nodal modes imported from ",rom_parameters_filename)
