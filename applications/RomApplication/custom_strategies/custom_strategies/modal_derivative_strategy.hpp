@@ -53,8 +53,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solving strategy base class
- * @details This is the base class from which we will derive all the strategies (line-search, NR, etc...)
+/** @brief Modal derivative strategy class for computing modal derivatives
+ * @details 
  */
 
 template<class TSparseSpace,
@@ -186,8 +186,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    // /// Deleted copy constructor.
-    // ModalDerivativeStrategy(const ModalDerivativeStrategy& Other) = delete;
+    /// Deleted copy constructor.
+    ModalDerivativeStrategy(const ModalDerivativeStrategy& Other) = delete;
 
     /// Destructor.
     ~ModalDerivativeStrategy() override
@@ -835,6 +835,10 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Solves the current step for adjoint dynamic material parameter derivative case
+     * 
+     */
     bool SolveSolutionStepAdjointDynamicMaterialParameterDerivatives()
     {
         KRATOS_TRY
@@ -1037,7 +1041,7 @@ public:
     }
 
     /**
-     * @brief This function applies mass orthonormalization of the given vector
+     * @brief This function applies mass orthonormalization to the given vector
      * @details
      * { 
      * Given vector is mass-orthonormalized w.r.t. the existing and/or previously computed 
@@ -1180,48 +1184,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    // /**
-    //  * @brief This function reduces the mass and stiffness matrices using the computed basis
-    //  * @details
-    //  * { 
-    //  * This is implemented purely for debugging purposes
-    //  * } 
-    //  */  
-    // void ComputeReducedMatrices()
-    // {
-    //     KRATOS_TRY
-
-    //     ModelPart& r_model_part = BaseType::GetModelPart();
-    //     std::size_t num_basis = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR].size();
-
-    //     Matrix Mred(num_basis,num_basis);
-    //     Matrix Kred(num_basis,num_basis);
-    //     TSystemVectorType basis_i(mpA->size1());
-    //     TSystemVectorType basis_j(mpA->size1());
-    //     TSystemMatrixType& rA = *mpA;
-    //     TSystemMatrixType& rStiffnessMatrix = *mpStiffnessMatrix;
-    //     TSystemMatrixType& rMassMatrix = *mpMassMatrix;
-
-    //     for (std::size_t i = 0; i < num_basis; i++)
-    //     {
-    //         this->GetBasis(i, basis_i);
-    //         for (std::size_t j = 0; j < num_basis; j++)
-    //         {
-    //             this->GetBasis(j, basis_j);
-    //             Mred(i,j) = inner_prod(basis_i, prod(rMassMatrix, basis_j));
-    //             if (mDerivativeTypeFlag)
-    //                 Kred(i,j) = inner_prod(basis_i, prod(rStiffnessMatrix, basis_j));
-    //             else
-    //                 Kred(i,j) = inner_prod(basis_i, prod(rA, basis_j));
-    //         }
-    //     }
-
-    //     KRATOS_WATCH(Mred)
-    //     KRATOS_WATCH(Kred)
-
-    //     KRATOS_CATCH("")
-    // }
 
     /**
      * @brief This function assigns the solution vector to ROM_BASIS nodal variable
@@ -1429,11 +1391,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /** Copy constructor.
-     */
-    ModalDerivativeStrategy(const ModalDerivativeStrategy& Other);
-
 
     ///@}
 

@@ -201,7 +201,7 @@ protected:
     /**
      * @brief This function calculates the partial RHS contribution for mode shape derivatives
      * @param rElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rRHS_Contribution The RHS vector contribution
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateModalDerivativeRHSContribution(
@@ -248,7 +248,6 @@ protected:
     /**
      * @brief This function performs finite differencing on the element LHS wrt material parameter
      * @param rElement The element to compute
-     * @param rDerivativeParameter The derivative parameter
      * @param rElementLHSDerivative The element LHS derivative
      * @param rCurrentProcessInfo The current process info instance
      */

@@ -111,14 +111,14 @@ public:
     /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param rElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rRHS_Contribution The RHS vector contribution
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -160,7 +160,7 @@ public:
         // Compute RHS contribution
         noalias(rRHS_Contribution) = -prod(element_matrix_derivative, phi_elemental);
 
-        rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -206,7 +206,7 @@ protected:
     void ForwardDifferencingWithBasis_LHS(
          LocalSystemMatrixType& rElementLHSDerivative,
          const std::size_t BasisIndex,
-         Element&rElement,
+         Element& rElement,
          const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY

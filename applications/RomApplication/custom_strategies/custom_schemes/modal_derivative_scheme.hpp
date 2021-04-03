@@ -121,9 +121,10 @@ public:
     ///@{
 
     /**
-     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
-     * @param rCondition The condition to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @brief Calculates system contributions of an element
+     * @param rElement The element to compute
+     * @param rLHS_Contribution The LHS matrix contribution
+     * @param rRHS_Contribution The RHS vector contribution
      * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -131,17 +132,17 @@ public:
         Element& rElement,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        this->CalculateLHSContribution(rElement, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
+        this->CalculateLHSContribution(rElement, rLHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
-        this->CalculateRHSContribution(rElement, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        this->CalculateRHSContribution(rElement, rRHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
-        rElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -149,14 +150,14 @@ public:
     /**
      * @brief This function is designed to calculate just the LHS contribution
      * @param rElement The element to compute
-     * @param LHS_Contribution The RHS vector contribution
+     * @param LHS_Contribution The LHS matrix contribution
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateLHSContribution(
         Element& rElement,
         LocalSystemMatrixType& rLHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -174,7 +175,7 @@ public:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
 
-        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -189,7 +190,7 @@ public:
     void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -211,32 +212,32 @@ public:
         Condition& rCondition,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        this->CalculateLHSContribution(rCondition, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
+        this->CalculateLHSContribution(rCondition, rLHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
-        this->CalculateRHSContribution(rCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        this->CalculateRHSContribution(rCondition, rRHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
-        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief This function is designed to calculate just the LHS contribution
-     * @param rElement The element to compute
+     * @param rCondition The condition to compute
      * @param LHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateLHSContribution(
         Condition& rCondition,
         LocalSystemMatrixType& rLHS_Contribution,
-        Condition::EquationIdVectorType& rEquationId,
+        Condition::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -244,9 +245,9 @@ public:
 
         rCondition.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
                 
-        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
-        const std::size_t size = rEquationId.size();
+        const std::size_t size = rEquationIdVector.size();
         rLHS_Contribution.resize(size, size);
         rLHS_Contribution.clear();
 
@@ -255,15 +256,15 @@ public:
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param rElement The element to compute
+     * @param rCondition The condition to compute
      * @param RHS_Contribution The RHS vector contribution
-     * @param rEquationIdVector The ID's of the element degrees of freedom
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateRHSContribution(
         Condition& rCondition,
         LocalSystemVectorType& rRHS_Contribution,
-        Condition::EquationIdVectorType& rEquationId,
+        Condition::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -272,7 +273,7 @@ public:
         rCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
         rRHS_Contribution.clear();
         
-        rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
         
         KRATOS_CATCH("")
     }
@@ -370,10 +371,9 @@ protected:
     /**
      * @brief This function retrieves the basis corresponding to element DOFs
      * @details 
-     * @param rPhiElemental The element to unlock nodes
+     * @param rPhiElemental The elemental basis
      * @param BasisIndex The index of the basis to retrieve
      * @param rElement The element to retrieve basis
-     * @param rElementDofList The elemental dof list
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetPhiElemental(

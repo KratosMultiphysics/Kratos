@@ -109,14 +109,14 @@ public:
     /**
      * @brief This function is designed to calculate just the LHS contribution
      * @param rElement The element to compute
-     * @param LHS_Contribution The RHS vector contribution
+     * @param rLHS_Contribution The LHS matrix contribution
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateLHSContribution(
         Element& rElement,
         LocalSystemMatrixType& rLHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -141,7 +141,7 @@ public:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
 
-        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -149,14 +149,14 @@ public:
     /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param rElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rRHS_Contribution The RHS vector contribution
      * @param rEquationIdVector The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
@@ -184,12 +184,12 @@ public:
                 // Adjoint sensitivity contribution
                 CalculateAdjointSensitivityContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             }
-            rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
+            rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
         }
         else if (rCurrentProcessInfo[BUILD_LEVEL] == 5)
         {
             // Basis derivative RHS
-            BaseType::CalculateRHSContribution(rElement, rRHS_Contribution, EquationId, rCurrentProcessInfo);
+            BaseType::CalculateRHSContribution(rElement, rRHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
         }
         else
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
@@ -264,7 +264,7 @@ private:
     /**
      * @brief This function calculates the adjoint RHS contribution
      * @param rElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rAdjointRHS_Contribution The adjoint RHS vector contribution
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateAdjointRHSContribution(
@@ -363,7 +363,7 @@ private:
     /**
      * @brief This function calculates the adjoint sensitivity contribution
      * @param rElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rAdjointSensitivityContribution The adjoint sensitivity contribution
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateAdjointSensitivityContribution(
@@ -394,7 +394,6 @@ private:
     /**
      * @brief This function performs forward differencing on the element RHS wrt material parameter
      * @param rElement The element to compute
-     * @param rDerivativeParameter The derivative parameter
      * @param rElementRHSDerivative The element RHS derivative
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -435,7 +434,6 @@ private:
     /**
      * @brief This function performs central differencing on the element RHS wrt material parameter
      * @param rElement The element to compute
-     * @param rDerivativeParameter The derivative parameter
      * @param rElementRHSDerivative The element RHS derivative
      * @param rCurrentProcessInfo The current process info instance
      */
