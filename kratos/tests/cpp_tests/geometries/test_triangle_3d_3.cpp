@@ -8,6 +8,7 @@
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -241,7 +242,7 @@ namespace Testing
 
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.5, 1.0e-4);
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.55, 1.0e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[2], 0.0, 1.0e-4);
+        KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
     }
 
     /** Checks the inside test for a given point respect to the triangle

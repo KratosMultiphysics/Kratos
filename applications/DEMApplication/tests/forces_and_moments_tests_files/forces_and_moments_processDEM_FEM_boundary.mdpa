@@ -1,0 +1,77 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+  STATIC_FRICTION 0.5773502691896257
+  DYNAMIC_FRICTION 0.5773502691896257
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 1e+20
+  POISSON_RATIO 0.25
+End Properties
+
+Begin Nodes
+    1   1.0000000000   1.0000000000  -1.0000000000
+    2   1.0000000000  -1.0000000000  -1.0000000000
+    3  -1.0000000000   1.0000000000  -1.0000000000
+    4   1.0000000000   1.0000000000   1.0000000000
+   29  -1.0000000000  -1.0000000000  -1.0000000000
+   30   1.0000000000  -1.0000000000   1.0000000000
+   31  -1.0000000000   1.0000000000   1.0000000000
+  138  -1.0000000000  -1.0000000000   1.0000000000
+End Nodes
+
+Begin Conditions RigidFace3D3N// GUI group identifier: Cube
+  235          2     2     1    29
+  236          2     1     3    29
+  237          2     2    30    29
+  238          2    30   138    29
+  239          2     1     4     2
+  240          2     4    30     2
+  241          2     3    31     1
+  242          2    31     4     1
+  243          2    29   138     3
+  244          2   138    31     3
+  245          2    30     4   138
+  246          2     4    31   138
+End Conditions
+
+Begin SubModelPart Cube // DEM-FEM-Wall - group identifier: Cube
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: Cube
+    RIGID_BODY_MASS 1.0
+    RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.66667,0.66667,0.66667)
+    FREE_BODY_MOTION 1
+    IDENTIFIER Cube
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+        29
+        30
+        31
+       138
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+       235
+       236
+       237
+       238
+       239
+       240
+       241
+       242
+       243
+       244
+       245
+       246
+  End SubModelPartConditions
+End SubModelPart
+
