@@ -323,6 +323,8 @@ void BaseShellElement<TCoordinateTransformation>::CalculateLocalSystem(MatrixTyp
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+    rLeftHandSideMatrix += trans(rLeftHandSideMatrix);
+    rLeftHandSideMatrix /= 2.0;
 }
 
 template <class TCoordinateTransformation>
@@ -336,6 +338,8 @@ void BaseShellElement<TCoordinateTransformation>::CalculateLeftHandSide(MatrixTy
     Vector dummy;
     CalculateAll(rLeftHandSideMatrix, dummy, rCurrentProcessInfo,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+    rLeftHandSideMatrix += trans(rLeftHandSideMatrix);
+    rLeftHandSideMatrix /= 2.0;
 }
 
 template <class TCoordinateTransformation>
