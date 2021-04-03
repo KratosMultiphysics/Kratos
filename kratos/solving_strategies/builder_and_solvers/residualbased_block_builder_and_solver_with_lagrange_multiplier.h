@@ -878,9 +878,9 @@ protected:
 
                 // Merging all the temporal indexes
                 for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].SetLock();
+                    lock_array[i].lock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].UnSetLock();
+                    lock_array[i].unlock();
                 }
             }
 

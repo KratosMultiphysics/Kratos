@@ -707,7 +707,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightH
 {
     if (rData.distances[rRow] > 0.0){
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        rRightHandSideVector[rRow + NumNodes] = rWake_rhs(rRow);
+        rRightHandSideVector[rRow + NumNodes] = -rWake_rhs(rRow);
     }
     else{
         rRightHandSideVector[rRow] = rWake_rhs(rRow);

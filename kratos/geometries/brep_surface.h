@@ -489,6 +489,16 @@ public:
         return rResult;
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::Kratos_Brep;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::Kratos_Brep_Surface;
+    }
+
     ///@}
     ///@name Information
     ///@{

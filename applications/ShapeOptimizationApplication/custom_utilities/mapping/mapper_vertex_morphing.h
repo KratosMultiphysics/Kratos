@@ -116,8 +116,9 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting initialization of mapper..." << std::endl;
 
-        CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
+
+        CreateListOfNodesInOriginModelPart();
         InitializeMappingVariables();
         AssignMappingIds();
 
@@ -314,6 +315,10 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
+        CreateListOfNodesInOriginModelPart();
+        InitializeMappingVariables();
+        AssignMappingIds();
+
         InitializeComputationOfMappingMatrix();
         CreateSearchTreeWithAllNodesInOriginModelPart();
         ComputeMappingMatrix();
@@ -463,13 +468,18 @@ private:
     void InitializeMappingVariables()
     {
         const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
+        mValuesOrigin.resize(3);
+        mValuesOrigin[0] = ZeroVector(origin_node_number);
+        mValuesOrigin[1] = ZeroVector(origin_node_number);
+        mValuesOrigin[2] = ZeroVector(origin_node_number);
+
         const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
-
+        mValuesDestination.resize(3);
+        mValuesDestination[0] = ZeroVector(destination_node_number);
+        mValuesDestination[1] = ZeroVector(destination_node_number);
+        mValuesDestination[2] = ZeroVector(destination_node_number);
+        
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
-        mMappingMatrix.clear();
-
-        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
-        mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
     // --------------------------------------------------------------------------

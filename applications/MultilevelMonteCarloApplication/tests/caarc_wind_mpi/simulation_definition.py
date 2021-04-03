@@ -8,7 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi
 import KratosMultiphysics.MultilevelMonteCarloApplication
 import KratosMultiphysics.MappingApplication
-from FluidDynamicsAnalysisMC import FluidDynamicsAnalysisMC
+from applications.MultilevelMonteCarloApplication.tests.caarc_wind_mpi.FluidDynamicsAnalysisMC import FluidDynamicsAnalysisMC
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 # Avoid printing of Kratos informations
@@ -35,39 +35,6 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["value"][0].SetDouble(random_inlet)
         if (self.project_parameters["problem_data"]["perturbation"]["type"].GetString() == "correlated"):
             self.project_parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["seed"].SetInt(self.sample[0])
-
-    def ApplyBoundaryConditions(self):
-        """
-        function introducing the stochasticity in the problem
-        input:  self: an instance of the class
-        """
-        super().ApplyBoundaryConditions()
-        if (self.IsVelocityFieldPerturbed is False) and (self.project_parameters["problem_data"]["perturbation"]["type"].GetString() == "uncorrelated"):
-            np.random.seed(self.sample[0])
-            KratosMultiphysics.Logger.PrintInfo("[SCREENING] perturbing the domain:","Yes")
-            self.main_model_part = self.model.GetModelPart("FluidModelPart")
-            # load velocity field
-            with open("average_velocity_field_CAARC_3d_combinedPressureVelocity_312k_690.0.dat") as dat_file:
-                lines=dat_file.readlines()
-                for line, node in zip(lines, self.main_model_part.Nodes):
-                    if not (node.IsFixed(KratosMultiphysics.VELOCITY_X) or node.IsFixed(KratosMultiphysics.VELOCITY_Y) or node.IsFixed(KratosMultiphysics.VELOCITY_Z) or node.IsFixed(KratosMultiphysics.PRESSURE)):
-                        # retrieve velocity
-                        velocity = KratosMultiphysics.Vector(3, 0.0)
-                        velocity[0] = float(line.split(' ')[0])
-                        velocity[1] = float(line.split(' ')[1])
-                        velocity[2] = float(line.split(' ')[2])
-                        # compute uncorrelated perturbation
-                        perturbation_intensity = self.project_parameters["problem_data"]["perturbation"]["intensity"].GetDouble()
-                        perturbation = np.random.uniform(-perturbation_intensity,perturbation_intensity,3) * velocity.norm_2() # all nodes and directions different value
-                        # sum avg velocity and perturbation
-                        velocity[0] = velocity[0] + perturbation[0]
-                        velocity[1] = velocity[1] + perturbation[1]
-                        velocity[2] = velocity[2] + perturbation[2]
-                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, velocity)
-                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
-            self.IsVelocityFieldPerturbed = True
-        else:
-            KratosMultiphysics.Logger.PrintInfo("[SCREENING] perturbing the domain:", "No")
 
     def ComputeNeighbourElements(self):
         """
@@ -96,15 +63,12 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
                 }""")
             self.power_sums_process_mapping = KratosMultiphysics.MultilevelMonteCarloApplication.PowerSumsStatistics(self.mapping_reference_model.GetModelPart(self.interest_model_part),power_sums_parameters)
             self.power_sums_process_mapping.ExecuteInitialize()
-            KratosMultiphysics.Logger.PrintInfo("[SCREENING] number nodes of submodelpart + drag force x:",self.mapping_reference_model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
         else:
             power_sums_parameters = KratosMultiphysics.Parameters("""{
                 "reference_variable_name": "PRESSURE"
                 }""")
             self.power_sums_process = KratosMultiphysics.MultilevelMonteCarloApplication.PowerSumsStatistics(self.model.GetModelPart(self.interest_model_part),power_sums_parameters)
             self.power_sums_process.ExecuteInitialize()
-            KratosMultiphysics.Logger.PrintInfo("[SCREENING] number nodes of submodelpart + drag force x:",self.model.GetModelPart(self.interest_model_part).NumberOfNodes()+1) # +1 is for drag force x
-        KratosMultiphysics.Logger.PrintInfo("[SCREENING] mapping flag:",self.mapping)
 
     def FinalizeSolutionStep(self):
         """
@@ -154,7 +118,6 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
 
         # run if current index is index of interest
         if (self.is_current_index_maximum_index is True):
-            KratosMultiphysics.Logger.PrintInfo("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
             qoi_list = []
 
             # append time average drag force
@@ -217,9 +180,7 @@ class SimulationScenario(FluidDynamicsAnalysisMC):
                 qoi_list = pickle.loads(pickled_list_qoi.encode("latin1"))
 
         else:
-            KratosMultiphysics.Logger.PrintInfo("[SCREENING] computing qoi current index:",self.is_current_index_maximum_index)
             qoi_list = None
-        # print("[SCREENING] qoi list:",qoi_list)
         return qoi_list
 
     def MappingAndEvaluateQuantityOfInterest(self):

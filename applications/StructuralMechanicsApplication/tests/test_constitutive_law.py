@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 import math
 
 class TestConstitutiveLaw(KratosUnittest.TestCase):
@@ -178,6 +182,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
                     self.assertAlmostEqual((reference_stress[j] - stress[j])/stress[j], 0.0, msg=("Error checking solution " + str(stress[j]) + " different from " + str(reference_stress[j]) + " with tolerance of " + str(tolerance)), delta=tolerance)
 
     def test_Uniaxial_KirchhoffSaintVenant_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
 
@@ -186,6 +191,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_KirchhoffSaintVenant_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = SimpleShearKirchhoffSaintVenant3D(0.02)
@@ -193,6 +199,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Plus_Strech_KirchhoffSaintVenant_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = ShearPlusStrechKirchhoffSaintVenant3D()
@@ -200,6 +207,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Uniaxial_HyperElastic_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = UniaxialHyperElastic3D(0.2)
@@ -207,6 +215,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_HyperElastic_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = SimpleShearHyperElastic3D(0.2)
@@ -214,6 +223,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Plus_Strech_HyperElastic_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = ShearPlusStrechHyperElastic3D()
@@ -256,6 +266,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Uniaxial_Linear_Elastic_Plane_Stress_Uncoupled_Shear_2D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = UniaxialElasticPlaneStressUncoupledShear2D(0.2)
@@ -263,6 +274,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Linear_Elastic_Plane_Stress_Uncoupled_Shear_2D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
         deformation_test = SimpleShearElasticPlaneStressUncoupledShear2D(0.2)
@@ -270,6 +282,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_J2_Plasticity_3D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         def _generic_constitutive_law_test(model_part, deformation_test):
             # Define geometry
             [geom, nnodes] = self._create_geometry(model_part, deformation_test.cl.dim)
@@ -335,6 +348,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
 
     def test_J2_Plasticity_Plane_Strain_2D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         def _generic_constitutive_law_test(model_part, deformation_test):
             # Define geometry
             [geom, nnodes] = self._create_geometry(model_part, deformation_test.cl.dim)
@@ -399,6 +413,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         _generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Isotropic_Damage_Plane_Strain_2D(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         def _generic_constitutive_law_test(model_part, deformation_test):
             # Define geometry
             [geom, nnodes] = self._create_geometry(model_part, deformation_test.cl.dim)
@@ -909,7 +924,7 @@ class KirchhoffSaintVenant3D(LinearElastic):
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.KirchhoffSaintVenant3DLaw()
+        return ConstitutiveLawsApplication.KirchhoffSaintVenant3DLaw()
 
 class HyperElastic3D(LinearElastic):
     def __init__(self):
@@ -918,7 +933,7 @@ class HyperElastic3D(LinearElastic):
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.HyperElastic3DLaw()
+        return ConstitutiveLawsApplication.HyperElastic3DLaw()
 
 class LinearElastic3D(LinearElastic):
     def __init__(self):
@@ -958,7 +973,7 @@ class ElasticPlaneStressUncoupledShear2D(LinearElasticPlaneStress2D):
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.ElasticPlaneStressUncoupledShear2DLaw()
+        return ConstitutiveLawsApplication.ElasticPlaneStressUncoupledShear2DLaw()
 
 
 class SmallStrainJ2Plasticity3D():
@@ -983,7 +998,7 @@ class SmallStrainJ2Plasticity3D():
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
+        return ConstitutiveLawsApplication.SmallStrainJ2Plasticity3DLaw()
 
 class SmallStrainJ2PlasticityPlaneStrain2D():
     def __init__(self):
@@ -1007,7 +1022,7 @@ class SmallStrainJ2PlasticityPlaneStrain2D():
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
+        return ConstitutiveLawsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
 
 
 class SmallStrainIsotropicDamagePlaneStrain2D():
@@ -1033,7 +1048,7 @@ class SmallStrainIsotropicDamagePlaneStrain2D():
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.SmallStrainIsotropicDamagePlaneStrain2DLaw()
+        return ConstitutiveLawsApplication.SmallStrainIsotropicDamagePlaneStrain2DLaw()
 
 if __name__ == '__main__':
     KratosUnittest.main()

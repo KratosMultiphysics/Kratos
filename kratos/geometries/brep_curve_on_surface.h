@@ -81,7 +81,7 @@ public:
     ///@{
 
     /// constructor for untrimmed surface
-    BrepCurveOnSurface( 
+    BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         bool SameCurveDirection = true)
@@ -267,6 +267,20 @@ public:
     }
 
     ///@}
+    ///@name Set / Calculate access
+    ///@{
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput
+        ) const override
+    {
+        if (rVariable == PARAMETER_2D_COORDINATES) {
+            mpCurveOnSurface->Calculate(rVariable, rOutput);
+        }
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 
@@ -437,6 +451,15 @@ public:
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::Kratos_Brep;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::Kratos_Brep_Curve;
+    }
     ///@}
     ///@name Input and output
     ///@{

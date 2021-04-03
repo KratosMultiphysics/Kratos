@@ -77,6 +77,7 @@ namespace Kratos {
                                                    double LocalElasticContactForce[3],
                                                    double ViscoDampingLocalContactForce[3],
                                                    const double LocalDeltDisp[3],
+                                                   const double LocalRelVel[3],
                                                    bool& sliding,
                                                    SphericParticle* const element,
                                                    NeighbourClassType* const neighbour,
