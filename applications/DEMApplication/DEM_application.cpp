@@ -183,6 +183,7 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_DENSITY)
 KRATOS_CREATE_VARIABLE(double, FRICTION) //deprecated since April 6th, 2020
 KRATOS_CREATE_VARIABLE(double, STATIC_FRICTION)
 KRATOS_CREATE_VARIABLE(double, DYNAMIC_FRICTION)
+KRATOS_CREATE_VARIABLE(double, FRICTION_DECAY)
 KRATOS_CREATE_VARIABLE(double, COEFFICIENT_OF_RESTITUTION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_ROTATION_DAMP_RATIO)
 KRATOS_CREATE_VARIABLE(double, DAMPING_GAMMA)
@@ -483,8 +484,10 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
     mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mRigidFace3D1N(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mRigidEdge2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mRigidEdge2D1N(0, Element::GeometryType::Pointer(new Point2D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mContactInfoSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -633,6 +636,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FRICTION) //deprecated since April 6th, 2020
     KRATOS_REGISTER_VARIABLE(STATIC_FRICTION)
     KRATOS_REGISTER_VARIABLE(DYNAMIC_FRICTION)
+    KRATOS_REGISTER_VARIABLE(FRICTION_DECAY)
     KRATOS_REGISTER_VARIABLE(COEFFICIENT_OF_RESTITUTION)
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATION_DAMP_RATIO)
     KRATOS_REGISTER_VARIABLE(DAMPING_GAMMA)
@@ -916,9 +920,12 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("RigidFace3D2N", mRigidFace3D2N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
+    KRATOS_REGISTER_CONDITION("RigidFace3D1N", mRigidFace3D1N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
+    KRATOS_REGISTER_CONDITION("RigidEdge2D1N", mRigidEdge2D1N)
+
 
     // SERIALIZER
     Serializer::Register("PropertiesProxy", PropertiesProxy());

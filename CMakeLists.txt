@@ -105,15 +105,27 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-  set(CMAKE_SKIP_RPATH ON)
-
-  if(${MSVC})
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
-  endif(${MSVC})
-endif(USE_COTIRE MATCHES ON)
+# Unitary builds with version is lower than 3.16 deactivate
+IF(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_UNITY_BUILD OFF)
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(USE_COTIRE MATCHES ON)
+        # Legacy Unitary build
+        MESSAGE(STATUS "Using USE_COTIRE is deprecated and was replaced by CMAKE_UNITY_BUILD.")
+        SET(CMAKE_UNITY_BUILD ON)
+    ENDIF(USE_COTIRE MATCHES ON)
+    # Some checks
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        IF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+            SET(KRATOS_UNITY_BUILD_BATCH_SIZE 32)
+        ENDIF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+        IF(${MSVC})
+          SET(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+        ENDIF(${MSVC})
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -504,8 +516,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
