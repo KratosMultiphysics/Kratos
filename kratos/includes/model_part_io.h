@@ -548,6 +548,8 @@ private:
 
     SizeType ReadConditionsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    void FillNodalConnectivitiesFromGeometryBlock(ConnectivitiesContainerType& rNodalConnectivities);
+
     void FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
     void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities);

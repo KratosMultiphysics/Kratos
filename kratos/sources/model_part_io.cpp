@@ -763,6 +763,73 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     KRATOS_CATCH("")
 }
 
+void ModelPartIO::FillNodalConnectivitiesFromGeometryBlockInList(
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType>& rGeometriesIds)
+{
+    KRATOS_TRY;
+
+    SizeType id;
+    SizeType node_id;
+    SizeType position;
+    SizeType used_size = rNodalConnectivities.size();
+    SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType n_nodes_in_elem = r_clone_geometry.size();
+    ConnectivitiesContainerType::value_type temp_geometry_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < n_nodes_in_elem ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        if (rGeometriesIds.find(ReorderedGeometryId(id)) != rGeometriesIds.end()) {
+            for (SizeType i = 0; i < n_nodes_in_elem; i++) {
+                position = temp_geometry_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size) {
+                    used_size = position+1;
+                    if (position >= reserved_size)
+                    {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
+                for (SizeType j = 0; j < i; j++)
+                    rNodalConnectivities[position].push_back(temp_geometry_nodes[j]);
+                for (SizeType j = i+1; j < n_nodes_in_elem; j++)
+                    rNodalConnectivities[position].push_back(temp_geometry_nodes[j]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+
+}
+
 void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
     ConnectivitiesContainerType& rNodalConnectivities,
     std::unordered_set<SizeType>& rElementsIds)
