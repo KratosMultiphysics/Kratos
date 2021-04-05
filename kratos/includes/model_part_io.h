@@ -546,7 +546,6 @@ private:
 
     SizeType ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
-
     SizeType ReadConditionsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
     void FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities);
@@ -555,11 +554,11 @@ private:
 
     void FillNodalConnectivitiesFromElementBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType> &rElementsIds);
+        std::unordered_set<SizeType>& rElementsIds);
 
     void FillNodalConnectivitiesFromConditionBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType> &rConditionsIds);
+        std::unordered_set<SizeType>& rConditionsIds);
 
     void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
