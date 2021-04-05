@@ -764,8 +764,8 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
 }
 
 void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
-    ConnectivitiesContainerType &rNodalConnectivities,
-    std::unordered_set<SizeType> &rElementsIds)
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType>& rElementsIds)
 {
     KRATOS_TRY;
 
@@ -837,7 +837,7 @@ void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
 
 void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
     ConnectivitiesContainerType& rNodalConnectivities,
-    std::unordered_set<SizeType> &rConditionsIds)
+    std::unordered_set<SizeType>& rConditionsIds)
 {
     KRATOS_TRY;
 
