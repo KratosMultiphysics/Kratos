@@ -282,6 +282,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
             (*mpStream) << r_geometry[i_node].Id() << "\t";
         (*mpStream) << std::endl;
 
+        // TODO: Fix this just now!!!!
         auto it_geom_previous = it_geom_begin;
         auto it_geom_current = it_geom_begin;
 
