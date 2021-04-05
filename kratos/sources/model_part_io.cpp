@@ -911,9 +911,11 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
 
 void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                         PartitionIndicesType const& NodesPartitions,
+//                                         PartitionIndicesType const& GeometriesPartitions,
                                         PartitionIndicesType const& ElementsPartitions,
                                         PartitionIndicesType const& ConditionsPartitions,
                                         PartitionIndicesContainerType const& NodesAllPartitions,
+//                                         PartitionIndicesContainerType const& GeometriesAllPartitions,
                                         PartitionIndicesContainerType const& ElementsAllPartitions,
                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
@@ -954,6 +956,8 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
             DividePropertiesBlock(output_files);
         else if(word == "Nodes")
             DivideNodesBlock(output_files, NodesAllPartitions);
+//         else if(word == "Geometries")
+//             DivideGeometriesBlock(output_files, GeometriesAllPartitions);
         else if(word == "Elements")
             DivideElementsBlock(output_files, ElementsAllPartitions);
         else if(word == "Conditions")
@@ -985,9 +989,11 @@ void ModelPartIO::DivideInputToPartitions(
     Kratos::shared_ptr<std::iostream> * Streams,
     SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
     PartitionIndicesType const& NodesPartitions,
+//     PartitionIndicesType const& GeometriesPartitions,
     PartitionIndicesType const& ElementsPartitions,
     PartitionIndicesType const& ConditionsPartitions,
     PartitionIndicesContainerType const& NodesAllPartitions,
+//     PartitionIndicesContainerType const& GeometriesAllPartitions,
     PartitionIndicesContainerType const& ElementsAllPartitions,
     PartitionIndicesContainerType const& ConditionsAllPartitions) {
 
@@ -1015,6 +1021,8 @@ void ModelPartIO::DivideInputToPartitions(
             DividePropertiesBlock(output_files);
         else if(word == "Nodes")
             DivideNodesBlock(output_files, NodesAllPartitions);
+//         else if(word == "Geometries")
+//             DivideElementsBlock(output_files, GeometriesAllPartitions);
         else if(word == "Elements")
             DivideElementsBlock(output_files, ElementsAllPartitions);
         else if(word == "Conditions")

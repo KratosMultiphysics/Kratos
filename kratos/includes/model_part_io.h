@@ -309,9 +309,11 @@ public:
     void DivideInputToPartitions(SizeType NumberOfPartitions,
                                 GraphType const& rDomainsColoredGraph,
                                 PartitionIndicesType const& rNodesPartitions,
+//                                 PartitionIndicesType const& rGeometriessPartitions,
                                 PartitionIndicesType const& rElementsPartitions,
                                 PartitionIndicesType const& rConditionsPartitions,
                                 PartitionIndicesContainerType const& rNodesAllPartitions,
+//                                 PartitionIndicesContainerType const& rGeometriessAllPartitions,
                                 PartitionIndicesContainerType const& rElementsAllPartitions,
                                 PartitionIndicesContainerType const& rConditionsAllPartitions
                                 ) override;
@@ -332,9 +334,11 @@ public:
                                 SizeType NumberOfPartitions,
                                 GraphType const& rDomainsColoredGraph,
                                 PartitionIndicesType const& rNodesPartitions,
+//                                 PartitionIndicesType const& rGeometriesPartitions,
                                 PartitionIndicesType const& rElementsPartitions,
                                 PartitionIndicesType const& rConditionsPartitions,
                                 PartitionIndicesContainerType const& rNodesAllPartitions,
+//                                 PartitionIndicesContainerType const& rGeometriesAllPartitions,
                                 PartitionIndicesContainerType const& rElementsAllPartitions,
                                 PartitionIndicesContainerType const& rConditionsAllPartitions
                                 ) override;
