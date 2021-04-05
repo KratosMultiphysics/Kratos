@@ -519,8 +519,6 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
 void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 {
     KRATOS_ERROR << "ModelPartIO does not implement this method." << std::endl;
