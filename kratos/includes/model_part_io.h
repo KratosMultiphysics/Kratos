@@ -257,8 +257,6 @@ public:
      */
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
     /**
      * @brief This method reads the mesh
      * @param rThisMesh The mesh to be read
