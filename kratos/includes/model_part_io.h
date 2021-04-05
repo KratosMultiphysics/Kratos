@@ -490,6 +490,10 @@ private:
 
     void ReadPropertiesBlock(PropertiesContainerType& rThisProperties);
 
+    void ReadGeometriesBlock(ModelPart& rModelPart);
+
+    void ReadGeometriesBlock(NodesContainerType& rThisNodes, GeometryContainerType& rThisGeometries);
+
     void ReadElementsBlock(ModelPart& rModelPart);
 
     void ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements);
