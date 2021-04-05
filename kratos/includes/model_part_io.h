@@ -555,6 +555,10 @@ private:
 
     void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    void FillNodalConnectivitiesFromGeometryBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType>& rGeometriesIds);
+
     void FillNodalConnectivitiesFromElementBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
         std::unordered_set<SizeType>& rElementsIds);
