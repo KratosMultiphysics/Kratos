@@ -282,15 +282,13 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
             (*mpStream) << r_geometry[i_node].Id() << "\t";
         (*mpStream) << std::endl;
 
-        // TODO: Fix this just now!!!!
+        // Iterators
         auto it_geom_previous = it_geom_begin;
         auto it_geom_current = it_geom_begin;
+        ++it_geom_current;
 
         // Now we iterate over all the geometries
         for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
-//             auto it_geom_previous = it_geom_begin + i - 1;
-//             auto it_geom_current = it_geom_begin + i;
-
             if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
                 r_geometry = *(it_geom_current.base()->second);
@@ -309,6 +307,9 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
                     (*mpStream) << r_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;
             }
+
+            ++it_geom_previous;
+            ++it_geom_current;
         }
 
         (*mpStream) << "End Geometries" << std::endl << std::endl;
