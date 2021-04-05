@@ -5081,6 +5081,13 @@ ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
     return NodeId;
 }
 
+ModelPartIO::SizeType ModelPartIO::ReorderedGeometryId(ModelPartIO::SizeType GeometryId)
+{
+    // The ModelPartIO does not reorder the geometries
+    // This method is the one to be overriden by some reordering IO class
+    return GeometryId;
+}
+
 ModelPartIO::SizeType ModelPartIO::ReorderedElementId(ModelPartIO::SizeType ElementId)
 {
     // The ModelPartIO does not reorder the elements

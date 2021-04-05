@@ -412,6 +412,7 @@ protected:
     ///@{
 
   	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
+  	virtual ModelPartIO::SizeType ReorderedGeometryId(ModelPartIO::SizeType GeometryId);
   	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
   	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
 
