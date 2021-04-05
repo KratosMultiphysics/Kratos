@@ -18,8 +18,6 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
-      MKLVARS_ARCHITECTURE: intel64
-      MKLVARS_INTERFACE: lp64
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
@@ -30,7 +28,6 @@ jobs:
         CCACHE_COMPRESS: true
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
-        FC: gfortran-7
 
     steps:
     - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
@@ -48,6 +45,7 @@ jobs:
         restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
 
     - name: Build
+      shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
@@ -55,8 +53,8 @@ jobs:
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-std=c++11 -Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=clang-9
-          export CXX=clang++-9
+          export CC=/usr/bin/clang
+          export CXX=/usr/bin/clang++
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           if [ ${{ matrix.build-type }} = FullDebug ]; then
             export KRATOS_CMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++17"
@@ -68,59 +66,66 @@ jobs:
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
 
     - name: Running small tests
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
+      shell: bash
       timeout-minutes : 10
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (3 Cores)
+      shell: bash
       timeout-minutes : 10
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
+      shell: bash
       timeout-minutes : 10
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
 
     - name: Running Python MPI tests (3 Cores)
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3 -f--oversubscribe
 
     - name: Running Python MPI tests (4 Cores)
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4 -f--oversubscribe
@@ -143,10 +148,18 @@ jobs:
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
 
+    - name: Download boost
+      run: |
+        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+
     - name: Installing dependencies
       shell: cmd
       run: |
         pip install numpy
+        pip install h5py
 
     - name: Build
       shell: cmd
@@ -170,8 +183,6 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
       options: --user 1001
-      env:
-        FC: gfortran-7
 
     steps:
     - uses: rokroskar/workflow-run-cleanup-action@v0.2.2

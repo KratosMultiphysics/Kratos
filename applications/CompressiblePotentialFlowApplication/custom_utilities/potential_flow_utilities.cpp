@@ -948,6 +948,16 @@ void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCand
         }
     }
 }
+
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer)
+{
+    double area = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+        return rEntity.GetGeometry().Area();
+    });
+
+    return area;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -1045,5 +1055,7 @@ template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeCo
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
+template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 } // namespace PotentialFlow
 } // namespace Kratos

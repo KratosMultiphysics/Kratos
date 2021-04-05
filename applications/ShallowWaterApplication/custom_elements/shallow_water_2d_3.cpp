@@ -134,6 +134,10 @@ void ShallowWater2D3::GetSecondDerivativesVector(Vector& rValues, int Step) cons
     KRATOS_ERROR << "ShallowWater2D3: This method is not supported by the formulation" << std::endl;
 }
 
+void ShallowWater2D3::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+}
+
 void ShallowWater2D3::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -159,6 +163,9 @@ void ShallowWater2D3::CalculateLocalSystem(
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
 
     data.GetNodalData(GetGeometry(), DN_DX);
+
+    data.boundary_velocity = rCurrentProcessInfo[BOUNDARY_VELOCITY];
+    ComputeDampingCoefficient(data.damping, rCurrentProcessInfo[ABSORBING_DISTANCE], rCurrentProcessInfo[DISSIPATION]);
 
     data.pBottomFriction = Kratos::make_shared<ManningLaw>();
     data.pBottomFriction->Initialize(GetGeometry(), rCurrentProcessInfo);
@@ -279,6 +286,10 @@ void ShallowWater2D3::AddSourceTerms(
     rLHS += rData.gravity * rData.pBottomFriction->CalculateLHS(rData.height, rData.velocity) * flow_mass_matrix;
     rLHS -= rData.gravity * rData.pSurfaceFriction->CalculateLHS(ZeroVector(3), rData.wind) * flow_mass_matrix;
 
+    // Newtonian damper for the absorbing boundaries
+    rLHS += rData.damping * flow_mass_matrix;
+    rRHS += rData.damping * rData.height * prod(flow_mass_matrix, ToNodalVector(rData.boundary_velocity));
+
     // Rain and mesh acceleration
     const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i) {
@@ -309,8 +320,9 @@ void ShallowWater2D3::AddDesingularizationTerm(
     MatrixType& rLHS,
     const ElementData& rData)
 {
-    const double epsilon = rData.rel_dry_height * GetGeometry().Length();
-    const double factor = 1e3 * (1.0 - ShallowWaterUtilities().WetFraction(rData.height, epsilon));
+    const double length = GetGeometry().Length();
+    const double epsilon = rData.rel_dry_height * length;
+    const double factor = 1e3 * (1.0 - ShallowWaterUtilities().WetFraction(rData.height, epsilon)) / length;
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rLHS(block, block) += factor;
@@ -860,8 +872,9 @@ void ShallowWater2D3::AlgebraicResidual(
     const double c2 = rData.gravity * rData.height;
     const array_1d<double,3> friction = rData.gravity * rData.height * rData.pBottomFriction->CalculateRHS(rData.height, rData.velocity);
     const array_1d<double,3> flux = prod(rData.velocity, trans(rFlowGrad)) + vel_div * rData.flow_rate;
+    const array_1d<double,3> damping = rData.damping * (rData.flow_rate - rData.height * rData.boundary_velocity);
 
-    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad + topography_grad) + friction + rData.height * mesh_acc;
+    rFlowResidual = flow_acc + flux + c2 * (rHeightGrad + topography_grad) + friction + damping + rData.height * mesh_acc;
     rHeightresidual = height_acc + flow_div + rain;
 }
 
@@ -907,6 +920,54 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double wet_fraction = ShallowWaterUtilities().WetFraction(rData.height, rData.rel_dry_height * length);
 
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
+}
+
+void ShallowWater2D3::ComputeDampingCoefficient(
+    double& rDamping,
+    const double DistanceThreshold,
+    const double MaximumDamping)
+{
+    if (DistanceThreshold > 0.0) {
+        double distance = 0.0;
+        for (auto& r_node : GetGeometry()) {
+            distance += r_node.FastGetSolutionStepValue(DISTANCE);
+        }
+        distance /= GetGeometry().size();
+
+        if (distance < DistanceThreshold) {
+            const double pow_coeff = 3.0;
+            const double smooth_function = std::expm1(std::pow((DistanceThreshold - distance) / DistanceThreshold, pow_coeff)) / std::expm1(1.0);
+            rDamping = MaximumDamping * smooth_function;
+        } else {
+            rDamping = 0.0;
+        }
+    } else {
+        rDamping = 0.0;
+    }
+}
+
+array_1d<double,9> ShallowWater2D3::ToNodalVector(const array_1d<double,3>& rVector)
+{
+    array_1d<double,9> nodal_vector;
+    for (size_t i = 0; i < 3; ++i) {
+        const size_t i_block = 3 * i;
+        nodal_vector[i_block]     = rVector[0];
+        nodal_vector[i_block + 1] = rVector[1];
+        nodal_vector[i_block + 2] = 0.0;
+    }
+    return nodal_vector;
+}
+
+array_1d<double,9> ShallowWater2D3::ToNodalVector(const double& rScalar)
+{
+    array_1d<double,9> nodal_vector;
+    for (size_t i = 0; i < 3; ++i) {
+        const size_t i_block = 3 * i;
+        nodal_vector[i_block]     = 0.0;
+        nodal_vector[i_block + 1] = 0.0;
+        nodal_vector[i_block + 2] = rScalar;
+    }
+    return nodal_vector;
 }
 
 } // namespace kratos

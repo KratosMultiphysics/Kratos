@@ -100,7 +100,8 @@ class GenericConstitutiveLawIntegratorPlasticity
         ExponentialSoftening = 1,
         InitialHardeningExponentialSoftening = 2,
         PerfectPlasticity = 3,
-        CurveFittingHardening = 4
+        CurveFittingHardening = 4,
+        LinearExponentialSoftening = 5
     };
 
     ///@}
@@ -180,7 +181,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
             plastic_consistency_factor_increment = F * rPlasticDenominator;
-            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
+            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
@@ -197,7 +198,8 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
-        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity",iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+
     }
 
     /**
@@ -441,7 +443,7 @@ class GenericConstitutiveLawIntegratorPlasticity
                     CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
                         PlasticDissipation, TensileIndicatorFactor,
                         CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                        rValues);
+                        rValues, CharacteristicLength);
                     break;
 
                 case HardeningCurveType::InitialHardeningExponentialSoftening:
@@ -463,6 +465,13 @@ class GenericConstitutiveLawIntegratorPlasticity
                         PlasticDissipation, TensileIndicatorFactor,
                         CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
                         rValues, EquivalentPlasticStrain, CharacteristicLength);
+                    break;
+
+                case HardeningCurveType::LinearExponentialSoftening:
+                    CalculateEquivalentStressThresholdHardeningCurveLinearExponentialSoftening(
+                        PlasticDissipation, TensileIndicatorFactor,
+                        CompressionIndicatorFactor, eq_thresholds[i], slopes[i], CharacteristicLength,
+                        rValues);
                     break;
 
                 // Add more cases...
@@ -495,11 +504,19 @@ class GenericConstitutiveLawIntegratorPlasticity
         ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const bool has_plastic_dissipation_limit = r_material_properties.Has(PLASTIC_DISSIPATION_LIMIT_LINEAR_SOFTENING);
+        const double plastic_dissipation_limit = has_plastic_dissipation_limit ? r_material_properties[PLASTIC_DISSIPATION_LIMIT_LINEAR_SOFTENING] : 0.99;
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
-        rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation);
-        rSlope = -0.5 * (std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
+        if (PlasticDissipation <= plastic_dissipation_limit){ //Linear branch
+            rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation);
+            rSlope = -0.5 * (std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
+        } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
+            rEquivalentStressThreshold =  (initial_threshold / std::sqrt(1.0 - plastic_dissipation_limit)) * (1.0 - PlasticDissipation);
+            rSlope = - (initial_threshold / std::sqrt(1.0 - plastic_dissipation_limit));
+        }
     }
 
     /**
@@ -510,6 +527,7 @@ class GenericConstitutiveLawIntegratorPlasticity
      * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength Characteristic length of the finite element
      */
     static void CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
         const double PlasticDissipation,
@@ -517,14 +535,36 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double CompressionIndicatorFactor,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        ConstitutiveLaw::Parameters& rValues
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
+        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+        const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
+        const double fracture_energy_compression = r_material_properties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
+        const double characteristic_fracture_energy_compression = fracture_energy_compression / CharacteristicLength;
+
+        const double minimum_characteristic_fracture_energy_exponential_softening = (std::pow(yield_compression, 2)) / young_modulus;
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
-        rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-        rSlope = - initial_threshold;
+        if ( characteristic_fracture_energy_compression >= minimum_characteristic_fracture_energy_exponential_softening){ // Exponential softening
+        //     KRATOS_WATCH("ahora")
+            rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
+            rSlope = - initial_threshold;
+        } else { //Linear softening which is the one that requires minimum fracture energy
+            KRATOS_WATCH("here")
+            CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
+                PlasticDissipation, TensileIndicatorFactor,
+                CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope,
+                rValues);
+        }
     }
 
     /**
@@ -692,6 +732,48 @@ class GenericConstitutiveLawIntegratorPlasticity
             rSlope = 2.0 * beta2 * volumetric_fracture_energy * (1.0 / alpha2 - 1.0);
         }
 
+    }
+
+    /**
+     * @brief This method computes the uniaxial threshold using a linear-exponential softening, which changes from one to the other through the platic_dissipation_limit
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
+     * @param TensileIndicatorFactor The tensile indicator
+     * @param CompressionIndicatorFactor The compressive indicator
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rSlope The slope of the PlasticDiss-Threshold curve
+     * @param CharacteristicLength Characteristic length of the finite element
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentStressThresholdHardeningCurveLinearExponentialSoftening(
+        const double PlasticDissipation,
+        const double TensileIndicatorFactor,
+        const double CompressionIndicatorFactor,
+        double& rEquivalentStressThreshold,
+        double& rSlope,
+        const double CharacteristicLength,
+        ConstitutiveLaw::Parameters& rValues
+        )
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const bool has_plastic_dissipation_limit = r_material_properties.Has(PLASTIC_DISSIPATION_LIMIT_LINEAR_SOFTENING);
+
+        const double plastic_dissipation_limit = has_plastic_dissipation_limit ? r_material_properties[PLASTIC_DISSIPATION_LIMIT_LINEAR_SOFTENING] : 0.9;
+        const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
+        const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
+        double initial_threshold;
+        GetInitialUniaxialThreshold(rValues, initial_threshold);
+
+        const double volumetric_fracture_energy_linear_branch = 0.5 * volumetric_fracture_energy * (plastic_dissipation_limit + 1.0);
+
+        if (PlasticDissipation <= plastic_dissipation_limit){ //Linear branch
+            rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation * volumetric_fracture_energy / volumetric_fracture_energy_linear_branch);
+            rSlope = - 0.5 * initial_threshold * (volumetric_fracture_energy / volumetric_fracture_energy_linear_branch) * std::pow(1.0 - PlasticDissipation * volumetric_fracture_energy / volumetric_fracture_energy_linear_branch, -0.5);
+        } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
+            const double volumetric_fracture_energy_exponential_branch = volumetric_fracture_energy * (1.0 - plastic_dissipation_limit) * std::exp((plastic_dissipation_limit + 1.0) / (std::sqrt(1.0 - std::pow(plastic_dissipation_limit, 2.0))) - 1.0);
+            const double initial_threshold_exponential = initial_threshold * volumetric_fracture_energy_exponential_branch / volumetric_fracture_energy * std::sqrt(1.0 - plastic_dissipation_limit * volumetric_fracture_energy / volumetric_fracture_energy_linear_branch) / (1.0 - plastic_dissipation_limit);
+            rEquivalentStressThreshold =  initial_threshold_exponential * (1.0 - PlasticDissipation) * volumetric_fracture_energy / volumetric_fracture_energy_exponential_branch;
+            rSlope = - initial_threshold_exponential * volumetric_fracture_energy / volumetric_fracture_energy_exponential_branch;
+        }
     }
 
     /**
