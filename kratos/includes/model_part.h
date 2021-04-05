@@ -1375,7 +1375,7 @@ public:
         const std::string& rGeometryTypeName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-    
+
     /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
@@ -1398,7 +1398,7 @@ public:
         const std::vector<IndexType>& rGeometryNodeIds
         );
 
-    /** 
+    /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1410,7 +1410,7 @@ public:
         GeometryType::PointsArrayType pGeometryNodes
         );
 
-    /** 
+    /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1445,7 +1445,7 @@ public:
         const std::string& rGeometryIdentifierName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-    
+
         /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added. Must be registered.
