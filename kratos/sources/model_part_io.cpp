@@ -1788,7 +1788,6 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
             break;
 
         ExtractValue(word,id);
-        ReadWord(word);
         temp_geometry_nodes.clear();
         for(SizeType i = 0 ; i < number_of_nodes ; i++) {
             ReadWord(word); // Reading the node id;
@@ -1841,7 +1840,6 @@ void ModelPartIO::ReadGeometriesBlock(NodesContainerType& rThisNodes, GeometryCo
             break;
 
         ExtractValue(word,id);
-        ReadWord(word);
         temp_geometry_nodes.clear();
         for(SizeType i = 0 ; i < number_of_nodes ; i++) {
             ReadWord(word); // Reading the node id;
