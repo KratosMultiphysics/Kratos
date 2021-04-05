@@ -3910,6 +3910,76 @@ void ModelPartIO::DivideNodesBlock(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
+void ModelPartIO::DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
+                            PartitionIndicesContainerType const& GeometriesAllPartitions)
+{
+    KRATOS_TRY
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;;
+        return;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType number_of_nodes = r_clone_geometry.size();
+
+    WriteInAllFiles(OutputFiles, "Begin Geometries " +  geometry_name);
+
+    SizeType id;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        if(ReorderedGeometryId(id) > GeometriesAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid geometry id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;;
+        }
+
+        std::stringstream geometry_data;
+        geometry_data << '\n' << ReorderedGeometryId(id) << '\t'; // id
+        ReadWord(word); // Reading the properties id;
+        geometry_data << word << '\t'; // properties id
+
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+            ReadWord(word); // Reading the node id;
+            SizeType node_id;
+            ExtractValue(word, node_id);
+            geometry_data << ReorderedNodeId(node_id) << '\t'; // node id
+        }
+
+
+        for(SizeType i = 0 ; i < GeometriesAllPartitions[ReorderedGeometryId(id)-1].size() ; i++) {
+            SizeType partition_id = GeometriesAllPartitions[ReorderedGeometryId(id)-1][i];
+            if(partition_id > OutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid prtition id : " << partition_id;
+                buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;;
+            }
+
+            *(OutputFiles[partition_id]) << geometry_data.str();
+        }
+
+    }
+
+    WriteInAllFiles(OutputFiles, "\nEnd Geometries\n");
+
+    KRATOS_CATCH("")
+}
+
 void ModelPartIO::DivideElementsBlock(OutputFilesContainerType& OutputFiles,
                             PartitionIndicesContainerType const& ElementsAllPartitions)
 {

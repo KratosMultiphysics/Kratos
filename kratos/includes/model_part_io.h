@@ -615,6 +615,9 @@ private:
     void DivideNodesBlock(OutputFilesContainerType& OutputFiles,
                           PartitionIndicesContainerType const& NodesAllPartitions);
 
+    void DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
+                             PartitionIndicesContainerType const& GeometriesAllPartitions);
+
     void DivideElementsBlock(OutputFilesContainerType& OutputFiles,
                              PartitionIndicesContainerType const& ElementsAllPartitions);
 
