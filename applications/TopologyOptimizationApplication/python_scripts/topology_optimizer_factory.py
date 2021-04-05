@@ -203,7 +203,10 @@ class SIMPMethod:
 
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
-
+            
+            # Filter sensitivities
+            print("\n::[Filter Sensitivities]::")
+            self.filter_utils.ApplyFilter(self.config.filter_type , self.config.filter_kernel )
 
 
             # Update design variables ( densities )  --> new X by:
@@ -214,9 +217,7 @@ class SIMPMethod:
                                                                    opt_itr,
                                                                    self.config.q_max )
 
-            # Filter sensitivities
-            print("\n::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilter(self.config.filter_type , self.config.filter_kernel )
+
             
             # Print of results
             print("\n::[RESULTS]::")

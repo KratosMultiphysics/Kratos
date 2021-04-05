@@ -158,7 +158,6 @@ public:
 					case 0:
 					{
 						x_new = std::max(0.0, std::max(x_old - move, std::min(1.0, pow(std::min(x_old + move, x_old * sqrt(-dcdx/dvdx/lmid)),q))));
-					/* 	std::cout<< "Sensitivity: " << dvdx  << " Wert"<< std::endl; */
 						break;
 					}
 					// ACTIVE elements (solid elements)
