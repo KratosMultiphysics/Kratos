@@ -41,6 +41,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfNodes(), 6)
         self.assertEqual(model_part.NumberOfProperties(), 1)
+        self.assertEqual(model_part.NumberOfGeometries(), 4)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
 
