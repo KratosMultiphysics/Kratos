@@ -342,7 +342,11 @@ public:
     ///@name IsInside
     ///@{
 
-    /// returns if rPointLocalCoordinates[0] is inside -> 1 or outside -> 0
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
     int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
