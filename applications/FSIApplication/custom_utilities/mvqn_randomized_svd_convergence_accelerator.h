@@ -160,8 +160,18 @@ public:
 
         KRATOS_WATCH(Q.size1())
         KRATOS_WATCH(Q.size2())
-        auto q_qtrans_check = prod(trans(Q), Q);
-        KRATOS_WATCH(q_qtrans_check)
+        auto q_qtrans_check = prod(Q, trans(Q));
+        // auto q_qtrans_check = prod(trans(Q), Q);
+        // KRATOS_WATCH(q_qtrans_check)
+        double identity_error = 0.0;
+        for (SizeType i = 0; i < q_qtrans_check.size1(); ++i) {
+            for (SizeType j = 0; j < q_qtrans_check.size2(); ++j) {
+                const double ref = i == j ? 1.0 : 0.0;
+                identity_error += std::pow(q_qtrans_check(i,j)-ref, 2);
+            }
+        }
+        KRATOS_WATCH(std::sqrt(identity_error))
+
 
         MatrixType phi;
         MultiplyTransposeLeft(aux_M, Q, phi);
@@ -380,7 +390,7 @@ private:
     // unsigned int mProblemSize = 0;                                  // Residual to minimize size
     // unsigned int mConvergenceAcceleratorIteration = 0;              // Convergence accelerator iteration counter
     // bool mJacobiansAreInitialized = false;                          // Indicates that the Jacobian matrices have been already initialized
-    SizeType mNumberOfModes = 20; //TODO: EXPOSE THIS TO THE USER (CREATE A DEFAULTS SETTINGS METHOD IN BASE CLASS)
+    SizeType mNumberOfModes = 100; //TODO: EXPOSE THIS TO THE USER (CREATE A DEFAULTS SETTINGS METHOD IN BASE CLASS)
     bool mRandomValuesAreInitialized = false;                       // Indicates if the random values for the truncated SVD have been already set
     // bool mConvergenceAcceleratorFirstCorrectionPerformed = false;   // Indicates that the initial fixed point iteration has been already performed
 
@@ -486,6 +496,8 @@ private:
 
         if (mpOldJacQU == nullptr && mpOldJacSigmaV == nullptr) {
             if (!BaseType::IsUsedInBlockNewtonEquations()) {
+                KRATOS_WATCH("Old Jacobian initialized as minus identity!")
+                // Old Jacobian initialized to minus the identity matrix
                 MatrixType V_M_omega = prod(r_V, M_omega);
                 for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
                     for (SizeType j = 0; j < rSolution.size2(); ++j) {
@@ -493,6 +505,7 @@ private:
                     }
                 }
             } else {
+                // Old Jacobian initalized to zero
                 for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
                     for (SizeType j = 0; j < rSolution.size2(); ++j) {
                         rSolution(i,j) -= rRightMatrix(i,j);
@@ -511,7 +524,7 @@ private:
             MatrixType A_B_V_M_omega = prod(*mpOldJacQU, B_V_M_omega);
             for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
                 for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) += A_B_omega(i,j) - V_M_omega(i,j) + A_B_V_M_omega(i,j);
+                    rSolution(i,j) += A_B_omega(i,j) - V_M_omega(i,j) - A_B_V_M_omega(i,j);
                 }
             }
         }
@@ -539,17 +552,19 @@ private:
 
         if (mpOldJacQU == nullptr && mpOldJacSigmaV == nullptr) {
             if (!BaseType::IsUsedInBlockNewtonEquations()) {
+                // Old Jacobian initialized to minus the identity matrix
                 MatrixType Qtrans_V = prod(Qtrans, r_V);
                 MatrixType Qtrans_V_M = prod(Qtrans_V, rAuxM);
                 for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
                     for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += Qtrans_V_M(i,j) - 2.0*rLeftMatrix(j,i);
+                        rSolution(i,j) += Qtrans_V_M(i,j) - 2.0*Qtrans(i,j);
                     }
                 }
             } else {
+                // Old Jacobian initialized to zero
                 for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
                     for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) -= rLeftMatrix(j,i);
+                        rSolution(i,j) -= Qtrans(i,j);
                     }
                 }
             }
