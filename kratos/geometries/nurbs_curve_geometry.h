@@ -347,8 +347,14 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* Returns if rPointLocalCoordinates[0] is inside -> 1 or outside -> 0
-     * and sets it to the closest border */
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection: 
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
+     *         outside -> 0
+     */
     int ClosestPointLocalSpace(
         CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
