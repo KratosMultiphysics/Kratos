@@ -561,6 +561,8 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             ReadPropertiesBlock(rThisModelPart.rProperties());
         } else if(word == "Nodes") {
             ReadNodesBlock(rThisModelPart);
+        } else if(word == "Geometries") {
+            ReadGeometriesBlock(rThisModelPart);
         } else if(word == "Elements") {
             ReadElementsBlock(rThisModelPart);
         } else if(word == "Conditions") {
@@ -653,11 +655,11 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
-        }
-        else if (word == "Elements") {
+        } else if (word == "Geometries") {
+            FillNodalConnectivitiesFromGeometryBlock(rAuxConnectivities);
+        } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
-        }
-        else if (word == "Conditions") {
+        } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
         }
         else {
@@ -726,14 +728,13 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
-        }
-        else if (word == "Elements") {
+        } else if (word == "Geometries") {
+            FillNodalConnectivitiesFromGeometryBlockInList(rAuxConnectivities, rElementsIds);
+        } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
-        }
-        else if (word == "Conditions") {
+        } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
-        }
-        else {
+        } else {
             SkipBlock(word);
         }
     }
