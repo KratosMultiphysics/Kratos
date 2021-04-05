@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:    
+//  Main author:
 //
 
 #if !defined(KRATOS_COMPARE_ELEMENTS_AND_CONDITIONS_UTILITY_H_INCLUDED)
@@ -38,6 +38,25 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    static void GetRegisteredName(const Geometry<Node<3>>& rGeometry, std::string& rName) {
+        KRATOS_TRY;
+
+        for(auto const& component: KratosComponents<Geometry<Node<3>>>::GetComponents()) {
+            if (Geometry<Node<3>>::IsSame(*(component.second), rGeometry)) {
+                rName = component.first;
+                return;
+            }
+        }
+
+        KRATOS_ERROR << "Geometry \"" << typeid(rGeometry).name() << "\" not found!" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    static void GetRegisteredName(const Geometry<Node<3>>* pGeometry, std::string& rName) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*pGeometry, rName);
+    }
 
     static void GetRegisteredName(const Element& rElement, std::string& rName) {
         KRATOS_TRY;
