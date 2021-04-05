@@ -607,7 +607,7 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
+void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
 
@@ -623,6 +623,7 @@ void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     if (mOptions.IsNot(IO::MESH_ONLY))
         WriteTableBlock(rThisModelPart.Tables());
     WriteMesh(rThisModelPart.GetMesh());
+    WriteGeometries(rThisModelPart.Geometries());
     if (mOptions.IsNot(IO::MESH_ONLY)) {
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteDataBlock(rThisModelPart.Elements(), "Element");
