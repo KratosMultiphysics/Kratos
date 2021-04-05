@@ -543,6 +543,7 @@ private:
     template<class TVariableType, class TDataType>
     void ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy);
 
+    SizeType ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
     SizeType ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 

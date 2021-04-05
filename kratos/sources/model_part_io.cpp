@@ -2714,6 +2714,62 @@ void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& 
     KRATOS_CATCH("")
 }
 
+ModelPartIO::SizeType ModelPartIO::ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    SizeType node_id;
+    SizeType number_of_connectivities = 0;
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+        return number_of_connectivities;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType number_of_nodes = r_clone_geometry.size();
+    ConnectivitiesContainerType::value_type temp_geometry_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back(ReorderedNodeId(node_id));
+        }
+        const int index = ReorderedGeometryId(id) - 1;
+        const int size = rThisConnectivities.size();
+        if(index == size) { // I do push back instead of resizing to size+1
+            rThisConnectivities.push_back(temp_geometry_nodes);
+        } else if(index < size) {
+            rThisConnectivities[index]= temp_geometry_nodes;
+        } else {
+            rThisConnectivities.resize(index+1);
+            rThisConnectivities[index]= temp_geometry_nodes;
+
+        }
+        number_of_connectivities++;
+    }
+    return number_of_connectivities;
+
+    KRATOS_CATCH("")
+}
+
 ModelPartIO::SizeType ModelPartIO::ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
 {
     KRATOS_TRY
