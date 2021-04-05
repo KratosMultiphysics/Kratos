@@ -157,6 +157,39 @@ public:
     void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
     /**
+     * @brief This method reads one geometry
+     * @param rThisNodes The nodes constituying the geometry
+     * @param pThisGeometries The pointer to the geometry
+     */
+    void ReadGeometry(
+        NodesContainerType& rThisNodes,
+        GeometryType::Pointer& pThisGeometry
+        ) override;
+
+    /**
+     * @brief This method reads an array of geometries
+     * @param rThisNodes The nodes constituying the geometry
+     * @param rThisGeometry The array of geometries
+     */
+    void ReadGeometries(
+        NodesContainerType& rThisNodes,
+        GeometryContainerType& rThisGeometries
+        ) override;
+
+    /**
+     * @brief This method reads the geometries connectivities
+     * @param rGeometriesConnectivities The geometries connectivities
+     * @return The number of geometries
+     */
+    std::size_t ReadGeometriesConnectivities(ConnectivitiesContainerType& rGeometriesConnectivities) override;
+
+    /**
+     * @brief This method writes an array of geometries
+     * @param rThisGeometries The array of geometries to be written
+     */
+    void WriteGeometries(GeometryContainerType const& rThisGeometries) override;
+
+    /**
      * @brief This method reads one element
      * @param rThisNodes The nodes constituying the element
      * @param rThisProperties The Properties of the element

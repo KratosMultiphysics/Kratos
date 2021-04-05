@@ -217,6 +217,103 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
     }
 }
 
+void ModelPartIO::ReadGeometry(NodesContainerType& rThisNodes, GeometryType::Pointer& pThisGeometries)
+{
+    KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
+}
+
+void ModelPartIO::ReadGeometries(NodesContainerType& rThisNodes, GeometryContainerType& rThisGeometries)
+{
+    KRATOS_TRY
+    ResetInput();
+    std::string word;
+    while(true)
+    {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "Geometries")
+            ReadGeometriesBlock(rThisNodes,rThisGeometries);
+        else
+            SkipBlock(word);
+    }
+    KRATOS_CATCH("")
+}
+
+std::size_t  ModelPartIO::ReadGeometriesConnectivities(ConnectivitiesContainerType& rGeometriesConnectivities)
+{
+    KRATOS_TRY
+    std::size_t number_of_geometries = 0;
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "Geometries")
+            number_of_geometries += ReadGeometriesConnectivitiesBlock(rGeometriesConnectivities);
+        else
+            SkipBlock(word);
+    }
+    return number_of_geometries;
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
+{
+    // We are going to procede like the following, we are going to iterate over all the geometries and compare with the components, we will save the type and we will compare until we get that the type of geometry has changed
+    if (rThisGeometries.NumberOfGeometries() > 0) {
+        std::string geometry_name;
+
+        auto it_geometry = rThisGeometries.GeometriesBegin();
+        auto geometries_components = KratosComponents<GeometryType>::GetComponents();
+
+        // Fisrt we do the first geometry
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_geometry, geometry_name);
+
+        (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
+        const auto it_geom_begin = rThisGeometries.Geometries().begin();
+        (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
+        auto& r_geometry = *(it_geom_begin.base()->second);
+        for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
+            (*mpStream) << r_geometry[i_node].Id() << "\t";
+        (*mpStream) << std::endl;
+
+        auto it_geom_previous = it_geom_begin;
+        auto it_geom_current = it_geom_begin;
+
+        // Now we iterate over all the geometries
+        for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
+//             auto it_geom_previous = it_geom_begin + i - 1;
+//             auto it_geom_current = it_geom_begin + i;
+
+            if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
+                (*mpStream) << "\t" << it_geom_current->Id() << "\t";
+                r_geometry = *(it_geom_current.base()->second);
+                for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
+                    (*mpStream) << r_geometry[i_node].Id() << "\t";
+                (*mpStream) << std::endl;
+            } else {
+                (*mpStream) << "End Geometries" << std::endl << std::endl;;
+
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_geom_current, geometry_name);
+
+                (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
+                (*mpStream) << "\t" << it_geom_current->Id() << "\t";
+                r_geometry = *(it_geom_current.base()->second);
+                for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
+                    (*mpStream) << r_geometry[i_node].Id() << "\t";
+                (*mpStream) << std::endl;
+            }
+        }
+
+        (*mpStream) << "End Geometries" << std::endl << std::endl;
+    }
+}
+
 void ModelPartIO::ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements)
 {
     KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
