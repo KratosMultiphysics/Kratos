@@ -1461,6 +1461,48 @@ public:
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
+    /** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+     */
+    void AddGeometries(std::vector<IndexType> const& GeometryIds);
+
+    /** Inserts a list of pointers to nodes
+     */
+    template<class TIteratorType >
+    void AddGeometries(TIteratorType geometries_begin,  TIteratorType geometries_end)
+    {
+        KRATOS_TRY
+        ModelPart::GeometryContainerType  aux;
+        ModelPart::GeometryContainerType  aux_root;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = geometries_begin; it!=geometries_end; it++) {
+            auto it_found = root_model_part->Geometries().find(it->Id());
+            if(it_found == root_model_part->GeometriesEnd()) { // Node does not exist in the top model part
+                aux_root.AddGeometry(it.base()->second);
+                aux.AddGeometry(it.base()->second);
+            } else { // If it does exist verify it is the same node
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new geometry with Id :" << it_found->Id() << ", unfortunately a (different) geometry with the same Id already exists" << std::endl;
+                else
+                    aux.AddGeometry(it.base()->second);
+            }
+        }
+
+        for(auto it = aux_root.GeometriesBegin(); it!=aux_root.GeometriesEnd(); it++)
+            root_model_part->AddGeometry( it.base()->second );
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = this;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto it = aux.GeometriesBegin(); it!=aux.GeometriesEnd(); it++)
+                p_current_part->AddGeometry( it.base()->second );
+
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /// Returns the Geometry::Pointer corresponding to the Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
         return mGeometries.pGetGeometry(GeometryId);
