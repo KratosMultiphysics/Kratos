@@ -13,9 +13,9 @@
 #include <utility>
 #include <iostream>
 #include <random>
-#include <span/span.hpp>
 
 // External includes
+#include <span/span.hpp>
 
 // Project includes
 #include "testing/testing.h"
@@ -27,8 +27,6 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
-
-
 
 namespace Kratos {
 namespace Testing {
