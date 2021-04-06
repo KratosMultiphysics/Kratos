@@ -237,10 +237,11 @@ public:
         return SearchNearestInRadius(ThePoint, max_radius);
     }
 
-    /** This method takes a point and finds the object it is inside.
-     * If it finds an object inside, it returns it.
-     * If there are no objects in that radius the result will be set to not found.
+    /** This method takes a point and search if it's inside an geometrical object of the domain.
+     * If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
      * Result contains a flag is the object has been found or not. 
+     * This method is a simplified and faster method of SearchNearest.
     */
      template<typename TPointType>
     ResultType SearchIsInside(TPointType const& ThePoint) {
