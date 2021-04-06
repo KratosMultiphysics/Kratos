@@ -16,11 +16,15 @@
 #if !defined(KRATOS_CSR_CONVERSION_UTILITIES_H_INCLUDED)
 #define  KRATOS_CSR_CONVERSION_UTILITIES_H_INCLUDED
 
-#include "containers/csr_matrix.h"
+// System includes
 
+// External includes
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <span/span.hpp>
+
+// Project includes
+#include "containers/csr_matrix.h"
 
 namespace Kratos
 {
