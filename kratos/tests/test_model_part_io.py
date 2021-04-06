@@ -276,18 +276,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part_io.WriteModelPart(model_part)
 
         import filecmp
-        file1 = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write_mesh_only.mdpa")
-        file2 = GetFilePath("test_model_part_io_write_mesh_only.out.mdpa")
-        value = filecmp.cmp(file1, file2)
-        # Debug
-        if not value:
-          import difflib
-          text1 = open(file1).readlines()
-          text2 = open(file2).readlines()
-
-          for line in difflib.unified_diff(text1, text2):
-              print(line)
-
+        value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
         self.assertEqual(value, True)
 
     @KratosUnittest.expectedFailure
