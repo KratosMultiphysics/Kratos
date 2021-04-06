@@ -266,16 +266,21 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 {
     // We are going to procede like the following, we are going to iterate over all the geometries and compare with the components, we will save the type and we will compare until we get that the type of geometry has changed
     if (rThisGeometries.NumberOfGeometries() > 0) {
+        // Reorder to ensure ordered list
+        auto copy_geometries = rThisGeometries.Geometries();
+        copy_geometries.sort();
+
+        // Auxiliar name
         std::string geometry_name;
 
-        auto it_geometry = rThisGeometries.GeometriesBegin();
+        auto it_geometry = copy_geometries.begin();
         auto geometries_components = KratosComponents<GeometryType>::GetComponents();
 
         // Fisrt we do the first geometry
         CompareElementsAndConditionsUtility::GetRegisteredName(*it_geometry, geometry_name);
 
         (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
-        const auto it_geom_begin = rThisGeometries.Geometries().begin();
+        const auto it_geom_begin = copy_geometries.begin();
         (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
         auto& r_geometry = *(it_geom_begin.base()->second);
         for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
@@ -288,7 +293,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         ++it_geom_current;
 
         // Now we iterate over all the geometries
-        for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
+        for(std::size_t i = 1; i < copy_geometries.size(); i++) {
             if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
                 r_geometry = *(it_geom_current.base()->second);
