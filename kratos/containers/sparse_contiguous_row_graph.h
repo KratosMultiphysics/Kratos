@@ -16,19 +16,18 @@
 
 // System includes
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
+
+// External includes
 #include <span/span.hpp>
+
+// Project includes
+#include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/lock_object.h"
 #include "utilities/parallel_utilities.h"
-
-// External includes
-#include <unordered_map>
-#include <unordered_set>
-
-// Project includes
-#include "includes/define.h"
-
 
 namespace Kratos
 {

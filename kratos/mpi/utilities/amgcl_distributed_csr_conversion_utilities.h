@@ -16,13 +16,19 @@
 #if !defined(KRATOS_DISTRIBUTED_CSR_CONVERSION_UTILITIES_H_INCLUDED)
 #define  KRATOS_DISTRIBUTED_CSR_CONVERSION_UTILITIES_H_INCLUDED
 
-#include "containers/distributed_csr_matrix.h"
+// System includes
+
+// External includes
 #include "amgcl/backend/builtin.hpp"
 #include "amgcl/backend/interface.hpp"
 #include "amgcl/mpi/distributed_matrix.hpp"
 #include "amgcl/adapter/zero_copy.hpp"
+
+// Project includes
+#include "containers/distributed_csr_matrix.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
 #include "mpi/includes/mpi_data_communicator.h"
+
 namespace Kratos
 {
 
