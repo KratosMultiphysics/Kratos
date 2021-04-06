@@ -295,12 +295,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
             raise Exception("a segmentation fault is issued!!")
             self.fail("a segmentation fault is issued!!")
 
-    #def test_model_part_io_properties_block(self):
-    #    model_part= current_model.CreateModelPart("Main")
-    #    model_part_io = ModelPartIO("test_model_part_io")
-    #    model_part_io.ReadProperties(model_part.Properties)
-
-
 class TestModelPartIOMPI(KratosUnittest.TestCase):
     def test_model_part_io_read_entity_data(self):
         # testing if the assignment of entity data works correctly in serial and MPI
