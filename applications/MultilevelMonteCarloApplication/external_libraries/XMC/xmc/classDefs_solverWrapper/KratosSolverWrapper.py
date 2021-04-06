@@ -17,7 +17,7 @@ import xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.utilities as m
 from xmc.tools import dynamicImport
 
 # Import distributed environment
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 class KratosSolverWrapper(sw.SolverWrapper):
     """

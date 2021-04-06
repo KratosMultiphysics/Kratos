@@ -1,7 +1,7 @@
 import numpy as np
 from xmc.tools import normalInverseCDF
 
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 #TODO - think of potentially better name
 def errorEstimationStatError(cdfValue, globalEstimations):

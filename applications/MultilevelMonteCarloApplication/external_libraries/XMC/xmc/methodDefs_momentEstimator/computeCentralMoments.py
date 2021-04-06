@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 def centralMomentWrapper(dimension,order,*args):
     if dimension==0:

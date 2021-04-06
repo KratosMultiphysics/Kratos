@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 def updatePowerSumsOrder2Dimension0(samples, power_sum_1, power_sum_2):
     if isinstance(samples,tuple):

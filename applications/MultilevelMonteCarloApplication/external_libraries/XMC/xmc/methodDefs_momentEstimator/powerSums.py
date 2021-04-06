@@ -1,6 +1,6 @@
 import warnings
 import numpy as np
-from xmc.distributedEnvironmentFramework import (
+from exaqute import (
     task,
     Type,
     Depth,

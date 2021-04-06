@@ -10,7 +10,7 @@ from collections import defaultdict
 from itertools import chain
 import warnings
 
-from xmc.distributedEnvironmentFramework import delete_object, get_value_from_remote
+from exaqute import delete_object, get_value_from_remote
 
 
 class MonteCarloSampler:

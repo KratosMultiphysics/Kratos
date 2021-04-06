@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 def updatePowerSumsOrder1Dimension0():
     pass

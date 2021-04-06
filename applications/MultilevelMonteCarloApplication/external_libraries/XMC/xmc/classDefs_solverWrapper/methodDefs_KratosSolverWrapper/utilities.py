@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 # Import distributed environment
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 
 ####################################################################################################

@@ -4,7 +4,7 @@ from functools import reduce
 from math import sqrt, log, factorial
 from collections.abc import Iterable
 
-from xmc.distributedEnvironmentFramework import *
+from exaqute import task
 
 
 def dynamicImport(fullName):

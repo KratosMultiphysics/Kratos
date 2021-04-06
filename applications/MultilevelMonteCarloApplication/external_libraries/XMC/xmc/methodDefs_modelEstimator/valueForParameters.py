@@ -1,6 +1,6 @@
 import numpy as np
 
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 def geometricModel(parameters,point):
     """

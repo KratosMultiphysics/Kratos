@@ -9,7 +9,7 @@ except:
 # Import Kratos, XMC, distributed environment
 import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 try:
     computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])

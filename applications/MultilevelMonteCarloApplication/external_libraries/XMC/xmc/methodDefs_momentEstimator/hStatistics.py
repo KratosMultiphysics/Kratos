@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import task
+from exaqute import task
 from .types import PowerSumsDict, HStatistics, ListIndex
 from numpy import ceil, log2
 

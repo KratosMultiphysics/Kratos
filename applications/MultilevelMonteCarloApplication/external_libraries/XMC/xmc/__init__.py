@@ -2,8 +2,6 @@ __version__ = "2.0.0-dev"
 # Alphabetical order
 # TODO add method and class definition modules
 
-from .distributedEnvironmentFramework import *
-
 from .bayesianEstimator import BayesianEstimator
 from .errorEstimator import ErrorEstimator
 from .estimationAssembler import EstimationAssembler

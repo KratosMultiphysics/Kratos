@@ -1,5 +1,5 @@
 from collections import Counter
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 @task(keep=True, global_estimators=INOUT,batch_estimators=IN,global_cost_estimator=INOUT,batch_cost_estimator=IN)
 def updateGlobalMomentEstimator_Task(global_estimators,batch_estimators,global_cost_estimator,batch_cost_estimator,batch):

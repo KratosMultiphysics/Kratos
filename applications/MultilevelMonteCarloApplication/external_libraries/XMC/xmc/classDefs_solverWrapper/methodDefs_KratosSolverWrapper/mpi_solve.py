@@ -10,7 +10,7 @@ except:
 # Import Kratos, XMC, distributed environment
 from KratosMultiphysics import IsDistributedRun, DataCommunicator
 from xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.solve import ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality,ExecuteInstanceReadingFromFileAux_Functionality,ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 try:
     computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
