@@ -386,7 +386,7 @@ namespace Kratos
                 noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) = prod(Temp2, BLAJ);
             }
             const auto& r_director = r_geometry[i].GetValue(DIRECTOR);
-            const double kgT = -inner_prod(r_director / norm_2(director)),
+            const double kgT = -inner_prod(r_director /norm_2(r_director),
                 prod(WI1, rActKin.a1) * S[3] +
                 prod(WI2, rActKin.a2) * S[4] +
                 prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2) * S[5] +
@@ -583,21 +583,22 @@ namespace Kratos
             auto& points = GetGeometry().GetGeometryParent(0).pGetGeometryPart(-1)->Points();
             for (auto& node : points)
             {
-                const double normt = node.GetValue(DIRECTORLENGTH);
-                array_1d<double, 3 > director = node.GetValue(DIRECTOR) / normt;
+                const auto& r_director = node.GetValue(DIRECTOR);
+                const double norm_t = norm_2(r_director);
+                array_1d<double, 3 > director_new = r_director / norm_2(r_director);
                 array_1d<double, 2 > inc2d;
-                inc2d[0] = node.FastGetSolutionStepValue(DIRECTORINC_X) / normt;
-                inc2d[1] = node.FastGetSolutionStepValue(DIRECTORINC_Y) / normt;
+                inc2d[0] = node.FastGetSolutionStepValue(DIRECTORINC_X) / norm_t;
+                inc2d[1] = node.FastGetSolutionStepValue(DIRECTORINC_Y) / norm_t;
 
                 const Matrix32d BLA = node.GetValue(DIRECTORTANGENTSPACE);
                 const array_1d<double, 3 > inc3d = prod(BLA, inc2d);
 
-                director = director + inc3d;
-                director *= normt / norm_2(director);
-                node.SetValue(DIRECTOR, director);
+                director_new += inc3d;
+                director_new *= norm_t / norm_2(director_new);
+                node.SetValue(DIRECTOR, director_new);
                 node.FastGetSolutionStepValue(DIRECTORINC_X) = 0.0;
                 node.FastGetSolutionStepValue(DIRECTORINC_Y) = 0.0;
-                node.SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director));
+                node.SetValue(DIRECTORTANGENTSPACE, TangentSpaceFromStereographicProjection(director_new));
             }
         }
     }
