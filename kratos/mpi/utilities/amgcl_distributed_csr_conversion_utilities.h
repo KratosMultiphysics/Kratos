@@ -19,10 +19,10 @@
 // System includes
 
 // External includes
-#include "amgcl/backend/builtin.hpp"
-#include "amgcl/backend/interface.hpp"
-#include "amgcl/mpi/distributed_matrix.hpp"
-#include "amgcl/adapter/zero_copy.hpp"
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/backend/interface.hpp>
+#include <amgcl/mpi/distributed_matrix.hpp>
+#include <amgcl/adapter/zero_copy.hpp>
 
 // Project includes
 #include "containers/distributed_csr_matrix.h"
