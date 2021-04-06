@@ -19,7 +19,7 @@ from xmc.momentEstimator import (
     MultiCombinedMomentEstimator,
 )
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
-from xmc.distributedEnvironmentFramework import (
+from exaqute import (
     task,
     get_value_from_remote,
     Type,
