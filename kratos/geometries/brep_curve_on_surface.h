@@ -344,7 +344,8 @@ public:
 
     /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
      *        is inside the local/parameter space.
-     * @return inside -> 1
+     * @return on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
      *         outside -> 0
      */
     int IsInsideLocalSpace(
