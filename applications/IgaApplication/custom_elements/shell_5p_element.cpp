@@ -172,7 +172,7 @@ namespace Kratos
         rKin.transShear[0] = inner_prod(t, a1);
         rKin.transShear[1] = inner_prod(t, a2);
 
-        const Matrix tdyadt = outer_prod(t, t);
+        const BoundedMatrix<double, 3, 3> tdyadt = outer_prod(t, t);
         rVar.P = IdentityMatrix(3) - tdyadt;
         rVar.P *= invL_t;
 
@@ -385,7 +385,8 @@ namespace Kratos
                 const Matrix23d Temp2 = prod(BLAI_T, Temp); //useless temp due to nonworking ublas prod(prod())
                 noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) = prod(Temp2, BLAJ);
             }
-            const double kgT = -inner_prod(r_geometry[i].GetValue(DIRECTOR)/r_geometry[i].GetValue(DIRECTORLENGTH),
+            const auto& r_director = r_geometry[i].GetValue(DIRECTOR);
+            const double kgT = -inner_prod(r_director / norm_2(director)),
                 prod(WI1, rActKin.a1) * S[3] +
                 prod(WI2, rActKin.a2) * S[4] +
                 prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2) * S[5] +
@@ -579,7 +580,7 @@ namespace Kratos
             compute_director = true;
         }
         if (compute_director) {
-auto& points = GetGeometry().GetGeometryParent(0).pGetGeometryPart(-1)->Points();
+            auto& points = GetGeometry().GetGeometryParent(0).pGetGeometryPart(-1)->Points();
             for (auto& node : points)
             {
                 const double normt = node.GetValue(DIRECTORLENGTH);

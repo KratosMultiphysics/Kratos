@@ -82,7 +82,6 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_control_points; ++i)
             {
                 r_geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
-                r_geometry[i].SetValue(DIRECTORLENGTH, norm_2(row(nodalDirectors, i)));
                 r_geometry[i].SetValue(DIRECTORTANGENTSPACE, Shell5pElement::TangentSpaceFromStereographicProjection(row(nodalDirectors, i)));
             }
             std::cout << "===============Test11.4===================" << std::endl;
