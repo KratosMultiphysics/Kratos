@@ -1,0 +1,66 @@
+import KratosMultiphysics as KM
+# import KratosMultiphysics.NeuralNetworkApplication as NeuralNetwork
+
+from tensorflow.keras import layers
+
+class NeuralNetworkLayer:
+    """This class generates a base class for a Neural Network layer
+
+    Public member variables:
+    settings -- Kratos parameters containing process settings.
+    """
+
+    def __init__(self,settings):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        settings -- Kratos parameters containing layer settings.
+        """
+
+        default_settings = KM.Parameters("""{
+            "layer_name"               : "",
+            "trainable"                : True,
+            "dtype"                    : "",
+            "dynamic"                  : False
+        }""")
+
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.layer_name = settings["layer_name"].GetString()
+        self.trainable = settings["trainable"].GetBool()
+        self.dtype = settings["dtype"].GetString()
+        self.dynamic = settings["dynamic"].GetBool()
+
+    def Build(self):
+        """ This method builds the layer
+
+            Keyword arguments:
+            self -- It signifies an instance of a class.
+        """
+        self.layer = layers.Layer(trainable = self.layer_name, name = self.trainable, dtype = self.dtype, dynamic = self.dynamic)
+        return self.layer
+
+    def GetWeights(self):
+        """ This method returns the weights of the layer
+
+            Keyword arguments:
+            self -- It signifies an instance of a class.
+        """
+        if hasattr(self, self.layer):
+            return self.layer.get_weights()
+        else:
+            raise Exception('The layer is not built yet!')
+
+    def SetWeights(self,weights):
+        """ This method sets the weights of the layer
+
+            Keyword arguments:
+            self -- It signifies an instance of a class.
+            weights -- It signifies the weights to set.
+        """
+        if hasattr(self, self.layer):
+            return self.layer.set_weights(weights)
+        else:
+            raise Exception('The layer is not built yet!')
+
