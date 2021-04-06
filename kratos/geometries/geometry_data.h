@@ -97,8 +97,8 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
-        Kratos_generic_family,
-        Kratos_Brep
+        Kratos_Brep,
+        Kratos_generic_family
     };
 
     enum KratosGeometryType
