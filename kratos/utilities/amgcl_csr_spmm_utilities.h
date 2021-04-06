@@ -45,7 +45,6 @@ public:
         const CsrMatrix<TDataType, TIndexType>& rB
         )
 	{
-        //bool move_to_backend=false;
         auto pAamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,IndexType>(rA);
         auto pBamgcl = AmgclCSRConversionUtilities::ConvertToAmgcl<TDataType,IndexType>(rB); 
 
