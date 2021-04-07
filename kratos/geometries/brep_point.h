@@ -76,11 +76,6 @@ public:
             << std::endl;
     }
 
-    explicit BrepPoint(const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints, &msGeometryData)
-    {
-    }
-
     /// Copy constructor.
     BrepPoint(BrepPoint const& rOther )
         : BaseType( rOther )
@@ -282,6 +277,16 @@ private:
     CoordinatesArrayType mLocalCoordinates;
 
     typename GeometryType::Pointer mpBackgroundGeometry;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor for serializer.
+    explicit BrepPoint(const PointsArrayType& ThisPoints)
+        : BaseType(ThisPoints, &msGeometryData)
+    {
+    }
 
     ///@}
     ///@name Serialization
