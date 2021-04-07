@@ -20,6 +20,13 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/element.h"
+#include "includes/variables.h"
+#include "includes/serializer.h"
+#include "includes/cfd_variables.h"
+#include "includes/convection_diffusion_settings.h"
+#include "utilities/geometry_utilities.h"
 #include "elements/levelset_convection_element_simplex.h"
 
 namespace Kratos
@@ -48,7 +55,7 @@ namespace Kratos
 /// Dirichlet boundary condition for rUnknownVar at velocity inlets/outles is essential to be set for this solver since it is based on the flux
 template< unsigned int TDim, unsigned int TNumNodes>
 class LevelSetConvectionElementSimplexAlgebraicStabilization
-    : public LevelSetConvectionElementSimplex
+    : public Element //LevelSetConvectionElementSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -114,10 +121,10 @@ public:
         const double dt_inv = 1.0 / delta_t;
         const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
-        auto auto p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        auto& rUnknownVar = auto p_conv_diff_settings->GetUnknownVariable();
-        auto& rConvVar = auto p_conv_diff_settings->GetConvectionVariable();
-        auto& rGradVar = auto p_conv_diff_settings->GetGradientVariable();
+        auto p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const auto& rUnknownVar = p_conv_diff_settings->GetUnknownVariable();
+        const auto& rConvVar = p_conv_diff_settings->GetConvectionVariable();
+        const auto& rGradVar = p_conv_diff_settings->GetGradientVariable();
 
         //getting data for the given geometry
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
@@ -235,6 +242,46 @@ public:
         KRATOS_CATCH("Error in Levelset Element")
     }
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
+    }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        KRATOS_TRY
+
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+        if (rResult.size() != TNumNodes)
+            rResult.resize(TNumNodes, false);
+
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
+        }
+        KRATOS_CATCH("")
+
+    }
+
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        KRATOS_TRY
+
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+        if (ElementalDofList.size() != TNumNodes)
+            ElementalDofList.resize(TNumNodes);
+
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
+
+        }
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Access
@@ -257,8 +304,12 @@ public:
         return "LevelSetConvectionElementSimplexAlgebraicStabilization #";
     }
 
-    /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info() << Id();
+    }
 
 
     ///@}
