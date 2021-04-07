@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//
+//                    
 //
 
 
@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 /// PointerHashMapSet is a hash implemenetation of the PointerVectorSet.
-/** This container is like a set but is built over a hash map in order
+/** This container is like a set but is built over a hash map in order 
 	to allow the key to be a part of the value. It is important to mention
 	that the value is not constant and if the key inside the value changed
 	outside results in inconsistence condition.
@@ -347,35 +347,7 @@ public:
         return mData.capacity();
     }
 
-    void sort()
-    {
-        // Copy data
-        auto copy_data = mData;
-
-        // Generate list
-        std::vector<key_type> index_list(mData.size());
-        std::size_t counter = 0;
-        for(auto& r_map : mData) {
-            index_list[counter] = r_map.first;
-            ++counter;
-        }
-        // Sort list
-        std::sort(index_list.begin(), index_list.end());
-
-        for(auto& r_map : mData) KRATOS_WATCH(r_map.first);
-
-        // Empty data
-        this->empty();
-
-        // Append ordered data
-        for (auto& r_key : index_list) {
-            this->insert(copy_data[r_key]);
-        }
-
-        for(auto& r_map : mData) KRATOS_WATCH(r_map.first);
-    }
-
-
+ 
     ///@}
     ///@name Access
     ///@{
@@ -393,7 +365,7 @@ public:
     }
 
 
-
+ 
     ///@}
     ///@name Inquiry
     ///@{
@@ -606,4 +578,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined
+#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined 
