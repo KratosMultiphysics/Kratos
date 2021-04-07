@@ -350,7 +350,7 @@ public:
         Spans(spans, StartParameter, EndParameter);
 
         mpNurbsCurve->CreateIntegrationPoints(
-            rIntegrationPoints, points_per_span);
+            rIntegrationPoints, spans, points_per_span);
     }
 
     ///@}
