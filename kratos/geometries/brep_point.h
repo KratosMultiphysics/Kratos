@@ -215,6 +215,8 @@ public:
 
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, integration_point);
+
+        rResultGeometries[0] = QuadraturePointGeometry<0>(rResultGeometries[0]);
     }
 
     ///@}
