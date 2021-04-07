@@ -51,7 +51,7 @@ def ReadSerialModelPart(mdpa_file_name, model_part):
 
 
 @KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
-def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
+def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None):
     """Reads mdpa file
 
     This method reads mdpa file and fills given model_part accordingly using MPI
