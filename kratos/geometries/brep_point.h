@@ -70,13 +70,13 @@ public:
         , mLocalCoordinates(LocalCoordinates)
         , mpBackgroundGeometry(pBackgroundGeometry)
     {
-        KRATOS_ERROR_IF(pBackgroundGeometry->LocalSpaceDimension() != this->LocalSpaceDimension())
-            << "Local space dimension of background geometry (" << pBackgroundGeometry->LocalSpaceDimension()
-            << ") does not coincide with LocalSpaceDimension of this geometry (" << this->LocalSpaceDimension() << ")."
-            << std::endl;
         KRATOS_ERROR_IF(pBackgroundGeometry->WorkingSpaceDimension() != this->WorkingSpaceDimension())
             << "Working space dimension of background geometry (" << pBackgroundGeometry->WorkingSpaceDimension()
             << ") does not coincide with WorkingSpaceDimension of this geometry (" << this->WorkingSpaceDimension() << ")."
+            << std::endl;
+        KRATOS_ERROR_IF(pBackgroundGeometry->LocalSpaceDimension() != this->LocalSpaceDimension())
+            << "Local space dimension of background geometry (" << pBackgroundGeometry->LocalSpaceDimension()
+            << ") does not coincide with LocalSpaceDimension of this geometry (" << this->LocalSpaceDimension() << ")."
             << std::endl;
     }
 
