@@ -17,8 +17,6 @@
 
 
 // Project includes
-#include "includes/model_part.h"
-#include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_utilities.h"
 
@@ -386,6 +384,18 @@ void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const Geome
     {
         KRATOS_ERROR << "ShallowWaterUtilities::MassMatrix. Method implemented for lines, triangles and quadrilaterals" << std::endl;
     }
+}
+
+template<>
+double ShallowWaterUtilities::GetValue<true>(NodeType& rNode, const Variable<double>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+double ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<double>& rVariable)
+{
+    return rNode.GetValue(rVariable);
 }
 
 }  // namespace Kratos.
