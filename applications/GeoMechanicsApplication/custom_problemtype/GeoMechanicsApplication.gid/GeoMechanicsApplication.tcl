@@ -59,7 +59,6 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     WriteMaterialParameters $basename $dir $problemtypedir $TableDict
 
     # Copy python scripts in the problemdir
-    file copy -force [file join $problemtypedir split_linear_beam_element_3n.py] [file join $dir split_linear_beam_element_3n.py]
     file copy -force [file join $problemtypedir AddConditionsToExcavation.py] [file join $dir AddConditionsToExcavation.py]
     file copy -force [file join $problemtypedir KratosGeoMechanics.py] [file join $dir MainKratos.py]
     

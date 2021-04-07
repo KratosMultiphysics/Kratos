@@ -8,7 +8,7 @@ rem currentdirectory = %2
 rem problemtypedirectory = %3
 
 rem Setting paths. WARNING: one should check them before running this file
-set PATH=D:\\src\\Kratos;D:\\src\\Kratos\\libs;%PATH%
+rem set PATH=D:\\src\\Kratos;D:\\src\\Kratos\\libs;%PATH%
 
 rem Execute the program
 runkratos AddConditionsToExcavation.py
