@@ -1,31 +1,12 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 
 import os
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def ReadDistributedModelPart(model_part, mdpa_file_name):
-    from KratosMultiphysics.mpi import distributed_import_model_part_utility
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-
-    importer_settings = KratosMultiphysics.Parameters("""{
-        "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": \"""" + mdpa_file_name + """\",
-            "partition_in_memory" : true
-        },
-        "echo_level" : 0
-    }""")
-
-    model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
-    model_part_import_util.ImportModelPart()
-    model_part_import_util.CreateCommunicators()
 
 class TestMPIModelPart(KratosUnittest.TestCase):
 
