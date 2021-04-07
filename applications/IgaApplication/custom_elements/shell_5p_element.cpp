@@ -395,6 +395,10 @@ namespace Kratos
             Kg(i1 + 3, i1 + 3) += kgT;
             Kg(i1 + 4, i1 + 4) += kgT;
         }
+        for (size_t i = 0; i < Kg.size1(); i++)
+            for (size_t j = i + 1; j < Kg.size2(); j++)
+                Kg(j, i) = Kg(i, j);
+
         return Kg;
     }
 
@@ -542,7 +546,7 @@ namespace Kratos
 
     BoundedMatrix<double, 3, 2> Shell5pElement::TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director)
     {
-        double st = (director[2] > 0) ? 1 : ((director[2] < 0) ? -1 : 1);
+        double st = (director[2] > 0) ? 1 : -1.0;
         double s = 1 / (1 + fabs(director[2]));
 
         const array_1d<double, 2 > y{ director[0] * s, director[1] * s };
