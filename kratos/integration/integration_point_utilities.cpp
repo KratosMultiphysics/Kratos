@@ -24,7 +24,7 @@ namespace Kratos
     void IntegrationPointUtilities::CreateIntegrationPoints1D(
         IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansLocalSpace,
-        SizeType IntegrationPointsPerSpan) const
+        SizeType IntegrationPointsPerSpan)
     {
         const SizeType num_spans = rSpansLocalSpace.size() - 1;
         const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan;
