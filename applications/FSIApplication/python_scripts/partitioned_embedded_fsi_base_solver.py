@@ -119,25 +119,6 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', "Finished initialization.")
 
-    #TODO: USE THIS IN THE BASE CLASS
-    def AdvanceInTime(self, current_time):
-        # Subdomains time advance
-        fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
-        structure_new_time = self.structure_solver.AdvanceInTime(current_time)
-
-        if abs(fluid_new_time - structure_new_time) > 1e-12:
-            err_msg =  'Fluid new time is: ' + str(fluid_new_time) + '\n'
-            err_msg += 'Structure new time is: ' + str(structure_new_time) + '\n'
-            err_msg += 'No substepping has been implemented yet. Fluid and structure time step must coincide.'
-            raise Exception(err_msg)
-
-        # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
-        # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
-        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
-        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(structure_new_time)
-
-        return fluid_new_time
-
     #TODO: Use the base one once the body fitted uses the fluid ALE solver
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
@@ -156,16 +137,8 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         # Update the level set position with the structure prediction
         self.__UpdateLevelSet()
 
-        # Correct the updated level set
-        #TODO: I THINK THESE COULD  BE REMOVED (DISTANCE IS NOT REQUIRED FOR THE FLUID PREDICT)
-        self.fluid_solver.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-
         # Fluid solver prediction
         self.fluid_solver.Predict()
-
-        # Restore the fluid node fixity to its original status
-        #TODO: I THINK THESE COULD  BE REMOVED (DISTANCE IS NOT REQUIRED FOR THE FLUID PREDICT)
-        self.fluid_solver.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
     #TODO: Use the base solver one once we use the fluid ALE solver for the fluid
     def FinalizeSolutionStep(self):
@@ -203,6 +176,12 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
         # First call to create the embedded intersections model part
         self.__GetEmbedddedSkinUtilityModelPart()
+
+    def _AdvanceInTimeCouplingInterfaces(self, new_time):
+        # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
+        # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
 
     def _InitializeCouplingInterfaces(self):
         # FSI interface coupling interfaces initialization
