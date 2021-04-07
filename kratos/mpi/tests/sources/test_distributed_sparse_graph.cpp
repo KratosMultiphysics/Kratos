@@ -227,14 +227,12 @@ ElementConnectivityType RandomElementConnectivities(
     //generating random indices
     ElementConnectivityType connectivities((index_end-index_begin)*block_size);
 
-    #pragma omp parallel for
-    for(unsigned int i=0; i<connectivities.size(); ++i)
-    {
-        connectivities[i].resize(nodes_in_elem*block_size);
-        std::mt19937 gen(i);
+    IndexPartition<std::size_t>(connectivities.size()).for_each([&](std::size_t Index){
+        connectivities[Index].resize(nodes_in_elem*block_size);
+        std::mt19937 gen(Index);
         //std::uniform_int_distribution<> dis(0,ndof-1);
         std::normal_distribution<> dis{
-            static_cast<double>(ndof/(index_end-index_begin)*i),
+            static_cast<double>(ndof/(index_end-index_begin)* Index),
             static_cast<double>(standard_dev)
             };
 
@@ -253,10 +251,11 @@ ElementConnectivityType RandomElementConnectivities(
             }
 
             for(DistTestingInternals::IndexType k = 0; k<block_size; ++k){
-                connectivities[i][j*block_size+k] = eq_id+k;
+                connectivities[Index][j*block_size+k] = eq_id+k;
             }
         }
-    }
+    });
+
     std::cout << "Finishing generation - time = " << timer.ElapsedSeconds() << std::endl;
 
     return connectivities;

@@ -1,6 +1,5 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShallowWaterApplication as SW
 import KratosMultiphysics.StatisticsApplication as STATS
 
 # Other imports
@@ -22,6 +21,7 @@ class ConvergenceOutputProcess(KM.Process):
             {
                 "model_part_name"            : "model_part",
                 "file_name"                  : "output_file",
+                "printing_times"             : [],
                 "analysis_label"             : "label",
                 "analysis_attributes"        : {},
                 "convergence_variables_list" : []
@@ -39,19 +39,24 @@ class ConvergenceOutputProcess(KM.Process):
 
         self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["convergence_variables_list"].GetStringArray()]
 
+        # Initialize output control variables
+        self.printing_times = self.settings["printing_times"].GetVector()
+        self.is_printed = [False] * len(self.printing_times)
+
     def ExecuteBeforeSolutionLoop(self):
         self.dset = self._GetDataset()
         self.start_time = time.time()
 
-    @staticmethod
-    def IsOutputStep():
+    def IsOutputStep(self):
+        """Check if the current time step is near enough to the specified printing times."""
+        time = self.model_part.ProcessInfo.GetValue(KM.TIME)
+        for i in range(len(self.printing_times)):
+            if time >= self.printing_times[i] and not self.is_printed[i]:
+                self.is_printed[i] = True
+                return True
         return False
 
-    @staticmethod
-    def PrintOutput():
-        pass
-
-    def ExecuteFinalize(self):
+    def PrintOutput(self):
         self._WriteAverageError()
 
     def Check(self):
@@ -117,6 +122,7 @@ class ConvergenceOutputProcess(KM.Process):
             ("num_nodes", np.uint32),
             ("num_elems", np.uint32),
             ("time_step", np.float),
+            ("time", np.float),
             ("computational_time", np.float)]
 
         for variable in self.variables:
@@ -131,6 +137,7 @@ class ConvergenceOutputProcess(KM.Process):
             self.model_part.NumberOfNodes(),
             self.model_part.NumberOfElements(),
             self.model_part.ProcessInfo[KM.DELTA_TIME],
+            self.model_part.ProcessInfo[KM.TIME],
             elapsed_time]
 
         for variable in self.variables:

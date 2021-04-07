@@ -200,20 +200,16 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         while (is_converged == false && iteration <= max_iter) {
             threshold_indicator = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rDerivativePlasticPotential;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
-
             CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
                                             rPlasticStrainIncrement, rBackStressVector);
-
             noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
                                         rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
-
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
@@ -481,11 +477,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const double CompressionIndicatorFactor,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        ConstitutiveLaw::Parameters& rValues
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
         GenericConstitutiveLawIntegratorPlasticity<YieldSurfaceType>::CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
-            PlasticDissipation,TensileIndicatorFactor,CompressionIndicatorFactor,rEquivalentStressThreshold,rSlope,rValues);
+            PlasticDissipation,TensileIndicatorFactor,CompressionIndicatorFactor,rEquivalentStressThreshold,rSlope,rValues,CharacteristicLength);
     }
 
     /**

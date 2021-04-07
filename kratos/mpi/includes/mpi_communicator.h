@@ -669,7 +669,7 @@ public:
     ///@{
 
     /// Constructor using the VariablesList of the ModelPart that will use this communicator.
-    MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
+    KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator") MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
     {}
 
     /// Constructor using the VariablesList and a custom DataCommunicator.
