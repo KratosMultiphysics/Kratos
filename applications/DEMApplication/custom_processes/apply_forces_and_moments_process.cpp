@@ -43,28 +43,54 @@ namespace Kratos
         mpMomentTable.clear();
 
         for(int i=0; i<3; i++) {
-            if(rParameters["force_settings"]["value"][i].IsNumber()) {
+            if(rParameters["force_settings"]["value"][i].IsNull()) {
                 mForceValueIsNumeric[i] = true;
-                mForceValues[i] = rParameters["force_settings"]["value"][i].GetDouble();
+                mForceValues[i] = 0.0;
                 mForceFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
-                mForceValueIsNumeric[i] = false;
-                mForceFunctions.push_back(PythonGenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
+                if(rParameters["force_settings"]["value"][i].IsNumber()) {
+                    mForceValueIsNumeric[i] = true;
+                    mForceValues[i] = rParameters["force_settings"]["value"][i].GetDouble();
+                    mForceFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                }
+                else {
+                    mForceValueIsNumeric[i] = false;
+                    mForceFunctions.push_back(PythonGenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
+                }
             }
-            mForceTableId[i] = rParameters["force_settings"]["table"][i].GetInt();
+
+            if(rParameters["force_settings"]["table"][i].IsNull()) {
+                mForceTableId[i] = 0;
+            }
+            else {
+                mForceTableId[i] = rParameters["force_settings"]["table"][i].GetInt();
+            }
             mpForceTable.push_back(mrModelPart.pGetTable(mForceTableId[i])); // because I can't construct an array_1d of these
 
-            if(rParameters["moment_settings"]["value"][i].IsNumber()) {
+            if(rParameters["moment_settings"]["value"][i].IsNull()) {
                 mMomentValueIsNumeric[i] = true;
-                mMomentValues[i] = rParameters["moment_settings"]["value"][i].GetDouble();
+                mMomentValues[i] = 0.0;
                 mMomentFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
-                mMomentValueIsNumeric[i] = false;
-                mMomentFunctions.push_back(PythonGenericFunctionUtility(rParameters["moment_settings"]["value"][i].GetString()));
+                if(rParameters["moment_settings"]["value"][i].IsNumber()) {
+                    mMomentValueIsNumeric[i] = true;
+                    mMomentValues[i] = rParameters["moment_settings"]["value"][i].GetDouble();
+                    mMomentFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                }
+                else {
+                    mMomentValueIsNumeric[i] = false;
+                    mMomentFunctions.push_back(PythonGenericFunctionUtility(rParameters["moment_settings"]["value"][i].GetString()));
+                }
             }
-            mMomentTableId[i] = rParameters["moment_settings"]["table"][i].GetInt();
+
+            if(rParameters["moment_settings"]["table"][i].IsNull()) {
+                mMomentTableId[i] = 0;
+            }
+            else {
+                mMomentTableId[i] = rParameters["moment_settings"]["table"][i].GetInt();
+            }
             mpMomentTable.push_back(mrModelPart.pGetTable(mMomentTableId[i])); // because I can't construct an array_1d of these
         }
 

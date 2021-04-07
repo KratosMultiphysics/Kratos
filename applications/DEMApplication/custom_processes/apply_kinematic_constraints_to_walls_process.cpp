@@ -48,28 +48,53 @@ namespace Kratos
         for(int i=0; i<3; i++) {
             mVelocityIsConstrained[i] = rParameters["velocity_constraints_settings"]["constrained"][i].GetBool();
             mAngularVelocityIsConstrained[i] = rParameters["angular_velocity_constraints_settings"]["constrained"][i].GetBool();
-            if(rParameters["velocity_constraints_settings"]["value"][i].IsNumber()) {
+            if(rParameters["velocity_constraints_settings"]["value"][i].IsNull()) {
                 mVelocityValueIsNumeric[i] = true;
-                mVelocityValues[i] = rParameters["velocity_constraints_settings"]["value"][i].GetDouble();
+                mVelocityValues[i] = 0.0;
                 mVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
-                mVelocityValueIsNumeric[i] = false;
-                mVelocityFunctions.push_back(PythonGenericFunctionUtility(rParameters["velocity_constraints_settings"]["value"][i].GetString()));
+                if(rParameters["velocity_constraints_settings"]["value"][i].IsNumber()) {
+                    mVelocityValueIsNumeric[i] = true;
+                    mVelocityValues[i] = rParameters["velocity_constraints_settings"]["value"][i].GetDouble();
+                    mVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                }
+                else {
+                    mVelocityValueIsNumeric[i] = false;
+                    mVelocityFunctions.push_back(PythonGenericFunctionUtility(rParameters["velocity_constraints_settings"]["value"][i].GetString()));
+                }
             }
-            mVelocityTableId[i] = rParameters["velocity_constraints_settings"]["table"][i].GetInt();
+
+            if(rParameters["velocity_constraints_settings"]["table"][i].IsNull()) {
+                mVelocityTableId[i] = 0;
+            }
+            else {
+                mVelocityTableId[i] = rParameters["velocity_constraints_settings"]["table"][i].GetInt();
+            }
             mpVelocityTable.push_back(mrModelPart.pGetTable(mVelocityTableId[i])); // because I can't construct an array_1d of these
 
-            if(rParameters["angular_velocity_constraints_settings"]["value"][i].IsNumber()) {
+            if(rParameters["angular_velocity_constraints_settings"]["value"][i].IsNull()) {
                 mAngularVelocityValueIsNumeric[i] = true;
-                mAngularVelocityValues[i] = rParameters["angular_velocity_constraints_settings"]["value"][i].GetDouble();
+                mAngularVelocityValues[i] = 0.0;
                 mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
-                mAngularVelocityValueIsNumeric[i] = false;
-                mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility(rParameters["angular_velocity_constraints_settings"]["value"][i].GetString()));
+                if(rParameters["angular_velocity_constraints_settings"]["value"][i].IsNumber()) {
+                    mAngularVelocityValueIsNumeric[i] = true;
+                    mAngularVelocityValues[i] = rParameters["angular_velocity_constraints_settings"]["value"][i].GetDouble();
+                    mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                }
+                else {
+                    mAngularVelocityValueIsNumeric[i] = false;
+                    mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility(rParameters["angular_velocity_constraints_settings"]["value"][i].GetString()));
+                }
             }
-            mAngularVelocityTableId[i] = rParameters["angular_velocity_constraints_settings"]["table"][i].GetInt();
+            if(rParameters["angular_velocity_constraints_settings"]["table"][i].IsNull()) {
+                mAngularVelocityTableId[i] = 0;
+            }
+            else {
+                mAngularVelocityTableId[i] = rParameters["angular_velocity_constraints_settings"]["table"][i].GetInt();
+            }
             mpAngularVelocityTable.push_back(mrModelPart.pGetTable(mAngularVelocityTableId[i])); // because I can't construct an array_1d of these
         }
 
