@@ -362,13 +362,17 @@ public:
         // Sort list
         std::sort(index_list.begin(), index_list.end());
 
-        // Clear data
-        this->clear();
+        for(auto& r_map : mData) KRATOS_WATCH(r_map.first);
+
+        // Empty data
+        this->empty();
 
         // Append ordered data
         for (auto& r_key : index_list) {
             this->insert(copy_data[r_key]);
         }
+
+        for(auto& r_map : mData) KRATOS_WATCH(r_map.first);
     }
 
 
