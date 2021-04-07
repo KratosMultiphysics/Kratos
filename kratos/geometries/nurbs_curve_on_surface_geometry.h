@@ -288,16 +288,12 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        const bool success = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             rProjectedPointGlobalCoordinates,
             *this,
             20, Tolerance);
-
-        return (success)
-            ? 1
-            : 0;
     }
 
     ///@}
