@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
     - '.github/workflows/nightly_build.yml'
+    - '.github/workflows/configure.sh'
+    - '.github/workflows/configure.cmd'
 
   schedule:
     - cron:  '0 1 * * *'
