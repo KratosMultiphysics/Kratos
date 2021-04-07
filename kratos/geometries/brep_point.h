@@ -23,11 +23,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @class BrepSurface
+/* @class BrepPoint
  * @ingroup KratosCore
- * @brief The BrepSurface acts as topology for faces. Those
- *        can be enclosed by a certain set of brep face curves.
+ * @brief The BrepPoint acts as topology for points on various types
+ *        of geometries as faces or curves.
  */
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension>
 class BrepPoint
