@@ -2026,8 +2026,7 @@ private:
                     double& r_b_value = rb[i_global];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         } else {
@@ -2042,15 +2041,13 @@ private:
                     double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 } else if (it_dof->IsFree()) {  // Free dof not in the MPC
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& r_b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         }
@@ -2224,8 +2221,7 @@ private:
                                 if (std::abs(constant_value) > 0.0) {
                                     auxiliar_temp_constant_equations_ids.insert(i_global);
                                     double& r_value = rConstantVector[i_global];
-                                    #pragma omp atomic
-                                    r_value += constant_value;
+                                    AtomicAdd(r_value, constant_value);
                                 }
                             }
                         }
@@ -2234,8 +2230,7 @@ private:
                             const IndexType i_global = slave_equation_id[i];
                             if (i_global < BaseType::mEquationSystemSize) {
                                 const double constant_value = constant_vector[i];
-                                #pragma omp atomic
-                                aux_constant_value += std::abs(constant_value);
+                                AtomicAdd(aux_constant_value, std::abs(constant_value));
                             }
                         }
                     }
