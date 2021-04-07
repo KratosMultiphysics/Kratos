@@ -167,35 +167,6 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         #TODO: I THINK THESE COULD  BE REMOVED (DISTANCE IS NOT REQUIRED FOR THE FLUID PREDICT)
         self.fluid_solver.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
-    def GetStructureSkinElementBasedModelPart(self):
-        # Create an auxiliar model part to save the element based skin
-        element_based_skin_model_part_name = self._GetStructureInterfaceModelPartName() + "ElementBased"
-        if self.model.HasModelPart(element_based_skin_model_part_name):
-            self.model.DeleteModelPart(element_based_skin_model_part_name)
-        self.element_based_skin_model_part = self.model.CreateModelPart(element_based_skin_model_part_name)
-
-        # Copy the skin model part conditions to an auxiliar model part elements.
-        # This is required for the computation of the distance function, which
-        # takes the elements of the second modelpart as skin. If this operation
-        # is not performed, no elements are found, yielding a wrong level set.
-        self._GetPartitionedFSIUtilities().CopySkinToElements(
-            self._GetStructureInterfaceSubmodelPart(),
-            self.element_based_skin_model_part)
-
-        return self.element_based_skin_model_part
-
-    #TODO: I THINK THIS IS NOT BEING USED... CHECK IF WE NEED IT FOR THE VOLUMELESS COUPLING
-    def GetStructureIntersectionsModelPart(self):
-        if not hasattr(self, '_embedded_intersections_model_part'):
-            embedded_intersections_root_part = self.model.CreateModelPart("EmbeddedIntersectionsModelPart")
-            self._embedded_intersections_model_part = embedded_intersections_root_part.CreateSubModelPart("SkinEmbeddedIntersectionsModelPart")
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
-        return self._embedded_intersections_model_part
-
     #TODO: Use the base solver one once we use the fluid ALE solver for the fluid
     def FinalizeSolutionStep(self):
         # Finalize solution step
