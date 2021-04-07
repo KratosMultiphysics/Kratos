@@ -335,7 +335,7 @@ public:
         std::vector<double> spans;
         Spans(spans);
 
-        IntegrationPointUtilities::CreateIntegrationPoints(
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
     }
 
