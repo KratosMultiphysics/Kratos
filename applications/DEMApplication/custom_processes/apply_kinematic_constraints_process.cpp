@@ -1,4 +1,4 @@
-#include "apply_kinematic_constraints_process.h"
+#include "apply_kinematic_constraints_process.hpp"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos

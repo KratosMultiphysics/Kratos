@@ -1,4 +1,4 @@
-#include "apply_forces_and_moments_process.h"
+#include "apply_forces_and_moments_process.hpp"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
