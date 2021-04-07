@@ -27,8 +27,8 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 # add_app ${KRATOS_APP_DIR}/DEMApplication;
 # add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
-# add_app ${KRATOS_APP_DIR}/MetisApplication;
-# add_app ${KRATOS_APP_DIR}/TrilinosApplication;
+add_app ${KRATOS_APP_DIR}/MetisApplication;
+add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 # add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 # add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 # add_app ${KRATOS_APP_DIR}/CableNetApplication;
