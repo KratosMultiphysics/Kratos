@@ -303,6 +303,16 @@ void ShallowWaterUtilities::SetMeshZCoordinateToZero(ModelPart& rModelPart)
     }
 }
 
+void ShallowWaterUtilities::SetMeshZ0CoordinateToZero(ModelPart& rModelPart)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        it_node->Z0() = 0.0;
+    }
+}
+
 void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     #pragma omp parallel for

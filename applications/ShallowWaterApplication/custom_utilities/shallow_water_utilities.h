@@ -136,12 +136,17 @@ public:
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
 
     /*
-     * @brief This method sets the z-coordinate of the mesh to zero
+     * @brief Set the z-coordinate of the mesh to zero
      */
     void SetMeshZCoordinateToZero(ModelPart& rModelPart);
 
     /*
-     * @brief This method moves the z-coordinate of the mesh according to a variable
+     * @brief Set the z0-coordinate of the mesh to zero
+     */
+    void SetMeshZ0CoordinateToZero(ModelPart& rModelPart);
+
+    /*
+     * @brief Move the z-coordinate of the mesh according to a variable
      */
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
