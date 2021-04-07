@@ -104,8 +104,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.mesh_solver.AddVariables()
 
         ## Fluid traction variables addition
-        #TODO: CHECK WHY WE NEED THESE? SHOULDN'T THIS BE HANDLED BY THE COUPLING INTERFACE
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosStructural.SURFACE_LOAD)
+        # These are required for the reaction variable redistribution in the fluid model part skin
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
 
@@ -162,14 +161,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Perform all the operations required to set up the coupling interfaces
         self._InitializeCouplingInterfaces()
 
-        # err_msg =  'Calling the base partitioned FSI solver Initialize() method.\n'
-        # err_msg += 'Implement the custom Initialize() method in the derived solver.'
-        # raise Exception(err_msg)
-        #TODO: Remove this after debugging
-        with open("FSI_iterations.txt",'w') as f:
-            f.write("{0}\t{1}\t{2}\n".format("Step","It.", "err_u"))
-            f.close()
-
     def AdvanceInTime(self, current_time):
         # Subdomains time advance
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
@@ -182,10 +173,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
             raise Exception(err_msg)
 
         # Update the auxiliary coupling interface model parts database in case these are to be output
-        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().CloneTimeStep(current_time)
-        self._GetFSICouplingInterfaceFluidPositive().GetInterfaceModelPart().CloneTimeStep(current_time)
-        if self.double_faced_structure:
-            self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().CloneTimeStep(current_time)
+        # Note that there are also situations (e.g. embedded) in which this is mandatory for the proper performance of the solver
+        self._AdvanceInTimeCouplingInterfaces(fluid_new_time)
 
         return fluid_new_time
 
@@ -256,8 +245,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self._SolveFluid()
 
             # Calculate the fluid interface traction from the interface reaction
-            #FIXME: HERE WE SHOULD COMPUTE THE SUM OF NEGATIVE AND POSITIVE SIDES AND TRANSFER THIS TO THE STRUCTURE
-            #FIXME: WE MUST ACCUMULATE THE SUM OF POSITIVE AND NEGATIVE SIDE VALUES IN SURFACE_LOAD VECTOR
+            #TODO: THINK ABOUT COMPUTING THE SUM OF NEGATIVE AND POSITIVE DISTRIBUTED LOAD AND TRANSFER THIS TO THE STRUCTURE (INSTEAD OF PASSING POSITIVE AND NEGATIVE)
             self._CalculateFluidInterfaceTraction()
 
             # Transfer the fluid traction to the structure interface
@@ -292,10 +280,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear converged not achieved in {0} iterations'.format(self.max_nl_it))
             else:
                 nl_it += 1
-
-        with open("FSI_iterations.txt",'a') as f:
-            f.write("{0}\t{1}\t{2}\n".format(self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP],nl_it, dis_residual_norm))
-            f.close()
 
         return is_converged
 
@@ -424,6 +408,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(self.model, self.settings["mesh_solver_settings"], self.parallel_type)
         KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "ALE mesh solver construction finished.")
 
+    def _AdvanceInTimeCouplingInterfaces(self, new_time):
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceFluidPositive().GetInterfaceModelPart().CloneTimeStep(new_time)
+        if self.double_faced_structure:
+            self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().CloneTimeStep(new_time)
+
     # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.
     def _GetAndSetMinimumBufferSize(self):
@@ -508,7 +498,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         return fluid_time_step
 
     #TODO: THIS MUST BE DONE IN C++ (FSIPartitionedUtils)
-    #TODO: THINK ABOUT ASSUMING THESE TO BE ALREADY IN THE MPDA (AS THE EMBEDDED DOES)
+    #TODO: THINK ABOUT ASSUMING THESE TO BE ALREADY IN THE MPDA (AS THE EMBEDDED DOES) OR TO ALWAYS CREATE THEM (ALSO IN THE EMBEDDED)
     def _SetStructureNeumannCondition(self):
 
         structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
@@ -706,8 +696,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _CalculateFluidInterfaceTraction(self):
         # Distribute the REACTION point load
-        distribution_tolerance = 1.0e-12 #tTODO: SET IT SUPER-LOW TO ENSURE THIS IS NOT AFFECTING THE CONVERGENCE
-        distribution_max_iterations = 500 #tTODO: SET IT SUPER-LOW TO ENSURE THIS IS NOT AFFECTING THE CONVERGENCE
+        distribution_tolerance = 1.0e-12
+        distribution_max_iterations = 500
 
         KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidPositiveInterfaceSubmodelPart(),
@@ -733,7 +723,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self._GetFSICouplingInterfaceFluidNegative().GetValuesFromFatherModelPart(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
 
     def _MapFluidInterfaceTraction(self):
-        # Map the SURFACE_LOAD (distributed REACTION) from the fluid FSI coupling interface to structure FSI coupling interface
+        # Map the distributed REACTION from the fluid FSI coupling interface to structure FSI coupling interface
         self._GetStructureToFluidPositiveInterfaceMapper().InverseMap(
             self._GetTractionVariable(),
             KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE,
@@ -781,8 +771,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._SolveFluid()
 
         # Calculate the fluid interface traction from the interface reaction
-        #FIXME: HERE WE SHOULD COMPUTE THE SUM OF NEGATIVE AND POSITIVE SIDES AND TRANSFER THIS TO THE STRUCTURE
-        #FIXME: WE MUST ACCUMULATE THE SUM OF POSITIVE AND NEGATIVE SIDE VALUES IN SURFACE_LOAD VECTOR
+        #TODO: THINK ABOUT COMPUTING THE SUM OF NEGATIVE AND POSITIVE DISTRIBUTED LOAD AND TRANSFER THIS TO THE STRUCTURE (INSTEAD OF PASSING POSITIVE AND NEGATIVE)
         self._CalculateFluidInterfaceTraction()
 
         # Transfer the fluid traction to the structure interface
