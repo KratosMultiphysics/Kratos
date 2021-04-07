@@ -18,11 +18,11 @@ class FixVectorVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "model_part_name"      : "SPECIFY_MODEL_PART_NAME",
-                "variable_name"        : "SPECIFY_VARIABLE_NAME",
-                "interval"             : [0.0, 1e30],
-                "constrained"          : [true,true,true],
-                "free_dof_if_specified : [false,false,false]
+                "model_part_name"       : "SPECIFY_MODEL_PART_NAME",
+                "variable_name"         : "SPECIFY_VARIABLE_NAME",
+                "interval"              : [0.0, 1e30],
+                "constrained"           : [true,true,true],
+                "free_dof_if_specified" : [false,false,false]
             }
             """
         )
