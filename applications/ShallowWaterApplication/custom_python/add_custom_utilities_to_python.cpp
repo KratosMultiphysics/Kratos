@@ -72,6 +72,7 @@ namespace Python
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
         .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
+        .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
         ;
 
