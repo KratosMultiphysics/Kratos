@@ -57,7 +57,6 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
 # TODO: it may be dangerous to write Tables without format (puts -nonewline $FileVar [format  "%.10f" [lindex $Table $j]])
 
 #-------------------------------------------------------------------------------
-
 proc PressureTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -162,7 +161,6 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc VectorTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -220,7 +218,6 @@ proc VectorTable {FileVar TableId TableDict CondName VarName} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc NormalTangentialTable {FileVar TableId TableDict CondName NormalVarName TangentialVarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -264,7 +261,6 @@ proc NormalTangentialTable {FileVar TableId TableDict CondName NormalVarName Tan
 }
 
 #-------------------------------------------------------------------------------
-
 proc ScalarTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
@@ -295,12 +291,11 @@ proc ScalarTable {FileVar TableId TableDict CondName VarName} {
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 proc WriteAnchorElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
         upvar $FileVar MyFileVar
-        #puts $MyFileVar $Entities
+
         set Nodes [GiD_Info Mesh Nodes]
         set MaxDist -1e20
         set MinDist 1e20
@@ -345,35 +340,13 @@ proc WriteAnchorElements {FileVar Group ElemType ElemName PropertyId Connectivit
         }
         puts $MyFileVar "Begin Elements $ElemName"
         puts $MyFileVar "  [lindex $Entities 0]  $PropertyId  $MinNodeNr $MaxNodeNr"
-        # for {set j 0} {$j < [llength $Entities]} {incr j} {
-            # puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType [lindex $Entities $j]]"
-        # }
         puts $MyFileVar "End Elements"
         puts $MyFileVar ""
-        
-        
-        #set Groups [GiD_Info conditions $CondName groups]
-        #puts [lindex $Group 1]  nodes
-        #GiD_EntitiesGroups assign [lindex $Group 1] [lindex $Entities 0]
-        #GiD_EntitiesGroups assign [lindex $Group 1] lines [lindex $Entities 0]]
-        
-                    # puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
-            # # Tables
-            # puts $MyFileVar "  Begin SubModelPartTables"
-            # puts $MyFileVar "  End SubModelPartTables"
-            # # Nodes
-            # set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
-            # puts $MyFileVar "  Begin SubModelPartNodes"
-            # for {set j 0} {$j < [llength $Entities]} {incr j} {
-                # puts $MyFileVar "    [lindex $Entities $j]"
-            #}
-        
     }
     return [list [lindex $Entities 0] $PropertyId  $MinNodeNr $MaxNodeNr $Entities]
-
 }
 
-
+#-------------------------------------------------------------------------------
 proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
@@ -389,7 +362,42 @@ proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType}
 }
 
 #-------------------------------------------------------------------------------
+proc WriteElementsTwoParts {FileVar Group ElemType ElemName PropertyId ConnectivityType1 ConnectivityType2} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
+    if {[llength $Entities] > 0} {
+        upvar $FileVar MyFileVar
 
+        puts $MyFileVar "Begin Elements $ElemName"
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType1 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType2 [lindex $Entities $j]]"
+        }
+        puts $MyFileVar "End Elements"
+        puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc WriteElementsFourParts {FileVar Group ElemType ElemName PropertyId \
+                                        ConnectivityType1 ConnectivityType2 \
+                                        ConnectivityType3 ConnectivityType4} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
+    if {[llength $Entities] > 0} {
+        upvar $FileVar MyFileVar
+
+        puts $MyFileVar "Begin Elements $ElemName"
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType1 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType2 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType3 [lindex $Entities $j]]"
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType4 [lindex $Entities $j]]"
+        }
+        puts $MyFileVar "End Elements"
+        puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
 proc WritePropUnionElements {FileVar PropertyId} {
     upvar $FileVar MyFileVar
 
@@ -417,7 +425,6 @@ proc WritePropUnionElements {FileVar PropertyId} {
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteNodalConditions {FileVar ConditionId ConditionDict Groups CondName PropertyId} {
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -442,7 +449,6 @@ proc WriteNodalConditions {FileVar ConditionId ConditionDict Groups CondName Pro
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteLineConditions {FileVar ConditionId ConditionDict Groups CondName PropertyDict} {
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -476,7 +482,6 @@ proc WriteLineConditions {FileVar ConditionId ConditionDict Groups CondName Prop
 
 
 #-------------------------------------------------------------------------------
-
 proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName PropertyDict} {
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -508,7 +513,6 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
 }
 
 #-------------------------------------------------------------------------------
-
 proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType CondName PropertyDict} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] faces -element_type $ElemType]
     if {[llength [lindex $Entities 1]] > 0} {
@@ -537,7 +541,6 @@ proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType C
 
 
 #-------------------------------------------------------------------------------
-
 proc WriteInterfaceConditions {FileVar ConditionId ConditionList Group ElemType CondName PropertyId ConnectivityType} {
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
@@ -557,6 +560,126 @@ proc WriteInterfaceConditions {FileVar ConditionId ConditionList Group ElemType 
 }
 
 #-------------------------------------------------------------------------------
+proc SaveGapClosureBarsFromIE2D4N {PeriodicBarsDict ConditionId ConditionList Group PropertyId} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type quadrilateral]
+    if {[llength $Entities] > 0} {
+        upvar $PeriodicBarsDict MyPeriodicBarsDict
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            set IEInfo [GiD_Mesh get element [lindex $Entities $j]]
+            set Node0 [lindex $IEInfo 3]
+            set Node1 [lindex $IEInfo 4]
+            set Node2 [lindex $IEInfo 5]
+            set Node3 [lindex $IEInfo 6]
+            if {[dict exists $MyPeriodicBarsDict BN${Node0}N${Node3}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Connectivities "$Node0 $Node3"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node1}N${Node2}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node2} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node2} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node2} Connectivities "$Node1 $Node2"
+            }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc SaveGapClosureBarsFromIE3D6N {PeriodicBarsDict ConditionId ConditionList Group PropertyId} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type prism]
+    if {[llength $Entities] > 0} {
+        upvar $PeriodicBarsDict MyPeriodicBarsDict
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            set IEInfo [GiD_Mesh get element [lindex $Entities $j]]
+            set Node0 [lindex $IEInfo 3]
+            set Node1 [lindex $IEInfo 4]
+            set Node2 [lindex $IEInfo 5]
+            set Node3 [lindex $IEInfo 6]
+            set Node4 [lindex $IEInfo 7]
+            set Node5 [lindex $IEInfo 8]
+            if {[dict exists $MyPeriodicBarsDict BN${Node0}N${Node3}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node3} Connectivities "$Node0 $Node3"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node1}N${Node4}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node4} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node4} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node4} Connectivities "$Node1 $Node4"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node2}N${Node5}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node5} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node5} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node5} Connectivities "$Node2 $Node5"
+            }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+proc SaveGapClosureBarsFromIE3D8N {PeriodicBarsDict ConditionId ConditionList Group PropertyId} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type hexahedra]
+    if {[llength $Entities] > 0} {
+        upvar $PeriodicBarsDict MyPeriodicBarsDict
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            set IEInfo [GiD_Mesh get element [lindex $Entities $j]]
+            set Node0 [lindex $IEInfo 3]
+            set Node1 [lindex $IEInfo 4]
+            set Node2 [lindex $IEInfo 5]
+            set Node3 [lindex $IEInfo 6]
+            set Node4 [lindex $IEInfo 7]
+            set Node5 [lindex $IEInfo 8]
+            set Node6 [lindex $IEInfo 9]
+            set Node7 [lindex $IEInfo 10]
+            if {[dict exists $MyPeriodicBarsDict BN${Node0}N${Node4}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node4} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node4} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node0}N${Node4} Connectivities "$Node0 $Node4"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node1}N${Node5}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node5} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node5} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node1}N${Node5} Connectivities "$Node1 $Node5"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node2}N${Node6}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node6} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node6} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node2}N${Node6} Connectivities "$Node2 $Node6"
+            }
+            if {[dict exists $MyPeriodicBarsDict BN${Node3}N${Node7}] eq 0} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node3}N${Node7} Id $MyConditionId
+                dict set MyPeriodicBarsDict BN${Node3}N${Node7} PropertyId $PropertyId
+                dict set MyPeriodicBarsDict BN${Node3}N${Node7} Connectivities "$Node3 $Node7"
+            }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
 proc Line2D2Connectivities { ElemId } {
 
     set ElementInfo [GiD_Mesh get element $ElemId]
@@ -570,6 +693,22 @@ proc Line2D3Connectivities { ElemId } {
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
+}
+
+#-------------------------------------------------------------------------------
+proc Line2D2ConnectivitiesPart1 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 5]"
+}
+
+#-------------------------------------------------------------------------------
+proc Line2D2ConnectivitiesPart2 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 5] [lindex $ElementInfo 4]"
 }
 
 #-------------------------------------------------------------------------------
@@ -606,6 +745,33 @@ proc Quadrilateral2D4Connectivities { ElemId } {
 }
 
 #-------------------------------------------------------------------------------
+proc Quadrilateral2D4ConnectivitiesPart1 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 7]\
+    [lindex $ElementInfo 9] [lindex $ElementInfo 6]"
+}
+
+#-------------------------------------------------------------------------------
+proc Quadrilateral2D4ConnectivitiesPart2 { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 7] [lindex $ElementInfo 4]\
+    [lindex $ElementInfo 5] [lindex $ElementInfo 9]"
+}
+
+#-------------------------------------------------------------------------------
+proc Quadrilateral2D6Connectivities { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 9]"
+}
+
+#-------------------------------------------------------------------------------
 
 proc Triangle3D3Connectivities { ElemId } {
 
@@ -618,15 +784,50 @@ proc Triangle3D3Connectivities { ElemId } {
 
 
 #-------------------------------------------------------------------------------
-
 proc Triangle2D6Connectivities { ElemId } {
-
     #It is the same for the Prism3D6
 
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
     [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+}
+
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart1 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 6] [lindex $ElementInfo 8]"
+}
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart2 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+}
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart3 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 6] [lindex $ElementInfo 4] [lindex $ElementInfo 7]"
+}
+
+#-------------------------------------------------------------------------------
+proc Triangle3D3ConnectivitiesPart4 { ElemId } {
+    #It is the same for the Prism3D6
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 8] [lindex $ElementInfo 7] [lindex $ElementInfo 5]"
 }
 
 #-------------------------------------------------------------------------------
@@ -800,6 +1001,106 @@ proc PrismInterface3D6Connectivities { ElemId } {
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
     [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart1 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 9] [lindex $ElementInfo 11]\
+    [lindex $ElementInfo 6] [lindex $ElementInfo 15] [lindex $ElementInfo 17]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart2 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 11] [lindex $ElementInfo 9] [lindex $ElementInfo 4]\
+    [lindex $ElementInfo 17] [lindex $ElementInfo 15] [lindex $ElementInfo 7]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart3 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 11] [lindex $ElementInfo 4] [lindex $ElementInfo 10]\
+    [lindex $ElementInfo 17] [lindex $ElementInfo 7] [lindex $ElementInfo 16]"
+
+    #~ ## Check element orientation (very slow!)
+    #~ # Obtaining element volume
+    #~ set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    #~ set Volume [string trimleft $Volume "Volume="]
+
+    #~ # Check Connectivities
+    #~ if {$Volume > -1.0e-10} {
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]"
+    #~ } else {
+        #~ #W "Reordering nodes of interface element"
+        #~ return "[lindex $ElementInfo 3] [lindex $ElementInfo 5] [lindex $ElementInfo 4]\
+        #~ [lindex $ElementInfo 6] [lindex $ElementInfo 8] [lindex $ElementInfo 7]"
+    #~ }
+}
+
+#-------------------------------------------------------------------------------
+proc PrismInterface3D6ConnectivitiesPart4 { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 11] [lindex $ElementInfo 10] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 17] [lindex $ElementInfo 16] [lindex $ElementInfo 8]"
 
     #~ ## Check element orientation (very slow!)
     #~ # Obtaining element volume
@@ -1023,19 +1324,16 @@ proc QuadrilateralInterface3D4Connectivities { ElemId } {
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-proc WriteCableElementSubmodelPart {FileVar CondName CableElementDict} {
+proc WriteAnchorElementSubmodelPart {FileVar CondName AnchorElementDict} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
 
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            #puts CableElementDict
+            #puts AnchorElementDict
             #set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
-            set CableList [dict get $CableElementDict $i]
-            
-            #set model_part_affected 0
-            #set affected_elements [lindex $CableList 4]
-            
+            set AnchorList [dict get $AnchorElementDict $i]
+
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
             # Tables
             puts $MyFileVar "  Begin SubModelPartTables"
@@ -1043,31 +1341,18 @@ proc WriteCableElementSubmodelPart {FileVar CondName CableElementDict} {
             # Nodes 
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
             puts $MyFileVar "  Begin SubModelPartNodes"
-            puts $MyFileVar "    [lindex $CableList 2]"
-            puts $MyFileVar "    [lindex $CableList 3]"
+            puts $MyFileVar "    [lindex $AnchorList 2]"
+            puts $MyFileVar "    [lindex $AnchorList 3]"
             puts $MyFileVar "  End SubModelPartNodes"    
             # Elements
             puts $MyFileVar "  Begin SubModelPartElements"
-            puts $MyFileVar "    [lindex $CableList 0]"
+            puts $MyFileVar "    [lindex $AnchorList 0]"
             puts $MyFileVar "  End SubModelPartElements"
             # Conditions
             puts $MyFileVar "  Begin SubModelPartConditions"
             puts $MyFileVar "  End SubModelPartConditions"
             puts $MyFileVar "End SubModelPart"
             puts $MyFileVar ""
-            
-            # for {set j 0} {$j < [llength $Entities]} {incr j} {
-
-                # if {[lindex $Entities $j] in $affected_elements} {
-                    # set model_part_affected 1
-                # } else {
-                    # puts $MyFileVar "    [lindex $Entities $j]"
-                # }        
-            # }
-            # if {$model_part_affected} {
-                # puts $MyFileVar "[lindex $CableList 0] [lindex $CableList 2] [lindex $CableList 3]"    
-            # }
-            # puts $MyFileVar "  End SubModelPartElements"
         }
     }
 }
@@ -1178,7 +1463,7 @@ proc WriteConstraintSubmodelPart {FileVar CondName TableDict} {
 
 #-------------------------------------------------------------------------------
 
-proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
+proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
  set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -1186,8 +1471,8 @@ proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
 
         set affected_elements {}
         set added_entities {}
-        dict for {k CableList} $CableElementDict {
-            set affected_elements [list {*}$affected_elements {*}[lindex $CableList 4]]
+        dict for {k AnchorList} $AnchorElementDict {
+            set affected_elements [list {*}$affected_elements {*}[lindex $AnchorList 4]]
         }
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -1203,26 +1488,26 @@ proc WriteExcavationSubmodelPart {FileVar CondName CableElementDict} {
             puts $MyFileVar "  End SubModelPartNodes"
 
             puts $MyFileVar "  Begin SubModelPartElements"
-            dict for {k CableList} $CableElementDict {
+            dict for {k AnchorList} $AnchorElementDict {
                 set model_part_affected 0
 
                 # Elements
                 set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
                         
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    # check if excavation is applied on cable or truss
+                    # check if excavation is applied on Anchor or truss
                     if {[lindex $Entities $j] in $affected_elements} {
-                        if {[lindex $Entities $j] in [lindex $CableList 4]} {
+                        if {[lindex $Entities $j] in [lindex $AnchorList 4]} {
                             set model_part_affected 1
                         }
-                    # write elements only when excavation is not applied on cable or truss
+                    # write elements only when excavation is not applied on Anchor or truss
                     } elseif {!([lindex $Entities $j] in $added_entities)} {
                         puts $MyFileVar "    [lindex $Entities $j]"
                         lappend added_entities  [lindex $Entities $j]
                     }
                 }
                 if {$model_part_affected} {
-                    puts $MyFileVar "    [lindex $CableList 0]"
+                    puts $MyFileVar "    [lindex $AnchorList 0]"
                 }
             }
             puts $MyFileVar "  End SubModelPartElements"
@@ -1308,3 +1593,42 @@ proc WriteRecordResultSubmodelPart {FileVar CondName} {
     }
 }
 
+#-------------------------------------------------------------------------------
+proc WriteGapClosureBarsSubmodelPart {FileVar CondName ConditionDict} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+        
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 135] eq true} {
+                puts $MyFileVar "Begin SubModelPart Gap_Closure_Bars_[lindex [lindex $Groups $i] 1]"
+                # Tables
+                # puts $MyFileVar "  Begin SubModelPartTables"
+                # puts $MyFileVar "  End SubModelPartTables"
+                # Nodes
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+                puts $MyFileVar "  Begin SubModelPartNodes"
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
+                }
+                puts $MyFileVar "  End SubModelPartNodes"
+                # Elements
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
+                puts $MyFileVar "  Begin SubModelPartElements"
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
+                }
+                puts $MyFileVar "  End SubModelPartElements"
+                # Conditions
+                set ConditionList [dict get $ConditionDict Gap_Closure_Bars_[lindex [lindex $Groups $i] 1]]
+                puts $MyFileVar "  Begin SubModelPartConditions"
+                # for {set j 0} {$j < [llength $ConditionList]} {incr j} {
+                #     puts $MyFileVar "    [lindex $ConditionList $j]"
+                # }
+                puts $MyFileVar "  End SubModelPartConditions"
+                puts $MyFileVar "End SubModelPart"
+                puts $MyFileVar ""
+            }
+        }
+    }
+}

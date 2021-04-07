@@ -2314,7 +2314,7 @@ VALUE: 0.0
 HELP: Units in kPa
 END CONDITION
 
-CONDITION: Cable
+CONDITION: Anchor
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: lines
@@ -2862,7 +2862,13 @@ VALUE: 1.25
 HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
-HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+HELP: Mimimum allowed relative permeability to prevent singular matrix.
+QUESTION: Consider_Gap_Closure#CB#(true,false)
+VALUE: false
+HELP: True means that the interface (joint) will be activated during the calculation as soon as gap width is smaller than the threshold.
+DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_Threshold,#CURRENT#)
+QUESTION: Gap_Width_Threshold
+VALUE: 0.01
 
 END CONDITION
 
@@ -3393,6 +3399,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Consider_Gap_Closure#CB#(true,false)
+VALUE: false
+HELP: True means that the interface (joint) will be activated during the calculation as soon as gap width is smaller than the threshold.
+DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_Threshold,#CURRENT#)
+QUESTION: Gap_Width_Threshold
+VALUE: 0.01
 
 END CONDITION
 
@@ -3923,6 +3935,12 @@ HELP: Gl power in Van Genuchten model to calcualte relative permeability.
 QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+QUESTION: Consider_Gap_Closure#CB#(true,false)
+VALUE: false
+HELP: True means that the interface (joint) will be activated during the calculation as soon as gap width is smaller than the threshold.
+DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_Threshold,#CURRENT#)
+QUESTION: Gap_Width_Threshold
+VALUE: 0.01
 
 END CONDITION
 

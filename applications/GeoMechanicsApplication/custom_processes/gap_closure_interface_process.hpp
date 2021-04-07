@@ -16,7 +16,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "custom_utilities/math_utilities.hpp" //from SolidMechanics
+#include "custom_utilities/math_utilities.hpp"
 #include "utilities/math_utils.h"
 
 #include "geo_mechanics_application_variables.h"
@@ -31,6 +31,12 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GapClosureInterfaceProcess);
 
+    ///definition of the geometry type with given NodeType
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef Vector VectorType;
+    typedef Matrix MatrixType;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
@@ -43,7 +49,7 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "dimension": 2,
+                "consider_gap_closure": true,
                 "gap_width_threshold": 0.01
             }  )" );
 
@@ -54,8 +60,8 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mDimension = rParameters["dimension"].GetInt();
         mGapWidthThreshold = rParameters["gap_width_threshold"].GetDouble();
+        mConsiderGapClosure = rParameters["consider_gap_closure"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -72,90 +78,46 @@ public:
     {
     }
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override
+    void ExecuteInitializeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        int NCons = static_cast<int>(mr_model_part.Conditions().size());
-        ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < NCons; i++)
+        if (mConsiderGapClosure)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            Condition::GeometryType& rGeom = itCond->GetGeometry();
+            const int nelements = mr_model_part.GetMesh(0).Elements().size();
+            const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
 
-            itCond->Set(PERIODIC,true);
-
-            rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
-            rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();
-        }
-
-        int NElems = static_cast<int>(mr_model_part.Elements().size());
-        ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < NElems; i++)
-        {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem->Set(ACTIVE,false);
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-
-        int NCons = static_cast<int>(mr_model_part.Conditions().size());
-        ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < NCons; i++)
-        {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            Condition::GeometryType& rGeom = itCond->GetGeometry();
-
-            Matrix NodalStressMatrix(mDimension,mDimension);
-            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
-                                                + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
-            Vector PrincipalStresses(mDimension);
-            if (mDimension == 2)
+            if (nelements > 0)
             {
-                PrincipalStresses[0] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) +
-                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
-                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
-                PrincipalStresses[1] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) -
-                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
-                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
-            }
-            else
-            {
-                noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStressMatrix);
-            }
+                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
 
-            // Check whether the principal stress S1 at the node is higher than the prescribed limit to activate the joints
-            if (PrincipalStresses[0] >= mGapWidthThreshold)
-            {
-                itCond->Set(PERIODIC,false);
-                rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
-                rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
-
-                GlobalPointersVector<Element>& rE = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-                for (unsigned int ie = 0; ie < rE.size(); ie++)
+                std::vector<bool> SetToDeactive(nelements);
+                #pragma omp parallel for
+                for (int k = 0; k < nelements; ++k)
                 {
-                    #pragma omp critical
+                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                    SetToDeactive[k] = IsGapCreated(it);
+                }
+
+
+                // Activation/deactivation of the existing parts:
+                // ( User must specify each part through the interface)
+                #pragma omp parallel for
+                for (int k = 0; k < nelements; ++k)
+                {
+                    if (SetToDeactive[k])
                     {
-                        rE[ie].Set(ACTIVE,true);
+                        ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                        it->Set(ACTIVE, false);
+                    } 
+                    else
+                    {
+                        ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                        it->Set(ACTIVE, true);
                     }
                 }
             }
         }
-
         KRATOS_CATCH("");
     }
 
@@ -183,8 +145,8 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    int mDimension;
     double mGapWidthThreshold;
+    bool mConsiderGapClosure;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -192,6 +154,157 @@ private:
 
     /// Assignment operator.
     GapClosureInterfaceProcess& operator=(GapClosureInterfaceProcess const& rOther);
+
+    bool IsGapCreated(const ModelPart::ElementsContainerType::iterator &it)
+    {
+        const GeometryType& rGeom = it->GetGeometry();
+        const SizeType Dim = rGeom.WorkingSpaceDimension();
+
+        if (Dim == N_DIM_2D)
+        {
+            return IsGapCreated2D4N(it);
+        } 
+        else if (Dim == N_DIM_3D)
+        {
+            const SizeType NumNodes = rGeom.PointsNumber();
+            if (NumNodes == 6)
+            {
+                return IsGapCreated3D6N(it);
+            }
+            else if (NumNodes == 8)
+            {
+                return IsGapCreated3D8N(it);
+            }
+            else
+            {
+                KRATOS_THROW_ERROR( std::logic_error, "undefined number of nodes in gap_closure_interface_process", "" )
+            }
+        }
+        else
+        {
+            KRATOS_THROW_ERROR( std::logic_error, "undefined dimension in gap_closure_interface_process", "" )
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------
+    bool IsGapCreated2D4N(const ModelPart::ElementsContainerType::iterator &it)
+    {
+
+        KRATOS_TRY;
+        const std::vector<std::vector<int>> IndexSide{{0,1},{2,3}};
+        const unsigned int nSides = 2;
+        const GeometryType& rGeom = it->GetGeometry();
+        const SizeType NumNodes = rGeom.PointsNumber();
+        const unsigned int nPointSide = NumNodes/nSides;
+
+
+        // find normal vectors
+        const array_1d<double,3> OutOfPlane{0.0, 0.0, 1.0};
+
+        double GapSize = 0.0;
+        for (unsigned int iSide=0; iSide < nSides; ++iSide)
+        {
+            // find normal vectors
+            array_1d<double,3> TangentVector;
+            noalias(TangentVector) = rGeom.GetPoint(IndexSide[iSide][1]) - rGeom.GetPoint(IndexSide[iSide][0]);
+            array_1d<double,3> normalVector;
+            MathUtils<double>::UnitCrossProduct(normalVector, OutOfPlane, TangentVector);
+
+            double GapSide = 0.0;
+            for (unsigned int iPoint=0; iPoint < nPointSide; ++iPoint)
+            {
+                const array_1d<double,3> &displacement = rGeom[IndexSide[iSide][iPoint]].FastGetSolutionStepValue(DISPLACEMENT, 0);
+                double GapPoint = inner_prod(normalVector, displacement);
+                GapSide -= GapPoint;
+            }
+            GapSide /= double(nPointSide);
+            GapSize += GapSide;
+        }
+
+        return !(GapSize < mGapWidthThreshold);
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------
+    bool IsGapCreated3D6N(const ModelPart::ElementsContainerType::iterator &it)
+    {
+        KRATOS_TRY;
+        const std::vector<std::vector<int>> IndexSide{{0,1,2},{5,4,3}};
+        const unsigned int nSides = 2;
+        const GeometryType& rGeom = it->GetGeometry();
+        const SizeType NumNodes = rGeom.PointsNumber();
+        const unsigned int nPointSide = NumNodes/nSides;
+
+        double GapSize = 0.0;
+        for (unsigned int iSide=0; iSide < nSides; ++iSide)
+        {
+            // find normal vectors
+            array_1d<double,3> Vector0;
+            array_1d<double,3> Vector1;
+
+            noalias(Vector0) = rGeom.GetPoint(IndexSide[iSide][1]) - rGeom.GetPoint(IndexSide[iSide][0]);
+            noalias(Vector1) = rGeom.GetPoint(IndexSide[iSide][2]) - rGeom.GetPoint(IndexSide[iSide][0]);
+
+            array_1d<double,3> normalVector;
+            MathUtils<double>::UnitCrossProduct(normalVector, Vector0, Vector1);
+
+            double GapSide = 0.0;
+            for (unsigned int iPoint=0; iPoint < nPointSide; ++iPoint)
+            {
+                const array_1d<double,3> &displacement = rGeom[IndexSide[iSide][iPoint]].FastGetSolutionStepValue(DISPLACEMENT, 0);
+                double GapPoint = inner_prod(normalVector, displacement);
+                GapSide -= GapPoint;
+            }
+            GapSide /= double(nPointSide);
+            GapSize += GapSide;
+        }
+
+        return !(GapSize < mGapWidthThreshold);
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------
+    bool IsGapCreated3D8N(const ModelPart::ElementsContainerType::iterator &it)
+    {
+        KRATOS_TRY;
+
+        const std::vector<std::vector<int>> IndexSide{{0,1,2,3},{7,6,5,4}};
+        const unsigned int nSides = 2;
+        const GeometryType& rGeom = it->GetGeometry();
+        const SizeType NumNodes = rGeom.PointsNumber();
+        const unsigned int nPointSide = NumNodes/nSides;
+
+        double GapSize = 0.0;
+        for (unsigned int iSide=0; iSide < nSides; ++iSide)
+        {
+            // find normal vectors
+            array_1d<double,3> Vector0;
+            array_1d<double,3> Vector1;
+
+            noalias(Vector0) = rGeom.GetPoint(IndexSide[iSide][1]) - rGeom.GetPoint(IndexSide[iSide][0]);
+            noalias(Vector1) = rGeom.GetPoint(IndexSide[iSide][2]) - rGeom.GetPoint(IndexSide[iSide][0]);
+
+            array_1d<double,3> normalVector;
+            MathUtils<double>::UnitCrossProduct(normalVector, Vector0, Vector1);
+
+            double GapSide = 0.0;
+            for (unsigned int iPoint=0; iPoint < nPointSide; ++iPoint)
+            {
+                const array_1d<double,3> &displacement = rGeom[IndexSide[iSide][iPoint]].FastGetSolutionStepValue(DISPLACEMENT, 0);
+                double GapPoint = inner_prod(normalVector, displacement);
+                GapSide -= GapPoint;
+            }
+            GapSide /= double(nPointSide);
+            GapSize += GapSide;
+        }
+
+        return !(GapSize < mGapWidthThreshold);
+
+        KRATOS_CATCH( "" )
+    }
+
 
     /// Copy constructor.
     //GapClosureInterfaceProcess(GapClosureInterfaceProcess const& rOther);

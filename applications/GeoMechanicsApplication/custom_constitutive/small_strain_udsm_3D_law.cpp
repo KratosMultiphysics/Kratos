@@ -199,6 +199,7 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features &rFeatures)
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
                                 const GeometryType &rElementGeometry,
                                 const ProcessInfo &rCurrentProcessInfo)
@@ -235,6 +236,7 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialProperties,
                                               const GeometryType &rElementGeometry,
                                               const Vector &rShapeFunctionsValues)
@@ -256,6 +258,7 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    KRATOS_CATCH(" ");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProperties)
 {
    KRATOS_TRY;
@@ -274,6 +277,7 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
    KRATOS_CATCH(" ");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
                                          const GeometryType& rElementGeometry,
                                          const Vector& rShapeFunctionsValues)
@@ -304,6 +308,7 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    KRATOS_CATCH(" ");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
 {
    KRATOS_TRY;
@@ -319,6 +324,7 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
    KRATOS_CATCH(" ");
 }
 
+//----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rMaterialProperties)
 {
    KRATOS_TRY;
@@ -382,7 +388,7 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
    KRATOS_CATCH(" ");
 }
 
-
+//----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties)
 {
    KRATOS_TRY;
@@ -401,7 +407,7 @@ int SmallStrainUDSM3DLaw::GetNumberOfMaterialParametersFromUDSM(const Properties
    KRATOS_CATCH(" ");
 }
 
-
+//----------------------------------------------------------------------------------------
 bool SmallStrainUDSM3DLaw::loadUDSM(const Properties &rMaterialProperties)
 {
    KRATOS_TRY;
@@ -428,6 +434,7 @@ bool SmallStrainUDSM3DLaw::loadUDSM(const Properties &rMaterialProperties)
    KRATOS_CATCH(" ");
 }
 
+//----------------------------------------------------------------------------------------
 bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
 {
 #ifdef KRATOS_COMPILED_IN_LINUX
@@ -469,15 +476,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
 
    // resolve function GetStateVarCount address
    pGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount");
-   //if (!pGetStateVarCount)
-   //{
-      //pGetStateVarCount = (f_GetStateVarCount)dlsym(lib_handle, "getstatevarcount_");
-      //if (!pGetStateVarCount)
-      //{
-      //   KRATOS_THROW_ERROR(std::runtime_error, "cannot load function GetStateVarCount in the specified UDSM", rMaterialProperties[UDSM_NAME]);
-      //   return false;
-      //}
-   //}
+
    pUserMod = (f_UserMod)dlsym(lib_handle, "user_mod");
    if (!pUserMod)
    {
@@ -498,6 +497,7 @@ bool SmallStrainUDSM3DLaw::loadUDSMLinux(const Properties &rMaterialProperties)
 #endif
 }
 
+//----------------------------------------------------------------------------------------
 bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties)
 {
    KRATOS_TRY
@@ -543,11 +543,6 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
 
    // resolve function GetStateVarCount address
    pGetStateVarCount = (f_GetStateVarCount)GetProcAddress(hGetProcIDDLL, "getstatevarcount");
-   //if (!pGetStateVarCount)
-   //{
-   //   KRATOS_THROW_ERROR(std::runtime_error, "cannot load function GetStateVarCount in the specified UDSM", rMaterialProperties[UDSM_NAME]);
-   //   return false;
-   //}
 
    pUserMod = (f_UserMod)GetProcAddress(hGetProcIDDLL, "user_mod");
    if (!pUserMod)
@@ -580,26 +575,23 @@ bool SmallStrainUDSM3DLaw::loadUDSMWindows(const Properties &rMaterialProperties
 void SmallStrainUDSM3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues)
 {
    KRATOS_TRY;
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CalculateMaterialResponsePK1()") << std::endl;
 
    CalculateMaterialResponseCauchy(rValues);
-
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateMaterialResponsePK1()") << std::endl;
 
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues)
 {
    KRATOS_TRY;
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::CalculateMaterialResponsePK2()") << std::endl;
 
    CalculateMaterialResponseCauchy(rValues);
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateMaterialResponsePK2()") << std::endl;
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues)
 {
    KRATOS_TRY;
@@ -611,6 +603,7 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::P
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY;
@@ -643,7 +636,7 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
    KRATOS_CATCH("");
 }
 
-
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY
@@ -660,6 +653,7 @@ void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Para
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)
 {
    KRATOS_TRY
@@ -674,6 +668,7 @@ void SmallStrainUDSM3DLaw::SetExternalStressVector(Vector& rStressVector)
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
 {
    KRATOS_TRY
@@ -688,6 +683,7 @@ void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
    KRATOS_TRY
@@ -702,6 +698,7 @@ void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
                                                    Matrix& rConstitutiveMatrix )
 {
@@ -730,7 +727,7 @@ void SmallStrainUDSM3DLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &
    KRATOS_CATCH("");
 }
 
-
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
                                                         Matrix& rConstitutiveMatrix )
 {
@@ -750,6 +747,7 @@ void SmallStrainUDSM3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Paramet
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues,
                                             Vector& rStressVector )
 {
@@ -770,6 +768,7 @@ void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY;
@@ -837,7 +836,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
    KRATOS_CATCH("");
 }
 
-
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProperties)
 {
    KRATOS_TRY;
@@ -903,39 +902,30 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProp
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterialResponsePK1()") << std::endl;
-
    // Small deformation so we can call the Cauchy method
    InitializeMaterialResponseCauchy(rValues);
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterialResponsePK1()") << std::endl;
-
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterialResponsePK2()") << std::endl;
-
    // Small deformation so we can call the Cauchy method
    InitializeMaterialResponseCauchy(rValues);
-
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterialResponsePK2()") << std::endl;
-
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterialResponseKirchhoff()") << std::endl;
-
    // Small deformation so we can call the Cauchy method
    InitializeMaterialResponseCauchy(rValues);
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterialResponseKirchhoff()") << std::endl;
-
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
    KRATOS_TRY;
@@ -962,24 +952,28 @@ void SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
    KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues)
 {
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy()") << std::endl;
@@ -992,6 +986,7 @@ void SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
 
 }
 
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
 {
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
@@ -1006,9 +1001,7 @@ void SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::
 
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
+//----------------------------------------------------------------------------------------
 void SmallStrainUDSM3DLaw::CalculateCauchyGreenStrain( ConstitutiveLaw::Parameters& rValues, 
                                                        Vector& rStrainVector )
 {
@@ -1034,7 +1027,7 @@ void SmallStrainUDSM3DLaw::CalculateCauchyGreenStrain( ConstitutiveLaw::Paramete
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateCauchyGreenStrain()") << std::endl;
 }
 
-
+//----------------------------------------------------------------------------------------
 double& SmallStrainUDSM3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rParameterValues,
                                               const Variable<double>& rThisVariable,
                                               double& rValue )
@@ -1057,9 +1050,7 @@ double& SmallStrainUDSM3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rPara
    return( rValue );
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
+//----------------------------------------------------------------------------------------
 Vector& SmallStrainUDSM3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rParameterValues,
                                               const Variable<Vector>& rThisVariable,
                                               Vector& rValue )
@@ -1088,7 +1079,7 @@ Vector& SmallStrainUDSM3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rPara
       rFlags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
       // We compute the stress
-      SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(rParameterValues);
+      CalculateMaterialResponseCauchy(rParameterValues);
       rValue = rParameterValues.GetStressVector();
 
       // Previous flags restored
@@ -1101,9 +1092,7 @@ Vector& SmallStrainUDSM3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rPara
    return( rValue );
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
+//----------------------------------------------------------------------------------------
 Matrix& SmallStrainUDSM3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rParameterValues,
                                               const Variable<Matrix>& rThisVariable,
                                               Matrix& rValue )

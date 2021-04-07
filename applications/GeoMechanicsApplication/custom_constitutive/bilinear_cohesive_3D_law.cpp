@@ -109,8 +109,9 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
     const double& DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];
     const double& YieldStress = MaterialProperties[YIELD_STRESS];
 
-    if( Options.Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
+    if ( Options.Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) )
     {
+         // No contact between interfaces
         this->ComputeEquivalentStrain(EquivalentStrain,rStrainVector,CriticalDisplacement);
 
         if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
@@ -142,16 +143,18 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
                 Vector& rStressVector = rValues.GetStressVector();
 
-                if(EquivalentStrain >= mStateVariable) //Loading
+                if(EquivalentStrain >= mStateVariable)
                 {
+                    // loading
                     this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,
                                                            rStrainVector,
                                                            YieldStress,
                                                            DamageThreshold,
                                                            CriticalDisplacement);
                 }
-                else //Unloading
+                else
                 {
+                    // unloading
                     this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,
                                                              YieldStress,
                                                              DamageThreshold,
@@ -279,12 +282,14 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues 
         //Material properties
         const double& CriticalDisplacement = rValues.GetMaterialProperties()[CRITICAL_DISPLACEMENT];
 
-        if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
+        if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) )
         {
+            // No contact between interfaces
             this->ComputeEquivalentStrain(EquivalentStrain,rStrainVector,CriticalDisplacement);
         }
-        else // Contact between interfaces
+        else
         {
+            // Contact between interfaces
             this->ComputeEquivalentStrainContact(EquivalentStrain,rStrainVector,CriticalDisplacement);
         }
 

@@ -4,11 +4,11 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return PeriodicInterfaceActivationProcess(Model, settings["Parameters"])
+    return GapClosureInterfaceActivationProcess(Model, settings["Parameters"])
 
 ## All the python processes should be derived from "python_process"
 
-class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
+class GapClosureInterfaceActivationProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -16,22 +16,18 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
 
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
-        params.AddValue("dimension",settings["dimension"])
-        params.AddValue("stress_limit",settings["stress_limit"])
-
-        self.process = KratosGeo.PeriodicInterfaceProcess(model_part, params)
-
-        if(settings["dimension"].GetInt() == 2):
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,2,5)
-        else:
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10)
+        params.AddValue("gap_width_threshold",settings["gap_width_threshold"])
+        params.AddValue("consider_gap_closure",settings["consider_gap_closure"])
+        self.process = KratosGeo.GapClosureInterfaceProcess(model_part, params)
 
     def ExecuteInitialize(self):
-
-        self.FindNodalNeigh.Execute()
-
         self.process.ExecuteInitialize()
 
-    def ExecuteFinalizeSolutionStep(self):
+    def ExecuteInitializeSolutionStep(self):
+        self.process.ExecuteInitializeSolutionStep()
 
+    def ExecuteFinalizeSolutionStep(self):
         self.process.ExecuteFinalizeSolutionStep()
+
+    def ExecuteFinalize(self):
+        self.process.ExecuteFinalize()

@@ -38,6 +38,7 @@
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_processes/apply_gradual_excavation_process.hpp"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
+#include "custom_processes/gap_closure_interface_process.hpp"
 
 namespace Kratos
 {
@@ -123,6 +124,10 @@ namespace Python
 
         class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
             (m, "ApplyWriteScalarProcess")
+            .def(init < ModelPart&, Parameters&>());
+
+        class_<GapClosureInterfaceProcess, GapClosureInterfaceProcess::Pointer, Process>
+            (m, "GapClosureInterfaceProcess")
             .def(init < ModelPart&, Parameters&>());
 
     }
