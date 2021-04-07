@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_BREP_POINT_H_INCLUDED )
-#define  KRATOS_BREP_POINT_H_INCLUDED
+#if !defined(KRATOS_POINT_ON_GEOMETRY_H_INCLUDED )
+#define  KRATOS_POINT_ON_GEOMETRY_H_INCLUDED
 
 // System includes
 
@@ -23,13 +23,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/* @class BrepPoint
+/* @class PointOnGeometry
  * @ingroup KratosCore
- * @brief The BrepPoint acts as topology for points on various types
+ * @brief The PointOnGeometry acts as topology for points on various types
  *        of geometries as faces or curves.
  */
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension>
-class BrepPoint
+class PointOnGeometry
     : public Geometry<typename TContainerPointType::value_type>
 {
 public:
@@ -37,8 +37,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of BrepPoint
-    KRATOS_CLASS_POINTER_DEFINITION( BrepPoint );
+    /// Pointer definition of PointOnGeometry
+    KRATOS_CLASS_POINTER_DEFINITION( PointOnGeometry );
 
     typedef typename TContainerPointType::value_type PointType;
 
@@ -63,7 +63,7 @@ public:
     ///@{
 
     /// Constructor for untrimmed patch
-    BrepPoint(
+    PointOnGeometry(
         const CoordinatesArrayType LocalCoordinates,
         typename GeometryType::Pointer pBackgroundGeometry)
         : BaseType(PointsArrayType(), &msGeometryData)
@@ -81,7 +81,7 @@ public:
     }
 
     /// Copy constructor.
-    BrepPoint(BrepPoint const& rOther )
+    PointOnGeometry(PointOnGeometry const& rOther )
         : BaseType( rOther )
         , mLocalCoordinates(rOther.mLocalCoordinates)
         , mpBackgroundGeometry(rOther.mpBackgroundGeometry)
@@ -89,14 +89,14 @@ public:
     }
 
     /// Destructor
-    ~BrepPoint() override = default;
+    ~PointOnGeometry() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    BrepPoint& operator=( const BrepPoint& rOther )
+    PointOnGeometry& operator=( const PointOnGeometry& rOther )
     {
         BaseType::operator=( rOther );
         mLocalCoordinates = rOther.mLocalCoordinates;
@@ -110,7 +110,7 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new BrepPoint( ThisPoints ) );
+        return typename BaseType::Pointer( new PointOnGeometry( ThisPoints ) );
     }
 
     ///@}
@@ -141,7 +141,7 @@ public:
         if (Index == BACKGROUND_GEOMETRY_INDEX)
             return mpBackgroundGeometry;
 
-        KRATOS_ERROR << "Index " << Index << " not existing as geometry part in BrepPoint #"
+        KRATOS_ERROR << "Index " << Index << " not existing as geometry part in PointOnGeometry #"
             << this->Id() << std::endl;
     }
 
@@ -196,7 +196,7 @@ public:
     ///@{
 
     /* @brief creates a list of quadrature point geometry
-     *        at the specific location of this BrepPoint on the background geometry.
+     *        at the specific location of this PointOnGeometry on the background geometry.
      *
      * @param rResultGeometries list of ONE quadrature point geometries.
      * @param rIntegrationPoints list of ONE integration point.
@@ -212,10 +212,12 @@ public:
         IntegrationPointsArrayType integration_point(1);
         this->CreateIntegrationPoints(integration_point);
 
-        GeometriesArrayType rQuadraturePointGeometries(0);
+        GeometriesArrayType rQuadraturePointGeometries(1);
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
             rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point);
 
+        if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
+        // Move construct quadrature point geometry with Dimension being 0.
         rResultGeometries[0] = QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimension, 0>(rQuadraturePointGeometries[0]);
     }
 
@@ -248,13 +250,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "BrepPoint";
+        return "PointOnGeometry";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "BrepPoint";
+        rOStream << "PointOnGeometry";
     }
 
     /// Print object's data.
@@ -262,7 +264,7 @@ public:
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        rOStream << "    BrepPoint" << std::endl;
+        rOStream << "    PointOnGeometry" << std::endl;
     }
 
     ///@}
@@ -288,7 +290,7 @@ private:
     ///@{
 
     /// Default constructor for serializer.
-    explicit BrepPoint(const PointsArrayType& ThisPoints)
+    explicit PointOnGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
     }
@@ -313,13 +315,13 @@ private:
         rSerializer.load("pBackgroundGeometry", mpBackgroundGeometry);
     }
 
-    BrepPoint()
+    PointOnGeometry()
         : BaseType( PointsArrayType(), &msGeometryData )
     {}
 
     ///@}
 
-}; // Class BrepPoint
+}; // Class PointOnGeometry
 
 ///@name Input and output
 ///@{
@@ -327,12 +329,12 @@ private:
 /// input stream functions
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepPoint<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>& rThis );
+    PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>& rThis );
 
 /// output stream functions
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepPoint<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>& rThis )
+    const PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -345,16 +347,16 @@ template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceD
 ///@{
 
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension> const
-GeometryData BrepPoint<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryData(
+GeometryData PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryData(
     &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, int TLocalSpaceDimension, int TWorkingSpaceDimension>
-const GeometryDimension BrepPoint<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryDimension(
+const GeometryDimension PointOnGeometry<TContainerPointType, TLocalSpaceDimension, TWorkingSpaceDimension>::msGeometryDimension(
     0, TWorkingSpaceDimension, TLocalSpaceDimension);
 
 ///@}
 }// namespace Kratos.
 
-#endif // KRATOS_BREP_FACE_3D_H_INCLUDED  defined
+#endif // KRATOS_POINT_ON_GEOMETRY_H_INCLUDED  defined
