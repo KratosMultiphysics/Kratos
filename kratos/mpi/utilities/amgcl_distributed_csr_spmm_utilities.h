@@ -61,7 +61,7 @@ public:
 
         sort_rows(*Camgcl);
 
-        return AmgclDistributedCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl);
+        return AmgclDistributedCSRConversionUtilities::ConvertToCsrMatrix<TDataType,IndexType>(*Camgcl, rA.GetComm());
 	}
 
 

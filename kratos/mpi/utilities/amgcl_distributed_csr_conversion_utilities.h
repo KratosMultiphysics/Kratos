@@ -79,7 +79,7 @@ public:
 	template< class TDataType, class TIndexType >
 	static typename DistributedCsrMatrix<TDataType, TIndexType>::UniquePointer ConvertToCsrMatrix(
 			amgcl::mpi::distributed_matrix<amgcl::backend::builtin<double>>& rA, //cannot be made const since i need to modify some data in-place,
-			DataCommunicator& kratos_comm=ParallelEnvironment::GetDefaultDataCommunicator()
+			const DataCommunicator& kratos_comm
 			)
 	{
 		if(!rA.local())
