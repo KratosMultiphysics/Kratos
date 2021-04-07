@@ -204,8 +204,8 @@ bool CheckGraph(
 }
 
 bool CheckCSRGraphArrays(
-    const span<SparseTestingInternals::IndexType>& rRowIndices,
-    const span<SparseTestingInternals::IndexType>& rColIndices,
+    const Kratos::span<SparseTestingInternals::IndexType>& rRowIndices,
+    const Kratos::span<SparseTestingInternals::IndexType>& rColIndices,
     const MatrixMapType& rReferenceGraph)
 {
     auto N = rRowIndices.size()-1;

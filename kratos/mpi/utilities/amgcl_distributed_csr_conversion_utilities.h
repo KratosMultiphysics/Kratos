@@ -91,9 +91,6 @@ public:
 		if(amgcl_raw_comm != MPIDataCommunicator::GetMPICommunicator( kratos_comm) )
 			KRATOS_ERROR << "MPI communicator mismatch between the communicator passed to the conversion function and the one used internally by amgcl" << std::endl;
 
-		// rA.local()->own_data=false;
-		// rA.remote()->own_data=false;
-
 		//create row numbering and col numbering
 		pAconverted->pGetRowNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->nrows);
 		pAconverted->pGetColNumbering() = Kratos::make_unique<DistributedNumbering<IndexType>>(kratos_comm,rA.local()->ncols);
@@ -137,23 +134,6 @@ public:
         // mOffDiagonalLocalIds
         // mOffDiagonalGlobalIds
         // mfem_assemble_colors
-
-		//set ownership
-        // if(rA.local()->own_data == false){ //if rA is not the owner, Aconverted cannot be
-        //     pAconverted->GetDiagonalBlock().SetIsOwnerOfData(false);
-        // }
-        // else{ //if rA is the owner, transfer ownership to the csr_matrix
-        //     rA.local()->own_data = false;
-        //     pAconverted->GetDiagonalBlock().SetIsOwnerOfData(true);
-        // }		
-
-        // if(rA.remote()->own_data == false){ //if rA is not the owner, Aconverted cannot be
-        //     pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(false);
-        // }
-        // else{ //if rA is the owner, transfer ownership to the csr_matrix
-        //     rA.local()->own_data = false;
-        //     pAconverted->GetOffDiagonalBlock().SetIsOwnerOfData(true);
-        // }		
 
 		return pAconverted;
 
