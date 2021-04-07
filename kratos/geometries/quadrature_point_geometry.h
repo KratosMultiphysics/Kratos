@@ -184,6 +184,16 @@ public:
     {
     }
 
+    /// Copy constructor with different dimension TOtherDimension.
+    template<int TOtherDimension>
+    QuadraturePointGeometry(
+        QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension> const& rOther)
+        : BaseType(rOther)
+        , mGeometryData(rOther.mGeometryData)
+        , mpGeometryParent(rOther.mpGeometryParent)
+    {
+    }
+
     ///@}
     ///@name Operators
     ///@{
