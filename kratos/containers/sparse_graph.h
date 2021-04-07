@@ -223,8 +223,6 @@ public:
         Kratos::span<IndexType>& rColIndices
     ) const = delete;
 
-    //NOTE this function will transfer ownership of pRowIndicesData and pColIndicesData to the caller
-    //hence the caller will be in charge of deleting that array
     IndexType ExportCSRArrays(
         Kratos::unique_ptr<IndexType[]>& pRowIndicesData,
         IndexType& rRowDataSize,
