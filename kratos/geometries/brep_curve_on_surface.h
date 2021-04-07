@@ -334,7 +334,7 @@ public:
      */
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
     {
-        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+        mpCurveOnSurface->Spans(rSpans,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
