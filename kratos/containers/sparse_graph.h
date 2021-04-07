@@ -219,10 +219,12 @@ public:
     }
 
     IndexType ExportCSRArrays(
-        span<IndexType>& rRowIndices,
-        span<IndexType>& rColIndices
+        Kratos::span<IndexType>& rRowIndices,
+        Kratos::span<IndexType>& rColIndices
     ) const = delete;
 
+    //NOTE this function will transfer ownership of pRowIndicesData and pColIndicesData to the caller
+    //hence the caller will be in charge of deleting that array
     IndexType ExportCSRArrays(
         IndexType*& pRowIndicesData,
         IndexType& rRowDataSize,
@@ -235,7 +237,7 @@ public:
 
         pRowIndicesData = new IndexType[nrows+1];
         rRowDataSize = nrows+1;
-        span<IndexType> row_indices(pRowIndicesData, nrows+1);
+        Kratos::span<IndexType> row_indices(pRowIndicesData, nrows+1);
         
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(row_indices.size()).for_each([&](IndexType i){
@@ -257,7 +259,7 @@ public:
         IndexType nnz = row_indices[nrows];
         rColDataSize = nnz;
         pColIndicesData = new IndexType[nnz];
-        span<IndexType> col_indices(pColIndicesData, nnz);
+        Kratos::span<IndexType> col_indices(pColIndicesData, nnz);
         
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(col_indices.size()).for_each([&](IndexType i){

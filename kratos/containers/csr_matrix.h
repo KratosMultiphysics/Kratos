@@ -83,8 +83,8 @@ public:
         TIndexType row_data_size=0;
         TIndexType col_data_size=0;
         rSparseGraph.ExportCSRArrays(mpRowIndicesData,row_data_size,mpColIndicesData, col_data_size);
-        mRowIndices = span<TIndexType>(mpRowIndicesData, row_data_size); //no copying of data happening here
-        mColIndices = span<TIndexType>(mpColIndicesData, col_data_size);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, row_data_size); //no copying of data happening here
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, col_data_size);
 
         mNrows = size1();
 
@@ -209,23 +209,23 @@ public:
         mIsOwnerOfData = IsOwner;
     }
 
-    inline span<IndexType>& index1_data(){
+    inline Kratos::span<IndexType>& index1_data(){
         return mRowIndices;
     }
-    inline span<IndexType>& index2_data(){
+    inline Kratos::span<IndexType>& index2_data(){
         return mColIndices;
     }
-    inline span<TDataType>& value_data(){
+    inline Kratos::span<TDataType>& value_data(){
         return mValuesVector;
     }
 
-    inline const span<IndexType>& index1_data() const{
+    inline const Kratos::span<IndexType>& index1_data() const{
         return mRowIndices;
     }
-    inline const span<IndexType>& index2_data() const{
+    inline const Kratos::span<IndexType>& index2_data() const{
         return mColIndices;
     }
-    inline const span<TDataType>& value_data() const{
+    inline const Kratos::span<TDataType>& value_data() const{
         return mValuesVector;
     }
 
@@ -252,9 +252,9 @@ public:
             delete [] mpRowIndicesData;
         mpRowIndicesData = pExternalData;
         if(DataSize!=0)
-            mRowIndices = span<TIndexType>(mpRowIndicesData, DataSize);
+            mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, DataSize);
         else
-            mRowIndices = span<TIndexType>();
+            mRowIndices = Kratos::span<TIndexType>();
     }
 
     void AssignIndex2Data(TIndexType* pExternalData, TIndexType DataSize){
@@ -262,9 +262,9 @@ public:
             delete [] mpColIndicesData;
         mpColIndicesData = pExternalData;
         if(DataSize!=0)
-            mColIndices = span<TIndexType>(mpColIndicesData, DataSize);
+            mColIndices = Kratos::span<TIndexType>(mpColIndicesData, DataSize);
         else
-            mColIndices = span<TIndexType>();
+            mColIndices = Kratos::span<TIndexType>();
     }
 
     void AssignValueData(TDataType* pExternalData, TIndexType DataSize){
@@ -272,9 +272,9 @@ public:
             delete [] mpValuesVectorData;
         mpValuesVectorData = pExternalData;
         if(DataSize!=0)
-            mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
+            mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
         else
-            mValuesVector = span<TDataType>();
+            mValuesVector = Kratos::span<TDataType>();
     }
 
     void ResizeIndex1Data(TIndexType DataSize){
@@ -282,7 +282,7 @@ public:
         if(mpRowIndicesData != nullptr)
             delete [] mpRowIndicesData;
         mpRowIndicesData = new TIndexType[DataSize];
-        mRowIndices = span<TIndexType>(mpRowIndicesData, DataSize);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, DataSize);
     }
 
     void ResizeIndex2Data(TIndexType DataSize){
@@ -290,7 +290,7 @@ public:
         if(mpColIndicesData != nullptr)
             delete [] mpColIndicesData;
         mpColIndicesData = new TIndexType[DataSize];
-        mColIndices = span<TIndexType>(mpColIndicesData, DataSize);
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, DataSize);
     }
 
     void ResizeValueData(TIndexType DataSize){
@@ -298,7 +298,7 @@ public:
         if(mpValuesVectorData != nullptr)
             delete [] mpValuesVectorData;
         mpValuesVectorData = new TDataType[DataSize];
-        mValuesVector = span<TDataType>(mpValuesVectorData, DataSize);
+        mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
     }
 
 
@@ -699,9 +699,9 @@ private:
     IndexType* mpRowIndicesData = nullptr;
     IndexType* mpColIndicesData = nullptr;
     TDataType* mpValuesVectorData = nullptr;
-    span<IndexType> mRowIndices;
-    span<IndexType> mColIndices;
-    span<TDataType> mValuesVector;
+    Kratos::span<IndexType> mRowIndices;
+    Kratos::span<IndexType> mColIndices;
+    Kratos::span<TDataType> mValuesVector;
     IndexType mNrows=0;
     IndexType mNcols=0;
 
@@ -742,21 +742,21 @@ private:
         IndexType rows_size;
         rSerializer.load("nrows",rows_size);
         mpRowIndicesData = new TIndexType[rows_size];
-        mRowIndices = span<TIndexType>(mpRowIndicesData, rows_size);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, rows_size);
         for(IndexType i=0; i<rows_size; ++i)
             rSerializer.load("i",mRowIndices[i]);
 
         IndexType cols_size;
         rSerializer.load("cols_size",cols_size);
         mpColIndicesData = new TIndexType[cols_size];
-        mColIndices = span<TIndexType>(mpRowIndicesData, cols_size);
+        mColIndices = Kratos::span<TIndexType>(mpRowIndicesData, cols_size);
         for(IndexType i=0; i<mColIndices.size(); ++i)
             rSerializer.load("i",mColIndices[i]);
 
         IndexType vals_size;
         rSerializer.load("val_size",vals_size);
         mpValuesVectorData = new TDataType[vals_size];
-        mValuesVector = span<TDataType>(mpValuesVectorData, vals_size);
+        mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, vals_size);
         for(IndexType i=0; i<mValuesVector.size(); ++i)
             rSerializer.load("d",mValuesVector[i]);
         
