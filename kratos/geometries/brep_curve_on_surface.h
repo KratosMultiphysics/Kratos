@@ -356,16 +356,14 @@ public:
         const double min_parameter = mCurveNurbsInterval.MinParameter();
         if (rPointLocalCoordinates[0] < min_parameter) {
             return 0;
-        }
-        else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
             return 2;
         }
 
         const double max_parameter = mCurveNurbsInterval.MaxParameter();
         if (rPointLocalCoordinates[0] > max_parameter) {
             return 0;
-        }
-        else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
             return 2;
         }
 
@@ -393,8 +391,7 @@ public:
         if (rPointLocalCoordinates[0] < min_parameter) {
             rPointLocalCoordinates[0] = min_parameter;
             return 0;
-        }
-        else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
             return 2;
         }
 
@@ -402,8 +399,7 @@ public:
         if (rPointLocalCoordinates[0] > max_parameter) {
             rPointLocalCoordinates[0] = min_parameter;
             return 0;
-        }
-        else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
             return 2;
         }
 
