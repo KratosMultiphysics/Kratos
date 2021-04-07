@@ -216,7 +216,7 @@ public:
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
             rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point);
 
-        rResultGeometries[0] = QuadraturePointGeometry<TContainerPointType, TWorkingSpaceDimension, TLocalSpaceDimension, 0>(rQuadraturePointGeometries[0]);
+        rResultGeometries[0] = QuadraturePointGeometry<PointType, TWorkingSpaceDimension, TLocalSpaceDimension, 0>(rQuadraturePointGeometries[0]);
     }
 
     ///@}
