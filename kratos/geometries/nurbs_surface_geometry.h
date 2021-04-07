@@ -424,6 +424,18 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(
+            { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1 },
+            { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -431,7 +443,8 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;

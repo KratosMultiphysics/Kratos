@@ -324,7 +324,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -371,6 +372,18 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(1,
+            mPolynomialDegree + 1,
+            IntegrationInfo::QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -378,12 +391,23 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = PolynomialDegree(0) + 1;
+        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
-        Spans(spans);
+        if (!rIntegrationInfo.Has(SPANS_LOCAL_SPACE)) {
+            spans = rIntegrationInfo.GetValue(SPANS_LOCAL_SPACE);
+            Spans(spans);
+            if (spans.size() < 1) {
+                this->Spans(spans);
+            }
+            rIntegrationInfo.SetValue(SPANS_LOCAL_SPACE, spans);
+        }
+        else {
+            this->Spans(spans);
+        }
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
