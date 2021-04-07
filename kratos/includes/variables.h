@@ -464,8 +464,6 @@ namespace Kratos
     //for Geometry Variables
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 
-    KRATOS_DEFINE_VARIABLE(std::vector<double>, SPANS_LOCAL_SPACE)
-
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

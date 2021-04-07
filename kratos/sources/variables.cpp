@@ -458,8 +458,6 @@ KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 //for Geometry Variables
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 
-KRATOS_CREATE_VARIABLE(std::vector<double>, SPANS_LOCAL_SPACE)
-
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -917,7 +915,5 @@ void KratosApplication::RegisterVariables() {
 
     //--------------- Geometry Variables -------------------//
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
-
-    KRATOS_REGISTER_VARIABLE(SPANS_LOCAL_SPACE)
 }
 }  // namespace Kratos.
