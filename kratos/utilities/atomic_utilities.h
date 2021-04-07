@@ -47,14 +47,15 @@ inline void AtomicAdd(TDataType& target, const TDataType& value)
 /** 
  * @param target variable being atomically updated by doing target += value
  * @param value value being added
- * Specialization for array_1d<double,3>
+ * Specialization for array_1d
  * Note that the update is not really atomic, but rather is done component by component
  */
-inline void AtomicAdd(array_1d<double,3>& target, const array_1d<double,3>& value)
+template <class TDataType, std::size_t ArraySize>
+inline void AtomicAdd(array_1d<TDataType,ArraySize>& target, const array_1d<TDataType,ArraySize>& value)
 {
-    AtomicAdd(target[0], value[0]);
-    AtomicAdd(target[1], value[1]);
-    AtomicAdd(target[2], value[2]);
+    for (std::size_t i=0; i<ArraySize; ++i) {
+        AtomicAdd(target[i], value[i]);
+    }
 }
 
 /** 
