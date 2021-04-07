@@ -140,8 +140,8 @@ namespace Testing {
         KRATOS_CHECK_RELATIVE_NEAR(global_coords[2], point_projected[2], TOLERANCE);
 
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], 0.05, TOLERANCE);
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_RELATIVE_NEAR(local_coords[2], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(local_coords[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(local_coords[2], 0.0, TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the line
