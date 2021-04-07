@@ -18,10 +18,11 @@ class FixVectorVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "model_part_name" : "SPECIFY_MODEL_PART_NAME",
-                "variable_name"   : "SPECIFY_VARIABLE_NAME",
-                "interval"        : [0.0, 1e30],
-                "constrained"     : [true,true,true]
+                "model_part_name"      : "SPECIFY_MODEL_PART_NAME",
+                "variable_name"        : "SPECIFY_VARIABLE_NAME",
+                "interval"             : [0.0, 1e30],
+                "constrained"          : [true,true,true],
+                "free_dof_if_specified : [false,false,false]
             }
             """
         )
@@ -44,6 +45,7 @@ class FixVectorVariableProcess(KratosMultiphysics.Process):
             i_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + component)
             i_params.AddValue("interval", settings["interval"])
             i_params.AddValue("constrained", settings["constrained"][index])
+            i_params.AddValue("free_dof_if_specified", settings["free_dof_if_specified"][index])
             self.aux_processes.append( fix_scalar_variable_process.FixScalarVariableProcess(model, i_params) )
 
     def ExecuteInitialize(self):
