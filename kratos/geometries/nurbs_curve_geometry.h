@@ -370,8 +370,7 @@ public:
         if (rPointLocalCoordinates[0] < min_parameter) {
             rPointLocalCoordinates[0] = min_parameter;
             return 0;
-        }
-        else if (rPointLocalCoordinates[0] == min_parameter) {
+        } else if (rPointLocalCoordinates[0] == min_parameter) {
             return 2;
         }
 
@@ -381,8 +380,7 @@ public:
         if (rPointLocalCoordinates[0] > max_parameter) {
             rPointLocalCoordinates[0] = max_parameter;
             return 0;
-        }
-        else if (rPointLocalCoordinates[0] == max_parameter) {
+        } else if (rPointLocalCoordinates[0] == max_parameter) {
             return 2;
         }
 
