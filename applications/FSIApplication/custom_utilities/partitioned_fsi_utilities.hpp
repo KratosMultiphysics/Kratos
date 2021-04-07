@@ -103,14 +103,13 @@ public:
     /*@{ */
 
     /**
-     * @brief Create a coupling element based skin object
-     * This method creates an element based skin model part by
+     * @brief Create a coupling condition-based skin object
+     * This method creates an condition-based skin model part by
      * copying the conditions of a given skin model part
      * @param rOriginInterfaceModelPart Origin skin model part to copy the conditions from
-     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin elements
+     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin nodes and conditions
      */
-    //TODO: UPDATE THE METHOD NAME TO ConditionBased
-    void CreateCouplingElementBasedSkin(
+    void CreateCouplingSkin(
         const ModelPart &rOriginInterfaceModelPart,
         ModelPart &rDestinationInterfaceModelPart)
     {
@@ -146,14 +145,7 @@ public:
                 nodes_vect.push_back(r_node.Id());
             }
 
-            // Create the new skin element
-            //FIXME: CONSIDERING THAT THIS IS A SKIN, MAKES MORE SENSE TO HAVE CONDITIONS RATHER THAN ELEMENTS...
-            //FIXME: NOTE THAT HAVING BOTH CONDITIONS AND ELEMENTS IMPEDES USING THE MAPPERS
-            // rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
-
             // Create the new condition element
-            //FIXME: I ADDED THESE FOR THE EMBEDDED FIXES...
-            //FIXME: THESE ARE ALSO REQUIRED TO CALCULATE THE RESIDUAL WITH THE CONDITIONS
             rDestinationInterfaceModelPart.CreateNewCondition(this->GetSkinConditionName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
         }
     }

@@ -319,7 +319,7 @@ class FSICouplingInterface():
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         # Set the FSI coupling interface entities (nodes and elements)
-        self._get_partitioned_fsi_utilities().CreateCouplingElementBasedSkin(
+        self._get_partitioned_fsi_utilities().CreateCouplingSkin(
             self.GetFatherModelPart(),
             self._fsi_interface_model_part)
 

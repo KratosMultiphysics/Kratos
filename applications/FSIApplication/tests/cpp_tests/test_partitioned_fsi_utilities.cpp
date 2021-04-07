@@ -222,7 +222,7 @@ namespace Testing {
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesCopySkinToElements, FSIApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesCreateCouplingSkin, FSIApplicationFastSuite)
     {
         // Set the partitioned FSI utilities
         PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
@@ -234,7 +234,7 @@ namespace Testing {
 
         // Set the new skin model part
         ModelPart &element_based_skin = model.CreateModelPart("ConditionBasedSkin");
-        partitioned_fsi_utilities.CreateCouplingElementBasedSkin(main_model_part, element_based_skin);
+        partitioned_fsi_utilities.CreateCouplingSkin(main_model_part, element_based_skin);
 
         // Check results
         KRATOS_CHECK_EQUAL(element_based_skin.NumberOfNodes(), 4);
