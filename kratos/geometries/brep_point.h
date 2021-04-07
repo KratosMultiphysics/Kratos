@@ -152,10 +152,7 @@ public:
      */
     bool HasGeometryPart(IndexType Index) const override
     {
-        if (Index == BACKGROUND_GEOMETRY_INDEX)
-            return true;
-
-        return false;
+        return (Index == BACKGROUND_GEOMETRY_INDEX);
     }
 
     ///@}
