@@ -301,6 +301,14 @@ public:
     ///@name Projection Point
     ///@{
 
+    /* Makes projection of rPointGlobalCoordinates to
+     * the closest point rProjectedPointGlobalCoordinates on the curve,
+     * with local coordinates rProjectedPointLocalCoordinates.
+     *
+     * @param Tolerance is the breaking criteria.
+     * @return 1 -> projection succeeded
+     *         0 -> projection failed
+     */
     int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
