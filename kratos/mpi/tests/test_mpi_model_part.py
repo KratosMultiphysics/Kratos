@@ -10,13 +10,13 @@ def GetFilePath(fileName):
 
 class TestMPIModelPart(KratosUnittest.TestCase):
 
-    def setUp(self):
-        self.communicator = KratosMultiphysics.DataCommunicator.GetDefault()
-
-
     def test_remove_nodes_parallel_interfaces(self):
         current_model = KratosMultiphysics.Model()
         main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         ReadDistributedModelPart(GetFilePath("test_mpi_communicator"), main_model_part)
@@ -24,7 +24,7 @@ class TestMPIModelPart(KratosUnittest.TestCase):
         for node in main_model_part.Nodes:
             if node.Id % 2:
                 node.Set(KratosMultiphysics.TO_ERASE)
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, self.communicator.Rank())
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, main_model_part.GetCommunicator().MyPID())
 
         main_model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
 
