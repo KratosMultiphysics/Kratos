@@ -45,6 +45,15 @@ public:
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
 
     ///@}
+    ///@name Create Integration Points
+    ///@{
+
+    void CreateIntegrationPoints1D(
+        IntegrationPointsArrayType & rIntegrationPoints,
+        const std::vector<double>&rSpanIntervals,
+        SizeType IntegrationPointsPerSpan) const;
+
+    ///@}
     ///@name Define Integration Points
     ///@{
 
