@@ -172,7 +172,7 @@ private:
 
             if (rParameters[brep_index].Has("vertices"))
             {
-                ReadPointsOnGeometrys(rParameters[brep_index]["vertices"], rModelPart, EchoLevel);
+                ReadPointsOnGeometries(rParameters[brep_index]["vertices"], rModelPart, EchoLevel);
             }
         }
     }
