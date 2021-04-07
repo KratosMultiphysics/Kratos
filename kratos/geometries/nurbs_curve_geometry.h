@@ -397,17 +397,7 @@ public:
         const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
-        if (!rIntegrationInfo.Has(SPANS_LOCAL_SPACE)) {
-            spans = rIntegrationInfo.GetValue(SPANS_LOCAL_SPACE);
-            Spans(spans);
-            if (spans.size() < 1) {
-                this->Spans(spans);
-            }
-            rIntegrationInfo.SetValue(SPANS_LOCAL_SPACE, spans);
-        }
-        else {
-            this->Spans(spans);
-        }
+        Spans(spans);
 
         this->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);

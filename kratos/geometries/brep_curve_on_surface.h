@@ -414,14 +414,8 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        if (!rIntegrationInfo.Has(SPANS_LOCAL_SPACE)) {
-            std::vector<double> spans = rIntegrationInfo.GetValue(SPANS_LOCAL_SPACE);
-            Spans(spans);
-            rIntegrationInfo.SetValue(SPANS_LOCAL_SPACE, spans);
-        }
-
         mpCurveOnSurface->CreateIntegrationPoints(
-            rIntegrationPoints, rIntegrationInfo);
+            rIntegrationPoints, mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1(), rIntegrationInfo);
     }
 
     ///@}
