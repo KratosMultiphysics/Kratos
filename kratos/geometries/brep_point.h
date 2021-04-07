@@ -186,7 +186,7 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        rIntegrationPoints.resize(1);
+        if (rIntegrationPoints.size() != 1) { rIntegrationPoints.resize(1); }
         rIntegrationPoints[0][0] = mLocalCoordinates[0];
         rIntegrationPoints[0][1] = mLocalCoordinates[1];
         rIntegrationPoints[0][2] = mLocalCoordinates[2];
