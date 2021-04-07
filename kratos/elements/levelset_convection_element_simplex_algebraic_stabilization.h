@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mohammad R. Hashemi
+//  Main authors:   Mohammad R. Hashemi
 //
 //
 
@@ -20,14 +20,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "includes/serializer.h"
-#include "includes/cfd_variables.h"
-#include "includes/convection_diffusion_settings.h"
-#include "utilities/geometry_utilities.h"
+#include "elements/levelset_convection_element_simplex.h"
 
 namespace Kratos
 {
@@ -55,7 +48,7 @@ namespace Kratos
 /// Dirichlet boundary condition for rUnknownVar at velocity inlets/outles is essential to be set for this solver since it is based on the flux
 template< unsigned int TDim, unsigned int TNumNodes>
 class LevelSetConvectionElementSimplexAlgebraicStabilization
-    : public Element
+    : public LevelSetConvectionElementSimplex
 {
 public:
     ///@name Type Definitions
@@ -72,12 +65,17 @@ public:
     LevelSetConvectionElementSimplexAlgebraicStabilization() : Element()
     {}
 
-    LevelSetConvectionElementSimplexAlgebraicStabilization(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    LevelSetConvectionElementSimplexAlgebraicStabilization(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
     {}
 
-    LevelSetConvectionElementSimplexAlgebraicStabilization(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    LevelSetConvectionElementSimplexAlgebraicStabilization(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
@@ -99,7 +97,10 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -113,10 +114,10 @@ public:
         const double dt_inv = 1.0 / delta_t;
         const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-        const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
-        const Variable<array_1d<double, 3 > >& rGradVar = my_settings->GetGradientVariable();
+        auto auto p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        auto& rUnknownVar = auto p_conv_diff_settings->GetUnknownVariable();
+        auto& rConvVar = auto p_conv_diff_settings->GetConvectionVariable();
+        auto& rGradVar = auto p_conv_diff_settings->GetGradientVariable();
 
         //getting data for the given geometry
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
@@ -134,21 +135,25 @@ public:
         double phi_mean_old = 0.0;
         double phi_mean = 0.0;
 
-        for (unsigned int i = 0; i < TNumNodes; i++)
+        const auto& r_geom = GetGeometry();
+
+        for (unsigned int i = 0; i < TNumNodes; ++i)
         {
-            phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
-            phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
+            const auto& r_node = r_geom[i];
 
-            v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
-            vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
+            phi[i] = r_node.FastGetSolutionStepValue(rUnknownVar);
+            phi_old[i] = r_node.FastGetSolutionStepValue(rUnknownVar,1);
 
-            X_mean_tmp += GetGeometry()[i].Coordinates();
-            X_node[i] = GetGeometry()[i].Coordinates();
+            v[i] = r_node.FastGetSolutionStepValue(rConvVar);
+            vold[i] = r_node.FastGetSolutionStepValue(rConvVar,1);
 
-            grad_phi_mean_tmp += GetGeometry()[i].GetValue(rGradVar);
+            X_mean_tmp += r_node.Coordinates();
+            X_node[i] = r_node.Coordinates();
 
-            phi_mean_old += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
-            phi_mean += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+            grad_phi_mean_tmp += r_node.GetValue(rGradVar);
+
+            phi_mean_old += r_node.FastGetSolutionStepValue(rUnknownVar,1);
+            phi_mean += r_node.FastGetSolutionStepValue(rUnknownVar);
         }
 
         phi_mean /= static_cast<double>(TNumNodes);
@@ -167,17 +172,20 @@ public:
         BoundedMatrix<double,TNumNodes, TNumNodes> S_matrix = ZeroMatrix(TNumNodes, TNumNodes); // LHS stabilization
         Vector S_vector = ZeroVector(TNumNodes); // RHS stabilization
         BoundedMatrix<double,TNumNodes, TNumNodes> Mc_matrix = ZeroMatrix(TNumNodes, TNumNodes); // consistent mass matrix
-        BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = ZeroMatrix(TNumNodes, TNumNodes); // lumped mass matrix
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = IdentityMatrix(TNumNodes, TNumNodes); // lumped mass matrix
 
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
-        for(unsigned int igauss=0; igauss<TDim+1; igauss++)
+
+        array_1d<double, TDim > vel_gauss = ZeroVector(TDim);
+        array_1d<double, TDim > X_gauss = ZeroVector(TDim);
+        array_1d<double, TNumNodes > v_dot_grad_N = ZeroVector(TNumNodes);
+
+        for(unsigned int igauss=0; igauss<TDim+1; ++igauss)
         {
             noalias(N) = row(Ncontainer,igauss);
 
             //obtain the velocity/coordinate at the gauss point
-            array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
-            array_1d<double, TDim > X_gauss=ZeroVector(TDim);
             double phi_gauss = 0.0;
             double phi_gauss_old = 0.0;
             for (unsigned int i = 0; i < TNumNodes; i++)
@@ -191,7 +199,7 @@ public:
                 phi_gauss_old += N[i]*phi_old[i];
             }
 
-            array_1d<double, TNumNodes > v_dot_grad_N = prod(DN_DX, vel_gauss);
+            v_dot_grad_N = prod(DN_DX, vel_gauss);
 
             noalias(Mc_matrix) += outer_prod(N, N);
             noalias(K_matrix) += outer_prod(N, v_dot_grad_N);
@@ -201,11 +209,6 @@ public:
             }
         }
 
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            Ml_matrix(i,i) = 1.0;
-        }
-
         noalias(S_matrix) = (1.0/static_cast<double>(TNumNodes))*(Ml_matrix-Mc_matrix);
 
         double nu_e = 0.0;
@@ -213,10 +216,9 @@ public:
         {
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                if (i == j)
-                    continue;
-
-                nu_e = std::max( nu_e, std::max(0.0, K_matrix(i, j))/std::abs(S_matrix(i, j)) );
+                if (i != j){
+                    nu_e = std::max( nu_e, std::max(0.0, K_matrix(i, j))/std::abs(S_matrix(i, j)) );
+                }
             }
         }
 
@@ -231,46 +233,6 @@ public:
         rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("Error in Levelset Element")
-    }
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
-    }
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
-    {
-        KRATOS_TRY
-
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-        if (rResult.size() != TNumNodes)
-            rResult.resize(TNumNodes, false);
-
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
-        }
-        KRATOS_CATCH("")
-    }
-
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override
-    {
-        KRATOS_TRY
-
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-        if (ElementalDofList.size() != TNumNodes)
-            ElementalDofList.resize(TNumNodes);
-
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
-
-        }
-        KRATOS_CATCH("");
     }
 
 
@@ -293,13 +255,6 @@ public:
     std::string Info() const override
     {
         return "LevelSetConvectionElementSimplexAlgebraicStabilization #";
-    }
-
-    /// Print information about this object.
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info() << Id();
     }
 
     /// Print object's data.

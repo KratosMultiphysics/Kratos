@@ -82,7 +82,7 @@ public:
 		mis_defined_SurfaceSourceVar=false;
 		mis_defined_ProjectionVar=false;
 		mis_defined_ConvectionVar=false;
-        mis_defined_GradientVar = false;
+		mis_defined_GradientVar = false;
 		mis_defined_MeshVelocityVar=false;
 		mis_defined_TransferCoefficientVar=false;
 		mis_defined_VelocityVar=false;
@@ -226,7 +226,7 @@ public:
     void SetGradientVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpGradientVar = &rvar;
-		mis_defined_GradientVar=true;
+        mis_defined_GradientVar=true;
     }
     const Variable<array_1d<double,3> >& GetGradientVariable()
     {
@@ -234,8 +234,8 @@ public:
     }
     bool IsDefinedGradientVariable()
     {
-		return mis_defined_GradientVar;
-	}
+        return mis_defined_GradientVar;
+    }
 
     void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
