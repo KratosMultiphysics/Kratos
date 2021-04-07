@@ -116,7 +116,7 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
-        , mCurveNurbsInterval(pCurve->DomainInterval())
+        , mCurveNurbsInterval(pNurbsCurveOnSurface->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
