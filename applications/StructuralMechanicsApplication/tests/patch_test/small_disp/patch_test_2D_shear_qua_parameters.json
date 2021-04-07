@@ -29,8 +29,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "use_computing_model_part" : false
+        "max_iteration"                      : 10
     },
     "processes" : {
         "constraints_process_list" : [{

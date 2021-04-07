@@ -205,8 +205,6 @@ public:
 #else
           Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-          // clean local elemental memory
-          pScheme->CleanMemory(*(it.base()));
         }
       }
 
@@ -233,9 +231,6 @@ public:
 #else
           Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-
-          // clean local elemental memory
-          pScheme->CleanMemory(*(it.base()));
         }
       }
     }

@@ -151,8 +151,6 @@ namespace Kratos {
                                     int i_neighbour_count,
                                     int time_steps,
                                     bool& sliding,
-                                    int search_control,
-                                    DenseVector<int>& search_control_vector,
                                     double &equiv_visco_damp_coeff_normal,
                                     double &equiv_visco_damp_coeff_tangential,
                                     double LocalRelVel[3],
@@ -177,6 +175,7 @@ namespace Kratos {
                 LocalElasticExtraContactForce,
                 LocalCoordSystem,
                 LocalDeltDisp,
+                LocalRelVel,
                 kt_el,
                 equiv_shear,
                 contact_sigma,
@@ -188,8 +187,6 @@ namespace Kratos {
                 element2,
                 i_neighbour_count,
                 sliding,
-                search_control,
-                search_control_vector,
                 r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
@@ -379,9 +376,10 @@ namespace Kratos {
 //     /*
     void DEM_Dempack::CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                 double LocalElasticContactForce[3],
-						double LocalElasticExtraContactForce[3],
+						                        double LocalElasticExtraContactForce[3],
                                                 double LocalCoordSystem[3][3],
                                                 double LocalDeltDisp[3],
+                                                double LocalRelVel[3],
                                                 const double kt_el,
                                                 const double equiv_shear,
                                                 double& contact_sigma,
@@ -393,8 +391,6 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2,
                                                 int i_neighbour_count,
                                                 bool& sliding,
-                                                int search_control,
-                                                DenseVector<int>& search_control_vector,
                                                 const ProcessInfo& r_process_info) {
 
 
@@ -492,11 +488,7 @@ namespace Kratos {
                 if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
             }
         }
-        if (search_control == 0) {
-            if (failure_type != 0) {
-                search_control_vector[OpenMPUtils::ThisThread()] = 1;
-            }
-        }
+
     KRATOS_CATCH("")
     }
 

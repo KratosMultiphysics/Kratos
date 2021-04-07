@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <random>
+#include <functional>
 
 #include "inlet.h"
 #include "create_and_destroy.h"
@@ -41,7 +42,7 @@ namespace Kratos {
 
     /// Constructor
 
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed): mInletModelPart(inlet_modelpart)
     {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
         mPartialParticleToInsert.resize(number_of_submodelparts);
@@ -50,6 +51,9 @@ namespace Kratos {
         mLayerRemoved.resize(number_of_submodelparts);
         mNumberOfParticlesInjected.resize(number_of_submodelparts);
         mMassInjected.resize(number_of_submodelparts);
+
+        std::mt19937 gen(seed);
+        mGenerator = gen;
 
         int smp_iterator_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {
@@ -140,18 +144,11 @@ namespace Kratos {
 
             array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
 
-            if ((inlet_velocity[0] == 0.0) &&
-                (inlet_velocity[1] == 0.0) &&
-                (inlet_velocity[2] == 0.0)) {
-
-                KRATOS_THROW_ERROR(std::runtime_error, "The inlet velocity cannot be zero for group ", identifier);
-            }
+            KRATOS_ERROR_IF((inlet_velocity[0] == 0.0) && (inlet_velocity[1] == 0.0) && (inlet_velocity[2] == 0.0)) << "The inlet velocity cannot be zero for group " << identifier << std::endl;
 
             double max_rand_dev_angle = mp[MAX_RAND_DEVIATION_ANGLE];
-            if (max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
 
-                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 89.5 degrees for group ", identifier);
-            }
+            KRATOS_ERROR_IF(max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) << "The velocity deviation angle must be between 0 and 89.5 degrees for group "<< identifier << std::endl;
 
             int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();
             PropertiesProxy* p_fast_properties = NULL;
@@ -173,17 +170,17 @@ namespace Kratos {
 
             for (int i = 0; i < mesh_size; i++) {
                 Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
-                                                             max_Id+1,
-                                                             all_nodes[i],
-                                                             dummy_element_pointer,
-                                                             p_properties,
-                                                             mp,
-                                                             r_reference_element,
-                                                             p_fast_properties,
-                                                             mBallsModelPartHasSphericity,
-                                                             mBallsModelPartHasRotation,
-                                                             true,
-                                                             mp.Elements());
+                                                                                max_Id+1,
+                                                                                all_nodes[i],
+                                                                                dummy_element_pointer,
+                                                                                p_properties,
+                                                                                mp,
+                                                                                r_reference_element,
+                                                                                p_fast_properties,
+                                                                                mBallsModelPartHasSphericity,
+                                                                                mBallsModelPartHasRotation,
+                                                                                true,
+                                                                                mp.Elements());
 
                 FixInjectorConditions(p_element);
                 max_Id++;
@@ -205,7 +202,7 @@ namespace Kratos {
         int dimension = r_process_info[DOMAIN_SIZE];
 
         std::vector<unsigned int> ElementPartition;
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
@@ -314,7 +311,7 @@ namespace Kratos {
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
             std::vector<unsigned int> ElementPartition;
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
             #pragma omp parallel
             {
@@ -551,8 +548,6 @@ namespace Kratos {
             }
 
             if (number_of_particles_to_insert) {
-                //randomizing mesh
-                std::mt19937 random_generator(r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
                 int valid_elements_length = 0;
@@ -617,7 +612,8 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = random_generator() % valid_elements_length;
+                    int random_pos = mGenerator() % valid_elements_length;
+
                     Element* p_injector_element = valid_elements[random_pos].get();
 
                     if (mp[CONTAINS_CLUSTERS] == false) {

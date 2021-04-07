@@ -1,0 +1,96 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "poisson_rectangle_2d",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings": {
+        "model_part_name" : "MainModelPart",
+        "domain_size" : 2,
+        "solver_type" : "stationary",
+        "echo_level": 0,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "test_perturbation_initial_conditions/RectangularCylinder2D_81nodes"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "test_perturbation_initial_conditions/materials_poisson_rectangle_2d.json"
+        },
+        "time_stepping" : {
+            "time_step": 1.1
+        },
+        "element_replace_settings" : {
+            "element_name" : "LaplacianElement",
+            "condition_name" : "ThermalFace"
+        },
+        "problem_domain_sub_model_part_list": ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list": ["AutomaticInlet2D_Automatic_inlet_velocity_Auto1","Outlet2D_Outlet_pressure_Auto1","Slip2D","NoSlip2D_No_Slip_Auto1"],
+        "auxiliary_variables_list" : []
+    },
+    "processes" : {
+	    "initial_conditions_process_list" : [{
+            "python_module" : "kratos_perturbation_process",
+            "kratos_module" : "KratosMultiphysics.ExaquteSandboxApplication",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                "correlated_noise_generator" : {
+                    "dimension" : 2,
+                    "grid_dimensions" : [275,150],
+                    "correlated_length" : 0.1,
+                    "grid_shape" : 50
+                },
+                "lx": 276.0,
+                "lz": 151.0,
+                "x0": -75.0,
+                "z0": -75.0,
+                "seed": 9000,
+                "mapper_parameters" : {
+                    "mapper_type": "nearest_neighbor",
+                    "echo_level" : 3,
+                    "search_radius" : 0.1
+                },
+                "poisson_parameters" : {
+                    "problem_data" : {
+                        "model_part_name" : "MainModelPart",
+                        "domain_size"     : 2,
+                        "penalty_coefficient" : 1.0,
+                        "load_velocity_field" : "test_perturbation_initial_conditions/average_velocity_field_RectangularCylinder_81nodes.dat",
+                        "structure_model_part" : "NoSlip2D_No_Slip_Auto1"
+                    },
+                    "solver_settings": {
+                        "model_part_name" : "MainModelPart",
+                        "domain_size" : 2,
+                        "model_import_settings": {
+                            "input_type": "mdpa",
+                            "input_filename": "test_perturbation_initial_conditions/RectangularCylinder2D_81nodes"
+                        },
+                        "material_import_settings"           : {
+                            "materials_filename" : "test_perturbation_initial_conditions/materials_poisson_rectangle_2d.json"
+                        },
+                        "problem_domain_sub_model_part_list": ["Parts_Parts_Auto1"],
+                        "processes_sub_model_part_list": ["AutomaticInlet2D_Automatic_inlet_velocity_Auto1","Outlet2D_Outlet_pressure_Auto1","Slip2D","NoSlip2D_No_Slip_Auto1"],
+                        "auxiliary_variables_list" : []
+                    },
+                    "processes" : {
+                        "constraints_process_list" : [{
+                            "python_module" : "assign_scalar_variable_process",
+                            "kratos_module" : "KratosMultiphysics",
+                            "Parameters"    : {
+                                "model_part_name" : "MainModelPart.Outlet2D_Outlet_pressure_Auto1",
+                                "variable_name"   : "TEMPERATURE",
+                                "constrained"     : true,
+                                "value"           : 0.0,
+                                "interval"        : [0.0,"End"]
+                            }
+                        }]
+                    }
+                }
+            }
+        }]
+    }
+}

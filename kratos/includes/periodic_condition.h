@@ -29,7 +29,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"
 

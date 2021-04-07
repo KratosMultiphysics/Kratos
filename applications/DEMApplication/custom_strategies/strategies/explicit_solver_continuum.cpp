@@ -3,6 +3,8 @@
 //
 
 #include "explicit_solver_continuum.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos {
 
@@ -19,7 +21,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         DisplayThreadInfo();
 
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
@@ -27,8 +29,8 @@ namespace Kratos {
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
-        r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
-        for (int i = 0; i < mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
+        mSearchControlVector.resize(mNumberOfThreads);
+        for (int i = 0; i < mNumberOfThreads; i++) mSearchControlVector[i] = 0;
 
         PropertiesProxiesManager().CreatePropertiesProxies(r_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
@@ -187,15 +189,28 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         if (r_process_info[SEARCH_CONTROL] == 0) {
-            for (int i = 0; i < mNumberOfThreads; i++) {
-                if (r_process_info[SEARCH_CONTROL_VECTOR][i] == 1) {
-                    r_process_info[SEARCH_CONTROL] = 1;
-                    if(r_model_part.GetCommunicator().MyPID() == 0) {
-                        KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
+
+            ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+            int some_bond_is_broken = 0;
+
+            block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+
+                SphericContinuumParticle& r_sphere = dynamic_cast<SphericContinuumParticle&>(rElement);
+
+                for (int j=0; j<(int) r_sphere.mContinuumInitialNeighborsSize; j++) {
+                    if (r_sphere.mIniNeighbourFailureId[j] != 0) {
+                        AtomicAdd(some_bond_is_broken, 1);
+                        break;
                     }
-                    break;
                 }
+
+            });
+
+            if (some_bond_is_broken > 0) {
+                r_process_info[SEARCH_CONTROL] = 1;
+                KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
             }
+
         }
 
         const int time_step = r_process_info[TIME_STEPS];
@@ -494,7 +509,7 @@ namespace Kratos {
                 }
 
                 std::vector<double> total_error;
-                mNumberOfThreads = OpenMPUtils::GetNumThreads();
+                mNumberOfThreads = ParallelUtilities::GetNumThreads();
                 total_error.resize(mNumberOfThreads);
 
                 #pragma omp parallel for
@@ -567,7 +582,7 @@ namespace Kratos {
             }//while
 
                 if (iteration < maxiteration){
-                KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
+                KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value " << current_coordination_number << " using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
                 KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
                 //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
                 r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
@@ -596,7 +611,7 @@ namespace Kratos {
         double total_sum = 0.0;
         int total_non_skin_particles = 0;
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         neighbour_counter.resize(mNumberOfThreads);
         sum.resize(mNumberOfThreads);
         number_of_non_skin_particles.resize(mNumberOfThreads);
@@ -682,7 +697,7 @@ namespace Kratos {
         bool has_mpi = false;
         Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(), 0.0);
+        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
         const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
         #pragma omp parallel for
@@ -693,7 +708,7 @@ namespace Kratos {
         }
 
         double maximum_across_threads = 0.0;
-        for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++) {
+        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
             if (thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
         }
 
@@ -888,7 +903,7 @@ namespace Kratos {
         KRATOS_TRY
 
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-        ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
+        const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         Vector rhs_cond;
         std::vector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);

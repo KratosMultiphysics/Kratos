@@ -25,12 +25,17 @@
 #include "external_includes/amesos_solver.h"
 #endif
 
+#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
+#include "external_includes/amesos2_solver.h"
+#endif
+
 #ifndef TRILINOS_EXCLUDE_ML_SOLVER
 #include "external_includes/ml_solver.h"
 #endif
 
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
+#include "external_includes/trilinos_monotonicity_preserving_solver.h"
 
 namespace Kratos {
 
@@ -65,6 +70,20 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumps",         AmesosSolverFactory);
 #endif
 
+#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
+    typedef Amesos2Solver<TrilinosSparseSpaceType,
+        TrilinosLocalSpaceType > Amesos2SolverType;
+    static auto Amesos2SolverFactory = TrilinosLinearSolverFactory<
+        TrilinosSparseSpaceType,
+        TrilinosLocalSpaceType,
+        Amesos2SolverType>();
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amesos2",        Amesos2SolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu2",           Amesos2SolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumsps2",        Amesos2SolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("super_lu_dist2", Amesos2SolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("basker",         Amesos2SolverFactory);
+#endif
+
 #ifndef TRILINOS_EXCLUDE_ML_SOLVER
     typedef MultiLevelSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > MLSolverType;
@@ -90,6 +109,14 @@ void RegisterTrilinosLinearSolvers()
         TrilinosLocalSpaceType,
         AmgclMPISchurComplementSolverType>();
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl_schur_complement", AmgclMPISchurComplementSolverFactory);
+
+    typedef TrilinosMonotonicityPreservingSolver<TrilinosSparseSpaceType,
+        TrilinosLocalSpaceType > TrilinosMonotonicityPreservingSolverType;
+    static auto TrilinosMonotonicityPreservingSolverFactory = TrilinosLinearSolverFactory<
+        TrilinosSparseSpaceType,
+        TrilinosLocalSpaceType,
+        TrilinosMonotonicityPreservingSolverType>();
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("monotonicity_preserving", TrilinosMonotonicityPreservingSolverFactory);
 }
 
 template class KratosComponents<TrilinosLinearSolverFactoryType>;

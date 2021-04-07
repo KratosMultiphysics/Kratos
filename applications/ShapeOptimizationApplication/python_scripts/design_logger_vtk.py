@@ -30,6 +30,7 @@ class DesignLoggerVTK( DesignLogger ):
             "name"       : "vtk",
             "vtk_parameters" : {
                 "model_part_name"        : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "file_format"            : "binary",
                 "output_sub_model_parts" : false,
                 "folder_name"            : "Optimization_Results"
             }

@@ -225,7 +225,7 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        SizeType GetNumDofsElement(ElementType& rTheElement)
+        SizeType GetNumDofsElement(const ElementType& rTheElement)
         {
             Vector all_dof_values = Vector(0);
             rTheElement.GetValuesVector(all_dof_values);

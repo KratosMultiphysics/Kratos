@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.restart_utility import RestartUtility
@@ -43,7 +41,7 @@ class DEMRestartUtility(RestartUtility):
             self.restart_utilities[name.GetString()] = RestartUtility(model_part, settings_copy)
             self.model_parts[name.GetString()] = model_part
         self.restart_save_location = restart_save_location
-        super(DEMRestartUtility, self).__init__(list(self.model_parts.values())[0], settings_copy)
+        super().__init__(list(self.model_parts.values())[0], settings_copy)
         # self.restart_load_location = restart_load_location
 
     def SaveRestart(self):

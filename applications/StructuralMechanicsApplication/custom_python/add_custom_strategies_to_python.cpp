@@ -55,7 +55,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef LinearSolverType::Pointer LinearSolverPointer;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
@@ -111,7 +110,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
         ;
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
         .def_static("WriteFormFoundMdpa", &FormfindingStrategyType::WriteFormFoundMdpa)
         ;
 

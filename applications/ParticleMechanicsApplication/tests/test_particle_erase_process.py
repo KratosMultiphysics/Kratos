@@ -97,7 +97,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Check outside given domain
         for mpm in material_point_model_part.Elements:
             new_coordinate = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)[0]
-            if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < -0.5 or new_coordinate[2] > 0.5 ):
+            if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < 0.0 or new_coordinate[2] > 1.0 ):
                 mpm.Set(KratosMultiphysics.TO_ERASE, True)
 
         # Initiate process
@@ -155,7 +155,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Check initial number of condition
         particle_counter = material_point_model_part.NumberOfConditions()
-        self.assertEqual(particle_counter, 4)
+        self.assertEqual(particle_counter, 1)
 
         # Move particle
         for mpc in material_point_model_part.Conditions:
@@ -166,7 +166,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Check outside given domain
         for mpc in material_point_model_part.Conditions:
             new_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)[0]
-            if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < -0.5 or new_coordinate[2] > 0.5 ):
+            if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < 0.0 or new_coordinate[2] > 1.0 ):
                 mpc.Set(KratosMultiphysics.TO_ERASE, True)
 
         # Initiate process
@@ -191,7 +191,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Check initial number of condition
         particle_counter = material_point_model_part.NumberOfConditions()
-        self.assertEqual(particle_counter, 4)
+        self.assertEqual(particle_counter, 1)
 
         # Move particle
         for mpc in material_point_model_part.Conditions:

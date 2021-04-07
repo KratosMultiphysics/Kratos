@@ -373,11 +373,7 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
   KRATOS_CATCH("")
       }
 
-void ShellThinElement3D3N::CleanMemory()
-{
-}
-
-void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
+void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step) const
 {
   if(values.size() != OPT_NUM_DOFS)
     values.resize(OPT_NUM_DOFS, false);
@@ -401,7 +397,7 @@ void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
   }
 }
 
-void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
+void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step) const
 {
   if(values.size() != OPT_NUM_DOFS)
     values.resize(OPT_NUM_DOFS,false);
@@ -423,7 +419,7 @@ void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
   }
 }
 
-void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step)
+void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step) const
 {
   if(values.size() != OPT_NUM_DOFS)
     values.resize(OPT_NUM_DOFS,false);

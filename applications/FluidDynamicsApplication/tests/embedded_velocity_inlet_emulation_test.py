@@ -1,24 +1,23 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 import sys
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
     def testEmbeddedVelocityInletEmulationSymbolic2D(self):
         self.print_output = False
         self.check_tolerance = 1.0e-10
         self.print_reference_values = False
         self.work_folder = "EmbeddedVelocityInletEmulationTest"
-        self.reference_file = "reference_embedded_symbolic_navier_stokes"
+        self.reference_file = "reference_embedded_weakly_compressible_navier_stokes"
         self.settings = "EmbeddedVelocityInletEmulationTest.json"
         self.formulation_settings = KratosMultiphysics.Parameters(r'''{
-            "element_type"        : "embedded_symbolic_navier_stokes",
+            "element_type"        : "embedded_weakly_compressible_navier_stokes",
             "is_slip"             : false,
             "slip_length"         : 1.0e8,
             "penalty_coefficient" : 10.0,
