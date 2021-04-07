@@ -15,10 +15,11 @@ class FixScalarVariableProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "model_part_name" : "SPECIFY_MODEL_PART_NAME",
-                "variable_name"   : "SPECIFY_VARIABLE_NAME",
-                "interval"        : [0.0, 1e30],
-                "constrained"     : true
+                "model_part_name"       : "SPECIFY_MODEL_PART_NAME",
+                "variable_name"         : "SPECIFY_VARIABLE_NAME",
+                "interval"              : [0.0, 1e30],
+                "constrained"           : true,
+                "free_dof_if_specified" : false
             }
             """
         )
@@ -52,6 +53,9 @@ class FixScalarVariableProcess(KratosMultiphysics.Process):
             is_fixed = self.settings["constrained"].GetBool()
             if is_fixed:
                 self.variable_utils.ApplyFixity(self.variable, is_fixed, self.model_part.Nodes)
+            else:
+                if self.settings["free_dof_if_specified"].GetBool():
+                    self.variable_utils.ApplyFixity(self.variable, is_fixed, self.model_part.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
