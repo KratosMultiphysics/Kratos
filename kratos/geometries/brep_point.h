@@ -212,10 +212,11 @@ public:
         IntegrationPointsArrayType integration_point(1);
         this->CreateIntegrationPoints(integration_point);
 
+        GeometriesArrayType rQuadraturePointGeometries(0);
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, integration_point);
+            rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point);
 
-        rResultGeometries[0] = QuadraturePointGeometry<0>(rResultGeometries[0]);
+        QuadraturePointGeometry<0> rResultGeometries[0](rQuadraturePointGeometries[0]);
     }
 
     ///@}
