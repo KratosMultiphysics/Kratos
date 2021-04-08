@@ -8,7 +8,7 @@ import KratosMultiphysics.FSIApplication as KratosFSI
 if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-class FSICouplingInterface():
+class FSICouplingInterface:
 
     def __ValidateSettings(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
