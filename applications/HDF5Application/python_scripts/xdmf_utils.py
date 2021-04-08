@@ -265,21 +265,21 @@ def XdmfElementFlags(h5_results):
         results.append(r)
     return results
 
-def XdmfElementIntegrationPointValues(h5_results):
+def XdmfElementGaussPointValues(h5_results):
     """Return a list of XDMF Attribute objects for element integration point values in an HDF5 file.
 
     Keyword arguments:
     h5_results -- the HDF5 group containing the results
 
     Checks for results stored by variable name in:
-    - h5_results["ElementIntegrationPointValues/<variable>"]
+    - h5_results["ElementGaussPointValues/<variable>"]
 
     If no results are found, returns an empty list.
 
     See:
-    - core.operations.ElementIntegrationPointOutput.
+    - core.operations.ElementGaussPointOutput.
     """
-    results_path = "ElementIntegrationPointValues"
+    results_path = "ElementGaussPointValues"
     results = []
     try:
         grp = h5_results[results_path]
@@ -340,21 +340,21 @@ def XdmfConditionFlags(h5_results):
         results.append(r)
     return results
 
-def XdmfConditionIntegrationPointValues(h5_results):
+def XdmfConditionGaussPointValues(h5_results):
     """Return a list of XDMF Attribute objects for element integration point values in an HDF5 file.
 
     Keyword arguments:
     h5_results -- the HDF5 group containing the results
 
     Checks for results stored by variable name in:
-    - h5_results["ConditionIntegrationPointValues/<variable>"]
+    - h5_results["ConditionGaussPointValues/<variable>"]
 
     If no results are found, returns an empty list.
 
     See:
-    - core.operations.ConditionIntegrationPointOutput.
+    - core.operations.ConditionGaussPointOutput.
     """
-    results_path = "ConditionIntegrationPointValues"
+    results_path = "ConditionGaussPointValues"
     results = []
     try:
         grp = h5_results[results_path]
@@ -378,10 +378,10 @@ def XdmfResults(h5_results):
             XdmfNodalFlags(h5_results),
             XdmfElementResults(h5_results),
             XdmfElementFlags(h5_results),
-            XdmfElementIntegrationPointValues(h5_results),
+            XdmfElementGaussPointValues(h5_results),
             XdmfConditionResults(h5_results),
             XdmfConditionFlags(h5_results),
-            XdmfConditionIntegrationPointValues(h5_results)
+            XdmfConditionGaussPointValues(h5_results)
         )
     )
 

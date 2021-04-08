@@ -10,8 +10,8 @@
 //  Main author:     Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
-#if !defined(KRATOS_HDF5_CONTAINER_INTEGRATION_POINT_OUTPUT_H_INCLUDED)
-#define KRATOS_HDF5_CONTAINER_INTEGRATION_POINT_OUTPUT_H_INCLUDED
+#if !defined(KRATOS_HDF5_CONTAINER_GAUSS_POINT_OUTPUT_H_INCLUDED)
+#define KRATOS_HDF5_CONTAINER_GAUSS_POINT_OUTPUT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -42,7 +42,7 @@ namespace HDF5
 
 /// A class for IO of element data in HDF5.
 template <typename TContainerType, typename... TComponents>
-class ContainerIntegrationPointOutput
+class ContainerGaussPointOutput
 {
 public:
     ///@name Type Definitions
@@ -51,14 +51,14 @@ public:
     using TContainerItemType = typename TContainerType::value_type;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(ContainerIntegrationPointOutput);
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerGaussPointOutput);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ContainerIntegrationPointOutput(Parameters Settings, File::Pointer pFile, const std::string& rPath);
+    ContainerGaussPointOutput(Parameters Settings, File::Pointer pFile, const std::string& rPath);
 
     ///@}
     ///@name Operations
@@ -70,7 +70,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void WriteContainerIntegrationPointsValues(
+    void WriteContainerGaussPointsValues(
         TContainerType& rContainerItems,
         const DataCommunicator& rDataCommunicator,
         const ProcessInfo& rProcessInfo);
@@ -88,17 +88,17 @@ private:
     ///@{
 
     template <typename... TArgs>
-    void WriteRegisteredIntegrationPointValues(
+    void WriteRegisteredGaussPointValues(
         const std::string& rComponentName,
         TArgs&... args);
 
     ///@}
 
-}; // class ContainerIntegrationPointOutput.
+}; // class ContainerGaussPointOutput.
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_CONTAINER_INTEGRATION_POINT_OUTPUT_H_INCLUDED defined
+#endif // KRATOS_HDF5_CONTAINER_GAUSS_POINT_OUTPUT_H_INCLUDED defined

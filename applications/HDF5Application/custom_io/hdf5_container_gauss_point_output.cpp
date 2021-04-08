@@ -26,7 +26,7 @@
 #include "custom_utilities/registered_component_lookup.h"
 
 // Include base h
-#include "custom_io/hdf5_container_integration_point_output.h"
+#include "custom_io/hdf5_container_gauss_point_output.h"
 
 namespace Kratos
 {
@@ -51,11 +51,11 @@ void SetDataBuffer(Variable<TDataType> const&,
                    const ProcessInfo&);
 
 template <typename TContainerType>
-class ContainerItemIntegrationPointValuesOutput
+class ContainerItemGaussPointValuesOutput
 {
 public:
     template <typename TVariableType>
-    class WriteIntegrationPointValuesFunctor
+    class WriteGaussPointValuesFunctor
     {
     public:
         void operator()(TVariableType const& rVariable,
@@ -69,7 +69,7 @@ public:
             Matrix<double> data;
             int number_of_gauss_points;
             SetDataBuffer<TContainerType, typename TVariableType::Type>(rVariable, rContainer, data, number_of_gauss_points, rDataCommunicator, rProcessInfo);
-            KRATOS_WARNING_IF("WriteIntegrationPointValuesFunctor", number_of_gauss_points == 0) << "No integration point values were found for " << rVariable.Name() << ".\n";
+            KRATOS_WARNING_IF("WriteGaussPointValuesFunctor", number_of_gauss_points == 0) << "No integration point values were found for " << rVariable.Name() << ".\n";
             rFile.WriteDataSet(rPath + "/" + rVariable.Name(), data, rInfo);
             rFile.WriteAttribute(rPath + "/" + rVariable.Name(), "NumberOfGaussPoints", number_of_gauss_points);
         }
@@ -77,21 +77,21 @@ public:
 };
 
 template <typename TVariableType>
-class WriteElementIntegrationPointValues
-    : public ContainerItemIntegrationPointValuesOutput<ElementsContainerType>::WriteIntegrationPointValuesFunctor<TVariableType>
+class WriteElementGaussPointValues
+    : public ContainerItemGaussPointValuesOutput<ElementsContainerType>::WriteGaussPointValuesFunctor<TVariableType>
 {
 };
 
 template <typename TVariableType>
-class WriteConditionIntegrationPointValues
-    : public ContainerItemIntegrationPointValuesOutput<ConditionsContainerType>::WriteIntegrationPointValuesFunctor<TVariableType>
+class WriteConditionGaussPointValues
+    : public ContainerItemGaussPointValuesOutput<ConditionsContainerType>::WriteGaussPointValuesFunctor<TVariableType>
 {
 };
 
 } // unnamed namespace
 
 template <typename TContainerType, typename... TComponents>
-ContainerIntegrationPointOutput<TContainerType, TComponents...>::ContainerIntegrationPointOutput(
+ContainerGaussPointOutput<TContainerType, TComponents...>::ContainerGaussPointOutput(
     Parameters Settings, File::Pointer pFile, const std::string& rPath)
     : mpFile(pFile)
 {
@@ -118,41 +118,43 @@ ContainerIntegrationPointOutput<TContainerType, TComponents...>::ContainerIntegr
     KRATOS_CATCH("");
 }
 
-// Adding element other variable WriteRegisteredIntegrationPointValues template definition
+// Adding element other variable WriteRegisteredGaussPointValues template definition
 template <>
 template <typename... Targs>
-void ContainerIntegrationPointOutput<ElementsContainerType,
+void ContainerGaussPointOutput<ElementsContainerType,
                           Variable<array_1d<double, 3>>,
                           Variable<double>,
                           Variable<int>,
                           Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::WriteRegisteredIntegrationPointValues(const std::string& rComponentName,
-                                                                              Targs&... args)
+                          Variable<Matrix<double>>>::WriteRegisteredGaussPointValues(
+                              const std::string& rComponentName,
+                              Targs&... args)
 {
     RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                               Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<WriteElementIntegrationPointValues>(args...);
+        .Execute<WriteElementGaussPointValues>(args...);
 }
 
-// Adding condition other variable WriteRegisteredIntegrationPointValues template definition
+// Adding condition other variable WriteRegisteredGaussPointValues template definition
 template <>
 template <typename... Targs>
-void ContainerIntegrationPointOutput<ConditionsContainerType,
+void ContainerGaussPointOutput<ConditionsContainerType,
                           Variable<array_1d<double, 3>>,
                           Variable<double>,
                           Variable<int>,
                           Variable<Vector<double>>,
-                          Variable<Matrix<double>>>::WriteRegisteredIntegrationPointValues(const std::string& rComponentName,
-                                                                              Targs&... args)
+                          Variable<Matrix<double>>>::WriteRegisteredGaussPointValues(
+                              const std::string& rComponentName,
+                              Targs&... args)
 {
     RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
                               Variable<Vector<double>>, Variable<Matrix<double>>>(rComponentName)
-        .Execute<WriteConditionIntegrationPointValues>(args...);
+        .Execute<WriteConditionGaussPointValues>(args...);
 }
 
 
 template <typename TContainerType, typename... TComponents>
-void ContainerIntegrationPointOutput<TContainerType, TComponents...>::WriteContainerIntegrationPointsValues(
+void ContainerGaussPointOutput<TContainerType, TComponents...>::WriteContainerGaussPointsValues(
     TContainerType& rContainer,
     const DataCommunicator& rDataCommunicator,
     const ProcessInfo& rProcessInfo)
@@ -166,8 +168,9 @@ void ContainerIntegrationPointOutput<TContainerType, TComponents...>::WriteConta
 
     // Write each variable.
     for (const std::string& r_component_name : mVariableNames)
-        WriteRegisteredIntegrationPointValues(r_component_name, rContainer, *mpFile,
-                                 mVariablePath, info, rDataCommunicator, rProcessInfo);
+        WriteRegisteredGaussPointValues(
+            r_component_name, rContainer, *mpFile,
+            mVariablePath, info, rDataCommunicator, rProcessInfo);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mVariablePath, info);
@@ -336,14 +339,14 @@ void SetDataBuffer(Variable<TDataType> const& rVariable,
 
 // template instantiations
 
-template class ContainerIntegrationPointOutput<ElementsContainerType,
+template class ContainerGaussPointOutput<ElementsContainerType,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
                                     Variable<int>,
                                     Variable<Vector<double>>,
                                     Variable<Matrix<double>>>;
 
-template class ContainerIntegrationPointOutput<ConditionsContainerType,
+template class ContainerGaussPointOutput<ConditionsContainerType,
                                     Variable<array_1d<double, 3>>,
                                     Variable<double>,
                                     Variable<int>,

@@ -38,8 +38,8 @@
 #include "custom_io/hdf5_nodal_data_value_io.h"
 #include "custom_io/hdf5_nodal_flag_value_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
-#include "custom_io/hdf5_element_integration_point_output.h"
-#include "custom_io/hdf5_condition_integration_point_output.h"
+#include "custom_io/hdf5_element_gauss_point_output.h"
+#include "custom_io/hdf5_condition_gauss_point_output.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -134,16 +134,16 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("ReadNodalResults", &HDF5::NodalDataValueIO::ReadNodalResults)
         ;
 
-    py::class_<HDF5::ElementIntegrationPointOutput, HDF5::ElementIntegrationPointOutput::Pointer>(
-        m,"HDF5ElementIntegrationPointOutput")
+    py::class_<HDF5::ElementGaussPointOutput, HDF5::ElementGaussPointOutput::Pointer>(
+        m,"HDF5ElementGaussPointOutput")
         .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteElementIntegrationPointValues", &HDF5::ElementIntegrationPointOutput::WriteElementIntegrationPointValues)
+        .def("WriteElementGaussPointValues", &HDF5::ElementGaussPointOutput::WriteElementGaussPointValues)
         ;
 
-    py::class_<HDF5::ConditionIntegrationPointOutput, HDF5::ConditionIntegrationPointOutput::Pointer>(
-        m,"HDF5ConditionIntegrationPointOutput")
+    py::class_<HDF5::ConditionGaussPointOutput, HDF5::ConditionGaussPointOutput::Pointer>(
+        m,"HDF5ConditionGaussPointOutput")
         .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteConditionIntegrationPointValues", &HDF5::ConditionIntegrationPointOutput::WriteConditionIntegrationPointValues)
+        .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
         ;
 
 #ifdef KRATOS_USING_MPI

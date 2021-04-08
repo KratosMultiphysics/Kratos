@@ -56,7 +56,7 @@ def Factory(settings, Model):
     | "element_flag_value_settings"               | Parameters | "prefix": "/ResultsData"        |
     |                                             |            | "list_of_variables": []         |
     +---------------------------------------------+------------+---------------------------------+
-    | "element_integration_point_value_settings"  | Parameters | "prefix": "/ResultsData"        |
+    | "element_gauss_point_value_settings"        | Parameters | "prefix": "/ResultsData"        |
     |                                             |            | "list_of_variables": []         |
     +---------------------------------------------+------------+---------------------------------+
     | "condition_flag_value_settings"             | Parameters | "prefix": "/ResultsData"        |
@@ -65,7 +65,7 @@ def Factory(settings, Model):
     | "condition_data_value_settings"             | Parameters | "prefix": "/ResultsData"        |
     |                                             |            | "list_of_variables": []         |
     +---------------------------------------------+------------+---------------------------------+
-    | "condition_integration_point_value_settings"| Parameters | "prefix": "/ResultsData"        |
+    | "condition_gauss_point_value_settings"      | Parameters | "prefix": "/ResultsData"        |
     |                                             |            | "list_of_variables": []         |
     +---------------------------------------------+------------+---------------------------------+
     """
@@ -117,12 +117,12 @@ def CreateCoreSettings(user_settings):
                 "nodal_solution_step_data_settings" : {},
                 "nodal_data_value_settings": {},
                 "element_data_value_settings" : {},
-                "element_integration_point_value_settings" : {},
+                "element_gauss_point_value_settings" : {},
                 "nodal_flag_value_settings": {},
                 "element_flag_value_settings" : {},
                 "condition_data_value_settings" : {},
                 "condition_flag_value_settings" : {},
-                "condition_integration_point_value_settings" : {}
+                "condition_gauss_point_value_settings" : {}
             }
             """)
     )
@@ -151,13 +151,13 @@ def CreateCoreSettings(user_settings):
             CreateOperationSettings("element_flag_value_output",
                                     user_settings["element_flag_value_settings"]),
             CreateOperationSettings("element_integration_point_output",
-                                    user_settings["element_integration_point_value_settings"]),
+                                    user_settings["element_gauss_point_value_settings"]),
             CreateOperationSettings("condition_flag_value_output",
                                     user_settings["condition_flag_value_settings"]),
             CreateOperationSettings("condition_data_value_output",
                                     user_settings["condition_data_value_settings"]),
             CreateOperationSettings("condition_integration_point_output",
-                                    user_settings["condition_integration_point_value_settings"])
+                                    user_settings["condition_gauss_point_value_settings"])
         ]
     for key in user_settings["output_time_settings"]:
         core_settings[1]["controller_settings"][key] = user_settings["output_time_settings"][key]
