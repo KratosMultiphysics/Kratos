@@ -132,10 +132,10 @@ std::size_t ModelPartIO::ReadNodesNumber()
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
     mpStream->precision(16);
-    (*mpStream) << "Begin Nodes" << std::endl << std::scientific;
+    (*mpStream) << "Begin Nodes\n" << std::scientific;
     for(auto it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
         (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
-    (*mpStream) << "End Nodes" << std::endl << std::endl;
+    (*mpStream) << "End Nodes\n\n";
 }
 
 void ModelPartIO::ReadProperties(Properties& rThisProperties)
