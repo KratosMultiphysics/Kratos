@@ -49,6 +49,8 @@ class TestPostProcess(KratosUnittest.TestCase):
     def tearDown(self):
         file_to_remove = os.path.join("post_process_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+        file_to_remove = os.path.join("post_process_tests_files", "flux_data_new.hdf5")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         file_to_remove = os.path.join("post_process_tests_files", "ringcluster3D.clu")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
