@@ -716,14 +716,11 @@ protected:
      */
     std::string GetSkinConditionName()
     {
-        std::string element_name;
         if (TDim == 2) {
-            element_name = "LineCondition2D2N";
+            return "LineCondition2D2N";
         } else {
-            element_name = "SurfaceCondition3D3N";
+            return "SurfaceCondition3D3N";
         }
-
-        return element_name;
     }
 
     /**
