@@ -420,7 +420,8 @@ public:
         Spans(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);    }
+            rIntegrationPoints, spans, points_per_span);
+    }
 
     ///@}
     ///@name Quadrature Point Geometries
