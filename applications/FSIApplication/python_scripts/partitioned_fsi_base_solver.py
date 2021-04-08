@@ -552,6 +552,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart())
         return self._structure_to_fluid_negative_interface_mapper
 
+    @classmethod
     def _CreateStructureToFluidInterfaceMapper(self, structure_interface, fluid_interface):
         mapper_params = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
@@ -593,10 +594,11 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
         return fsi_coupling_interface_structure
 
+    @classmethod
     def _GetFSICouplingInterfaceFluid(self):
         err_msg = 'Body-fitted partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluid\' method.\n'
         err_msg += 'Use \'_GetFSICouplingInterfaceFluidPositive\' as well as \'_GetFSICouplingInterfaceFluidNegative\' if the structure is thin-walled.'
-        raise Exception(err_mgs)
+        raise Exception(err_msg)
 
     def _GetFSICouplingInterfaceFluidPositive(self):
         if not hasattr(self, '_fsi_coupling_interface_fluid_positive'):
@@ -819,6 +821,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 
+    @classmethod
     def _GetTractionVariable(self):
         #NOTE: No distinction is made between LINE_LOAD and SURFACE_LOAD as this is only used for the redistribution
         #NOTE: Hence, this has only an auxiliary use as the traction will be converted to point load prior to the structure solve

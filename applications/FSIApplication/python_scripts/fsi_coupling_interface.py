@@ -1,5 +1,3 @@
-import math
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -81,7 +79,9 @@ class FSICouplingInterface:
             raise Exception(err_msg)
 
     def SetConvergenceAccelerator(self, convergence_accelerator):
-        """ This function sets the convergence accelerator of the current FSI coupling interface
+        """Set the provided convergence accelerator to the current FSI coupling interface
+
+        This function sets the convergence accelerator of the current FSI coupling interface
         This auxiliary method is understood to set the convergence accelerator in those situations
         in which its constructor requires the FSI coupling interface model part to be set (e.g. MPI)
         """
