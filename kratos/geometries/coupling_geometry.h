@@ -311,7 +311,7 @@ public:
     /// Provides the default integration per geometry.
     virtual IntegrationInfo GetDefaultIntegrationInfo() const
     {
-        const SizeType local_space_dimension = LocalSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
 
         std::vector<SizeType> number_of_points_per_span_per_direction(local_space_dimension);
         std::vector<IntegrationInfo::QuadratureMethod> quadrature_method_per_direction(local_space_dimension);
@@ -427,7 +427,7 @@ public:
 
         bool use_tessellation = true;
         if (use_tessellation) {
-            if (Dimension() == 1) {
+            if (this->Dimension() == 1) {
                 CurveTessellation<PointerVector<TPointType>> curve_tesselation;
                 curve_tesselation.Tessellate(*(mpGeometries[1].get()), 1e-2, mpGeometries[1]->PolynomialDegree(0));
 
@@ -448,7 +448,7 @@ public:
                 }
             }
             else {
-                KRATOS_ERROR << "Tessellation for " << Dimension()
+                KRATOS_ERROR << "Tessellation for " << this->Dimension()
                     << "-dimensional objects is not implement." << std::endl;
             }
         }
