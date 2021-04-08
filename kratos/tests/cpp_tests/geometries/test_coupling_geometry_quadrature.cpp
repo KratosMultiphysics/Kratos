@@ -202,14 +202,28 @@ namespace Kratos {
             IntegrationInfo integration_info = p_coupling_geometry->GetDefaultIntegrationInfo();
             p_coupling_geometry->CreateIntegrationPoints(integration_points, integration_info);
 
-            // 2 span intersections and each time (p=1) + 1 integration point.
-            KRATOS_CHECK_EQUAL(integration_points.size(), 6);
+            // 2 span intersections and each time (p=1) + (q=2) + 1 integration point.
+            KRATOS_CHECK_EQUAL(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 4);
+            KRATOS_CHECK_EQUAL(integration_points.size(), 8);
 
             double length = 0;
             for (IndexType i = 0; i < integration_points.size(); ++i) {
                 length += integration_points[i].Weight();
             }
             KRATOS_CHECK_NEAR(length, 1.5707963, TOLERANCE);
+
+            // Check with modified number of integration points per span.
+            integration_info.SetNumberOfIntegrationPointsPerSpan(0, 8);
+            p_coupling_geometry->CreateIntegrationPoints(integration_points, integration_info);
+
+            KRATOS_CHECK_EQUAL(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 8);
+            KRATOS_CHECK_EQUAL(integration_points.size(), 16);
+
+            double length2 = 0;
+            for (IndexType i = 0; i < integration_points.size(); ++i) {
+                length2 += integration_points[i].Weight();
+            }
+            KRATOS_CHECK_NEAR(length2, 1.5707963, TOLERANCE);
         }
 
         /// Create quadrature points on nurbs curve on surface.
@@ -220,8 +234,8 @@ namespace Kratos {
             IntegrationInfo integration_info = p_coupling_geometry->GetDefaultIntegrationInfo();
             p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2, integration_info);
 
-            // 2 span intersections and each time (p=1) + 1 integration point.
-            KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
+            // 2 span intersections and each time (p=1) + (q=2) + 1 integration point.
+            KRATOS_CHECK_EQUAL(quadrature_points.size(), 8);
 
             double length = 0;
             for (IndexType i = 0; i < quadrature_points.size(); ++i) {
