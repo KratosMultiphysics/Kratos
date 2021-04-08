@@ -25,7 +25,7 @@ namespace Kratos {
         typedef Node<3> NodeType;
 
         /// Factory functions
-        Triangle3D3<NodeType>::Pointer GenerateNodeTriangle() {
+        inline Triangle3D3<NodeType>::Pointer GenerateNodeTriangleForPointOnGeometry() {
             return Kratos::make_shared<Triangle3D3<NodeType>>(
                 new NodeType(4, 0.0, 0.0, 0.0),
                 new NodeType(5, 1.0, 0.0, 0.0),
@@ -35,7 +35,7 @@ namespace Kratos {
 
         /// Check dimensions and location
         KRATOS_TEST_CASE_IN_SUITE(PointOnGeometry, KratosCoreGeometriesFastSuite) {
-            auto p_triangle_master = GenerateNodeTriangle();
+            auto p_triangle_master = GenerateNodeTriangleForPointOnGeometry();
 
             array_1d<double, 3> point_coordinates = ZeroVector(3);
             point_coordinates[0] = 0.5;
