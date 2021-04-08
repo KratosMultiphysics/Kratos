@@ -31,8 +31,8 @@ namespace Kratos
 /**
  * @class CouplingGeometry
  * @ingroup KratosCore
- * @brief The CouplingGeometry can connect different geometries, those
- can be of different entities but have to coincide with the dimension.
+ * @brief The CouplingGeometry connects two or more geometries
+ *        of different types and entities.
  */
 template<class TPointType> class CouplingGeometry
     : public Geometry<TPointType>
@@ -95,33 +95,14 @@ public:
     {
     }
 
-    /**
-     * Copy constructor.
-     * Construct this geometry as a copy of given geometry.
-     *
-     * @note This copy constructor does not copy the points and new
-     * geometry shares points with given source geometry. It is
-     * obvious that any change to this new geometry's point affect
-     * source geometry's points too.
-     */
+    /// Copy constructor.
     CouplingGeometry( CouplingGeometry const& rOther )
         : BaseType( rOther )
         , mpGeometries(rOther.mpGeometries)
     {
     }
 
-    /**
-     * Copy constructor from a geometry with other point type.
-     * Construct this geometry as a copy of given geometry which
-     * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
-     * geometry PointType.
-     *
-     * @note This copy constructor does not copy the points and new
-     * geometry shares points with given source geometry. It is
-     * obvious that any change to this new geometry's point affect
-     * source geometry's points too.
-     */
+    /// Copy constructor with other point type.
     template<class TOtherPointType> explicit CouplingGeometry(
         CouplingGeometry<TOtherPointType> const& rOther )
         : BaseType( rOther )
@@ -136,17 +117,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     CouplingGeometry& operator=( const CouplingGeometry& rOther )
     {
         BaseType::operator=( rOther );
@@ -154,17 +125,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// @brief Assignment operator with different point type.
     template<class TOtherPointType>
     CouplingGeometry& operator=(
         CouplingGeometry<TOtherPointType> const & rOther )
