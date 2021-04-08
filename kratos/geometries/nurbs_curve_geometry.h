@@ -282,7 +282,7 @@ public:
      * @param resulting vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -405,7 +405,7 @@ public:
         const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
-        Spans(spans);
+        SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
