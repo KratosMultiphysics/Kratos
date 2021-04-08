@@ -1866,7 +1866,7 @@ void ModelPart::AddGeometry(
     mGeometries.AddGeometry(pNewGeometry);
 }
 
-/// Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
+/// Inserts a list of geometries to a submodelpart provided their Ids. Does nothing if applied to the top model part.
 void ModelPart::AddGeometries(std::vector<IndexType> const& GeometryIds)
 {
     KRATOS_TRY
