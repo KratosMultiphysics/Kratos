@@ -1,14 +1,18 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
-//
-//  License:		 BSD License 
+// KRATOS 
+// _____   __               __  __      _ _   _             
+//|  __ \ / _|             |  \/  |    | | | (_)            
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+//|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
+//| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
+//|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
+//                                                     __/ |
+//                                                    |___/ APPLICATION
+//  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti
+//  Main authors:    Julio Marti
 //
+
 
 #if !defined(KRATOS_PARTICLES_UTILITIES_INCLUDED )
 #define  KRATOS_PARTICLES_UTILITIES_INCLUDED

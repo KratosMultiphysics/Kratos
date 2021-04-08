@@ -1,8 +1,12 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
-//
+// KRATOS 
+// _____   __               __  __      _ _   _             
+//|  __ \ / _|             |  \/  |    | | | (_)            
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+//|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
+//| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
+//|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
+//                                                     __/ |
+//                                                    |___/ APPLICATION
 //  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
@@ -40,10 +44,15 @@ KratosPfemMeltingApplication::KratosPfemMeltingApplication()
 
 void KratosPfemMeltingApplication::Register() {
     KRATOS_INFO("") <<
-    " KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ " << std::endl <<
-    "       / __/ _ || || | | / /__|   |_ _| __| __|" << std::endl <<
-    "      | (_| (_) | .` || V /___| |) | || _|| _| " << std::endl <<
-    "       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION" << std::endl;
+    " KRATOS                                                     " << std::endl <<
+    " _____   __               __  __      _ _   _               " << std::endl <<
+    "|  __ \ / _|             |  \/  |    | | | (_)              " << std::endl << 
+    "| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _   " << std::endl <<
+    "|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |  " << std::endl << 
+    "| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |  " << std::endl << 
+    "|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |  " << std::endl << 
+    "                                                     __/ |  " << std::endl <<
+    "                                                    |___/ APPLICATION " << std::endl;
 
     // Registering variables
     KRATOS_REGISTER_VARIABLE(ACTIVATION_ENERGY)

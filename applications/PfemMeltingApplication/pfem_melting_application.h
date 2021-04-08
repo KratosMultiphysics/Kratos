@@ -1,13 +1,18 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
-//
+// KRATOS 
+// _____   __               __  __      _ _   _             
+//|  __ \ / _|             |  \/  |    | | | (_)            
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+//|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
+//| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
+//|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
+//                                                     __/ |
+//                                                    |___/ APPLICATION
 //  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Julio Marti
 //
+
 
 #if !defined(KRATOS_KRATOS_PFEM_MELTING_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_PFEM_MELTING_APPLICATION_H_INCLUDED

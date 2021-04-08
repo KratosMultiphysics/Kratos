@@ -1,14 +1,18 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
-//
-//  License:		 BSD License 
+// KRATOS 
+// _____   __               __  __      _ _   _             
+//|  __ \ / _|             |  \/  |    | | | (_)            
+//| |__) | |_ ___ _ __ ___ | \  / | ___| | |_ _ _ __   __ _ 
+//|  ___/|  _/ _ \ '_ ` _ \| |\/| |/ _ \ | __| | '_ \ / _` |
+//| |    | ||  __/ | | | | | |  | |  __/ | |_| | | | | (_| |
+//|_|    |_| \___|_| |_| |_|_|  |_|\___|_|\__|_|_| |_|\__, |
+//                                                     __/ |
+//                                                    |___/ APPLICATION
+//  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti
+//  Main authors:    Julio Marti
 //
+
 
 #if !defined(KRATOS_PARTICLE_UTILITY_INCLUDED )
 #define  KRATOS_PARTICLE_UTILITY_INCLUDED
@@ -66,7 +70,7 @@ namespace Kratos
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
 	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
 	  {
-             
+            node_it->FastGetSolutionStepValue(HEAT_FLUX) = 0.0; 
             density= node_it->FastGetSolutionStepValue(DENSITY);
 	    //KRATOS_WATCH(density)	
             activation_energy= node_it->FastGetSolutionStepValue(ACTIVATION_ENERGY);
@@ -81,7 +85,8 @@ namespace Kratos
             aux_var_polymer= arrhenius_coefficient * exp(-activation_energy/(R*temperature));
 
 
-            node_it->FastGetSolutionStepValue(HEAT_FLUX) -= density * heat_of_vaporization * aux_var_polymer;
+            //node_it->FastGetSolutionStepValue(HEAT_FLUX) = (-1.0) * density * heat_of_vaporization * aux_var_polymer;
+            
             //KRATOS_WATCH(node_it->FastGetSolutionStepValue(HEAT_FLUX))
 
 	  }
