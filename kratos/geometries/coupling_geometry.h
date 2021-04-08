@@ -299,6 +299,29 @@ public:
     }
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /// Provides the default integration per geometry.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        const SizeType local_space_dimension = LocalSpaceDimension();
+
+        std::vector<SizeType> number_of_points_per_span_per_direction(local_space_dimension);
+        std::vector<IntegrationInfo::QuadratureMethod> quadrature_method_per_direction(local_space_dimension);
+        for (IndexType i = 0; i < local_space_dimension; ++i) {
+            SizeType max_p = 0;
+            for (IndexType j = 0; j < NumberOfGeometryParts(); ++j) {
+                max_p = std::max(mpGeometries[j]->PolynomialDegree(i) + 1, max_p);
+            }
+            number_of_points_per_span_per_direction[i] = max_p;
+            quadrature_method_per_direction[i] = IntegrationInfo::QuadratureMethod::GAUSS;
+        }
+
+        return IntegrationInfo(number_of_points_per_span_per_direction, quadrature_method_per_direction);
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
