@@ -29,6 +29,8 @@
 namespace Kratos
 {
 
+namespace Internals
+{
 /** @brief Helper class for null-initializiation
  */
 template <class TObjectType>
@@ -46,10 +48,11 @@ struct NullInitialized<array_1d<TValueType,ArraySize>>
     static array_1d<TValueType,ArraySize> Get()
     {
         array_1d<TValueType,ArraySize> array;
-        std::fill_n(array.begin(), ArraySize, 0);
+        std::fill_n(array.begin(), ArraySize, NullInitialized<TValueType>::Get());
         return array;
     }
 };
+} // namespace Internals
 
 ///@addtogroup KratosCore
 
@@ -66,7 +69,7 @@ public:
     typedef TDataType   value_type;
     typedef TReturnType return_type;
 
-    TReturnType mValue = NullInitialized<TReturnType>::Get(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = Internals::NullInitialized<TReturnType>::Get(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TReturnType GetValue() const
@@ -96,7 +99,7 @@ public:
     typedef TDataType   value_type;
     typedef TReturnType return_type;
 
-    TReturnType mValue = NullInitialized<TReturnType>::Get(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = Internals::NullInitialized<TReturnType>::Get(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TReturnType GetValue() const
