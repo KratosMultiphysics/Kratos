@@ -59,7 +59,7 @@ public:
     typedef AxisymmetricUpdatedLagrangianElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUwPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymUpdatedLagrangianUwPElement );
     ///@}
 
     ///@name Life Cycle

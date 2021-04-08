@@ -30,7 +30,9 @@ class NodesOutputProcess(KM.Process):
                 "nonhistorical_variables" : [],
                 "printing_times"          : [],
                 "write_buffer_size"       : -1,
-                "relative_tol_to_line"    : 0.25
+                "relative_tol_to_line"    : 0.1,
+                "use_mesh_nodes"          : true,
+                "number_of_nodes"         : 200
             }
             """
             )
@@ -42,13 +44,19 @@ class NodesOutputProcess(KM.Process):
 
         # Retrieving the positions defining the line entity
         start_point_position = self.settings["start_point"].GetVector()
-        if start_point_position.Size() != 3:
-            raise Exception('The start point position has to be provided with 3 coordinates!')
+        if start_point_position.Size() == 2:
+            self.settings["start_point"].Append(0.0)
+        elif start_point_position.Size() != 3:
+            raise Exception('The start point position has to be provided with 2 or 3 coordinates!')
+
         end_point_position = self.settings["end_point"].GetVector()
-        if end_point_position.Size() != 3:
-            raise Exception('The end point position has to be provided with 3 coordinates!')
-        self.origin = start_point_position
-        self.direction = end_point_position - self.origin
+        if end_point_position.Size() == 2:
+            self.settings["end_point"].Append(0.0)
+        elif end_point_position.Size() != 3:
+            raise Exception('The end point position has to be provided with 2 or 3 coordinates!')
+
+        self.origin = self.settings["start_point"].GetVector()
+        self.direction = self.settings["end_point"].GetVector() - self.origin
 
         # The output file settings
         self.out_file_params = KM.Parameters()
@@ -62,39 +70,67 @@ class NodesOutputProcess(KM.Process):
         # Delete the previous files
         self._DeleteExistingFiles()
 
-    def ExecuteInitialize(self):
+        # Initialize output control variables
+        self.printing_times = self.settings["printing_times"].GetVector()
+        self.is_printed = [False] * len(self.printing_times)
+
+    def ExecuteBeforeSolutionLoop(self):
         """The model part related variables are initialized:
         The list of nodes and the list of variables are created.
         """
-        self.nodes = []
-        tolerance = self._GetTolerance()
-        for node in self.model_part.Nodes:
-            if self._DistanceToLine(node) < tolerance:
+        if self.settings["use_mesh_nodes"].GetBool():
+            self.nodes = []
+            tolerance = self._GetTolerance()
+            for node in self.model_part.Nodes:
+                if self._DistanceToLine(node) < tolerance:
+                    self.nodes.append(node)
+        else:
+            self.nodes = []
+            self.elements = []
+            self.area_coords = []
+            configuration = KM.Configuration.Current
+            locator = KM.BruteForcePointLocator(self.model_part)
+            tolerance = self._GetTolerance()
+            num_nodes = self.settings["number_of_nodes"].GetInt()
+            for i in range(num_nodes):
+                node = KM.Point(self.origin + i / (num_nodes+1) * self.direction)
+                area_coords = KM.Vector()
+                found_id = locator.FindElement(node, area_coords, configuration, tolerance)
                 self.nodes.append(node)
+                self.elements.append(self.model_part.Elements[found_id])
+                self.area_coords.append(area_coords)
 
         self.variables, self.names = self._GenerateVariablesList(self.settings["output_variables"])
         self.nonhist_variables, self.nonhist_names = self._GenerateVariablesList(self.settings["nonhistorical_variables"], False)
 
     def Check(self):
-        """This check verifies if the two specified points are found inside the domain"""
-        start_point_position = self.settings["start_point"].GetVector()
-        end_point_position = self.settings["end_point"].GetVector()
-        start_point = KM.Point(start_point_position)
-        end_point = KM.Point(end_point_position)
+        """Verify if the two specified points are found inside the domain."""
+        start_point = KM.Point(self.settings["start_point"].GetVector())
+        end_point = KM.Point(self.settings["end_point"].GetVector())
         locator = KM.BruteForcePointLocator(self.model_part)
-        if locator.FindNode(start_point, KM.Configuration.Initial, self._GetTolerance()) < 0:
-            raise Exception('The start point was not found in the domain. Please, check the geometry or the relative tolerance')
-        if locator.FindNode(end_point, KM.Configuration.Initial, self._GetTolerance()) < 0:
-            raise Exception('The end point was not found in the domain. Please, check the geometry or the relative tolerance')
+        configuration = KM.Configuration.Initial
+        tolerance = self._GetTolerance()
+        msg = 'The {} point was not found in the domain. Please, check the geometry or the relative tolerance'
+        if self.settings["use_mesh_nodes"].GetBool():
+            if locator.FindNode(start_point, configuration, tolerance) < 0:
+                KM.Logger.PrintWarning(msg.format('starting'))
+            if locator.FindNode(end_point, configuration, tolerance) < 0:
+                KM.Logger.PrintWarning(msg.format('ending'))
+        else:
+            area_coords = KM.Vector()
+            if locator.FindElement(start_point, area_coords, configuration, tolerance) < 0:
+                KM.Logger.PrintWarning(msg.format('starting'))
+            if locator.FindElement(end_point, area_coords, configuration, tolerance) < 0:
+                KM.Logger.PrintWarning(msg.format('ending'))
 
     def IsOutputStep(self):
         """This method checks if the current time step is
         near enough to the specified printing times.
         """
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
-        delta_time = self.model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
-        for printing_time in self.settings["printing_times"].GetVector():
-            if 2 * abs(time - printing_time) < delta_time:
+        for i in range(len(self.printing_times)):
+            if time >= self.printing_times[i] and not self.is_printed[i]:
+                self.is_printed[i] = True
                 return True
         return False
 
@@ -106,8 +142,12 @@ class NodesOutputProcess(KM.Process):
         file_name = self.settings["file_name"].GetString() + "_{:.4f}.dat".format(time)
         self.out_file_params["file_name"].SetString(file_name)
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.out_file_params, self._GetHeader()).file
-        for node in self.nodes:
-            file.write(self._GetData(node, self._DistanceToOrigin(node)))
+        if self.settings["use_mesh_nodes"].GetBool():
+            for node in self.nodes:
+                file.write(self._GetNodeData(node, self._DistanceToOrigin(node)))
+        else:
+            for node, elem, area_coords in zip(self.nodes, self.elements, self.area_coords):
+                file.write(self._GetElementData(elem, area_coords, self._DistanceToOrigin(node)))
         file.close()
 
     def _GetTolerance(self):
@@ -174,13 +214,37 @@ class NodesOutputProcess(KM.Process):
             header += name + " "
         return header + "\n"
 
-    def _GetData(self, node, position):
+    def _GetNodeData(self, node, position):
         line = str(position) + " "
         for var in self.variables:
             line += str(node.GetSolutionStepValue(var)) + " "
         for var in self.nonhist_variables:
             line += str(node.GetValue(var)) + " "
         return line + "\n"
+
+    def _GetElementData(self, elem, area_coords, position):
+        line = str(position) + " "
+        for var in self.variables:
+            line += str(self._Interpolate(elem, area_coords, var)) + " "
+        for var in self.nonhist_variables:
+            line += str(self._InterpolateNonHistorical(elem, area_coords, var)) + " "
+        return line + "\n"
+
+    @staticmethod
+    def _Interpolate(elem, area_coords, variable):
+        nodes = elem.GetNodes()
+        value = nodes[0].GetSolutionStepValue(variable) * area_coords[0]
+        for n , c in zip(nodes[1:], area_coords[1:]):
+            value = value + c * n.GetSolutionStepValue(variable)
+        return value
+
+    @staticmethod
+    def _InterpolateNonHistorical(elem, area_coords, variable):
+        nodes = elem.GetNodes()
+        value = nodes[0].GetValue(variable) * area_coords[0]
+        for n , c in zip(nodes[1:], area_coords[1:]):
+            value = value + c * n.GetValue(variable)
+        return value
 
     def _DeleteExistingFiles(self):
         output_path = self.settings["output_path"].GetString()

@@ -100,22 +100,27 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
         GeometryData::GI_GAUSS_2);
 
     // Computing local velocity
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
+    const array_1d<double, Dim>& local_velocity = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
+    const double local_velocity_squared = inner_prod(local_velocity, local_velocity);
+    const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<Dim, NumNodes>(rCurrentProcessInfo);
 
     BoundedMatrix<double,NumNodes,Dim> DN_DX;
     BoundedVector<double, NumNodes> DNV;
-    BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix;
-    rLaplacianMatrix.clear();
+    BoundedMatrix<double, NumNodes, NumNodes> laplacian;
+    laplacian.clear();
+
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
         DN_DX = positive_side_sh_func_gradients(i_gauss);
-        DNV = prod(DN_DX, v);
-
-        noalias(rLaplacianMatrix) += positive_side_weights(i_gauss) * density * prod(DN_DX, trans(DN_DX));
-        noalias(rLeftHandSideMatrix) += rLaplacianMatrix;
-        noalias(rLeftHandSideMatrix) += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+        DNV = prod(DN_DX, local_velocity);
+        BoundedMatrix<double, NumNodes, NumNodes> aux_matrix = positive_side_weights(i_gauss) * density * prod(DN_DX, trans(DN_DX));
+        noalias(laplacian) += aux_matrix;
+        noalias(rLeftHandSideMatrix) += aux_matrix;
+        if (local_velocity_squared < max_velocity_squared){
+            noalias(rLeftHandSideMatrix) += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+        }
     }
 
-    noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, potential);
+    noalias(rRightHandSideVector) = -prod(laplacian, potential);
 }
 
 template <>
