@@ -19,12 +19,11 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "containers/array_1d.h"
 
 namespace Kratos
 {
-template<class TPointType> class Geometry;
-
 template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
 class ProjectionNurbsGeometryUtilities
 {
