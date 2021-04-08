@@ -357,8 +357,6 @@ public:
         KRATOS_ERROR << "Calling base class method (ReadInitialValues). Please check the definition of derived class" << std::endl;
     }
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometryContainerType& rResults);
-
     /**
      * @brief This method reads the mesh
      * @param rThisMesh The mesh to be read
