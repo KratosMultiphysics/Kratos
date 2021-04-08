@@ -95,7 +95,7 @@ namespace ProjectionNurbsGeometryUtilities
 
             // Check if the parameter gets out of its interval of definition and if so clamp it 
             // back to the boundaries
-            int check = 1;//rGeometry.ClosestPointLocalSpace(rParameterLocalCoordinates);
+            int check = rGeometry.ClosestPointLocalSpace(rParameterLocalCoordinates);
             if (check == 0) {
                 if (projection_reset_to_boundary) { return false; }
                 else { projection_reset_to_boundary = true; }
