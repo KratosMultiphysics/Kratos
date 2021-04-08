@@ -131,9 +131,6 @@ class ElementFlagValueInput(VariableIO):
 class ElementGaussPointOutput(VariableIO):
     '''Write element integration point values to a file.'''
 
-    def __init__(self, settings):
-        super().__init__(settings)
-
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ElementGaussPointOutput(
             self.GetSettings(model_part).Get(), hdf5_file).WriteElementGaussPointValues(
@@ -187,9 +184,6 @@ class ConditionFlagValueInput(VariableIO):
 
 class ConditionGaussPointOutput(VariableIO):
     '''Write condition integration point values to a file.'''
-
-    def __init__(self, settings):
-        super().__init__(settings)
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ConditionGaussPointOutput(
