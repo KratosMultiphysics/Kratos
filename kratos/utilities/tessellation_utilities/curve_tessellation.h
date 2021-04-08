@@ -8,15 +8,15 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Andreas Apostolatos
-//					 Tobias Teschemacher
-//					 Thomas Oberbichler
+//                   Tobias Teschemacher
+//                   Thomas Oberbichler
 //
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
 
-#if !defined(KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED )
-#define  KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED
+#if !defined(KRATOS_CURVE_TESSELLATION_H_INCLUDED )
+#define  KRATOS_CURVE_TESSELLATION_H_INCLUDED
 
 #include "utilities/math_utils.h"
 #include "geometries/geometry.h"
@@ -28,7 +28,7 @@
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
-class NurbsCurveTessellation
+class CurveTessellation
 {
 public:
 
@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Conctructor for tessellation of a nurbs curve
-    NurbsCurveTessellation()
+    CurveTessellation()
     {
     }
 
@@ -262,7 +262,7 @@ public:
         return mTesselation;
     }
 
-    private:
+private:
     ///@name Private Member Variables
     ///@{
 
@@ -271,6 +271,6 @@ public:
     ///@}
 };
 
-} // namespace NurbsCurveTessellation
+} // namespace CurveTessellation
 
-#endif // KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED defined
+#endif // KRATOS_CURVE_TESSELLATION_H_INCLUDED defined
