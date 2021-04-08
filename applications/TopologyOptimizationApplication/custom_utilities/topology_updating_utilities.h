@@ -205,6 +205,20 @@ public:
 	}
 
 
+
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac, double greyscale , double OptItr , double qmax)
+	{
+		KRATOS_TRY;
+		double z = 0;
+
+	
+
+
+
+		KRATOS_CATCH("");
+
+	}
+
 	///@}
 	///@name Access
 	///@{

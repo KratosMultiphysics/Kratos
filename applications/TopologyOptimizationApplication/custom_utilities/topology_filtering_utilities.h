@@ -191,7 +191,7 @@ public:
 				array_1d<double,3> center_coord = ZeroVector(3);
 				Geometry< Node<3> >& geom = elem_i->GetGeometry();
 				for(unsigned int i=0; i<geom.size(); i++)
-					noalias(center_coord) += geom[i].Coordinates();
+					noalias(center_coord) += (geom[i].Coordinates() - geom[i].FastGetSolutionStepValue(DISPLACEMENT));
 				center_coord /= static_cast<double>(geom.size());
 
 				// new "ElementPositionItem" for every element and assigns a pointer to the base element *it.base()
@@ -205,7 +205,7 @@ public:
 			tree MyTree(PositionList.begin(),PositionList.end(),BucketSize);
 
 			ElementPositionVector Results(mMaxElementsAffected);
-			 std::vector<double> resulting_squared_distances(mMaxElementsAffected);
+			std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
 			clock_t tree_time = clock();
 			std::cout << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
@@ -219,17 +219,20 @@ public:
 				// Find the center of the element
 				array_1d<double,3> center_coord = ZeroVector(3);
 				Geometry< Node<3> >& geom = elem_i->GetGeometry();
+				array_1d<double,3> disp = ZeroVector(3);
 				for(unsigned int i=0; i<geom.size(); i++)
-					noalias(center_coord) += geom[i].Coordinates();
+					noalias(center_coord) += (geom[i].Coordinates() - geom[i].FastGetSolutionStepValue(DISPLACEMENT));
 				center_coord /= static_cast<double>(geom.size());
 
 				ElementPositionItem ElemPositionItem(center_coord,*elem_i.base());
 
 				// This is broken. Bug found when using ResultingSquaredDistances, so we calculate our own distances
 				int num_nodes_found = 0;
+
 				num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),resulting_squared_distances.begin(),mMaxElementsAffected);
 
-			double Hxdc = 0.0;
+
+				double Hxdc = 0.0;
 				double Hxdc_sum = 0;
 				double H = 0.0;
 				double H_sum = 0;
