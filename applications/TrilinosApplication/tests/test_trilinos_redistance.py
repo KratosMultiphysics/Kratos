@@ -1,10 +1,7 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import os
+﻿import os
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
@@ -83,7 +80,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }"""))
 
-        epetra_comm = TrilinosApplication.CreateCommunicator()
+        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
 
         max_iterations = 2
         TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(

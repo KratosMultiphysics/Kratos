@@ -84,6 +84,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteLoadSubmodelPart FileVar Slip_condition $ConditionDict
     WriteLoadSubmodelPart FileVar Water_height $ConditionDict
     WriteLoadSubmodelPart FileVar Imposed_flow_rate $ConditionDict
+    WriteConstraintSubmodelPart FileVar Nodal_condition
 
 
     close $FileVar
