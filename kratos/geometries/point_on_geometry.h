@@ -159,6 +159,19 @@ public:
     ///@name Geometrical Operations
     ///@{
 
+    /* @brief Calculates the global location of this point on the background geometry.
+     *
+     * @return Point which is the location of this quadrature point.
+     */
+    Point Center() const override
+    {
+        CoordinatesArrayType global_location;
+        GlobalCoordinates(global_location, mLocalCoordinates);
+
+        mpBackgroundGeometry->()
+        return point;
+    }
+
     /*
     * @brief This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space
@@ -171,7 +184,10 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        mpBackgroundGeometry->GlobalCoordinates(rResult, mLocalCoordinates);
+        KRATOS_ERROR << "Trying to access the GlobalCoordinates via PointOnGeometry. "
+            << "However, this is not possible. Try to access the global coordinates of"
+            << " any local coordinates via accessing the background geometry through: "
+            << "pGetGeometryPart(BACKGROUND_GEOMETRY_INDEX)." << std::endl;
 
         return rResult;
     }
