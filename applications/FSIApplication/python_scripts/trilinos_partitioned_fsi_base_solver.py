@@ -42,8 +42,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         return KratosTrilinos.CreateCommunicator()
 
     def _CreateConvergenceAccelerator(self):
-        """ Create the MPI parallel convergence accelerator and assign it to the structure FSI coupling interface
-        """
+        """ Create the MPI parallel convergence accelerator and assign it to the structure FSI coupling interface"""
         # Create the MPI parallel convergence accelerator
         convergence_accelerator = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(
             self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
@@ -55,7 +54,9 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         return convergence_accelerator
 
     def _CreateFSICouplingInterfaceStructure(self):
-        """ Create the structure FSI coupling interface with a default MPI convergence accelerator
+        """Create the structure FSI coupling interface
+
+        Create the structure FSI coupling interface with a default MPI convergence accelerator
         The final convergence accelerator will be assigned to the structure FSI coupling interface in the _CreateConvergenceAccelerator
         This is required since the MPI parallel convergence accelerators require the residual minimization model part to be instantiated
         """
@@ -87,6 +88,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 
+    @classmethod
     def _CreateStructureToFluidInterfaceMapper(self, structure_interface, fluid_interface):
         mapper_params = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",

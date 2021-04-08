@@ -483,15 +483,17 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
         return fsi_coupling_interface_fluid
 
+    @classmethod
     def _GetFSICouplingInterfaceFluidPositive(self):
         err_msg = 'Embedded partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluidPositive\' method.\n'
         err_msg += 'Use \'_GetFSICouplingInterfaceFluid\' method as the fluid coupling interface is unique.'
-        raise Exception(err_mgs)
+        raise Exception(err_msg)
 
+    @classmethod
     def _GetFSICouplingInterfaceFluidNegative(self):
         err_msg = 'Embedded partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluidNegative\' method.\n'
         err_msg += 'Use \'_GetFSICouplingInterfaceFluid\' method as the fluid coupling interface is unique.'
-        raise Exception(err_mgs)
+        raise Exception(err_msg)
 
     def _GetTractionVariable(self):
         if self._GetDomainSize() == 2:

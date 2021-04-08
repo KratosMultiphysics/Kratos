@@ -1,6 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import math
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -9,7 +6,7 @@ import KratosMultiphysics.FSIApplication as KratosFSI
 if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-class FSICouplingInterface():
+class FSICouplingInterface:
 
     def __ValidateSettings(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -82,7 +79,9 @@ class FSICouplingInterface():
             raise Exception(err_msg)
 
     def SetConvergenceAccelerator(self, convergence_accelerator):
-        """ This function sets the convergence accelerator of the current FSI coupling interface
+        """Set the provided convergence accelerator to the current FSI coupling interface
+
+        This function sets the convergence accelerator of the current FSI coupling interface
         This auxiliary method is understood to set the convergence accelerator in those situations
         in which its constructor requires the FSI coupling interface model part to be set (e.g. MPI)
         """

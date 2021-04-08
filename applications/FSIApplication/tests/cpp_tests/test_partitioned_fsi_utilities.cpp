@@ -340,9 +340,7 @@ namespace Testing {
 
         const double tolerance = 1.0e-8;
         std::vector<double> expected_values = {1.0,1.0,1.0,1.0};
-        for (unsigned int i = 0; i < expected_values.size(); ++i) {
-            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
-        }
+        KRATOS_CHECK_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorNodal, FSIApplicationFastSuite)
@@ -366,9 +364,7 @@ namespace Testing {
 
         const double tolerance = 1.0e-8;
         std::vector<double> expected_values = {0.0,0.0,1.0,1.0,2.0,2.0,3.0,3.0};
-        for (unsigned int i = 0; i < expected_values.size(); ++i) {
-            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
-        }
+        KRATOS_CHECK_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorConsistent, FSIApplicationFastSuite)
@@ -428,10 +424,8 @@ namespace Testing {
 
         // Check results
         const double tolerance = 1.0e-8;
-        std::array<double, 8> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
-        for (unsigned int i = 0; i < 8; ++i) {
-            KRATOS_CHECK_NEAR(interface_vector(i), expected_results[i], tolerance);
-        }
+        std::vector<double> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
+        KRATOS_CHECK_VECTOR_NEAR(expected_results, interface_vector, tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DEmbeddedToPositiveFacePressureInterpolator, FSIApplicationFastSuite)

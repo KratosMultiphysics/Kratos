@@ -635,7 +635,7 @@ public:
 
         // Calculate the tractions from the pressure values
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-            const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+            const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPressureVariable);
             noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, r_normal) * r_normal;
         });
@@ -664,7 +664,7 @@ public:
 
         // Calculate the tractions from the pressure values
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-            const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+            const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
             const double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);
             noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, p_neg, r_normal) * r_normal;
@@ -716,14 +716,11 @@ protected:
      */
     std::string GetSkinConditionName()
     {
-        std::string element_name;
         if (TDim == 2) {
-            element_name = "LineCondition2D2N";
+            return "LineCondition2D2N";
         } else {
-            element_name = "SurfaceCondition3D3N";
+            return "SurfaceCondition3D3N";
         }
-
-        return element_name;
     }
 
     /**
