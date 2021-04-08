@@ -188,6 +188,12 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      env:
+        CCACHE_SLOPPINESS: pch_defines,time_macros
+        CCACHE_COMPILERCHECK: content
+        CCACHE_COMPRESS: true
+        CCACHE_NODISABLE: true
+        CCACHE_MAXSIZE: 500M
 
     steps:
     - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
@@ -196,11 +202,19 @@ jobs:
 
     - uses: actions/checkout@v2
 
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-no-unity-ccache-
+
     - name: Build
       shell: bash
       run: |
-        export CC=/usr/bin/clang
-        export CXX=/usr/bin/clang++
+        export CC=/usr/lib/ccache/clang
+        export CXX=/usr/lib/ccache/clang++
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -215,6 +229,8 @@ jobs:
 
         # Buid
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+
+        ccache -s
 
 
   ubuntu-intel:

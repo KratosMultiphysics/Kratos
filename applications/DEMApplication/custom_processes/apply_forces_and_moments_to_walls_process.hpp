@@ -24,11 +24,8 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/table.h"
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "utilities/interval_utility.h"
 #include "utilities/python_function_callback_utility.h"
@@ -70,6 +67,9 @@ namespace Kratos
 
       /// Pointer definition of ApplyForcesAndMomentsToWallsProcess
       KRATOS_CLASS_POINTER_DEFINITION(ApplyForcesAndMomentsToWallsProcess);
+
+      /// Defining a table with double argument and result type as table type.
+      typedef Table<double,double> TableType;
 
       ///@}
       ///@name Life Cycle
@@ -182,6 +182,10 @@ namespace Kratos
       array_1d<double, 3> mMomentValues;
       std::vector<PythonGenericFunctionUtility> mForceFunctions;
       std::vector<PythonGenericFunctionUtility> mMomentFunctions;
+      array_1d<int, 3> mForceTableId;
+      array_1d<int, 3> mMomentTableId;
+      std::vector<TableType::Pointer> mpForceTable;
+      std::vector<TableType::Pointer> mpMomentTable;
 
       ///@}
       ///@name Private Operators

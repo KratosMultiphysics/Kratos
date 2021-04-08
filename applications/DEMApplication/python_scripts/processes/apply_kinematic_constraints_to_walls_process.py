@@ -39,4 +39,4 @@ def Factory(settings, Model):
 
     process_settings.RemoveValue("help")
 
-    return DEM.ApplyKinematicConstraintsProcess(computing_model_part, process_settings)
+    return DEM.ApplyKinematicConstraintsToWallsProcess(computing_model_part, process_settings)
