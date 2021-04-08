@@ -213,7 +213,7 @@ class DataGeneratorProcess(KM.Process):
                             input_value_list.append(input_value)
             # Writing input file
             if (self.write_output_file):
-                if self.output_format == "ascci":
+                if self.output_format == "ascii":
                     self.training_input_file.write(' '.join(str(v) for v in input_value_list) + '\n')
                 if self.output_format == "h5":
                     self.hdf5_input_parameters["prefix"].SetString("/"+str(current_step)+"/InputData") 
