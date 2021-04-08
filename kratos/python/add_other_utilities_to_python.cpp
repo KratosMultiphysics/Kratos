@@ -52,6 +52,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/dense_svd_decomposition.h"
 
 namespace Kratos {
 namespace Python {
@@ -599,6 +600,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
     ;
+
+    typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
+    py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
+    ;
+
 }
 
 } // namespace Python.
