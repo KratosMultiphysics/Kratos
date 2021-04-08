@@ -240,7 +240,7 @@ public:
 
         return false;
     }
-}
+};
 } // namespace Kratos
 
 #endif // KRATOS_PROJECTION_NURBS_GEOMETRY_UTILITIES_H_INCLUDED
