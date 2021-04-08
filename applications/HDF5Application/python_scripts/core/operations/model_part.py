@@ -131,9 +131,6 @@ class ElementFlagValueInput(VariableIO):
 class ElementIntegrationPointOutput(VariableIO):
     '''Write element integration point values to a file.'''
 
-    def __init__(self, settings):
-        super().__init__(settings)
-
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ElementIntegrationPointOutput(
             self.GetSettings(model_part).Get(), hdf5_file).WriteElementIntegrationPointValues(
