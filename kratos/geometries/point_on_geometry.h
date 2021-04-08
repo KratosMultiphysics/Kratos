@@ -18,6 +18,8 @@
 // Project includes
 #include "geometries/geometry.h"
 
+#include "quadrature_point_geometry.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
