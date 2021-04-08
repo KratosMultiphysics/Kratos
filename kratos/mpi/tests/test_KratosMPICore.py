@@ -50,8 +50,8 @@ def AssembleTestSuites():
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_communicator.TestMPICommunicator])) # FIXME
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_data_communicator_python.TestMPIDataCommunicatorPython]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_model_part.TestMPIModelPart])) # FIXME
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_serializer.TestMPISerializer]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_neighbours.TestNeighbours]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_serializer.TestMPISerializer])) # FIXME
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_neighbours.TestNeighbours]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nodal_elemental_neighbours.TestNodalElementalNeighbours]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_parallel_environment.TestParallelEnvironment]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_processes.TestMPIProcesses]))
