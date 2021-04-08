@@ -22,6 +22,8 @@
 // Project includes
 #include "geometry.h"
 
+#include "integration/integration_point_utilities.h"
+#include "utilities/tessellation_utilities/curve_tessellation.h"
 
 namespace Kratos
 {
@@ -57,7 +59,11 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef std::vector<CoordinatesArrayType> CoordinatesArrayVectorType;
+    typedef PointerVector<GeometryType> GeometriesArrayType;
 
     ///@}
     ///@name Public Static Members
@@ -319,6 +325,207 @@ public:
         }
 
         return IntegrationInfo(number_of_points_per_span_per_direction, quadrature_method_per_direction);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the master considering all slave intersections.
+     * @return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
+    {
+        const double model_tolerance = 1e-3;
+
+        if (this->Dimension() == 1) {
+            std::vector<double> intersection_master_spans;
+            std::vector<double> intersection_master_spans_on_master_spans;
+
+            mpGeometries[0]->SpansLocalSpace(intersection_master_spans);
+            CurveTessellation<PointerVector<TPointType>> curve_tessellation;
+            curve_tessellation.Tessellate(
+                *(mpGeometries[0].get()),
+                intersection_master_spans,
+                1e-2, mpGeometries[0]->PolynomialDegree(0), false);
+
+            CoordinatesArrayType local_coords_slave = ZeroVector(3);
+            CoordinatesArrayType global_coords = ZeroVector(3);
+            CoordinatesArrayType local_coords_master = ZeroVector(3);
+            CoordinatesArrayType global_coords_master;
+            for (IndexType i = 1; i < mpGeometries.size(); ++i) {
+                std::vector<double> intersection_slave_spans;
+                mpGeometries[i]->SpansLocalSpace(intersection_slave_spans);
+
+                for (IndexType j = 0; j < intersection_slave_spans.size(); ++j) {
+                    local_coords_slave[0] = intersection_slave_spans[j];
+                    mpGeometries[i]->GlobalCoordinates(
+                        global_coords, local_coords_slave);
+                    curve_tessellation.GetClosestPoint(
+                        global_coords, global_coords_master, local_coords_master);
+                    int success = mpGeometries[0]->ProjectionPoint(
+                        global_coords, global_coords_master, local_coords_master);
+                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords - global_coords_master) > model_tolerance))
+                        << "Projection of intersection spans failed. Global Coordinates on slave: "
+                        << global_coords << ", and global coordinates on master: "
+                        << global_coords_master << ". Difference: " << norm_2(global_coords - global_coords_master)
+                        << " larger than model tolerance: " << model_tolerance << std::endl;
+
+                    // If success == 0, it is considered that the projection is on one of the boundaries.
+                    intersection_master_spans_on_master_spans.push_back(local_coords_master[0]);
+                }
+            }
+            std::vector<double> all_intersections;
+            MergeSpans(all_intersections, intersection_master_spans, intersection_master_spans_on_master_spans);
+
+            IntegrationPointUtilities::CreateIntegrationPoints1D(rIntegrationPoints, all_intersections, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+        }
+    }
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points. It creates the list of
+     *        integration points byitself.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
+    {
+        const double model_tolerance = 1e-3;
+
+        const SizeType num_integration_points = rIntegrationPoints.size();
+
+        if (rResultGeometries.size() != num_integration_points) {
+            rResultGeometries.resize(num_integration_points);
+        }
+
+        // Create quadrature points on master
+        GeometriesArrayType master_quadrature_points(num_integration_points);
+        mpGeometries[0]->CreateQuadraturePointGeometries(
+            master_quadrature_points,
+            NumberOfShapeFunctionDerivatives,
+            rIntegrationPoints);
+
+        // Compute vector of location
+        CoordinatesArrayVectorType integration_points_global_coords_vector(num_integration_points);
+        for (SizeType i = 0; i < num_integration_points; ++i) {
+            integration_points_global_coords_vector[i] = master_quadrature_points[i].Center();
+        }
+
+        // First slave
+        IntegrationPointsArrayType integration_points_slave = rIntegrationPoints;
+        CoordinatesArrayType local_slave_coords = ZeroVector(3);
+        CoordinatesArrayType global_slave_coords = ZeroVector(3);
+
+        bool use_tessellation = true;
+        if (use_tessellation) {
+            if (Dimension() == 1) {
+                CurveTessellation<PointerVector<TPointType>> curve_tesselation;
+                curve_tesselation.Tessellate(*(mpGeometries[1].get()), 1e-2, mpGeometries[1]->PolynomialDegree(0));
+
+                for (SizeType j = 0; j < num_integration_points; ++j) {
+                    curve_tesselation.GetClosestPoint(
+                        integration_points_global_coords_vector[j],
+                        global_slave_coords,
+                        local_slave_coords);
+
+                    mpGeometries[1]->ProjectionPoint(
+                        integration_points_global_coords_vector[j],
+                        global_slave_coords,
+                        local_slave_coords);
+
+                    integration_points_slave[j][0] = local_slave_coords[0];
+                    integration_points_slave[j][1] = local_slave_coords[1];
+                    integration_points_slave[j][2] = local_slave_coords[2];
+                }
+            }
+            else {
+                KRATOS_ERROR << "Tessellation for " << Dimension()
+                    << "-dimensional objects is not implement." << std::endl;
+            }
+        }
+        else {
+            for (SizeType j = 0; j < num_integration_points; ++j) {
+                mpGeometries[1]->ProjectionPoint(
+                    integration_points_global_coords_vector[j],
+                    global_slave_coords,
+                    local_slave_coords);
+
+                integration_points_slave[j][0] = local_slave_coords[0];
+                integration_points_slave[j][1] = local_slave_coords[1];
+                integration_points_slave[j][2] = local_slave_coords[2];
+            }
+        }
+
+        GeometriesArrayType slave_quadrature_points(num_integration_points);
+        mpGeometries[1]->CreateQuadraturePointGeometries(
+            slave_quadrature_points,
+            NumberOfShapeFunctionDerivatives,
+            integration_points_slave);
+
+        for (SizeType i = 0; i < num_integration_points; ++i) {
+            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
+                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
+                << slave_quadrature_points(i)->Center() << ". Distance: "
+                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
+
+            rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
+                master_quadrature_points(i), slave_quadrature_points(i));
+        }
+
+        KRATOS_ERROR_IF(mpGeometries.size() > 2)
+            << "CreateQuadraturePointGeometries not implemented for coupling of more than 2 geomtries. "
+            << mpGeometries.size() << " are given." << std::endl;
+    }
+
+    ///@}
+    ///@name Span Utilities
+    ///@{
+
+    static void MergeSpans(
+        std::vector<double>& rResultSpans,
+        const std::vector<double>& rSpans1,
+        const std::vector<double>& rSpans2,
+        double Tolerance = 1e-6)
+    {
+        NurbsInterval interval_1(rSpans1[0], rSpans1[rSpans1.size() - 1]);
+        NurbsInterval interval_2(rSpans2[0], rSpans2[rSpans2.size() - 1]);
+
+        for (IndexType i = 0; i < rSpans1.size(); ++i) {
+            double temp = rSpans1[i];
+            interval_2.IsInside(temp);
+            rResultSpans.push_back(temp);
+        }
+        for (IndexType i = 0; i < rSpans2.size(); ++i) {
+            double temp = rSpans2[i];
+            interval_1.IsInside(temp);
+            rResultSpans.push_back(temp);
+        }
+
+        SortUnique(rResultSpans, Tolerance);
+    }
+
+    static void SortUnique(
+        std::vector<double>& rResultSpans,
+        const double Tolerance)
+    {
+        std::sort(std::begin(rResultSpans), std::end(rResultSpans));
+
+        auto last = std::unique(std::begin(rResultSpans), std::end(rResultSpans),
+            [=](double a, double b) { return b - a < Tolerance; });
+
+        auto nb_unique = std::distance(std::begin(rResultSpans), last);
+
+        rResultSpans.resize(nb_unique);
     }
 
     ///@}
