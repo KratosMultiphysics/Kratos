@@ -339,7 +339,7 @@ namespace Testing {
             *p_interface_vector);
 
         const double tolerance = 1.0e-8;
-        std::vector<double> expected_values = {1.0,1.0,1.0,1.0};
+        std::array<double, 4> expected_values = {1.0,1.0,1.0,1.0};
         for (unsigned int i = 0; i < expected_values.size(); ++i) {
             KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
         }
