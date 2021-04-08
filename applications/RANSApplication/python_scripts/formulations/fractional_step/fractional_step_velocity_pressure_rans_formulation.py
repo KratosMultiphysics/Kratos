@@ -297,10 +297,16 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         if (wall_function_region_type == "logarithmic_region_only"):
             self.condition_name = "RansFractionalStepKBasedWall"
+        elif (wall_function_region_type == "generalized_wall_condition"):
+            self.condition_name = "FSGeneralizedWallCondition"
+        elif (wall_function_region_type == "werner_wengle_wall_condition"):
+            self.condition_name = "FSWernerWengleWallCondition"
         else:
             msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
             msg += "Supported wall function region types are:\n"
             msg += "\tlogarithmic_region_only\n"
+            msg += "\tgeneralized_wall_condition\n"
+            msg += "\twerner_wengle_wall_condition\n"
             raise Exception(msg)
 
     def ElementHasNodalProperties(self):
