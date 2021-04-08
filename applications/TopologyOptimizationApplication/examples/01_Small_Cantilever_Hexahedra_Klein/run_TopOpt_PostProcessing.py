@@ -36,7 +36,7 @@ GiDMultiFileFlag = "Single"
 current_model = km.Model()
 optimized_model_part = current_model.CreateModelPart("optimized_model_part")
 optimized_model_part.AddNodalSolutionStepVariable(NORMAL)
-restart_file_name = "/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra_Klein/Small_Cantilever_Restart_File_25"
+restart_file_name = "/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra_Klein/Small_Cantilever_Restart_File_23"
 model_part_io = ModelPartIO(restart_file_name)
 model_part_io.ReadModelPart(optimized_model_part)
 
