@@ -236,7 +236,7 @@ jobs:
   ubuntu-intel:
     runs-on: ubuntu-latest
     env:
-      KRATOS_BUILD_TYPE: Custom
+      KRATOS_BUILD_TYPE: FullDebug
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
