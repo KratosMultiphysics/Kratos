@@ -28,6 +28,8 @@ template<class TPointType> class Geometry;
 template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
 class ProjectionNurbsGeometryUtilities
 {
+public:
+
     typedef array_1d<double, 3> CoordinatesArrayType;
 
     /*
