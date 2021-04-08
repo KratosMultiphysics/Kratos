@@ -9,6 +9,7 @@ Begin Properties 1
     POISSON_RATIO 0.20
     STATIC_FRICTION 0.009138776996010534
     DYNAMIC_FRICTION 0.009138776996010534
+    FRICTION_DECAY 500.0
     COEFFICIENT_OF_RESTITUTION 0.2
     PARTICLE_MATERIAL 1
     ROLLING_FRICTION 0.01
@@ -16,6 +17,36 @@ Begin Properties 1
     PARTICLE_SPHERICITY 1.0
     DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
 End Properties
+
+Begin Table 1 TIME VALUE
+   0.0 0.0
+   1.0 10.0
+End Table
+
+Begin Table 2 TIME VALUE
+   0.0 0.0
+   1.0 10.0
+End Table
+
+Begin Table 3 TIME VALUE
+   0.0 0.0
+   1.0 10.0
+End Table
+
+Begin Table 4 TIME VALUE
+   0.0 0.0
+   1.0 10.0
+End Table
+
+Begin Table 5 TIME VALUE
+   0.0 0.0
+   1.0 10.0
+End Table
+
+Begin Table 6 TIME VALUE
+   0.0 0.0
+   1.0 10.0
+End Table
 
 Begin Nodes
     1   7.0000000000   0.0000000000   0.0000000000
@@ -84,6 +115,8 @@ Begin SubModelPart Ball1
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
 End SubModelPart
 Begin SubModelPart Ball2
     Begin SubModelPartNodes
@@ -94,6 +127,8 @@ Begin SubModelPart Ball2
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
 End SubModelPart
 Begin SubModelPart Ball3
     Begin SubModelPartNodes
@@ -104,6 +139,8 @@ Begin SubModelPart Ball3
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
 End SubModelPart
 Begin SubModelPart Ball4
     Begin SubModelPartNodes
@@ -114,4 +151,24 @@ Begin SubModelPart Ball4
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart
+Begin SubModelPart Ball5
+    Begin SubModelPartNodes
+            5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            5
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartTables
 End SubModelPart

@@ -32,14 +32,14 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-cmake                                                ^
-  -G"Visual Studio 16 2019"                          ^
-  -H"%KRATOS_SOURCE%"                                ^
-  -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-  -DBOOST_ROOT="%TEMP%\boost"                        ^
-  -DINSTALL_RUNKRATOS=OFF                            ^
-  -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX"        ^
-  -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
+cmake                                                 ^
+  -G"Visual Studio 16 2019"                           ^
+  -H"%KRATOS_SOURCE%"                                 ^
+  -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
+  -DBOOST_ROOT="%TEMP%\boost"                         ^
+  -DINSTALL_RUNKRATOS=OFF                             ^
+  -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
+  -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   ^
   -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_build -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
