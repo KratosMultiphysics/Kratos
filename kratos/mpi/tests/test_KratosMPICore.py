@@ -45,7 +45,7 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['mpi_small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_data_communicator_factory.TestDataCommunicatorFactory]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gather_modelpart_utility.TestGatherModelPartUtility]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gather_modelpart_utility.TestGatherModelPartUtility]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_communicator_set_up.TestMPICommunicatorSetUp]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_communicator.TestMPICommunicator]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_data_communicator_python.TestMPIDataCommunicatorPython]))
