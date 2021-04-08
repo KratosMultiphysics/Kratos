@@ -29,7 +29,7 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 
-#include "utilities/nurbs_curve_tessellation.h"
+#include "utilities/tessellation_utilities/curve_tessellation.h"
 
 namespace Kratos
 {
