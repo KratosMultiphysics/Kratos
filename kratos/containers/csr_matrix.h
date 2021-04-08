@@ -124,9 +124,9 @@ public:
         rOtherMatrix.mIsOwnerOfData=false;
 
         //swap the pointers to take owership of data
-        mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
-        mpColIndicesData = rOtherMatrix.mpColIndicesData;
-        mpValuesVectorData = rOtherMatrix.mpValuesVectorData;
+        mpRowIndicesData = std::move(rOtherMatrix.mpRowIndicesData);
+        mpColIndicesData = std::move(rOtherMatrix.mpColIndicesData);
+        mpValuesVectorData = std::move(rOtherMatrix.mpValuesVectorData);
 
         //here we assign the span
         mRowIndices = rOtherMatrix.mRowIndices;
@@ -689,9 +689,9 @@ private:
     ///@name Member Variables
     ///@{
     bool mIsOwnerOfData = true;
-    Kratos::unique_ptr<IndexType[]> mpRowIndicesData;
-    Kratos::unique_ptr<IndexType[]> mpColIndicesData;
-    Kratos::unique_ptr<TDataType[]> mpValuesVectorData;
+    Kratos::unique_ptr<IndexType[]> mpRowIndicesData; //this is the pointer who "owns" the data. DO NOT USE IT as such (it may be uninitialized if data is not owned), only use the span wrapper just below
+    Kratos::unique_ptr<IndexType[]> mpColIndicesData; //this is the pointer who "owns" the data. DO NOT USE IT as such (it may be uninitialized if data is not owned), only use the span wrapper just below
+    Kratos::unique_ptr<TDataType[]> mpValuesVectorData; //this is the pointer who "owns" the data. DO NOT USE IT as such (it may be uninitialized if data is not owned), only use the span wrapper just below
     Kratos::span<IndexType> mRowIndices;
     Kratos::span<IndexType> mColIndices;
     Kratos::span<TDataType> mValuesVector;
