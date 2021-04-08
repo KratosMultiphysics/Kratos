@@ -227,11 +227,11 @@ For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one 
                             "PRESSURE"
                         ]
                     },
-                    "element_integration_point_value_settings" : {
+                    "element_gauss_point_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
-                        ]                    
+                        ]
                     },
                     "condition_data_value_settings" : {
                         "list_of_variables": [
@@ -239,12 +239,12 @@ For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one 
                             "PRESSURE"
                         ]
                     },
-                    "condition_integration_point_value_settings" : {
+                    "condition_gauss_point_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
-                        ]                    
-                    },                    
+                        ]
+                    },
                     "nodal_flag_value_settings": {
                         "list_of_variables": [
                             "SLIP"
@@ -306,24 +306,24 @@ For the ```list_of_variables``` in ```nodal_solution_step_data_settings```, one 
                             "PRESSURE"
                         ]
                     },
-                    "element_integration_point_value_settings" : {
+                    "element_gauss_point_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
-                        ]                    
-                    },                      
+                        ]
+                    },
                     "condition_data_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
                         ]
                     },
-                    "condition_integration_point_value_settings" : {
+                    "condition_gauss_point_value_settings" : {
                         "list_of_variables": [
                             "VELOCITY",
                             "PRESSURE"
-                        ]                    
-                    },                      
+                        ]
+                    },
                     "nodal_flag_value_settings": {
                         "list_of_variables": [
                             "SLIP"
