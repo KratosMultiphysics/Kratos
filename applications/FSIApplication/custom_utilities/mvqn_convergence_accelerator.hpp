@@ -74,6 +74,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    explicit MVQNFullJacobianConvergenceAccelerator() = default;
+
     /**
      * @brief Construct a new MVQNFullJacobianConvergenceAccelerator object
      * MultiVector Quasi-Newton convergence accelerator with full Jacobian json settings constructor
@@ -82,33 +84,38 @@ public:
      */
     explicit MVQNFullJacobianConvergenceAccelerator(Parameters rConvAcceleratorParameters)
     {
-        Parameters mvqn_default_parameters(R"({
-            "solver_type"            : "MVQN",
-            "w_0"                    : 0.825,
-            "abs_cut_off_tol"        : 1e-8,
-            "interface_block_newton" : false
-        })");
-        rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
-
+        rConvAcceleratorParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
         mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mUsedInBlockNewtonEquations = rConvAcceleratorParameters["interface_block_newton"].GetBool();
     }
 
+    // /**
+    //  * @brief Construct a new MVQNFullJacobianConvergenceAccelerator object
+    //  * This constructor also makes possible the MVQN usage for the interface block Newton equations
+    //  * @param OmegaInitial initial relaxation parameter
+    //  * @param AbsCutOff absolute tolerance for the observation cut off
+    //  * @param UsedInBlockNewtonEquations bool value indicating if the MVQN instance is to be used in the interface block Newton equations
+    //  */
+    // explicit MVQNFullJacobianConvergenceAccelerator(
+    //     const double OmegaInitial,
+    //     const double AbsCutOff,
+    //     const bool UsedInBlockNewtonEquations)
+    //     : mOmega_0(OmegaInitial)
+    //     , mAbsCutOff(AbsCutOff)
+    //     , mUsedInBlockNewtonEquations(UsedInBlockNewtonEquations)
+    // {
+    // }
+
     /**
      * @brief Construct a new MVQNFullJacobianConvergenceAccelerator object
-     * This constructor also makes possible the MVQN usage for the interface block Newton equations
-     * @param OmegaInitial initial relaxationo parameter
+     * This constructor intended to be used with the interface block Newton equations (@see IBQNMVQNConvergenceAccelerator)
      * @param AbsCutOff absolute tolerance for the observation cut off
-     * @param UsedInBlockNewtonEquations bool value indicating if the MVQN instance is to be used in the interface block Newton equations
      */
-    explicit MVQNFullJacobianConvergenceAccelerator(
-        const double OmegaInitial = 0.825,
-        const double AbsCutOff = 1e-8,
-        const bool UsedInBlockNewtonEquations = false)
-        : mOmega_0(OmegaInitial)
+    explicit MVQNFullJacobianConvergenceAccelerator(const double AbsCutOff)
+        : mOmega_0(0.0)
         , mAbsCutOff(AbsCutOff)
-        , mUsedInBlockNewtonEquations(UsedInBlockNewtonEquations)
+        , mUsedInBlockNewtonEquations(true)
     {
     }
 
@@ -202,6 +209,18 @@ public:
         KRATOS_CATCH( "" );
     }
 
+    virtual Parameters GetDefaultParameters() const
+    {
+        Parameters mvqn_default_parameters(R"({
+            "solver_type"            : "MVQN",
+            "w_0"                    : 0.825,
+            "abs_cut_off_tol"        : 1e-8,
+            "interface_block_newton" : false
+        })");
+
+        return mvqn_default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -229,98 +248,97 @@ protected:
         const VectorType& rResidualVector,
         const VectorType& rIterationGuess)
     {
-        VectorPointerType pAuxResidualVector(new VectorType(rResidualVector));
-        VectorPointerType pAuxIterationGuess(new VectorType(rIterationGuess));
-        std::swap(mpResidualVector_1, pAuxResidualVector);
-        std::swap(mpIterationValue_1, pAuxIterationGuess);
+        AppendCurrentIterationInformation(rResidualVector, rIterationGuess);
 
-        if (mConvergenceAcceleratorIteration == 0) {
-            if (!mJacobiansAreInitialized) {
-                // Initialize the problem size with the first residual
-                mProblemSize = TSparseSpace::Size(rResidualVector);
+        CalculateInverseJacobianApproximation();
 
-                // Initialize the Jacobian matrices
-                // This method already considers if the current MVQN accelerator is applied in a block Newton iteration
-                InitializeJacobianMatrices();
-                mJacobiansAreInitialized = true;
-            } else {
-                // Set as current iteration Jacobian the previous step one
-                // This is required since the first iteration needs to be performed with the previous step Jacobian
-                MatrixPointerType p_aux_jac_n = Kratos::make_shared<MatrixType>(*mpJac_n);
-                std::swap(p_aux_jac_n, mpJac_k1);
-            }
-        } else {
-            // Store current observation information
-            StoreCurrentIterationInformation();
+        // if (mConvergenceAcceleratorIteration == 0) {
+        //     if (!mJacobiansAreInitialized) {
+        //         // Initialize the problem size with the first residual
+        //         mProblemSize = TSparseSpace::Size(rResidualVector);
 
-            // Compute the jacobian approximation
-            std::size_t data_cols = mpObsMatrixV->size2();
-            MatrixType aux2(data_cols, data_cols);
-            noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
+        //         // Initialize the Jacobian matrices
+        //         // This method already considers if the current MVQN accelerator is applied in a block Newton iteration
+        //         InitializeJacobianMatrices();
+        //         mJacobiansAreInitialized = true;
+        //     } else {
+        //         // Set as current iteration Jacobian the previous step one
+        //         // This is required since the first iteration needs to be performed with the previous step Jacobian
+        //         MatrixPointerType p_aux_jac_n = Kratos::make_shared<MatrixType>(*mpJac_n);
+        //         std::swap(p_aux_jac_n, mpJac_k1);
+        //     }
+        // } else {
+        //     // Store current observation information
+        //     StoreDataColumns();
 
-            // Perform the observation matrix V Singular Value Decomposition (SVD) such that
-            // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
-            MatrixType u_svd; // Orthogonal matrix (m x m)
-            MatrixType w_svd; // Rectangular diagonal matrix (m x n)
-            MatrixType v_svd; // Orthogonal matrix (n x n)
-            std::string svd_type = "Jacobi"; // SVD decomposition type
-            double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-            SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
+        //     // Compute the jacobian approximation
+        //     std::size_t data_cols = mpObsMatrixV->size2();
+        //     MatrixType aux2(data_cols, data_cols);
+        //     noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
 
-            // Get the eigenvalues vector. Remember that eigenvalues
-            // of trans(A)*A are equal to the eigenvalues of A^2
-            std::vector<double> eig_vector(data_cols);
-            for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
-                const double i_col_eig = std::sqrt(w_svd(i_col,i_col));
-                eig_vector[i_col] = i_col_eig;
-            }
+        //     // Perform the observation matrix V Singular Value Decomposition (SVD) such that
+        //     // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
+        //     MatrixType u_svd; // Orthogonal matrix (m x m)
+        //     MatrixType w_svd; // Rectangular diagonal matrix (m x n)
+        //     MatrixType v_svd; // Orthogonal matrix (n x n)
+        //     std::string svd_type = "Jacobi"; // SVD decomposition type
+        //     double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
+        //     SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
 
-            // Get the maximum and minimum eigenvalues
-            double max_eig_V = 0.0;
-            double min_eig_V = std::numeric_limits<double>::max();
-            for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
-                if (max_eig_V < eig_vector[i_col]) {
-                    max_eig_V = eig_vector[i_col];
-                } else if (min_eig_V > eig_vector[i_col]) {
-                    min_eig_V = eig_vector[i_col];
-                }
-            }
+        //     // Get the eigenvalues vector. Remember that eigenvalues
+        //     // of trans(A)*A are equal to the eigenvalues of A^2
+        //     std::vector<double> eig_vector(data_cols);
+        //     for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
+        //         const double i_col_eig = std::sqrt(w_svd(i_col,i_col));
+        //         eig_vector[i_col] = i_col_eig;
+        //     }
 
-            if (min_eig_V < mAbsCutOff * max_eig_V){
-                KRATOS_WARNING("MVQNFullJacobianConvergenceAccelerator")
-                    << "Dropping new observation columns information. Residual observation matrix min. eigval.: " << min_eig_V << " (tolerance " << mAbsCutOff * max_eig_V << ")" << std::endl;
-                // Drop the observation matrices last column
-                this->DropLastDataColumn();
-                // Update the number of columns
-                --data_cols;
-                // Recompute trans(V)*V
-                aux2.resize(data_cols, data_cols);
-                noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
-                // Recompute the SVD for the matrix pseudo-inverse calculation
-                SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
-            }
+        //     // Get the maximum and minimum eigenvalues
+        //     double max_eig_V = 0.0;
+        //     double min_eig_V = std::numeric_limits<double>::max();
+        //     for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
+        //         if (max_eig_V < eig_vector[i_col]) {
+        //             max_eig_V = eig_vector[i_col];
+        //         } else if (min_eig_V > eig_vector[i_col]) {
+        //             min_eig_V = eig_vector[i_col];
+        //         }
+        //     }
 
-            // Compute the matrix pseudo-inverse
-            // Note that we take advantage of the fact that the matrix is always squared
-            MatrixType aux2_inv = ZeroMatrix(data_cols, data_cols);
-            for (std::size_t i = 0; i < data_cols; ++i) {
-                for (std::size_t j = 0; j < data_cols; ++j) {
-                    const double aux = v_svd(j,i) / w_svd(j,j);
-                    for (std::size_t k = 0; k < data_cols; ++k) {
-                        aux2_inv(i,k) += aux * u_svd(k,j);
-                    }
-                }
-            }
+        //     if (min_eig_V < mAbsCutOff * max_eig_V){
+        //         KRATOS_WARNING("MVQNFullJacobianConvergenceAccelerator")
+        //             << "Dropping new observation columns information. Residual observation matrix min. eigval.: " << min_eig_V << " (tolerance " << mAbsCutOff * max_eig_V << ")" << std::endl;
+        //         // Drop the observation matrices last column
+        //         this->DropLastDataColumn();
+        //         // Update the number of columns
+        //         --data_cols;
+        //         // Recompute trans(V)*V
+        //         aux2.resize(data_cols, data_cols);
+        //         noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
+        //         // Recompute the SVD for the matrix pseudo-inverse calculation
+        //         SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
+        //     }
 
-            // Compute the current inverse Jacobian approximation
-            MatrixType aux1(mProblemSize, data_cols);
-            MatrixType aux3(mProblemSize, data_cols);
-            noalias(aux1) = *mpObsMatrixW - prod(*mpJac_n,*mpObsMatrixV);
-            noalias(aux3) = prod(aux1,aux2_inv);
+        //     // Compute the matrix pseudo-inverse
+        //     // Note that we take advantage of the fact that the matrix is always squared
+        //     MatrixType aux2_inv = ZeroMatrix(data_cols, data_cols);
+        //     for (std::size_t i = 0; i < data_cols; ++i) {
+        //         for (std::size_t j = 0; j < data_cols; ++j) {
+        //             const double aux = v_svd(j,i) / w_svd(j,j);
+        //             for (std::size_t k = 0; k < data_cols; ++k) {
+        //                 aux2_inv(i,k) += aux * u_svd(k,j);
+        //             }
+        //         }
+        //     }
 
-            MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(*mpJac_n + prod(aux3,trans(*mpObsMatrixV))));
-            std::swap(mpJac_k1, p_aux_jac_k1);
-        }
+        //     // Compute the current inverse Jacobian approximation
+        //     MatrixType aux1(mProblemSize, data_cols);
+        //     MatrixType aux3(mProblemSize, data_cols);
+        //     noalias(aux1) = *mpObsMatrixW - prod(*mpJac_n,*mpObsMatrixV);
+        //     noalias(aux3) = prod(aux1,aux2_inv);
+
+        //     MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(*mpJac_n + prod(aux3,trans(*mpObsMatrixV))));
+        //     std::swap(mpJac_k1, p_aux_jac_k1);
+        // }
     }
 
     void UpdateIterationGuess(VectorType& rIterationGuess)
@@ -334,25 +352,180 @@ protected:
             // In the first iterations, the correction is performed with previous step Jacobian (stored in mpJac_k1)
             // In the subsequent iterations, the previous step Jacobian is updated with the observation matrices
             VectorType AuxVec(mProblemSize);
-            TSparseSpace::Mult(*mpJac_k1, *mpResidualVector_1, AuxVec);
+            CalculateCorrectionWithJacobian(AuxVec);
             TSparseSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
         }
     }
 
-    void StoreCurrentIterationInformation()
+    void AppendCurrentIterationInformation(
+        const VectorType& rResidualVector,
+        const VectorType& rIterationGuess)
+    {
+        // Initialize the problem size with the first residual
+        if (mProblemSize == 0 ) {
+            mProblemSize = TSparseSpace::Size(rResidualVector);
+        }
+
+        // Update the current iteration and residual vector pointers
+        VectorPointerType pAuxResidualVector(new VectorType(rResidualVector));
+        VectorPointerType pAuxIterationGuess(new VectorType(rIterationGuess));
+        std::swap(mpResidualVector_1, pAuxResidualVector);
+        std::swap(mpIterationValue_1, pAuxIterationGuess);
+
+        if (mConvergenceAcceleratorIteration != 0) {
+            // Store current observation information
+            StoreDataColumns();
+
+            // Checks if the latest information is relevant. If not, the new columns are dropped
+            // This also computes the trans(V)*V inverse matrix required for the Jacobian approximation
+            CheckCurrentIterationInformationSingularity();
+        }
+    }
+
+    void StoreDataColumns()
     {
         if (mConvergenceAcceleratorIteration == 1) {
             // Resize and initalize the observation matrices
             InitializeDataColumns();
         } else {
             // Reshape the existent observation matrices
-            const std::size_t n_old_cols = mpObsMatrixV->size2();
+            const std::size_t n_old_cols = TDenseSpace::Size2(*mpObsMatrixV);
             if (n_old_cols < mProblemSize) {
                 AppendDataColumns();
             } else {
                 DropAndAppendDataColumns();
             }
         }
+    }
+
+    void CheckCurrentIterationInformationSingularity()
+    {
+        // Compute the matrix trans(V)*V
+        const auto& r_V = *mpObsMatrixV;
+        std::size_t data_cols = TDenseSpace::Size2(r_V);
+        MatrixType transV_V(data_cols, data_cols);
+        noalias(transV_V) = prod(trans(r_V), r_V);
+
+        // Perform the auxiliary matrix trans(V)*V SVD decomposition
+        MatrixType u_svd; // Orthogonal matrix (m x m)
+        MatrixType w_svd; // Rectangular diagonal matrix (m x n)
+        MatrixType v_svd; // Orthogonal matrix (n x n)
+        std::string svd_type = "Jacobi"; // SVD decomposition type
+        const double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
+        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
+
+        // Get the maximum and minimum eigenvalues
+        // Note that eigenvalues of trans(A)*A are equal to the eigenvalues of A^2
+        double max_eig_V = 0.0;
+        double min_eig_V = std::numeric_limits<double>::max();
+        for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
+            const double i_eigval = std::sqrt(w_svd(i_col,i_col));
+            if (max_eig_V < i_eigval) {
+                max_eig_V = i_eigval;
+            } else if (min_eig_V > i_eigval) {
+                min_eig_V = i_eigval;
+            }
+        }
+
+        // Check if the current information is relevant
+        if (min_eig_V < mAbsCutOff * max_eig_V) {
+            KRATOS_WARNING("MVQNFullJacobianConvergenceAccelerator")
+                << "Dropping new observation columns information. Residual observation matrix min. eigval.: " << min_eig_V << " (tolerance " << mAbsCutOff * max_eig_V << ")" << std::endl;
+            // Drop the observation matrices last column
+            this->DropLastDataColumn();
+            // Update the number of columns
+            --data_cols;
+            // Recompute trans(V)*V
+            transV_V.resize(data_cols, data_cols, false);
+            const auto& r_new_V = *(pGetResidualObservationMatrix());
+            noalias(transV_V) = prod(trans(r_new_V),r_new_V);
+            // Recompute the SVD for the matrix pseudo-inverse calculation
+            SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
+        }
+
+        // Calculate and save the residual observation matrices pseudo-inverse
+        // This will be used later on for the inverse Jacobian approximation
+        // Note that we take advantage of the fact that the matrix is always squared
+        // MatrixType aux2_inv = ZeroMatrix(data_cols, data_cols);
+        MatrixPointerType p_aux_inv(new MatrixType(data_cols, data_cols, 0.0));
+        auto& r_aux_inv = *p_aux_inv;
+        for (std::size_t i = 0; i < data_cols; ++i) {
+            for (std::size_t j = 0; j < data_cols; ++j) {
+                const double aux = v_svd(j,i) / w_svd(j,j);
+                for (std::size_t k = 0; k < data_cols; ++k) {
+                    r_aux_inv(i,k) += aux * u_svd(k,j);
+                }
+            }
+        }
+        std::swap(mpVtransVPseudoInv, p_aux_inv);
+    }
+
+    void CalculateInverseJacobianApproximation()
+    {
+        if (mConvergenceAcceleratorIteration == 0) {
+            if (!mJacobiansAreInitialized) {
+                // Initialize the Jacobian matrices
+                // This method already considers if the current MVQN accelerator is applied in a block Newton iteration
+                InitializeJacobianMatrices();
+                mJacobiansAreInitialized = true;
+            }
+            //TODO: REMOVE THIS else STATEMENT AS WE DO THE SAME OPERATION IN THE FinalizeSolutionStep
+            // else {
+            //     // Set as current iteration Jacobian the previous step one
+            //     // This is required since the first iteration needs to be performed with the previous step Jacobian
+            //     KRATOS_WATCH(mpJac_n)
+            //     KRATOS_WATCH(mpJac_k1)
+            //     MatrixPointerType p_aux_jac_n = Kratos::make_shared<MatrixType>(*mpJac_n);
+            //     std::swap(p_aux_jac_n, mpJac_k1);
+            // }
+        } else {
+
+            // // Compute the matrix pseudo-inverse
+            // // Note that we take advantage of the fact that the matrix is always squared
+            // MatrixType aux2_inv = ZeroMatrix(data_cols, data_cols);
+            // for (std::size_t i = 0; i < data_cols; ++i) {
+            //     for (std::size_t j = 0; j < data_cols; ++j) {
+            //         const double aux = v_svd(j,i) / w_svd(j,j);
+            //         for (std::size_t k = 0; k < data_cols; ++k) {
+            //             aux2_inv(i,k) += aux * u_svd(k,j);
+            //         }
+            //     }
+            // }
+
+            // // Compute the current inverse Jacobian approximation
+            // const auto& r_V = *mpObsMatrixV;
+            // const std::size_t data_cols = TDenseSpace::Size2(r_V);
+            // MatrixType aux1(mProblemSize, data_cols);
+            // MatrixType aux3(mProblemSize, data_cols);
+            // noalias(aux1) = *mpObsMatrixW - prod(*mpJac_n,*mpObsMatrixV);
+            // // noalias(aux3) = prod(aux1,aux2_inv);
+            // noalias(aux3) = prod(aux1, *mpVtransVPseudoInv);
+
+            // MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(*mpJac_n + prod(aux3,trans(*mpObsMatrixV))));
+            // std::swap(mpJac_k1, p_aux_jac_k1);
+
+            UpdateCurrentJacobianMatrix();
+        }
+    }
+
+    virtual void CalculateCorrectionWithJacobian(VectorType& rCorrection)
+    {
+        TDenseSpace::Mult(*mpJac_k1, *mpResidualVector_1, rCorrection);
+    }
+
+    virtual void UpdateCurrentJacobianMatrix()
+    {
+        // Compute the current inverse Jacobian approximation
+        const auto& r_V = *mpObsMatrixV;
+        const auto& r_W = *mpObsMatrixW;
+        const std::size_t n_dofs = GetProblemSize();
+        const std::size_t data_cols = TDenseSpace::Size2(r_V);
+        MatrixType aux1(n_dofs, data_cols);
+        MatrixType aux2(n_dofs, data_cols);
+        noalias(aux1) = r_W - prod(*mpJac_n, r_V);
+        noalias(aux2) = prod(aux1, *mpVtransVPseudoInv);
+        MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(*mpJac_n + prod(aux2,trans(r_V))));
+        std::swap(mpJac_k1, p_aux_jac_k1);
     }
 
     ///@}
@@ -367,6 +540,11 @@ protected:
     bool IsUsedInBlockNewtonEquations() const
     {
         return mUsedInBlockNewtonEquations;
+    }
+
+    VectorPointerType pGetCurrentIterationResidualVector()
+    {
+        return mpResidualVector_1;
     }
 
     MatrixPointerType pGetInverseJacobianApproximation() override
@@ -384,6 +562,16 @@ protected:
         return mpObsMatrixW;
     }
 
+    void SetInitialRelaxationOmega(const double Omega)
+    {
+        mOmega_0 = Omega;
+    }
+
+    void SetCutOffTolerance(const double CutOffTolerance)
+    {
+        mAbsCutOff = CutOffTolerance;
+    }
+
     ///@}
 private:
     ///@name Static Member Variables
@@ -394,9 +582,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mOmega_0;                                                // Relaxation factor for the initial fixed point iteration
-    double mAbsCutOff;                                              // Tolerance for the absolute cut-off criterion
-    bool mUsedInBlockNewtonEquations;                               // Indicates if the current MVQN is to be used in the interface block Newton equations
+    double mOmega_0 = 0.825;                                        // Relaxation factor for the initial fixed point iteration
+    //TODO: THIS IS NO LONGER ABSOLUTE --> CHANGE THE NAME
+    double mAbsCutOff = 1.0e-8;                                     // Tolerance for the absolute cut-off criterion
+    bool mUsedInBlockNewtonEquations = false;                       // Indicates if the current MVQN is to be used in the interface block Newton equations
     unsigned int mProblemSize = 0;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration = 0;              // Convergence accelerator iteration counter
     bool mJacobiansAreInitialized = false;                          // Indicates that the Jacobian matrices have been already initialized
@@ -411,6 +600,7 @@ private:
     MatrixPointerType mpJac_k1;                 // Current iteration Jacobian approximation
     MatrixPointerType mpObsMatrixV;             // Residual increment observation matrix
     MatrixPointerType mpObsMatrixW;             // Solution increment observation matrix
+    MatrixPointerType mpVtransVPseudoInv;       // Auxiliary matrix trans(V)*V pseudo-inverse
 
 
     ///@}
@@ -419,6 +609,10 @@ private:
 
     void InitializeJacobianMatrices()
     {
+        // // Initialize the problem size with the first residual
+        //TODO: I MOVED THIS TO WHERE THE INFORMATION IS APPENT
+        // mProblemSize = TSparseSpace::Size(*mpResidualVector_1);
+
         if (mUsedInBlockNewtonEquations) {
             // Initialize the previous step Jacobian to zero
             MatrixPointerType p_new_jac_n = Kratos::make_shared<MatrixType>(mProblemSize,mProblemSize);

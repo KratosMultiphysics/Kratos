@@ -81,6 +81,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    explicit IBQNMVQNConvergenceAccelerator() = default;
+
     /**
      * @brief Construct a new IBQNMVQNConvergenceAccelerator object
      * MVQN convergence accelerator Json settings constructor
@@ -89,17 +91,14 @@ public:
 
     explicit IBQNMVQNConvergenceAccelerator(Parameters rParameters)
     {
-        Parameters mvqn_default_parameters(R"({
-            "solver_type"            : "IBQN_MVQN",
-            "w_0"                    : 0.825,
-            "abs_cut_off_tol"        : 1e-8
-        })");
-        rParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
-
+        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mInitialOmega = rParameters["w_0"].GetDouble();
+
+        // Set the subdomains MVQN convergence accelerator pointers
+        // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
         const double abs_cut_off_tol = rParameters["abs_cut_off_tol"].GetDouble();
-        mpConvergenceAcceleratorLeft = Kratos::make_unique<MVQNType>(mInitialOmega, abs_cut_off_tol, true);
-        mpConvergenceAcceleratorRight = Kratos::make_unique<MVQNType>(mInitialOmega, abs_cut_off_tol, true);
+        mpConvergenceAcceleratorLeft = Kratos::make_unique<MVQNType>(abs_cut_off_tol);
+        mpConvergenceAcceleratorRight = Kratos::make_unique<MVQNType>(abs_cut_off_tol);
     }
 
     /**
@@ -354,6 +353,17 @@ public:
         return true;
     }
 
+    virtual Parameters GetDefaultParameters() const
+    {
+        Parameters ibqn_mvqn_default_parameters(R"({
+            "solver_type"            : "IBQN_MVQN",
+            "w_0"                    : 0.825,
+            "abs_cut_off_tol"        : 1e-8
+        })");
+
+        return ibqn_mvqn_default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -371,6 +381,51 @@ public:
 
     ///@}
     ///@name Friends
+    ///@{
+
+
+    ///@}
+protected:
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    void SetInitialRelaxationOmega(const double Omega)
+    {
+        mInitialOmega = Omega;
+    }
+
+    void SetLeftConvergenceAcceleratorPointer(MVQNPointerType pConvergenceAcceleratorLeft)
+    {
+        mpConvergenceAcceleratorLeft = pConvergenceAcceleratorLeft;
+    }
+
+    void SetRightConvergenceAcceleratorPointer(MVQNPointerType pConvergenceAcceleratorRight)
+    {
+        mpConvergenceAcceleratorRight = pConvergenceAcceleratorRight;
+    }
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
 
