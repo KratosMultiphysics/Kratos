@@ -74,21 +74,21 @@ public:
     ///@{
 
     template<class TEntityType, class TContainerType>
-    void Union(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
+    static void Union(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
         SetOperation<TEntityType, TContainerType>(
             rModelPartA, rModelPartB, rDestination, SetOperators::Union);
     }
 
     template<class TEntityType, class TContainerType>
-    void Intersection(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
+    static void Intersection(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
         SetOperation<TEntityType, TContainerType>(
             rModelPartA, rModelPartB, rDestination, SetOperators::Intersection);
     }
 
     template<class TEntityType, class TContainerType>
-    void Difference(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
+    static void Difference(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
         SetOperation<TEntityType, TContainerType>(
             rModelPartA, rModelPartB, rDestination, SetOperators::Difference);
@@ -101,13 +101,13 @@ private:
     ///@{
 
     template<class TEntityType>
-    void AddEntities(const std::vector<IndexType>& rIds, ModelPart& rModelPart);
+    static void AddEntities(const std::vector<IndexType>& rIds, ModelPart& rModelPart);
 
     template<class TContainerType>
-    TContainerType& GetContainer(ModelPart& rModelPart);
+    static TContainerType& GetContainer(ModelPart& rModelPart);
 
     template<class TContainerType>
-    std::vector<IndexType> GetContainerIds(ModelPart& rModelPart)
+    static std::vector<IndexType> GetContainerIds(ModelPart& rModelPart)
     {
         TContainerType& r_container = GetContainer<TContainerType>(rModelPart);
         std::vector<IndexType> ids_vector;
@@ -119,7 +119,7 @@ private:
     }
 
     template<class TEntityType, class TContainerType>
-    void SetOperation(
+    static void SetOperation(
         ModelPart& rModelPartA,
         ModelPart& rModelPartB,
         ModelPart& rDestination,

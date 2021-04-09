@@ -65,25 +65,25 @@ class SubModelPartSetOperationProcess(KM.Process):
     def _ExecuteSetOperation(self):
         if self.entity_type == "Nodes":
             if self.set_operation == "Union":
-                KM.SubModelPartOperationsUtility().NodesUnion(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.NodesUnion(self.first_model_part, self.second_model_part, self.result_model_part)
             elif self.set_operation == "Intersection":
-                KM.SubModelPartOperationsUtility().NodesIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.NodesIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
             elif self.set_operation == "Difference":
-                KM.SubModelPartOperationsUtility().NodesDifference(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.NodesDifference(self.first_model_part, self.second_model_part, self.result_model_part)
         elif self.entity_type == "Elements":
             if self.set_operation == "Union":
-                KM.SubModelPartOperationsUtility().ElementsUnion(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.ElementsUnion(self.first_model_part, self.second_model_part, self.result_model_part)
             elif self.set_operation == "Intersection":
-                KM.SubModelPartOperationsUtility().ElementsIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.ElementsIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
             elif self.set_operation == "Difference":
-                KM.SubModelPartOperationsUtility().ElementsDifference(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.ElementsDifference(self.first_model_part, self.second_model_part, self.result_model_part)
         elif self.entity_type == "Conditions":
             if self.set_operation == "Union":
-                KM.SubModelPartOperationsUtility().ConditionsUnion(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.ConditionsUnion(self.first_model_part, self.second_model_part, self.result_model_part)
             elif self.set_operation == "Intersection":
-                KM.SubModelPartOperationsUtility().ConditionsIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.ConditionsIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
             elif self.set_operation == "Difference":
-                KM.SubModelPartOperationsUtility().ConditionsDifference(self.first_model_part, self.second_model_part, self.result_model_part)
+                KM.SubModelPartOperationsUtility.ConditionsDifference(self.first_model_part, self.second_model_part, self.result_model_part)
 
     @staticmethod
     def _GetOrCreateSubModelPart(model, full_name):
