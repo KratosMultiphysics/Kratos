@@ -224,7 +224,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
-        rValue = rParameterValues.GetStrainVector();
+        noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
@@ -246,7 +246,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
-        rValue = rParameterValues.GetStressVector();
+        noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
