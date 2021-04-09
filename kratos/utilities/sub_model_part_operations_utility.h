@@ -125,6 +125,12 @@ private:
         ModelPart& rDestination,
         SetOperators ThisOperator)
     {
+        KRATOS_ERROR_IF(!rDestination.IsSubModelPart()) << "The destination model part must be a sub model part." << std::endl;
+        const ModelPart& r_root_a = rModelPartA.GetRootModelPart();
+        const ModelPart& r_root_b = rModelPartB.GetRootModelPart();
+        const ModelPart& r_root_d = rDestination.GetRootModelPart();
+        KRATOS_ERROR_IF(r_root_a.Name() != r_root_b.Name()) << "The first and second model parts must belong to the same root model part." << std::endl;
+        KRATOS_ERROR_IF(r_root_a.Name() != r_root_d.Name()) << "The destination model part must belong to the same root model part than the first and the second." << std::endl;
         std::vector<IndexType> ids_a = GetContainerIds<TContainerType>(rModelPartA);
         std::vector<IndexType> ids_b = GetContainerIds<TContainerType>(rModelPartB);
         std::vector<IndexType> ids_destination;
