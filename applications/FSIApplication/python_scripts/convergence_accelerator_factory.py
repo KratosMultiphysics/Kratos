@@ -48,6 +48,13 @@ def CreateConvergenceAccelerator(configuration):
     elif(convergence_accelerator_type == "IBQN_MVQN"):
         return KratosFSI.IBQNMVQNConvergenceAccelerator(configuration)
 
+    elif(convergence_accelerator_type == "IBQN_MVQN_randomized_SVD"):
+        if not have_linear_solvers:
+            err_msg = "MVQN with randomized SVD Jacobian requires the \'LinearSolversApplication\'."
+            raise Exception(err_msg)
+        bdc_svd = KratosLinearSolvers.EigenDenseBDCSVD()
+        return KratosFSI.IBQNMVQNRandomizedSVDConvergenceAccelerator(bdc_svd, configuration)
+
     else:
         raise Exception("Convergence accelerator not found. Asking for : " + convergence_accelerator_type)
 

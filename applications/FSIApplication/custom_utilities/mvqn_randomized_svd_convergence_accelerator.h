@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/parallel_utilities.h"
@@ -32,20 +31,25 @@
 
 namespace Kratos
 {
+
 ///@name Kratos Globals
 ///@{
+
 
 ///@}
 ///@name Type Definitions
 ///@{
 
+
 ///@}
 ///@name  Enum's
 ///@{
 
+
 ///@}
 ///@name  Functions
 ///@{
+
 
 ///@}
 ///@name Kratos Classes
@@ -85,8 +89,7 @@ public:
     /**
      * @brief Construct a new MVQNRandomizedSVDConvergenceAccelerator object
      * MultiVector Quasi-Newton convergence accelerator with randomized SVD Jacobian json settings constructor
-     * This constructor also makes possible the MVQN usage for the interface block Newton equations
-     * @param pDenseSVD Pointer to the dense SVD instance
+     * @param pDenseSVD Pointer to the dense SVD utility instance
      * @param ConvAcceleratorParameters Json string encapsulating the settings
      */
     explicit MVQNRandomizedSVDConvergenceAccelerator(
@@ -101,11 +104,19 @@ public:
         BaseType::SetCutOffTolerance(ConvAcceleratorParameters["cut_off_tol"].GetDouble());
     }
 
+    /**
+     * @brief Construct a new MVQNRandomizedSVDConvergenceAccelerator object
+     * Multivector Quasi-Newton convergence accelerator with randomized SVD jacobian constructor
+     * This constructor is intended to be used to set the subdomain MVQN pointers with the IBQN equations
+     * @param pDenseSVD Pointer to the dense SVD utility instance
+     * @param JacobianModes Number of modes to be kept in the randomization of the Jacobian
+     * @param CutOffTolerance Tolerance for the new observation data cut off (relative to the maximum residual observation matrix eigenvalue)
+     */
     explicit MVQNRandomizedSVDConvergenceAccelerator(
         DenseSVDPointerType pDenseSVD,
         const unsigned int JacobianModes = 10,
-        const double AbsCutOff = 1e-8)
-    : BaseType(AbsCutOff)
+        const double CutOffTolerance = 1e-8)
+    : BaseType(CutOffTolerance)
     , mNumberOfModes(JacobianModes)
     , mpDenseSVD(pDenseSVD)
     {
@@ -115,7 +126,7 @@ public:
      * Copy Constructor.
      */
 
-    // Required to build the IBN-MVQN
+    // Required to build the IBQN-MVQN
     MVQNRandomizedSVDConvergenceAccelerator(const MVQNRandomizedSVDConvergenceAccelerator& rOther);
 
     /**
@@ -126,6 +137,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
 
     ///@}
     ///@name Operations
@@ -139,27 +151,19 @@ public:
     {
         KRATOS_TRY;
 
-        //TODO: REMOVE THIS AFTER DEVELOPMENT (IT ONLY SETS THE CURRENT AS OLD JACOBIAN)
-        // BaseType::FinalizeSolutionStep();
-        //TODO: REMOVE THIS AFTER DEVELOPMENT (IT ONLY SETS THE CURRENT AS OLD JACOBIAN)
-
         // Compute ((trans(V)*V)^-1)*trans(V)
         MatrixType aux_M;
         CalculateAuxiliaryMatrixM(aux_M);
-
-        KRATOS_WATCH(aux_M.size1())
-        KRATOS_WATCH(aux_M.size2())
 
         // If not initialized yet, create the random values matrix for the truncated SVD
         if (!mRandomValuesAreInitialized) {
             InitializeRandomValuesMatrix();
         }
 
-        // Do the truncated SVD decomposition of the current Jacobian approximation to save it for the next iteration
+        // Do the randomized SVD decomposition of the current Jacobian approximation
+        // Note that the identity part of the Jacobian will not be considered in the randomized SVD as this is full rank
         MatrixType y;
         MultiplyRight(aux_M, *mpOmega, y);
-        KRATOS_WATCH(y.size1())
-        KRATOS_WATCH(y.size2())
 
         QR<double, row_major> qr_util;
         const SizeType n_dofs = BaseType::GetProblemSize();
@@ -172,27 +176,8 @@ public:
             }
         }
 
-        KRATOS_WATCH(Q.size1())
-        KRATOS_WATCH(Q.size2())
-        auto q_qtrans_check = prod(Q, trans(Q));
-        // auto q_qtrans_check = prod(trans(Q), Q);
-        // KRATOS_WATCH(q_qtrans_check)
-        double identity_error = 0.0;
-        for (SizeType i = 0; i < q_qtrans_check.size1(); ++i) {
-            for (SizeType j = 0; j < q_qtrans_check.size2(); ++j) {
-                const double ref = i == j ? 1.0 : 0.0;
-                identity_error += std::pow(q_qtrans_check(i,j)-ref, 2);
-            }
-        }
-        KRATOS_WATCH(std::sqrt(identity_error))
-
-
         MatrixType phi;
         MultiplyTransposeLeft(aux_M, Q, phi);
-
-        KRATOS_WATCH(phi.size1())
-        KRATOS_WATCH(phi.size2())
-        KRATOS_WATCH("Before SVD")
 
         VectorType s_svd; // Eigenvalues vector
         MatrixType u_svd; // Left orthogonal matrix
@@ -202,14 +187,6 @@ public:
             "compute_thin_v" : true
         })");
         mpDenseSVD->Compute(phi, s_svd, u_svd, v_svd, svd_settings);
-
-        KRATOS_WATCH("After SVD")
-
-        KRATOS_WATCH(u_svd.size1())
-        KRATOS_WATCH(u_svd.size2())
-        KRATOS_WATCH(s_svd.size())
-        KRATOS_WATCH(v_svd.size1())
-        KRATOS_WATCH(v_svd.size2())
 
         auto p_aux_Q_U = Kratos::make_unique<MatrixType>(prod(Q, u_svd));
         auto p_aux_sigma_V = Kratos::make_unique<MatrixType>(v_svd.size2(), v_svd.size1());
@@ -222,78 +199,6 @@ public:
         }
         std::swap(mpOldJacQU, p_aux_Q_U);
         std::swap(mpOldJacSigmaV, p_aux_sigma_V);
-
-        KRATOS_WATCH(mpOldJacQU->size1())
-        KRATOS_WATCH(mpOldJacQU->size2())
-        KRATOS_WATCH(mpOldJacSigmaV->size1())
-        KRATOS_WATCH(mpOldJacSigmaV->size2())
-
-        // MatrixType reconstructed_jacobian = prod(*mpOldJacQU, *mpOldJacSigmaV);
-        // for (SizeType i = 0; i < reconstructed_jacobian.size1(); ++i) {
-        //     reconstructed_jacobian(i,i) -= 1.0;
-        // }
-
-        // double error_norm = 0.0;
-        // const auto& r_current_jac = *(BaseType::pGetInverseJacobianApproximation());
-        // for (SizeType i = 0; i < reconstructed_jacobian.size1(); ++i) {
-        //     for (SizeType j = 0; j < reconstructed_jacobian.size2(); ++j) {
-        //         error_norm += std::pow(reconstructed_jacobian(i,j) - r_current_jac(i,j), 2);
-        //     }
-        // }
-        // std::cout << "Jacobian error norm: " << std::sqrt(error_norm) << std::endl;
-
-        // KRATOS_WATCH(reconstructed_jacobian(0,0))
-        // KRATOS_WATCH(r_current_jac(0,0))
-        // KRATOS_WATCH(reconstructed_jacobian(50,50))
-        // KRATOS_WATCH(r_current_jac(50,50))
-        // KRATOS_WATCH(reconstructed_jacobian(200,200))
-        // KRATOS_WATCH(r_current_jac(200,200))
-        // KRATOS_WATCH(reconstructed_jacobian(10,50))
-        // KRATOS_WATCH(r_current_jac(10,50))
-        // KRATOS_WATCH(reconstructed_jacobian(100,50))
-        // KRATOS_WATCH(r_current_jac(100,50))
-
-        // // Output values to a file to do Python testing
-        // std::ofstream out_jacobian("out_jacobian.txt");
-        // std::cout.rdbuf(out_jacobian.rdbuf());
-        // for (SizeType i = 0; i < r_current_jac.size1(); ++i) {
-        //     for (SizeType j = 0; j < r_current_jac.size2(); ++j) {
-        //         std::cout << r_current_jac(i,j);
-        //         if (j != r_current_jac.size2() - 1) {
-        //             std::cout << " ";
-        //         } else {
-        //             std::cout << std::endl;
-        //         }
-        //     }
-        // }
-
-        // const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
-        // std::ofstream out_V("out_V.txt");
-        // std::cout.rdbuf(out_V.rdbuf());
-        // for (SizeType i = 0; i < r_V.size1(); ++i) {
-        //     for (SizeType j = 0; j < r_V.size2(); ++j) {
-        //         std::cout << r_V(i,j);
-        //         if (j != r_V.size2() - 1) {
-        //             std::cout << " ";
-        //         } else {
-        //             std::cout << std::endl;
-        //         }
-        //     }
-        // }
-
-        // const auto& r_W = *(BaseType::pGetSolutionObservationMatrix());
-        // std::ofstream out_W("out_W.txt");
-        // std::cout.rdbuf(out_W.rdbuf());
-        // for (SizeType i = 0; i < r_W.size1(); ++i) {
-        //     for (SizeType j = 0; j < r_W.size2(); ++j) {
-        //         std::cout << r_W(i,j);
-        //         if (j != r_W.size2() - 1) {
-        //             std::cout << " ";
-        //         } else {
-        //             std::cout << std::endl;
-        //         }
-        //     }
-        // }
 
         KRATOS_CATCH( "" );
     }
@@ -315,13 +220,16 @@ public:
     ///@name Access
     ///@{
 
+
     ///@}
     ///@name Inquiry
     ///@{
 
+
     ///@}
     ///@name Input and output
     ///@{
+
 
     ///@}
     ///@name Friends
@@ -343,16 +251,14 @@ protected:
         BaseType::AppendCurrentIterationInformation(rResidualVector, rIterationGuess);
 
         // If the complete Jacobian is required for the IBQN equations calculate it
-        //FIXME: THIS IS A TEMPORARY SOLUTION UNTIL WE IMPLEMENT THE MATRIX FREE RESOLUTION METHOD
-        // if (BaseType::IsUsedInBlockNewtonEquations()) {
-        //     CalculateInverseJacobianApproximation()
-        // }
+        //TODO: THIS IS A TEMPORARY SOLUTION UNTIL WE IMPLEMENT THE WOODBURY INVERSE
+        if (BaseType::IsUsedInBlockNewtonEquations()) {
+            BaseType::CalculateInverseJacobianApproximation();
+        }
     }
 
     void CalculateCorrectionWithJacobian(VectorType& rCorrection) override
     {
-        KRATOS_WATCH("Inside CalculateCorrectionWithJacobian")
-
         // Get the required arrays
         const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
         const auto& r_W = *(BaseType::pGetSolutionObservationMatrix());
@@ -371,10 +277,7 @@ protected:
         TDenseSpace::UnaliasedAdd(rCorrection, 1.0, W_M_res);
         TDenseSpace::UnaliasedAdd(rCorrection, -1.0, r_res_vect);
 
-        // KRATOS_WATCH(*mpOldJacQU)
-        // KRATOS_WATCH(*mpOldJacSigmaV)
         if (mpOldJacQU != nullptr && mpOldJacSigmaV != nullptr) {
-            KRATOS_WATCH("Adding AB info")
             const auto& r_A = *mpOldJacQU;
             const auto& r_B = *mpOldJacSigmaV;
             VectorType B_res = prod(r_B, r_res_vect);
@@ -389,9 +292,38 @@ protected:
     void UpdateCurrentJacobianMatrix() override
     {
         // Compute the current inverse Jacobian approximation
-        auto&& rp_jac_k1 = BaseType::pGetInverseJacobianApproximation();
-        MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(prod(*mpOldJacQU,*mpOldJacSigmaV)));
-        std::swap(rp_jac_k1, p_aux_jac_k1);
+        MatrixType aux_M;
+        CalculateAuxiliaryMatrixM(aux_M);
+        const SizeType n_dofs = BaseType::GetProblemSize();
+        MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(n_dofs, n_dofs));
+        auto& r_aux_jac = *p_aux_jac_k1;
+        const auto& r_W = *(BaseType::pGetSolutionObservationMatrix());
+        r_aux_jac = prod(r_W, aux_M);
+
+        if (mpOldJacQU != nullptr && mpOldJacSigmaV != nullptr) {
+            const auto& r_A = *mpOldJacQU;
+            const auto& r_B = *mpOldJacSigmaV;
+            const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
+            MatrixType A_B = prod(r_A, r_B);
+            MatrixType V_M = prod(r_V, aux_M);
+            MatrixType A_B_V_M = prod(A_B, V_M);
+
+            if (!BaseType::IsUsedInBlockNewtonEquations()) {
+                for (SizeType i = 0; i < n_dofs; ++i) {
+                    for (SizeType j = 0; j < n_dofs; ++j) {
+                        r_aux_jac(i,j) += A_B(i,j) - A_B_V_M(i,j) + V_M(i,j);
+                    }
+                }
+            } else {
+                for (SizeType i = 0; i < n_dofs; ++i) {
+                    for (SizeType j = 0; j < n_dofs; ++j) {
+                        r_aux_jac(i,j) += A_B(i,j) - A_B_V_M(i,j);
+                    }
+                }
+            }
+        }
+
+        BaseType::SetInverseJacobianApproximation(p_aux_jac_k1);
     }
 
     ///@}
@@ -409,70 +341,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    // double mOmega_0;                                                // Relaxation factor for the initial fixed point iteration
-    // double mAbsCutOff;                                              // Tolerance for the absolute cut-off criterion
-    // bool mUsedInBlockNewtonEquations;                               // Indicates if the current MVQN is to be used in the interface block Newton equations
-    // unsigned int mProblemSize = 0;                                  // Residual to minimize size
-    // unsigned int mConvergenceAcceleratorIteration = 0;              // Convergence accelerator iteration counter
-    // bool mJacobiansAreInitialized = false;                          // Indicates that the Jacobian matrices have been already initialized
-    SizeType mNumberOfModes;
-    bool mRandomValuesAreInitialized = false;                       // Indicates if the random values for the truncated SVD have been already set
-    // bool mConvergenceAcceleratorFirstCorrectionPerformed = false;   // Indicates that the initial fixed point iteration has been already performed
+    SizeType mNumberOfModes; // Number of modes to be kept in the Jacobian randomized SVD
+    bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
 
-    DenseSVDPointerType mpDenseSVD;
+    DenseSVDPointerType mpDenseSVD; // Pointer to the dense SVD utility
 
-    Kratos::unique_ptr<MatrixType> mpOmega;     // Matrix with random values for truncated SVD
-    Kratos::unique_ptr<MatrixType> mpOldJacQU = nullptr;
-    Kratos::unique_ptr<MatrixType> mpOldJacSigmaV = nullptr;
+    Kratos::unique_ptr<MatrixType> mpOmega; // Matrix with random values for truncated SVD
+    Kratos::unique_ptr<MatrixType> mpOldJacQU = nullptr; // Left DOFs x modes matrix from the previous Jacobian decomposition
+    Kratos::unique_ptr<MatrixType> mpOldJacSigmaV = nullptr; // Right modes x DOFs matrix from the previous Jacobian decomposition
 
     ///@}
     ///@name Private Operators
     ///@{
-
-    // void InitializeJacobianMatrices()
-    // {
-    //     if (mUsedInBlockNewtonEquations) {
-    //         // Initialize the previous step Jacobian to zero
-    //         MatrixPointerType p_new_jac_n = Kratos::make_shared<MatrixType>(mProblemSize,mProblemSize);
-    //         (*p_new_jac_n) = ZeroMatrix(mProblemSize,mProblemSize);
-    //         std::swap(p_new_jac_n,mpJac_n);
-
-    //         // Initialize the current Jacobian approximation to a zero matrix
-    //         // Note that this is only required for the Interface Block Newton algorithm
-    //         MatrixPointerType p_new_jac_k1 = Kratos::make_shared<MatrixType>(mProblemSize,mProblemSize);
-    //         (*p_new_jac_k1) = ZeroMatrix(mProblemSize,mProblemSize);
-    //         std::swap(p_new_jac_k1, mpJac_k1);
-    //     } else {
-    //         // Initialize the previous step Jacobian approximation to minus the diagonal matrix
-    //         MatrixPointerType p_new_jac_n = Kratos::make_shared<MatrixType>(mProblemSize,mProblemSize);
-    //         (*p_new_jac_n) = -1.0 * IdentityMatrix(mProblemSize,mProblemSize);
-    //         std::swap(p_new_jac_n,mpJac_n);
-    //     }
-    // }
-
-    // /**
-    //  * @brief Drop the last column of both observation matrices
-    //  * This function drops the last column of both observation matrices
-    //  */
-    // void DropLastDataColumn()
-    // {
-    //     // Set two auxiliar observation matrices
-    //     const auto n_cols = mpObsMatrixV->size2() - 1;
-    //     MatrixPointerType p_aux_V = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
-    //     MatrixPointerType p_aux_W = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
-
-    //     // Drop the last column
-    //     IndexPartition<std::size_t>(mProblemSize).for_each([&](unsigned int IRow){
-    //         for (std::size_t i_col = 0; i_col < n_cols; ++i_col){
-    //             (*p_aux_V)(IRow, i_col) = (*mpObsMatrixV)(IRow, i_col);
-    //             (*p_aux_W)(IRow, i_col) = (*mpObsMatrixW)(IRow, i_col);
-    //         }
-    //     });
-
-    //     // Set the member observation matrices pointers
-    //     std::swap(mpObsMatrixV,p_aux_V);
-    //     std::swap(mpObsMatrixW,p_aux_W);
-    // }
 
     void InitializeRandomValuesMatrix()
     {
@@ -521,7 +401,6 @@ private:
 
         if (mpOldJacQU == nullptr && mpOldJacSigmaV == nullptr) {
             if (!BaseType::IsUsedInBlockNewtonEquations()) {
-                KRATOS_WATCH("Old Jacobian initialized as minus identity!")
                 // Old Jacobian initialized to minus the identity matrix
                 MatrixType V_M_omega = prod(r_V, M_omega);
                 for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
@@ -529,28 +408,24 @@ private:
                         rSolution(i,j) += V_M_omega(i,j);
                     }
                 }
-            } else {
-                // Old Jacobian initalized to zero
-                // FIXME: THIS NEEDS TO BE STUDIED FURTHER
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) -= rRightMatrix(i,j);
-                    }
-                }
             }
         } else {
-            KRATOS_WATCH(mpOldJacQU->size1())
-            KRATOS_WATCH(mpOldJacQU->size2())
-            KRATOS_WATCH(mpOldJacSigmaV->size1())
-            KRATOS_WATCH(mpOldJacSigmaV->size2())
             MatrixType V_M_omega = prod(r_V, M_omega);
             MatrixType B_omega = prod(*mpOldJacSigmaV, rRightMatrix);
             MatrixType A_B_omega = prod(*mpOldJacQU, B_omega);
             MatrixType B_V_M_omega = prod(*mpOldJacSigmaV, V_M_omega);
             MatrixType A_B_V_M_omega = prod(*mpOldJacQU, B_V_M_omega);
-            for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) += A_B_omega(i,j) + V_M_omega(i,j) - A_B_V_M_omega(i,j);
+            if (!BaseType::IsUsedInBlockNewtonEquations()) {
+                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
+                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
+                        rSolution(i,j) += A_B_omega(i,j) + V_M_omega(i,j) - A_B_V_M_omega(i,j);
+                    }
+                }
+            } else {
+                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
+                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
+                        rSolution(i,j) += A_B_omega(i,j) - A_B_V_M_omega(i,j);
+                    }
                 }
             }
         }
@@ -586,29 +461,25 @@ private:
                         rSolution(i,j) += Qtrans_V_M(i,j);
                     }
                 }
-            } else {
-                // Old Jacobian initialized to zero
-                // FIXME: THIS NEEDS TO BE STUDIED FURTHER
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) -= Qtrans(i,j);
-                    }
-                }
             }
         } else {
-            KRATOS_WATCH(mpOldJacQU->size1())
-            KRATOS_WATCH(mpOldJacQU->size2())
-            KRATOS_WATCH(mpOldJacSigmaV->size1())
-            KRATOS_WATCH(mpOldJacSigmaV->size2())
             MatrixType Qtrans_V = prod(Qtrans, r_V);
             MatrixType Qtrans_V_M = prod(Qtrans_V, rAuxM);
             MatrixType Qtrans_A = prod(Qtrans, *mpOldJacQU);
             MatrixType Qtrans_A_B = prod(Qtrans_A, *mpOldJacSigmaV);
             MatrixType Qtrans_A_B_V = prod(Qtrans_A_B, r_V);
             MatrixType Qtrans_A_B_V_M = prod(Qtrans_A_B_V, rAuxM);
-            for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                    rSolution(i,j) += Qtrans_A_B(i,j) + Qtrans_V_M(i,j) - Qtrans_A_B_V_M(i,j);
+            if (!BaseType::IsUsedInBlockNewtonEquations()) {
+                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
+                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
+                        rSolution(i,j) += Qtrans_A_B(i,j) + Qtrans_V_M(i,j) - Qtrans_A_B_V_M(i,j);
+                    }
+                }
+            } else {
+                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
+                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
+                        rSolution(i,j) += Qtrans_A_B(i,j) - Qtrans_A_B_V_M(i,j);
+                    }
                 }
             }
         }

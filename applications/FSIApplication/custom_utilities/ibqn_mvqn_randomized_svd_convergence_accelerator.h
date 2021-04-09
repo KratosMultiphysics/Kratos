@@ -44,13 +44,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Forward declaration of standard MVQN
-/// This is required since the include ward avoids the inclusion of the standard MVQN
+/// Forward declaration of MVQN with ranzomized SVD Jacobian convergence accelerator
+/// This is required since the include ward avoids the inclusion of the MVQNRandomizedSVDConvergenceAccelerator
 template<class TSparseSpace, class TDenseSpace>
 class MVQNRandomizedSVDConvergenceAccelerator;
 
-/** @brief Interface Block Newton convergence accelerator
- * Interface Block Newton equations convergence accelerator
+/** @brief Interface Block Newton MVQN with randomized Jacobian convergence accelerator
+ * Interface Block Newton equations convergence accelerator with MVQN randomized SVD Jacobian for the subdomains
  * @tparam TSparseSpace Linear algebra sparse space
  * @tparam TDenseSpace Linear algebra dense space
  */
@@ -83,7 +83,8 @@ public:
 
     /**
      * @brief Construct a new IBQNMVQNRandomizedSVDConvergenceAccelerator object
-     * MVQN convergence accelerator Json settings constructor
+     * IBQN-MVQN with randomized SVD Jacobian convergence accelerator Json settings constructor
+     * @param pDenseSVD Pointer to the dense SVD utility instance
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
     explicit IBQNMVQNRandomizedSVDConvergenceAccelerator(
@@ -129,7 +130,7 @@ public:
             "solver_type"            : "IBQN_MVQN_randomized_SVD",
             "jacobian_modes"         : 10,
             "w_0"                    : 0.825,
-            "abs_cut_off_tol"        : 1e-8
+            "cut_off_tol"        : 1e-8
         })");
 
         return ibqn_mvqn_default_parameters;
