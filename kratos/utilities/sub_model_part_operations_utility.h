@@ -136,14 +136,12 @@ private:
                 ids_a.begin(), ids_a.end(),
                 ids_b.begin(), ids_b.end(),
                 std::back_inserter(ids_destination));
-        }
-        else if (ThisOperator == SetOperators::Intersection) {
+        } else if (ThisOperator == SetOperators::Intersection) {
             std::set_intersection(
                 ids_a.begin(), ids_a.end(),
                 ids_b.begin(), ids_b.end(),
                 std::back_inserter(ids_destination));
-        }
-        else if (ThisOperator == SetOperators::Difference) {
+        } else if (ThisOperator == SetOperators::Difference) {
             std::set_difference(
                 ids_a.begin(), ids_a.end(),
                 ids_b.begin(), ids_b.end(),
