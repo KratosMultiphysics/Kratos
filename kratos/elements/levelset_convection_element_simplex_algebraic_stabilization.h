@@ -235,9 +235,14 @@ public:
             }
         }
 
-        const double limiter = 0.0;//GetValue(LIMITER_COEFFICIENT);
-        noalias(rLeftHandSideMatrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) + theta*(K_matrix + (1.0-limiter)*nu_e*S_matrix);
-        noalias(rRightHandSideVector) = prod( dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) - (1.0 - theta)*(K_matrix + (1.0-limiter)*nu_e*S_matrix) , phi_old) - limiter*nu_e*S_vector;
+        const double limiter = GetValue(LIMITER_COEFFICIENT);
+        if (limiter > 1.0e-15){
+            noalias(rLeftHandSideMatrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) + theta*(K_matrix + (1.0-limiter)*nu_e*S_matrix);
+            noalias(rRightHandSideVector) = prod( dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) - (1.0 - theta)*(K_matrix + (1.0-limiter)*nu_e*S_matrix) , phi_old) - limiter*nu_e*S_vector;
+        } else {
+            noalias(rLeftHandSideMatrix)  = dt_inv*Ml_matrix + theta*(K_matrix + nu_e*S_matrix);
+            noalias(rRightHandSideVector) = prod( dt_inv*Ml_matrix - (1.0 - theta)*(K_matrix + nu_e*S_matrix) , phi_old);
+        }
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);

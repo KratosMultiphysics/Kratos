@@ -147,6 +147,7 @@ public:
         , mMaxSubsteps(MaxSubsteps)
         , mIsBfecc(false)
         , mIsAlgebraicStabilization(false)
+        , mIsHighOrder(false)
         , mPartialConvection(false)
         , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
@@ -330,7 +331,8 @@ public:
             "levelset_splitting" : false,
             "eulerian_error_compensation" : false,
             "cross_wind_stabilization_factor" : 0.7,
-            "algebraic_stabilization" : false
+            "algebraic_stabilization" : false,
+            "high_order_terms" : false
         })");
 
         return default_parameters;
@@ -395,6 +397,8 @@ protected:
 
     bool mIsAlgebraicStabilization;
 
+    bool mIsHighOrder;
+
     bool mPartialConvection;
 
     Vector mError;
@@ -434,10 +438,22 @@ protected:
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         CheckAndAssignSettings(ThisParameters);
 
-        if (!mIsAlgebraicStabilization)
+        if (!mIsAlgebraicStabilization){
             SetConvectionProblemSettings(ThisParameters["cross_wind_stabilization_factor"].GetDouble());
-        else
+        }
+        else{
             SetConvectionProblemSettings();
+
+            block_for_each(mrBaseModelPart.Elements(), [&](Element& rElement){
+                rElement.SetValue(LIMITER_COEFFICIENT, 0.0);
+            });
+
+            if (mIsHighOrder){
+                block_for_each(mrBaseModelPart.Nodes(), [&](Node<3>& rNode){
+                rNode.SetValue(LIMITER_COEFFICIENT, 0.0);
+                });
+            }
+        }
     }
 
     /// Constructor without linear solver for derived classes
@@ -450,6 +466,7 @@ protected:
         const unsigned int MaxSubsteps = 0,
         const bool IsBFECC = false,
         const bool IsAlgebraicStabilization = false,
+        const bool IsHighOrder = false,
         const bool PartialDt = false)
         : mrBaseModelPart(rBaseModelPart),
           mrModel(rBaseModelPart.GetModel()),
@@ -460,6 +477,7 @@ protected:
           mMaxSubsteps(MaxSubsteps),
           mIsBfecc(IsBFECC),
           mIsAlgebraicStabilization(IsAlgebraicStabilization),
+          mIsHighOrder(IsHighOrder),
           mPartialConvection(PartialDt),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
@@ -750,20 +768,20 @@ protected:
                 mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
             }
 
-            if (mIsAlgebraicStabilization){
-                it_node->SetValue(LIMITER_COEFFICIENT, (1.0 - std::pow(fraction, power_elemental_limiter)) );
+            if (mIsAlgebraicStabilization && mIsHighOrder){
+                it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, power_elemental_limiter));
             }
         }
         );
 
-        if (mIsAlgebraicStabilization){
+        if (mIsAlgebraicStabilization && mIsHighOrder){
             block_for_each(mpDistanceModelPart->Elements(), [&](Element& rElement){
                 auto& r_geometry = rElement.GetGeometry();
                 double elemental_limiter = 1.0;
                 for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
                     elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
-                    rElement.SetValue(LIMITER_COEFFICIENT, elemental_limiter);
                 }
+                rElement.GetValue(LIMITER_COEFFICIENT) = elemental_limiter;
             }
             );
         }
@@ -851,6 +869,7 @@ private:
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
         mIsAlgebraicStabilization = ThisParameters["algebraic_stabilization"].GetBool();
+        mIsHighOrder = ThisParameters["high_order_terms"].GetBool();
         mPartialConvection = ThisParameters["levelset_splitting"].GetBool();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
