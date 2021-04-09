@@ -473,6 +473,7 @@ public:
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
                 nonzero_control_points(j) = pGetPoint(first_cp_index + j);
             }
+
             /// Get Shape Functions N
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
                 N(0, j) = shape_function_container(j, 0);
