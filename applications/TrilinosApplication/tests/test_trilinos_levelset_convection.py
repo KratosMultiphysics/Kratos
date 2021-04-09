@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -43,10 +43,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
     def tearDown(self):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
-        # Remove the .time file
-        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh.time")
-
         # Remove the Metis partitioning files
+        self.model_part.GetCommunicator().GetDataCommunicator().Barrier() # required as all ranks must be done with using the partitioning files
         KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
 
         # While compining in debug, in memory partitioner also writes down the mpda in plain text
