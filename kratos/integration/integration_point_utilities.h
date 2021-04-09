@@ -51,7 +51,7 @@ public:
     static void CreateIntegrationPoints1D(
         IntegrationPointsArrayType & rIntegrationPoints,
         const std::vector<double>&rSpanIntervals,
-        SizeType IntegrationPointsPerSpan);
+        const SizeType IntegrationPointsPerSpan);
 
     ///@}
     ///@name Define Integration Points
