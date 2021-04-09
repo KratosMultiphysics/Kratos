@@ -16,18 +16,18 @@
 
 // System includes
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
+
+// External includes
+#include <span/span.hpp>
+
+// Project includes
+#include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/lock_object.h"
 #include "utilities/parallel_utilities.h"
-
-// External includes
-#include <unordered_map>
-#include <unordered_set>
-
-// Project includes
-#include "includes/define.h"
-
 
 namespace Kratos
 {
@@ -209,58 +209,103 @@ public:
         return mGraph;
     }
 
+    //note that this function is slightly less efficient than the span version below
     template<class TVectorType=DenseVector<IndexType>>
     IndexType ExportCSRArrays(
         TVectorType& rRowIndices,
         TVectorType& rColIndices
     ) const
     {
+        IndexType* pRowIndicesData=nullptr;
+        IndexType RowIndicesDataSize=0;
+        IndexType* pColIndicesData=nullptr;
+        IndexType ColIndicesDataSize=0;
+        ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
+        if(rRowIndices.size() != RowIndicesDataSize)
+            rRowIndices.resize(RowIndicesDataSize);
+        IndexPartition<IndexType>(RowIndicesDataSize).for_each( 
+            [&](IndexType i){rRowIndices[i] = pRowIndicesData[i];}
+        );
+        
+        delete [] pRowIndicesData;
+        if(rColIndices.size() != ColIndicesDataSize)
+            rColIndices.resize(ColIndicesDataSize);
+        IndexPartition<IndexType>(ColIndicesDataSize).for_each( 
+            [&](IndexType i){rColIndices[i] = pColIndicesData[i];}
+        );
+        delete [] pColIndicesData;
+
+        return rRowIndices.size();
+    }
+
+    IndexType ExportCSRArrays(
+        Kratos::span<IndexType>& rRowIndices,
+        Kratos::span<IndexType>& rColIndices
+    ) const = delete;
+
+    //NOTE this function will transfer ownership of pRowIndicesData and pColIndicesData to the caller
+    //hence the caller will be in charge of deleting that array
+    IndexType ExportCSRArrays(
+        IndexType*& pRowIndicesData,
+        IndexType& rRowDataSize,
+        IndexType*& pColIndicesData,
+        IndexType& rColDataSize
+    ) const
+    {
         //need to detect the number of rows this way since there may be gaps
         IndexType nrows=Size();
 
-        if(rRowIndices.size() != nrows+1)
+        pRowIndicesData = new IndexType[nrows+1];
+        rRowDataSize=nrows+1;
+        Kratos::span<IndexType> row_indices(pRowIndicesData, nrows+1);
+
+        if(nrows == 0) //empty
         {
-            rRowIndices.resize(nrows+1, false);
+            row_indices[0] = 0;
         }
+        else
+        {
+            //set it to zero in parallel to allow first touching
+            IndexPartition<IndexType>(nrows+1).for_each([&](IndexType i){
+                row_indices[i] = 0;
+            });
+
+            //count the entries 
+            IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
+                row_indices[i+1] = mGraph[i].size();
+            });
+            
+            //sum entries
+            for(IndexType i = 1; i<static_cast<IndexType>(row_indices.size()); ++i){
+                row_indices[i] += row_indices[i-1];
+            }
+        }
+
+        IndexType nnz = row_indices[nrows];
+        rColDataSize=nnz;
+        pColIndicesData = new IndexType[nnz];
+        Kratos::span<IndexType> col_indices(pColIndicesData,nnz);
+
         //set it to zero in parallel to allow first touching
-        IndexPartition<IndexType>(nrows+1).for_each([&](IndexType i){
-            rRowIndices[i] = 0;
+        IndexPartition<IndexType>(col_indices.size()).for_each([&](IndexType i){
+            col_indices[i] = 0;
         });
 
         //count the entries
         IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
-            rRowIndices[i+1] = mGraph[i].size();
-        });
 
-        //sum entries
-        for(IndexType i = 1; i<static_cast<IndexType>(rRowIndices.size()); ++i){
-            rRowIndices[i] += rRowIndices[i-1];
-        }
-
-        IndexType nnz = rRowIndices[nrows];
-        if(rColIndices.size() != nnz){
-            rColIndices.resize(nnz, false);
-        }
-        //set it to zero in parallel to allow first touching
-        IndexPartition<IndexType>(rColIndices.size()).for_each([&](IndexType i){
-            rColIndices[i] = 0;
-        });
-
-        //count the entries
-        IndexPartition<IndexType>(nrows).for_each([&](IndexType i){
-
-            IndexType start = rRowIndices[i];
+            IndexType start = row_indices[i];
 
             IndexType counter = 0;
             for(auto index : mGraph[i]){
-                rColIndices[start+counter] = index;
+                col_indices[start+counter] = index;
                 counter++;
             }
         });
 
         //reorder columns
-        IndexPartition<IndexType>(rRowIndices.size()-1).for_each([&](IndexType i){
-            std::sort(rColIndices.begin()+rRowIndices[i], rColIndices.begin()+rRowIndices[i+1]);
+        IndexPartition<IndexType>(row_indices.size()-1).for_each([&](IndexType i){
+            std::sort(col_indices.begin()+row_indices[i], col_indices.begin()+row_indices[i+1]);
         });
 
         return nrows;
