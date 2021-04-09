@@ -53,9 +53,14 @@
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
 #include "utilities/dense_svd_decomposition.h"
+#include "utilities/sub_model_part_operations_utility.h"
 
 namespace Kratos {
 namespace Python {
+
+typedef ModelPart::NodesContainerType NodesContainerType;
+typedef ModelPart::ElementsContainerType ElementsContainerType;
+typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
@@ -603,6 +608,19 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
+    ;
+
+    py::class_<SubModelPartOperationsUtility, SubModelPartOperationsUtility::Pointer>(m,"SubModelPartOperationsUtility")
+        .def(py::init<>())
+        .def("NodesUnion", &SubModelPartOperationsUtility::Union<NodeType,NodesContainerType>)
+        .def("NodesIntersection", &SubModelPartOperationsUtility::Intersection<NodeType,NodesContainerType>)
+        .def("NodesDifference", &SubModelPartOperationsUtility::Difference<NodeType,NodesContainerType>)
+        .def("ElementsUnion", &SubModelPartOperationsUtility::Union<Element,ElementsContainerType>)
+        .def("ElementsIntersection", &SubModelPartOperationsUtility::Intersection<Element,ElementsContainerType>)
+        .def("ElementsDifference", &SubModelPartOperationsUtility::Difference<Element,ElementsContainerType>)
+        .def("ConditionsUnion", &SubModelPartOperationsUtility::Union<Condition,ConditionsContainerType>)
+        .def("ConditionsIntersection", &SubModelPartOperationsUtility::Intersection<Condition,ConditionsContainerType>)
+        .def("ConditionsDifference", &SubModelPartOperationsUtility::Difference<Condition,ConditionsContainerType>)
     ;
 
 }
