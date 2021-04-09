@@ -309,7 +309,7 @@ public:
     ///@{
 
     /// Provides the default integration per geometry.
-    virtual IntegrationInfo GetDefaultIntegrationInfo() const override
+    IntegrationInfo GetDefaultIntegrationInfo() const override
     {
         const SizeType local_space_dimension = this->LocalSpaceDimension();
 
