@@ -21,6 +21,7 @@
 #define  KRATOS_GEOMETRY_H_INCLUDED
 
 // System includes
+#include <typeinfo>
 
 // External includes
 
