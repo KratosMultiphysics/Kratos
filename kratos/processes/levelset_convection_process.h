@@ -307,11 +307,14 @@ public:
         mVelocityOld.clear();
         mOldDistance.clear();
 
-        if (mIsBfecc){
-            mError.clear();
+        if (mIsBfecc || mIsAlgebraicStabilization){
             mSigmaPlus.clear();
             mSigmaMinus.clear();
             mLimiter.clear();
+        }
+
+        if (mIsBfecc){
+            mError.clear();
         }
     }
 
@@ -576,11 +579,14 @@ protected:
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
 
-        if (mIsBfecc){
-            mError.resize(n_nodes);
+        if (mIsBfecc || mIsAlgebraicStabilization){
             mSigmaPlus.resize(n_nodes);
             mSigmaMinus.resize(n_nodes);
             mLimiter.resize(n_nodes);
+        }
+
+        if (mIsBfecc){
+            mError.resize(n_nodes);
         }
 
         mDistancePartIsInitialized = true;
