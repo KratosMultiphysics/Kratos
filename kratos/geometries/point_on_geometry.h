@@ -166,10 +166,8 @@ public:
     Point Center() const override
     {
         CoordinatesArrayType global_location;
-        GlobalCoordinates(global_location, mLocalCoordinates);
-
-        mpBackgroundGeometry->()
-        return point;
+        mpBackgroundGeometry->GlobalCoordinates(global_location, mLocalCoordinates);
+        return global_location;
     }
 
     /*
