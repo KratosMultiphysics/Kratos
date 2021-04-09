@@ -171,6 +171,34 @@ public:
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
+<<<<<<< HEAD
+     * @brief Indicates if this CL requires initialization of the material response,
+     * called by the element in InitializeMaterialResponse.
+=======
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stress
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+>>>>>>> refs/remotes/origin/structural/update-cls-with-initial-state-2
+     */
+    void CalculateMaterialResponsePK1(Parameters& rValues) override;
+
+    /**
+<<<<<<< HEAD
+=======
+     * @brief Computes the material response in terms of Kirchhoff stress
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of Cauchy stress
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+
+    /**
      * @brief Indicates if this CL requires initialization of the material response,
      * called by the element in InitializeMaterialResponse.
      */
@@ -180,6 +208,7 @@ public:
     }
 
     /**
+>>>>>>> refs/remotes/origin/structural/update-cls-with-initial-state-2
      * @brief Indicates if this CL requires finalization step the material
      * response (e.g. update of the internal variables), called by the element
      * in FinalizeMaterialResponse.
@@ -197,6 +226,30 @@ public:
     void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
+<<<<<<< HEAD
+=======
+     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stress
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
+
+    /**
+     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stress
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
+
+    /**
+     * @brief Finalize the material response in terms of Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
+
+    /**
+>>>>>>> refs/remotes/origin/structural/update-cls-with-initial-state-2
      * @brief calculates the value of a specified variable (double)
      * @param rValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned

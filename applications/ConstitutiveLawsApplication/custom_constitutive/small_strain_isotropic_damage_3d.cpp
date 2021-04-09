@@ -56,7 +56,6 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
     if(rThisVariable == STRAIN_ENERGY){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
-
     } else if(rThisVariable == DAMAGE_VARIABLE){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
@@ -73,7 +72,6 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<Vector>& rThisVariable)
 {
     if(rThisVariable == INTERNAL_VARIABLES){
         return true;
-
     } else if(rThisVariable == STRAIN){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
