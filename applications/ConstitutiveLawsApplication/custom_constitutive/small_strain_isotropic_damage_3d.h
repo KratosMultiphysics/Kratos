@@ -171,27 +171,6 @@ public:
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stress
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Kirchhoff stress
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stress
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
-
-    /**
      * @brief Indicates if this CL requires initialization of the material response,
      * called by the element in InitializeMaterialResponse.
      */
@@ -216,27 +195,6 @@ public:
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stress
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stress
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief calculates the value of a specified variable (double)

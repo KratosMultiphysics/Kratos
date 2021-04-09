@@ -56,7 +56,7 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
     if(rThisVariable == STRAIN_ENERGY){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
-        
+
     } else if(rThisVariable == DAMAGE_VARIABLE){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
@@ -73,7 +73,7 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<Vector>& rThisVariable)
 {
     if(rThisVariable == INTERNAL_VARIABLES){
         return true;
-        
+
     } else if(rThisVariable == STRAIN){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
@@ -129,30 +129,12 @@ void SmallStrainIsotropicDamage3D::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponsePK2(
+void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     Vector internal_variables(1);
     this->CalculateStressResponse(rParametersValues, internal_variables);
     mStrainVariable = internal_variables[0];
-}
-
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rParametersValues)
-{
-    FinalizeMaterialResponsePK2(rParametersValues);
-}
-
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponsePK1(
-    ConstitutiveLaw::Parameters& rParametersValues)
-{
-    FinalizeMaterialResponsePK2(rParametersValues);
-}
-
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(
-    ConstitutiveLaw::Parameters& rParametersValues)
-{
-    FinalizeMaterialResponsePK2(rParametersValues);
 }
 
 //************************************************************************************
@@ -163,24 +145,6 @@ void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(
 {
     Vector internal_variables(1);
     CalculateStressResponse(rParametersValues, internal_variables);
-}
-
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponseCauchy(
-    ConstitutiveLaw::Parameters& rParametersValues)
-{
-    CalculateMaterialResponsePK2(rParametersValues);
-}
-
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK1(
-    ConstitutiveLaw::Parameters& rParametersValues)
-{
-    CalculateMaterialResponsePK2(rParametersValues);
-}
-
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponseKirchhoff(
-    ConstitutiveLaw::Parameters& rParametersValues)
-{
-    CalculateMaterialResponsePK2(rParametersValues);
 }
 
 //************************************************************************************
@@ -325,7 +289,7 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
 
         rValue = 0.5 * ((1. - damage_variable) * inner_prod(r_strain_vector,
                                         prod(constitutive_matrix, r_strain_vector)));
-        
+
     } else if (rThisVariable == DAMAGE_VARIABLE){
         const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
         const double stress_like_variable = EvaluateHardeningLaw(
@@ -333,7 +297,7 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
                                                 r_material_properties);
 
         rValue = 1. - stress_like_variable / mStrainVariable;
-        
+
     } else {
         ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
 
