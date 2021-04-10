@@ -39,19 +39,19 @@ namespace Kratos
 ///@{
 
 /**
- * @class SubModelPartOperationsUtility
- * @brief Wrapper of set operations: union, intersection and difference
+ * @class SubModelPartEntitiesBooleanOperationUtility
+ * @brief Wrapper of boolean operations: union, intersection and difference
  * @author Miguel Maso Sotomayor
  * @ingroup KratosCore
 */
-class KRATOS_API(KRATOS_CORE) SubModelPartOperationsUtility
+class KRATOS_API(KRATOS_CORE) SubModelPartEntitiesBooleanOperationUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SubModelPartOperationsUtility
-    KRATOS_CLASS_POINTER_DEFINITION(SubModelPartOperationsUtility);
+    /// Pointer definition of SubModelPartEntitiesBooleanOperationUtility
+    KRATOS_CLASS_POINTER_DEFINITION(SubModelPartEntitiesBooleanOperationUtility);
 
     typedef std::size_t IndexType;
 
@@ -59,7 +59,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class SetOperators {Union, Intersection, Difference};
+    enum class BooleanOperators {Union, Intersection, Difference};
 
     ///@}
     ///@name Life Cycle
@@ -76,22 +76,22 @@ public:
     template<class TEntityType, class TContainerType>
     static void Union(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
-        SetOperation<TEntityType, TContainerType>(
-            rModelPartA, rModelPartB, rDestination, SetOperators::Union);
+        BooleanOperation<TEntityType, TContainerType>(
+            rModelPartA, rModelPartB, rDestination, BooleanOperators::Union);
     }
 
     template<class TEntityType, class TContainerType>
     static void Intersection(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
-        SetOperation<TEntityType, TContainerType>(
-            rModelPartA, rModelPartB, rDestination, SetOperators::Intersection);
+        BooleanOperation<TEntityType, TContainerType>(
+            rModelPartA, rModelPartB, rDestination, BooleanOperators::Intersection);
     }
 
     template<class TEntityType, class TContainerType>
     static void Difference(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
-        SetOperation<TEntityType, TContainerType>(
-            rModelPartA, rModelPartB, rDestination, SetOperators::Difference);
+        BooleanOperation<TEntityType, TContainerType>(
+            rModelPartA, rModelPartB, rDestination, BooleanOperators::Difference);
     }
 
     ///@}
@@ -119,11 +119,11 @@ private:
     }
 
     template<class TEntityType, class TContainerType>
-    static void SetOperation(
+    static void BooleanOperation(
         ModelPart& rModelPartA,
         ModelPart& rModelPartB,
         ModelPart& rDestination,
-        SetOperators ThisOperator)
+        BooleanOperators ThisOperator)
     {
         KRATOS_ERROR_IF(!rDestination.IsSubModelPart()) << "The destination model part must be a sub model part." << std::endl;
         const ModelPart& r_root_a = rModelPartA.GetRootModelPart();
@@ -137,17 +137,17 @@ private:
         std::sort(ids_a.begin(), ids_a.end());
         std::sort(ids_b.begin(), ids_b.end());
 
-        if (ThisOperator == SetOperators::Union) {
+        if (ThisOperator == BooleanOperators::Union) {
             std::set_union(
                 ids_a.begin(), ids_a.end(),
                 ids_b.begin(), ids_b.end(),
                 std::back_inserter(ids_destination));
-        } else if (ThisOperator == SetOperators::Intersection) {
+        } else if (ThisOperator == BooleanOperators::Intersection) {
             std::set_intersection(
                 ids_a.begin(), ids_a.end(),
                 ids_b.begin(), ids_b.end(),
                 std::back_inserter(ids_destination));
-        } else if (ThisOperator == SetOperators::Difference) {
+        } else if (ThisOperator == BooleanOperators::Difference) {
             std::set_difference(
                 ids_a.begin(), ids_a.end(),
                 ids_b.begin(), ids_b.end(),
@@ -160,7 +160,7 @@ private:
 
     ///@}
 
-}; // Class SubModelPartOperationsUtility
+}; // Class SubModelPartEntitiesBooleanOperationUtility
 
 ///@}
 

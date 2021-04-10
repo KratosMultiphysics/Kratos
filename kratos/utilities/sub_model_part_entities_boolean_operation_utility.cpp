@@ -15,34 +15,34 @@
 // External includes
 
 // Project includes
-#include "utilities/sub_model_part_operations_utility.h"
+#include "utilities/sub_model_part_entities_boolean_operation_utility.h"
 
 namespace Kratos
 {
 
 template<>
-ModelPart::NodesContainerType& SubModelPartOperationsUtility::GetContainer<ModelPart::NodesContainerType>(
+ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::NodesContainerType>(
     ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template<>
-ModelPart::ElementsContainerType& SubModelPartOperationsUtility::GetContainer<ModelPart::ElementsContainerType>(
+ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::ElementsContainerType>(
     ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template<>
-ModelPart::ConditionsContainerType& SubModelPartOperationsUtility::GetContainer<ModelPart::ConditionsContainerType>(
+ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::ConditionsContainerType>(
     ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 template<>
-void SubModelPartOperationsUtility::AddEntities<Node<3>>(
+void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Node<3>>(
     const std::vector<IndexType>& rIds,
     ModelPart& rModelPart)
 {
@@ -50,7 +50,7 @@ void SubModelPartOperationsUtility::AddEntities<Node<3>>(
 }
 
 template<>
-void SubModelPartOperationsUtility::AddEntities<Element>(
+void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Element>(
     const std::vector<IndexType>& rIds,
     ModelPart& rModelPart)
 {
@@ -58,7 +58,7 @@ void SubModelPartOperationsUtility::AddEntities<Element>(
 }
 
 template<>
-void SubModelPartOperationsUtility::AddEntities<Condition>(
+void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Condition>(
     const std::vector<IndexType>& rIds,
     ModelPart& rModelPart)
 {
