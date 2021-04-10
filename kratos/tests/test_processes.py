@@ -2358,7 +2358,7 @@ class TestProcesses(KratosUnittest.TestCase):
             for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
                 self.assertAlmostEqual(i_gradient, i_reference)
 
-    def test_sub_model_part_set_operation_process(self):
+    def test_sub_model_part_entities_boolean_operation_process(self):
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
@@ -2366,14 +2366,14 @@ class TestProcesses(KratosUnittest.TestCase):
 
         settings = KratosMultiphysics.Parameters("""{
             "process_list" : [{
-                "python_module"  : "sub_model_part_set_operation_process",
+                "python_module"  : "sub_model_part_entities_boolean_operation_process",
                 "kratos_module"  : "KratosMultiphysics",
-                "process_name"   : "SubModelPartSetOperationProcess",
+                "process_name"   : "SubModelPartEntitiesBooleanOperationProcess",
                 "Parameters"            : {
                     "first_model_part_name"  : "Main.Top_side",
                     "second_model_part_name" : "Main.Left_side",
                     "result_model_part_name" : "Main.result",
-                    "set_operation"          : "Intersection",
+                    "boolean_operation"      : "Intersection",
                     "entity_type"            : "Nodes"
                 }
             }]
@@ -2383,7 +2383,7 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(result_model_part.NumberOfNodes(), 1)
         self.assertEqual(result_model_part.GetNode(13).Id, 13)
 
-        settings["process_list"][0]["Parameters"]["set_operation"].SetString("Union")
+        settings["process_list"][0]["Parameters"]["boolean_operation"].SetString("Union")
         process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
         self.assertEqual(result_model_part.NumberOfNodes(), 7)
 
@@ -2392,7 +2392,7 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(result_model_part.NumberOfConditions(), 6)
 
         settings["process_list"][0]["Parameters"]["result_model_part_name"].SetString("Main.Top_side")
-        settings["process_list"][0]["Parameters"]["set_operation"].SetString("Difference")
+        settings["process_list"][0]["Parameters"]["boolean_operation"].SetString("Difference")
         settings["process_list"][0]["Parameters"]["entity_type"].SetString("Nodes")
         process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
         result_model_part = model["Main.Top_side"]
