@@ -611,7 +611,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     ;
 
     py::class_<SubModelPartEntitiesBooleanOperationUtility, SubModelPartEntitiesBooleanOperationUtility::Pointer>(m,"SubModelPartEntitiesBooleanOperationUtility")
-        .def(py::init<>())
         .def("NodesUnion", &SubModelPartEntitiesBooleanOperationUtility::Union<NodeType,NodesContainerType>)
         .def("NodesIntersection", &SubModelPartEntitiesBooleanOperationUtility::Intersection<NodeType,NodesContainerType>)
         .def("NodesDifference", &SubModelPartEntitiesBooleanOperationUtility::Difference<NodeType,NodesContainerType>)
