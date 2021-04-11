@@ -206,7 +206,7 @@ class SIMPMethod:
             
             # Filter sensitivities
             print("\n::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilter(self.config.filter_type , self.config.filter_kernel )
+            self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
 
             if (self.config.optimization_algorithm == "oc_algorithm"):
             # Update design variables ( densities )  --> new X by:
@@ -218,6 +218,12 @@ class SIMPMethod:
                                                                    self.config.q_max )
             if (self.config.optimization_algorithm == "MMA_alogrithm"):
                 print("\n No valid Updating algorithm used!")
+
+            if (self.config.density_filter == "density"):
+                print("\n::[Filter Densities]::") 
+                self.filter_utils.ApplyFilterDensity(self.config.density_filter , self.config.filter_kernel )
+
+
 
 
             

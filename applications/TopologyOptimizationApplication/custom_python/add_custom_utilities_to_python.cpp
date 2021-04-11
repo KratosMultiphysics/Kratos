@@ -54,7 +54,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
 	py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
     .def(py::init<ModelPart&, const double, const int>())
-	.def("ApplyFilter", &TopologyFilteringUtilities::ApplyFilter)
+	.def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
+	.def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
 	;
 
 	py::class_<TopologyExtractorUtilities >(m, "TopologyExtractorUtilities")

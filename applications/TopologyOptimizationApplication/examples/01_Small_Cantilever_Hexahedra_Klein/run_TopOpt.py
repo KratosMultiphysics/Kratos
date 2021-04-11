@@ -23,9 +23,10 @@ solver = import_module(mod).CreateSolver(current_model, ProjectParameters["solve
 solver.AddVariables()
 solver.ImportModelPart()
 solver.AddDofs()
-model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1000)
+model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1)
 model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
 model_part.GetProperties()[1].SetValue(km.DENSITY, 1)
+
 
 cons_law = ksm.LinearElastic3DLaw()
 model_part.GetProperties()[1].SetValue(km.CONSTITUTIVE_LAW, cons_law)
