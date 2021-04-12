@@ -137,7 +137,7 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("IsDefinedOnThisRank", &DataCommunicator::IsDefinedOnThisRank)
     .def("IsNullOnThisRank", &DataCommunicator::IsNullOnThisRank)
     .def_static("GetDefault", []() -> DataCommunicator& {
-        KRATOS_WARNING("DataCommunicator") << "This function is deprecated, please retrieve the DataCommunicator through the ModelPart or by name" << std::endl;
+        KRATOS_WARNING("DataCommunicator") << "This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)" << std::endl;
         return ParallelEnvironment::GetDefaultDataCommunicator();
     }, py::return_value_policy::reference)
     .def("__str__", PrintObject<DataCommunicator>);
