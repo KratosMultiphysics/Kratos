@@ -23,13 +23,47 @@
 
 namespace Kratos
 {
+    template< unsigned int TDim, unsigned int TNumNodes>
+    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization() 
+    : Element()
+    {}
 
-template< unsigned int TDim, unsigned int TNumNodes>
-void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const ProcessInfo &rCurrentProcessInfo)
-{
+    template< unsigned int TDim, unsigned int TNumNodes>
+    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
+    {}
+
+    template< unsigned int TDim, unsigned int TNumNodes>
+    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
+    {}
+
+    /// Destructor.
+    template< unsigned int TDim, unsigned int TNumNodes>
+    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::~LevelSetConvectionElementSimplexAlgebraicStabilization() {}
+
+    template< unsigned int TDim, unsigned int TNumNodes>
+    Element::Pointer LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Element::Pointer(new LevelSetConvectionElementSimplexAlgebraicStabilization(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("");
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes>
+    void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::CalculateLocalSystem(
+        MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         KRATOS_TRY
 
         if (rLeftHandSideMatrix.size1() != TNumNodes)
@@ -78,7 +112,7 @@ void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::Ca
             X_mean_tmp += r_node.Coordinates();
             X_node[i] = r_node.Coordinates();
 
-            grad_phi_mean_tmp += r_node.FastGetSolutionStepValue(rGradVar);
+            grad_phi_mean_tmp += r_node.GetValue(rGradVar);
 
             phi_mean_old += r_node.FastGetSolutionStepValue(rUnknownVar,1);
             phi_mean += r_node.FastGetSolutionStepValue(rUnknownVar);

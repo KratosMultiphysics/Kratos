@@ -26,6 +26,7 @@
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "includes/convection_diffusion_settings.h"
+#include "elements/levelset_convection_element_simplex.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
@@ -52,9 +53,9 @@ namespace Kratos
 
 /// Formulation is based on the works by Kuzmin et al. (especifically see Comput. Methods Appl. Mech. Engrg. 322 (2017) 23–41)
 /// Dirichlet boundary condition for rUnknownVar at velocity inlets/outles is essential to be set for this solver since it is based on the flux
-template< unsigned int TDim, unsigned int TNumNodes>
+template<unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(KRATOS_CORE) LevelSetConvectionElementSimplexAlgebraicStabilization
-    : public Element
+    : public Element //LevelSetConvectionElementSimplex<2, 3>
 {
 public:
     ///@name Type Definitions
@@ -68,24 +69,18 @@ public:
     ///@{
 
     /// Default constructor.
-    LevelSetConvectionElementSimplexAlgebraicStabilization() : Element()
-    {}
+    LevelSetConvectionElementSimplexAlgebraicStabilization();
 
     LevelSetConvectionElementSimplexAlgebraicStabilization(
         IndexType NewId,
-        GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
-    {}
+        GeometryType::Pointer pGeometry);
 
     LevelSetConvectionElementSimplexAlgebraicStabilization(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
-    {}
+        PropertiesType::Pointer pProperties);
 
-    /// Destructor.
-    ~LevelSetConvectionElementSimplexAlgebraicStabilization() override {};
+    ~LevelSetConvectionElementSimplexAlgebraicStabilization();
 
     ///@}
     ///@name Operators
@@ -99,12 +94,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const override
-    {
-        KRATOS_TRY
-        return Element::Pointer(new LevelSetConvectionElementSimplexAlgebraicStabilization(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
-    }
+        PropertiesType::Pointer pProperties) const override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,

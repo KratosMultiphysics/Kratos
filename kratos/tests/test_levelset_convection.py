@@ -176,7 +176,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         linear_solver = linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
 
-        model_part.CloneTimeStep(30.0)
+        model_part.CloneTimeStep(1.0)
 
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(
@@ -195,10 +195,10 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "levelset_splitting" : false,
-            "eulerian_error_compensation" : true,
+            "eulerian_error_compensation" : false,
             "cross_wind_stabilization_factor" : 0.7,
             "algebraic_stabilization" : true,
-            "high_order_terms" : false
+            "high_order_terms" : true
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             model_part,
@@ -236,8 +236,8 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         # gid_output.ExecuteFinalizeSolutionStep()
         # gid_output.ExecuteFinalize()
 
-        self.assertAlmostEqual(max_distance, 0.9314983283011091)
-        self.assertAlmostEqual(min_distance, -0.005806325937585602)
+        self.assertAlmostEqual(max_distance, 1.0004068724542385)
+        self.assertAlmostEqual(min_distance, -0.0004103252870070794)
 
 
 if __name__ == '__main__':
