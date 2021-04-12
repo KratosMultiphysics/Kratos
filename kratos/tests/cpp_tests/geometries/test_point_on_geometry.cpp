@@ -47,7 +47,7 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(point.LocalSpaceDimension(), 2);
             KRATOS_CHECK_EQUAL(point.WorkingSpaceDimension(), 3);
 
-            std::vector<double> location = { 0.33333333333, 0.33333333333, 0.0 };
+            std::vector<double> location = { 0.5, 0.5, 0.0 };
             KRATOS_CHECK_VECTOR_NEAR(point.Center(), location, TOLERANCE);
         }
 
