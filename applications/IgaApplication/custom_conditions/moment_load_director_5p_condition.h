@@ -23,7 +23,7 @@
 namespace Kratos
 {
     /// Condition for moment loads for the 5p shell based on directors
-    class MomentLoadDirector5pCondition
+    class MomentLoadDirector5pCondition final
         : public Condition
     {
     public:
@@ -64,8 +64,7 @@ namespace Kratos
         {};
 
         /// Destructor
-        virtual ~MomentLoadDirector5pCondition() final
-        {};
+        ~MomentLoadDirector5pCondition() = default;
 
         ///@}
         ///@name Life Cycle
