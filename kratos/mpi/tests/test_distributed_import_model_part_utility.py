@@ -29,7 +29,6 @@ class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
             size = default_data_comm.Size()
             if size < 3:
                 self.skipTest("This test needs at least 3 mpi processes")
-            num_processes_sub_comm = size - 1
 
             ranks = [i for i in range(1,size)]
             data_comm_name = "AllExceptFirst"
@@ -41,8 +40,6 @@ class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
             if not sub_comm.IsDefinedOnThisRank():
                 # this rank does not participate
                 return
-
-        data_comm = KM.ParallelEnvironment.GetDataCommunicator(data_comm_name)
 
         current_model = KM.Model()
         model_part = current_model.CreateModelPart("main_model_part")
