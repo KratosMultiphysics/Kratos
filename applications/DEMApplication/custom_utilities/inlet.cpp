@@ -201,8 +201,6 @@ namespace Kratos {
         ///DIMENSION
         int dimension = r_process_info[DOMAIN_SIZE];
 
-        std::vector<unsigned int> ElementPartition;
-        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
@@ -310,14 +308,12 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-            std::vector<unsigned int> ElementPartition;
-            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
-            typedef ElementsArrayType::iterator ElementIterator;
-            #pragma omp parallel
-            {
-            #pragma omp for
-            for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
-                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
+        typedef ElementsArrayType::iterator ElementIterator;
+        #pragma omp parallel
+        {
+        #pragma omp for
+        for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
+            ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
             if (elem_it->Is(BLOCKED)) continue;
 
                 SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
@@ -345,7 +341,7 @@ namespace Kratos {
 
                 }
             }
-            }
+        }
     }
 
     void DEM_Inlet::RemoveInjectionConditions(Element& element, int dimension)
@@ -385,8 +381,6 @@ namespace Kratos {
 
         ///DIMENSION
         int dimension = r_process_info[DOMAIN_SIZE];
-
-        std::vector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
         std::vector<int> ids_to_remove;
 
@@ -444,7 +438,7 @@ namespace Kratos {
                 mOriginInletSubmodelPartIndexes.erase(ids_to_remove[i]);
             }
         }
-    }
+        }
     } //DettachClusters
 
     bool DEM_Inlet::OneNeighbourInjectorIsInjecting(const Element::Pointer& element) {
