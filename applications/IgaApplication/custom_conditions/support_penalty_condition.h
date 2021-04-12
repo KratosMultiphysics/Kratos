@@ -152,7 +152,7 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const SizeType mat_size = GetNumberOfNonZeroNodes() * 3;
+            const SizeType mat_size = GetGeometry().size() * 3;
 
             if (rRightHandSideVector.size() != mat_size)
                 rRightHandSideVector.resize(mat_size);
