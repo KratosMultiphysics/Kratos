@@ -93,7 +93,6 @@ class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
         self.__execute_test(in_memory=False, all_ranks=True)
 
     def test_with_sub_comm(self):
-        self.skipTest("Not implemented")
         self.__execute_test(in_memory=False, all_ranks=False)
 
     def test_in_memory_with_all_ranks(self):
