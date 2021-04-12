@@ -34,10 +34,10 @@ class RigidBodySolver(object):
             'rotation_y',
             'rotation_z'
         ]
+        self.system_size = len(self.available_dofs)
 
         # Check that the activated dofs are not repeated and are among the available ones
         self.active_dofs = self._CheckActiveDofs(parameters)
-        self.system_size = len(self.active_dofs)
 
         # Fill with defaults and check that mandatory fields are given
         self._CheckMandatoryInputParameters(parameters)
@@ -56,30 +56,26 @@ class RigidBodySolver(object):
     def _InitializeDofsVariables(self, dof_params):
 
         self.excitation_function_force = {}
-        self.excitation_function_root_point_displacement = {}
+        self.excitation_function_root_point_displ = {}
         self.load_impulse = {}
         self.omega_force = {}
-        self.omega_root_point_displacement = {}
-        self.amplitude_root_point_displacement = {}
+        self.omega_root_point_displ = {}
+        self.amplitude_root_point_displ = {}
         self.amplitude_force = {}
 
-        for dof in self.active_dofs:
+        for dof in self.available_dofs:
 
             self.excitation_function_force[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_force"].GetString()
-            self.excitation_function_root_point_displacement[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_root_point_displacement"].GetString()
+            self.excitation_function_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_root_point_displacement"].GetString()
             self.load_impulse[dof] = dof_params[dof]["boundary_conditions"]["load_impulse"].GetDouble()
             self.omega_force[dof] = dof_params[dof]["boundary_conditions"]["omega_force"].GetDouble()
-            self.omega_root_point_displacement[dof] = dof_params[dof]["boundary_conditions"]["omega_root_point_displacement"].GetDouble()
-            self.amplitude_root_point_displacement[dof] = dof_params[dof]["boundary_conditions"]["amplitude_root_point_displacement"].GetDouble()
+            self.omega_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["omega_root_point_displacement"].GetDouble()
+            self.amplitude_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["amplitude_root_point_displacement"].GetDouble()
             self.amplitude_force[dof] = dof_params[dof]["boundary_conditions"]["amplitude_force"].GetDouble()
 
     def _InitializeSolutionVariables(self, sol_params):
         
-        rho_inf = sol_params["time_integration_parameters"]["rho_inf"].GetDouble()
-        self.alpha_f = rho_inf / (rho_inf + 1)
-        self.alpha_m = (2*rho_inf - 1) / (rho_inf + 1)
-        self.beta = 0.25 * (1- self.alpha_m + self.alpha_f)**2
-        self.gamma =  0.50 - self.alpha_m + self.alpha_f
+        self.rho_inf = sol_params["time_integration_parameters"]["rho_inf"].GetDouble()
 
         self.delta_t = sol_params["time_integration_parameters"]["time_step"].GetDouble()
         self.start_time = sol_params["time_integration_parameters"]["start_time"].GetDouble()
@@ -98,7 +94,7 @@ class RigidBodySolver(object):
         self.initial_velocity = np.zeros(self.system_size)
         self.initial_acceleration = np.zeros(self.system_size)
 
-        for index, dof in enumerate(self.active_dofs):
+        for index, dof in enumerate(self.available_dofs):
 
             self.M[index][index] = dof_params[dof]['system_parameters']['mass'].GetDouble()
             self.C[index][index] = dof_params[dof]['system_parameters']['damping'].GetDouble()
@@ -111,6 +107,11 @@ class RigidBodySolver(object):
             self.initial_acceleration[index] = (1/self.M[index][index]) * factor
 
     def _InitializeGeneralizedAlphaParameters(self):
+
+        self.alpha_f = self.rho_inf / (self.rho_inf + 1)
+        self.alpha_m = (2*self.rho_inf - 1) / (self.rho_inf + 1)
+        self.beta = 0.25 * (1- self.alpha_m + self.alpha_f)**2
+        self.gamma =  0.50 - self.alpha_m + self.alpha_f
         
         # coefficients for LHS
         self.a1h = (1.0 - self.alpha_m) / (self.beta * self.delta_t**2)
@@ -139,6 +140,9 @@ class RigidBodySolver(object):
         self.a1a = self.a1v / (self.delta_t * self.gamma)
         self.a2a = -1.0 / (self.beta * self.delta_t)
         self.a3a = 1.0 - 1.0 / (2.0 * self.beta)
+
+        # In a linear case, the LEft-Hand_Side can be calculated now
+        self.LHS = self.a1h * self.M + self.a2h * self.C + self.a3h * self.K
         
     def Initialize(self):
 
@@ -154,10 +158,12 @@ class RigidBodySolver(object):
         self.v_f = np.zeros((self.system_size, self.buffer_size))
         self.a_f = np.zeros((self.system_size, self.buffer_size))
 
-        # TODO: Check notation of the following variables to make it intuitive
         # Others
-        self.root_point_displacement = np.zeros(self.system_size)
-        self.load_vector = np.zeros(self.system_size)
+        self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
+        self.total_load = np.zeros((self.system_size, self.buffer_size))
+        self.external_root_point_displ = np.zeros(self.system_size)
+        self.external_load = np.zeros(self.system_size)
+        self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
         # Apply initial conditions
         self.x[:,0] = self.initial_displacement
@@ -165,8 +171,9 @@ class RigidBodySolver(object):
         self.a[:,0] = self.initial_acceleration
 
         #Apply external load as an initial impulse
-        for index, dof in enumerate(self.active_dofs):
-            self.load_vector[index] = self.load_impulse[dof]
+        for index, dof in enumerate(self.available_dofs):
+            self.total_load[index,0] = self.load_impulse[dof]
+        self.effective_load[:,0] = self.total_load[index,0]
 
         # Create output file and wrrite the time=start_time step
         if self.write_output_file:
@@ -214,7 +221,6 @@ class RigidBodySolver(object):
                                                 str(self.a[index,0] - self.a_f[index,0]) + " " +
                                                 str(reaction[index]) + "\n")
 
-
     def AdvanceInTime(self, current_time):
         for dof in self.active_dofs:
             # similar to the Kratos CloneTimeStep function
@@ -225,50 +231,70 @@ class RigidBodySolver(object):
             self.v_f = np.roll(self.v_f,1,axis=1)
             self.a = np.roll(self.a,1,axis=1)
             self.a_f = np.roll(self.a_f,1,axis=1)
+            self.total_load = np.roll(self.total_load,1,axis=1)
+            self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
+            self.effective_load = np.roll(self.effective_load,1,axis=1)
 
         self.time = current_time + self.delta_t
         return self.time
 
-    def CalculateEquivalentForceFromRootPointExcitation(self, d_f_excitation):
-        b_f = {}
-        for dof in self.active_dofs:
-            d_f = d_f_excitation[dof] + self.root_point_displacement[dof]
-            v_f = self.x_f[dof][1,0] + self.delta_t * (self.gamma * d_f + (1-self.gamma) * self.x_f[dof][2,0])
-            a_f = 1/(self.delta_t**2 * self.beta) * (d_f - self.x_f[dof][0,1])\
-                - 1/(self.delta_t * self.beta) * self.x_f[dof][1,0]\
-                + (1-1/(2*self.beta)) * self.x_f[dof][2,0]
-            self.dx_f[dof] = np.array([d_f, v_f, a_f])
-            b_f[dof] = np.array([0.0, 0.0, d_f * self.stiffness[dof] + v_f * self.damping[dof]])
-        return b_f
+    def CalculateEquivalentForceFromRootPointExcitation(self, displ):
+        self.x_f[:,0] = displ
+        self.v_f[:,0] = self.v_f[:,1] + self.delta_t * (self.gamma * displ + (1-self.gamma) * self.a_f[:,1])
+        self.a_f[:,0] = 1/(self.delta_t**2 * self.beta) * (displ - self.x_f[:,1])\
+            - 1/(self.delta_t * self.beta) * self.v_f[:,1]\
+            + (1-1/(2*self.beta)) * self.a_f[:,1]
+        equivalent_force = self.K.dot(self.x_f[:,0]) + self.C.dot(self.v_f[:,0])
+        return equivalent_force
 
     def ApplyRootPointExcitation(self):
-        excitation = {}
-        for dof in self.active_dofs:
-            scope_vars = {'t' : self.time, 'omega': self.omega_root_point_displacement[dof], 'A': self.amplitude_root_point_displacement[dof]}
-            excitation[dof] = GenericCallFunction(self.excitation_function_root_point_displacement[dof], scope_vars, check=False)
-        return excitation
+        root_point_excitation = np.zeros(self.system_size)
+        for index, dof in enumerate(self.available_dofs):
+            scope_vars = {'t' : self.time, 'omega': self.omega_root_point_displ[dof], 'A': self.amplitude_root_point_displ[dof]}
+            root_point_excitation[index] = GenericCallFunction(self.excitation_function_root_point_displ[dof], scope_vars, check=False)
+        return root_point_excitation
 
     def ApplyForceExcitation(self):
-        excitation = {}
-        for dof in self.active_dofs:
+        force_excitation = np.zeros(self.system_size)
+        for index, dof in enumerate(self.available_dofs):
             scope_vars = {'t' : self.time, 'omega': self.omega_force[dof], 'A': self.amplitude_force[dof]}
-            excitation[dof] = GenericCallFunction(self.excitation_function_force[dof], scope_vars, check=False)
-        return excitation
+            force_excitation[index] = GenericCallFunction(self.excitation_function_force[dof], scope_vars, check=False)
+        return force_excitation
 
     def SolveSolutionStep(self):
         #external load
-        excitation_load = self.ApplyForceExcitation()
+        prescribed_load = self.ApplyForceExcitation()
+        self.total_load[:,0] = self.external_load + prescribed_load
         #root point displacement
-        d_f_excitation = self.ApplyRootPointExcitation()
+        prescribed_root_point_displ = self.ApplyRootPointExcitation()
+        self.total_root_point_displ[:,0] = self.external_root_point_displ + prescribed_root_point_displ
         #root point force
-        b_f = self.CalculateEquivalentForceFromRootPointExcitation(d_f_excitation)
-        for dof in self.active_dofs:
-            RHS = self.RHS_matrix[dof] @ self.x[dof][:,0]
-            self.load_vector[dof][-1] += excitation_load[dof] # Why? Shouldn't it be just a "="?
-            # print("external load= ", self.load_vector[-1])
-            RHS += self.load_vector[dof]
-            RHS += b_f[dof]
-            self.dx[dof] = np.linalg.solve(self.LHS[dof], RHS)
+        root_point_force = self.CalculateEquivalentForceFromRootPointExcitation(self.total_root_point_displ[:,0])
+        #equivalent force
+        self.effective_load[:,0] = self.total_load[:,0] + root_point_force
+
+        F = (1.0 - self.alpha_f) * self.effective_load[:,0] + self.alpha_f * self.effective_load[:,1]
+
+        # system: in matrix form
+        RHS = np.dot(self.M, (self.a1m * self.x[:,1] +
+                            self.a2m * self.v[:,1] + self.a3m * self.a[:,1]))
+        RHS += np.dot(self.C, (self.a1b * self.x[:,1] +
+                            self.a2b * self.v[:,1] + self.a3b * self.a[:,1]))
+        RHS += np.dot(self.a1k * self.K, self.x[:,1]) + F
+
+        self.x[:,0] = np.linalg.solve(self.LHS, RHS)
+        self.v[:,0] = self.UpdateVelocity(self.x[:,0])
+        self.a[:,0] = self.UpdateAcceleration(self.x[:,0])
+    
+    def UpdateVelocity(self, x):
+        v = self.a1v * (x - self.x[:,1]) + self.a2v * \
+            self.v[:,1] + self.a3v * self.a[:,1]
+        return v
+
+    def UpdateAcceleration(self, x):
+        a = self.a1a * (x - self.x[:,1]) + self.a2a * \
+            self.v[:,1] + self.a3a * self.a[:,1]
+        return a
 
     def CalculateReaction(self, buffer_idx=0):
         reaction = self.C.dot(self.v[:,buffer_idx][1] - self.v_f[:,buffer_idx][1]) \
@@ -281,58 +307,48 @@ class RigidBodySolver(object):
 
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
         self._CheckBufferId(buffer_idx,identifier)
-        for val_index, value in enumerate(values):
+        for index, value in enumerate(values):
             if identifier == "MOMENT":
-                val_index += 3
-            if self.available_dofs[val_index] in self.active_dofs:
-                reduced_index = self._ReduceIndex(val_index)
+                index += 3
+            # Maybe the following "if" is not necessary anymore
+            if self.available_dofs[index] in self.active_dofs:
                 if identifier == "DISPLACEMENT":
-                    self.x[reduced_index, buffer_idx] = value
+                    self.x[index, buffer_idx] = value
                 elif identifier == "VELOCITY":
-                    self.v[reduced_index, buffer_idx] = value
+                    self.v[index, buffer_idx] = value
                 elif identifier == "ACCELERATION":
-                    self.a[reduced_index, buffer_idx] = value
-                elif identifier == "FORCE" or identifier == "MOMENT":
-                    self.load_vector[reduced_index] = value
+                    self.a[index, buffer_idx] = value
+                elif identifier in ["FORCE","MOMENT","RESULTANT"]:
+                    self.external_load[index] = value
                 elif identifier == "ROOT_POINT_DISPLACEMENT":
-                    self.root_point_displacement[reduced_index] = value
+                    self.external_root_point_displ[index] = value
                 else:
                     raise Exception("Identifier is unknown!")
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         self._CheckBufferId(buffer_idx, identifier)
-        output = np.zeros(len(self.available_dofs))
+        output = np.zeros(self.system_size)
         for index, dof in enumerate(self.available_dofs):
             if dof in self.active_dofs:
-                reduced_index = self._ReduceIndex(index)
                 if identifier == "DISPLACEMENT":
-                    output[index] = self.x[reduced_index, buffer_idx]
+                    output[index] = self.x[index, buffer_idx]
                 elif identifier == "VELOCITY":
-                    output[index] = self.v[reduced_index, buffer_idx]
+                    output[index] = self.v[index, buffer_idx]
                 elif identifier == "ACCELERATION":
-                    output[index] = self.a[reduced_index, buffer_idx]
+                    output[index] = self.a[index, buffer_idx]
                 elif identifier == "REACTION":
-                    output[index] = self.CalculateReaction(buffer_idx=buffer_idx)[reduced_index]
-                elif identifier == "VOLUME_ACCELERATION":
-                    output[index] = self.CalculateSelfWeight()[reduced_index]
+                    output[index] = self.CalculateReaction(buffer_idx=buffer_idx)[index]
+                elif identifier == "VOLUME_WEIGHT":
+                    output[index] = self.CalculateSelfWeight()[index]
                 else:
                     raise Exception("Identifier is unknown!")
         return output
 
     def _CheckBufferId(self, buffer_idx, identifier):
-        if identifier not in ["DISPLACEMENT","VELOCITY","ACCELERATION"] and buffer_idx != 0:
+        if identifier in ["VOLUME_WEIGHT", "ROOT_POINT_DISPLACEMENT","FORCE","MOMENT","RESULTANT"] and buffer_idx != 0:
             msg = 'The buffer_idx can only be 0 for the variable "' + identifier + '".'
             raise Exception(msg)
-
-    def _ReduceIndex(index):
-        dof = self.available_dofs[index]
-        if dof in self.active_dofs:
-            return self.active_dofs.index(dof)
-    '''
-    def _ExpandIndex(index):
-        dof = self.active_dofs[index]
-        return self.available_dofs.index(dof)
-    '''
+    
     def _CheckActiveDofs(self, parameters):
 
         active_dofs = []
@@ -348,6 +364,11 @@ class RigidBodySolver(object):
                 raise Exception(msg)
             active_dofs.append(dof)
         
+        if len(active_dofs) == 0:
+            msg = 'At least an active degree of freedom is needed to use the solver '
+            msg += ' and none where provided in "active_dofs".'
+            raise Exception(msg)
+        
         return active_dofs
 
     def _CheckMandatoryInputParameters(self, parameters):
@@ -357,11 +378,6 @@ class RigidBodySolver(object):
                 msg = 'The key "' + key + '" was not found in the project parameters '
                 msg += 'and it is necessary to configure the RigidBodySolver.'
                 raise Exception(msg)
-        
-        if len(parameters["active_dofs"]) == 0:
-            msg = 'At least an active degree of freedom is needed to use the solver '
-            msg += ' and none where provided in "active_dofs".'
-            raise Exception(msg)
         
         msg = '"time_step" should be given as par of "time_integration_parameters" '
         msg += 'in "solution_parameters".'
@@ -412,7 +428,10 @@ class RigidBodySolver(object):
         }''')
 
         dof_parameters = {}
-        for dof in parameters["active_dofs"]:
+        for dof in self.available_dofs:
+
+            if dof not in parameters["active_dofs"]:
+                parameters["active_dofs"][dof] = {}
 
             single_dof_parameters = parameters["active_dofs"][dof]
 
