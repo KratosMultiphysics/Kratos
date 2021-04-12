@@ -329,10 +329,10 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         if (ConsiderGapClosure)
         {
-            const double decayFactor = 0.25;
+            const double decayFactor = 1.0;
             const double x = (JointWidth/MinimumJointWidth) - 1.0;
             double factor = exp(-x*decayFactor);
-            factor = std::max(0.001, factor);
+            factor = std::max(0.01, factor);
             StressVector /= factor;
         }
     }
@@ -1353,6 +1353,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
+
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)

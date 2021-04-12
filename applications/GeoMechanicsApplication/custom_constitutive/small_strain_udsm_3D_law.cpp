@@ -230,8 +230,18 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
       KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UDSM ", rMaterialProperties[UDSM_NAME]);
    }
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
+   const int nParamatersJson = rMaterialProperties[UMAT_PARAMETERS].size();
+   const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
+   if ( nParamatersJson != nParametersUDSM)
+   {
+      KRATOS_THROW_ERROR(std::runtime_error, "Number of parameters is wrong."
+                                             " The UDSM gives " + std::to_string(nParametersUDSM)
+                                             + " while json gives " + std::to_string(nParamatersJson),
+                                             rMaterialProperties[UDSM_NAME]);
+   }
 
+
+   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
    return 0;
    KRATOS_CATCH("");
 }
