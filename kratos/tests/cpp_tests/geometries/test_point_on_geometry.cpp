@@ -49,7 +49,15 @@ namespace Kratos {
 
             std::vector<double> location = { 0.5, 0.5, 0.0 };
             KRATOS_CHECK_VECTOR_NEAR(point.Center(), location, TOLERANCE);
-        }
 
+            /// Check creation of quadrature point geometries
+            GeometryType::GeometriesArrayType geometry_vector;
+            point.CreateQuadraturePointGeometries(geometry_vector, 2);
+
+            KRATOS_CHECK_EQUAL(geometry_vector[0].Dimension(), 0);
+            KRATOS_CHECK_EQUAL(geometry_vector[0].LocalSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(geometry_vector[0].WorkingSpaceDimension(), 3);
+            KRATOS_CHECK_VECTOR_NEAR(geometry_vector[0].Center(), location, TOLERANCE);
+        }
     } // namespace Testing.
 } // namespace Kratos.
