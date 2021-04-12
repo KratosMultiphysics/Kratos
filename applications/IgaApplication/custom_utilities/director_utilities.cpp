@@ -68,10 +68,9 @@ namespace Kratos
                 }
             }
             Parameters solver_parameters(mParameters["linear_solver_settings"]);
-            //if (!solver_parameters.Has("solver_type")) {
-                solver_parameters.AddString("solver_type", "skyline_lu_factorization");
-            //}
-
+            if (!solver_parameters.Has("solver_type")) {
+               solver_parameters.AddString("solver_type", "skyline_lu_factorization");
+            }
             Matrix nodalDirectors = ZeroMatrix(number_of_control_points, 3);
             auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
 

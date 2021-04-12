@@ -25,7 +25,7 @@ namespace Kratos
     void Shell5pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-            const GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
 
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
@@ -179,15 +179,15 @@ namespace Kratos
         rVar.P = IdentityMatrix(3) - tdyadt;
         rVar.P *= invL_t;
 
-        noalias(rVar.Q1) = normwquadinv * (inner_prod(t, dtd1) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd1, t) - outer_prod(t, dtd1));
-        noalias(rVar.Q2) = normwquadinv * (inner_prod(t, dtd2) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd2, t) - outer_prod(t, dtd2));
-        noalias(rVar.S1) = normwquadinv * (rKin.transShear[0] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a1, t) - outer_prod(t, a1));
-        noalias(rVar.S2) = normwquadinv * (rKin.transShear[1] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a2, t) - outer_prod(t, a2));
+        rVar.Q1 = normwquadinv * (inner_prod(t, dtd1) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd1, t) - outer_prod(t, dtd1));
+        rVar.Q2 = normwquadinv * (inner_prod(t, dtd2) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd2, t) - outer_prod(t, dtd2));
+        rVar.S1 = normwquadinv * (rKin.transShear[0] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a1, t) - outer_prod(t, a1));
+        rVar.S2 = normwquadinv * (rKin.transShear[1] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a2, t) - outer_prod(t, a2));
 
-        noalias(rVar.Chi11) = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd1) * tdyadt + rKin.transShear[0] * outer_prod(dtd1, t)) - outer_prod(a1, dtd1) - inner_prod(a1, dtd1) * 0.5 * IdentityMatrix(3));
-        noalias(rVar.Chi21) = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd1) * tdyadt + rKin.transShear[1] * outer_prod(dtd1, t)) - outer_prod(a2, dtd1) - inner_prod(a2, dtd1) * 0.5 * IdentityMatrix(3));
-        noalias(rVar.Chi12) = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd2) * tdyadt + rKin.transShear[0] * outer_prod(dtd2, t)) - outer_prod(a1, dtd2) - inner_prod(a1, dtd2) * 0.5 * IdentityMatrix(3));
-        noalias(rVar.Chi22) = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd2) * tdyadt + rKin.transShear[1] * outer_prod(dtd2, t)) - outer_prod(a2, dtd2) - inner_prod(a2, dtd2) * 0.5 * IdentityMatrix(3));
+        rVar.Chi11 = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd1) * tdyadt + rKin.transShear[0] * outer_prod(dtd1, t)) - outer_prod(a1, dtd1) - inner_prod(a1, dtd1) * 0.5 * IdentityMatrix(3));
+        rVar.Chi21 = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd1) * tdyadt + rKin.transShear[1] * outer_prod(dtd1, t)) - outer_prod(a2, dtd1) - inner_prod(a2, dtd1) * 0.5 * IdentityMatrix(3));
+        rVar.Chi12 = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd2) * tdyadt + rKin.transShear[0] * outer_prod(dtd2, t)) - outer_prod(a1, dtd2) - inner_prod(a1, dtd2) * 0.5 * IdentityMatrix(3));
+        rVar.Chi22 = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd2) * tdyadt + rKin.transShear[1] * outer_prod(dtd2, t)) - outer_prod(a2, dtd2) - inner_prod(a2, dtd2) * 0.5 * IdentityMatrix(3));
 
         rVar.Chi11 = trans(rVar.Chi11) + rVar.Chi11;
         rVar.Chi21 = trans(rVar.Chi21) + rVar.Chi21;
