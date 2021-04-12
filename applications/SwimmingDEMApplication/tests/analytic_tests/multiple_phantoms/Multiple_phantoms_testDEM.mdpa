@@ -1,0 +1,51 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 0.577350269189494
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    PARTICLE_SPHERICITY 1.0
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+  111   0.0000000000   0.0510001   0.0228720785
+  112   0.0082487638   0.0510001   0.0151103874
+  113   0.0151103874   0.0510001   0.0082487638
+End Nodes
+
+
+Begin Elements SphericSwimmingParticle3D// GUI group identifier: lele
+      303          2   111
+      304          2   112
+      305          2   113
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: lele
+        111 0 3.19279e-04
+        112 0 6.77793e-04
+        113 0 2.59967e-04
+End NodalData
+
+Begin SubModelPart DEMParts_lele // Group lele // Subtree DEMParts
+    Begin SubModelPartNodes
+          111
+          112
+          113
+    End SubModelPartNodes
+    Begin SubModelPartElements
+          303
+          304
+          305
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

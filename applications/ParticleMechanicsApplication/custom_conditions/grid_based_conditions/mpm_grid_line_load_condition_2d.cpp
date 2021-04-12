@@ -77,7 +77,7 @@ MPMGridLineLoadCondition2D::~MPMGridLineLoadCondition2D()
 void MPMGridLineLoadCondition2D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )

@@ -69,6 +69,7 @@ void  AddPointsToPython(pybind11::module& m)
     py::class_<Point, Point::Pointer, array_1d<double,3> >(m,"Point") //WARNING: this was previously called Point3D
         .def(py::init<double, double, double>())
         .def(py::init<vector_expression<Vector> >())
+        .def(py::init<array_1d<double,3>>())
         .def_property("X", PointGetX<Point >, PointSetX<Point >)
         .def_property("Y", PointGetY<Point >, PointSetY<Point >)
         .def_property("Z", PointGetZ<Point >, PointSetZ<Point >)

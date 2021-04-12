@@ -51,7 +51,7 @@ namespace Kratos
         virtual ~SingleSphereCluster3D();
 
         void Initialize(const ProcessInfo& r_process_info) override;
-        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
+        virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) override;
 
         double SlowGetDensity() override;
         int SlowGetParticleMaterial() override;

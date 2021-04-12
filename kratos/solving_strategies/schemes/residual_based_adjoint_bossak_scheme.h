@@ -30,6 +30,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/indirect_scalar.h"
 #include "utilities/adjoint_extensions.h"
+#include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -154,7 +155,7 @@ public:
         BaseType::Initialize(rModelPart);
 
         // Allocate auxiliary memory.
-        int num_threads = OpenMPUtils::GetNumThreads();
+        int num_threads = ParallelUtilities::GetNumThreads();
         mLeftHandSide.resize(num_threads);
         mResponseGradient.resize(num_threads);
         mFirstDerivsLHS.resize(num_threads);
@@ -390,9 +391,84 @@ protected:
         double C7;
     };
 
+    AdjointResponseFunction::Pointer mpResponseFunction;
+
+    BossakConstants mBossak;
+
+    std::vector<LocalSystemMatrixType> mLeftHandSide;
+    std::vector<LocalSystemVectorType> mResponseGradient;
+    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
+    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
+    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
+    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
+    std::vector<LocalSystemVectorType> mAdjointValuesVector;
+    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
+    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
+    std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
+
     ///@}
     ///@name Protected Operations
     ///@{
+
+    virtual void CalculateGradientContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityGradientContributions(
+            rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateGradientContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityGradientContributions(
+            rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateFirstDerivativeContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityFirstDerivativeContributions(
+            rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateFirstDerivativeContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityFirstDerivativeContributions(
+            rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateSecondDerivativeContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntitySecondDerivativeContributions(
+            rElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateSecondDerivativeContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntitySecondDerivativeContributions(
+            rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
 
     /**
      * @brief Calculates elemental residual
@@ -516,6 +592,41 @@ protected:
             rCondition, rAdjointAuxiliaryValues, rCurrentProcessInfo);
     }
 
+    virtual void CheckAndResizeThreadStorage(unsigned SystemSize)
+    {
+        const int k = OpenMPUtils::ThisThread();
+
+        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
+        {
+            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
+        {
+            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
+        {
+            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mResponseGradient[k].size() != SystemSize)
+        {
+            mResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+    }
+
     ///@}
 
 private:
@@ -526,21 +637,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    BossakConstants mBossak;
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
         TSparseSpace::CreateDofUpdater();
-    AdjointResponseFunction::Pointer mpResponseFunction;
-
-    std::vector<LocalSystemMatrixType> mLeftHandSide;
-    std::vector<LocalSystemVectorType> mResponseGradient;
-    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
-    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
-    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
-    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
-    std::vector<LocalSystemVectorType> mAdjointValuesVector;
-    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
-    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
-    std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
 
     ///@}
     ///@name Private Operations
@@ -588,7 +686,7 @@ private:
      * @param rCurrentProcessInfo       Current process info
      */
     template<class TEntityType>
-    void CalculateGradientContributions(
+    void CalculateEntityGradientContributions(
         TEntityType& rCurrentEntity,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
@@ -617,7 +715,7 @@ private:
      * @param rCurrentProcessInfo       Current process info
      */
     template<class TEntityType>
-    void CalculateFirstDerivativeContributions(
+    void CalculateEntityFirstDerivativeContributions(
         TEntityType& rCurrentEntity,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
@@ -648,7 +746,7 @@ private:
      * @param rCurrentProcessInfo       Current process info
      */
     template<class TEntityType>
-    void CalculateSecondDerivativeContributions(
+    void CalculateEntitySecondDerivativeContributions(
         TEntityType& rCurrentEntity,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
@@ -821,8 +919,7 @@ private:
             for (unsigned j = 0; j < r_geometry.PointsNumber(); ++j) {
                 double& r_num_neighbour =
                     r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-#pragma omp atomic
-                r_num_neighbour += 1.0;
+                AtomicAdd(r_num_neighbour, 1.0);
             }
         });
 
@@ -895,23 +992,24 @@ private:
     {
         KRATOS_TRY
 
-        const int number_of_elements = rEntityContainer.size();
-
         Vector adjoint2_aux, adjoint3_aux;
-#pragma omp parallel for private(adjoint2_aux, adjoint3_aux)
-        for (int i = 0; i < number_of_elements; ++i) {
-            auto& r_entity = *(rEntityContainer.begin() + i);
+        auto aux_TLS = std::make_pair(adjoint2_aux, adjoint3_aux);
+        using tls_type = std::tuple<Vector, Vector>;
+        block_for_each(rEntityContainer, tls_type(), [&, this](typename TEntityContainerType::value_type& rEntity, tls_type& rAdjointTLS){
+            auto& r_adjoint2_aux = std::get<0>(rAdjointTLS);
+            auto& r_adjoint3_aux = std::get<1>(rAdjointTLS);
+
             const int k = OpenMPUtils::ThisThread();
 
             this->CalculateTimeSchemeContributions(
-                r_entity, adjoint2_aux, adjoint3_aux, *this->mpResponseFunction,
+                rEntity, r_adjoint2_aux, r_adjoint3_aux, *this->mpResponseFunction,
                 mBossak, rProcessInfo);
 
-            auto& r_extensions = *r_entity.GetValue(ADJOINT_EXTENSIONS);
+            auto& r_extensions = *rEntity.GetValue(ADJOINT_EXTENSIONS);
 
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned local_index = 0;
-            auto& r_geometry = r_entity.GetGeometry();
+            auto& r_geometry = rEntity.GetGeometry();
             for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
 
                 r_extensions.GetFirstDerivativesVector(i_node, mAdjointIndirectVector2[k], 0);
@@ -920,13 +1018,13 @@ private:
                 auto& r_node = r_geometry[i_node];
                 r_node.SetLock();
                 for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d) {
-                    mAdjointIndirectVector2[k][d] += adjoint2_aux[local_index];
-                    mAdjointIndirectVector3[k][d] += adjoint3_aux[local_index];
+                    mAdjointIndirectVector2[k][d] += r_adjoint2_aux[local_index];
+                    mAdjointIndirectVector3[k][d] += r_adjoint3_aux[local_index];
                     ++local_index;
                 }
                 r_node.UnSetLock();
             }
-        }
+        });
 
         KRATOS_CATCH("");
     }
@@ -1011,20 +1109,17 @@ private:
     {
         KRATOS_TRY
 
-        const int number_of_entities = rEntityContainer.size();
         Vector aux_adjoint_vector;
-#pragma omp parallel for private(aux_adjoint_vector)
-        for (int i = 0; i < number_of_entities; ++i) {
-            auto& r_entity = *(rEntityContainer.begin() + i);
+        block_for_each(rEntityContainer, aux_adjoint_vector, [&, this](typename TEntityContainerType::value_type& rEntity, Vector& rAuxAdjointVectorTLS){
             const int k = OpenMPUtils::ThisThread();
 
             this->CalculateAuxiliaryVariableContributions(
-                r_entity, aux_adjoint_vector, *this->mpResponseFunction, mBossak, rProcessInfo);
+                rEntity, rAuxAdjointVectorTLS, *this->mpResponseFunction, mBossak, rProcessInfo);
 
-            auto& r_extensions = *r_entity.GetValue(ADJOINT_EXTENSIONS);
+            auto& r_extensions = *rEntity.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned local_index = 0;
-            auto& r_geometry = r_entity.GetGeometry();
+            auto& r_geometry = rEntity.GetGeometry();
 
             for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
                 auto& r_node = r_geometry[i_node];
@@ -1032,12 +1127,12 @@ private:
 
                 r_node.SetLock();
                 for (unsigned d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d) {
-                    mAuxAdjointIndirectVector1[k][d] -= aux_adjoint_vector[local_index];
+                    mAuxAdjointIndirectVector1[k][d] -= rAuxAdjointVectorTLS[local_index];
                     ++local_index;
                 }
                 r_node.UnSetLock();
             }
-        }
+        });
 
         KRATOS_CATCH("");
     }
@@ -1090,41 +1185,6 @@ private:
             << rModelPart.Name() << ".\n";
 
         KRATOS_CATCH("");
-    }
-
-    void CheckAndResizeThreadStorage(unsigned SystemSize)
-    {
-        const int k = OpenMPUtils::ThisThread();
-
-        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
-        {
-            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
-        {
-            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
-        {
-            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mResponseGradient[k].size() != SystemSize)
-        {
-            mResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
-        }
     }
 
     static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
@@ -1183,17 +1243,14 @@ private:
         std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> GetLocalVars)
     {
         KRATOS_TRY;
-        const int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = ParallelUtilities::GetNumThreads();
         std::vector<const VariableData*> local_vars;
         std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
-#pragma omp parallel for private(local_vars)
-        for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
-        {
-            auto& r_element = *(rElements.begin() + i);
-            GetLocalVars(*r_element.GetValue(ADJOINT_EXTENSIONS), local_vars);
+        block_for_each(rElements, local_vars, [&](const Element& rElement, std::vector<const VariableData*>& rLocalVarsTLS){
+            GetLocalVars(*(rElement.GetValue(ADJOINT_EXTENSIONS)), rLocalVarsTLS);
             const int k = OpenMPUtils::ThisThread();
-            thread_vars[k].insert(local_vars.begin(), local_vars.end());
-        }
+            thread_vars[k].insert(rLocalVarsTLS.begin(), rLocalVarsTLS.end());
+        });
         std::unordered_set<const VariableData*, Hash, Pred> all_vars;
         for (int i = 0; i < num_threads; ++i)
         {

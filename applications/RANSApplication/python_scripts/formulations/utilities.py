@@ -213,11 +213,13 @@ def InitializePeriodicConditions(
 
 def InitializeWallLawProperties(model):
     for model_part_name in model.GetModelPartNames():
-        for properties in model[model_part_name].Properties:
+        model_part = model[model_part_name]
+        process_info = model_part.ProcessInfo
+        for properties in model_part.Properties:
             # logarithmic wall law
-            if (properties.Has(KratosRANS.WALL_VON_KARMAN) and properties.Has(KratosRANS.WALL_SMOOTHNESS_BETA)):
-                von_karman = properties.GetValue(KratosRANS.WALL_VON_KARMAN)
-                beta = properties.GetValue(KratosRANS.WALL_SMOOTHNESS_BETA)
+            if (properties.Has(KratosRANS.WALL_SMOOTHNESS_BETA) and process_info.Has(KratosRANS.VON_KARMAN)):
+                von_karman = model_part.ProcessInfo[KratosRANS.VON_KARMAN]
+                beta = properties[KratosRANS.WALL_SMOOTHNESS_BETA]
                 y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(von_karman, beta)
                 properties.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
 

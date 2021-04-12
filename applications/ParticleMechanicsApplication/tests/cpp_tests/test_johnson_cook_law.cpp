@@ -75,9 +75,11 @@ namespace Testing
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
+        const ProcessInfo& r_current_process_info = test_model_part.GetProcessInfo();
+
         // Set required constitutive law parameters:
         cl_parameters.SetElementGeometry(geometry);
-        cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+        cl_parameters.SetProcessInfo(r_current_process_info);
         cl_parameters.SetMaterialProperties(material_properties);
         cl_parameters.SetStrainVector(strain_vector);
         cl_parameters.SetStressVector(stress_vector);
@@ -168,9 +170,11 @@ namespace Testing
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
+        const ProcessInfo& r_current_process_info = test_model_part.GetProcessInfo();
+
         // Set required constitutive law parameters:
         cl_parameters.SetElementGeometry(geometry);
-        cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+        cl_parameters.SetProcessInfo(r_current_process_info);
         cl_parameters.SetMaterialProperties(material_properties);
         cl_parameters.SetStrainVector(strain_vector);
         cl_parameters.SetStressVector(stress_vector);

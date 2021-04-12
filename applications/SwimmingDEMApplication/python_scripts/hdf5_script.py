@@ -52,6 +52,7 @@ class ErrorProjectionPostProcessTool(object):
             self.sub_group = file_or_group.create_group(self.group_name)
         self.sub_group.attrs['element_size'] = str(self.element_size)
         self.sub_group.attrs['n_elements'] = str(len(self.error_model_part.Elements))
+        self.sub_group.attrs['delta_time'] = str(self.error_model_part.ProcessInfo[Kratos.DELTA_TIME])
         for name, datum in zip(names, data):
             if name in file_or_group:
                 file_or_group.__delitem__(name)

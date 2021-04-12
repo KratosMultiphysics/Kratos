@@ -635,6 +635,99 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /* Assigns a value to the geometry,
+     * according to a variable.
+     * Allows dynamic interfaces with each respective geometry.
+     */
+
+    /// Assign with bool
+    virtual void Assign(
+        const Variable<bool>& rVariable,
+        const bool Input) {}
+
+    /// Assign with int
+    virtual void Assign(
+        const Variable<int>& rVariable,
+        const int Input) {}
+
+    /// Assign with double
+    virtual void Assign(
+        const Variable<double>& rVariable,
+        const double Input) {}
+
+    /// Assign with array_1d<double, 2>
+    virtual void Assign(
+        const Variable<array_1d<double, 2>>& rVariable,
+        const array_1d<double, 2>& rInput) {}
+
+    /// Assign with array_1d<double, 3>
+    virtual void Assign(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const array_1d<double, 3>& rInput) {}
+
+    /// Assign with array_1d<double, 6>
+    virtual void Assign(
+        const Variable<array_1d<double, 6>>& rVariable,
+        const array_1d<double, 6>& rInput) {}
+
+    /// Assign with Vector
+    virtual void Assign(
+        const Variable<Vector>& rVariable,
+        const Vector& rInput) {}
+
+    /// Assign with Matrix
+    virtual void Assign(
+        const Variable<Matrix>& rVariable,
+        const Matrix& rInput) {}
+
+    /* Calculate either provides, gets or calculates a certain value,
+     * according to a variable.
+     */
+
+    /// Calculate with bool
+    virtual void Calculate(
+        const Variable<bool>& rVariable,
+        bool& rOutput) const {}
+
+    /// Calculate with int
+    virtual void Calculate(
+        const Variable<int>& rVariable,
+        int& rOutput) const {}
+
+    /// Calculate with double
+    virtual void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput) const {}
+
+    /// Calculate with array_1d<double, 2>
+    virtual void Calculate(
+        const Variable<array_1d<double, 2>>& rVariable,
+        array_1d<double, 2>& rOutput) const {}
+
+    /// Calculate with array_1d<double, 3>
+    virtual void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const {}
+
+    /// Calculate with array_1d<double, 6>
+    virtual void Calculate(
+        const Variable<array_1d<double, 6>>& rVariable,
+        array_1d<double, 6>& rOutput) const {}
+
+    /// Calculate with Vector
+    virtual void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const {}
+
+    /// Calculate with Matrix
+    virtual void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput) const {}
+
+    ///@}
     ///@name Inquiry
     ///@{
 
@@ -647,9 +740,120 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Pointer Create( PointsArrayType const& ThisPoints ) const
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        PointsArrayType const& rThisPoints
+    ) const
     {
-        return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
+        // Create geometry
+        auto p_geom = this->Create(0, rThisPoints);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+    ) const
+    {
+        return Pointer( new Geometry( NewGeometryId, rThisPoints, mpGeometryData));
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const
+    {
+        auto p_geom = this->Create(0, rThisPoints);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const GeometryType& rGeometry
+    ) const
+    {
+        // Create geometry
+        auto p_geom = this->Create(0, rGeometry);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        const GeometryType& rGeometry
+    ) const
+    {
+        auto p_geometry = Pointer( new Geometry( NewGeometryId, rGeometry.Points(), mpGeometryData));
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        const GeometryType& rGeometry
+        ) const
+    {
+        auto p_geom = this->Create(0, rGeometry);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
     }
 
     /** This methods will create a duplicate of all its points and
@@ -710,7 +914,7 @@ public:
     }
 
     /// Sets Id of this Geometry
-    void SetId(IndexType Id)
+    void SetId(const IndexType Id)
     {
         // The first bit of the Id is used to detect if Id
         // is int or hash of name. Second bit defines if Id
@@ -726,17 +930,17 @@ public:
     }
 
     /// Sets Id with the use of the name of this geometry
-    void SetId(std::string Name)
+    void SetId(const std::string& rName)
     {
-        mId = GenerateId(Name);
+        mId = GenerateId(rName);
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(std::string Name)
+    static inline IndexType GenerateId(const std::string& rName)
     {
         // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(Name);
+        auto id = string_hash_generator(rName);
 
         // Sets first bit to one.
         SetIdGeneratedFromString(id);
@@ -1416,7 +1620,7 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex, ThisMethod);
         const double norm_normal = norm_2(normal_vector);
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
@@ -3710,7 +3914,7 @@ private:
     ///@{
 
     /// Gets the corresponding self assigned id from pointer
-    IndexType GenerateSelfAssignedId()
+    IndexType GenerateSelfAssignedId() const
     {
         // Create id hash from provided name.
         IndexType id = reinterpret_cast<IndexType>(this);
@@ -3783,6 +3987,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Sets Id of this Geometry (avoids checks, can be used only as private)
+    void SetIdWithoutCheck(const IndexType Id)
+    {
+        mId = Id;
+    }
 
     static const GeometryData& GeometryDataInstance()
     {
