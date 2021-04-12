@@ -150,15 +150,15 @@ namespace Kratos
     {
         KinematicVariables rKin;
         VariationVariables rVar;
-        rKin.t = InterpolateVariable(row(m_N, IntegrationPointIndex), m_GetValueFunctor, DIRECTOR);
-        rKin.dtd1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetValueFunctor, DIRECTOR);
-        rKin.dtd2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetValueFunctor, DIRECTOR);
-        rKin.a1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetCoordinatesFunctor);
-        rKin.a2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetCoordinatesFunctor);
-        rKin.A1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetInitialPositionFunctor);
-        rKin.A2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetInitialPositionFunctor);
-        rKin.dud1 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
-        rKin.dud2 = InterpolateVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
+        rKin.t = InterpolateNodalVariable(row(m_N, IntegrationPointIndex), m_GetValueFunctor, DIRECTOR);
+        rKin.dtd1 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetValueFunctor, DIRECTOR);
+        rKin.dtd2 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetValueFunctor, DIRECTOR);
+        rKin.a1 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetCoordinatesFunctor);
+        rKin.a2 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetCoordinatesFunctor);
+        rKin.A1 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetInitialPositionFunctor);
+        rKin.A2 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetInitialPositionFunctor);
+        rKin.dud1 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
+        rKin.dud2 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_FastGetSolutionStepValueFunctor, DISPLACEMENT);
 
         const double invL_t = 1.0 / norm_2(rKin.t);
         const double normwquadinv = invL_t* invL_t;
@@ -179,15 +179,15 @@ namespace Kratos
         rVar.P = IdentityMatrix(3) - tdyadt;
         rVar.P *= invL_t;
 
-        rVar.Q1 = normwquadinv * (inner_prod(t, dtd1) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd1, t) - outer_prod(t, dtd1));
-        rVar.Q2 = normwquadinv * (inner_prod(t, dtd2) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd2, t) - outer_prod(t, dtd2));
-        rVar.S1 = normwquadinv * (rKin.transShear[0] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a1, t) - outer_prod(t, a1));
-        rVar.S2 = normwquadinv * (rKin.transShear[1] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a2, t) - outer_prod(t, a2));
+        noalias(rVar.Q1) = normwquadinv * (inner_prod(t, dtd1) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd1, t) - outer_prod(t, dtd1));
+        noalias(rVar.Q2) = normwquadinv * (inner_prod(t, dtd2) * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(dtd2, t) - outer_prod(t, dtd2));
+        noalias(rVar.S1) = normwquadinv * (rKin.transShear[0] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a1, t) - outer_prod(t, a1));
+        noalias(rVar.S2) = normwquadinv * (rKin.transShear[1] * (3.0 * tdyadt - IdentityMatrix(3)) - outer_prod(a2, t) - outer_prod(t, a2));
 
-        rVar.Chi11 = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd1) * tdyadt + rKin.transShear[0] * outer_prod(dtd1, t)) - outer_prod(a1, dtd1) - inner_prod(a1, dtd1) * 0.5 * IdentityMatrix(3));
-        rVar.Chi21 = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd1) * tdyadt + rKin.transShear[1] * outer_prod(dtd1, t)) - outer_prod(a2, dtd1) - inner_prod(a2, dtd1) * 0.5 * IdentityMatrix(3));
-        rVar.Chi12 = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd2) * tdyadt + rKin.transShear[0] * outer_prod(dtd2, t)) - outer_prod(a1, dtd2) - inner_prod(a1, dtd2) * 0.5 * IdentityMatrix(3));
-        rVar.Chi22 = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd2) * tdyadt + rKin.transShear[1] * outer_prod(dtd2, t)) - outer_prod(a2, dtd2) - inner_prod(a2, dtd2) * 0.5 * IdentityMatrix(3));
+        noalias(rVar.Chi11) = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd1) * tdyadt + rKin.transShear[0] * outer_prod(dtd1, t)) - outer_prod(a1, dtd1) - inner_prod(a1, dtd1) * 0.5 * IdentityMatrix(3));
+        noalias(rVar.Chi21) = normwcubinv * (3.0 * inner_prod(t, dtd1) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd1) * tdyadt + rKin.transShear[1] * outer_prod(dtd1, t)) - outer_prod(a2, dtd1) - inner_prod(a2, dtd1) * 0.5 * IdentityMatrix(3));
+        noalias(rVar.Chi12) = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a1, t) + 0.5 * rKin.transShear[0] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a1, dtd2) * tdyadt + rKin.transShear[0] * outer_prod(dtd2, t)) - outer_prod(a1, dtd2) - inner_prod(a1, dtd2) * 0.5 * IdentityMatrix(3));
+        noalias(rVar.Chi22) = normwcubinv * (3.0 * inner_prod(t, dtd2) * (outer_prod(a2, t) + 0.5 * rKin.transShear[1] * (IdentityMatrix(3) - 5.0 * tdyadt)) + 3.0 * (0.5 * inner_prod(a2, dtd2) * tdyadt + rKin.transShear[1] * outer_prod(dtd2, t)) - outer_prod(a2, dtd2) - inner_prod(a2, dtd2) * 0.5 * IdentityMatrix(3));
 
         rVar.Chi11 = trans(rVar.Chi11) + rVar.Chi11;
         rVar.Chi21 = trans(rVar.Chi21) + rVar.Chi21;
@@ -507,7 +507,7 @@ namespace Kratos
     };
 
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
-    BoundedVector<double, 3> Shell5pElement::InterpolateVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const
+    BoundedVector<double, 3> Shell5pElement::InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const
     {
         auto nodeValuesTimesAnsatzFunction = [&](double nodalVar, const NodeType& node)
         { return nodalVar * (node.*funct)(args...); };

@@ -435,7 +435,7 @@ private:
 
 
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
-    BoundedVector<double, 3> InterpolateVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
+    BoundedVector<double, 3> InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
 
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
