@@ -10,7 +10,11 @@ class DistributedImportModelPartUtility:
     def __init__(self, main_model_part, settings):
         self.main_model_part = main_model_part
         self.settings = settings
-        self.comm = KratosMultiphysics.DataCommunicator.GetDefault()
+        if settings["model_import_settings"].Has("data_communicator_name"):
+            data_comm_name = settings["model_import_settings"]["data_communicator_name"].GetString()
+        else:
+            data_comm_name = "World"
+        self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(data_comm_name)
 
     def ExecutePartitioningAndReading(self):
         warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
