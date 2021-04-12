@@ -38,6 +38,11 @@ class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
 
             settings["model_import_settings"].AddEmptyValue("data_communicator_name").SetString(data_comm_name)
 
+            if default_data_comm.Rank() == 0:
+                self.assertFalse(sub_comm.IsDefinedOnThisRank())
+            else:
+                self.assertTrue(sub_comm.IsDefinedOnThisRank())
+
             if not sub_comm.IsDefinedOnThisRank():
                 # this rank does not participate
                 return
