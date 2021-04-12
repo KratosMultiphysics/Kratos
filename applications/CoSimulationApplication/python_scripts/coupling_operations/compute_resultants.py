@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+import KratosMultiphysics.FluidDynamicsApplication as FDA
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -60,19 +61,20 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
             moment[1] += z * nodal_force[0] - x * nodal_force[2]
             moment[2] += x * nodal_force[1] - y * nodal_force[0]
 
-        # TODO: What does this make?
         # here does it on rank 0, which is ok for output
         # force = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumDoubles(force,0)
         # moment = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumDoubles(moment,0)
 
-        # TODO: And this?
         # this will have it on all ranks
         force = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumAllDoubles(force)
         moment = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumAllDoubles(moment)
 
+        resultant = force + moment
+
         # here [] is the equivalent of .SetValue()
-        force_and_moment_calculator[KM.FORCE] = force
-        force_and_moment_calculator[KM.MOMENT] = moment
+        force_and_moment_calculator[FDA.RESULTANT_FORCE] = force
+        force_and_moment_calculator[FDA.RESULTANT_MOMENT] = moment
+        force_and_moment_calculator[FDA.RESULTANT_FORCE_MOMENT] = resultant
 
     def PrintInfo(self):
         pass
