@@ -9,6 +9,7 @@ import os
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
+@KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
 class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
 
     def __execute_test(self, in_memory, all_ranks):
