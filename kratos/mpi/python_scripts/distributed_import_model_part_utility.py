@@ -136,6 +136,6 @@ class DistributedImportModelPartUtility:
     def CreateCommunicators(self):
         ## Construct and execute the Parallel fill communicator (also sets the MPICommunicator)
         ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
-        ParallelFillCommunicator.Execute()
+        ParallelFillCommunicator.Execute(self.comm)
 
         KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "MPI communicators constructed.")
