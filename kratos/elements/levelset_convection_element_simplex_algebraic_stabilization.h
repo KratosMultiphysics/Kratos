@@ -55,7 +55,7 @@ namespace Kratos
 /// Dirichlet boundary condition for rUnknownVar at velocity inlets/outles is essential to be set for this solver since it is based on the flux
 template<unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(KRATOS_CORE) LevelSetConvectionElementSimplexAlgebraicStabilization
-    : public Element //LevelSetConvectionElementSimplex<2, 3>
+    : public LevelSetConvectionElementSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions

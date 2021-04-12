@@ -25,14 +25,14 @@ namespace Kratos
 {
     template< unsigned int TDim, unsigned int TNumNodes>
     LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization() 
-    : Element()
+    : LevelSetConvectionElementSimplex<TDim, TNumNodes>()
     {}
 
     template< unsigned int TDim, unsigned int TNumNodes>
     LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    : LevelSetConvectionElementSimplex<TDim, TNumNodes>(NewId, pGeometry)
     {}
 
     template< unsigned int TDim, unsigned int TNumNodes>
@@ -40,7 +40,7 @@ namespace Kratos
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    : LevelSetConvectionElementSimplex<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
