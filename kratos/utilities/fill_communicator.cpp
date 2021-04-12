@@ -27,6 +27,12 @@ void FillCommunicator::Execute()
     KRATOS_CATCH("");
 }
 
+void FillCommunicator::Execute(const DataCommunicator& rDataComm)
+{
+    KRATOS_TRY
+    KRATOS_CATCH("");
+}
+
 void FillCommunicator::PrintDebugInfo()
 {
     PrintModelPartDebugInfo(mrBaseModelPart);
