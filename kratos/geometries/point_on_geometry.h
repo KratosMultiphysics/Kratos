@@ -167,7 +167,7 @@ public:
     {
         CoordinatesArrayType global_location;
         mpBackgroundGeometry->GlobalCoordinates(global_location, mLocalCoordinates);
-        return global_location;
+        return Point(global_location);
     }
 
     /*
