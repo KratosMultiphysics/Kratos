@@ -15,7 +15,7 @@
 
 // External includes
 #pragma warning push
-#pragma warning disable 2282 186
+#pragma warning disable 186
 #include "json/json.hpp" // Import nlohmann json library
 #pragma warning pop
 
