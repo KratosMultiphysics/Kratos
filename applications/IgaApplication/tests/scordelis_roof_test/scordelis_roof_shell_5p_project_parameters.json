@@ -126,7 +126,7 @@
                 "python_module": "from_json_check_result_process",
                 "kratos_module": "KratosMultiphysics",
                 "Parameters": {
-                    "output_variables": [ "DISPLACEMENT" ],
+                    "check_variables": [ "DISPLACEMENT" ],
                     "gauss_points_check_variables": [],
                     "input_file_name": "scordelis_roof_test/scordelis_roof_shell_5p_result.json",
                     "model_part_name": "IgaModelPart.StructuralAnalysis",
