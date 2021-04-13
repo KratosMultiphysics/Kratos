@@ -58,7 +58,7 @@ public:
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType BACKGROUND_GEOMETRY_INDEX = -1;
+    static constexpr IndexType BACKGROUND_GEOMETRY_INDEX = std::numeric_limits::max<IndexType>;
 
     ///@}
     ///@name Life Cycle
