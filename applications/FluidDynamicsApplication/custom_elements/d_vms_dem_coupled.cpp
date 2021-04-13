@@ -416,10 +416,10 @@ void DVMSDEMCoupled<TElementData>::MassProjTerm(
         for (unsigned int i = 0; i < NumNodes; i++) {
             for (unsigned int d = 0; d < Dim; ++d)
             {
-                rMassRHS -= (fluid_fraction * rData.DN_DX(i, d) * velocities(i, d)) + fluid_fraction_gradient[d] * rData.N[i] * velocities(i, d);
+                rMassRHS -= (rData.DN_DX(i, d) * velocities(i, d)) + fluid_fraction_gradient[d] * rData.N[i] * velocities(i, d) / fluid_fraction;
             }
         }
-        rMassRHS += mass_source - fluid_fraction_rate;
+        rMassRHS += mass_source - fluid_fraction_rate / fluid_fraction;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
