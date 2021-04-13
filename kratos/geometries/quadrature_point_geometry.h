@@ -260,7 +260,7 @@ public:
     QuadraturePointGeometry& operator=(
         const QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension>&& rOther)
     {
-        BaseType::operator=(rOther);
+        BaseType::operator=std::move(rOther);
 
         mGeometryData = std::move(rOther.mGeometryData);
         mpGeometryParent = std::move(rOther.mpGeometryParent);
