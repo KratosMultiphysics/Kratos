@@ -136,8 +136,8 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> Mc_matrix = ZeroMatrix(TNumNodes, TNumNodes); // consistent mass matrix
         BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = IdentityMatrix(TNumNodes, TNumNodes); // lumped mass matrix
 
-        BoundedMatrix<double,TNumNodes, TNumNodes> M_matrix = IdentityMatrix(TNumNodes, TNumNodes); // auxiliary mass matrix
-        BoundedMatrix<double,TNumNodes, TNumNodes> L_matrix = IdentityMatrix(TNumNodes, TNumNodes); // auxiliary stabilized convection matrix
+        BoundedMatrix<double,TNumNodes, TNumNodes> M_matrix;
+        BoundedMatrix<double,TNumNodes, TNumNodes> L_matrix;
 
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         this->GetShapeFunctionsOnGauss(Ncontainer);
