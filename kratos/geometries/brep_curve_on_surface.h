@@ -74,8 +74,8 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits::max<IndexType>;
-    static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits::max<IndexType> - 2;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits::max<IndexType>();
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits::max<IndexType>() - 2;
 
     ///@}
     ///@name Life Cycle
