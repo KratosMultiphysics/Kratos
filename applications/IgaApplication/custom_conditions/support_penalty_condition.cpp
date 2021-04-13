@@ -99,9 +99,9 @@ namespace Kratos
         const SizeType nb_nodes = rGeometry.PointsNumber();
 
         Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
-        for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
+        for (IndexType point_number = 0; point_number < nb_integration_points; point_number++)
         {
-            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[pnt];
+            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[point_number];
             J.clear();
             for (IndexType i = 0; i < nb_nodes; ++i) {
                 const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
