@@ -16,7 +16,7 @@
 #include "testing/testing.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
-#include "geometries/triangle_3d_3.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/point_on_geometry.h"
 
 namespace Kratos {
@@ -25,38 +25,44 @@ namespace Kratos {
         typedef Node<3> NodeType;
 
         /// Factory functions
-        inline Triangle3D3<NodeType>::Pointer GenerateNodeTriangleForPointOnGeometry() {
-            return Kratos::make_shared<Triangle3D3<NodeType>>(
-                new NodeType(4, 0.0, 0.0, 0.0),
-                new NodeType(5, 1.0, 0.0, 0.0),
-                new NodeType(6, 0, 1.0, 0.0)
-                );
+        inline typename NurbsCurveGeometry<3, PointerVector<Node<3>>>::Pointer GenerateReferenceCurve3d()
+        {
+            PointerVector<Node<3>> points(2);
+
+            points(0) = Kratos::make_intrusive<Node<3>>(1, 0, 0, 0);
+            points(1) = Kratos::make_intrusive<Node<3>>(2, 10, 0, 0);
+
+            Vector knot_vector = ZeroVector(2);
+            knot_vector[0] = 0.0;
+            knot_vector[1] = 1.0;
+
+            IndexType p = 1;
+
+            return Kratos::make_shared<NurbsCurveGeometry<3, PointerVector<Node<3>>>>(points, p, knot_vector);
         }
 
         /// Check dimensions and location
         KRATOS_TEST_CASE_IN_SUITE(PointOnGeometry, KratosCoreGeometriesFastSuite) {
-            auto p_triangle_master = GenerateNodeTriangleForPointOnGeometry();
+            auto p_nurbs_curve = GenerateReferenceCurve3d();
 
             array_1d<double, 3> point_coordinates = ZeroVector(3);
             point_coordinates[0] = 0.5;
-            point_coordinates[1] = 0.5;
 
-            PointOnGeometry<PointerVector<Node<3>>, 2, 3> point(point_coordinates, p_triangle_master);
+            PointOnGeometry<PointerVector<Node<3>>, 1, 3> point(point_coordinates, p_nurbs_curve);
 
             KRATOS_CHECK_EQUAL(point.Dimension(), 0);
-            KRATOS_CHECK_EQUAL(point.LocalSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(point.LocalSpaceDimension(), 1);
             KRATOS_CHECK_EQUAL(point.WorkingSpaceDimension(), 3);
-
-            std::vector<double> location = { 0.5, 0.5, 0.0 };
-            KRATOS_CHECK_VECTOR_NEAR(point.Center(), location, TOLERANCE);
 
             /// Check creation of quadrature point geometries
             GeometryType::GeometriesArrayType geometry_vector;
             point.CreateQuadraturePointGeometries(geometry_vector, 2);
 
             KRATOS_CHECK_EQUAL(geometry_vector[0].Dimension(), 0);
-            KRATOS_CHECK_EQUAL(geometry_vector[0].LocalSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(geometry_vector[0].LocalSpaceDimension(), 1);
             KRATOS_CHECK_EQUAL(geometry_vector[0].WorkingSpaceDimension(), 3);
+
+            std::vector<double> location = { 0.5, 0.5, 0.0 };
             KRATOS_CHECK_VECTOR_NEAR(geometry_vector[0].Center(), location, TOLERANCE);
         }
     } // namespace Testing.
