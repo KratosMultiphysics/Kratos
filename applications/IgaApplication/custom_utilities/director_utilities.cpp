@@ -33,14 +33,17 @@ namespace Kratos
     {
         Vector brep_ids = mParameters["brep_ids"].GetVector();
         for (IndexType i = 0; i < brep_ids.size(); ++i) {
+
             auto& r_geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
             size_t number_of_control_points = r_geometry.size();
             std::vector<IndexType> eqID(number_of_control_points);
             for (IndexType inodes = 0; inodes < number_of_control_points; ++inodes)
                 eqID[inodes] = r_geometry[inodes].GetId();
+
             SparseMatrixType NTN(number_of_control_points, number_of_control_points, number_of_control_points*number_of_control_points); //inital guess how much non-zero are there
             Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
             SparseSpaceType::SetToZero(NTN);
+
             PointerVector<Geometry<Node<3>>> quad_points;
             r_geometry.CreateQuadraturePointGeometries(quad_points, 3);
             for (IndexType iP = 0; iP < quad_points.size(); ++iP)
@@ -66,12 +69,13 @@ namespace Kratos
             }
             Parameters solver_parameters(mParameters["linear_solver_settings"]);
             if (!solver_parameters.Has("solver_type")) {
-                solver_parameters.AddString("solver_type", "skyline_lu_factorization");
+               solver_parameters.AddString("solver_type", "skyline_lu_factorization");
             }
             Matrix nodalDirectors = ZeroMatrix(number_of_control_points, 3);
             auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(solver_parameters);
 
             solver->Solve(NTN, nodalDirectors, directorAtIntgrationPoints);
+
             for (IndexType i = 0; i < number_of_control_points; ++i)
             {
                 r_geometry[i].SetValue(DIRECTOR, row(nodalDirectors, i));
