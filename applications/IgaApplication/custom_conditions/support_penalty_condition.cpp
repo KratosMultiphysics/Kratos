@@ -39,7 +39,7 @@ namespace Kratos
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
         // initial determinant of jacobian 
-        Vector determinat_jacobian_vector_initial(integration_points.size());
+        Vector determinant_jacobian_vector_initial(integration_points.size());
         DeterminantOfJacobianInitial(r_geometry, determinat_jacobian_vector_initial);
 
         for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
@@ -57,13 +57,11 @@ namespace Kratos
             }
 
             // Differential area
-            const double integration_weight = integration_points[point_number].Weight();
-            const double determinat_jacobian = determinat_jacobian_vector_initial[point_number];
+            const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector_initial[point_number];
 
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H)
-                    * penalty * integration_weight * determinat_jacobian;
+                noalias(rLeftHandSideMatrix) += prod(trans(H), H) * penalty_integration;
             }
             if (CalculateResidualVectorFlag) {
 
@@ -81,8 +79,7 @@ namespace Kratos
                     u[index + 2] = (disp[2] - displacement[2]);
                 }
 
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
-                    * penalty * integration_weight * determinat_jacobian;
+                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * penalty_integration;
             }
         }
         KRATOS_CATCH("")
