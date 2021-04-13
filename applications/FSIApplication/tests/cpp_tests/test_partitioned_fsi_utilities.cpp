@@ -212,7 +212,7 @@ namespace Testing {
         // Check results
         double tol = 1.0e-10;
         unsigned int aux_count = 0;
-        std::array<double, 12> expected_values = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+        std::array<double, 12> expected_values = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0};
         for (auto &r_node : main_model_part.Nodes()) {
             const auto &r_fsi_int_res = r_node.FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
             for (unsigned int i = 0; i < 3; ++i) {
@@ -222,7 +222,7 @@ namespace Testing {
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesCopySkinToElements, FSIApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesCreateCouplingSkin, FSIApplicationFastSuite)
     {
         // Set the partitioned FSI utilities
         PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
@@ -233,13 +233,13 @@ namespace Testing {
         GenerateTestSkinModelPart(main_model_part);
 
         // Set the new skin model part
-        ModelPart &element_based_skin = model.CreateModelPart("ElementBasedSkin");
-        partitioned_fsi_utilities.CreateCouplingElementBasedSkin(main_model_part, element_based_skin);
+        ModelPart &element_based_skin = model.CreateModelPart("ConditionBasedSkin");
+        partitioned_fsi_utilities.CreateCouplingSkin(main_model_part, element_based_skin);
 
         // Check results
         KRATOS_CHECK_EQUAL(element_based_skin.NumberOfNodes(), 4);
-        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfElements(), 3);
-        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfConditions(), 0);
+        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfElements(), 0);
+        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfConditions(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesDoubleGetInterfaceResidualsize, FSIApplicationFastSuite)
@@ -339,10 +339,8 @@ namespace Testing {
             *p_interface_vector);
 
         const double tolerance = 1.0e-8;
-        std::vector<double> expected_values = {-1.0, -1.0, -1.0, -1.0};
-        for (unsigned int i = 0; i < expected_values.size(); ++i) {
-            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
-        }
+        std::vector<double> expected_values = {1.0,1.0,1.0,1.0};
+        KRATOS_CHECK_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorNodal, FSIApplicationFastSuite)
@@ -365,10 +363,8 @@ namespace Testing {
             *p_interface_vector);
 
         const double tolerance = 1.0e-8;
-        std::vector<double> expected_values = {0.0,0.0,-1.0,-1.0,-2.0,-2.0,-3.0,-3.0};
-        for (unsigned int i = 0; i < expected_values.size(); ++i) {
-            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
-        }
+        std::vector<double> expected_values = {0.0,0.0,1.0,1.0,2.0,2.0,3.0,3.0};
+        KRATOS_CHECK_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorConsistent, FSIApplicationFastSuite)
@@ -397,29 +393,6 @@ namespace Testing {
         for (unsigned int i = 0; i < expected_values.size(); ++i) {
             KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
         }
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DCreateCouplingElementBasedSkin, FSIApplicationFastSuite)
-    {
-        // Set the partitioned FSI utilities
-        PartitionedFSIUtilities<SpaceType,array_1d<double,3>,2> partitioned_fsi_utilities;
-
-        // Set the model part containing the origin skin
-        Model model;
-        ModelPart &r_skin_model_part = model.CreateModelPart("OriginModelPart");
-        GenerateTestSkinModelPart(r_skin_model_part);
-
-        // Create the destination submodelpart
-        ModelPart &r_destination_model_part = model.CreateModelPart("DestinationModelPart");
-
-        // Generate the auxiliary element based skin
-        partitioned_fsi_utilities.CreateCouplingElementBasedSkin(
-            r_skin_model_part,
-            r_destination_model_part);
-
-        // Check results
-        KRATOS_CHECK_EQUAL(r_destination_model_part.NumberOfNodes(), 4);
-        KRATOS_CHECK_EQUAL(r_destination_model_part.NumberOfElements(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DInitializeInterfaceVector, FSIApplicationFastSuite)
@@ -451,10 +424,8 @@ namespace Testing {
 
         // Check results
         const double tolerance = 1.0e-8;
-        std::array<double, 8> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
-        for (unsigned int i = 0; i < 8; ++i) {
-            KRATOS_CHECK_NEAR(interface_vector(i), expected_results[i], tolerance);
-        }
+        std::vector<double> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
+        KRATOS_CHECK_VECTOR_NEAR(expected_results, interface_vector, tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DEmbeddedToPositiveFacePressureInterpolator, FSIApplicationFastSuite)
@@ -483,7 +454,8 @@ namespace Testing {
         Parameters mesher_parameters(R"(
         {
             "number_of_divisions": 7,
-            "element_name": "Element2D3N"
+            "element_name": "Element2D3N",
+            "create_skin_sub_model_part": false
         })");
         StructuredMeshGeneratorProcess(geometry, r_background_model_part, mesher_parameters).Execute();
 
@@ -496,11 +468,6 @@ namespace Testing {
         partitioned_fsi_utilities.EmbeddedPressureToPositiveFacePressureInterpolator(
             r_background_model_part,
             r_skin_model_part);
-
-        // Copy the obtained values from PRESSURE to POSITIVE_FACE_PRESSURE
-        for (auto &r_node : r_skin_model_part.Nodes()) {
-            r_node.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = r_node.FastGetSolutionStepValue(PRESSURE);
-        }
 
         // Check results
         unsigned int i = 0;
