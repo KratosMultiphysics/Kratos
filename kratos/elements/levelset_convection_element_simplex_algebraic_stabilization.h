@@ -64,6 +64,16 @@ public:
     /// Counted pointer of
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LevelSetConvectionElementSimplexAlgebraicStabilization);
 
+    typedef Element::GeometryType GeometryType;
+
+    typedef Element::PropertiesType PropertiesType;
+
+    typedef Element::NodesArrayType NodesArrayType;
+
+    typedef Element::MatrixType MatrixType;
+
+    typedef Element::VectorType VectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -80,7 +90,7 @@ public:
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
-    ~LevelSetConvectionElementSimplexAlgebraicStabilization();
+    ~LevelSetConvectionElementSimplexAlgebraicStabilization() override;
 
     ///@}
     ///@name Operators
@@ -101,20 +111,20 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
-    }
+    // void CalculateRightHandSide(
+    //     VectorType& rRightHandSideVector,
+    //     const ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
+    // }
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    // void EquationIdVector(
+    //     EquationIdVectorType& rResult,
+    //     const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(
-        DofsVectorType& ElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    // void GetDofList(
+    //     DofsVectorType& ElementalDofList,
+    //     const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     ///@}
@@ -142,7 +152,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << this->Id();
     }
 
 
@@ -171,10 +181,10 @@ protected:
     ///@{
 
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer);
+    //void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer);
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer);
+    //void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer);
 
 
     ///@}
