@@ -65,11 +65,4 @@ void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Condition>(
     rModelPart.AddConditions(rIds);
 }
 
-template ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::NodesContainerType>(ModelPart& rModelPart);
-template ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart);
-template ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart);
-template void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Node<3>>(const std::vector<IndexType>& rIds, ModelPart& rModelPart);
-template void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Element>(const std::vector<IndexType>& rIds, ModelPart& rModelPart);
-template void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Condition>(const std::vector<IndexType>& rIds, ModelPart& rModelPart);
-
 }  // namespace Kratos.
