@@ -51,7 +51,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
-    KRATOS_REGISTER_CONDITION("LoadMomentDirector5pCondition", mMomentLoadDirector5pCondition)
+    KRATOS_REGISTER_CONDITION("LoadMomentDirector5pCondition", mLoadMomentDirector5pCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
