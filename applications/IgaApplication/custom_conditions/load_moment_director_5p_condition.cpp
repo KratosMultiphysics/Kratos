@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-    void MomentLoadDirector5pCondition::CalculateAll(
+    void LoadMomentDirector5pCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -86,14 +86,12 @@ namespace Kratos
                 }
 
                 // Assembly
-
                 noalias(rRightHandSideVector) += f;
             }
-          // std::cout << rRightHandSideVector << std::endl;
         }
     }
 
-    array_1d<double, 3> MomentLoadDirector5pCondition::calculateMomentLoadTimesDirectorTestFunction(
+    array_1d<double, 3> LoadMomentDirector5pCondition::calculateMomentLoadTimesDirectorTestFunction(
         const GeometryType& rGeometry,
         const Matrix& r_N,
         const IndexType& point_number,
@@ -113,7 +111,7 @@ namespace Kratos
        return  momentloadtranformed;
     }
 
-    void MomentLoadDirector5pCondition::DeterminantOfJacobianInitial(
+    void LoadMomentDirector5pCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian)
     {
@@ -145,7 +143,7 @@ namespace Kratos
         }
     }
 
-    void MomentLoadDirector5pCondition::EquationIdVector(
+    void LoadMomentDirector5pCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -164,7 +162,7 @@ namespace Kratos
         }
     }
 
-    void MomentLoadDirector5pCondition::GetDofList(
+    void LoadMomentDirector5pCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const

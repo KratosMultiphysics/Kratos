@@ -23,7 +23,7 @@
 namespace Kratos
 {
     /// Condition for moment loads for the 5p shell based on directors
-    class MomentLoadDirector5pCondition final
+    class LoadMomentDirector5pCondition final
         : public Condition
     {
     public:
@@ -31,7 +31,7 @@ namespace Kratos
         ///@{
 
         /// Counted pointer definition of LoadCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MomentLoadDirector5pCondition);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LoadMomentDirector5pCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -45,14 +45,14 @@ namespace Kratos
         ///@{
 
         /// Constructor with Id and geometry
-        MomentLoadDirector5pCondition(
+        LoadMomentDirector5pCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        MomentLoadDirector5pCondition(
+        LoadMomentDirector5pCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -60,11 +60,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        MomentLoadDirector5pCondition() : Condition()
+        LoadMomentDirector5pCondition() : Condition()
         {};
 
         /// Destructor
-        ~MomentLoadDirector5pCondition() = default;
+        ~LoadMomentDirector5pCondition() = default;
 
         ///@}
         ///@name Life Cycle
@@ -77,7 +77,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const final
         {
-            return Kratos::make_intrusive<MomentLoadDirector5pCondition>(
+            return Kratos::make_intrusive<LoadMomentDirector5pCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -88,7 +88,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const final
         {
-            return Kratos::make_intrusive<MomentLoadDirector5pCondition>(
+            return Kratos::make_intrusive<LoadMomentDirector5pCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -235,7 +235,7 @@ namespace Kratos
 
         ///@}
 
-    }; // Class MomentLoadDirector5pCondition
+    }; // Class LoadMomentDirector5pCondition
 
 }  // namespace Kratos.
 

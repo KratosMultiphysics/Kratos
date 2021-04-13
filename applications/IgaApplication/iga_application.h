@@ -25,7 +25,7 @@
 //conditions
 #include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
-#include "custom_conditions/moment_load_director_5p_condition.h"
+#include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
 
 //modelers
@@ -111,7 +111,7 @@ private:
     //Conditions
     const OutputCondition mOutputCondition;
     const LoadCondition mLoadCondition;
-    const MomentLoadDirector5pCondition mMomentLoadDirector5pCondition;
+    const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
     // Modelers
