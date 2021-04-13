@@ -66,7 +66,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
 
     def get_communicator(self):
         if not hasattr(self, '_communicator'):
-            self._communicator = TrilinosApplication.CreateCommunicator()
+            self._communicator = TrilinosApplication.CreateEpetraCommunicator(self.mesh_model_part.GetCommunicator().GetDataCommunicator())
         return self._communicator
 
     #### Private functions ####

@@ -63,6 +63,11 @@ if( USE_EIGEN_FEAST MATCHES ON )
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include )
     add_definitions(-DUSE_EIGEN_FEAST)
+    # MKL implements some of FEAST's function. This definition excludes the definitions of MKL's FEAST
+    # functions in mkl/include/mkl_solvers_ee.h. Otherwise, some functions are defined multiple times
+    # defining both as MKL uses either, depending on the version
+    add_definitions(-D_MKL_SOLVERS_EE_H)
+    add_definitions(-D__MKL_SOLVERS_EE_H)
 endif()
 
 ## generate variables with the sources

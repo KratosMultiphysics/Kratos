@@ -424,6 +424,7 @@ class MaterialTest():
         self.chart.write( "    DENSI  = " + (str(self.spheres_model_part.GetProperties()[1][PARTICLE_DENSITY]).rjust(3))+" Kg/m3     "+'\n')
         self.chart.write( "    STAFRC = " + (str(self.spheres_model_part.GetProperties()[1][STATIC_FRICTION]).rjust(3))+"           "+'\n')
         self.chart.write( "    DYNFRC = " + (str(self.spheres_model_part.GetProperties()[1][DYNAMIC_FRICTION]).rjust(3))+"          " +'\n')
+        self.chart.write( "    FRCDEC = " + (str(self.spheres_model_part.GetProperties()[1][FRICTION_DECAY]).rjust(3))+"          " +'\n')
         self.chart.write( "    YOUNG  = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS]/1e9).rjust(3))+" GPa"+"     " +'\n')
         self.chart.write( "    POISS  = " + (str(self.spheres_model_part.GetProperties()[1][POISSON_RATIO]).rjust(3))+"           " +'\n')
         self.chart.write( "    FTS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_SIGMA_MIN]).rjust(3))+" Pa        " +'\n')
