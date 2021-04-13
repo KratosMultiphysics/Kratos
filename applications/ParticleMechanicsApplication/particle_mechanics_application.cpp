@@ -309,6 +309,7 @@ namespace Kratos
         // CL: Johnson Cook
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStressLaw", mJohnsonCookThermalPlastic2DPlaneStressLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
         // CL: d+/d- damage
         KRATOS_REGISTER_CONSTITUTIVE_LAW("MPMDamageDPlusDMinusMasonry2DLaw", mMPMDamageDPlusDMinusMasonry2DLaw);

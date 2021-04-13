@@ -355,21 +355,12 @@ namespace Kratos
 						// https://abaqus-docs.mit.edu/2017/English/SIMACAEMATRefMap/simamat-c-damageevolductile.htm
 						const double undamaged_yield = yield_stress / (1.0 - mDamage);
 						mDamage = 1.0 - std::exp(-1.0 * plastic_disp_after_onset * undamaged_yield / mFractureEnergy);
-						//KRATOS_WATCH(mDamage);
 					}
 					else
 					{
 						// simple linear damage evolution
 						if (mFailureDisp - mDamageInitiationDisp < 1e-9)  mDamage = 1.0;
 						else mDamage = plastic_disp_after_onset / (mFailureDisp - mDamageInitiationDisp); // simple linear damage law
-
-						KRATOS_WATCH(mFailureDisp)
-						KRATOS_WATCH(mFractureEnergy)
-						KRATOS_WATCH(mDamageInitiationDisp)
-						KRATOS_WATCH(mFailureDisp- mDamageInitiationDisp)
-						KRATOS_WATCH(plastic_disp_after_onset)
-						KRATOS_WATCH(mDamage);
-						KRATOS_WATCH(mCharLength);
 					}
 					mDamage = std::min(1.0, mDamage);
 					mDamage = std::max(0.0, mDamage);

@@ -167,7 +167,11 @@ protected:
 
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
-private:
+    inline double GetSqrt32() { return 1.2247448713915900000; } //sqrt(3.0/2.0)
+
+    inline double GetSqrt23() { return 0.8164965809277260000; } //sqrt(2.0/3.0)
+
+    inline double GetSqrt6() { return 2.4494897427831800000; } //sqrt(6.0)
 
     double CalculateHardenedYieldStress(const Properties& MaterialProperties, const double EquivalentPlasticStrain,
         const double PlasticStrainRate, const double Temperature);
@@ -188,11 +192,11 @@ private:
     double CalculateDamageOnsetPlasticStrain(const double Pressure, const double EqStress, const double PlasticStrainRate,
         const double Temperature, const Properties& MaterialProperties);
 
-    inline double GetSqrt32() { return 1.2247448713915900000; } //sqrt(3.0/2.0)
+private:
 
-    inline double GetSqrt23() { return 0.8164965809277260000; } //sqrt(2.0/3.0)
 
-    inline double GetSqrt6() { return 2.4494897427831800000; } //sqrt(6.0)
+
+
 
     friend class Serializer;
 

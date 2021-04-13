@@ -65,6 +65,7 @@
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 
@@ -208,6 +209,11 @@ namespace Python{
 
         py::class_< JohnsonCookThermalPlastic2DPlaneStrainLaw, typename JohnsonCookThermalPlastic2DPlaneStrainLaw::Pointer, ConstitutiveLaw >
         (m, "JohnsonCookThermalPlastic2DPlaneStrainLaw")
+        .def(py::init<>())
+        ;
+
+        py::class_< JohnsonCookThermalPlastic2DPlaneStressLaw, typename JohnsonCookThermalPlastic2DPlaneStressLaw::Pointer, ConstitutiveLaw >
+        (m, "JohnsonCookThermalPlastic2DPlaneStressLaw")
         .def(py::init<>())
         ;
 
