@@ -24,9 +24,10 @@
 namespace Kratos
 {
 
-    /// Lagrange factor based coupling condition.
-    /** This condition can be used to apply continuity between different
-    *   discretizations with the lagrange approach.
+    /// Lagrange Multiplier based support condition.
+    /** This condition can be used to apply support conditions
+    *   to all types of geometry discretizations with the
+    *   Lagrange Multiplier approach.
     *
     *   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
     */
