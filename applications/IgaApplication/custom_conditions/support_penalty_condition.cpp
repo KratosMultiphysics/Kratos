@@ -40,7 +40,7 @@ namespace Kratos
 
         // initial determinant of jacobian 
         Vector determinant_jacobian_vector_initial(integration_points.size());
-        DeterminantOfJacobianInitial(r_geometry, determinat_jacobian_vector_initial);
+        DeterminantOfJacobianInitial(r_geometry, determinant_jacobian_vector_initial);
 
         for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
@@ -119,7 +119,7 @@ namespace Kratos
             array_1d<double, 3> a_1 = column(J, 0);
             array_1d<double, 3> a_2 = column(J, 1);
 
-            rDeterminantOfJacobian[pnt] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
+            rDeterminantOfJacobian[point_number] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
         }
     }
 
