@@ -6,7 +6,8 @@ def Factory(settings, model):
     return SubModelPartEntitiesBooleanOperationProcess(model, settings["Parameters"])
 
 class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
-    """SubModelPartEntitiesBooleanOperationProcess
+
+    """SubModelPartEntitiesBooleanOperationProcess.
 
     Apply a boolean operation to the entities of the given sub model parts.
     The sub model parts must have the same root model part and the entities
