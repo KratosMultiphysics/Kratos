@@ -20,6 +20,7 @@
 
 // Project includes
 #include "mapper.h"
+#include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/interface_vector_container.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -91,8 +92,8 @@ private:
 //      master  =   interface destination
 //      slave   =   interface origin
 
-template<class TSparseSpace, class TDenseSpace>
-class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
+template<bool TIsDistributed>
+class CouplingGeometryMapper : public Mapper<TIsDistributed>
 {
 public:
 
@@ -104,10 +105,13 @@ public:
     /// Pointer definition of CouplingGeometryMapper
     KRATOS_CLASS_POINTER_DEFINITION(CouplingGeometryMapper);
 
-    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
+    typedef Mapper<TIsDistributed> BaseType;
 
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+
+    using TSparseSpace = MapperDefinitions::SparseSpaceType;
+    using TDenseSpace = MapperDefinitions::DenseSpaceType;
 
     typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
     typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
@@ -115,7 +119,7 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType MappingMatrixType;
+    typedef typename BaseType::MappingMatrixType MappingMatrixType;
     typedef Kratos::unique_ptr<MappingMatrixType> MappingMatrixUniquePointerType;
 
     typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
@@ -233,7 +237,7 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<CouplingGeometryMapper<TSparseSpace, TDenseSpace>>(
+        return Kratos::make_unique<CouplingGeometryMapper<TIsDistributed>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);

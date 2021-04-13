@@ -21,11 +21,16 @@
 // External includes
 
 // Project includes
+#include "containers/system_vector.h"
+#include "containers/distributed_system_vector.h"
+#include "containers/csr_matrix.h"
+#include "containers/distributed_csr_matrix.h"
 #include "mapper.h"
 #include "custom_searching/interface_communicator.h"
-#include "custom_utilities/interface_vector_container.h"
+#include "custom_utilities/interface_vec_container.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
+#include "custom_utilities/mapper_utilities.h"
 
 
 namespace Kratos
@@ -33,8 +38,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
+template<bool TIsDistributed>
+class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TIsDistributed>
 {
 public:
     ///@name Type Definitions
@@ -43,7 +48,7 @@ public:
     /// Pointer definition of InterpolativeMapperBase
     KRATOS_CLASS_POINTER_DEFINITION(InterpolativeMapperBase);
 
-    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
+    typedef Mapper<TIsDistributed> BaseType;
 
     typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
     typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
@@ -51,14 +56,16 @@ public:
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 
-    typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
-    typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
-
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
+    typedef typename std::conditional<TIsDistributed, DistributedCsrMatrix<>, CsrMatrix<>>::type TMappingMatrixType;
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
+
+    typedef typename std::conditional<TIsDistributed, DistributedSystemVector<>, SystemVector<>>::type TInterfaceVectorType;
+
+    using InterfaceVectorContainerType = InterfaceVecContainer<TInterfaceVectorType>;
+    using InterfaceVectorContainerPointerType = Kratos::unique_ptr<InterfaceVectorContainerType>;
 
     typedef Variable<double> ComponentVariableType;
 
@@ -176,10 +183,10 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType& GetMappingMatrix() override
-    {
-        return *mpMappingMatrix;
-    }
+    // TMappingMatrixType& GetMappingMatrix() override
+    // {
+    //     return *mpMappingMatrix;
+    // }
 
     ///@}
     ///@name Inquiry

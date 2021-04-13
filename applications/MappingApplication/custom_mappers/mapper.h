@@ -25,6 +25,10 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/flags.h"
+#include "containers/csr_matrix.h"
+#include "containers/distributed_csr_matrix.h"
+
+#include "custom_utilities/mapper_typedefs.h" // for backward compatibility
 
 
 namespace Kratos
@@ -38,7 +42,7 @@ namespace Kratos
 /** This is the base class for every mapper. This is the equivalent to a Kratos-SolvingStrategy.
  * It provides the basic interface for the mapping operations
 */
-template<class TSparseSpace, class TDenseSpace>
+template<bool TIsDistributed>
 class Mapper
 {
 public:
@@ -50,9 +54,13 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
-    typedef Kratos::unique_ptr<Mapper> MapperUniquePointerType;
+    using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
 
-    typedef typename TSparseSpace::MatrixType TMappingMatrixType;
+    // using MappingMatrixType = typename std::conditional<TIsDistributed,
+    //     DistributedCsrMatrix<>,
+    //     CsrMatrix<>>::type;
+
+    typedef typename MapperDefinitions::SparseSpaceType::MatrixType MappingMatrixType; // for backward compatibility
 
     ///@}
     ///@name Life Cycle
@@ -156,7 +164,7 @@ public:
      * @brief This method returns the mapping-matrix
      * @return Reference to the mapping-matrix
      */
-    virtual TMappingMatrixType& GetMappingMatrix()
+    virtual MappingMatrixType& GetMappingMatrix()
     {
         KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
     }
@@ -204,7 +212,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Mapper working in: ";
-        if (TSparseSpace::IsDistributed()){
+        if (TIsDistributed){
             rOStream << "MPI";
         } else {
             rOStream << "OpenMP";
@@ -214,10 +222,10 @@ public:
 }; // Class Mapper
 
 /// output stream function
-template<class TSparseSpace, class TDenseSpace>
+template<bool TIsDistributed>
 inline std::ostream & operator << (
     std::ostream& rOStream,
-    const Mapper<TSparseSpace, TDenseSpace>& rThis)
+    const Mapper<TIsDistributed>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << ":" << std::endl;

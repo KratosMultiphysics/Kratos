@@ -18,7 +18,6 @@
 // Project includes
 #include "coupling_geometry_mapper.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
@@ -124,8 +123,8 @@ std::string CouplingGeometryLocalSystem::PairingInfo(const int EchoLevel) const
     return "";
 }
 
-template<class TSparseSpace, class TDenseSpace>
-CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
+template<bool TIsDistributed>
+CouplingGeometryMapper<TIsDistributed>::CouplingGeometryMapper(
     ModelPart& rModelPartOrigin,
     ModelPart& rModelPartDestination,
     Parameters JsonParameters):
@@ -164,8 +163,8 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
 }
 
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::InitializeInterface(Kratos::Flags MappingOptions)
 {
     // compose local element mappings
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
@@ -246,8 +245,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::MapInternal(
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
@@ -274,8 +273,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     mpInterfaceVectorContainerSlave->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::MapInternalTranspose(
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
@@ -302,8 +301,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     mpInterfaceVectorContainerMaster->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::MapInternal(
     const Variable<array_1d<double, 3>>& rOriginVariable,
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
@@ -316,8 +315,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::MapInternalTranspose(
     const Variable<array_1d<double, 3>>& rOriginVariable,
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
@@ -330,8 +329,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithScaling(
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::EnforceConsistencyWithScaling(
     const MappingMatrixType& rInterfaceMatrixSlave,
     MappingMatrixType& rInterfaceMatrixProjected,
     const double scalingLimit)
@@ -364,8 +363,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::CalculateMappingMatrixWithSolver(
     MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
     mpMappingMatrix = Kratos::make_unique<typename SparseSpaceType::MatrixType>(
@@ -384,8 +383,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
+template<bool TIsDistributed>
+void CouplingGeometryMapper<TIsDistributed>::CreateLinearSolver()
 {
     if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
         mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
@@ -399,6 +398,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class CouplingGeometryMapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class CouplingGeometryMapper< false >;
 
 }  // namespace Kratos.

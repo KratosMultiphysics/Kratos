@@ -25,9 +25,6 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${USE_MPI} MATCHES ON )
-    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
-    find_package(TRILINOS REQUIRED)
-    include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR}) # Included as "SYSTEM" to suppress warnings from it
 
     file( GLOB KRATOS_MAPPING_APPLICATION_CORE ${KRATOS_MAPPING_APPLICATION_CORE}
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mpi/*.cpp
@@ -35,7 +32,7 @@ if(${USE_MPI} MATCHES ON )
     )
 
     set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} KratosMPICore)
-    set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${TRILINOS_LIBRARIES})
+    set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} )
 
     ## define test sources (cpp mpi tests)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
