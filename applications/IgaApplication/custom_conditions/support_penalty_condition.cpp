@@ -106,9 +106,8 @@ namespace Kratos
             for (IndexType i = 0; i < nb_nodes; ++i) {
                 const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
                 for (IndexType k = 0; k < working_space_dimension; ++k) {
-                    const double value = r_coordinates[k];
                     for (IndexType m = 0; m < local_space_dimension; ++m) {
-                        J(k, m) += value * r_DN_De(i, m);
+                        J(k, m) += r_coordinates[k] * r_DN_De(i, m);
                     }
                 }
             }
