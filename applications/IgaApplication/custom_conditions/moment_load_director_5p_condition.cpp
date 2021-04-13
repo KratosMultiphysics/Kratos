@@ -69,6 +69,7 @@ namespace Kratos
 
             for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
+                f = ZeroVector(mat_size);
                 // Differential area
                 const double integration_weight = integration_points[point_number].Weight();
                 const double d_weight = integration_weight * determinat_jacobian_vector_initial[point_number];
@@ -77,7 +78,6 @@ namespace Kratos
                 if (this->Has(MOMENT_LINE_LOAD))
                 {
                     const array_1d<double, 3>& momentload = calculateMomentLoadTimesDirectorTestFunction(r_geometry,r_N,point_number,this->GetValue(MOMENT_LINE_LOAD));
-
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
                         const IndexType index = 2 * i;
@@ -86,8 +86,10 @@ namespace Kratos
                 }
 
                 // Assembly
+
                 noalias(rRightHandSideVector) += f;
             }
+          // std::cout << rRightHandSideVector << std::endl;
         }
     }
 
@@ -104,10 +106,8 @@ namespace Kratos
         {
             t += r_N(point_number, i) * rGeometry[i].GetValue(DIRECTOR);
         }
-        double invL_t = 1.0 / norm_2(t);
-        t *= invL_t;
+        t /= norm_2(t);
 
-     //  const BoundedMatrix<double,3,3> P = (IdentityMatrix(3) - outer_prod(t, t))*invL_t;
        array_1d<double, 3> momentloadtranformed;
        MathUtils<double>::CrossProduct(momentloadtranformed, momentload, t);
        return  momentloadtranformed;
