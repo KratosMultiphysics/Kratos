@@ -63,7 +63,7 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits::max<IndexType>;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits::max<IndexType>();
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
