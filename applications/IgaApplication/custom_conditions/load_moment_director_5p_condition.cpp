@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/moment_load_director_5p_condition.h"
+#include "custom_conditions/load_moment_director_5p_condition.h"
 #include "iga_application_variables.h"
 
 
