@@ -14,7 +14,10 @@
 // System includes
 
 // External includes
+#pragma warning push
+#pragma warning disable 2282 186
 #include "json/json.hpp" // Import nlohmann json library
+#pragma warning pop
 
 // Project includes
 #include "includes/kratos_parameters.h"
@@ -696,7 +699,7 @@ void Parameters::SetMatrix(const Matrix& rValue)
 
 /***********************************************************************************/
 /***********************************************************************************/
-  
+
 void Parameters::AddDouble(
     const std::string& rEntry,
     const double Value
