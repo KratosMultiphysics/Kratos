@@ -14,10 +14,7 @@
 // System includes
 
 // External includes
-#pragma warning (push)
-#pragma warning(disable:186)
 #include "json/json.hpp" // Import nlohmann json library
-#pragma warning (pop)
 
 // Project includes
 #include "includes/kratos_parameters.h"
