@@ -191,11 +191,6 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
             );
 
-        int Check(const ProcessInfo& rCurrentProcessInfo)
-        {
-            return 0;
-        }
-
         ///@}
         ///@name Input and output
         ///@{
@@ -258,4 +253,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPPORT_LAGRANGE_COUPLING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_SUPPORT_LAGRANGE_CONDITION_H_INCLUDED  defined
