@@ -29,6 +29,7 @@ namespace Kratos
     )
     {
         KRATOS_TRY
+
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType number_of_non_zero_nodes = GetNumberOfNonZeroNodes();
@@ -43,36 +44,46 @@ namespace Kratos
 
         // Integration
         const typename GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+
+        // Determinant of jacobian 
+        Vector determinant_jacobian_vector(integration_points.size());
+        r_geometry.DeterminantOfJacobian(r_geometry, determinant_jacobian_vector);
+
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
-            for (IndexType i = 0; i < number_of_nodes; i++) //loop over Lagrange Multipliers
-            {
-                    IndexType counter_m = 0;
-                    if (r_N(point_number, i) > shape_function_tolerance) {
-                        for (IndexType j = 0; j < number_of_nodes; j++) // loop over shape functions of displacements
-                        {
-                                if (r_N(point_number, j) > shape_function_tolerance) {
-                                    const double NN = r_N(point_number, j) * r_N(point_number, i);
+            // Differential area, being 1 for points.
+            const double integration = if (r_geometry.Dimension() == 0)
+                ? 1
+                : integration_points[point_number].Weight()* determinant_jacobian_vector[point_number];
 
-                                    const IndexType ibase = counter_n * 3 + 3 * (number_of_non_zero_nodes);
-                                    const IndexType jbase = counter_m * 3;
+            //loop over Lagrange Multipliers
+            for (IndexType i = 0; i < number_of_nodes; i++) {
+                IndexType counter_m = 0;
+                if (r_N(point_number, i) > shape_function_tolerance) {
+                    // loop over shape functions of displacements
+                    for (IndexType j = 0; j < number_of_nodes; j++) {
+                        if (r_N(point_number, j) > shape_function_tolerance) {
+                            const double NN = r_N(point_number, j) * r_N(point_number, i) * integration;
 
-                                    // Matrix in following shape:
-                                    // |0 H^T|
-                                    // |H 0  |
+                            const IndexType ibase = counter_n * 3 + 3 * (number_of_non_zero_nodes);
+                            const IndexType jbase = counter_m * 3;
 
-                                    LHS(ibase, jbase) = NN;
-                                    LHS(ibase + 1, jbase + 1) = NN;
-                                    LHS(ibase + 2, jbase + 2) = NN;
+                            // Matrix in following shape:
+                            // |0 H^T|
+                            // |H 0  |
 
-                                    LHS(jbase, ibase) = NN;
-                                    LHS(jbase + 1, ibase + 1) = NN;
-                                    LHS(jbase + 2, ibase + 2) = NN;
+                            LHS(ibase, jbase)         = NN;
+                            LHS(ibase + 1, jbase + 1) = NN;
+                            LHS(ibase + 2, jbase + 2) = NN;
 
-                                    counter_m++;
-                                }
+                            LHS(jbase, ibase)         = NN;
+                            LHS(jbase + 1, ibase + 1) = NN;
+                            LHS(jbase + 2, ibase + 2) = NN;
+
+                            counter_m++;
                         }
-                        counter_n++;
+                    }
+                    counter_n++;
                 }
                 if (CalculateStiffnessMatrixFlag) {
                     noalias(rLeftHandSideMatrix) += LHS;
@@ -138,7 +149,7 @@ namespace Kratos
                 if (r_N(n, i) > shape_function_tolerance) {
                     const IndexType index = counter * 3;
                     const auto& r_node = r_geometry[i];
-                    rResult[index] = r_node.GetDof(DISPLACEMENT_X).EquationId();
+                    rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
                     rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
                     rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
                     counter++;
@@ -151,7 +162,7 @@ namespace Kratos
                 if (r_N(n, i) > shape_function_tolerance) {
                     const IndexType index = 3 * (counter);
                     const auto& r_node = r_geometry[i];
-                    rResult[index] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+                    rResult[index]     = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
                     rResult[index + 1] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
                     rResult[index + 2] = r_node.GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
                     counter++;
