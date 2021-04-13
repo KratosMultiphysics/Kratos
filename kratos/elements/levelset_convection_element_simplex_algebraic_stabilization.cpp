@@ -205,68 +205,6 @@ namespace Kratos
         KRATOS_CATCH("Error in Levelset Element")
     }
 
-    // template< unsigned int TDim, unsigned int TNumNodes>
-    // void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::EquationIdVector(
-    //     EquationIdVectorType& rResult,
-    //     const ProcessInfo& rCurrentProcessInfo) const
-    // {
-    //     KRATOS_TRY
-
-    //     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-    //     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-    //     if (rResult.size() != TNumNodes)
-    //         rResult.resize(TNumNodes, false);
-
-    //     for (unsigned int i = 0; i < TNumNodes; i++)
-    //     {
-    //         rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
-    //     }
-    //     KRATOS_CATCH("")
-    // }
-
-    // template< unsigned int TDim, unsigned int TNumNodes>
-    // void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::GetDofList(
-    //     DofsVectorType& ElementalDofList,
-    //     const ProcessInfo& rCurrentProcessInfo) const
-    // {
-    //     KRATOS_TRY
-
-    //     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-    //     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-    //     if (ElementalDofList.size() != TNumNodes)
-    //         ElementalDofList.resize(TNumNodes);
-
-    //     for (unsigned int i = 0; i < TNumNodes; i++)
-    //     {
-    //         ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
-
-    //     }
-    //     KRATOS_CATCH("");
-    // }
-
-    // //gauss points for the 3D case
-    // template< unsigned int TDim, unsigned int TNumNodes>
-    // void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer)
-    // {
-    //     Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
-    //     Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
-    //     Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
-    //     Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
-    // }
-
-    // //gauss points for the 2D case
-    // template< unsigned int TDim, unsigned int TNumNodes>
-    // void LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
-    // {
-    //     const double one_sixt = 1.0/6.0;
-    //     const double two_third = 2.0/3.0;
-    //     Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
-    //     Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
-    //     Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
-    // }
-
     template class LevelSetConvectionElementSimplexAlgebraicStabilization<2, 3>;
     template class LevelSetConvectionElementSimplexAlgebraicStabilization<3, 4>;
 

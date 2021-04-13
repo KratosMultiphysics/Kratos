@@ -111,22 +111,6 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    // void CalculateRightHandSide(
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo) override
-    // {
-    //     KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
-    // }
-
-    // void EquationIdVector(
-    //     EquationIdVectorType& rResult,
-    //     const ProcessInfo& rCurrentProcessInfo) const override;
-
-    // void GetDofList(
-    //     DofsVectorType& ElementalDofList,
-    //     const ProcessInfo& rCurrentProcessInfo) const override;
-
-
     ///@}
     ///@name Access
     ///@{
@@ -179,12 +163,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    //gauss points for the 3D case
-    //void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer);
-
-    //gauss points for the 2D case
-    //void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer);
 
 
     ///@}
