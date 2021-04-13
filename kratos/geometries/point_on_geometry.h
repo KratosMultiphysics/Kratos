@@ -64,7 +64,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor for untrimmed patch
+    /// Constructor with the local coordinates and background geometry
     PointOnGeometry(
         const CoordinatesArrayType LocalCoordinates,
         typename GeometryType::Pointer pBackgroundGeometry)
