@@ -24,7 +24,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
-    , mLagrangeSupportCondition(0, Condition::GeometryType::Pointer(
+    , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mPenaltyCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
@@ -48,7 +48,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
-    KRATOS_REGISTER_CONDITION("LagrangeSupportCondition", mLagrangeSupportCondition)
+    KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);

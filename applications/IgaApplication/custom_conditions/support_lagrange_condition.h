@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_LAGRANGE_SUPPORT_CONDITION_H_INCLUDED )
-#define  KRATOS_LAGRANGE_SUPPORT_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_LAGRANGE_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_LAGRANGE_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -30,15 +30,15 @@ namespace Kratos
     *
     *   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
     */
-    class LagrangeSupportCondition
+    class SupportLagrangeCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer of LagrangeSupportCondition
-        KRATOS_CLASS_POINTER_DEFINITION(LagrangeSupportCondition);
+        /// Counted pointer of SupportLagrangeCondition
+        KRATOS_CLASS_POINTER_DEFINITION(SupportLagrangeCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -49,14 +49,14 @@ namespace Kratos
         ///@{
 
         /// Constructor with Id and geometry
-        LagrangeSupportCondition(
+        SupportLagrangeCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        LagrangeSupportCondition(
+        SupportLagrangeCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -64,12 +64,12 @@ namespace Kratos
         {};
 
         /// Default constructor
-        LagrangeSupportCondition()
+        SupportLagrangeCondition()
             : Condition()
         {};
 
         /// Destructor.
-        virtual ~LagrangeSupportCondition() = default;
+        virtual ~SupportLagrangeCondition() = default;
 
         ///@}
         ///@name Life Cycle
@@ -82,7 +82,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
             ) const override
         {
-            return Kratos::make_intrusive<LagrangeSupportCondition>(
+            return Kratos::make_intrusive<SupportLagrangeCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -93,7 +93,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
             ) const override
         {
-            return Kratos::make_intrusive< LagrangeSupportCondition >(
+            return Kratos::make_intrusive< SupportLagrangeCondition >(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -204,14 +204,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"LagrangeSupportCondition\" #" << Id();
+            buffer << "\"SupportLagrangeCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"LagrangeSupportCondition\" #" << Id();
+            rOStream << "\"SupportLagrangeCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -254,8 +254,8 @@ namespace Kratos
 
         ///@}
 
-    }; // Class LagrangeSupportCondition
+    }; // Class SupportLagrangeCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LAGRANGE_COUPLING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_SUPPORT_LAGRANGE_COUPLING_CONDITION_H_INCLUDED  defined 

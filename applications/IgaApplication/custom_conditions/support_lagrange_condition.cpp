@@ -15,12 +15,12 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/lagrange_support_condition.h"
+#include "custom_conditions/support_lagrange_condition.h"
 
 
 namespace Kratos
 {
-    void LagrangeSupportCondition::CalculateAll(
+    void SupportLagrangeCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -120,7 +120,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void LagrangeSupportCondition::EquationIdVector(
+    void SupportLagrangeCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -161,7 +161,7 @@ namespace Kratos
         }
     }
 
-    void LagrangeSupportCondition::GetDofList(
+    void SupportLagrangeCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -196,7 +196,7 @@ namespace Kratos
         }
     }
 
-    std::size_t LagrangeSupportCondition::GetNumberOfNonZeroNodes() const {
+    std::size_t SupportLagrangeCondition::GetNumberOfNonZeroNodes() const {
         const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
         SizeType counter = 0;
