@@ -40,8 +40,6 @@ namespace Kratos
 
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-        IndexType counter_n = 0;
-
         // Integration
         const typename GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
@@ -49,6 +47,8 @@ namespace Kratos
         Vector determinant_jacobian_vector(integration_points.size());
         r_geometry.DeterminantOfJacobian(r_geometry, determinant_jacobian_vector);
 
+        // non zero node counter for Lagrange Multipliers.
+        IndexType counter_n = 0;
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             // Differential area, being 1 for points.
@@ -56,8 +56,9 @@ namespace Kratos
                 ? 1
                 : integration_points[point_number].Weight()* determinant_jacobian_vector[point_number];
 
-            //loop over Lagrange Multipliers
+            // loop over Lagrange Multipliers
             for (IndexType i = 0; i < number_of_nodes; i++) {
+                // non zero node counter for for displacements.
                 IndexType counter_m = 0;
                 if (r_N(point_number, i) > shape_function_tolerance) {
                     // loop over shape functions of displacements
@@ -65,6 +66,7 @@ namespace Kratos
                         if (r_N(point_number, j) > shape_function_tolerance) {
                             const double NN = r_N(point_number, j) * r_N(point_number, i) * integration;
 
+                            // indices in local stiffness matrix.
                             const IndexType ibase = counter_n * 3 + 3 * (number_of_non_zero_nodes);
                             const IndexType jbase = counter_m * 3;
 
@@ -95,8 +97,7 @@ namespace Kratos
                         : ZeroVector(3);
 
                     IndexType counter = 0;
-                    for (IndexType i = 0; i < number_of_nodes; i++)
-                    {
+                    for (IndexType i = 0; i < number_of_nodes; i++) {
                         for (IndexType n = 0; n < r_N.size1(); ++n) {
                             if (r_N(n, i) > shape_function_tolerance) {
                                 const array_1d<double, 3>& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -109,8 +110,7 @@ namespace Kratos
                             }
                         }
                     }
-                    for (IndexType i = 0; i < number_of_nodes; i++)
-                    {
+                    for (IndexType i = 0; i < number_of_nodes; i++) {
                         for (IndexType n = 0; n < r_N.size1(); ++n) {
                             if (r_N(n, i) > shape_function_tolerance) {
                                 const array_1d<double, 3>& l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
