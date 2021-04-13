@@ -25,7 +25,7 @@ namespace Kratos {
         typedef Node<3> NodeType;
 
         /// Factory functions
-        inline typename NurbsCurveGeometry<3, PointerVector<Node<3>>>::Pointer GenerateReferenceCurve3d()
+        inline typename NurbsCurveGeometry<3, PointerVector<Node<3>>>::Pointer GenerateReferenceCurve3dForPointOnGeometry()
         {
             PointerVector<Node<3>> points(2);
 
@@ -43,7 +43,7 @@ namespace Kratos {
 
         /// Check dimensions and location
         KRATOS_TEST_CASE_IN_SUITE(PointOnGeometry, KratosCoreGeometriesFastSuite) {
-            auto p_nurbs_curve = GenerateReferenceCurve3d();
+            auto p_nurbs_curve = GenerateReferenceCurve3dForPointOnGeometry();
 
             array_1d<double, 3> point_coordinates = ZeroVector(3);
             point_coordinates[0] = 0.5;
