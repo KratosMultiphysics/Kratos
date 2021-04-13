@@ -6,7 +6,6 @@ def Factory(settings, model):
     return SubModelPartEntitiesBooleanOperationProcess(model, settings["Parameters"])
 
 class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
-
     """SubModelPartEntitiesBooleanOperationProcess.
 
     Apply a boolean operation to the entities of the given sub model parts.
@@ -48,7 +47,7 @@ class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
 
     @staticmethod
     def GetDefaultParameters():
-        """Return the default parameters"""
+        """Return the default parameters."""
         return KM.Parameters("""{
             "first_model_part_name"  : "MODEL_PART_NAME",
             "second_model_part_name" : "MODEL_PART_NAME",
