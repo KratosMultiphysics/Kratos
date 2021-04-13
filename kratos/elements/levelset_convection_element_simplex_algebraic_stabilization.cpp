@@ -136,12 +136,17 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> Mc_matrix = ZeroMatrix(TNumNodes, TNumNodes); // consistent mass matrix
         BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = IdentityMatrix(TNumNodes, TNumNodes); // lumped mass matrix
 
+        BoundedMatrix<double,TNumNodes, TNumNodes> M_matrix = IdentityMatrix(TNumNodes, TNumNodes); // auxiliary mass matrix
+        BoundedMatrix<double,TNumNodes, TNumNodes> L_matrix = IdentityMatrix(TNumNodes, TNumNodes); // auxiliary stabilized convection matrix
+
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         this->GetShapeFunctionsOnGauss(Ncontainer);
 
         array_1d<double, TDim > vel_gauss;
         array_1d<double, TDim > X_gauss;
         array_1d<double, TNumNodes > v_dot_grad_N;
+
+        const double limiter = this->GetValue(LIMITER_COEFFICIENT);
 
         for(unsigned int igauss=0; igauss<TDim+1; ++igauss)
         {
@@ -169,8 +174,10 @@ namespace Kratos
             noalias(Mc_matrix) += outer_prod(N, N);
             noalias(K_matrix) += outer_prod(N, v_dot_grad_N);
 
-            for (unsigned int i = 0; i < TNumNodes; ++i){
-                S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean, (X_gauss - X_mean) ) )*N[i];
+            if (limiter > 1.0e-15){
+                for (unsigned int i = 0; i < TNumNodes; ++i){
+                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean, (X_gauss - X_mean) ) )*N[i];
+                }
             }
         }
 
@@ -187,14 +194,16 @@ namespace Kratos
             }
         }
 
-        const double limiter = this->GetValue(LIMITER_COEFFICIENT);
         if (limiter > 1.0e-15){
-            noalias(rLeftHandSideMatrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) + theta*(K_matrix + (1.0-limiter)*nu_e*S_matrix);
-            noalias(rRightHandSideVector) = prod( dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix) - (1.0 - theta)*(K_matrix + (1.0-limiter)*nu_e*S_matrix) , phi_old) - limiter*nu_e*S_vector;
+            noalias(M_matrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix);
+            noalias(L_matrix) = K_matrix + (1.0-limiter)*nu_e*S_matrix;
         } else {
-            noalias(rLeftHandSideMatrix)  = dt_inv*Ml_matrix + theta*(K_matrix + nu_e*S_matrix);
-            noalias(rRightHandSideVector) = prod( dt_inv*Ml_matrix - (1.0 - theta)*(K_matrix + nu_e*S_matrix) , phi_old);
+            noalias(M_matrix)  = dt_inv*Ml_matrix;
+            noalias(L_matrix) = K_matrix + nu_e*S_matrix;
         }
+
+        noalias(rLeftHandSideMatrix)  = M_matrix + theta*L_matrix;
+        noalias(rRightHandSideVector) = prod( M_matrix - (1.0 - theta)*L_matrix , phi_old) - limiter*nu_e*S_vector;
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
