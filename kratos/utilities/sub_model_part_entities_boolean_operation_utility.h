@@ -110,7 +110,7 @@ private:
     template<class TContainerType>
     static std::vector<IndexType> GetContainerIds(ModelPart& rModelPart)
     {
-        TContainerType& r_container = GetContainer<TContainerType>(rModelPart);
+        const TContainerType& r_container = GetContainer<TContainerType>(rModelPart);
         std::vector<IndexType> ids_vector(r_container.size());
         IndexPartition<std::size_t>(r_container.size()).for_each([&](std::size_t i){
             ids_vector[i] = (r_container.begin()+i)->Id();
