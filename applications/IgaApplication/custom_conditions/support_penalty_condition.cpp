@@ -42,13 +42,13 @@ namespace Kratos
         Vector determinat_jacobian_vector_initial(integration_points.size());
         DeterminantOfJacobianInitial(r_geometry, determinat_jacobian_vector_initial);
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
             const Matrix& N = r_geometry.ShapeFunctionsValues();
 
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes; i++)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 IndexType index = 3 * i;
                 H(0, index)     = N(point_number, i);
@@ -72,7 +72,7 @@ namespace Kratos
                     : ZeroVector(3);
 
                 Vector u(mat_size);
-                for (IndexType i = 0; i < number_of_nodes; i++)
+                for (IndexType i = 0; i < number_of_nodes; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                     IndexType index = 3 * i;
