@@ -233,9 +233,9 @@ public:
     template<int TOtherDimension>
     QuadraturePointGeometry(
         QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension>&& rOther)
-        : BaseType(rOther)
-        , mGeometryData(rOther.mGeometryData)
-        , mpGeometryParent(rOther.mpGeometryParent)
+        : BaseType(std::move(rOther))
+        , mGeometryData(std::move(rOther.mGeometryData))
+        , mpGeometryParent(std::move(rOther.mpGeometryParent))
     {
     }
 
@@ -260,7 +260,7 @@ public:
     QuadraturePointGeometry& operator=(
         const QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension>&& rOther)
     {
-        BaseType::operator=std::move(rOther);
+        BaseType::operator=(std::move(rOther));
 
         mGeometryData = std::move(rOther.mGeometryData);
         mpGeometryParent = std::move(rOther.mpGeometryParent);
