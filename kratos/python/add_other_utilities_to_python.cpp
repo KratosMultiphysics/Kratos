@@ -610,16 +610,32 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
 
-    py::class_<SubModelPartEntitiesBooleanOperationUtility, SubModelPartEntitiesBooleanOperationUtility::Pointer>(m,"SubModelPartEntitiesBooleanOperationUtility")
-        .def("NodesUnion", &SubModelPartEntitiesBooleanOperationUtility::Union<NodeType,NodesContainerType>)
-        .def("NodesIntersection", &SubModelPartEntitiesBooleanOperationUtility::Intersection<NodeType,NodesContainerType>)
-        .def("NodesDifference", &SubModelPartEntitiesBooleanOperationUtility::Difference<NodeType,NodesContainerType>)
-        .def("ElementsUnion", &SubModelPartEntitiesBooleanOperationUtility::Union<Element,ElementsContainerType>)
-        .def("ElementsIntersection", &SubModelPartEntitiesBooleanOperationUtility::Intersection<Element,ElementsContainerType>)
-        .def("ElementsDifference", &SubModelPartEntitiesBooleanOperationUtility::Difference<Element,ElementsContainerType>)
-        .def("ConditionsUnion", &SubModelPartEntitiesBooleanOperationUtility::Union<Condition,ConditionsContainerType>)
-        .def("ConditionsIntersection", &SubModelPartEntitiesBooleanOperationUtility::Intersection<Condition,ConditionsContainerType>)
-        .def("ConditionsDifference", &SubModelPartEntitiesBooleanOperationUtility::Difference<Condition,ConditionsContainerType>)
+    typedef SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType> SubModelPartNodesBooleanOperation;
+    typedef SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType> SubModelPartElementsBooleanOperation;
+    typedef SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType> SubModelPartConditionsBooleanOperation;
+    py::class_<
+        SubModelPartNodesBooleanOperation,
+        SubModelPartNodesBooleanOperation::Pointer>
+        (m,"SubModelPartNodesBooleanOperationUtility")
+        .def_static("Union", &SubModelPartNodesBooleanOperation::Union)
+        .def_static("Intersection", &SubModelPartNodesBooleanOperation::Intersection)
+        .def_static("Difference", &SubModelPartNodesBooleanOperation::Difference)
+    ;
+    py::class_<
+        SubModelPartElementsBooleanOperation,
+        SubModelPartElementsBooleanOperation::Pointer>
+        (m,"SubModelPartElementsBooleanOperationUtility")
+        .def_static("Union", &SubModelPartElementsBooleanOperation::Union)
+        .def_static("Intersection", &SubModelPartElementsBooleanOperation::Intersection)
+        .def_static("Difference", &SubModelPartElementsBooleanOperation::Difference)
+    ;
+    py::class_<
+        SubModelPartConditionsBooleanOperation,
+        SubModelPartConditionsBooleanOperation::Pointer>
+        (m,"SubModelPartConditionsBooleanOperationUtility")
+        .def_static("Union", &SubModelPartConditionsBooleanOperation::Union)
+        .def_static("Intersection", &SubModelPartConditionsBooleanOperation::Intersection)
+        .def_static("Difference", &SubModelPartConditionsBooleanOperation::Difference)
     ;
 
 }

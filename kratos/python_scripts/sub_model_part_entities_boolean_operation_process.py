@@ -67,26 +67,17 @@ class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
 
     def _ExecuteBooleanOperation(self):
         if self.entity_type == "Nodes":
-            if self.boolean_operation == "Union":
-                KM.SubModelPartEntitiesBooleanOperationUtility.NodesUnion(self.first_model_part, self.second_model_part, self.result_model_part)
-            elif self.boolean_operation == "Intersection":
-                KM.SubModelPartEntitiesBooleanOperationUtility.NodesIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
-            elif self.boolean_operation == "Difference":
-                KM.SubModelPartEntitiesBooleanOperationUtility.NodesDifference(self.first_model_part, self.second_model_part, self.result_model_part)
+            utility = KM.SubModelPartNodesBooleanOperationUtility
         elif self.entity_type == "Elements":
-            if self.boolean_operation == "Union":
-                KM.SubModelPartEntitiesBooleanOperationUtility.ElementsUnion(self.first_model_part, self.second_model_part, self.result_model_part)
-            elif self.boolean_operation == "Intersection":
-                KM.SubModelPartEntitiesBooleanOperationUtility.ElementsIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
-            elif self.boolean_operation == "Difference":
-                KM.SubModelPartEntitiesBooleanOperationUtility.ElementsDifference(self.first_model_part, self.second_model_part, self.result_model_part)
+            utility = KM.SubModelPartElementsBooleanOperationUtility
         elif self.entity_type == "Conditions":
-            if self.boolean_operation == "Union":
-                KM.SubModelPartEntitiesBooleanOperationUtility.ConditionsUnion(self.first_model_part, self.second_model_part, self.result_model_part)
-            elif self.boolean_operation == "Intersection":
-                KM.SubModelPartEntitiesBooleanOperationUtility.ConditionsIntersection(self.first_model_part, self.second_model_part, self.result_model_part)
-            elif self.boolean_operation == "Difference":
-                KM.SubModelPartEntitiesBooleanOperationUtility.ConditionsDifference(self.first_model_part, self.second_model_part, self.result_model_part)
+            utility = KM.SubModelPartConditionsBooleanOperationUtility
+        if self.boolean_operation == "Union":
+            utility.Union(self.first_model_part, self.second_model_part, self.result_model_part)
+        if self.boolean_operation == "Intersection":
+            utility.Intersection(self.first_model_part, self.second_model_part, self.result_model_part)
+        if self.boolean_operation == "Difference":
+            utility.Difference(self.first_model_part, self.second_model_part, self.result_model_part)
 
     @staticmethod
     def _GetOrCreateSubModelPart(model, full_name):

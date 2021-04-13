@@ -45,6 +45,7 @@ namespace Kratos
  * @author Miguel Maso Sotomayor
  * @ingroup KratosCore
 */
+template<class TEntityType, class TContainerType>
 class KRATOS_API(KRATOS_CORE) SubModelPartEntitiesBooleanOperationUtility
 {
 public:
@@ -74,25 +75,19 @@ public:
     ///@name Operations
     ///@{
 
-    template<class TEntityType, class TContainerType>
     static void Union(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
-        BooleanOperation<TEntityType, TContainerType>(
-            rModelPartA, rModelPartB, rDestination, BooleanOperators::Union);
+        BooleanOperation(rModelPartA, rModelPartB, rDestination, BooleanOperators::Union);
     }
 
-    template<class TEntityType, class TContainerType>
     static void Intersection(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
-        BooleanOperation<TEntityType, TContainerType>(
-            rModelPartA, rModelPartB, rDestination, BooleanOperators::Intersection);
+        BooleanOperation(rModelPartA, rModelPartB, rDestination, BooleanOperators::Intersection);
     }
 
-    template<class TEntityType, class TContainerType>
     static void Difference(ModelPart& rModelPartA, ModelPart& rModelPartB, ModelPart& rDestination)
     {
-        BooleanOperation<TEntityType, TContainerType>(
-            rModelPartA, rModelPartB, rDestination, BooleanOperators::Difference);
+        BooleanOperation(rModelPartA, rModelPartB, rDestination, BooleanOperators::Difference);
     }
 
     ///@}
@@ -101,16 +96,13 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<class TEntityType>
     static void AddEntities(const std::vector<IndexType>& rIds, ModelPart& rModelPart);
 
-    template<class TContainerType>
     static TContainerType& GetContainer(ModelPart& rModelPart);
 
-    template<class TContainerType>
     static std::vector<IndexType> GetContainerIds(ModelPart& rModelPart)
     {
-        const TContainerType& r_container = GetContainer<TContainerType>(rModelPart);
+        const TContainerType& r_container = GetContainer(rModelPart);
         std::vector<IndexType> ids_vector(r_container.size());
         IndexPartition<std::size_t>(r_container.size()).for_each([&](std::size_t i){
             ids_vector[i] = (r_container.begin()+i)->Id();
@@ -118,7 +110,6 @@ private:
         return ids_vector;
     }
 
-    template<class TEntityType, class TContainerType>
     static void BooleanOperation(
         ModelPart& rModelPartA,
         ModelPart& rModelPartB,
@@ -131,8 +122,8 @@ private:
         const ModelPart& r_root_d = rDestination.GetRootModelPart();
         KRATOS_ERROR_IF(&r_root_a != &r_root_b) << "The first and second model parts must belong to the same root model part." << std::endl;
         KRATOS_ERROR_IF(&r_root_a != &r_root_d) << "The destination model part must belong to the same root model part than the first and the second." << std::endl;
-        std::vector<IndexType> ids_a = GetContainerIds<TContainerType>(rModelPartA);
-        std::vector<IndexType> ids_b = GetContainerIds<TContainerType>(rModelPartB);
+        std::vector<IndexType> ids_a = GetContainerIds(rModelPartA);
+        std::vector<IndexType> ids_b = GetContainerIds(rModelPartB);
         std::vector<IndexType> ids_destination;
         std::sort(ids_a.begin(), ids_a.end());
         std::sort(ids_b.begin(), ids_b.end());
@@ -155,7 +146,7 @@ private:
         }
 
         EntitiesEraseProcess<TEntityType>(rDestination, EntitiesEraseProcessFlags::ERASE_ALL_ENTITIES).Execute();
-        AddEntities<TEntityType>(ids_destination, rDestination);
+        AddEntities(ids_destination, rDestination);
     }
 
     ///@}

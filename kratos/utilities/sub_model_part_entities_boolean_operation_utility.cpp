@@ -21,28 +21,28 @@ namespace Kratos
 {
 
 template<>
-ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::NodesContainerType>(
+ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>::GetContainer(
     ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template<>
-ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::ElementsContainerType>(
+ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>::GetContainer(
     ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template<>
-ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility::GetContainer<ModelPart::ConditionsContainerType>(
+ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>::GetContainer(
     ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 template<>
-void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Node<3>>(
+void SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>::AddEntities(
     const std::vector<IndexType>& rIds,
     ModelPart& rModelPart)
 {
@@ -50,7 +50,7 @@ void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Node<3>>(
 }
 
 template<>
-void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Element>(
+void SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>::AddEntities(
     const std::vector<IndexType>& rIds,
     ModelPart& rModelPart)
 {
@@ -58,7 +58,7 @@ void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Element>(
 }
 
 template<>
-void SubModelPartEntitiesBooleanOperationUtility::AddEntities<Condition>(
+void SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>::AddEntities(
     const std::vector<IndexType>& rIds,
     ModelPart& rModelPart)
 {
