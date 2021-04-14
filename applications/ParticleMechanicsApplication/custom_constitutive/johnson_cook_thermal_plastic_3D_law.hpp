@@ -145,6 +145,7 @@ protected:
     double mDamage = 0.0;
     double mDamageInitiation = 0.0;
     double mDamageInitiationDisp = 0.0;
+    double mHardeningMod = 0.0;
 
     ///@}
     ///@name Protected Operators
@@ -164,6 +165,10 @@ protected:
 
     virtual void ComputeCharacteristicLength(const GeometryType& geom, const Properties& rMaterialProperties,
         double& rCharacteristicLength);
+
+    virtual void CalculateMaterialResponseKirchhoffForwardEuler(Parameters& rValues);
+
+    virtual void CalculateMaterialResponseKirchhoffBackwardEuler(Parameters& rValues);
 
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 

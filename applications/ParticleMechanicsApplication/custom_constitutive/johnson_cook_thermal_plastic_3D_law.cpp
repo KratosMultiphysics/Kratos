@@ -158,6 +158,186 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
+		const bool is_backward_euler = false;
+
+		if (is_backward_euler)
+		{
+			KRATOS_ERROR << "CANT USE BACKWARD EULER";
+			CalculateMaterialResponseKirchhoffBackwardEuler(rValues);
+		}
+		else
+		{
+			CalculateMaterialResponseKirchhoffForwardEuler(rValues);
+		}
+
+		KRATOS_CATCH("")
+	}
+
+
+	void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponseKirchhoffForwardEuler(Kratos::ConstitutiveLaw::Parameters& rValues)
+	{
+		KRATOS_TRY
+
+		// Check if the constitutive parameters are passed correctly to the law calculation
+		CheckParameters(rValues);
+
+		// Get Values to compute the constitutive law:
+		Flags& Options = rValues.GetOptions();
+		KRATOS_ERROR_IF(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+			<< "The JohnsonCookThermalPlastic3DLaw cannot accept the deformation graddient F as a strain input."
+			<< " Please set the strain vector and set USE_ELEMENT_PROVIDED_STRAIN = False in the element.";
+		const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
+		CheckIsExplicitTimeIntegration(CurrentProcessInfo);
+		const Properties& MaterialProperties = rValues.GetMaterialProperties();
+
+		// Get old stress vector and current strain vector
+		const Vector StrainVector = rValues.GetStrainVector();
+		Vector& StressVector = rValues.GetStressVector();
+		const Matrix identity = (GetStrainSize() == 3) ? IdentityMatrix(2) : IdentityMatrix(3);
+
+		// Convert vectors to matrices for easier manipulation
+		Matrix stress_old = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
+		Matrix strain_increment = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
+		MakeStrainStressMatrixFromVector((StrainVector - mStrainOld), strain_increment);
+		MakeStrainStressMatrixFromVector(StressVector, stress_old);
+
+		mStrainRate = std::sqrt(0.5 *
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(strain_increment / CurrentProcessInfo[DELTA_TIME]));
+
+		// Material moduli
+		const double shear_modulus_G = (1.0-mDamage)* MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
+		const double bulk_modulus_K = (1.0 - mDamage) * MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
+
+		// Calculate deviatoric quantities
+		const Matrix strain_increment_deviatoric = strain_increment -
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
+		const Matrix stress_deviatoric_old = stress_old -
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
+
+		// Calculate trial (predicted) j2 stress
+		double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 +
+			bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment);
+		Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
+		const double j2_stress_trial = std::sqrt(3.0 / 2.0 *
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
+
+		// Declare deviatoric stress matrix to be used later
+		Matrix stress_deviatoric_converged = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
+		double delta_plastic_strain = 0.0;
+
+		if (j2_stress_trial > mYieldStressOld && mDamage < 0.95)
+		{
+			double delta_plastic_strain = (j2_stress_trial - mYieldStressOld) / (3.0 * shear_modulus_G + mHardeningMod);
+			mEquivalentPlasticStrainOld += delta_plastic_strain;
+			mPlasticStrainRateOld = delta_plastic_strain/ CurrentProcessInfo[DELTA_TIME];
+
+			// Use only old yield stress for temperature factor in new yield stress
+			double predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] 
+				/ MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] 
+				* (mYieldStressOld) * delta_plastic_strain;
+			const double yield_stress = CalculateHardenedYieldStress(MaterialProperties, 
+				mEquivalentPlasticStrainOld, mPlasticStrainRateOld, predicted_temperature);
+
+			// Scale back to yield surface
+			stress_deviatoric_trial *= (yield_stress / j2_stress_trial);
+			
+			// Now update the temperature with the new yield stress
+			mTemperatureOld += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / MaterialProperties[DENSITY]
+				/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress) * delta_plastic_strain;
+
+			// Finalize plasticity
+			mHardeningMod = (yield_stress - mYieldStressOld) / delta_plastic_strain; // already includes damage
+			mEnergyDissipated += (yield_stress)/ delta_plastic_strain / MaterialProperties[DENSITY];
+			mYieldStressOld = yield_stress;
+		}
+		else
+		{
+			if (mDamage > 0.95)
+			{
+				// Particle has already failed. It can only take compressive volumetric stresses!
+				stress_deviatoric_converged.clear();
+				if (stress_hydrostatic_new > 0.0) stress_hydrostatic_new = 0.0;
+			}
+			else
+			{
+				stress_deviatoric_converged = stress_deviatoric_trial;
+			}
+		}
+
+		// Update equivalent stress
+		Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
+		mEquivalentStress = std::sqrt(3.0 / 2.0 *
+			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
+
+		// Update damage
+		if (delta_plastic_strain < 1e-12)
+		{
+			// Evolution
+			if (mDamageInitiation < 1.0)
+			{
+				const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
+					mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
+
+				mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
+			}
+			else
+			{
+				// True material damage
+				if (mDamageInitiationDisp < 1e-12)
+				{
+					// We have just started damage - store the current plastic displacement
+					mDamageInitiationDisp = mCharLength * mEquivalentPlasticStrainOld;
+					mFailureDisp = 2.0 * mFractureEnergy / mYieldStressOld; //value of the yield stress at the time when the failure criterion is reached
+					mDamage = 1e-9;
+					if (mFractureEnergy < 1e-9) mDamage = 1.0;
+				}
+
+				if (mDamage < 1.0)
+				{
+					// Softening regularised with Hillerborg approach
+					const bool is_exponential_softening = true;
+					const double plastic_disp_after_onset = mCharLength * mEquivalentPlasticStrainOld - mDamageInitiationDisp;
+					if (is_exponential_softening)
+					{
+						// https://abaqus-docs.mit.edu/2017/English/SIMACAEMATRefMap/simamat-c-damageevolductile.htm
+						const double undamaged_yield = mYieldStressOld / (1.0 - mDamage);
+						mDamage = 1.0 - std::exp(-1.0 * plastic_disp_after_onset * undamaged_yield / mFractureEnergy);
+					}
+					else
+					{
+						// simple linear damage evolution
+						if (mFailureDisp - mDamageInitiationDisp < 1e-9)  mDamage = 1.0;
+						else mDamage = plastic_disp_after_onset / (mFailureDisp - mDamageInitiationDisp); // simple linear damage law
+					}
+					mDamage = std::min(1.0, mDamage);
+					mDamage = std::max(0.0, mDamage);
+					if (mDamage > 0.95) mDamage = 1.0;
+				}
+			}
+		}
+
+
+		// Store stresses and strains
+		MakeStrainStressVectorFromMatrix(stress_converged, StressVector);
+		mStrainOld = StrainVector;
+
+		// Udpdate internal energy
+		for (size_t i = 0; i < stress_converged.size1(); ++i) {
+			for (size_t j = 0; j < stress_converged.size2(); ++j) {
+				mEnergyInternal += 0.5 * (stress_converged(i, j) + stress_old(i, j)) * strain_increment(i, j) / MaterialProperties[DENSITY];
+			}
+		}
+		KRATOS_CATCH("")
+	}
+
+
+
+
+
+	void JohnsonCookThermalPlastic3DLaw::CalculateMaterialResponseKirchhoffBackwardEuler(Kratos::ConstitutiveLaw::Parameters& rValues)
+	{
+		KRATOS_TRY
+
 		// Check if the constitutive parameters are passed correctly to the law calculation
 		CheckParameters(rValues);
 
