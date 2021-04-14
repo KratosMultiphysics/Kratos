@@ -132,7 +132,7 @@ public:
         const DataCommunicator& rComm,
         const std::vector<IndexType>& CpuBounds)
         :
-        mpComm(rComm), mCpuBounds(CpuBounds)
+        mpComm(&rComm), mCpuBounds(CpuBounds)
     {
     }
 
