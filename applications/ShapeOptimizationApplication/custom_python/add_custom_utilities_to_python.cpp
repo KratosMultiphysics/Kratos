@@ -32,6 +32,7 @@
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
+#include "custom_utilities/response_functions/face_angle_response_function_utility.h"
 
 // ==============================================================================
 
@@ -214,6 +215,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
+        ;
+
+    // ========================================================================
+    // For geometric response functions
+    // ========================================================================
+    py::class_<FaceAngleResponseFunctionUtility >(m, "FaceAngleResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &FaceAngleResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &FaceAngleResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &FaceAngleResponseFunctionUtility::CalculateGradient)
         ;
 
     // ========================================================================
