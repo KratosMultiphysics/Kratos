@@ -58,7 +58,7 @@ namespace Kratos {
         }
     }
 
-    void RigidBodyElement3D::Initialize(ProcessInfo& r_process_info) {
+    void RigidBodyElement3D::Initialize(const ProcessInfo& r_process_info) {
 
         if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
@@ -133,14 +133,6 @@ namespace Kratos {
                 central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
                 central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
                 central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
-            }
-
-            if (rigid_body_element_sub_model_part.Has(TABLE_NUMBER)) {
-                KRATOS_INFO("DEM") << "============================================================================" << std::endl;
-                KRATOS_INFO("DEM") << "** Warning ** in 1 January 2019 TABLE_NUMBER variable will disappear, the new" << std::endl;
-                KRATOS_INFO("DEM") << " variables are TABLE_NUMBER_VELOCITY, TABLE_NUMBER_ANGULAR_VELOCITY," << std::endl;
-                KRATOS_INFO("DEM") << " TABLE_NUMBER_FORCE and TABLE_NUMBER_MOMENT for defining each variable" << std::endl;
-                KRATOS_INFO("DEM") << "============================================================================" << std::endl;
             }
 
             array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);

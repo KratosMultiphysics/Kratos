@@ -92,10 +92,11 @@ namespace Kratos {
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateModelPartToTestPowerSums(model_part);
+            const auto& r_process_info = model_part.GetProcessInfo();
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the element
-            p_element->Initialize();
+            p_element->Initialize(r_process_info);
 
             // Generate parameters
             Parameters parameters = Parameters(R"(

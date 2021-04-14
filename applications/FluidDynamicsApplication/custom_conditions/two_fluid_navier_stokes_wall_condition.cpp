@@ -27,7 +27,7 @@ namespace Kratos
 {
 
 template<unsigned int TDim, unsigned int TNumNodes>
-int TwoFluidNavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int TwoFluidNavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

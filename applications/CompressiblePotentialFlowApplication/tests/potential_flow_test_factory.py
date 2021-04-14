@@ -70,6 +70,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_perimeter_computation()
 
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
@@ -188,7 +189,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7331131286069874, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7228720706323188, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
@@ -300,6 +301,12 @@ class PotentialFlowTests(UnitTest.TestCase):
         full_msg += str(rel_tol) + ", abs_tol = " + str(abs_tol)
 
         self.assertTrue(isclosethis, msg=full_msg)
+
+    def _check_perimeter_computation(self):
+        body_model_part = self.main_model_part.GetSubModelPart("Body2D_Body")
+        perimeter1 = sum([cond.GetGeometry().Area() for cond in body_model_part.Conditions])
+        perimeter2 = CPFApp.PotentialFlowUtilities.CalculateArea(body_model_part.Conditions)
+        self._check_results(perimeter1, perimeter2, 1e-9, 1e-9)
 
 if __name__ == '__main__':
     UnitTest.main()

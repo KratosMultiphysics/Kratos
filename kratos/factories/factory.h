@@ -22,35 +22,31 @@
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "includes/shared_pointers.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
 ///@name Type Definitions
 ///@{
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSpaceType;
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
 /**
- * @class FactoryMethods
+ * @class FactoryBase
  * @ingroup KratosCore
  * @brief Here we define some common methods
  * @details Defines the base class factory methods
  * @author Vicente Mataix Ferrandiz
  */
-class FactoryMethods
+class FactoryBase
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of FactoryMethods
-    KRATOS_CLASS_POINTER_DEFINITION(FactoryMethods);
+    /// Pointer definition of FactoryBase
+    KRATOS_CLASS_POINTER_DEFINITION(FactoryBase);
 
     ///@}
     ///@name Life Cycle
@@ -58,11 +54,11 @@ public:
 
     /** Constructor.
      */
-    explicit FactoryMethods(){}
+    explicit FactoryBase(){}
 
     /** Destructor.
      */
-    virtual ~FactoryMethods(){}
+    virtual ~FactoryBase(){}
 
     ///@}
     ///@name Operations
@@ -86,7 +82,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "FactoryMethods";
+        return "FactoryBase";
     }
 
     /// Print information about this object.
@@ -108,11 +104,10 @@ public:
  * @details Defines the base class factory
  * @author Vicente Mataix Ferrandiz
  * @tparam TClass The class to create the factory
- * @tparam TAuxiliarClass The auxiliar class to create the factory
  */
 template<typename TClass>
 class Factory
-    : public FactoryMethods
+    : public FactoryBase
 {
 public:
     ///@name Type Definitions
@@ -209,6 +204,25 @@ public:
 
     ///@}
 };
+
+namespace Internals
+{
+    template <typename TBaseCategoryType>
+    class RegisteredPrototypeBase {
+        public:
+        RegisteredPrototypeBase() = default;
+    };
+
+    template <typename TClassType, typename TBaseCategoryType>
+    class RegisteredPrototype : public  RegisteredPrototypeBase<TBaseCategoryType> {
+        public:
+        explicit RegisteredPrototype(const std::string& rName, const TClassType& rPrototype)
+        {
+            KratosComponents<TBaseCategoryType>::Add(rName, rPrototype);
+        }
+    };
+
+}
 
 ///@}
 ///@name Type Definitions

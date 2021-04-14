@@ -255,7 +255,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,False)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -315,7 +315,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -376,7 +376,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements
@@ -918,7 +918,7 @@ class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements

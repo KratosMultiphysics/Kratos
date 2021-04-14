@@ -32,7 +32,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "            \"input_filename\"             : \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"echo_level\"                 : [GiD_AccessValue get gendata Echo_Level],"
-    puts $FileVar "        \"buffer_size\"                : 2,"
+    puts $FileVar "        \"time_integration_order\"     : 2,"
     puts $FileVar "        \"stabilization_factor\"       : [GiD_AccessValue get gendata Stabilization_parameter],"
     puts $FileVar "        \"shock_stabilization_factor\" : [GiD_AccessValue get gendata Shock_stabilization_parameter],"
     puts $FileVar "        \"relative_tolerance\"         : [GiD_AccessValue get gendata Relative_tolerance],"

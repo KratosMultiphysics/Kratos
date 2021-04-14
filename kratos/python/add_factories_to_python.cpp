@@ -77,14 +77,13 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE WE REGISTER SOME COMMON METHODS
-    py::class_<FactoryMethods, FactoryMethods::Pointer >(m, "FactoryMethods")
-     .def( py::init< >() )
-     .def("Has",&FactoryMethods::Has)
+    py::class_<FactoryBase, FactoryBase::Pointer >(m, "FactoryBase")
+    .def("Has",&FactoryBase::Has)
     ;
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER CONVERGENCE CRITERIA
-    py::class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer, FactoryMethods>(m, "ConvergenceCriteriaFactory")
+    py::class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer, FactoryBase>(m, "ConvergenceCriteriaFactory")
      .def( py::init< >() )
      .def("Create",[](ConvergenceCriteriaFactoryType& rConvergenceCriteriaFactory, Kratos::Parameters Settings) {return rConvergenceCriteriaFactory.Create(Settings);})
      .def("__str__", PrintObject<ConvergenceCriteriaFactoryType>)
@@ -92,7 +91,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER SCHEMES
-    py::class_<SchemeFactoryType, SchemeFactoryType::Pointer, FactoryMethods>(m, "SchemeFactory")
+    py::class_<SchemeFactoryType, SchemeFactoryType::Pointer, FactoryBase>(m, "SchemeFactory")
      .def( py::init< >() )
      .def("Create",[](SchemeFactoryType& rSchemeFactory, Kratos::Parameters Settings) {return rSchemeFactory.Create(Settings);})
      .def("__str__", PrintObject<SchemeFactoryType>)
@@ -100,7 +99,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER BUILDER AND SOLVERS
-    py::class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer, FactoryMethods>(m, "BuilderAndSolverFactory")
+    py::class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer, FactoryBase>(m, "BuilderAndSolverFactory")
      .def( py::init< >() )
      .def("Create",[](BuilderAndSolverFactoryType& rBuilderAndSolverFactory, typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings) {return rBuilderAndSolverFactory.Create(pLinearSolver, Settings);})
      .def("__str__", PrintObject<BuilderAndSolverFactoryType>)
@@ -108,7 +107,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER EXPLICIT BUILDER
-    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, FactoryMethods>(m, "ExplicitBuilderFactory")
+    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, FactoryBase>(m, "ExplicitBuilderFactory")
      .def( py::init< >() )
      .def("Create",[](ExplicitBuilderFactoryType& rExplicitBuilderFactory, Kratos::Parameters Settings) {return rExplicitBuilderFactory.Create(Settings);})
      .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
@@ -116,7 +115,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER STRATEGIES
-    py::class_<StrategyFactoryType, StrategyFactoryType::Pointer, FactoryMethods>(m, "StrategyFactory")
+    py::class_<StrategyFactoryType, StrategyFactoryType::Pointer, FactoryBase>(m, "StrategyFactory")
      .def( py::init< >() )
      .def("Create",[](StrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rStrategyFactory.Create(rModelPart, Settings);})
      .def("__str__", PrintObject<StrategyFactoryType>)
@@ -124,7 +123,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER EXPLICIT STRATEGIES
-    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, FactoryMethods>(m, "ExplicitStrategyFactory")
+    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, FactoryBase>(m, "ExplicitStrategyFactory")
      .def( py::init< >() )
      .def("Create",[](ExplicitStrategyFactoryType& rExplicitStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rExplicitStrategyFactory.Create(rModelPart, Settings);})
      .def("__str__", PrintObject<ExplicitStrategyFactoryType>)

@@ -586,15 +586,15 @@ protected:
         if (rMass.size1() != 0)
         {
             const Vector& rCoefs = rCurrentProcessInfo.GetValue(BDF_COEFFICIENTS);
-
+            const auto& r_const_obj_ref = rObject;
             LocalSystemVectorType Acc;
-            rObject.GetFirstDerivativesVector(Acc);
+            r_const_obj_ref.GetFirstDerivativesVector(Acc);
             Acc *= rCoefs[0];
 
             for(unsigned int n = 1; n < 3; ++n)
             {
                 LocalSystemVectorType rVel;
-                rObject.GetFirstDerivativesVector(rVel,n);
+                r_const_obj_ref.GetFirstDerivativesVector(rVel,n);
                 noalias(Acc) += rCoefs[n] * rVel;
             }
 

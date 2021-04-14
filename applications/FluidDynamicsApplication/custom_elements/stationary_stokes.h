@@ -149,10 +149,10 @@ public:
     /// Check that all required data containers are properly initialized and registered in Kratos
     /** @return 0 if no errors are detected.
       */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Calculate Shape function derivatives and Jacobian at each integration point
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Evaluate the elemental contribution to the problem.
     /**
@@ -160,21 +160,21 @@ public:
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         MatrixType TmpLHS;
         this->CalculateLocalSystem(TmpLHS,rRightHandSideVector,rCurrentProcessInfo);
     }
 
     /// Fill given array with containing the element's degrees of freedom
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Fill given vector with the linear system row index for the element's degrees of freedom
-    void EquationIdVector(Element::EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(Element::EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetFirstDerivativesVector(Vector &rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector &rValues, int Step = 0) const override;
 
     ///@}
     ///@name Access

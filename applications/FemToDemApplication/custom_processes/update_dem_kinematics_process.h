@@ -35,7 +35,7 @@ class UpdateDemKinematicsProcess : public Process
   typedef std::size_t IndexType;
 
   // Constructor
-  UpdateDemKinematicsProcess(ModelPart& rModelPart, ModelPart& rDemModelPart);
+  UpdateDemKinematicsProcess(ModelPart& rModelPart);
 
   // Destructor
   ~UpdateDemKinematicsProcess() override = default;
@@ -49,7 +49,6 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  ModelPart& mrDEMModelPart;
 
 };  // Class
 

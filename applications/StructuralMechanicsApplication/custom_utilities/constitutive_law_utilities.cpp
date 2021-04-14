@@ -23,34 +23,6 @@ namespace Kratos
 {
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI1
-    )
-{
-    rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i)
-        rI1 += rStressVector[i];
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI1
-    )
-{
-    rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i)
-        rI1 += rStressVector[i];
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
 void ConstitutiveLawUtilities<6>::CalculateI2Invariant(
     const BoundedVectorType& rStressVector,
     double& rI2
@@ -96,50 +68,6 @@ void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
     )
 {
     rI3 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
-}
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
-    const BoundedVectorType& rStressVector,
-    const double I1,
-    BoundedVectorType& rDeviator,
-    double& rJ2
-    )
-{
-    rDeviator = rStressVector;
-    const double p_mean = I1 / static_cast<double>(Dimension);
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rDeviator[i] -= p_mean;
-
-    rJ2 = 0.0;
-    for (IndexType i = 0; i < Dimension; ++i)
-        rJ2 += 0.5 * std::pow(rDeviator[i], 2);
-    for (IndexType i = Dimension; i < 6; ++i)
-        rJ2 += std::pow(rDeviator[i], 2);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
-    const BoundedVectorType& rStressVector,
-    const double I1,
-    BoundedVectorType& rDeviator,
-    double& rJ2
-    )
-{
-    rDeviator = rStressVector;
-    const double p_mean = I1 / 3.0;
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rDeviator[i] -= p_mean;
-
-    rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) +
-          std::pow(rDeviator[2], 2.0);
 }
 
 /***********************************************************************************/

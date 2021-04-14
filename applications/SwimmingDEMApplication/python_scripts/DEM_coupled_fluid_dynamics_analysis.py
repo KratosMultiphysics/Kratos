@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.FluidDynamicsApplication
 
@@ -22,6 +20,14 @@ class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
 
     def AddFluidVariablesForSwimmingDEM(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
+
+    def _CreateSolver(self):
+        if (self.project_parameters["solver_settings"]["solver_type"].GetString() == "MonolithicDEM"):
+            from KratosMultiphysics.SwimmingDEMApplication.python_solvers_wrapper_fluidDEM import CreateSolver
+            return CreateSolver(self.model, self.project_parameters)
+        else:
+            from KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid import CreateSolver
+            return CreateSolver(self.model, self.project_parameters)
 
 if __name__ == '__main__':
     from sys import argv

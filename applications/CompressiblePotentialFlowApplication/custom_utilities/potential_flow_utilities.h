@@ -80,7 +80,12 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputePerturbedVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+array_1d<double, Dim> ComputePerturbedVelocityLowerElement(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+
+double ComputeVacuumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
@@ -176,6 +181,9 @@ void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
 
 template <int Dim, int NumNodes>
 void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer);
 } // namespace PotentialFlow
 } // namespace Kratos
 

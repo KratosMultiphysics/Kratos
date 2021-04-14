@@ -1,4 +1,4 @@
-# Results for "node" with Id # 3 at position: x: 0.5; y: 0; z: 0
+# Results for "node" with Id # 3 for search config "initial" at position: x0: 0.5; y0: 0; z0: 0
 # time DISPLACEMENT_X DISPLACEMENT_Y DISPLACEMENT_Z VISCOSITY ACCELERATION_X ACCELERATION_Y ACCELERATION_Z
 0.15 0.075 0.4 0.65 1.0605 0.01125 0.06 0.0975
 0.3 0.15 0.55 0.8 1.128 0.045 0.165 0.24

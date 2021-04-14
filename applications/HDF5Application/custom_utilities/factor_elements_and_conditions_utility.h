@@ -26,7 +26,7 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/pointer_vector_set.h"
 
 namespace Kratos

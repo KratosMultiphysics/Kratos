@@ -27,7 +27,7 @@
 #include "includes/define.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector_set.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "utilities/contact_pair.h"
 
 namespace Kratos {

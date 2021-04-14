@@ -695,7 +695,7 @@ namespace Kratos
 
   void LargeDisplacementBeamSEMCElement::AddExplicitContribution(const MatrixType& rLHSMatrix,
 								 const Variable<MatrixType>& rLHSVariable,
-								 Variable<Matrix >& rDestinationVariable,
+								 const Variable<Matrix >& rDestinationVariable,
 								 const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -740,7 +740,7 @@ namespace Kratos
 
   void LargeDisplacementBeamSEMCElement::AddExplicitContribution(const VectorType& rRHSVector,
 								 const Variable<VectorType>& rRHSVariable,
-								 Variable<array_1d<double,3> >& rDestinationVariable,
+								 const Variable<array_1d<double,3> >& rDestinationVariable,
 								 const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY

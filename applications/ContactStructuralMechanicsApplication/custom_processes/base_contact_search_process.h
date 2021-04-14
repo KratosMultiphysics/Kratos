@@ -369,6 +369,42 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief This returns if we consider pure slip
+     * @return True if we consider pure slip
+     */
+    bool IsPureSlip();
+
+    /**
+     * @brief This returns if we do not consider pure slip
+     * @return True if we do not consider pure slip
+     */
+    bool IsNotPureSlip();
+
+    /**
+     * @brief This returns if we consider multiple searchs
+     * @return True if we consider multiple searchs
+     */
+    bool IsMultipleSearchs();
+
+    /**
+     * @brief This returns if we do not consider multiple searchs
+     * @return True if we do not consider multiple searchs
+     */
+    bool IsNotMultipleSearchs();
+
+    /**
+     * @brief This returns if we consider inverted search
+     * @return True if we consider inverted search
+     */
+    bool IsInvertedSearch();
+
+    /**
+     * @brief This returns if we do not consider inverted search
+     * @return True if we do not consider inverted search
+     */
+    bool IsNotInvertedSearch();
+
     ///@}
     ///@name Protected Inquiry
     ///@{

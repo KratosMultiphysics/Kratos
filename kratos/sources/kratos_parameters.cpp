@@ -202,7 +202,7 @@ const std::string Parameters::const_iterator_adaptor::name()
 
 Parameters::Parameters()
 {
-    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( "{}" ));
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( "{}", nullptr, true, true));
     mpValue = mpRoot.get();
 }
 
@@ -211,7 +211,7 @@ Parameters::Parameters()
 
 Parameters::Parameters(const std::string& rJsonString)
 {
-    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString ));
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString, nullptr, true, true));
     mpValue = mpRoot.get();
 }
 
@@ -221,7 +221,7 @@ Parameters::Parameters(const std::string& rJsonString)
 
 Parameters::Parameters(std::ifstream& rStringStream)
 {
-    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream ));
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rStringStream, nullptr, true, true));
     mpValue = mpRoot.get();
 }
 
@@ -249,10 +249,10 @@ Parameters::Parameters(Parameters&& rOther) : Parameters()
 Parameters& Parameters::operator=(Parameters const& rOther)
 {
     if(mpRoot.get() ==  mpValue || mpRoot == nullptr) {
-        mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse(rOther.WriteJsonString()));
+        mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse(rOther.WriteJsonString(), nullptr, true, true));
         mpValue = mpRoot.get();
     } else {
-        *mpValue = nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString() ) );
+        *mpValue = nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString(), nullptr, true, true));
         // note that mpRoot is unchanged
     }
 
@@ -989,7 +989,7 @@ void Parameters::Append(const Matrix& rValue)
 void Parameters::Append(const Parameters& rValue)
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-    nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString() ) );
+    nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString(), nullptr, true, true));
     mpValue->push_back(j_object);
 }
 
@@ -1401,7 +1401,7 @@ void Parameters::SetUnderlyingRootStorage(Kratos::shared_ptr<nlohmann::json> pNe
 void Parameters::InternalSetValue(const Parameters& rOtherValue)
 {
     delete[] mpValue;
-    mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString()));
+    mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString(), nullptr, true, true));
 }
 
 }  // namespace Kratos.

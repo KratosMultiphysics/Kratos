@@ -267,8 +267,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         super().FinalizeSolutionStep()
 
         current_test_energy = self.ComputeEnergy()
-        #if not self.step%200:
-        #    print("Energy: "+str(current_test_energy))
 
         if current_test_energy/self.initial_test_energy > 1.5:
             print("GAINING ENERGY!!")

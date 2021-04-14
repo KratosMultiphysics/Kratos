@@ -105,18 +105,21 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
 
     // Sum all the nodes normals
     auto& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
+    bool use_simplex = false;
+    if (r_conditions_array.size() != 0) {
+        const auto it_cond_begin = r_conditions_array.begin();
 
-    // Checking if we can compute with simplex
-    const GeometryData::KratosGeometryType geometry_type =
-        it_cond_begin->GetGeometry().GetGeometryType();
-    const bool use_simplex =
-        EnforceGenericGeometryAlgorithm
-            ? false
-            : dimension == 2
-                  ? geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2
-                  : geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3;
-
+        // Checking if we can compute with simplex
+        const GeometryData::KratosGeometryType geometry_type =
+            it_cond_begin->GetGeometry().GetGeometryType();
+        use_simplex =
+            EnforceGenericGeometryAlgorithm
+                ? false
+                : dimension == 2
+                      ? geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2
+                      : geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3;
+    }
+    use_simplex = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(use_simplex);
     if (use_simplex) {
         CalculateOnSimplex(rModelPart, dimension);
     } else {

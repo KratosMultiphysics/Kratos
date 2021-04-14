@@ -35,6 +35,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 /* Factories */
+#include "factories/register_factories.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
 

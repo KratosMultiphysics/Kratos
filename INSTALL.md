@@ -18,7 +18,6 @@
   * [Compilation Performance](#compilation-performance)
   * [MPI-Parallelism](#parallelism)
   * [External Libraries](#external-libraries)
-    * [Metis](#metis)
     * [Trilinos](#trilinos)
 
 ## Cloning Kratos
@@ -119,7 +118,7 @@ Compilation Type. Options are `Release`,`RelWithDebInfo`,`Debug`,`FullDebug`,`Cu
 
 **Debug**: Debug build with no optimization flags.
 
-**FullDebug**: Debug build with no optimization falgs, extended debug info and extremly low performance.
+**FullDebug**: Debug build with no optimization flags, extended debug info and extremly low performance.
 
 **Custom**: No flags are automatically added.
 
@@ -152,6 +151,7 @@ Windows
 ```Shell
 ./path_to_kratos/scripts/configure.bat
 ```
+Note: after installing Visual Studio, in some Windows systems the console does not have direct access to the Visual Studio Compiler. In order to make sure the compiler is available, try typing 'cl'. Use this console to compile Kratos if the compiler responds. In case of error, instead of using the standard Windows console, open the Native Tools Command Prompt console and launch the compilation from there.
 
 The example scripts for every system are shown next.
 
@@ -437,22 +437,20 @@ Enables(Default) or Disables the compilation of the embedded python interpreter 
 Enables(Default) or Disables the compilation of the C++ unitary tests for Kratos and Applications.
 
 ### Compilation Performance
-`-DUSE_COTIRE=ON/OFF`
+`-DCMAKE_UNITY_BUILD=ON/OFF`
 
-Enables or Disables(default) the use of [cotire](https://github.com/sakra/cotire) to speedup compilation by using unitary builds.
+Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
 In order to install and compile with this switch please use:
 
 On Linux
 ```shell
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1 && \
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j1
 ```
 On Windows
 ```shell
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
@@ -468,16 +466,6 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
 
 ### External libraries
-#### Metis
-
-`-DUSE_METIS_5=ON/OFF`
-
-Specifies if the metis version is 5 or greater (ON by default). Note that using metis 4 is deprecated and will be removed in the future.
-
-`-DMETIS_ROOT_DIR=String`
-
-Root directory for Metis library
-
 #### Trilinos
 From Ubuntu 18.04 onwards, the following command installs the necessary files:
 

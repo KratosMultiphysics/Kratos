@@ -242,10 +242,6 @@ int DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumN
     int ierr = BaseType::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
-    KRATOS_CHECK_VARIABLE_KEY(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
         Node<3> &rnode = this->GetParentGeometry()[i];

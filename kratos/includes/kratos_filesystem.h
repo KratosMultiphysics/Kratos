@@ -48,15 +48,38 @@ std::uintmax_t KRATOS_API(KRATOS_CORE) remove_all(const std::string& rPath);
 
 void KRATOS_API(KRATOS_CORE) rename(const std::string& rPathFrom, const std::string& rPathTo);
 
+std::string KRATOS_API(KRATOS_CORE) parent_path(const std::string& rPath);
+
+std::string KRATOS_API(KRATOS_CORE) filename(const std::string& rPath);
+
 } // namespace filesystem
 
 
 namespace FilesystemExtensions {
 // helper functions related to filesystem
 
+/**
+ * @brief Returns current working directory
+ *
+ * @return std::string
+ */
 std::string KRATOS_API(KRATOS_CORE) CurrentWorkingDirectory();
 
+/**
+ * @brief Join paths
+ *
+ * @param rPaths                        List of strings to be joined to get final path
+ * @return std::string                  Final joined path
+ */
 std::string KRATOS_API(KRATOS_CORE) JoinPaths(const std::vector<std::string>& rPaths);
+
+/**
+ * @brief Returns list of files and directories in rPath
+ *
+ * @param rPath                         Path
+ * @return std::vector<std::string>     List of files and folders in rPath
+ */
+std::vector<std::string> KRATOS_API(KRATOS_CORE) ListDirectory(const std::string& rPath);
 
 } // namespace FilesystemExtensions
 } // namespace Kratos

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 
 def GetDefaultInputParameters():
@@ -21,6 +20,7 @@ def GetDefaultInputParameters():
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
             "dem_inlet_option"                 : true,
+            "seed"                             : 42,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,
             "GravityZ"                         : -9.81,

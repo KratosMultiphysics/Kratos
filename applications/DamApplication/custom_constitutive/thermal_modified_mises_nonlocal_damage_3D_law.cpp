@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -12,7 +12,7 @@ namespace Kratos
 {
 
 //Default Constructor
-ThermalModifiedMisesNonlocalDamage3DLaw::ThermalModifiedMisesNonlocalDamage3DLaw() : ThermalNonlocalDamage3DLaw() 
+ThermalModifiedMisesNonlocalDamage3DLaw::ThermalModifiedMisesNonlocalDamage3DLaw() : ThermalNonlocalDamage3DLaw()
 {
     mpHardeningLaw   = HardeningLaw::Pointer( new ModifiedExponentialDamageHardeningLaw() );
     mpYieldCriterion = YieldCriterion::Pointer( new ModifiedMisesYieldCriterion(mpHardeningLaw) );
@@ -37,9 +37,9 @@ ThermalModifiedMisesNonlocalDamage3DLaw::~ThermalModifiedMisesNonlocalDamage3DLa
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalModifiedMisesNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int ThermalModifiedMisesNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
-    int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    int ierr = ThermalNonlocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
     if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || rMaterialProperties[DAMAGE_THRESHOLD] <= 0.0)
