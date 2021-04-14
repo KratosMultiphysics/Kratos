@@ -87,7 +87,7 @@ public:
 		mMainDirection /= direction_norm;
 
 		double min_angle = ResponseSettings["min_angle"].GetDouble();
-		mSinMinAngle = std::sin(min_angle * M_PI / 180);
+		mSinMinAngle = std::sin(min_angle * Globals::Pi / 180);
 
 		std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
 		if (gradient_mode.compare("finite_differencing") == 0)
