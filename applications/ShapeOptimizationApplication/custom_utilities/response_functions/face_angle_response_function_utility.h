@@ -90,7 +90,7 @@ public:
 		mSinMinAngle = std::sin(min_angle * Globals::Pi / 180);
 
 		std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
-		if (gradient_mode.compare("finite_differencing") == 0)
+		if (gradient_mode == "finite_differencing")
 		{
 			double delta = ResponseSettings["step_size"].GetDouble();
 			mDelta = delta;
