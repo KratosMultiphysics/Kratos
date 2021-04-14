@@ -53,6 +53,7 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
     using TrilinosBaseConvergenceAcceleratorType = ConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
     py::class_<TrilinosBaseConvergenceAcceleratorType, typename TrilinosBaseConvergenceAcceleratorType::Pointer>(m, "TrilinosConvergenceAccelerator")
+        .def(py::init<>())
         .def(py::init<Parameters>())
         .def("Initialize",                   &TrilinosBaseConvergenceAcceleratorType::Initialize)
         .def("InitializeSolutionStep",       &TrilinosBaseConvergenceAcceleratorType::InitializeSolutionStep)

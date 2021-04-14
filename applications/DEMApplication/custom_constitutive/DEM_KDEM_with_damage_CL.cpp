@@ -75,6 +75,7 @@ namespace Kratos {
                 LocalElasticExtraContactForce,
                 LocalCoordSystem,
                 LocalDeltDisp,
+                LocalRelVel,
                 kt_el,
                 equiv_shear,
                 contact_sigma,
@@ -207,6 +208,7 @@ namespace Kratos {
             double LocalElasticExtraContactForce[3],
             double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
+            double LocalRelVel[3],
             const double kt_el,
             const double equiv_shear,
             double& contact_sigma,
@@ -336,13 +338,16 @@ namespace Kratos {
         } else {
             double equiv_tg_of_static_fri_ang = 0.5 * (element1->GetTgOfStaticFrictionAngle() + element2->GetTgOfStaticFrictionAngle());
             double equiv_tg_of_dynamic_fri_ang = 0.5 * (element1->GetTgOfDynamicFrictionAngle() + element2->GetTgOfDynamicFrictionAngle());
+            double equiv_friction_decay_coefficient = 0.5 * (element1->GetFrictionDecayCoefficient() + element2->GetFrictionDecayCoefficient());
 
             if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
             }
 
-            double maximum_frictional_shear_force = equiv_tg_of_static_fri_ang * LocalElasticContactForce[2];
-            if (current_tangential_force_module > maximum_frictional_shear_force) maximum_frictional_shear_force = equiv_tg_of_dynamic_fri_ang * LocalElasticContactForce[2];
+            const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
+            double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
+
+            double maximum_frictional_shear_force = equiv_friction * LocalElasticContactForce[2];
 
             if (maximum_frictional_shear_force < 0.0) maximum_frictional_shear_force = 0.0;
 
