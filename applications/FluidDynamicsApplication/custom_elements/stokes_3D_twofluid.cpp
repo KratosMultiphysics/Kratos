@@ -1067,6 +1067,11 @@ void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs
         const double stress_0 = stress[0]; const double stress_1 = stress[1]; const double stress_2 = stress[0];
         const double stress_3 = stress[3]; const double stress_4 = stress[4]; const double stress_5 = stress[5];
 
+        const double v_0_0 = v(0,0); const double v_0_1 = v(0,1); const double v_0_2 = v(0,2); 
+        const double v_1_0 = v(1,0); const double v_1_1 = v(1,1); const double v_1_2 = v(1,2);
+        const double v_2_0 = v(2,0); const double v_2_1 = v(2,1); const double v_2_2 = v(2,2);
+        const double v_3_0 = v(3,0); const double v_3_1 = v(3,1); const double v_3_2 = v(3,2);
+
         //compute an equivalent tau by Bitrans*c*Bi
         const double tau_denom =             (C_3_3 + C_4_4 + C_5_5)*(pow(DN_0_0, 2) + pow(DN_0_1, 2) + pow(DN_0_2, 2) + pow(DN_1_0, 2) + pow(DN_1_1, 2) + pow(DN_1_2, 2) + pow(DN_2_0, 2) + pow(DN_2_1, 2) + pow(DN_2_2, 2) + pow(DN_3_0, 2) + pow(DN_3_1, 2) + pow(DN_3_2, 2));
 
@@ -1084,24 +1089,24 @@ void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs
         noalias(acch) += bdf2*prod(trans(vnn), N);
 
         const double crhs0 =             acch[0]*rho - fgauss[0];
-const double crhs1 =             DN_0_0*v(0,0) + DN_0_1*v(0,1) + DN_0_2*v(0,2) + DN_1_0*v(1,0) + DN_1_1*v(1,1) + DN_1_2*v(1,2) + DN_2_0*v(2,0) + DN_2_1*v(2,1) + DN_2_2*v(2,2) + DN_3_0*v(3,0) + DN_3_1*v(3,1) + DN_3_2*v(3,2);
+const double crhs1 =             DN_0_0*v_0_0 + DN_0_1*v_0_1 + DN_0_2*v_0_2 + DN_1_0*v_1_0 + DN_1_1*v_1_1 + DN_1_2*v_1_2 + DN_2_0*v_2_0 + DN_2_1*v_2_1 + DN_2_2*v_2_2 + DN_3_0*v_3_0 + DN_3_1*v_3_1 + DN_3_2*v_3_2;
 const double crhs2 =             crhs1*rho*tau2;
-const double crhs3 =             f(0,0) - rho*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0));
-const double crhs4 =             f(1,0) - rho*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0));
-const double crhs5 =             f(2,0) - rho*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0));
-const double crhs6 =             f(3,0) - rho*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0));
+const double crhs3 =             f(0,0) - rho*(bdf0*v_0_0 + bdf1*vn(0,0) + bdf2*vnn(0,0));
+const double crhs4 =             f(1,0) - rho*(bdf0*v_1_0 + bdf1*vn(1,0) + bdf2*vnn(1,0));
+const double crhs5 =             f(2,0) - rho*(bdf0*v_2_0 + bdf1*vn(2,0) + bdf2*vnn(2,0));
+const double crhs6 =             f(3,0) - rho*(bdf0*v_3_0 + bdf1*vn(3,0) + bdf2*vnn(3,0));
 const double crhs7 =             tau1*(DN_0_0*crhs3 + DN_1_0*crhs4 + DN_2_0*crhs5 + DN_3_0*crhs6);
 const double crhs8 =             C_1_3*DN_0_1;
-const double crhs9 =             f(0,1) - rho*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1));
-const double crhs10 =             f(1,1) - rho*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1));
-const double crhs11 =             f(2,1) - rho*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1));
-const double crhs12 =             f(3,1) - rho*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1));
+const double crhs9 =             f(0,1) - rho*(bdf0*v_0_1 + bdf1*vn(0,1) + bdf2*vnn(0,1));
+const double crhs10 =             f(1,1) - rho*(bdf0*v_1_1 + bdf1*vn(1,1) + bdf2*vnn(1,1));
+const double crhs11 =             f(2,1) - rho*(bdf0*v_2_1 + bdf1*vn(2,1) + bdf2*vnn(2,1));
+const double crhs12 =             f(3,1) - rho*(bdf0*v_3_1 + bdf1*vn(3,1) + bdf2*vnn(3,1));
 const double crhs13 =             tau1*(DN_0_1*crhs9 + DN_1_1*crhs10 + DN_2_1*crhs11 + DN_3_1*crhs12);
 const double crhs14 =             C_2_5*DN_0_2;
-const double crhs15 =             f(0,2) - rho*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2));
-const double crhs16 =             f(1,2) - rho*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2));
-const double crhs17 =             f(2,2) - rho*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2));
-const double crhs18 =             f(3,2) - rho*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2));
+const double crhs15 =             f(0,2) - rho*(bdf0*v_0_2 + bdf1*vn(0,2) + bdf2*vnn(0,2));
+const double crhs16 =             f(1,2) - rho*(bdf0*v_1_2 + bdf1*vn(1,2) + bdf2*vnn(1,2));
+const double crhs17 =             f(2,2) - rho*(bdf0*v_2_2 + bdf1*vn(2,2) + bdf2*vnn(2,2));
+const double crhs18 =             f(3,2) - rho*(bdf0*v_3_2 + bdf1*vn(3,2) + bdf2*vnn(3,2));
 const double crhs19 =             tau1*(DN_0_2*crhs15 + DN_1_2*crhs16 + DN_2_2*crhs17 + DN_3_2*crhs18);
 const double crhs20 =             C_0_3*DN_0_0;
 const double crhs21 =             tau1*(DN_0_0*crhs9 + DN_0_1*crhs3 + DN_1_0*crhs10 + DN_1_1*crhs4 + DN_2_0*crhs11 + DN_2_1*crhs5 + DN_3_0*crhs12 + DN_3_1*crhs6);
@@ -1163,7 +1168,7 @@ const double crhs61 =             C_3_5*DN_3_0;
             rhs[15]=-DN_3_0*crhs32 - DN_3_1*crhs33 - DN_3_2*crhs34 - N_3*crhs1;
 
     }
-
+    
 void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
     BoundedMatrix<double,4,16>& H,
     BoundedMatrix<double,16,4>& V,
@@ -1208,6 +1213,11 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
         const double N_3 = N[3];
 
         const double C_3_3 = C(3,3); const double C_4_4 = C(4,4); const double C_5_5 = C(5,5);
+
+        const double p_0 = p[0];
+        const double p_1 = p[1];
+        const double p_2 = p[2];
+        const double p_3 = p[3];
 
         //compute an equivalent tau by Bitrans*c*Bi
         const double tau_denom =             (C_3_3 + C_4_4 + C_5_5)*(pow(DN_0_0, 2) + pow(DN_0_1, 2) + pow(DN_0_2, 2) + pow(DN_1_0, 2) + pow(DN_1_1, 2) + pow(DN_1_2, 2) + pow(DN_2_0, 2) + pow(DN_2_1, 2) + pow(DN_2_2, 2) + pow(DN_3_0, 2) + pow(DN_3_1, 2) + pow(DN_3_2, 2));
@@ -1399,9 +1409,9 @@ const double cKee6 =             cKee0*(DNenr(2,0)*DNenr(3,0) + DNenr(2,1)*DNenr
 
 
         const double crhs_ee0 =             rho*tau1;
-const double crhs_ee1 =             DN_0_0*p[0] + DN_1_0*p[1] + DN_2_0*p[2] + DN_3_0*p[3] + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + DNenr(3,0)*penr[3] - N_0*f(0,0) - N_1*f(1,0) - N_2*f(2,0) - N_3*f(3,0) + rho*(N_0*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N_1*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N_2*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N_3*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
-const double crhs_ee2 =             DN_0_1*p[0] + DN_1_1*p[1] + DN_2_1*p[2] + DN_3_1*p[3] + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + DNenr(3,1)*penr[3] - N_0*f(0,1) - N_1*f(1,1) - N_2*f(2,1) - N_3*f(3,1) + rho*(N_0*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N_1*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N_2*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N_3*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
-const double crhs_ee3 =             DN_0_2*p[0] + DN_1_2*p[1] + DN_2_2*p[2] + DN_3_2*p[3] + DNenr(0,2)*penr[0] + DNenr(1,2)*penr[1] + DNenr(2,2)*penr[2] + DNenr(3,2)*penr[3] - N_0*f(0,2) - N_1*f(1,2) - N_2*f(2,2) - N_3*f(3,2) + rho*(N_0*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N_1*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N_2*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N_3*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)));
+const double crhs_ee1 =             DN_0_0*p_0 + DN_1_0*p_1 + DN_2_0*p_2 + DN_3_0*p_3 + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + DNenr(3,0)*penr[3] - N_0*f(0,0) - N_1*f(1,0) - N_2*f(2,0) - N_3*f(3,0) + rho*(N_0*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N_1*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N_2*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N_3*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
+const double crhs_ee2 =             DN_0_1*p_0 + DN_1_1*p_1 + DN_2_1*p_2 + DN_3_1*p_3 + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + DNenr(3,1)*penr[3] - N_0*f(0,1) - N_1*f(1,1) - N_2*f(2,1) - N_3*f(3,1) + rho*(N_0*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N_1*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N_2*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N_3*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
+const double crhs_ee3 =             DN_0_2*p_0 + DN_1_2*p_1 + DN_2_2*p_2 + DN_3_2*p_3 + DNenr(0,2)*penr[0] + DNenr(1,2)*penr[1] + DNenr(2,2)*penr[2] + DNenr(3,2)*penr[3] - N_0*f(0,2) - N_1*f(1,2) - N_2*f(2,2) - N_3*f(3,2) + rho*(N_0*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N_1*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N_2*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N_3*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)));
             rhs_ee[0]=-crhs_ee0*(DNenr(0,0)*crhs_ee1 + DNenr(0,1)*crhs_ee2 + DNenr(0,2)*crhs_ee3);
             rhs_ee[1]=-crhs_ee0*(DNenr(1,0)*crhs_ee1 + DNenr(1,1)*crhs_ee2 + DNenr(1,2)*crhs_ee3);
             rhs_ee[2]=-crhs_ee0*(DNenr(2,0)*crhs_ee1 + DNenr(2,1)*crhs_ee2 + DNenr(2,2)*crhs_ee3);
