@@ -226,18 +226,9 @@ private:
 	double CalculateConditionValue(Condition& rFace)
 	{
 		// face normal
-		array_3d face_normal;
-		array_3d v1;
-		array_3d v2;
-
-		//calculate the normal on the given condition
-		if (rFace.GetGeometry().PointsNumber() == 3)
-			GeometryUtilities::CalculateNormal3DTriangle(rFace,face_normal,v1,v2);
-		else if (rFace.GetGeometry().PointsNumber() == 4)
-			GeometryUtilities::CalculateNormal3DQuad(rFace,face_normal,v1,v2);
-		else
-			KRATOS_ERROR << "Calculation of surface normal not implemented for the given surface condition!";
-
+		array_3d local_coords;
+        local_coords.clear();
+		array_3d face_normal = rFace.GetGeometry().Normal(local_coords);
 		face_normal /= norm_2(face_normal);
 
 		// positive inner product results in negative nodal value to conform to g_i < 0
