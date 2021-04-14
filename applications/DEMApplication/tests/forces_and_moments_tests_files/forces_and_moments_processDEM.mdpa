@@ -9,6 +9,7 @@ Begin Properties 1
     POISSON_RATIO 0.20
     STATIC_FRICTION 0.009138776996010534
     DYNAMIC_FRICTION 0.009138776996010534
+    FRICTION_DECAY 500.0
     COEFFICIENT_OF_RESTITUTION 0.2
     PARTICLE_MATERIAL 1
     ROLLING_FRICTION 0.01
@@ -17,20 +18,52 @@ Begin Properties 1
     DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
 End Properties
 
+Begin Table 1 TIME VALUE
+    0.0 0.0
+    0.1 10000.0
+End Table
+
+Begin Table 2 TIME VALUE
+    0.0 0.0
+    0.1 300.0
+End Table
+
+Begin Table 3 TIME VALUE
+    0.0 0.0
+    0.1 6000.0
+End Table
+
+Begin Table 4 TIME VALUE
+    0.0 0.0
+    0.1 50000.0
+End Table
+
+Begin Table 5 TIME VALUE
+    0.0 0.0
+    0.1 600.0
+End Table
+
+Begin Table 6 TIME VALUE
+    0.0 0.0
+    0.1 7000.0
+End Table
+
 Begin Nodes
     1 0.0 0.0 2.0
+    2 10.0 0.0 2.0
 End Nodes
 
-
-Begin Elements SphericParticle3D// GUI group identifier: Ball
+Begin Elements SphericParticle3D
     1 1 1
+    2 1 2
 End Elements
 
-Begin NodalData RADIUS // GUI group identifier: Ball
+Begin NodalData RADIUS
     1 0 1.0
+    2 0 1.0
 End NodalData
 
-Begin SubModelPart Ball
+Begin SubModelPart Ball1
     Begin SubModelPartNodes
             1
     End SubModelPartNodes
@@ -39,4 +72,23 @@ Begin SubModelPart Ball
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Ball2
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartTables
 End SubModelPart
