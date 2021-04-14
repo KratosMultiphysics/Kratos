@@ -158,11 +158,11 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-		const bool is_backward_euler = false;
+		const bool is_backward_euler = true;
 
 		if (is_backward_euler)
 		{
-			KRATOS_ERROR << "CANT USE BACKWARD EULER";
+			//KRATOS_ERROR << "CANT USE BACKWARD EULER";
 			CalculateMaterialResponseKirchhoffBackwardEuler(rValues);
 		}
 		else
@@ -231,24 +231,27 @@ namespace Kratos
 			mEquivalentPlasticStrainOld += delta_plastic_strain;
 			mPlasticStrainRateOld = delta_plastic_strain/ CurrentProcessInfo[DELTA_TIME];
 
+			// Scale back to yield surface
+			stress_deviatoric_trial *= (mYieldStressOld / j2_stress_trial);
+
 			// Use only old yield stress for temperature factor in new yield stress
-			double predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] 
-				/ MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT] 
+			double predicted_temperature = mTemperatureOld + MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT]
+				/ MaterialProperties[DENSITY] / MaterialProperties[SPECIFIC_HEAT]
 				* (mYieldStressOld) * delta_plastic_strain;
-			const double yield_stress = CalculateHardenedYieldStress(MaterialProperties, 
+			predicted_temperature = mTemperatureOld;
+
+			mYieldStressOld = CalculateHardenedYieldStress(MaterialProperties,
 				mEquivalentPlasticStrainOld, mPlasticStrainRateOld, predicted_temperature);
 
-			// Scale back to yield surface
-			stress_deviatoric_trial *= (yield_stress / j2_stress_trial);
-			
+
+
 			// Now update the temperature with the new yield stress
-			mTemperatureOld += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / MaterialProperties[DENSITY]
-				/ MaterialProperties[SPECIFIC_HEAT] * (yield_stress) * delta_plastic_strain;
+			//mTemperatureOld += MaterialProperties[TAYLOR_QUINNEY_COEFFICIENT] / MaterialProperties[DENSITY]
+			//	/ MaterialProperties[SPECIFIC_HEAT] * (mYieldStressOld) * delta_plastic_strain;
 
 			// Finalize plasticity
-			mHardeningMod = (yield_stress - mYieldStressOld) / delta_plastic_strain; // already includes damage
-			mEnergyDissipated += (yield_stress)/ delta_plastic_strain / MaterialProperties[DENSITY];
-			mYieldStressOld = yield_stress;
+			//mHardeningMod = (yield_stress - mYieldStressOld) / delta_plastic_strain; // already includes damage
+			mEnergyDissipated += (mYieldStressOld)/ delta_plastic_strain / MaterialProperties[DENSITY];
 		}
 		else
 		{

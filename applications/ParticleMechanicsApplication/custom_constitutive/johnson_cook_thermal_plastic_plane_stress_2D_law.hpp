@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
+#include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -31,13 +31,13 @@ namespace Kratos
 	 * constitutive tensor is not implemented.
 	 */
 
-	class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) JohnsonCookThermalPlastic2DPlaneStressLaw : public JohnsonCookThermalPlastic3DLaw
+	class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) JohnsonCookThermalPlastic2DPlaneStressLaw : public JohnsonCookThermalPlastic2DPlaneStrainLaw
 	{
 	public:
 
 		/// Type Definitions
 		typedef ProcessInfo          ProcessInfoType;
-		typedef JohnsonCookThermalPlastic3DLaw         BaseType;
+		typedef JohnsonCookThermalPlastic2DPlaneStrainLaw         BaseType;
 		typedef std::size_t             SizeType;
 		typedef Properties::Pointer            PropertiesPointer;
 
@@ -85,7 +85,8 @@ namespace Kratos
 	protected:
 		void CalculateMaterialResponseKirchhoffForwardEuler(Parameters & rValues) override;
 
-		double mStrain33 = 0.0;
+		void CalculateMaterialResponseKirchhoffBackwardEuler(Parameters& rValues) override;
+
 
 	private:
 
@@ -93,12 +94,12 @@ namespace Kratos
 
 		void save(Serializer& rSerializer) const override
 		{
-			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, JohnsonCookThermalPlastic3DLaw);
+			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, JohnsonCookThermalPlastic2DPlaneStrainLaw);
 		}
 
 		void load(Serializer& rSerializer) override
 		{
-			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, JohnsonCookThermalPlastic3DLaw);
+			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, JohnsonCookThermalPlastic2DPlaneStrainLaw);
 		}
 	}; // Class JohnsonCookThermalPlastic2DPlaneStressLaw
 }  // namespace Kratos.
