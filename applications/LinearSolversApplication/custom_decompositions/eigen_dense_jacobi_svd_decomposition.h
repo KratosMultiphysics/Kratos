@@ -58,7 +58,7 @@ public:
     typedef typename TDenseSpace::MatrixType MatrixType;
 
     using EigenVector = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using EigenMatrix = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
+    using EigenMatrix = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     using DecompositionOptions = Eigen::DecompositionOptions;
 
     ///@}
