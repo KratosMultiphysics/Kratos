@@ -326,8 +326,7 @@ private:
         OwnSymShiftInvert(ConstGenericMatrixA& A, ConstGenericMatrixB& B) :
             m_matA(A), m_matB(B), m_n(A.rows())
         {
-            if (m_n != A.cols() || m_n != B.rows() || m_n != B.cols())
-                throw std::invalid_argument("SymShiftInvert: A and B must be square matrices of the same size");
+            KRATOS_ERROR_IF(m_n != A.cols() || m_n != B.rows() || m_n != B.cols()) << "SymShiftInvert: A and B must be square matrices of the same size" << std::endl;
         }
 
         ///
