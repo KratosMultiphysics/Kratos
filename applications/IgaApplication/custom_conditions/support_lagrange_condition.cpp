@@ -45,14 +45,14 @@ namespace Kratos
 
         // Determinant of jacobian 
         Vector determinant_jacobian_vector(integration_points.size());
-        r_geometry.DeterminantOfJacobian(r_geometry, determinant_jacobian_vector);
+        r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);
 
         // non zero node counter for Lagrange Multipliers.
         IndexType counter_n = 0;
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             // Differential area, being 1 for points.
-            const double integration = if (r_geometry.Dimension() == 0)
+            const double integration = (r_geometry.Dimension() == 0)
                 ? 1
                 : integration_points[point_number].Weight()* determinant_jacobian_vector[point_number];
 

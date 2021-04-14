@@ -136,7 +136,7 @@ namespace Kratos
                 rCurrentProcessInfo, true, false);
         }
 
-        /// Calculates LeftHandSide K-Matrix and F-vector
+        /// Calculates LeftHandSide K-Matrix and f-vector
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
