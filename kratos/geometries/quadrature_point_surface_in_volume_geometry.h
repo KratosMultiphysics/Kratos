@@ -102,18 +102,6 @@ public:
     {
     }
 
-    /// Constructor from QuadraturePointGeometry.
-    QuadraturePointSurfaceInVolumeGeometry(QuadraturePointGeometry<TPointType, 3, 3, 3> rOther,
-        double LocalTangentsU,
-        double LocalTangentsV,
-        double LocalTangentsW)
-        : BaseType(rOther)
-        , mLocalTangentsU(rOther.mLocalTangentsU)
-        , mLocalTangentsV(rOther.mLocalTangentsV)
-        , mLocalTangentsW(rOther.mLocalTangentsW)
-    {
-    }
-
     /// Destructor.
     ~QuadraturePointSurfaceInVolumeGeometry() override = default;
 
@@ -132,9 +120,9 @@ public:
         double LocalTangentsV,
         double LocalTangentsW)
         : BaseType(std::move(rOther))
-        , mLocalTangentsU(rOther.mLocalTangentsU)
-        , mLocalTangentsV(rOther.mLocalTangentsV)
-        , mLocalTangentsW(rOther.mLocalTangentsW)
+        , mLocalTangentsU(LocalTangentsU)
+        , mLocalTangentsV(LocalTangentsV)
+        , mLocalTangentsW(LocalTangentsW)
     {
     }
 
@@ -244,8 +232,8 @@ public:
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
         return norm_2(column(J, 0) * mLocalTangentsU
-            + column(J, 1) * mLocalTangentsV
-            + column(J, 2) * mLocalTangentsW);
+                    + column(J, 1) * mLocalTangentsV
+                    + column(J, 2) * mLocalTangentsW);
     }
 
     /* @brief returns the respective segment length of this
@@ -280,8 +268,8 @@ public:
         this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
 
         rResult[0] = norm_2(column(J, 0) * mLocalTangentsU
-            + column(J, 1) * mLocalTangentsV
-            + column(J, 2) * mLocalTangentsW);
+                          + column(J, 1) * mLocalTangentsV
+                          + column(J, 2) * mLocalTangentsW);
 
         return rResult;
     }
@@ -293,8 +281,8 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Quadrature point geometry for a surface in a volume with Id: "
-            + this->Id() + ", containing: " + this->size() + " points.";
+        return "Quadrature point geometry for a surface in a volume with Id: ";
+            //<< std::to_string(this->Id()) << ", containing: " << std::to_string(this->size()) << " points.";
     }
 
     /// Print information about this object.
