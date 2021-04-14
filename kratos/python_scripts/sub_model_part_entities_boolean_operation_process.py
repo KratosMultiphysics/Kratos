@@ -60,7 +60,7 @@ class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
         possible_boolean_operations = ["Union", "Intersection", "Difference"]
         if self.boolean_operation not in possible_boolean_operations:
             raise Exception("The possible boolean operations are:\n\t- '{}'\n\t- '{}'\n\t- '{}'".format(*possible_boolean_operations))
-        possible_entities_type = ["Nodes", "Elements", "Conditions"]
+        possible_entities_type = ["Nodes", "Elements", "Conditions", "MasterSlaveConstraints"]
         if self.entity_type not in possible_entities_type:
             raise Exception("The possible entities type are:\n\t- '{}'\n\t- '{}'\n\t- '{}'".format(*possible_entities_type))
 
@@ -71,6 +71,8 @@ class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
             utility = KM.SubModelPartElementsBooleanOperationUtility
         elif self.entity_type == "Conditions":
             utility = KM.SubModelPartConditionsBooleanOperationUtility
+        elif self.entity_type == "MasterSlaveConstraints":
+            utility = KM.SubModelPartConstraintsBooleanOperationUtility
         if self.boolean_operation == "Union":
             utility.Union(self.first_model_part, self.second_model_part, self.result_model_part)
         if self.boolean_operation == "Intersection":

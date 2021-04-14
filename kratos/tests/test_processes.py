@@ -2399,6 +2399,7 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(result_model_part.NumberOfNodes(), 3)
         self.assertEqual(result_model_part.NumberOfElements(), 0)
         self.assertEqual(result_model_part.NumberOfConditions(), 3)
+        self.assertEqual(result_model_part.NumberOfMasterSlaveConstraints(), 0)
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
