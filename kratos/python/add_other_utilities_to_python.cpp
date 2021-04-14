@@ -613,6 +613,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType> SubModelPartNodesBooleanOperation;
     typedef SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType> SubModelPartElementsBooleanOperation;
     typedef SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType> SubModelPartConditionsBooleanOperation;
+    typedef SubModelPartEntitiesBooleanOperationUtility<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType> SubModelPartConstraintsBooleanOperation;
     py::class_<
         SubModelPartNodesBooleanOperation,
         SubModelPartNodesBooleanOperation::Pointer>
@@ -636,6 +637,14 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("Union", &SubModelPartConditionsBooleanOperation::Union)
         .def_static("Intersection", &SubModelPartConditionsBooleanOperation::Intersection)
         .def_static("Difference", &SubModelPartConditionsBooleanOperation::Difference)
+    ;
+    py::class_<
+        SubModelPartConstraintsBooleanOperation,
+        SubModelPartConstraintsBooleanOperation::Pointer>
+        (m,"SubModelPartConstraintsBooleanOperationUtility")
+        .def_static("Union", &SubModelPartConstraintsBooleanOperation::Union)
+        .def_static("Intersection", &SubModelPartConstraintsBooleanOperation::Intersection)
+        .def_static("Difference", &SubModelPartConstraintsBooleanOperation::Difference)
     ;
 
 }

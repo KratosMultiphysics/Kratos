@@ -23,48 +23,66 @@ namespace Kratos
 {
 
 template<>
-ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>::GetContainer(
-    ModelPart& rModelPart)
+ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility<
+    Node<3>,ModelPart::NodesContainerType>::GetContainer(ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template<>
-ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>::GetContainer(
-    ModelPart& rModelPart)
+ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility<
+    Element,ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template<>
-ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>::GetContainer(
-    ModelPart& rModelPart)
+ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility<
+    Condition,ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 template<>
-void SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>::AddEntities(
-    const std::vector<IndexType>& rIds,
-    ModelPart& rModelPart)
+ModelPart::MasterSlaveConstraintContainerType& SubModelPartEntitiesBooleanOperationUtility<
+    MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>::GetContainer(ModelPart& rModelPart)
+{
+    return rModelPart.MasterSlaveConstraints();
+}
+
+template<>
+void SubModelPartEntitiesBooleanOperationUtility<
+    Node<3>,ModelPart::NodesContainerType>::AddEntities(
+        const std::vector<IndexType>& rIds,ModelPart& rModelPart)
 {
     rModelPart.AddNodes(rIds);
 }
 
 template<>
-void SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>::AddEntities(
-    const std::vector<IndexType>& rIds,
-    ModelPart& rModelPart)
+void SubModelPartEntitiesBooleanOperationUtility<
+    Element,ModelPart::ElementsContainerType>::AddEntities(
+        const std::vector<IndexType>& rIds,
+        ModelPart& rModelPart)
 {
     rModelPart.AddElements(rIds);
 }
 
 template<>
-void SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>::AddEntities(
-    const std::vector<IndexType>& rIds,
-    ModelPart& rModelPart)
+void SubModelPartEntitiesBooleanOperationUtility<
+    Condition,ModelPart::ConditionsContainerType>::AddEntities(
+        const std::vector<IndexType>& rIds,
+        ModelPart& rModelPart)
 {
     rModelPart.AddConditions(rIds);
+}
+
+template<>
+void SubModelPartEntitiesBooleanOperationUtility<
+    MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>::AddEntities(
+        const std::vector<IndexType>& rIds,
+        ModelPart& rModelPart)
+{
+    rModelPart.AddMasterSlaveConstraints(rIds);
 }
 
 template<class TEntityType, class TContainerType>
