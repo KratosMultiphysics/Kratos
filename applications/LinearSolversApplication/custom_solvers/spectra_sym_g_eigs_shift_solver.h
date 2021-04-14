@@ -349,8 +349,7 @@ private:
                 m_solver.compute(m_matA - sigma * m_matB);
             }
             const bool success = m_solver.info() == Eigen::Success;
-            if (!success)
-                throw std::invalid_argument("SymShiftInvert: factorization failed with the given shift");
+            KRATOS_ERROR_IF_NOT(success) << "SymShiftInvert: factorization failed with the given shift" << std::endl;
         }
 
         ///
