@@ -25,6 +25,7 @@
 // Project includes
 #include "geometries/quadrilateral_3d_4.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
+#include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
