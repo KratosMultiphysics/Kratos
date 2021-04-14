@@ -812,11 +812,14 @@ public:
 
         KRATOS_ERROR_IF( this->Id() < 1 ) << "Condition found with Id " << this->Id() << std::endl;
 
+        const double domain_size = this->GetGeometry().DomainSize();
+        KRATOS_ERROR_IF( domain_size < 0.0 ) << "Condition " << this->Id() << " has negative size " << domain_size << std::endl;
+
         GetGeometry().Check();
 
         return 0;
 
-        KRATOS_CATCH("Condition with Id " + std::to_string(Id()))
+        KRATOS_CATCH("")
     }
 
     /**
