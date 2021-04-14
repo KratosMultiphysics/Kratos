@@ -6,9 +6,7 @@ def Factory(settings, model):
     return SubModelPartEntitiesBooleanOperationProcess(model, settings["Parameters"])
 
 class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
-    """SubModelPartEntitiesBooleanOperationProcess.
-
-    Apply a boolean operation to the entities of the given sub model parts.
+    """Apply a boolean operation to the entities of the given sub model parts.
     The sub model parts must have the same root model part and the entities
     are compared by their Id.
     The possible boolean operations are:
@@ -19,15 +17,11 @@ class SubModelPartEntitiesBooleanOperationProcess(KM.Process):
         - 'Nodes'
         - 'Elements'
         - 'Conditions'
+        - 'MasterSlaveConstraints'
     """
 
     def __init__(self, model, settings):
         """Constructor of SubModelPartEntitiesBooleanOperationProcess.
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        model -- The model to be used
-        settings -- The ProjectParameters used
 
         The boolean operation is executed in the constructor. In this way,
         the sub_model_parts where the BC's are applied, will be affected
