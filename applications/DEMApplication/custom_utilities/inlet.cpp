@@ -124,12 +124,17 @@ namespace Kratos {
         std::sort(mListOfSubModelParts.begin(), mListOfSubModelParts.end(), SortSubModelPartsByName);
 
         for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+
             ModelPart& mp = *mListOfSubModelParts[i];
 
-
             CheckSubModelPart(mp);
-            mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
-            mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+
+            if (!mp[MINIMUM_RADIUS]) {
+                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+            }
+            if (!mp[MAXIMUM_RADIUS]) {
+                mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
+            }
 
             int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;

@@ -2,6 +2,21 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <cstdio>
+#ifdef _WIN32
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
+
+std::string GetCurrentWorkingDir( void ) {
+  char buff[FILENAME_MAX];
+  GetCurrentDir( buff, FILENAME_MAX );
+  std::string current_working_dir(buff);
+  return current_working_dir;
+}
 
 // Project includes
 #include "DEM_KDEM_with_damage_parallel_bond_CL.h"
@@ -25,15 +40,11 @@ namespace Kratos {
         DEM_KDEM_with_damage::Check(pProp);
 
         if (!pProp->Has(LOOSE_MATERIAL_YOUNG_MODULUS)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable LOOSE_MATERIAL_YOUNG_MODULUS was not found in the Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"\nWARNING: Variable LOOSE_MATERIAL_YOUNG_MODULUS was not found in the Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned.\n\n";
             pProp->GetValue(LOOSE_MATERIAL_YOUNG_MODULUS) = 0.0;
         }
         if (!pProp->Has(FRACTURE_ENERGY)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable FRACTURE_ENERGY was not found in the Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"\nWARNING: Variable FRACTURE_ENERGY was not found in the Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned.\n\n";
             pProp->GetValue(FRACTURE_ENERGY) = 0.0;
         }
     }
@@ -46,6 +57,14 @@ namespace Kratos {
             mDebugPrintingOption = false;
         } else {
             mDebugPrintingOption = bool(pProp->GetValue(DEBUG_PRINTING_OPTION));
+        }
+        if (mDebugPrintingOption) {
+            if (!pProp->Has(DEBUG_PRINTING_ID_1) || !pProp->Has(DEBUG_PRINTING_ID_2)) {
+                KRATOS_WARNING("DEM") << "\nWARNING: We are currently in DEBUG PRINTING mode, so the ids of the two particles involved must be given.\n\n";
+            }
+            
+            //if (std::ifstream("nl.txt")) std::remove("nl.txt");
+            //if (std::ifstream("tg.txt")) std::remove("tg.txt");
         }
     }
 
@@ -308,11 +327,12 @@ namespace Kratos {
         double initial_limit_tension = initial_limit_force / calculation_area;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 1;
-            unsigned int neigh_sphere_id = 2;
+
+            const int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
+            const int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
 
             if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-                static std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
+                std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
                 normal_forces_file << r_process_info[TIME] << " " << indentation/*2*/ << " " << LocalElasticContactForce[2]/*3*/ << " "
                                    << limit_force/*4*/ << " " << delta_accumulated/*5*/ << " " << returned_by_mapping_force/*6*/ << " "
                                    << kn_updated/*7*/ << " " << mDamageNormal/*8*/ << " " << failure_type/*9*/ << " "
@@ -324,6 +344,7 @@ namespace Kratos {
                                    << returned_by_mapping_tension/*20*/ << " " << current_normal_tension_module/*21*/ << " "
                                    << BondedLocalElasticContactTension2/*22*/ << " " << initial_limit_tension/*23*/ << '\n';
                 normal_forces_file.flush();
+                normal_forces_file.close();
             }
         }
 
@@ -359,7 +380,6 @@ namespace Kratos {
         const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
         double k_softening = 0.0;
         double tau_strength = 0.0;
-        double force_strength = 0.0;
 
         double OldBondedLocalElasticContactForce[2] = {0.0};
         OldBondedLocalElasticContactForce[0] = mBondedScalingFactor * OldLocalElasticContactForce[0];
@@ -410,8 +430,6 @@ namespace Kratos {
             }
             tau_strength = updated_max_tau_strength * (1.0 + k_softening / kt_el) * kt_updated / (kt_updated + k_softening);
             
-            force_strength = tau_strength * calculation_area;
-
             if (contact_tau > tau_strength) { // damage
 
                 if (mDamageEnergyCoeff) { // the material can sustain further damage, not failure yet
@@ -550,14 +568,14 @@ namespace Kratos {
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 1;
-            unsigned int neigh_sphere_id = 2;
+            const int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
+            const int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
             double quotient = local_elastic_force_modulus / calculation_area;
             double quotient_bonded_only = local_elastic_force_modulus_bonded_only / calculation_area;
             double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
 
             if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-                static std::ofstream tangential_forces_file("tg.txt", std::ios_base::out | std::ios_base::app);
+                std::ofstream tangential_forces_file("tg.txt", std::ios_base::out | std::ios_base::app);
                 tangential_forces_file << r_process_info[TIME] << " " << int(failure_type)/*2*/ << " " << tau_strength/*3*/ << " "
                                     << kt_updated/*4*/ << " " << int(sliding)/*5*/ << " "
                                     << contact_sigma/*6*/ << " " << mDamageNormal/*7*/ << " " << contact_tau/*8*/ << " "
@@ -571,10 +589,11 @@ namespace Kratos {
                                     << delta_accumulated/*26*/ << " " << current_tangential_force_module/*27*/ << " "
                                     << returned_by_mapping_force/*28*/ << " " << quotient/*29*/ << " "
                                     << quotient_bonded_only/*30*/ << " " << quotient_unbonded_only/*31*/ << " "
-                                    << returned_by_mapping_tension/*32*/ << " " << force_strength/*33*/ << " "
+                                    << returned_by_mapping_tension/*32*/ << " " << tau_strength * calculation_area /*33*/ << " "
                                     << mDamageEnergyCoeff/*34*/ << " " << LocalElasticContactForce[2]/*35*/ << " "
                                     << indentation/*36*/<< '\n';
                 tangential_forces_file.flush();
+                tangential_forces_file.close();
             }
         }
 
