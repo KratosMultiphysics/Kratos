@@ -255,7 +255,7 @@ public:
       }
       return mCells[icell].Size();
     } else {
-      return 0;
+      return std::numeric_limits<SizeType>::max();
     }
   }
 
