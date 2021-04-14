@@ -242,6 +242,7 @@ namespace Kratos {
                                     LocalElasticExtraContactForce,
                                     LocalCoordSystem,
                                     LocalDeltDisp,
+									LocalRelVel,
                                     kt_el,
                                     equiv_shear,
                                     contact_sigma,

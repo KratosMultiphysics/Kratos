@@ -414,11 +414,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, Comp
         p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
     }
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -505,11 +501,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
         }
     }
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, CompressiblePotentialApplicationFastSuite) {

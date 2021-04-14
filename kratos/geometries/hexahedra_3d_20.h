@@ -258,8 +258,25 @@ public:
     Hexahedra3D20( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 20 )
-            KRATOS_ERROR << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF(this->PointsNumber() != 20) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Id
+    explicit Hexahedra3D20(
+        const IndexType GeometryId,
+        const PointsArrayType& rThisPoints
+    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF( this->PointsNumber() != 20 ) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
+    }
+
+    /// Constructor with Geometry Name
+    explicit Hexahedra3D20(
+        const std::string& GeometryName,
+        const PointsArrayType& rThisPoints
+    ) : BaseType( GeometryName, rThisPoints, &msGeometryData)
+    {
+        KRATOS_ERROR_IF(this->PointsNumber() != 20) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -347,33 +364,39 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-     * Operations
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
      */
-
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
     {
-        return typename BaseType::Pointer( new Hexahedra3D20( ThisPoints ) );
+        return typename BaseType::Pointer( new Hexahedra3D20( NewGeometryId, rThisPoints ) );
     }
 
-
-    //     Geometry< Point<3> >::Pointer Clone() const override
-    // {
-    //     Geometry< Point<3> >::PointsArrayType NewPoints;
-
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
-    //     }
-
-
-    //     //creating a geometry with the new points
-    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D20< Point<3> >( NewPoints ) );
-
-    //     return p_clone;
-    // }
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Hexahedra3D20( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
 
     /**
      * Informations

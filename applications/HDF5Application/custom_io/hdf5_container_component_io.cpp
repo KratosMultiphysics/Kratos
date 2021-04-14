@@ -544,7 +544,7 @@ void ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::R
 
     if (mComponentNames.size() == 1 && mComponentNames[0] == "ALL_VARIABLES_FROM_FILE") {
         if (mpFile->HasPath(mComponentPath)) {
-            current_components_list = std::move(mpFile->GetDataSetNames(mComponentPath));
+            current_components_list = mpFile->GetDataSetNames(mComponentPath);
         } else {
             KRATOS_WARNING("ContainerComponentIO")
                 << "ALL_VARIABLES_FROM_FILE are specified to be read, but no variable "
