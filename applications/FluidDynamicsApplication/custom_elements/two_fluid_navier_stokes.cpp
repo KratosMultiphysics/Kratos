@@ -90,9 +90,14 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 1.0;//0.7;//1.0e-2;//
-        const double surface_tension_coefficient = 0.0426;//0.0311;//0.072;// //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
-        const double contact_line_coefficient = 0.5299192642332*surface_tension_coefficient;//0.779337965*surface_tension_coefficient;//-0.4539905*surface_tension_coefficient;//
+        const double zeta = 1.0e-2;//1.0;//0.7;//
+        const double surface_tension_coefficient = 0.0728;//0.0426;//0.0311;//0.072;// //0.1; //0.0322; // //Surface tension coefficient, TODO: get from properties
+
+        const double theta_advancing = 130.0*PI/180.0;
+        const double theta_receding = 110.0*PI/180.0;
+        //const double theta_static = 117*PI/180.0;
+        // const double contact_line_coefficient = surface_tension_coefficient*std::cos(theta_static);
+        ////const double contact_line_coefficient = -0.4539905*surface_tension_coefficient;///* 0.5299192642332 */-0.25881904510252076*surface_tension_coefficient;//0.779337965*surface_tension_coefficient;//
         const double micro_length_scale = 1.0e-9;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
@@ -275,6 +280,23 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 SurfaceTension(
                     data,
                     surface_tension_coefficient,
+                    theta_advancing,
+                    theta_receding,
+                    zeta,
+                    micro_length_scale,
+                    gauss_pts_curvature,
+                    int_gauss_pts_weights,
+                    int_shape_function_neg,
+                    int_normals_neg,
+                    contact_gauss_pts_weights,
+                    contact_shape_function_neg,
+                    contact_tangential_neg,
+                    rLeftHandSideMatrix,
+                    rRightHandSideVector);
+
+                /* SurfaceTension(
+                    data,
+                    surface_tension_coefficient,
                     contact_line_coefficient,
                     zeta,
                     micro_length_scale,
@@ -287,7 +309,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     contact_tangential_neg,
                     //has_contact_line,
                     rLeftHandSideMatrix,
-                    rRightHandSideVector);
+                    rRightHandSideVector); */
 
                 /* SurfaceTension(
                     surface_tension_coefficient,
@@ -3884,6 +3906,207 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
                     for (unsigned int j = 0; j < NumNodes; j++){
                             lhs_dissipation( i*(NumDim+1) + dimi, j*(NumDim+1) + dimi) +=
                                 zeta * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp,j) * (rCLShapeFunctions[i_cl])(clgp,i);
+                    }
+                }
+            }
+            contact_velocity += (rCLWeights[i_cl])[clgp]*contact_velocity_gp;
+            contact_angle_macro += (rCLWeights[i_cl])[clgp]*contact_angle_macro_gp;
+            contact_angle_micro += (rCLWeights[i_cl])[clgp]*contact_angle_micro_gp;
+        }
+
+        noalias(rLHS) += lhs_dissipation;
+        rhs -= prod(lhs_dissipation,tempU);
+
+        contact_angle_macro /= weight_sum;
+        this->SetValue(CONTACT_ANGLE, contact_angle_macro*180.0/PI);
+
+        contact_angle_micro /= weight_sum;
+        this->SetValue(CONTACT_ANGLE_MICRO, contact_angle_micro*180.0/PI);
+
+        contact_velocity /= weight_sum;
+        this->SetValue(CONTACT_VELOCITY, contact_velocity);
+
+        for (unsigned int i=0; i < NumNodes; ++i){
+
+            #pragma omp critical
+            {
+            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+            (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector_macro;
+            }
+
+        }
+    }
+
+    noalias(rRHS) += rhs;
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+    const TElementData& rData,
+    const double coefficient,
+    const double theta_advancing,
+    const double theta_receding,
+    const double zeta,
+    const double micro_length_scale,
+    const Kratos::Vector& rCurvature,
+    const Kratos::Vector& rIntWeights,
+    const Matrix& rIntShapeFunctions,
+    const std::vector<Vector>& rIntNormalsNeg,
+    const std::vector<Kratos::Vector>& rCLWeights,
+    const std::vector<Matrix>& rCLShapeFunctions,
+    const std::vector<Vector>& rTangential,
+    MatrixType& rLHS,
+    VectorType& rRHS)
+{
+    const unsigned int NumIntGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rIntNormalsNeg[0].size();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
+        for (unsigned int j = 0; j < NumNodes; j++){
+            for (unsigned int dim = 0; dim < NumDim; dim++){
+                rhs[ j*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,j);
+            }
+        }
+    }
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    for (unsigned int i_cl = 0; i_cl < rCLWeights.size(); i_cl++){
+        MatrixType lhs_dissipation = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));
+
+        Vector contact_vector_macro = ZeroVector(NumDim);
+        Vector contact_vector_micro = ZeroVector(NumDim);
+        Vector wall_tangent = ZeroVector(NumDim);
+        Vector wall_normal_gp = ZeroVector(NumDim);
+        Vector velocity_gp = ZeroVector(NumDim);
+        double contact_velocity = 0.0;
+        double contact_angle_macro = 0.0;
+        double contact_angle_micro = 0.0;
+
+        Vector normal_avg = ZeroVector(NumDim);
+        for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
+            normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
+        }
+        normal_avg /= norm_2(normal_avg);
+
+        Vector tempU = ZeroVector(NumNodes*(NumDim+1)); // Only velocity
+        for (unsigned int i = 0; i < NumNodes; i++){
+            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                tempU[i*(NumDim+1) + dimi] = rData.Velocity(i,dimi);
+            }
+        }
+
+        double positive_density = 0.0;
+        double negative_density = 0.0;
+        double positive_viscosity = 0.0;
+        double negative_viscosity = 0.0;
+
+        for (unsigned int i = 0; i < NumNodes; i++){
+            if (rData.Distance[i] > 0.0){
+                positive_density = rData.NodalDensity[i];
+                positive_viscosity = rData.NodalDynamicViscosity[i];
+            } else /* if (rData.Distance[i] < 0.0) */{
+                negative_density = rData.NodalDensity[i];
+                negative_viscosity = rData.NodalDynamicViscosity[i];
+            }
+        }
+        const double effective_density = 0.5*(positive_density + negative_density);
+        const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
+        //const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+
+        const unsigned int NumCLGP = (rCLShapeFunctions[i_cl]).size1();
+        MathUtils<double>::UnitCrossProduct(contact_vector_macro, rTangential[i_cl], normal_avg);
+
+        double weight_sum = 0.0;
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+            weight_sum += (rCLWeights[i_cl])[clgp];
+
+            wall_normal_gp = ZeroVector(NumDim);
+            velocity_gp = ZeroVector(NumDim);
+            for (unsigned int j = 0; j < NumNodes; j++){
+                wall_normal_gp += (rCLShapeFunctions[i_cl])(clgp,j)
+                            *(*p_geom)[j].FastGetSolutionStepValue(NORMAL);
+                velocity_gp += (rCLShapeFunctions[i_cl])(clgp,j)*
+                            (*p_geom)[j].FastGetSolutionStepValue(VELOCITY);
+            }
+            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal_gp, rTangential[i_cl]);
+            const double element_size = ElementSizeCalculator<3,4>::ProjectedElementSize(*p_geom, wall_normal_gp);
+
+            const double contact_angle_macro_gp = std::acos(inner_prod(wall_tangent,contact_vector_macro));
+            double contact_angle_micro_gp = contact_angle_macro_gp;
+
+            double contact_angle_equilibrium = theta_receding;
+            if (contact_angle_micro_gp > contact_angle_equilibrium){
+                if (contact_angle_micro_gp >= theta_advancing){
+                    contact_angle_equilibrium = theta_advancing;
+                } else {
+                    contact_angle_equilibrium = contact_angle_micro_gp;
+                }
+            }
+
+            const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
+
+            //const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
+            const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
+
+            //KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;
+            //KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
+
+            //KRATOS_INFO("two fluids NS") << "angle difference= " << std::abs(contact_angle_macro_gp - contact_angle_equilibrium)*180/PI << std::endl;
+
+            if ( std::abs(contact_angle_macro_gp - contact_angle_equilibrium) < 6.0e-1 &&
+                    capilary_number < 3.0e-1){
+                const double cubic_contact_angle_micro_gp = std::pow(contact_angle_macro_gp, 3.0)
+                    - 9*capilary_number*std::log(element_size/micro_length_scale);
+
+                KRATOS_WARNING_IF("TwoFluidsNS", cubic_contact_angle_micro_gp < 0.0 ||
+                                cubic_contact_angle_micro_gp > 31.0)
+                            << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
+                            << std::endl;
+
+                if (cubic_contact_angle_micro_gp >= 0.0 &&
+                        cubic_contact_angle_micro_gp <= 31.0) //std::pow(PI, 3.0))
+                    contact_angle_micro_gp = std::pow(cubic_contact_angle_micro_gp, 1.0/3.0);
+                else if (cubic_contact_angle_micro_gp < 0.0)
+                    contact_angle_micro_gp = 0.0; //contact_angle_equilibrium;
+                else //if (cubic_contact_angle_micro_gp > 31.0)
+                    contact_angle_micro_gp = PI; //contact_angle_equilibrium;
+
+                // This relation is valid for contact_angle < 3PI/4 and vanishing Reynolds & Capillary numbers
+            }
+
+            double zeta_effective = zeta;
+            contact_angle_equilibrium = theta_receding;
+            if (contact_angle_micro_gp > contact_angle_equilibrium){
+                if (contact_angle_micro_gp >= theta_advancing){
+                    contact_angle_equilibrium = theta_advancing;
+                } else {
+                    contact_angle_equilibrium = contact_angle_micro_gp;
+                    zeta_effective = 1000.0*zeta;
+                }
+            }
+
+            const double coefficientS = coefficient*std::cos(contact_angle_equilibrium);
+
+            //KRATOS_INFO("two fluids NS") << "element_size= " << element_size << std::endl;
+            //KRATOS_INFO("two fluids NS") << "contact_angle_macro_gp= " << contact_angle_macro_gp << std::endl;
+            //KRATOS_INFO("two fluids NS") << "contact_angle_micro_gp= " << contact_angle_micro_gp << std::endl;
+
+            contact_vector_micro = std::cos(contact_angle_micro_gp)*wall_tangent +
+                    std::sin(contact_angle_micro_gp)*wall_normal_gp;
+
+            for (unsigned int i = 0; i < NumNodes; i++){
+                for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                    rhs[ i*(NumDim+1) + dimi ] -= coefficient*contact_vector_micro[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i);
+                    rhs[ i*(NumDim+1) + dimi ] += coefficientS*wall_tangent[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i); //Contac-line tangential force
+
+                    for (unsigned int j = 0; j < NumNodes; j++){
+                            lhs_dissipation( i*(NumDim+1) + dimi, j*(NumDim+1) + dimi) +=
+                                zeta_effective * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp,j) * (rCLShapeFunctions[i_cl])(clgp,i);
                     }
                 }
             }

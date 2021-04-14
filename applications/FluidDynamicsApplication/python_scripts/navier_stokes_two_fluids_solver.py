@@ -319,7 +319,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 50 == 0):
+            if (TimeStep % 500 == 0):
                 print("Redistancing")
                 print(time.time())
 

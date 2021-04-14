@@ -266,7 +266,16 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 5.1e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 5.5e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+
+    const double zeta = 1.0e-2;//1.0;//0.7;//
+    const double gamma = 0.0728;//0.0426;//0.0311;//
+    const double micro_length_scale = 1.0e-9;
+
+    const double theta_advancing = 130.0*PI/180.0;
+    const double theta_receding = 110.0*PI/180.0;
+    // const double cos_theta_s = -0.4539905;///* 0.5299192642332 */-0.25881904510252076;//0.779337965;//
+    // const double theta_s = std::acos(cos_theta_s);
 
     // Main loop (one Gauss point)
     //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -421,14 +430,22 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 1.0;//0.7;//1.0e-2;//
-                            const double gamma = 0.0426;//0.0311;//0.072;//
-                            const double micro_length_scale = 1.0e-9;
+                            Vector contact_vector_macro = ZeroVector(num_dim);
+                            MathUtils<double>::UnitCrossProduct(contact_vector_macro, contact_tangential, normal);
+                            const double cos_theta_macro = inner_prod(slip_vector,contact_vector_macro);
+                            const double theta_macro = std::acos(cos_theta_macro);
 
-                            const double cos_theta_s = 0.5299192642332;//0.779337965;//-0.4539905;//
-                            const double theta_s = std::acos(cos_theta_s);
+                            double theta_equilibrium = theta_receding;
+                            if (theta_macro > theta_equilibrium){
+                                if (theta_macro >= theta_advancing){
+                                    theta_equilibrium = theta_advancing;
+                                } else {
+                                    theta_equilibrium = theta_macro;
+                                }
+                            }
+                            double cos_theta_equilibrium = std::cos(theta_equilibrium);
 
-                            const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
+                            const double cos_theta_d = cos_theta_equilibrium - zeta/gamma * slip_velocity;//Check the sign of slip velocity
 
                             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
                                 << "cos_theta_d is larger than one." << std::endl;
@@ -445,7 +462,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
                             const double capilary_number = effective_viscosity*slip_velocity/gamma;
 
-                            if ( std::abs(theta_d - theta_s) < 6.0e-1 &&
+                            if ( std::abs(theta_d - theta_equilibrium) < 6.0e-1 &&
                                 capilary_number < 3.0e-1){
 
                                 double contact_angle_macro = 0.0;
