@@ -85,7 +85,7 @@ public:
 
     /// constructor.
     DistributedSparseGraph(const IndexType LocalSize,
-                           DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
+                           DataCommunicator& rComm)
     :
       mrComm(rComm),
       mLocalGraph(LocalSize)

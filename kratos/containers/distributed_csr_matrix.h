@@ -733,7 +733,7 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("CSRcommunicator",mrComm);
+        rSerializer.save("CommunicatorName",ParallelEnvironment::RetrieveRegisteredName(mrComm));
         rSerializer.save("RowNumbering",mpRowNumbering);
         rSerializer.save("ColNumbering",mpColNumbering);
         rSerializer.save("mDiagonalBlock",mDiagonalBlock);
@@ -750,7 +750,9 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("CSRcommunicator",mrComm);
+        std::string comm_name;
+        rSerializer.load("CommunicatorName",comm_name);
+        mrComm = ParallelEnvironment::GetDataCommunicator(comm_name);
         rSerializer.load("RowNumbering",mpRowNumbering);
         rSerializer.load("ColNumbering",mpColNumbering);
         rSerializer.load("mDiagonalBlock",mDiagonalBlock);
