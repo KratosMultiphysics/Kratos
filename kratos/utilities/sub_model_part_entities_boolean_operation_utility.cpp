@@ -123,4 +123,5 @@ void SubModelPartEntitiesBooleanOperationUtility<
 template class SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>;
 template class SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>;
 template class SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>;
+template class SubModelPartEntitiesBooleanOperationUtility<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>;
 }  // namespace Kratos.
