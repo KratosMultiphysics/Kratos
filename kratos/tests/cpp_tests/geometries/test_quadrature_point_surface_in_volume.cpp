@@ -27,8 +27,7 @@ namespace Testing {
     typedef Node<3> NodeType;
 
     NurbsVolumeGeometry<PointerVector<NodeType>> GenerateCubeForQPSurfaceInVolume() {
-        // Construct Truncated Pyramid with: lower_base = 2x2; uper_base = 1.8x1.8; heigth = 4
-        PointerVector<NodeType> points(196);
+        PointerVector<NodeType> points(8);
         double t = 1.0;
         std::vector<double> z_direction = {0.0, 1.0};
         std::vector<double> y_direction = {0.0, 1.0};
@@ -37,8 +36,8 @@ namespace Testing {
         for( auto i : z_direction){
             for( auto j : y_direction) {
                 for( auto k : x_direction) {
-                    double x = k*t;
-                    double y = j*t;
+                    double x = k;
+                    double y = j;
                     double z = i;
                     points(id-1) = Kratos::make_intrusive<NodeType>(id, x, y, z);
                     id++;
