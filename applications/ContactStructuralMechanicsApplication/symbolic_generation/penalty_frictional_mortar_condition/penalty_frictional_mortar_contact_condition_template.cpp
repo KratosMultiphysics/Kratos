@@ -17,6 +17,7 @@
 /* Mortar includes */
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
 #include "custom_conditions/penalty_frictional_mortar_contact_condition.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -174,8 +175,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
                 array_1d<double, 3>& r_force_residual = r_master_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 for (IndexType j = 0; j < TDim; ++j) {
-                    #pragma omp atomic
-                    r_force_residual[j] += rRHSVector[index + j];
+                    AtomicAdd(r_force_residual[j], rRHSVector[index + j]);
                 }
             }
             for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
@@ -185,8 +185,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
                 array_1d<double, 3>& r_force_residual = r_slave_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 for (IndexType j = 0; j < TDim; ++j) {
-                    #pragma omp atomic
-                    r_force_residual[j] += rRHSVector[index + j];
+                    AtomicAdd(r_force_residual[j], rRHSVector[index + j]);
                 }
             }
         }

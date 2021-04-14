@@ -33,6 +33,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 
 // // Processes
 // #include "processes/fast_transfer_between_model_parts_process.h"
@@ -760,11 +761,9 @@ private:
                 for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
                     auto& r_node = r_geometry[i_node];
                     if (!enforce_ntn) {
-                        #pragma omp atomic
-                        r_node.GetValue(NODAL_PAUX) += 1.0;
+                        AtomicAdd(r_node.GetValue(NODAL_PAUX), 1.0);
                     }
-                    #pragma omp atomic
-                    r_node.GetValue(NODAL_MAUX) += lumping_factor[i_node] * domain_size;
+                    AtomicAdd(r_node.GetValue(NODAL_MAUX), lumping_factor[i_node] * domain_size);
                 }
             }
         }

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.convection_diffusion_analysis_rom import ConvectionDiffusionAnalysisROM
@@ -7,7 +5,7 @@ from KratosMultiphysics.RomApplication.convection_diffusion_analysis_rom import 
 class TestConvectionDiffusionStationaryROM(ConvectionDiffusionAnalysisROM):
 
     def __init__(self,model,project_parameters):
-        super(TestConvectionDiffusionStationaryROM,self).__init__(model,project_parameters)
+        super().__init__(model,project_parameters)
 
     def EvaluateQuantityOfInterest(self):
        ##############################################################################################

@@ -90,11 +90,10 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
         r_visualization_variables_list.Add(r_var);
     }
 
-    // Set the origin model part as temporary communicator
-    // This is required to perform all the IsDistributed checks that appear before creating the visualization mesh
-    // Note that these checks might be required outside this process (i.e. in the creation of the visualization mesh output)
-    // This will be updated by a proper one by the ParallelFillCommunicator after the creation of the visualization entities
-    r_visualization_model_part.SetCommunicator(r_origin_model_part.pGetCommunicator());
+    // Create a communicator for the visualization model part as a clone of the origin model part
+    // Note that we are retrieving the data communicator from the origin one to keep it unique
+    const auto& r_data_communicator = r_origin_model_part.GetCommunicator().GetDataCommunicator();
+    r_visualization_model_part.SetCommunicator(r_origin_model_part.GetCommunicator().Create(r_data_communicator));
 
     // If MPI, add the PARTITION_INDEX variable to the visualization model part variables
     if (r_visualization_model_part.IsDistributed()) {
@@ -546,7 +545,12 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
     this->CreateVisualizationGeometries();
 
     // If MPI, this creates the communication plan among processes
-    ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
+    // If serial, it is only required to set the current mesh as local mesh in order to output the values
+    if (mrVisualizationModelPart.IsDistributed()) {
+        ParallelEnvironment::CreateFillCommunicator(mrVisualizationModelPart)->Execute();
+    } else {
+        mrVisualizationModelPart.GetCommunicator().SetLocalMesh(mrVisualizationModelPart.pGetMesh(0));
+    }
 
     // Initialize (allocate) non-historical variables
     InitializeNonHistoricalVariables<double>(mVisualizationNonHistoricalScalarVariables);

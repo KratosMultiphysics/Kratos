@@ -10,6 +10,7 @@ from test_eigensystem_solver import TestEigensystemSolver as TTestEigenSystemSol
 from test_eigen_dense_direct_solver import TestEigenDenseDirectSolver as TTestEigenDenseDirectSolver
 from test_feast_eigensystem_solver import TestFeastEigensystemSolver as TTestFeastEigensystemSolver
 from test_eigen_dense_eigenvalue_solver import TestDenseEigenvalueSolver as TTestDenseEigenvalueSolver
+from test_eigen_dense_decompositions import TestEigenDenseDecompositions as TTestEigenDenseDecompositions
 from test_spectra_eigensystem_solver import TestSpectraEigensystemSolver as TTestSpectraEigenSystemSolver
 
 
@@ -35,6 +36,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDenseDirectSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestFeastEigensystemSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDenseEigenvalueSolver]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestEigenDenseDecompositions]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSpectraEigenSystemSolver]))
 
     # Create a test suit with the selected tests
