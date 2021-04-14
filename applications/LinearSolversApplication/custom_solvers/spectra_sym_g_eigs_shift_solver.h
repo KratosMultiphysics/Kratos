@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers_define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
@@ -79,8 +80,8 @@ class SpectraSymGEigsShiftSolver
         DenseMatrixType& rEigenvectors) override
     {
         using scalar_t = double;
-        using vector_t = Eigen::VectorXd;
-        using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+        using vector_t = Kratos::EigenDynamicVector<scalar_t>;
+        using matrix_t = Kratos::EigenDynamicMatrix<scalar_t>;
 
         // --- get settings
 
@@ -188,7 +189,7 @@ private:
     /// sparse real symmetric matrix \f$A\f$, i.e., calculating \f$y=Ax\f$ for any vector
     /// \f$x\f$. This is adapted from Spectra::OwnSparseSymMatProd
     ///
-    template <typename Scalar_, typename StorageIndex = int>
+    template <typename Scalar_>
     class OwnSparseSymMatProd
     {
     public:
@@ -199,11 +200,11 @@ private:
 
     private:
         using Index = Eigen::Index;
-        using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using Vector = Kratos::EigenDynamicVector<Scalar>;
         using MapConstVec = Eigen::Map<const Vector>;
         using MapVec = Eigen::Map<Vector>;
-        using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-        using SparseMatrix = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, StorageIndex>;
+        using Matrix = Kratos::EigenDynamicMatrix<Scalar>;
+        using SparseMatrix = Kratos::EigenSparseMatrix<Scalar>;
         using ConstGenericSparseMatrix = const Eigen::Ref<const SparseMatrix>;
 
         ConstGenericSparseMatrix m_mat;
@@ -274,11 +275,7 @@ private:
     ///
     /// \tparam Scalar_        The element type of the matrices.
     ///                        Currently supported types are `float`, `double`, and `long double`.
-    /// \tparam StorageIndexA  The storage index type of the \f$A\f$ matrix, only used when \f$A\f$
-    ///                        is a sparse matrix.
-    /// \tparam StorageIndexB  The storage index type of the \f$B\f$ matrix, only used when \f$B\f$
-    ///                        is a sparse matrix.
-    template <typename Scalar_, typename StorageIndexA = int, typename StorageIndexB = int>
+    template <typename Scalar_>
     class OwnSymShiftInvert
     {
     public:
@@ -291,12 +288,12 @@ private:
         using Index = Eigen::Index;
 
         // type of the A matrix
-        using MatrixA = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, StorageIndexA>;
+        using MatrixA = Kratos::EigenSparseMatrix<Scalar>;
 
         // type of the B matrix
-        using MatrixB = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, StorageIndexB>;
+        using MatrixB = Kratos::EigenSparseMatrix<Scalar>;
 
-        using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using Vector = Kratos::EigenDynamicVector<Scalar>;
         using MapConstVec = Eigen::Map<const Vector>;
         using MapVec = Eigen::Map<Vector>;
 

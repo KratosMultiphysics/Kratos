@@ -15,6 +15,7 @@
 #include <Eigen/Eigenvalues>
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers_define.h"
 #include "spaces/ublas_space.h"
 #include "utilities/builtin_timer.h"
 #include "linear_solvers/linear_solver.h"
@@ -72,8 +73,8 @@ public:
 
         KRATOS_INFO_IF("DenseEigenvalueSolver", mEchoLevel > 0) << "Start"  << std::endl;
 
-        using vector_t = Eigen::VectorXd;
-        using matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+        using vector_t = Kratos::EigenDynamicVector<TScalar>;
+        using matrix_t = Kratos::EigenDynamicMatrix<TScalar>;
 
         Eigen::Map<matrix_t> A(rA.data().begin(), rA.size1(), rA.size2());
 
