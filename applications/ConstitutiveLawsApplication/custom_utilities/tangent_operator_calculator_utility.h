@@ -172,7 +172,7 @@ public:
 
                 // Compute tangent moduli
                 const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
-                CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain, delta_stress, i_component);
+                CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain-unperturbed_strain_vector_gp, delta_stress, i_component);
 
                 // Reset the values to the initial ones
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
