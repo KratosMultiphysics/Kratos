@@ -1204,6 +1204,7 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
         const double N_0 = N[0];
         const double N_1 = N[1];
         const double N_2 = N[2];
+        const double N_3 = N[3];
 
         const double C_3_3 = C(3,3); const double C_4_4 = C(4,4); const double C_5_5 = C(5,5);
 
@@ -1317,9 +1318,9 @@ const double cH13 =             DNenr(3,2)*bdf0*cH0*tau1;
             H(0,9)=N_2*cH2;
             H(0,10)=N_2*cH3;
             H(0,11)=cH4*(DN_2_0*DNenr(0,0) + DN_2_1*DNenr(0,1) + DN_2_2*DNenr(0,2));
-            H(0,12)=N[3]*cH1;
-            H(0,13)=N[3]*cH2;
-            H(0,14)=N[3]*cH3;
+            H(0,12)=N_3*cH1;
+            H(0,13)=N_3*cH2;
+            H(0,14)=N_3*cH3;
             H(0,15)=cH4*(DN_3_0*DNenr(0,0) + DN_3_1*DNenr(0,1) + DN_3_2*DNenr(0,2));
             H(1,0)=N_0*cH5;
             H(1,1)=N_0*cH6;
@@ -1333,9 +1334,9 @@ const double cH13 =             DNenr(3,2)*bdf0*cH0*tau1;
             H(1,9)=N_2*cH6;
             H(1,10)=N_2*cH7;
             H(1,11)=cH4*(DN_2_0*DNenr(1,0) + DN_2_1*DNenr(1,1) + DN_2_2*DNenr(1,2));
-            H(1,12)=N[3]*cH5;
-            H(1,13)=N[3]*cH6;
-            H(1,14)=N[3]*cH7;
+            H(1,12)=N_3*cH5;
+            H(1,13)=N_3*cH6;
+            H(1,14)=N_3*cH7;
             H(1,15)=cH4*(DN_3_0*DNenr(1,0) + DN_3_1*DNenr(1,1) + DN_3_2*DNenr(1,2));
             H(2,0)=N_0*cH8;
             H(2,1)=N_0*cH9;
@@ -1349,9 +1350,9 @@ const double cH13 =             DNenr(3,2)*bdf0*cH0*tau1;
             H(2,9)=N_2*cH9;
             H(2,10)=N_2*cH10;
             H(2,11)=cH4*(DN_2_0*DNenr(2,0) + DN_2_1*DNenr(2,1) + DN_2_2*DNenr(2,2));
-            H(2,12)=N[3]*cH8;
-            H(2,13)=N[3]*cH9;
-            H(2,14)=N[3]*cH10;
+            H(2,12)=N_3*cH8;
+            H(2,13)=N_3*cH9;
+            H(2,14)=N_3*cH10;
             H(2,15)=cH4*(DN_3_0*DNenr(2,0) + DN_3_1*DNenr(2,1) + DN_3_2*DNenr(2,2));
             H(3,0)=N_0*cH11;
             H(3,1)=N_0*cH12;
@@ -1365,9 +1366,9 @@ const double cH13 =             DNenr(3,2)*bdf0*cH0*tau1;
             H(3,9)=N_2*cH12;
             H(3,10)=N_2*cH13;
             H(3,11)=cH4*(DN_2_0*DNenr(3,0) + DN_2_1*DNenr(3,1) + DN_2_2*DNenr(3,2));
-            H(3,12)=N[3]*cH11;
-            H(3,13)=N[3]*cH12;
-            H(3,14)=N[3]*cH13;
+            H(3,12)=N_3*cH11;
+            H(3,13)=N_3*cH12;
+            H(3,14)=N_3*cH13;
             H(3,15)=cH4*(DN_3_0*DNenr(3,0) + DN_3_1*DNenr(3,1) + DN_3_2*DNenr(3,2));
 
 
@@ -1397,9 +1398,9 @@ const double cKee6 =             cKee0*(DNenr(2,0)*DNenr(3,0) + DNenr(2,1)*DNenr
 
 
         const double crhs_ee0 =             rho*tau1;
-const double crhs_ee1 =             DN_0_0*p[0] + DN_1_0*p[1] + DN_2_0*p[2] + DN_3_0*p[3] + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + DNenr(3,0)*penr[3] - N_0*f(0,0) - N_1*f(1,0) - N_2*f(2,0) - N[3]*f(3,0) + rho*(N_0*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N_1*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N_2*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N[3]*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
-const double crhs_ee2 =             DN_0_1*p[0] + DN_1_1*p[1] + DN_2_1*p[2] + DN_3_1*p[3] + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + DNenr(3,1)*penr[3] - N_0*f(0,1) - N_1*f(1,1) - N_2*f(2,1) - N[3]*f(3,1) + rho*(N_0*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N_1*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N_2*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
-const double crhs_ee3 =             DN_0_2*p[0] + DN_1_2*p[1] + DN_2_2*p[2] + DN_3_2*p[3] + DNenr(0,2)*penr[0] + DNenr(1,2)*penr[1] + DNenr(2,2)*penr[2] + DNenr(3,2)*penr[3] - N_0*f(0,2) - N_1*f(1,2) - N_2*f(2,2) - N[3]*f(3,2) + rho*(N_0*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N_1*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N_2*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N[3]*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)));
+const double crhs_ee1 =             DN_0_0*p[0] + DN_1_0*p[1] + DN_2_0*p[2] + DN_3_0*p[3] + DNenr(0,0)*penr[0] + DNenr(1,0)*penr[1] + DNenr(2,0)*penr[2] + DNenr(3,0)*penr[3] - N_0*f(0,0) - N_1*f(1,0) - N_2*f(2,0) - N_3*f(3,0) + rho*(N_0*(bdf0*v(0,0) + bdf1*vn(0,0) + bdf2*vnn(0,0)) + N_1*(bdf0*v(1,0) + bdf1*vn(1,0) + bdf2*vnn(1,0)) + N_2*(bdf0*v(2,0) + bdf1*vn(2,0) + bdf2*vnn(2,0)) + N_3*(bdf0*v(3,0) + bdf1*vn(3,0) + bdf2*vnn(3,0)));
+const double crhs_ee2 =             DN_0_1*p[0] + DN_1_1*p[1] + DN_2_1*p[2] + DN_3_1*p[3] + DNenr(0,1)*penr[0] + DNenr(1,1)*penr[1] + DNenr(2,1)*penr[2] + DNenr(3,1)*penr[3] - N_0*f(0,1) - N_1*f(1,1) - N_2*f(2,1) - N_3*f(3,1) + rho*(N_0*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N_1*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N_2*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N_3*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
+const double crhs_ee3 =             DN_0_2*p[0] + DN_1_2*p[1] + DN_2_2*p[2] + DN_3_2*p[3] + DNenr(0,2)*penr[0] + DNenr(1,2)*penr[1] + DNenr(2,2)*penr[2] + DNenr(3,2)*penr[3] - N_0*f(0,2) - N_1*f(1,2) - N_2*f(2,2) - N_3*f(3,2) + rho*(N_0*(bdf0*v(0,2) + bdf1*vn(0,2) + bdf2*vnn(0,2)) + N_1*(bdf0*v(1,2) + bdf1*vn(1,2) + bdf2*vnn(1,2)) + N_2*(bdf0*v(2,2) + bdf1*vn(2,2) + bdf2*vnn(2,2)) + N_3*(bdf0*v(3,2) + bdf1*vn(3,2) + bdf2*vnn(3,2)));
             rhs_ee[0]=-crhs_ee0*(DNenr(0,0)*crhs_ee1 + DNenr(0,1)*crhs_ee2 + DNenr(0,2)*crhs_ee3);
             rhs_ee[1]=-crhs_ee0*(DNenr(1,0)*crhs_ee1 + DNenr(1,1)*crhs_ee2 + DNenr(1,2)*crhs_ee3);
             rhs_ee[2]=-crhs_ee0*(DNenr(2,0)*crhs_ee1 + DNenr(2,1)*crhs_ee2 + DNenr(2,2)*crhs_ee3);
