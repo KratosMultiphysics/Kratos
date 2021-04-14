@@ -146,7 +146,7 @@ public:
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
         Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
-      
+
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
@@ -154,7 +154,7 @@ public:
             CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
             pertubation = std::max(component_perturbation, pertubation);
         }
-      
+
         // We check that the perturbation has a threshold value of PerturbationThreshold
         if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
@@ -259,7 +259,7 @@ public:
         }
         // We check that the perturbation has a threshold value of PerturbationThreshold
         if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
-      
+
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
