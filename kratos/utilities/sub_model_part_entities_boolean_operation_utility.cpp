@@ -65,4 +65,7 @@ void SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::Conditions
     rModelPart.AddConditions(rIds);
 }
 
+template class SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>;
+template class SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>;
+template class SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>;
 }  // namespace Kratos.
