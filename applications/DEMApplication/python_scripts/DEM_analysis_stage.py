@@ -249,6 +249,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.ReadModelParts()
 
+        self.SetMaterials()
+
         self.SetAnalyticFaceWatcher()
 
         self.post_normal_impact_velocity_option = False
@@ -308,6 +310,64 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+
+    def SetMaterials(self):
+        with open(os.path.join(self.GetMainPath(),"MaterialsDEM.json"),'r') as materials_file:
+            materials_parameters = KratosMultiphysics.Parameters(materials_file.read())
+        
+        list_of_materials = materials_parameters["materials"]
+        list_of_material_relations = materials_parameters["material_relations"]
+        material_assignation_table = materials_parameters["material_assignation_table"]
+
+        for material in list_of_materials:
+            material_id = material["material_id"].GetInt()
+            if  not self.spheres_model_part.HasProperties(material_id):
+                self.spheres_model_part.AddProperties(Properties(material_id))
+
+            properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
+           
+            properties = material["properties"]        
+            properties_of_model_part_with_this_id[PARTICLE_MATERIAL] = material_id
+            properties_of_model_part_with_this_id[PARTICLE_DENSITY] = properties["PARTICLE_DENSITY"].GetDouble()
+            properties_of_model_part_with_this_id[YOUNG_MODULUS] = properties["YOUNG_MODULUS"].GetDouble()
+            properties_of_model_part_with_this_id[POISSON_RATIO] = properties["POISSON_RATIO"].GetDouble()    
+
+            for material_relation in list_of_material_relations:
+                subprops = None
+                material_ids_list = material_relation["material_ids_list"].GetVector()
+                if material_id == material_ids_list[0]:
+                    index_of_the_other_material = int(material_ids_list[1])
+                    subprops = Properties(index_of_the_other_material)
+                elif material_id == material_ids_list[1]:
+                    index_of_the_other_material = int(material_ids_list[0])
+                    subprops = Properties(index_of_the_other_material)
+
+                if subprops:
+                    contact_properties = material_relation["properties"]
+                    subprops[COEFFICIENT_OF_RESTITUTION] = contact_properties["COEFFICIENT_OF_RESTITUTION"].GetDouble()
+                    subprops[STATIC_FRICTION] = contact_properties["STATIC_FRICTION"].GetDouble()
+                    subprops[DYNAMIC_FRICTION] = contact_properties["DYNAMIC_FRICTION"].GetDouble()
+                    subprops[FRICTION_DECAY] = contact_properties["FRICTION_DECAY"].GetDouble()
+                    subprops[ROLLING_FRICTION] = contact_properties["ROLLING_FRICTION"].GetDouble()
+                    subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["discontinuum_contact_law_parameters"]["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
+                    DiscontinuumConstitutiveLaw = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
+                    DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(subprops, True)
+                    subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
+
+                    properties_of_model_part_with_this_id.AddSubProperties(subprops)
+        
+        for pair in material_assignation_table:
+            submodelpart_name_in_assignation_table = pair[0].GetString()
+            material_name_in_assignation_table = pair[1].GetString()
+            submodelpart = None
+            for material in list_of_materials:
+                material_name_in_materials_list = material["material_name"].GetString()
+                if material_name_in_assignation_table == material_name_in_materials_list:
+                    submodelpart = self.model.GetModelPart(submodelpart_name_in_assignation_table)
+                    material_id = material["material_id"].GetInt()
+                    props = self.spheres_model_part.GetProperties()[material_id]
+            for element in submodelpart.Elements:
+                element.Properties = props            
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)

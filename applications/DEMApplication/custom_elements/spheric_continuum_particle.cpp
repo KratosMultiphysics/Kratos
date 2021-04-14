@@ -347,6 +347,7 @@ namespace Kratos {
 
             } else if (indentation > 0.0) {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
+                mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
                         LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
                         ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);

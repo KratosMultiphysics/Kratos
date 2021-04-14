@@ -131,7 +131,6 @@ virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_b
 
 void Initialize(const ProcessInfo& r_process_info) override;
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
-virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
 using DiscreteElement::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
 virtual void FirstCalculateRightHandSide(const ProcessInfo& r_process_info, double dt);
@@ -187,7 +186,6 @@ virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
-DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
 virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
 virtual double GetMass();
@@ -287,6 +285,8 @@ BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
+DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
+DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
 
 protected:
 
@@ -440,10 +440,9 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
                                                const double contact_area);
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
-
 virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
-DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
+DEMDiscontinuumConstitutiveLaw* mDiscontinuumConstitutiveLaw;
 double mRadius;
 double mSearchRadius;
 double mRealMass;

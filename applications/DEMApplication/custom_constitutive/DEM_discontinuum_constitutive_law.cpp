@@ -19,9 +19,6 @@ namespace Kratos {
     //        //KRATOS_INFO("DEM") << " DEMDiscontinuumConstitutiveLaw copy constructor..." << std::endl;
     //    }
 
-    void DEMDiscontinuumConstitutiveLaw::Initialize(const ProcessInfo& r_process_info) {
-    }
-
     void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         //if (verbose) KRATOS_INFO("DEM") << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
@@ -142,11 +139,12 @@ namespace Kratos {
         double equiv_mass = (mRealMass*other_real_mass)/(mRealMass+other_real_mass);
 
         // calculation of damping gamma
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double friction_coeff = element1->GetProperties()[STATIC_FRICTION];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
-        const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
+        
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+        KRATOS_WATCH(damping_gamma)
+        const double friction_coeff = properties_of_this_contact[STATIC_FRICTION];
+        const double viscous_damping_coeff     = 2.0 * damping_gamma * sqrt(equiv_mass * kn);
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
         double sqr_period = sqrt(1+friction_coeff*friction_coeff) * kn / equiv_mass - rescaled_damping*rescaled_damping;
         return sqr_period;

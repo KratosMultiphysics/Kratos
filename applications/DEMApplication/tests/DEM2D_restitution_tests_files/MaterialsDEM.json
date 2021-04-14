@@ -1,0 +1,77 @@
+{
+    "materials":[{
+        "material_name": "mat1",
+        "material_id": 1,
+        "properties":{
+            "PARTICLE_DENSITY": 3000.0,
+            "YOUNG_MODULUS": 1.1e6,
+            "POISSON_RATIO": 0.28
+        }
+    },{
+        "material_name": "mat2",
+        "material_id": 2,
+        "properties":{
+            "PARTICLE_DENSITY": 3100.0,
+            "YOUNG_MODULUS": 1.2e7,
+            "POISSON_RATIO": 0.29
+        }
+    }],
+    "material_relations":[{
+        "material_names_list":["mat1", "mat1"],
+        "material_ids_list":[1, 1],
+        "properties":{
+            "COEFFICIENT_OF_RESTITUTION": 0.2,
+            "STATIC_FRICTION": 0.7,
+            "DYNAMIC_FRICTION": 0.5,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.01,
+            "discontinuum_contact_law_parameters":{
+                "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb2D"
+            },
+            "continuum_contact_law_parameters":{
+                "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM2D",
+                "CONTACT_INTERNAL_FRICC": 0.6,
+                "CONTACT_TAU_ZERO": 500000.0
+            }
+        }
+    },{
+        "material_names_list":["mat1", "mat2"],
+        "material_ids_list":[1, 2],
+        "properties":{
+            "COEFFICIENT_OF_RESTITUTION": 0.0,
+            "STATIC_FRICTION": 0.6,
+            "DYNAMIC_FRICTION": 0.4,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.01,
+            "discontinuum_contact_law_parameters":{
+                "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb2D"
+            },
+            "continuum_contact_law_parameters":{
+                "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM2D",
+                "CONTACT_INTERNAL_FRICC": 0.4,
+                "CONTACT_TAU_ZERO": 300000.0
+            }
+        }
+    },{
+        "material_names_list":["mat2", "mat2"],
+        "material_ids_list":[2, 2],
+        "properties":{
+            "COEFFICIENT_OF_RESTITUTION": 0.0,
+            "STATIC_FRICTION": 0.8,
+            "DYNAMIC_FRICTION": 0.7,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.01,
+            "discontinuum_contact_law_parameters":{
+                "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb2D"
+            },
+            "continuum_contact_law_parameters":{
+                "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM2D",
+                "CONTACT_INTERNAL_FRICC": 0.5,
+                "CONTACT_TAU_ZERO": 400000.0
+            }
+        }
+    }],
+    "material_assignation_table":[
+        ["SpheresPart", "mat1"]
+    ]
+}

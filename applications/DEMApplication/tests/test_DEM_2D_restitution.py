@@ -21,6 +21,9 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
+        for prop in self.spheres_model_part.GetProperties():
+            print(prop)           
+
     @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")

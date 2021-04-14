@@ -274,6 +274,8 @@ class ExplicitStrategy():
 
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
+            for subproperties in properties.GetSubProperties():
+                self.ModifyProperties(subproperties)
 
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
@@ -634,7 +636,10 @@ class ExplicitStrategy():
 
     def ModifyProperties(self, properties, param = 0):
 
-        if not param:
+        if param:
+            return
+            
+        if properties.Has(COEFFICIENT_OF_RESTITUTION):
             DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
             coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
@@ -670,16 +675,17 @@ class ExplicitStrategy():
             if write_AlphaFunction == True:
                 properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
 
-            if properties.Has(CLUSTER_FILE_NAME):
-                cluster_file_name = properties[CLUSTER_FILE_NAME]
-                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
-                pre_utils = PreUtilities(self.spheres_model_part)
-                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-                self.Procedures.KratosPrintInfo(properties)
-                if not properties.Has(BREAKABLE_CLUSTER):
-                    properties.SetValue(BREAKABLE_CLUSTER, False)
-
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+
+        if properties.Has(CLUSTER_FILE_NAME):
+            cluster_file_name = properties[CLUSTER_FILE_NAME]
+            [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+            pre_utils = PreUtilities(self.spheres_model_part)
+            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+            self.Procedures.KratosPrintInfo(properties)
+            if not properties.Has(BREAKABLE_CLUSTER):
+                properties.SetValue(BREAKABLE_CLUSTER, False)
+        
 
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
@@ -699,6 +705,9 @@ class ExplicitStrategy():
         if not properties.Has(FRICTION_DECAY):
             properties[FRICTION_DECAY] = 500.0
 
+        if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
+
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
@@ -709,10 +718,7 @@ class ExplicitStrategy():
             rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
 
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
-        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
-
-        if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
-            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
+        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)        
 
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass
