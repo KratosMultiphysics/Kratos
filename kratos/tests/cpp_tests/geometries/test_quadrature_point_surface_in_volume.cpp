@@ -71,7 +71,7 @@ namespace Testing {
                 knot_vector_u, knot_vector_v, knot_vector_w);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints1, KratosCoreNurbsGeometriesFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(QuadraturePointSurfaceInVolumeGeometryTest, KratosCoreNurbsGeometriesFastSuite)
     {
         NurbsVolumeGeometry<PointerVector<NodeType>> cube = GenerateCubeForQPSurfaceInVolume();
 
