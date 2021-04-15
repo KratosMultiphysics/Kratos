@@ -18,13 +18,17 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-
-// Utility includes
 #include "includes/define.h"
 #include "factories/factory.h"
-#include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "solving_strategies/builder_and_solvers/explicit_builder.h"
+#include "includes/kratos_components.h"
 #include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/explicit_solving_strategy.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
 {
