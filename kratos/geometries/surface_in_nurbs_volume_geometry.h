@@ -23,8 +23,8 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TGeometryType, class TVolumeContainerPointType>
-class SurfaceInNurbsVolume : public Geometry<typename TVolumeContainerPointType::value_type>
+template <int TWorkingSpaceDimension, class TVolumeContainerPointType>
+class SurfaceInNurbsVolumeGeometry : public Geometry<typename TVolumeContainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
@@ -55,15 +55,15 @@ public:
 
     static constexpr IndexType VOLUME_INDEX = -1;
 
-    /// Counted pointer of SurfaceInNurbsVolume
-    KRATOS_CLASS_POINTER_DEFINITION(SurfaceInNurbsVolume);
+    /// Counted pointer of SurfaceInNurbsVolumeGeometry
+    KRATOS_CLASS_POINTER_DEFINITION(SurfaceInNurbsVolumeGeometry);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    SurfaceInNurbsVolume(
+    SurfaceInNurbsVolumeGeometry(
         NurbsVolumePointerType pVolume,
         GeometryPointerType pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
@@ -73,12 +73,12 @@ public:
     }
 
     /// Default constructor
-    SurfaceInNurbsVolume()
+    SurfaceInNurbsVolumeGeometry()
         : BaseType(PointsArrayType(), &msGeometryData)
     {};
 
     /// Copy constructor
-    SurfaceInNurbsVolume(SurfaceInNurbsVolume const& rOther)
+    SurfaceInNurbsVolumeGeometry(SurfaceInNurbsVolumeGeometry const& rOther)
         : BaseType(rOther)
         , mpNurbsVolume(rOther.mpNurbsVolume)
         , mpSurface(rOther.mpSurface)
@@ -86,8 +86,8 @@ public:
     }
 
     /// Copy constructor, with different point type.
-    template<class TOtherSurfaceContainerPointType, class TOtherVolumeContainerPointType>
-    SurfaceInNurbsVolume(SurfaceInNurbsVolume<TWorkingSpaceDimension, TOtherSurfaceContainerPointType, TOtherVolumeContainerPointType> const& rOther)
+    template<class TOtherVolumeContainerPointType>
+    SurfaceInNurbsVolumeGeometry(SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TOtherVolumeContainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mpNurbsVolume(rOther.mpNurbsVolume)
         , mpSurface(rOther.mpSurface)
@@ -95,14 +95,14 @@ public:
     }
 
     /// Destructor
-    ~SurfaceInNurbsVolume() override = default;
+    ~SurfaceInNurbsVolumeGeometry() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator
-    SurfaceInNurbsVolume& operator=(const SurfaceInNurbsVolume& rOther)
+    SurfaceInNurbsVolumeGeometry& operator=(const SurfaceInNurbsVolumeGeometry& rOther)
     {
         BaseType::operator=(rOther);
         mpNurbsVolume = rOther.mpNurbsVolume;
@@ -111,9 +111,9 @@ public:
     }
 
     /// @brief Assignment operator for geometries with different point type.
-    template<class TOtherSurfaceContainerPointType, class TOtherVolumeContainerPointType>
-    SurfaceInNurbsVolume& operator=(
-        SurfaceInNurbsVolume<TWorkingSpaceDimension, TOtherSurfaceContainerPointType, TOtherVolumeContainerPointType> const & rOther)
+    template<class TOtherVolumeContainerPointType>
+    SurfaceInNurbsVolumeGeometry& operator=(
+        SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TOtherVolumeContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
         mpNurbsVolume = rOther.mpNurbsVolume;
@@ -128,7 +128,7 @@ public:
     typename BaseType::Pointer Create(
         TVolumeContainerPointType const& ThisPoints) const override
     {
-        KRATOS_ERROR << "SurfaceInNurbsVolume cannot be created with 'PointsArrayType const& ThisPoints'. "
+        KRATOS_ERROR << "SurfaceInNurbsVolumeGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
             << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
             << std::endl;
     }
@@ -325,7 +325,7 @@ public:
                 default_method, tmp_integration_point,
                 N, shape_function_derivatives);
 
-            rResultGeometries(point_index) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(
+            rResultGeometries(point_index) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointSurfaceInVolume(
                 data_container, nonzero_control_points,
                 global_space_derivatives[1][0], global_space_derivatives[1][1], global_space_derivatives[1][2], this);
         }
@@ -414,16 +414,16 @@ private:
 
     ///@}
 
-}; // class SurfaceInNurbsVolume
+}; // class SurfaceInNurbsVolumeGeometry
 
-template<int TWorkingSpaceDimension, class TSurfaceContainerPointType, class TVolumeContainerPointType>
-const GeometryData SurfaceInNurbsVolume<TWorkingSpaceDimension, TSurfaceContainerPointType, TVolumeContainerPointType>::msGeometryData(
+template<int TWorkingSpaceDimension, class TVolumeContainerPointType>
+const GeometryData SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeContainerPointType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
 
-template<int TWorkingSpaceDimension, class TSurfaceContainerPointType, class TVolumeContainerPointType>
-const GeometryDimension SurfaceInNurbsVolume<TWorkingSpaceDimension, TSurfaceContainerPointType, TVolumeContainerPointType>::msGeometryDimension(
+template<int TWorkingSpaceDimension, class TVolumeContainerPointType>
+const GeometryDimension SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeContainerPointType>::msGeometryDimension(
     1, TWorkingSpaceDimension, 1);
 
 } // namespace Kratos

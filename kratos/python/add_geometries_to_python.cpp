@@ -341,6 +341,9 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
 
+    py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
+        ;
+
 }
 
 }  // namespace Python.
