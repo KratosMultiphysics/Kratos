@@ -283,7 +283,6 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
     double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    const double beta = log(fluid_fraction);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
 
@@ -315,6 +314,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
             // q-p stabilization block (reset result)
             double G = 0;
+            double GGradBetaP = 0.0;
             for (unsigned int d = 0; d < Dim; d++) {
                 // Stabilization: u*grad(v) * TauOne * u*grad(u) - vh * TauOne/Dt u*grad(u)
                 // The last term comes from vh*d(u_ss)/dt
@@ -329,13 +329,16 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 double U = (fluid_fraction_gradient[d] / fluid_fraction) * rData.N[j] * rData.N[i];
 
                 /* q-p stabilization block */
-                // Stabilization: Grad(q) * TauOne * Grad(p)
-                G += tau_one(d,d) * beta * rData.DN_DX(i,d) * rData.DN_DX(j,d);
+                // Stabilization: Grad(q) * TauOne * Grad(p) + Grad(beta) * q * TauOne * Grad(p)
+
+                G += tau_one(d,d) * rData.DN_DX(i,d) * rData.DN_DX(j,d);
                 /* v-u block */
                 // Stabilization: Div(v) * TauTwo * Div(u)
-                double GBetaR = 0.0;
+                double GR = 0.0;
+                double GGradBetaA = 0.0;
+                double GGradBetaR = 0.0;
                 double RSigmaG = 0.0;
-                double GBetaA = tau_one(d,d) * AGradN[j] * beta * rData.DN_DX(i,d);
+                double GA = tau_one(d,d) * AGradN[j] * rData.DN_DX(i,d);
                 // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                 double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
                 // From vh*d(u_ss)/dt: vh * TauOne/Dt * Grad(p)
@@ -348,22 +351,26 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     double RSigmaA = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     double DD = tau_two * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     double DU = (fluid_fraction_gradient[e] / fluid_fraction) * tau_two * rData.DN_DX(i,d) * rData.N[j];
-                    GBetaR += tau_one(d,d) * beta * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
+                    GGradBetaP += tau_one(d,d) * fluid_fraction_gradient[e] / fluid_fraction * rData.N[i] * rData.DN_DX(j,e);
+                    GGradBetaA += tau_one(d,d) * fluid_fraction_gradient[e] / fluid_fraction * rData.N[i] * AGradN[j];
+                    GGradBetaR += tau_one(d,d) * fluid_fraction_gradient[e] / fluid_fraction * sigma(e,d) * rData.N[i];
+                    GR += tau_one(d,d) * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
                     RSigmaG += tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,e);
                     LHS(row+d,col+e) += rData.Weight * (DD + DU + RSigma - VSigma + ASigma + RRSigma + RSigmaA);
                 }
 
-                LHS(row+Dim,col+d) += rData.Weight * (GBetaA + U + Q + GBetaR);
+                LHS(row+Dim,col+d) += rData.Weight * (GA + U + Q + GR - GGradBetaA - GGradBetaR);
                 LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P + RSigmaG);
 
             }
 
             // Write q-p term
-            LHS(row+Dim,col+Dim) += rData.Weight * G;
+            LHS(row+Dim,col+Dim) += rData.Weight * (G - GGradBetaP);
         }
 
         // RHS terms
-        double QBetaF = 0.0;
+        double QF = 0.0;
+        double QGradBetaF = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
             // v*BodyForce + v * du_ss/dt
@@ -375,15 +382,16 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             double RSigmaF = 0.0;
             for (unsigned int e = 0; e < Dim; ++e){
                 RSigmaF += tau_one(d,d) * sigma(d,e) * rData.N[i] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
+                QGradBetaF += tau_one(d,d) * sigma(d,e) * rData.N[i] * (fluid_fraction_gradient[e] / fluid_fraction) * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
             }
             // Grad(q) * TauOne * (Density * BodyForce - Projection)
-            QBetaF += tau_one(d,d) * rData.DN_DX(i,d) * beta * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+            QF += tau_one(d,d) * rData.DN_DX(i,d) * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             // OSS pressure subscale projection
             double DPhi = rData.DN_DX(i,d) * tau_two * (mass_source - (fluid_fraction_rate / fluid_fraction) - MassProj);
             rLocalRHS[row+d] += rData.Weight * (VF - VI + AF + DPhi + RSigmaF);
         }
         double Q = rData.N[i] * (mass_source - (fluid_fraction_rate / fluid_fraction));
-        rLocalRHS[row+Dim] += rData.Weight * (QBetaF + Q); // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row+Dim] += rData.Weight * (QF + Q - QGradBetaF); // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
@@ -445,8 +453,8 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
     AGradN *= density;
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    const double beta = log(fluid_fraction);
     double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
+    array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
@@ -465,17 +473,19 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
 
             for (unsigned int d = 0; d < Dim; d++)
             {
+                double UGradBeta = 0.0;
                 // grad(q) * TauOne * du/dt
-                double UGBeta = tau_one(d,d) * beta * rData.DN_DX(i,d) * rData.N[j];
+                double U = tau_one(d,d) * rData.DN_DX(i,d) * rData.N[j];
                 // u*grad(v) * TauOne * du/dt
                 // v * TauOne/dt * du/dt (from v*d(uss)/dt)
                 double K = tau_one(d,d) * (AGradN[i] - rData.N[i]/dt) * rData.N[j];
                 for (unsigned int e = 0; e < Dim; ++e){
                     double RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.N[j];
+                    UGradBeta = tau_one(d,d) * fluid_fraction_gradient[e] / fluid_fraction * rData.N[i] * rData.N[j];
                     rMassMatrix(row+d, col+e) += W * RSigmaU;
                 }
                 rMassMatrix(row+d,col+d) += W * K;
-                rMassMatrix(row+Dim,col+d) += W * UGBeta;
+                rMassMatrix(row+Dim,col+d) += W * (U - UGradBeta);
             }
         }
     }
@@ -523,8 +533,8 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
 
     tau_one = 1 / inv_tau;
 
-    if (true){
-        TauOne = tau_one * I / (1 - h / std::sqrt(c1) * gradient_beta_norm);
+    if (false){
+        TauOne = tau_one * I / (1 + h / std::sqrt(c1) * gradient_beta_norm);
         TauTwo = h * h / (c1 * tau_one);
     }
     else{
