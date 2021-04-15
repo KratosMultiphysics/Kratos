@@ -28,7 +28,6 @@
 #include "includes/master_slave_constraint.h"
 
 /* Factories */
-#include "factories/register_factories.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
 
@@ -112,14 +111,6 @@ void KratosApplication::RegisterKratosCore() {
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
-
-    // Register of solving strategies
-    RegisterBuilderAndSolversFactories();
-    RegisterExplicitBuildersFactories();
-    RegisterConvergenceCriteriasFactories();
-    RegisterStrategiesFactories();
-    RegisterExplicitStrategiesFactories();
-    RegisterSchemesFactories();
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
