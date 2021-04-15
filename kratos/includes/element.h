@@ -839,6 +839,8 @@ public:
         const double domain_size = this->GetGeometry().DomainSize();
         KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
+        GetGeometry().Check();
+
         return 0;
 
         KRATOS_CATCH("")

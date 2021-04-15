@@ -30,9 +30,13 @@ namespace Kratos
 int ParallelUtilities::GetNumThreads()
 {
 #ifdef KRATOS_SMP_OPENMP
-    return omp_get_max_threads();
+    int nthreads = omp_get_max_threads();
+    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
+    return nthreads;
 #elif defined(KRATOS_SMP_CXX11)
-    return GetNumberOfThreads();
+    int nthreads = GetNumberOfThreads();
+    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
+    return nthreads;
 #else
     return 1;
 #endif

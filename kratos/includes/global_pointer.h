@@ -232,7 +232,7 @@ public:
   {
       if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
       {
-        rSerializer.save("D", reinterpret_cast<const std::size_t>(mDataPointer));
+        rSerializer.save("D", reinterpret_cast<std::size_t>(mDataPointer));
       }
       else
       {
