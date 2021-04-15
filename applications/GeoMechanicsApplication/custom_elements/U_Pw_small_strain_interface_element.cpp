@@ -222,7 +222,75 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+    InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::InitializeSolutionStep()") << std::endl;
 
+    //Defining necessary variables
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+    array_1d<double,TNumNodes*TDim> DisplacementVector;
+    GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
+    this->CalculateRotationMatrix(RotationMatrix,Geom);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    array_1d<double,TDim> RelDispVector;
+    const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    double JointWidth;
+
+    //Create constitutive law parameters:
+    Vector StrainVector(TDim);
+    Vector StressVector(TDim);
+    Matrix ConstitutiveMatrix(TDim,TDim);
+    Vector Np(TNumNodes);
+    Matrix GradNpT(TNumNodes,TDim);
+    Matrix F = identity_matrix<double>(TDim);
+    double detF = 1.0;
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+    ConstitutiveParameters.SetStressVector(StressVector);
+    ConstitutiveParameters.SetStrainVector(StrainVector);
+    ConstitutiveParameters.SetShapeFunctionsValues(Np);
+    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+    ConstitutiveParameters.SetDeterminantF(detF);
+    ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+    // Auxiliar output variables
+    unsigned int NumGPoints = mConstitutiveLawVector.size();
+    std::vector<double> JointWidthContainer(NumGPoints);
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
+
+    //Loop over integration points
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    {
+        InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
+
+        noalias(RelDispVector) = prod(Nu,DisplacementVector);
+
+        noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
+
+        // Initilize constitutive law
+        UpdateElementalVariableStressVector(StressVector, GPoint);
+        mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
+
+        // Initialize retention law
+        mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
+    }
+
+    // KRATOS_INFO("1-UPwSmallStrainInterfaceElement::InitializeSolutionStep()") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
@@ -333,7 +401,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             const double x = (JointWidth/MinimumJointWidth) - 1.0;
             double factor = exp(-x*decayFactor);
             factor = std::max(0.01, factor);
-            StressVector /= factor;
+            StressVector *= factor;
         }
     }
 
@@ -653,15 +721,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     else
     {
+        //Variables computed on Lobatto points
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        std::vector<double> GPValues(NumGPoints);
+
+        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+            GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
+
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
-        for (unsigned int i=0; i < OutputGPoints; i++)
-        {
-            rValues[i] = 0.0;
-        }
+        this->InterpolateOutputDoubles(rValues,GPValues);
     }
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
 
@@ -699,15 +772,20 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     }
     else
     {
-        //Printed on standard GiD Gauss points
-        const unsigned int nOutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
-        if ( rValues.size() != nOutputGPoints )
-            rValues.resize( nOutputGPoints );
+        //Variables computed on Lobatto points
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        std::vector<array_1d<double,3>> GPValues(NumGPoints);
 
-        for (unsigned int i=0; i < nOutputGPoints; i++)
-        {
-            noalias(rValues[i]) = ZeroVector(3);
-        }
+        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+            GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
+
+        //Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetGeometry().GetDefaultIntegrationMethod() );
+        if ( rValues.size() != OutputGPoints )
+            rValues.resize( OutputGPoints );
+
+        this->InterpolateOutputValues< array_1d<double,3> >(rValues,GPValues);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainInterfaceElement:::CalculateOnIntegrationPoints<double,3>()") << std::endl;
@@ -738,7 +816,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
-        for (unsigned int GPoint=0; GPoint<OutputGPoints; GPoint++)
+        for (unsigned int GPoint=0; GPoint < OutputGPoints; GPoint++)
             rValues[GPoint].resize(TDim,TDim,false);
 
         this->InterpolateOutputValues< Matrix >(rValues,GPValues);
@@ -1144,7 +1222,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
     noalias(Vx) = Geom.GetPoint( 2 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
 
-    for (unsigned i=0; i< mIsOpen.size(); ++i)
+    for (unsigned i=0; i < mIsOpen.size(); ++i)
     {
         mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
     }
@@ -1176,7 +1254,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
     noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 2 );
     mInitialGap[2] = norm_2(Vx);
 
-    for (unsigned i=0; i< mIsOpen.size(); ++i)
+    for (unsigned i=0; i < mIsOpen.size(); ++i)
     {
         mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
     }
@@ -1211,7 +1289,7 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType
     noalias(Vx) = Geom.GetPoint( 7 ) - Geom.GetPoint( 3 );
     mInitialGap[3] = norm_2(Vx);
 
-    for (unsigned i=0; i< mIsOpen.size(); ++i)
+    for (unsigned i=0; i < mIsOpen.size(); ++i)
     {
         mIsOpen[i] = !(mInitialGap[i] < MinimumJointWidth);
     }
@@ -1334,7 +1412,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
-    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     // stiffness matrix is needed to calculate Biot coefficient
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);

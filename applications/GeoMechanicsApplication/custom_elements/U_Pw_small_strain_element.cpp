@@ -244,11 +244,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
-        // Compute Stress
+        // Initialize constitutive law
         this->UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
-        // retention law
+        // Initialize retention law
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeSolutionStep()") << std::endl;

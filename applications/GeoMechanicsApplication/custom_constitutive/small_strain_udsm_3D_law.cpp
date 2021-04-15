@@ -230,13 +230,13 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
       KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UDSM ", rMaterialProperties[UDSM_NAME]);
    }
 
-   const int nParamatersJson = rMaterialProperties[UMAT_PARAMETERS].size();
+   const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
    const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
-   if ( nParamatersJson != nParametersUDSM)
+   if ( nUmatParametersSize != nParametersUDSM)
    {
       KRATOS_THROW_ERROR(std::runtime_error, "Number of parameters is wrong."
                                              " The UDSM gives " + std::to_string(nParametersUDSM)
-                                             + " while json gives " + std::to_string(nParamatersJson),
+                                             + " while size of UMAT_PARAMETERS is " + std::to_string(nUmatParametersSize),
                                              rMaterialProperties[UDSM_NAME]);
    }
 
@@ -255,13 +255,10 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    KRATOS_TRY;
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterial()") << std::endl;
 
-   // we need to check if the model is loaded or not
-   if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
+   // loading the model
+   mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-   if (!mIsModelInitialized)
-   {
-      ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-   }
+   ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterial()") << std::endl;
 
@@ -310,6 +307,10 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
       for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
          mMatrixD[i][j] = 0.0;
+
+   // state variables
+   std::fill(mStateVariables.begin(), mStateVariables.end(), 0.0);
+   std::fill(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(), 0.0);
 
    mIsModelInitialized = false;
 
@@ -1311,7 +1312,7 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<double>& rThisVariable,
    // KRATOS_INFO("01-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 
    const int index = GetStateVariableIndex(rThisVariable);
-   
+
    if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
    {
       mStateVariablesFinalized[index - 1] = rValue;
