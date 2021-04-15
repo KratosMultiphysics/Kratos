@@ -28,6 +28,7 @@
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
+#include "utilities/variable_utils.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -109,7 +110,7 @@ public:
             "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
         KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
-        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
+        CalculateAreaNormalsFromConditions();
         CalculateUnitNormals();
 
         KRATOS_CATCH("");
@@ -366,23 +367,16 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void CalculateAreaNormals(ConditionsArrayType& rConditions, int dimension)
+    void CalculateAreaNormalsFromConditions()
     {
         KRATOS_TRY
 
         //resetting the normals
-        const array_1d<double,3> zero = ZeroVector(3);
-        for(auto& cond_i : rConditions)
-        {
-            for(auto& node_i : cond_i.GetGeometry())
-            {
-                noalias(node_i.GetSolutionStepValue(NORMAL)) = zero;
-            }
-        }
+        VariableUtils().SetHistoricalVariableToZero(NORMAL, mrModelPart.Nodes());
 
         //calculating the normals and summing up at nodes
         const array_1d<double,3> local_coords = ZeroVector(3);
-        for(auto& cond_i : rConditions)
+        for(auto& cond_i : mrModelPart.Conditions())
         {
             auto& r_geometry = cond_i.GetGeometry();
 
