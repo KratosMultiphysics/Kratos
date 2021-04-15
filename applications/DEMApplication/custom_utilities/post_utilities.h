@@ -98,26 +98,37 @@ namespace Kratos {
 
             double velocity_X = 0.0, velocity_Y = 0.0, velocity_Z = 0.0;
             int number_of_elements = 0;
-            #pragma omp parallel for reduction(+: velocity_X, velocity_Y, velocity_Z, number_of_elements)
-            for (int k = 0; k < (int) pElements.size(); k++) {
 
-                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-                array_1d<double,3> coor = (it)->GetGeometry()[0].Coordinates();
+            using MultipleReduction = CombinedReduction<
+                SumReduction<double>,
+                SumReduction<double>,
+                SumReduction<double>,
+                SumReduction<int>>;
+
+            std::tie(velocity_X,velocity_Y,velocity_Z,number_of_elements) = block_for_each<MultipleReduction>(pElements, [&](ModelPart::ElementType& rElement){
+                array_1d<double,3> coor = rElement.GetGeometry()[0].Coordinates();
+                double local_sum_x = 0.0;
+                double local_sum_y = 0.0;
+                double local_sum_z = 0.0;
+                int local_sum_elem = 0;
 
                 if (coor[0] >= low_point[0] && coor[0] <= high_point[0] &&
                     coor[1] >= low_point[1] && coor[1] <= high_point[1] &&
                     coor[2] >= low_point[2] && coor[2] <= high_point[2]) {
 
-                    velocity_X += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
-                    velocity_Y += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
-                    velocity_Z += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
+                    local_sum_x += rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+                    local_sum_y += rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+                    local_sum_z += rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
 
-                    number_of_elements++;
+                    local_sum_elem++;
                 }
+
                 for (int i = 0; i < 3; ++i) {
                     KRATOS_ERROR_IF(high_point[i] < low_point[i]) << "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates." << std::endl;
                 }
-            }
+
+                return std::make_tuple(local_sum_x, local_sum_y, local_sum_z, local_sum_elem); // note that these may have different types
+            });
 
             if (number_of_elements) {
                 velocity_X /= number_of_elements;
@@ -323,16 +334,16 @@ namespace Kratos {
             ElementsArrayType& pParticleElements = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
             array_1d<double,3> particle_forces;
             const array_1d<double,3>& gravity = r_process_info[GRAVITY];
-            double total_force = 0.0;
+            //double total_force = 0.0;
 
-            #pragma omp parallel for reduction(+:total_force)
-            for (int k = 0; k < (int) pParticleElements.size(); k++) {
 
-                ElementsArrayType::iterator it = pParticleElements.ptr_begin() + k;
-                Element::GeometryType& geom = it->GetGeometry();
+            double total_force = block_for_each<MaxReduction<double>>(pParticleElements, [&](ModelPart::ElementType& rParticleElement) -> double {
+                Element::GeometryType& geom = rParticleElement.GetGeometry();
+                double local_force = 0.0;
+                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) &&
+                    geom[0].IsNot(DEMFlags::FIXED_VEL_Y) &&
+                    geom[0].IsNot(DEMFlags::FIXED_VEL_Z)){
 
-                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) && geom[0].IsNot(DEMFlags::FIXED_VEL_Y) && geom[0].IsNot(DEMFlags::FIXED_VEL_Z))
-                {
                     particle_forces  = geom[0].FastGetSolutionStepValue(TOTAL_FORCES);
                     double mass = geom[0].FastGetSolutionStepValue(NODAL_MASS);
                     particle_forces[0] += mass * gravity[0];
@@ -341,29 +352,30 @@ namespace Kratos {
 
                     double module = 0.0;
                     GeometryFunctions::module(particle_forces, module);
-                    total_force += module;
+                    local_force += module;
                 }
-            }
+                return local_force;
+            }); // note that the value to be reduced should be returned, in this case local_force.
+
 
             ElementsArrayType& pContactElements = rContactModelPart.GetCommunicator().LocalMesh().Elements();
             array_1d<double,3> contact_forces;
-            double total_elastic_force = 0.0;
 
-            #pragma omp parallel for reduction(+:total_elastic_force)
-            for (int k = 0; k < (int) pContactElements.size(); k++) {
+            double total_elastic_force = block_for_each<MaxReduction<double>>(pContactElements, [&](ModelPart::ElementType& rContactElement) -> double {
+                Element::GeometryType& geom = rContactElement.GetGeometry();
+                double local_force = 0.0;
+                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) &&
+                    geom[0].IsNot(DEMFlags::FIXED_VEL_Y) &&
+                    geom[0].IsNot(DEMFlags::FIXED_VEL_Z)){
 
-                ElementsArrayType::iterator it = pContactElements.ptr_begin() + k;
-                Element::GeometryType& geom = it->GetGeometry();
-
-                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) && geom[0].IsNot(DEMFlags::FIXED_VEL_Y) && geom[0].IsNot(DEMFlags::FIXED_VEL_Z) &&
-                    geom[1].IsNot(DEMFlags::FIXED_VEL_X) && geom[1].IsNot(DEMFlags::FIXED_VEL_Y) && geom[1].IsNot(DEMFlags::FIXED_VEL_Z)) {
-
-                    contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);
+                    contact_forces  = rContactElement.GetValue(LOCAL_CONTACT_FORCE);
                     double module = 0.0;
                     GeometryFunctions::module(contact_forces, module);
-                    total_elastic_force += module;
+                    local_force += module;
                 }
-            }
+                return local_force;
+            }); // note that the value to be reduced should be returned, in this case local_force.
+
 
             double adimensional_value = 0.0;
             if (total_elastic_force != 0.0) {

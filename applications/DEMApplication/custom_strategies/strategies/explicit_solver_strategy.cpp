@@ -788,7 +788,7 @@ namespace Kratos {
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
 
-        // block_for_each(pElements, [&](Kratos::SphericParticle& rSphericParticle) {
+        // block_for_each(mListOfSphericParticles, [&](Kratos::SphericParticle& rSphericParticle) {
         //     rSphericParticle.Initialize(r_process_info);
         //     total_mass += rSphericParticle.GetMass();
         // });
@@ -931,22 +931,20 @@ namespace Kratos {
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
 
-        Vector rhs_cond;
-        Vector rhs_cond_elas;
 
-        #pragma omp parallel for private (rhs_cond, rhs_cond_elas)
-        for (int k = 0; k < (int) pConditions.size(); k++) {
+        struct my_tls {
+            Vector rhs_cond;
+            Vector rhs_cond_elas;
+        };
 
-            ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
-
-            Condition::GeometryType& geom = it->GetGeometry();
-            it->CalculateRightHandSide(rhs_cond, r_const_process_info);
-
-            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
-            p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
+        //here the my_tls is constructed in place, which is the equivalent of "private" in OpenMP
+        block_for_each(pConditions, my_tls(), [&](Condition& rCondition, my_tls& rTLS){
+            Condition::GeometryType& geom = rCondition.GetGeometry();
+            rCondition.CalculateRightHandSide(rTLS.rhs_cond, r_const_process_info);
+            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(rCondition));
+            p_wall->CalculateElasticForces(rTLS.rhs_cond_elas, r_process_info);
 
             array_1d<double, 3> Normal_to_Element = ZeroVector(3);
-
             const unsigned int& dim = geom.WorkingSpaceDimension();
 
             if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
@@ -965,9 +963,9 @@ namespace Kratos {
                 geom[i].SetLock();
 
                 for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them
-                    node_rhs[j] += rhs_cond[index + j];
-                    node_rhs_elas[j] += rhs_cond_elas[index + j];
-                    rhs_cond_comp[j] = rhs_cond[index + j];
+                    node_rhs[j] += rTLS.rhs_cond[index + j];
+                    node_rhs_elas[j] += rTLS.rhs_cond_elas[index + j];
+                    rhs_cond_comp[j] = rTLS.rhs_cond[index + j];
                 }
                 //node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes.
                 //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
@@ -976,7 +974,49 @@ namespace Kratos {
 
                 geom[i].UnSetLock();
             }
-        }
+        });
+
+        //remove old implementation when the new one is fully approved
+
+        // #pragma omp parallel for private (rhs_cond, rhs_cond_elas)
+        // for (int k = 0; k < (int) pConditions.size(); k++) {
+
+        //     ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
+
+        //     Condition::GeometryType& geom = it->GetGeometry();
+        //     it->CalculateRightHandSide(rhs_cond, r_const_process_info);
+        //     DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+        //     p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
+        //     array_1d<double, 3> Normal_to_Element = ZeroVector(3);
+        //     const unsigned int& dim = geom.WorkingSpaceDimension();
+        //     if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
+
+        //     for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
+        //         //we are studying a certain condition here
+        //         unsigned int index = i * dim; //*2;
+
+        //         array_1d<double, 3>& node_rhs = geom[i].FastGetSolutionStepValue(CONTACT_FORCES);
+        //         array_1d<double, 3>& node_rhs_elas = geom[i].FastGetSolutionStepValue(ELASTIC_FORCES);
+        //         array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+        //         double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
+        //         array_1d<double, 3> rhs_cond_comp;
+        //         noalias(rhs_cond_comp) = ZeroVector(3);
+
+        //         geom[i].SetLock();
+
+        //         for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them
+        //             node_rhs[j] += rhs_cond[index + j];
+        //             node_rhs_elas[j] += rhs_cond_elas[index + j];
+        //             rhs_cond_comp[j] = rhs_cond[index + j];
+        //         }
+        //         //node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes.
+        //         //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
+        //         node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
+        //         noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
+
+        //         geom[i].UnSetLock();
+        //     }
+        // }
         KRATOS_CATCH("")
     }
 
@@ -1622,14 +1662,12 @@ namespace Kratos {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int) pContactElements.size(); k++) {
-            ElementsArrayType::iterator it_contact = pContactElements.ptr_begin() + k;
-            Element* raw_p_contact_element = &(*it_contact);
+        block_for_each(pContactElements, [&](ModelPart::ElementType& rContactElement) {
+            Element* raw_p_contact_element = &(rContactElement);
             ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (raw_p_contact_element);
             p_bond->PrepareForPrinting();
-        }
-    } //PrepareContactElementsForPrinting
+        });
+    }
 
     void ExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
         KRATOS_TRY

@@ -905,12 +905,9 @@ namespace Kratos {
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
 
-        Vector rhs_cond;
-        #pragma omp parallel for private (rhs_cond)
-        for (int k = 0; k < (int) pConditions.size(); k++) {
-            ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
-            it->FinalizeSolutionStep(r_process_info);
-        }
+        block_for_each(pConditions, [&](ModelPart::ConditionType& rCondition){
+            rCondition.FinalizeSolutionStep(r_process_info);
+        });
         KRATOS_CATCH("")
     }
 }
