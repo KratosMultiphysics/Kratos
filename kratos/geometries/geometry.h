@@ -1897,149 +1897,6 @@ public:
     }
 
     ///@}
-    ///@name Integration
-    ///@{
-
-    /** This method confirm you if this geometry has a specific
-    integration method or not. This method will be usefull to
-    control the geometry before intagrating using a specific
-    method. In Geometry class this method controls if the
-    integration points vector respecting to this method is empty
-    or not.
-
-    @return bool true if this integration method exist and false if this
-    method is not imeplemented for this geometry.
-    */
-    bool HasIntegrationMethod(IntegrationMethod ThisMethod) const
-    {
-        return (mpGeometryData->HasIntegrationMethod(ThisMethod));
-    }
-
-    /**
-    * @return default integration method
-    */
-
-    IntegrationMethod GetDefaultIntegrationMethod() const
-    {
-        return mpGeometryData->DefaultIntegrationMethod();
-    }
-
-    ///@}
-    ///@name Integration Points
-    ///@{
-
-    /** Number of integtation points for default integration
-    method. This method just call IntegrationPointsNumber(enum
-    IntegrationMethod ThisMethod) with default integration
-    method.
-
-    @return SizeType which is the number of integration points
-    for default integrating method.
-    */
-    SizeType IntegrationPointsNumber() const
-    {
-        return mpGeometryData->IntegrationPoints().size();
-    }
-
-    /** Number of integtation points for given integration
-    method. This method use integration points data base to
-    obtain size of the integration points Vector respected to
-    given method.
-
-    @return SizeType which is the number of integration points
-    for given integrating method.
-    */
-    SizeType IntegrationPointsNumber( IntegrationMethod ThisMethod ) const
-    {
-        return mpGeometryData->IntegrationPointsNumber( ThisMethod );
-    }
-
-
-    /** Integtation points for default integration
-    method. This method just call IntegrationPoints(enum
-    IntegrationMethod ThisMethod) with default integration
-    method.
-
-    @return const IntegrationPointsArrayType which is Vector of integration points
-    for default integrating method.
-    */
-    const IntegrationPointsArrayType& IntegrationPoints() const
-    {
-        return mpGeometryData->IntegrationPoints();
-    }
-
-    /** Integtation points for given integration
-    method. This method use integration points data base to
-    obtain integration points Vector respected to
-    given method.
-
-    @return const IntegrationPointsArrayType which is Vector of integration points
-    for default integrating method.
-    */
-    const IntegrationPointsArrayType& IntegrationPoints( IntegrationMethod ThisMethod ) const
-    {
-        return mpGeometryData->IntegrationPoints( ThisMethod );
-    }
-
-    /* Creates integration points according to its quadrature rule.
-     * @return integration points.
-     */
-    virtual void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const
-    {
-        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
-    }
-
-    ///@}
-    ///@name Quadrature Point Geometries
-    ///@{
-
-    /* @brief This method creates a list of quadrature point geometries
-     *        from a list of integration points.
-     *
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param rIntegrationPoints list of integration points.
-     * @param NumberOfShapeFunctionDerivatives the number of evaluated
-     *        derivatives of shape functions at the quadrature point geometries.
-     *
-     * @see quadrature_point_geometry.h
-     */
-    virtual void CreateQuadraturePointGeometries(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints)
-    {
-        KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
-    }
-
-    /* @brief This method creates a list of quadrature point geometries
-     *        from a list of integration points. It creates the list of
-     *        integration points byitself.
-     *
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param NumberOfShapeFunctionDerivatives the number of evaluated
-     *        derivatives of shape functions at the quadrature point geometries.
-     *
-     * @see quadrature_point_geometry.h
-     */
-    virtual void CreateQuadraturePointGeometries(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
-    {
-        IntegrationPointsArrayType IntegrationPoints;
-        CreateIntegrationPoints(IntegrationPoints);
-
-        this->CreateQuadraturePointGeometries(
-            rResultGeometries,
-            NumberOfShapeFunctionDerivatives,
-            IntegrationPoints);
-    }
-
-    ///@}
     ///@name Operation within Global Space
     ///@{
 
@@ -2502,6 +2359,149 @@ public:
 
         // Distance to projected point
         return norm_2(rPointGlobalCoordinates - global_coordinates);
+    }
+
+    ///@}
+    ///@name Integration
+    ///@{
+
+    /** This method confirm you if this geometry has a specific
+    integration method or not. This method will be usefull to
+    control the geometry before intagrating using a specific
+    method. In Geometry class this method controls if the
+    integration points vector respecting to this method is empty
+    or not.
+
+    @return bool true if this integration method exist and false if this
+    method is not imeplemented for this geometry.
+    */
+    bool HasIntegrationMethod(IntegrationMethod ThisMethod) const
+    {
+        return (mpGeometryData->HasIntegrationMethod(ThisMethod));
+    }
+
+    /**
+    * @return default integration method
+    */
+
+    IntegrationMethod GetDefaultIntegrationMethod() const
+    {
+        return mpGeometryData->DefaultIntegrationMethod();
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /** Number of integtation points for default integration
+    method. This method just call IntegrationPointsNumber(enum
+    IntegrationMethod ThisMethod) with default integration
+    method.
+
+    @return SizeType which is the number of integration points
+    for default integrating method.
+    */
+    SizeType IntegrationPointsNumber() const
+    {
+        return mpGeometryData->IntegrationPoints().size();
+    }
+
+    /** Number of integtation points for given integration
+    method. This method use integration points data base to
+    obtain size of the integration points Vector respected to
+    given method.
+
+    @return SizeType which is the number of integration points
+    for given integrating method.
+    */
+    SizeType IntegrationPointsNumber(IntegrationMethod ThisMethod) const
+    {
+        return mpGeometryData->IntegrationPointsNumber(ThisMethod);
+    }
+
+
+    /** Integtation points for default integration
+    method. This method just call IntegrationPoints(enum
+    IntegrationMethod ThisMethod) with default integration
+    method.
+
+    @return const IntegrationPointsArrayType which is Vector of integration points
+    for default integrating method.
+    */
+    const IntegrationPointsArrayType& IntegrationPoints() const
+    {
+        return mpGeometryData->IntegrationPoints();
+    }
+
+    /** Integtation points for given integration
+    method. This method use integration points data base to
+    obtain integration points Vector respected to
+    given method.
+
+    @return const IntegrationPointsArrayType which is Vector of integration points
+    for default integrating method.
+    */
+    const IntegrationPointsArrayType& IntegrationPoints(IntegrationMethod ThisMethod) const
+    {
+        return mpGeometryData->IntegrationPoints(ThisMethod);
+    }
+
+    /* Creates integration points according to its quadrature rule.
+     * @return integration points.
+     */
+    virtual void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const
+    {
+        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints)
+    {
+        KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points. It creates the list of
+     *        integration points byitself.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
+    {
+        IntegrationPointsArrayType IntegrationPoints;
+        CreateIntegrationPoints(IntegrationPoints);
+
+        this->CreateQuadraturePointGeometries(
+            rResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            IntegrationPoints);
     }
 
     ///@}
