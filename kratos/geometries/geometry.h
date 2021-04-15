@@ -371,16 +371,6 @@ public:
     /// Destructor. Do nothing!!!
     virtual ~Geometry() {}
 
-    virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
-    {
-        return GeometryData::Kratos_generic_family;
-    }
-
-    virtual GeometryData::KratosGeometryType GetGeometryType() const
-    {
-        return GeometryData::Kratos_generic_type;
-    }
-
     ///@}
     ///@name Operators
     ///@{
@@ -585,6 +575,20 @@ public:
         KRATOS_ERROR <<
             "Calling SetGeometryShapeFunctionContainer from base geometry class."
             << std::endl;
+    }
+
+    ///@}
+    ///@name Geometry family and type
+    ///@{
+
+    virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
+    {
+        return GeometryData::Kratos_generic_family;
+    }
+
+    virtual GeometryData::KratosGeometryType GetGeometryType() const
+    {
+        return GeometryData::Kratos_generic_type;
     }
 
     ///@}
