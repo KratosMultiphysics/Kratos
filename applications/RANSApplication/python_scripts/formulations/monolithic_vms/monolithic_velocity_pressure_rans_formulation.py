@@ -178,11 +178,11 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         settings = self.GetParameters()
 
-        for constraint in self.model_part.MasterSlaveConstraints():
-            if (constraint.GetSlaveDofs()[0] == Kratos.VELOCITY_X or
-                constraint.GetSlaveDofs()[0] == Kratos.VELOCITY_Y or
-                constraint.GetSlaveDofs()[0] == Kratos.VELOCITY_Z or
-                constraint.GetSlaveDofs()[0] == Kratos.PRESSURE):
+        for constraint in model_part.MasterSlaveConstraints:
+            if (constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_X or
+                constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Y or
+                constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Z or
+                constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.PRESSURE):
                 self.monolithic_model_part.AddMasterSlaveConstraint(constraint)
 
         if (self.IsPeriodic()):
