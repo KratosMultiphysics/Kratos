@@ -190,6 +190,7 @@ const Parameters MeshCondition::GetSpecifications() const
             "dimension"   : [],
             "strain_size" : []
         },
+        "required_polynomial_degree_of_geometry" : -1,
         "documentation"   : "This is a pure geometric condition, no computation"
     })");
     return specifications;
