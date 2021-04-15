@@ -427,7 +427,7 @@ public:
         return *this;
     }
 
-     operator PointsArrayType&()
+    operator PointsArrayType&()
     {
         return mPoints;
     }
@@ -436,94 +436,126 @@ public:
     ///@name PointerVector Operators
     ///@{
 
-     virtual TPointType& operator[](const SizeType& i)
+    TPointType& operator[](const SizeType& i)
     {
         return mPoints[i];
     }
 
-    virtual TPointType const& operator[](const SizeType& i) const
+    TPointType const& operator[](const SizeType& i) const
     {
         return mPoints[i];
     }
 
-    virtual PointPointerType& operator()(const SizeType& i)
+    PointPointerType& operator()(const SizeType& i)
     {
         return mPoints(i);
     }
 
-    virtual ConstPointPointerType& operator()(const SizeType& i) const
+    ConstPointPointerType& operator()(const SizeType& i) const
     {
         return mPoints(i);
+    }
+
+    ///@}
+    ///@name Point Access
+    ///@{
+
+    /// Const access to the i'th point.
+    const typename TPointType::Pointer pGetPoint(const int Index) const
+    {
+        KRATOS_TRY
+        return mPoints(Index);
+        KRATOS_CATCH(mPoints)
+    }
+
+    /// Access to the i'th point.
+    typename TPointType::Pointer pGetPoint(const int Index)
+    {
+        KRATOS_TRY
+        return mPoints(Index);
+        KRATOS_CATCH(mPoints);
+    }
+
+    /// Const access to the i'th point.
+    TPointType const& GetPoint(const int Index) const
+    {
+        KRATOS_TRY
+        return mPoints[Index];
+        KRATOS_CATCH(mPoints);
+    }
+
+    /// Access to the i'th point.
+    TPointType& GetPoint(const int Index)
+    {
+        KRATOS_TRY
+        return mPoints[Index];
+        KRATOS_CATCH(mPoints);
     }
 
     ///@}
     ///@name PointerVector Operations
     ///@{
 
-    virtual iterator                   begin()
+    iterator begin()
     {
         return iterator(mPoints.begin());
     }
-    virtual const_iterator             begin() const
+    const_iterator begin() const
     {
         return const_iterator(mPoints.begin());
     }
-    virtual iterator                   end()
+    iterator end()
     {
         return iterator(mPoints.end());
     }
-    virtual const_iterator             end() const
+    const_iterator end() const
     {
         return const_iterator(mPoints.end());
     }
-    virtual ptr_iterator               ptr_begin()
+    ptr_iterator ptr_begin()
     {
         return mPoints.ptr_begin();
     }
-    virtual ptr_const_iterator         ptr_begin() const
+    ptr_const_iterator ptr_begin() const
     {
         return mPoints.ptr_begin();
     }
-    virtual ptr_iterator               ptr_end()
+    ptr_iterator               ptr_end()
     {
         return mPoints.ptr_end();
     }
-    virtual ptr_const_iterator         ptr_end() const
+    ptr_const_iterator ptr_end() const
     {
         return mPoints.ptr_end();
     }
-    virtual PointReferenceType        front()       /* nothrow */
+    PointReferenceType front()       /* nothrow */
     {
         assert(!empty());
         return mPoints.front();
     }
-    virtual ConstPointReferenceType  front() const /* nothrow */
+    ConstPointReferenceType front() const /* nothrow */
     {
         assert(!empty());
         return mPoints.front();
     }
-    virtual PointReferenceType        back()        /* nothrow */
+    PointReferenceType back()        /* nothrow */
     {
         assert(!empty());
         return mPoints.back();
     }
-    virtual ConstPointReferenceType  back() const  /* nothrow */
+    ConstPointReferenceType back() const  /* nothrow */
     {
         assert(!empty());
         return mPoints.back();
     }
 
-    virtual SizeType size() const
+    SizeType size() const
     {
         return mPoints.size();
     }
 
-    /**
-    * @detail Returns the number of the points/ nodes
-    *         belonging to this geometry.
-    * @return Number of points/ nodes.
-    */
-    SizeType PointsNumber() const {
+    /// Returns number of points. Same as size.
+    inline SizeType PointsNumber() const {
         return this->size();
     }
 
@@ -533,59 +565,69 @@ public:
         KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
     }
 
-    virtual SizeType max_size() const
+    SizeType max_size() const
     {
         return mPoints.max_size();
     }
-
-    virtual void swap(GeometryType& rOther)
+    void swap(GeometryType& rOther)
     {
         mPoints.swap(rOther.mPoints);
     }
-
-    virtual void push_back(PointPointerType x)
+    void push_back(PointPointerType x)
     {
         mPoints.push_back(x);
     }
-
-    virtual void clear()
+    void clear()
     {
         mPoints.clear();
     }
-
-    virtual void reserve(int dim)
+    void reserve(int dim)
     {
         mPoints.reserve(dim);
     }
-
-    virtual int capacity()
+    int capacity()
     {
         return mPoints.capacity();
     }
+    bool empty() const
+    {
+        return mPoints.empty();
+    }
 
     /////@}
-    /////@name Access
+    /////@name Access points container
     /////@{
 
-    ///** Gives a reference to underly normal container. */
-    virtual PointPointerContainerType& GetContainer()
+    /// Reference to the point container.
+    PointPointerContainerType& GetContainer()
     {
         return mPoints.GetContainer();
     }
 
-    /** Gives a constant reference to underly normal container. */
-    virtual const PointPointerContainerType& GetContainer() const
+    /// Const reference to the point container.
+    const PointPointerContainerType& GetContainer() const
     {
         return mPoints.GetContainer();
+    }
+
+
+    /// Const access to the Vector of the points.
+    const PointsArrayType& Points() const
+    {
+        return mPoints;
+    }
+
+    /// Access to the Vector of the points.
+    PointsArrayType& Points()
+    {
+        return mPoints;
     }
 
     ///@}
     ///@name Data Container
     ///@{
 
-    /**
-     * Access Data:
-     */
+    /// Access Data
     DataValueContainer& GetData()
     {
       return mData;
@@ -726,15 +768,6 @@ public:
     virtual void Calculate(
         const Variable<Matrix>& rVariable,
         Matrix& rOutput) const {}
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    virtual bool empty() const
-    {
-        return mPoints.empty();
-    }
 
     ///@}
     ///@name Operations
@@ -1706,81 +1739,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-    /** A constant access method to the Vector of the points stored in
-    this geometry.
-
-    @return A constant reference to PointsArrayType contains
-    pointers to the points.
-    */
-    const PointsArrayType& Points() const
-    {
-        return mPoints;
-    }
-
-    /** An access method to the Vector of the points stored in
-    this geometry.
-
-    @return A reference to PointsArrayType contains pointers to
-    the points.
-    */
-    PointsArrayType& Points()
-    {
-        return mPoints;
-    }
-
-    /** A constant access method to the i'th points stored in
-    this geometry.
-
-    @return A constant counted pointer to i'th point of
-    geometry.
-    */
-    const typename TPointType::Pointer pGetPoint( const int Index ) const
-    {
-        KRATOS_TRY
-        return mPoints( Index );
-        KRATOS_CATCH(mPoints)
-    }
-
-    /** An access method to the i'th points stored in
-    this geometry.
-
-    @return A counted pointer to i'th point of
-    geometry.
-    */
-    typename TPointType::Pointer pGetPoint( const int Index )
-    {
-        KRATOS_TRY
-        return mPoints( Index );
-        KRATOS_CATCH(mPoints);
-    }
-
-    /** A constant access method to the i'th points stored in
-    this geometry.
-
-    @return A constant counted pointer to i'th point of
-    geometry.
-    */
-    TPointType const& GetPoint( const int Index ) const
-    {
-        KRATOS_TRY
-        return mPoints[Index];
-        KRATOS_CATCH( mPoints);
-    }
-
-
-    /** An access method to the i'th points stored in
-    this geometry.
-
-    @return A counted pointer to i'th point of
-    geometry.
-    */
-    TPointType& GetPoint( const int Index )
-    {
-        KRATOS_TRY
-        return mPoints[Index];
-        KRATOS_CATCH(mPoints);
-    }
 
     /**
      * Returns a matrix of the local coordinates of all points
