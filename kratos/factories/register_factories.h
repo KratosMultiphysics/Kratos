@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "factories/factory.h"
 #include "includes/kratos_components.h"
+#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
