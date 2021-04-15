@@ -199,6 +199,13 @@ namespace SpecificationsUtilities
     bool KRATOS_API(KRATOS_CORE) CheckCompatibleConstitutiveLaws(ModelPart& rModelPart);
 
     /**
+     * @brief This method detects if all elements/conditions are considering the proper geometrical polynomial degree
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @return The highest geometrical polynomial degree
+     */
+    int KRATOS_API(KRATOS_CORE) CheckGeometricalPolynomialDegree(ModelPart& rModelPart);
+
+    /**
      * @brief This method returns the documentation provided by the element/condition
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return Parameters containing a resume of all the documentation
