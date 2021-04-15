@@ -60,10 +60,10 @@ namespace Kratos {
 
             // list with only element 2
             std::vector<int> ids = {2};
-            //auto container = r_model_part.Elements();
 
-            DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-            auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(r_model_part.Elements(), ids, r_default_comm );
+            for(auto& element : r_model_part.Elements()){
+                KRATOS_CHECK(element.Id(), 2)
+            }
         }
     }
 } // namespace Kratos.
