@@ -76,6 +76,10 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
 
         settings = self.GetParameters()
 
+        for constraint in self.GetBaseModelPart().MasterSlaveConstraints():
+            if (constraint.GetSlaveDofs()[0] == self.GetSolvingVariable()):
+                self.GetModelPart().AddMasterSlaveConstraint(constraint)
+
         if (self.IsPeriodic()):
             InitializePeriodicConditions(
                 self.GetBaseModelPart(),
