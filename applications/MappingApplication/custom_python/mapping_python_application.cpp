@@ -41,9 +41,12 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         .def(py::init<>())
         ;
 
-    AddMapperToPython<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>(m);
+
+    auto py_mapper_factory = py::class_<MapperFactory, MapperFactory::Pointer>(m, "MapperFactory");
+
+    AddMapperToPython<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>(m, py_mapper_factory);
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    AddMapperToPython<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>(m);
+    AddMapperToPython<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>(m, py_mapper_factory);
 #endif
 
     AddCustomUtilitiesToPython(m);

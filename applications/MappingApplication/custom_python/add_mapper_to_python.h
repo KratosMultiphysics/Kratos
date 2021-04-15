@@ -174,25 +174,36 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 } // anonymous namespace
 
 template<class TSparseSpace, class TDenseSpace>
-void AddMapperToPython(pybind11::module& m)
+void AddMapperToPython(
+    pybind11::module& m,
+    pybind11::class_<MapperFactory, MapperFactory::Pointer>& rPythonMapperFactory)
 {
-    namespace py = pybind11;
+    std::array<std::string, 4> names;
 
-    ExposeMapperToPython<TSparseSpace, TDenseSpace>(m, "Mapper");
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    ExposeMapperToPython<TSparseSpace, TDenseSpace>(m, "MPIMapper");
-#endif
+    if (TSparseSpace::IsDistributed()) {
+        names = {
+            "MPIMapper",
+            "CreateMPIMapper",
+            "HasMPIMapper",
+            "GetRegisteredMPIMapperNames"
+        };
+
+    } else {
+        names = {
+            "Mapper",
+            "CreateMapper",
+            "HasMapper",
+            "GetRegisteredMapperNames"
+        };
+    }
+
+    ExposeMapperToPython<TSparseSpace, TDenseSpace>(m, names[0]);
 
     // Exposing the MapperFactory
-    py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
-        .def_static("HasMapper", &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
-        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<TSparseSpace, TDenseSpace>)
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
-        .def_static("HasMPIMapper", &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
-        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<TSparseSpace, TDenseSpace>)
-#endif
+    rPythonMapperFactory
+        .def_static(names[1].c_str(), &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
+        .def_static(names[2].c_str(), &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
+        .def_static(names[3].c_str(), &MapperFactory::GetRegisteredMapperNames<TSparseSpace, TDenseSpace>)
     ;
 }
 
