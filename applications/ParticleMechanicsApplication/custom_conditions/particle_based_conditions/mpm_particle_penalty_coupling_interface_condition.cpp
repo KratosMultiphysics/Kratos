@@ -222,12 +222,15 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     GeneralVariables Variables;
     const double & r_mpc_area = this->GetIntegrationWeight();
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);
     if (m_particle_based_contact_force)
     {
         mpc_force = m_contact_force;
+        if (dimension==2)
+            mpc_force[2]=0.0;
     }
     else
     {
