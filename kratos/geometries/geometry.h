@@ -623,6 +623,25 @@ public:
         return mPoints;
     }
 
+    /* @brief This method returns a copy of all points of this geometry.
+     * @return GeometriesArrayType contains this geometry points.
+     * @see Points()
+     */
+    virtual GeometriesArrayType GeneratePoints() const
+    {
+        GeometriesArrayType points;
+
+        const auto& p_points = this->Points();
+        for (IndexType i_point = 0; i_point < p_points.size(); ++i_point) {
+            PointsArrayType point_array;
+            point_array.push_back(p_points(i_point));
+            auto p_point_geometry = Kratos::make_shared<Geometry<TPointType>>(point_array);
+            points.push_back(p_point_geometry);
+        }
+
+        return points;
+    }
+
     ///@}
     ///@name Data Container
     ///@{
@@ -1927,31 +1946,6 @@ public:
         } else { // Let's assume is one
             return this->GeneratePoints();
         }
-    }
-
-    ///@}
-    ///@name Points
-    ///@{
-
-    /**
-     * @brief This method gives you all points of this geometry.
-     * @details This method will gives you all the points
-     * @return GeometriesArrayType containes this geometry points.
-     * @see Points()
-     */
-    virtual GeometriesArrayType GeneratePoints() const
-    {
-        GeometriesArrayType points;
-
-        const auto& p_points = this->Points();
-        for (IndexType i_point = 0; i_point < p_points.size(); ++i_point) {
-            PointsArrayType point_array;
-            point_array.push_back(p_points(i_point));
-            auto p_point_geometry = Kratos::make_shared<Geometry<TPointType>>(point_array);
-            points.push_back(p_point_geometry);
-        }
-
-        return points;
     }
 
     ///@}
