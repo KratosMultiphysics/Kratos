@@ -104,6 +104,11 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
+    ## The following are conflicting due to KratosComponents 
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/sources/test_element.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/sources/test_condition.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/sources/test_constraint.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+
     ## This sources in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
