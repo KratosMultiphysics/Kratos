@@ -13,25 +13,24 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
+#if !defined(KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED
+
 // System includes
 
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-#include "custom_python/add_custom_mappers_to_python.h"
 #include "custom_mappers/mapper.h"
 #include "custom_utilities/mapper_factory.h"
 #include "custom_utilities/mapper_flags.h"
-#include "custom_utilities/mapper_typedefs.h"
 
-// Mappers
-#include "custom_mappers/nearest_neighbor_mapper.h"
-#include "custom_mappers/nearest_element_mapper.h"
 
 
 namespace Kratos {
 namespace Python {
+namespace {
 
 // Wrapper functions for taking a default argument for the flags
 template<class TSparseSpace, class TDenseSpace>
@@ -172,30 +171,32 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
     mapper.attr("FROM_NON_HISTORICAL") = MapperFlags::FROM_NON_HISTORICAL;
 }
 
-void  AddCustomMappersToPython(pybind11::module& m)
+} // anonymous namespace
+
+template<class TSparseSpace, class TDenseSpace>
+void AddMapperToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
-    typedef MapperDefinitions::SparseSpaceType SparseSpaceType;
-    ExposeMapperToPython<SparseSpaceType, DenseSpaceType>(m, "Mapper");
+    ExposeMapperToPython<TSparseSpace, TDenseSpace>(m, "Mapper");
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    typedef MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
-    ExposeMapperToPython<MPISparseSpaceType, DenseSpaceType>(m, "MPIMapper");
+    ExposeMapperToPython<TSparseSpace, TDenseSpace>(m, "MPIMapper");
 #endif
 
     // Exposing the MapperFactory
     py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
-        .def_static("HasMapper", &MapperFactory::HasMapper<SparseSpaceType, DenseSpaceType>)
-        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<SparseSpaceType, DenseSpaceType>)
+        .def_static("CreateMapper", &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
+        .def_static("HasMapper", &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
+        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<TSparseSpace, TDenseSpace>)
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
-        .def_static("HasMPIMapper", &MapperFactory::HasMapper<MPISparseSpaceType, DenseSpaceType>)
-        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<MPISparseSpaceType, DenseSpaceType>)
+        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
+        .def_static("HasMPIMapper", &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
+        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<TSparseSpace, TDenseSpace>)
 #endif
     ;
 }
 
 }  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos.
+
+#endif // KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED  defined

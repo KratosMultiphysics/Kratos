@@ -21,8 +21,10 @@
 // Project includes
 #include "includes/define_python.h"
 #include "mapping_application.h"
-#include "custom_python/add_custom_mappers_to_python.h"
+#include "custom_python/add_mapper_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+
+#include "custom_utilities/mapper_typedefs.h"
 
 
 namespace Kratos {
@@ -39,7 +41,11 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         .def(py::init<>())
         ;
 
-    AddCustomMappersToPython(m);
+    AddMapperToPython<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>(m);
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+    AddMapperToPython<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>(m);
+#endif
+
     AddCustomUtilitiesToPython(m);
 }
 
