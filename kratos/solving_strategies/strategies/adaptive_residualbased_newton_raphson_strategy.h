@@ -28,6 +28,7 @@
 #include "includes/matrix_market_interface.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "factories/linear_solver_factory.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -917,6 +918,7 @@ private:
     /**@name Protected static Member Variables */
     /*@{ */
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     /*@} */
     /**@name Protected member Variables */
@@ -955,7 +957,6 @@ private:
 protected:
     /**@name Static Member Variables */
     /*@{ */
-
 
     /*@} */
     /**@name Member Variables */
