@@ -553,6 +553,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_spec_utils.def("DetermineIfCompatibleGeometries", &SpecificationsUtilities::DetermineIfCompatibleGeometries );
     mod_spec_utils.def("DetermineIfRequiresTimeIntegration", &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
     mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
+    mod_spec_utils.def("CheckGeometricalPolynomialDegree", &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
     mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
 
     // PropertiesUtilities
