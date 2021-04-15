@@ -49,15 +49,13 @@ double FaceAngleResponseFunctionUtility::CalculateValue()
 {
 	KRATOS_TRY;
 
-	double value = 0.0;
-
-	for (auto& cond_i : mrModelPart.Conditions()){
-		const double g_i = CalculateConditionValue(cond_i);
+	const double value = block_for_each<SumReduction<double>>(mrModelPart.Conditions(), [&](Condition& rCond) {
+		const double g_i = CalculateConditionValue(rCond);
 		if (g_i <= 0) {
-			continue;
+			return 0.0;
 		}
-		value += g_i*g_i;
-	}
+		return g_i*g_i;
+	});
 
 	mValue = sqrt(value);
 
