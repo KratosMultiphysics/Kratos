@@ -1337,6 +1337,10 @@ public:
       return 0.0;
     }
 
+    ///@}
+    ///@name Intersection and BoundingBox and Center
+    ///@{
+
     /** Test the intersection with another geometry
      *
      * Test if this geometry intersects with other geometry
@@ -1573,20 +1577,6 @@ public:
             << "ERROR: The normal norm is zero or almost zero: "
             << norm_normal << std::endl;
         return normal_vector;
-    }
-
-
-    /** This method is to know if this geometry is symmetric or
-    not.
-
-    @todo Making some method related to symmetry axis and more...
-
-    @return bool true if this geometry is symmetric and false if
-    it's not.
-    */
-    virtual bool IsSymmetric() const
-    {
-        return false;
     }
 
     ///@}
@@ -3471,6 +3461,19 @@ public:
     virtual inline void ComputeSolidAngles(Vector& rSolidAngles)  const
     {
         KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
+    }
+
+    /** This method is to know if this geometry is symmetric or
+    not.
+
+    @todo Making some method related to symmetry axis and more...
+
+    @return bool true if this geometry is symmetric and false if
+    it's not.
+    */
+    virtual bool IsSymmetric() const
+    {
+        return false;
     }
 
     ///@}
