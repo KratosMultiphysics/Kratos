@@ -25,6 +25,7 @@
 
 // Application includes
 #include "ibqn_mvqn_convergence_accelerator.h"
+#include "ibqn_mvqn_randomized_svd_convergence_accelerator.h"
 
 namespace Kratos
 {
@@ -195,6 +196,8 @@ public:
             mpJac_n = mpJac_k1;
         }
 
+        //TODO: MOST PROBABLY WE CAN CLEAR THE OBSERVATION MATRICES IN HERE (then we can check if these are nullptr)
+
         KRATOS_CATCH( "" );
     }
 
@@ -227,6 +230,7 @@ public:
     ///@{
 
     friend class IBQNMVQNConvergenceAccelerator<TSparseSpace, TDenseSpace>;
+    friend class IBQNMVQNRandomizedSVDConvergenceAccelerator<TSparseSpace, TDenseSpace>;
 
     ///@}
 protected:
@@ -245,6 +249,7 @@ protected:
     {
         // Append and check the singularity of the current iteration information
         AppendCurrentIterationInformation(rResidualVector, rIterationGuess);
+
         // Update the inverse Jacobian approximation
         CalculateInverseJacobianApproximation();
     }
@@ -455,6 +460,11 @@ protected:
         return mProblemSize;
     }
 
+    std::size_t GetConvergenceAcceleratorIteration() const
+    {
+        return mConvergenceAcceleratorIteration;
+    }
+
     /**
      * @brief Returns the a bool indicating if IBQN are used
      * This method returns a bool flag indicating if the current MVQN instance is to be used in the IBQN equations
@@ -530,6 +540,16 @@ protected:
     void SetInverseJacobianApproximation(MatrixPointerType pInverseJacobianApproximation)
     {
         mpJac_k1 = pInverseJacobianApproximation;
+    }
+
+    virtual MatrixPointerType pGetJacobianDecompositionMatixQU()
+    {
+        KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
+    }
+
+    virtual MatrixPointerType pGetJacobianDecompositionMatixSigmaV()
+    {
+        KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
     }
 
     ///@}

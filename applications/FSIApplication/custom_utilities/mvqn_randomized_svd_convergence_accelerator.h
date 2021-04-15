@@ -99,7 +99,8 @@ public:
     , mpDenseSVD(pDenseSVD)
     {
         ConvAcceleratorParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        mNumberOfModes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
+        mUserNumberOfModes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
+        mLimitModesToIterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
         BaseType::SetInitialRelaxationOmega(ConvAcceleratorParameters["w_0"].GetDouble());
         BaseType::SetCutOffTolerance(ConvAcceleratorParameters["cut_off_tol"].GetDouble());
     }
@@ -114,10 +115,12 @@ public:
      */
     explicit MVQNRandomizedSVDConvergenceAccelerator(
         DenseSVDPointerType pDenseSVD,
-        const unsigned int JacobianModes = 10,
-        const double CutOffTolerance = 1e-8)
+        const unsigned int JacobianModes,
+        const double CutOffTolerance,
+        const bool LimitModesToIterations)
     : BaseType(CutOffTolerance)
-    , mNumberOfModes(JacobianModes)
+    , mUserNumberOfModes(JacobianModes)
+    , mLimitModesToIterations(LimitModesToIterations)
     , mpDenseSVD(pDenseSVD)
     {
     }
@@ -143,62 +146,16 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Save the current step Jacobian
-     * This method saves the current step Jacobian as previous step Jacobian for the next time step iteration
-     */
     void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
 
-        // Compute ((trans(V)*V)^-1)*trans(V)
-        MatrixType aux_M;
-        CalculateAuxiliaryMatrixM(aux_M);
-
-        // If not initialized yet, create the random values matrix for the truncated SVD
-        if (!mRandomValuesAreInitialized) {
-            InitializeRandomValuesMatrix();
+        if (!BaseType::IsUsedInBlockNewtonEquations()) {
+            CalculateInverseJacobianSVD();
         }
 
-        // Do the randomized SVD decomposition of the current Jacobian approximation
-        // Note that the identity part of the Jacobian will not be considered in the randomized SVD as this is full rank
-        MatrixType y;
-        MultiplyRight(aux_M, *mpOmega, y);
-
-        QR<double, row_major> qr_util;
-        const SizeType n_dofs = BaseType::GetProblemSize();
-        qr_util.compute(n_dofs, mNumberOfModes, &(y(0,0)));
-        qr_util.compute_q();
-        MatrixType Q(n_dofs, mNumberOfModes);
-        for (SizeType i = 0; i < n_dofs; ++i) { //TODO: This can be parallel
-            for (SizeType j = 0; j < mNumberOfModes; ++j) {
-                Q(i,j) = qr_util.Q(i,j);
-            }
-        }
-
-        MatrixType phi;
-        MultiplyTransposeLeft(aux_M, Q, phi);
-
-        VectorType s_svd; // Eigenvalues vector
-        MatrixType u_svd; // Left orthogonal matrix
-        MatrixType v_svd; // Right orthogonal matrix
-        Parameters svd_settings(R"({
-            "compute_thin_u" : true,
-            "compute_thin_v" : true
-        })");
-        mpDenseSVD->Compute(phi, s_svd, u_svd, v_svd, svd_settings);
-
-        auto p_aux_Q_U = Kratos::make_unique<MatrixType>(prod(Q, u_svd));
-        auto p_aux_sigma_V = Kratos::make_unique<MatrixType>(v_svd.size2(), v_svd.size1());
-        auto& r_aux_sigma_V = *p_aux_sigma_V;
-        for (SizeType i = 0; i < r_aux_sigma_V.size1(); ++i) {
-            const double aux_s = s_svd(i);
-            for (SizeType j = 0; j < r_aux_sigma_V.size2(); ++j) {
-                r_aux_sigma_V(i,j) = aux_s * v_svd(j,i);
-            }
-        }
-        std::swap(mpOldJacQU, p_aux_Q_U);
-        std::swap(mpOldJacSigmaV, p_aux_sigma_V);
+        mpOldJacQU = mpJacQU;
+        mpOldJacSigmaV = mpJacSigmaV;
 
         KRATOS_CATCH( "" );
     }
@@ -206,11 +163,12 @@ public:
     Parameters GetDefaultParameters() const override
     {
         Parameters mvqn_randomized_svd_default_parameters(R"({
-            "solver_type"            : "MVQN_randomized_SVD",
-            "jacobian_modes"         : 10,
-            "w_0"                    : 0.825,
-            "cut_off_tol"            : 1e-8,
-            "interface_block_newton" : false
+            "solver_type"               : "MVQN_randomized_SVD",
+            "jacobian_modes"            : 10,
+            "w_0"                       : 0.825,
+            "cut_off_tol"               : 1e-8,
+            "interface_block_newton"    : false,
+            "limit_modes_to_iterations" : false
         })");
 
         return mvqn_randomized_svd_default_parameters;
@@ -251,9 +209,8 @@ protected:
         BaseType::AppendCurrentIterationInformation(rResidualVector, rIterationGuess);
 
         // If the complete Jacobian is required for the IBQN equations calculate it
-        //TODO: THIS IS A TEMPORARY SOLUTION UNTIL WE IMPLEMENT THE WOODBURY INVERSE
-        if (BaseType::IsUsedInBlockNewtonEquations()) {
-            BaseType::CalculateInverseJacobianApproximation();
+        if (BaseType::IsUsedInBlockNewtonEquations() && BaseType::GetConvergenceAcceleratorIteration() > 0) {
+            CalculateInverseJacobianSVD();
         }
     }
 
@@ -326,10 +283,72 @@ protected:
         BaseType::SetInverseJacobianApproximation(p_aux_jac_k1);
     }
 
+    void CalculateInverseJacobianSVD()
+    {
+        KRATOS_WATCH("Calculating Jacobian SVD!")
+        // Compute ((trans(V)*V)^-1)*trans(V)
+        MatrixType aux_M;
+        CalculateAuxiliaryMatrixM(aux_M);
+
+        // If not initialized yet, create the random values matrix for the truncated SVD
+        if (!mRandomValuesAreInitialized || mpOmega == nullptr) {
+            InitializeRandomValuesMatrix();
+        }
+
+        // Do the randomized SVD decomposition of the current Jacobian approximation
+        // Note that the identity part of the Jacobian will not be considered in the randomized SVD as this is full rank
+        MatrixType y;
+        MultiplyRight(aux_M, *mpOmega, y);
+
+        QR<double, row_major> qr_util;
+        const SizeType n_dofs = BaseType::GetProblemSize();
+        qr_util.compute(n_dofs, mCurrentNumberOfModes, &(y(0,0)));
+        qr_util.compute_q();
+        MatrixType Q(n_dofs, mCurrentNumberOfModes);
+        for (SizeType i = 0; i < n_dofs; ++i) { //TODO: This can be parallel
+            for (SizeType j = 0; j < mCurrentNumberOfModes; ++j) {
+                Q(i,j) = qr_util.Q(i,j);
+            }
+        }
+
+        MatrixType phi;
+        MultiplyTransposeLeft(aux_M, Q, phi);
+
+        VectorType s_svd; // Eigenvalues vector
+        MatrixType u_svd; // Left orthogonal matrix
+        MatrixType v_svd; // Right orthogonal matrix
+        Parameters svd_settings(R"({
+            "compute_thin_u" : true,
+            "compute_thin_v" : true
+        })");
+        mpDenseSVD->Compute(phi, s_svd, u_svd, v_svd, svd_settings);
+
+        auto p_aux_Q_U = Kratos::make_shared<MatrixType>(prod(Q, u_svd));
+        auto p_aux_sigma_V = Kratos::make_shared<MatrixType>(v_svd.size2(), v_svd.size1());
+        auto& r_aux_sigma_V = *p_aux_sigma_V;
+        for (SizeType i = 0; i < r_aux_sigma_V.size1(); ++i) {
+            const double aux_s = s_svd(i);
+            for (SizeType j = 0; j < r_aux_sigma_V.size2(); ++j) {
+                r_aux_sigma_V(i,j) = aux_s * v_svd(j,i);
+            }
+        }
+        std::swap(mpJacQU, p_aux_Q_U);
+        std::swap(mpJacSigmaV, p_aux_sigma_V);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
 
+    MatrixPointerType pGetJacobianDecompositionMatixQU() override
+    {
+        return mpJacQU;
+    }
+
+    MatrixPointerType pGetJacobianDecompositionMatixSigmaV() override
+    {
+        return mpJacSigmaV;
+    }
 
     ///@}
 private:
@@ -341,14 +360,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mNumberOfModes; // Number of modes to be kept in the Jacobian randomized SVD
+    SizeType mUserNumberOfModes; // User-defined number of modes to be kept in the Jacobian randomized SVD
+    SizeType mCurrentNumberOfModes; // Current number of modes to be kept in the Jacobian randomized SVD
+    bool mLimitModesToIterations = true; // Limits the number of modes to the current iterations
     bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
 
     DenseSVDPointerType mpDenseSVD; // Pointer to the dense SVD utility
 
-    Kratos::unique_ptr<MatrixType> mpOmega; // Matrix with random values for truncated SVD
-    Kratos::unique_ptr<MatrixType> mpOldJacQU = nullptr; // Left DOFs x modes matrix from the previous Jacobian decomposition
-    Kratos::unique_ptr<MatrixType> mpOldJacSigmaV = nullptr; // Right modes x DOFs matrix from the previous Jacobian decomposition
+    MatrixPointerType mpOmega = nullptr; // Matrix with random values for truncated SVD
+    MatrixPointerType mpJacQU = nullptr; // Left DOFs x modes matrix from the previous Jacobian decomposition
+    MatrixPointerType mpJacSigmaV = nullptr; // Right modes x DOFs matrix from the previous Jacobian decomposition
+    MatrixPointerType mpOldJacQU = nullptr; // Left DOFs x modes matrix from the previous Jacobian decomposition
+    MatrixPointerType mpOldJacSigmaV = nullptr; // Right modes x DOFs matrix from the previous Jacobian decomposition
 
     ///@}
     ///@name Private Operators
@@ -356,9 +379,20 @@ private:
 
     void InitializeRandomValuesMatrix()
     {
+        // Initialize auxiliary variables
+        bool is_number_of_modes_limited = false;
+        mCurrentNumberOfModes = mUserNumberOfModes;
+
+        // Check if the user-defined number of modes exceeds the iteration number
+        const SizeType n_it = BaseType::GetConvergenceAcceleratorIteration();
+        if (mLimitModesToIterations && n_it < mCurrentNumberOfModes) {
+            mCurrentNumberOfModes = n_it;
+            is_number_of_modes_limited = true;
+        }
+
         // Set the random values matrix pointer
         const SizeType n_dofs = BaseType::GetProblemSize();
-        auto p_aux_omega = Kratos::make_unique<MatrixType>(n_dofs, mNumberOfModes);
+        auto p_aux_omega = Kratos::make_shared<MatrixType>(n_dofs, mCurrentNumberOfModes);
         std::swap(p_aux_omega, mpOmega);
 
         // Create the random values generator
@@ -369,7 +403,7 @@ private:
         // Fill the random values matrix
         auto& r_omega_matrix = *mpOmega;
         for (SizeType i = 0; i < n_dofs; ++i) {
-            for (SizeType j = 0; j < mNumberOfModes; ++j) {
+            for (SizeType j = 0; j < mCurrentNumberOfModes; ++j) {
                 // Use distribution to transform the random unsigned int generated by generator into a
                 // double in [0.0, 1.0). Each call to distribution(generator) generates a new random double
                 r_omega_matrix(i,j) = distribution(generator);
@@ -377,7 +411,7 @@ private:
         }
 
         // Set the flag to avoid performing this operation again (the random values are stored)
-        mRandomValuesAreInitialized = true;
+        mRandomValuesAreInitialized = !is_number_of_modes_limited;
     }
 
     void MultiplyRight(
@@ -387,8 +421,8 @@ private:
     {
         const SizeType n_dofs = BaseType::GetProblemSize();
         KRATOS_ERROR_IF(rRightMatrix.size1() != n_dofs) << "Obtained right multiplication matrix size " << rRightMatrix.size1() << " does not match the problem size " << n_dofs << " expected one." << std::endl;
-        if (rSolution.size1() != n_dofs|| rSolution.size2() != mNumberOfModes) {
-            rSolution.resize(n_dofs, mNumberOfModes);
+        if (rSolution.size1() != n_dofs|| rSolution.size2() != mCurrentNumberOfModes) {
+            rSolution.resize(n_dofs, mCurrentNumberOfModes);
         }
 
         // Get observation matrices from base MVQN convergence accelerator
@@ -438,8 +472,8 @@ private:
     {
         const SizeType n_dofs = BaseType::GetProblemSize();
         KRATOS_ERROR_IF(rLeftMatrix.size1() != n_dofs) << "Obtained left multiplication matrix size " << rLeftMatrix.size1() << " does not match the problem size " << n_dofs << " expected one." << std::endl;
-        if (rSolution.size1() != mNumberOfModes|| rSolution.size2() != n_dofs) {
-            rSolution.resize(mNumberOfModes, n_dofs);
+        if (rSolution.size1() != mCurrentNumberOfModes|| rSolution.size2() != n_dofs) {
+            rSolution.resize(mCurrentNumberOfModes, n_dofs);
         }
 
         // Get observation matrices from base MVQN convergence accelerator

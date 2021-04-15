@@ -197,38 +197,42 @@ public:
             mFirstRightCorrectionPerformed = true;
 
         } else {
-            // Get the interface problem size
-            std::size_t problem_size = mpConvergenceAcceleratorRight->GetProblemSize();
+            SolveInterfaceBlockQuasiNewtonRightUpdate(rForceInputVector, rDisplacementOutputVector, rIterationGuess, right_correction);
 
-            // Get both left and inverse Jacobian
-            auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
-            auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
+            KRATOS_WATCH(right_correction)
+            // // Get the interface problem size
+            // std::size_t problem_size = mpConvergenceAcceleratorRight->GetProblemSize();
 
-            // Set the residual of the update problem to be solved
-            VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
-            VectorType aux_right_onto_left(problem_size);
-            VectorType force_iteration_update = *mpUncorrectedForceVector - rForceInputVector;
-            TSparseSpace::Mult(*p_inv_jac_right, force_iteration_update, aux_right_onto_left);
-            TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
+            // // Get both left and inverse Jacobian
+            // auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
+            // auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
 
-            // Set the LHS of the update problem to be solved
-            MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
-            IndexPartition<std::size_t>(problem_size).for_each(
-                VectorType(problem_size),
-                [&aux_LHS, &p_inv_jac_right, &p_inv_jac_left, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
-            {
-                TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS);
-                for (std::size_t row = 0; row < problem_size; ++row) {
-                    aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_right, rAuxColumnTLS);
-                }
-            });
+            // // Set the residual of the update problem to be solved
+            // VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
+            // VectorType aux_right_onto_left(problem_size);
+            // VectorType force_iteration_update = *mpUncorrectedForceVector - rForceInputVector;
+            // TSparseSpace::Mult(*p_inv_jac_right, force_iteration_update, aux_right_onto_left);
+            // TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
 
-            // Calculate the correction
-            // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
-            QR<double, row_major> qr_util;
-            qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-            qr_util.solve(&(aux_RHS)(0), &(right_correction)(0));
+            // // Set the LHS of the update problem to be solved
+            // MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
+            // IndexPartition<std::size_t>(problem_size).for_each(
+            //     VectorType(problem_size),
+            //     [&aux_LHS, &p_inv_jac_right, &p_inv_jac_left, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
+            // {
+            //     TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS);
+            //     for (std::size_t row = 0; row < problem_size; ++row) {
+            //         aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_right, rAuxColumnTLS);
+            //     }
+            // });
+
+            // // Calculate the correction
+            // // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
+            // QR<double, row_major> qr_util;
+            // qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
+            // qr_util.solve(&(aux_RHS)(0), &(right_correction)(0));
         }
+
 
         // Update the iteration guess
         TSparseSpace::UnaliasedAdd(rIterationGuess, 1.0, right_correction);
@@ -259,41 +263,45 @@ public:
             mFirstLeftCorrectionPerformed = true;
 
         } else {
-            // Get the interface problem size
-            std::size_t problem_size = mpConvergenceAcceleratorLeft->GetProblemSize();
+            SolveInterfaceBlockQuasiNewtonLeftUpdate(rDisplacementInputVector, rForceOutputVector, rIterationGuess, left_correction);
 
-            // Get both left and inverse Jacobian
-            auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
-            auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
+            KRATOS_WATCH(left_correction)
+            // // Get the interface problem size
+            // std::size_t problem_size = mpConvergenceAcceleratorLeft->GetProblemSize();
 
-            // Set the residual of the update problem to be solved
-            VectorType aux_RHS = rForceOutputVector - rIterationGuess;
-            VectorType aux_left_onto_right(problem_size);
-            VectorType displacement_iteration_update = *mpUncorrectedDisplacementVector - rDisplacementInputVector;
-            TSparseSpace::Mult(*p_inv_jac_left, displacement_iteration_update, aux_left_onto_right);
-            TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
+            // // Get both left and inverse Jacobian
+            // auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
+            // auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
 
-            // Set the LHS of the update problem to be solved
-            MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
-            IndexPartition<std::size_t>(problem_size).for_each(
-                VectorType(problem_size),
-                [&aux_LHS, &p_inv_jac_left, &p_inv_jac_right, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
-            {
-                TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS);
-                for (std::size_t row = 0; row < problem_size; ++row) {
-                    aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_left, rAuxColumnTLS);
-                }
-            });
+            // // Set the residual of the update problem to be solved
+            // VectorType aux_RHS = rForceOutputVector - rIterationGuess;
+            // VectorType aux_left_onto_right(problem_size);
+            // VectorType displacement_iteration_update = *mpUncorrectedDisplacementVector - rDisplacementInputVector;
+            // TSparseSpace::Mult(*p_inv_jac_left, displacement_iteration_update, aux_left_onto_right);
+            // TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
 
-            // Calculate the correction
-            // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
-            QR<double, row_major> qr_util;
-            qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-            qr_util.solve(&(aux_RHS)(0), &(left_correction)(0));
+            // // Set the LHS of the update problem to be solved
+            // MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
+            // IndexPartition<std::size_t>(problem_size).for_each(
+            //     VectorType(problem_size),
+            //     [&aux_LHS, &p_inv_jac_left, &p_inv_jac_right, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
+            // {
+            //     TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS);
+            //     for (std::size_t row = 0; row < problem_size; ++row) {
+            //         aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_left, rAuxColumnTLS);
+            //     }
+            // });
+
+            // // Calculate the correction
+            // // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
+            // QR<double, row_major> qr_util;
+            // qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
+            // qr_util.solve(&(aux_RHS)(0), &(left_correction)(0));
         }
 
         // Update the iteration guess
         TSparseSpace::UnaliasedAdd(rIterationGuess, 1.0, left_correction);
+
 
         KRATOS_CATCH("");
     }
@@ -394,6 +402,93 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    virtual void SolveInterfaceBlockQuasiNewtonLeftUpdate(
+        const VectorType& rDisplacementInputVector,
+        const VectorType& rForceOutputVector,
+        const VectorType& rIterationGuess,
+        VectorType& rLeftCorrection)
+    {
+        // Get the interface problem size
+        std::size_t problem_size = mpConvergenceAcceleratorLeft->GetProblemSize();
+
+        // Get both left and inverse Jacobian
+        auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
+        auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
+
+        // Set the residual of the update problem to be solved
+        VectorType aux_RHS = rForceOutputVector - rIterationGuess;
+        VectorType aux_left_onto_right(problem_size);
+        VectorType displacement_iteration_update = *mpUncorrectedDisplacementVector - rDisplacementInputVector;
+        TSparseSpace::Mult(*p_inv_jac_left, displacement_iteration_update, aux_left_onto_right);
+        TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
+
+        // Set the LHS of the update problem to be solved
+        MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
+        IndexPartition<std::size_t>(problem_size).for_each(
+            VectorType(problem_size),
+            [&aux_LHS, &p_inv_jac_left, &p_inv_jac_right, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
+        {
+            TDenseSpace::GetColumn(Col, *p_inv_jac_right, rAuxColumnTLS);
+            for (std::size_t row = 0; row < problem_size; ++row) {
+                aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_left, rAuxColumnTLS);
+            }
+        });
+
+        // Calculate the correction
+        // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
+        QR<double, row_major> qr_util;
+        qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
+        qr_util.solve(&(aux_RHS)(0), &(rLeftCorrection)(0));
+    }
+
+    virtual void SolveInterfaceBlockQuasiNewtonRightUpdate(
+        const VectorType& rForceInputVector,
+        const VectorType& rDisplacementOutputVector,
+        const VectorType& rIterationGuess,
+        VectorType& rRightCorrection)
+    {
+        // Get the interface problem size
+        std::size_t problem_size = mpConvergenceAcceleratorRight->GetProblemSize();
+
+        // Get both left and inverse Jacobian
+        auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
+        auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
+
+        KRATOS_WATCH((*p_inv_jac_left)(100,100))
+        KRATOS_WATCH((*p_inv_jac_right)(100,100))
+        KRATOS_WATCH((*p_inv_jac_left)(100,200))
+        KRATOS_WATCH((*p_inv_jac_right)(100,200))
+
+        // Set the residual of the update problem to be solved
+        VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
+        VectorType aux_right_onto_left(problem_size);
+        VectorType force_iteration_update = *mpUncorrectedForceVector - rForceInputVector;
+        TSparseSpace::Mult(*p_inv_jac_right, force_iteration_update, aux_right_onto_left);
+        TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
+
+        KRATOS_WATCH(aux_RHS(0))
+        KRATOS_WATCH(aux_RHS(10))
+        KRATOS_WATCH(aux_RHS(13))
+        KRATOS_WATCH(aux_RHS(23))
+
+        // Set the LHS of the update problem to be solved
+        MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
+        IndexPartition<std::size_t>(problem_size).for_each(
+            VectorType(problem_size),
+            [&aux_LHS, &p_inv_jac_right, &p_inv_jac_left, &problem_size](std::size_t Col, VectorType& rAuxColumnTLS)
+        {
+            TDenseSpace::GetColumn(Col, *p_inv_jac_left, rAuxColumnTLS);
+            for (std::size_t row = 0; row < problem_size; ++row) {
+                aux_LHS(row,Col) -= TDenseSpace::RowDot(row, *p_inv_jac_right, rAuxColumnTLS);
+            }
+        });
+
+        // Calculate the correction
+        // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
+        QR<double, row_major> qr_util;
+        qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
+        qr_util.solve(&(aux_RHS)(0), &(rRightCorrection)(0));
+    }
 
     ///@}
     ///@name Protected  Access
@@ -412,6 +507,26 @@ protected:
     void SetRightConvergenceAcceleratorPointer(MVQNPointerType pConvergenceAcceleratorRight)
     {
         mpConvergenceAcceleratorRight = pConvergenceAcceleratorRight;
+    }
+
+    VectorPointerType pGetUncorrectedForceVector()
+    {
+        return mpUncorrectedForceVector;
+    }
+
+    VectorPointerType pGetUncorrectedDisplacementVector()
+    {
+        return mpUncorrectedDisplacementVector;
+    }
+
+    MVQNPointerType pGetConvergenceAcceleratorLeft()
+    {
+        return mpConvergenceAcceleratorLeft;
+    }
+
+    MVQNPointerType pGetConvergenceAcceleratorRight()
+    {
+        return mpConvergenceAcceleratorRight;
     }
 
     ///@}
@@ -448,8 +563,8 @@ private:
     MVQNPointerType mpConvergenceAcceleratorLeft;
     MVQNPointerType mpConvergenceAcceleratorRight;
 
-    typename BaseType::VectorPointerType mpUncorrectedForceVector;
-    typename BaseType::VectorPointerType mpUncorrectedDisplacementVector;
+    VectorPointerType mpUncorrectedForceVector;
+    VectorPointerType mpUncorrectedDisplacementVector;
 
 
     ///@}
