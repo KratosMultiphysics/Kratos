@@ -29,6 +29,7 @@
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -376,18 +377,20 @@ private:
 
         //calculating the normals and summing up at nodes
         const array_1d<double,3> local_coords = ZeroVector(3);
-        for(auto& cond_i : mrModelPart.Conditions())
+        block_for_each(mrModelPart.Conditions(), [&](Condition& rCond)
         {
-            auto& r_geometry = cond_i.GetGeometry();
+            auto& r_geometry = rCond.GetGeometry();
 
             const array_1d<double,3> normal = r_geometry.Normal(local_coords);
             const double coeff = 1.0/r_geometry.size();
 
             for(auto& node_i : r_geometry)
             {
+                node_i.SetLock();
                 noalias(node_i.FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+                node_i.UnSetLock();
             }
-        }
+        });
 
         KRATOS_CATCH("")
     }
