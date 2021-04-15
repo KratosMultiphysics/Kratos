@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "register_factories_trilinos.h"
+#include "custom_factories/register_factories_trilinos.h"
 
 namespace Kratos
 {
@@ -39,10 +39,5 @@ void AddKratosComponent(std::string const& Name, TrilinosConvergenceCriteriaType
 {
     KratosComponents<TrilinosConvergenceCriteriaType>::Add(Name, ThisComponent);
 }
-
-template class KratosComponents<TrilinosSolvingStrategyType>;
-template class KratosComponents<TrilinosBuilderAndSolverType>;
-template class KratosComponents<TrilinosSchemeType>;
-template class KratosComponents<TrilinosConvergenceCriteriaType>;
 
 }  // namespace Kratos.
