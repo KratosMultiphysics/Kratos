@@ -3848,17 +3848,6 @@ private:
         return s_geometry_data;
     }
 
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
     ///@}
     ///@name Private Friends
     ///@{
@@ -3866,24 +3855,12 @@ private:
     template<class TOtherPointType> friend class Geometry;
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
 
 }; // Class Geometry
 
 ///@}
-
-///@name Type Definitions
+///@name Input and output streams
 ///@{
-
-
-///@}
-///@name Input and output
-///@{
-
 
 /// input stream function
 template<class TPointType>
