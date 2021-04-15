@@ -307,7 +307,7 @@ private:
 
         const int echo_level = mMapperSettings["echo_level"].GetInt();
 
-        MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+        MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
             mpMappingMatrix,
             mpInterfaceVectorContainerOrigin->pGetVector(),
             mpInterfaceVectorContainerDestination->pGetVector(),
