@@ -3045,8 +3045,6 @@ public:
         return rResult;
     }
 
-
-
     ///@}
     ///@name Shape Function
     ///@{
@@ -3516,37 +3514,7 @@ public:
 
         rOStream << std::endl;
         rOStream << std::endl;
-        // rOStream << "\tLength\t : " << Length() << std::endl;
-        // rOStream << "\tArea\t : " << Area() << std::endl;
-
-        // Charlie: Volume is not defined by every geometry (2D geometries),
-        // which can cause this call to generate a KRATOS_ERROR while trying
-        // to call the base class Volume() method.
-
-        // rOStream << "\tVolume\t : " << Volume() << std::endl;
-
-        // Charlie: Can this be deleted?
-
-        // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
-        //   rOStream << "    Point " << i+1 << "\t            : ";
-        //   mPoints[i].PrintData(rOStream);
-        //   rOStream << std::endl;
-        // }
-        //
-        // rOStream << "    Center\t            : ";
-        // Center().PrintData(rOStream);
-        // rOStream << std::endl;
-        // rOStream << std::endl;
-        // rOStream << "    Length                  : " << Length() << std::endl;
-        // rOStream << "    Area                    : " << Area() << std::endl;
-        // rOStream << "    Volume                  : " << Volume();
     }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 
@@ -3760,27 +3728,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    /** Protected Constructor.
-    Avoids object to be created Except for derived classes
-    */
-
-
-    ///@}
-
-
 
 private:
     ///@name Member Variables
