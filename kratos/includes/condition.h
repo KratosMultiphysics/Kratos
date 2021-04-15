@@ -1013,6 +1013,7 @@ public:
                 "dimension"   : [],
                 "strain_size" : []
             },
+            "required_polynomial_degree_of_geometry" : -1,
             "documentation"   : "This is the base condition"
 
         })");
