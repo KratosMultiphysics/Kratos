@@ -33,6 +33,7 @@
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -1525,8 +1526,7 @@ protected:
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
                         double& r_value = mConstantVector[i_global];
-                        #pragma omp atomic
-                        r_value += constant_value;
+                        AtomicAdd(r_value, constant_value);
                     }
                 } else { // Taking into account inactive constraints
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
@@ -1696,8 +1696,7 @@ protected:
 
             double& r_a = b[i_global];
             const double& v_a = RHS_Contribution(i_local);
-            #pragma omp atomic
-            r_a += v_a;
+            AtomicAdd(r_a, v_a);
 
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
         }
@@ -1736,8 +1735,7 @@ protected:
             double& b_value = b[i_global];
             const double& rhs_value = RHS_Contribution[i_local];
 
-            #pragma omp atomic
-            b_value += rhs_value;
+            AtomicAdd(b_value, rhs_value);
         }
     }
 
@@ -1756,8 +1754,7 @@ protected:
 
         double& r_a = values_vector[last_pos];
         const double& v_a = Alocal(i_local,0);
-        #pragma omp atomic
-        r_a +=  v_a;
+        AtomicAdd(r_a,  v_a);
 
         //now find all of the other entries
         size_t pos = 0;
@@ -1773,8 +1770,7 @@ protected:
 
             double& r = values_vector[pos];
             const double& v = Alocal(i_local,j);
-            #pragma omp atomic
-            r +=  v;
+            AtomicAdd(r,  v);
 
             last_found = id_to_find;
             last_pos = pos;
