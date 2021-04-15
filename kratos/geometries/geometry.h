@@ -3800,6 +3800,16 @@ private:
     }
 
     ///@}
+    ///@name Id
+    ///@{
+
+    /// Sets Id of this Geometry (avoids checks, used from Create functions)
+    void SetIdWithoutCheck(const IndexType Id)
+    {
+        mId = Id;
+    }
+
+    ///@}
     ///@name Serialization
     ///@{
 
