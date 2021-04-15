@@ -97,7 +97,6 @@ class ParticleVTKOutputProcess(KratosMultiphysics.Process):
         self._write_vtk()
 
         # Schedule next output
-        time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self._get_pretty_time(self.next_output) <= time:
