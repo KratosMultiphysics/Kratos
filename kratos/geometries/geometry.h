@@ -2559,7 +2559,7 @@ public:
     }
 
     ///@}
-    ///@name Jacobian
+    ///@name Jacobian and Determinant of Jacobian
     ///@{
 
     /** Jacobians for default integration method. This method just
