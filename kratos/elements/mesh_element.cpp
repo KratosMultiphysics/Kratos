@@ -326,6 +326,7 @@ const Parameters MeshElement::GetSpecifications() const
             "dimension"   : [],
             "strain_size" : []
         },
+        "required_polynomial_degree_of_geometry" : -1,
         "documentation"   : "This is a pure geometric element, no computation"
     })");
     return specifications;
