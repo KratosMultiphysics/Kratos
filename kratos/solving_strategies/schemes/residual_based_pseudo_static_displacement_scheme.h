@@ -222,12 +222,12 @@ public:
         array_1d<double, 3 > delta_displacement = zero_array;
 
         // Getting position
-        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
-        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
-        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
-        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
-        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
+        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? static_cast<int>(it_node_begin->GetDofPosition(DISPLACEMENT_X)) : -1;
+        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_X)) : -1;
+        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? static_cast<int>(it_node_begin->GetDofPosition(DISPLACEMENT_Y)) : -1;
+        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_Y)) : -1;
+        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? static_cast<int>(it_node_begin->GetDofPosition(DISPLACEMENT_Z)) : -1;
+        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_Z)) : -1;
 
         block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
