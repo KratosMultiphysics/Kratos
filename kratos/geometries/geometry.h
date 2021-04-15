@@ -1241,7 +1241,7 @@ public:
     }
 
     ///@}
-    ///@name Informations
+    ///@name Dimension Informations
     ///@{
 
     /** Dimension of the geometry for example a triangle2d is a 2
@@ -1516,6 +1516,10 @@ public:
         return result;
     }
 
+    ///@}
+    ///@name Normal and UnitNormal
+    ///@{
+
     /**
      * @brief It returns a vector that is normal to its corresponding geometry in the given local point
      * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
@@ -1737,7 +1741,7 @@ public:
     }
 
     ///@}
-    ///@name Access
+    ///@name Coordinate transformation
     ///@{
 
     /**
@@ -1861,7 +1865,7 @@ public:
     }
 
     ///@}
-    ///@name Inquiry
+    ///@name Integration
     ///@{
 
     /** This method confirm you if this geometry has a specific
