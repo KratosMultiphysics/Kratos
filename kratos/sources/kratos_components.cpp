@@ -26,14 +26,6 @@
 /* Utilities */
 #include "utilities/quaternion.h"
 
-/* Strategies */
-#include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/strategies/explicit_solving_strategy.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/explicit_builder.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-
 /* Factories */
 #include "factories/register_factories.h"
 #include "factories/linear_solver_factory.h"
@@ -164,17 +156,12 @@ using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_mat
 using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
 using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
 using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
-using LinearSolverType = LinearSolver<RealSparseSpace, RealDenseSpace>;
 
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<SolvingStrategy<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
 template class KratosComponents<ExplicitSolvingStrategy<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<BuilderAndSolver<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
 template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<Scheme<RealSparseSpace,RealDenseSpace>>;
-template class KratosComponents<ConvergenceCriteria<RealSparseSpace,RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
