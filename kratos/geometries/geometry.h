@@ -1469,12 +1469,6 @@ public:
       return false;
     }
 
-    // virtual void BoundingBox(BoundingBoxType& rResult) const
-    // {
-    //
-    //   Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-    // }
-
     /**
      * @brief Calculates the boundingbox of the geometry.
      * @details Corresponds with the highest and lowest point in space
@@ -1995,23 +1989,6 @@ public:
         KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
-    /** This method gives you an edge of this geometry which holds
-    given points. This method will gives you an edge with
-    dimension related to given points number. for example a
-    tetrahedral would return a triangle for given three points or
-    return an edge line for given two nodes by this method.
-
-    @return Geometry::Pointer to this geometry specific edge.
-    @see EdgesNumber()
-    @see Edges()
-    */
-    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
-//       virtual Pointer Edge(const PointsArrayType& EdgePoints)
-//  {
-//    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
-//
-//  }
-
     ///@}
     ///@name Face
     ///@{
@@ -2070,51 +2047,6 @@ public:
     {
         KRATOS_ERROR << "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
-
-
-    /** This method gives you an edge of this geometry related to
-    given index. The numbering order of each geometries edges is
-    depended to type of that geometry.
-
-    @return Geometry::Pointer to this geometry specific edge.
-    @see EdgesNumber()
-    @see Edges()
-    */
-    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
-//       virtual Pointer Edge(IndexType EdgeIndex)
-//  {
-//    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
-
-//  }
-
-    /** This method gives you normal edge of this geometry which holds
-    given points.
-
-    @return NormalType which is normal to this geometry specific edge.
-    @see Edge()
-    */
-    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
-//       virtual NormalType NormalEdge(const PointsArrayType& EdgePoints)
-//  {
-//    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl
-
-//    return NormalType();
-//  }
-
-    /** This method gives you normal to edge of this geometry related to
-    given index. The numbering order of each geometries edges is
-    depended to type of that geometry.
-
-    @return NormalType which is normal to this geometry specific edge.
-    @see Edge()
-    */
-    // Commented for possible change in Edge interface of geometry. Pooyan. // NOTE: We should rethink this because is aligned with the current PR
-//       virtual NormalType NormalEdge(IndexType EdgeIndex)
-//  {
-//    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
-
-//    return NormalType();
-//  }
 
     ///@}
     ///@name Integration Points
