@@ -1754,76 +1754,6 @@ public:
     }
 
     ///@}
-    ///@name Coordinate transformation
-    ///@{
-
-    /**
-     * Returns a matrix of the local coordinates of all points
-     * @param rResult a Matrix that will be overwritten by the results
-     * @return the coordinates of all points of the current geometry
-     */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
-    {
-        KRATOS_ERROR << "Calling base class 'PointsLocalCoordinates' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
-
-    /**
-     * @brief Returns the local coordinates of a given arbitrary point
-     * @param rResult The vector containing the local coordinates of the point
-     * @param rPoint The point in global coordinates
-     * @return The vector containing the local coordinates of the point
-     */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint
-            ) const
-    {
-        KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
-
-        Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
-
-        rResult.clear();
-
-        Vector DeltaXi = ZeroVector( LocalSpaceDimension() );
-
-        CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
-
-        static constexpr double MaxNormPointLocalCoordinates = 30.0;
-        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
-        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
-
-        //Newton iteration:
-        for(std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
-            CurrentGlobalCoords.clear();
-            DeltaXi.clear();
-
-            GlobalCoordinates( CurrentGlobalCoords, rResult );
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-            InverseOfJacobian( J, rResult );
-            for(unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
-                for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
-                    DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
-                }
-                rResult[i] += DeltaXi[i];
-            }
-
-            const double norm2DXi = norm_2(DeltaXi);
-
-            if(norm2DXi > MaxNormPointLocalCoordinates) {
-                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
-                break;
-            }
-
-            if(norm2DXi < MaxTolerancePointLocalCoordinates) {
-                break;
-            }
-        }
-
-        return rResult;
-    }
-
-    ///@}
     ///@name IsInside
     ///@{
 
@@ -1875,34 +1805,6 @@ public:
             << " Please check the definition of derived class. "
             << *this << std::endl;
         return 0;
-    }
-
-    ///@}
-    ///@name Integration
-    ///@{
-
-    /** This method confirm you if this geometry has a specific
-    integration method or not. This method will be usefull to
-    control the geometry before intagrating using a specific
-    method. In Geometry class this method controls if the
-    integration points vector respecting to this method is empty
-    or not.
-
-    @return bool true if this integration method exist and false if this
-    method is not imeplemented for this geometry.
-    */
-    bool HasIntegrationMethod( IntegrationMethod ThisMethod ) const
-    {
-        return ( mpGeometryData->HasIntegrationMethod( ThisMethod ) );
-    }
-
-    /**
-    * @return default integration method
-    */
-
-    IntegrationMethod GetDefaultIntegrationMethod() const
-    {
-        return mpGeometryData->DefaultIntegrationMethod();
     }
 
     /** This method is to know if this geometry is symmetric or
@@ -2046,6 +1948,34 @@ public:
     virtual void NodesInFaces (DenseMatrix<unsigned int>& rNodesInFaces) const
     {
         KRATOS_ERROR << "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    }
+
+    ///@}
+    ///@name Integration
+    ///@{
+
+    /** This method confirm you if this geometry has a specific
+    integration method or not. This method will be usefull to
+    control the geometry before intagrating using a specific
+    method. In Geometry class this method controls if the
+    integration points vector respecting to this method is empty
+    or not.
+
+    @return bool true if this integration method exist and false if this
+    method is not imeplemented for this geometry.
+    */
+    bool HasIntegrationMethod(IntegrationMethod ThisMethod) const
+    {
+        return (mpGeometryData->HasIntegrationMethod(ThisMethod));
+    }
+
+    /**
+    * @return default integration method
+    */
+
+    IntegrationMethod GetDefaultIntegrationMethod() const
+    {
+        return mpGeometryData->DefaultIntegrationMethod();
     }
 
     ///@}
@@ -2362,6 +2292,76 @@ public:
                 << " Please check the definition within derived class. "
                 << *this << std::endl;
         }
+    }
+
+    ///@}
+    ///@name Coordinate transformation
+    ///@{
+
+    /**
+     * Returns a matrix of the local coordinates of all points
+     * @param rResult a Matrix that will be overwritten by the results
+     * @return the coordinates of all points of the current geometry
+     */
+    virtual Matrix& PointsLocalCoordinates(Matrix& rResult) const
+    {
+        KRATOS_ERROR << "Calling base class 'PointsLocalCoordinates' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return rResult;
+    }
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+    ) const
+    {
+        KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
+
+        Matrix J = ZeroMatrix(WorkingSpaceDimension(), LocalSpaceDimension());
+
+        rResult.clear();
+
+        Vector DeltaXi = ZeroVector(LocalSpaceDimension());
+
+        CoordinatesArrayType CurrentGlobalCoords(ZeroVector(3));
+
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        //Newton iteration:
+        for (std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
+            CurrentGlobalCoords.clear();
+            DeltaXi.clear();
+
+            GlobalCoordinates(CurrentGlobalCoords, rResult);
+            noalias(CurrentGlobalCoords) = rPoint - CurrentGlobalCoords;
+            InverseOfJacobian(J, rResult);
+            for (unsigned int i = 0; i < WorkingSpaceDimension(); i++) {
+                for (unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
+                    DeltaXi[i] += J(i, j) * CurrentGlobalCoords[j];
+                }
+                rResult[i] += DeltaXi[i];
+            }
+
+            const double norm2DXi = norm_2(DeltaXi);
+
+            if (norm2DXi > MaxNormPointLocalCoordinates) {
+                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
+                break;
+            }
+
+            if (norm2DXi < MaxTolerancePointLocalCoordinates) {
+                break;
+            }
+        }
+
+        return rResult;
     }
 
     ///@}
