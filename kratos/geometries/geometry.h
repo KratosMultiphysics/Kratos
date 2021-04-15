@@ -1753,60 +1753,6 @@ public:
         KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
     }
 
-    ///@}
-    ///@name IsInside
-    ///@{
-
-    /**
-    * @brief Checks if given point in global space coordinates
-    *        is inside the geometry boundaries. This function
-    *        computes the local coordinates and checks then if
-    *        this point lays within the boundaries.
-    * @param rPointGlobalCoordinates the global coordinates of the
-    *        external point.
-    * @param rResult the local coordinates of the point.
-    * @param Tolerance the tolerance to the boundary.
-    * @return true if the point is inside, false otherwise
-    */
-    virtual bool IsInside(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const
-    {
-        PointLocalCoordinates(
-            rResult,
-            rPointGlobalCoordinates);
-
-        if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-    * @brief Checks if given point in local space coordinates of this geometry
-    *        is inside the geometry boundaries.
-    * @param rPointLocalCoordinates the point on the geometry,
-    *        which shall be checked if it lays within
-    *        the boundaries.
-    * @param Tolerance the tolerance to the boundary.
-    * @return -1 -> failed
-    *          0 -> outside
-    *          1 -> inside
-    *          2 -> on the boundary
-    */
-    virtual int IsInsideLocalSpace(
-        const CoordinatesArrayType& rPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const
-    {
-        KRATOS_ERROR << "Calling IsInsideLocalSpace from base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
-        return 0;
-    }
-
     /** This method is to know if this geometry is symmetric or
     not.
 
@@ -2556,6 +2502,60 @@ public:
 
         // Distance to projected point
         return norm_2(rPointGlobalCoordinates - global_coordinates);
+    }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    /**
+    * @brief Checks if given point in global space coordinates
+    *        is inside the geometry boundaries. This function
+    *        computes the local coordinates and checks then if
+    *        this point lays within the boundaries.
+    * @param rPointGlobalCoordinates the global coordinates of the
+    *        external point.
+    * @param rResult the local coordinates of the point.
+    * @param Tolerance the tolerance to the boundary.
+    * @return true if the point is inside, false otherwise
+    */
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        PointLocalCoordinates(
+            rResult,
+            rPointGlobalCoordinates);
+
+        if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling IsInsideLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
     }
 
     ///@}
