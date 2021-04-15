@@ -1795,6 +1795,7 @@ const Parameters BaseSolidElement::GetSpecifications() const
             "dimension"   : ["2D","3D"],
             "strain_size" : [3,6]
         },
+        "required_polynomial_degree_of_geometry" : -1,
         "documentation"   : "This is a pure displacement element"
     })");
     return specifications;
