@@ -368,8 +368,8 @@ namespace Kratos
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(strain_increment / CurrentProcessInfo[DELTA_TIME]));
 
 		// Material moduli
-		const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
-		const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
+		const double shear_modulus_G = (1.0 - mDamage) * MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
+		const double bulk_modulus_K = (1.0 - mDamage) * MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
 
 		// Calculate deviatoric quantities
 		const Matrix strain_increment_deviatoric = strain_increment -

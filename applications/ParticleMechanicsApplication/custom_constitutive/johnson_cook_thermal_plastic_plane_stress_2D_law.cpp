@@ -354,24 +354,25 @@ namespace Kratos
 		  MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(strain_increment / CurrentProcessInfo[DELTA_TIME]));
 
 	  // Material moduli
-	  const double shear_modulus_G = MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
-	  const double bulk_modulus_K = MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
+	  const double shear_modulus_G = (1.0 - mDamage) * MaterialProperties[YOUNG_MODULUS] / (2.0 + 2.0 * MaterialProperties[POISSON_RATIO]);
+	  const double bulk_modulus_K = (1.0 - mDamage) * MaterialProperties[YOUNG_MODULUS] / (3.0 - 6.0 * MaterialProperties[POISSON_RATIO]);
 
-	  // Calculate deviatoric quantities
-	  Matrix strain_increment_deviatoric = strain_increment -
-		  MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment) / 3.0 * identity;
-	  Matrix stress_deviatoric_old = stress_old -
-		  MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 * identity;
+	  // Predict plane stresses
+	  Matrix stress_converged = stress_old;
+	  double temp = (1.0-mDamage)* MaterialProperties[YOUNG_MODULUS] / (1.0 - MaterialProperties[POISSON_RATIO]* MaterialProperties[POISSON_RATIO]);
+	  stress_converged += temp * (1.0 - MaterialProperties[POISSON_RATIO]) * strain_increment;
+	  stress_converged += temp * MaterialProperties[POISSON_RATIO] * identity * (strain_increment(0, 0) + strain_increment(1, 1));
 
-	  // Calculate trial (predicted) j2 stress
-	  double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old) / 3.0 +
-		  bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment);
-	  Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
-	  double j2_stress_trial = std::sqrt(3.0 / 2.0 *
-		  MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
+	  // Calc j2 stress
+	  double j2_stress_trial = stress_converged(0, 0) * stress_converged(0, 0)
+		  + stress_converged(1, 1) * stress_converged(1, 1)
+		  - stress_converged(0, 0) * stress_converged(1, 1)
+		  + 3.0 * stress_converged(0, 1) * stress_converged(0, 1);
+	  j2_stress_trial = std::sqrt(j2_stress_trial);
+
+	  double stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_converged) / 3.0;
 
 	  // Declare deviatoric stress matrix to be used later
-	  Matrix stress_deviatoric_converged = (GetStrainSize() == 3) ? Matrix(2, 2) : Matrix(3, 3);
 
 	  // Assume current yield stress is the same as the old (elastic predictor)
 	  double yield_stress = mYieldStressOld;
@@ -393,6 +394,7 @@ namespace Kratos
 		  Matrix strain_increment_axisym = ZeroMatrix(3, 3);
 		  const Matrix identity_axisym = IdentityMatrix(3);
 		  Matrix stress_old_axisym = ZeroMatrix(3, 3);
+		  Matrix stress_deviatoric_converged;
 
 		  double yield_function, yield_function_gradient, dYield_dGamma,
 			  delta_gamma, predicted_eps, predicted_eps_rate,
@@ -411,12 +413,12 @@ namespace Kratos
 			  }
 			  strain_increment_axisym(2, 2) = epsilon_33;
 
-			  strain_increment_deviatoric = strain_increment_axisym -MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment_axisym) / 3.0 * identity_axisym;
-			  stress_deviatoric_old = stress_old_axisym -  MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old_axisym) / 3.0 * identity_axisym;
+			  Matrix strain_increment_deviatoric = strain_increment_axisym -MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment_axisym) / 3.0 * identity_axisym;
+			  Matrix stress_deviatoric_old = stress_old_axisym -  MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old_axisym) / 3.0 * identity_axisym;
 
 			  // Calculate trial (predicted) j2 stress
 			  stress_hydrostatic_new = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(stress_old_axisym) / 3.0 + bulk_modulus_K * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(strain_increment_axisym);
-			  stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
+			  Matrix stress_deviatoric_trial = stress_deviatoric_old + 2.0 * shear_modulus_G * strain_increment_deviatoric;
 			  j2_stress_trial = std::sqrt(3.0 / 2.0 *MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_trial));
 			  stress_deviatoric_converged = stress_deviatoric_trial;
 
@@ -519,7 +521,8 @@ namespace Kratos
 				  if (plane_stress_residual < 1e-4)
 				  {
 					  // converged
-					  stress_deviatoric_converged.resize(2, 2, true);
+					  stress_converged = total_stress;
+					  stress_converged.resize(2, 2, true);
 					  mEquivalentStress = j2_stress_trial;
 				  }
 				  else
@@ -565,20 +568,15 @@ namespace Kratos
 	  {
 		  if (mDamage > 0.95)
 		  {
-			  // Particle has already failed. It can only take compressive volumetric stresses!
-			  stress_deviatoric_converged.clear();
-			  if (stress_hydrostatic_new > 0.0) stress_hydrostatic_new = 0.0;
+			  // Particle has already failed.
+			  stress_converged.clear();
+			  mEquivalentStress = 0.0;
 		  }
 		  else
 		  {
-			  stress_deviatoric_converged = stress_deviatoric_trial;
+			  mEquivalentStress = j2_stress_trial;
 		  }
 	  }
-
-	  // Update equivalent stress
-	  Matrix stress_converged = stress_deviatoric_converged + stress_hydrostatic_new * identity;
-	  mEquivalentStress = std::sqrt(3.0 / 2.0 *
-		  MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
 	  // Update damage
 	  if (delta_plastic_strain > 1e-12)
