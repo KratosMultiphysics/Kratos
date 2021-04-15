@@ -27,6 +27,7 @@
 #include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
+#include "custom_conditions/support_penalty_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -113,6 +114,7 @@ private:
     const OutputCondition mOutputCondition;
     const LoadCondition mLoadCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
+    const SupportPenaltyCondition mSupportPenaltyCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

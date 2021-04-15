@@ -1,7 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
-from KratosMultiphysics.mpi import *
-#import KratosMultiphysics.mpi
+﻿import KratosMultiphysics
 import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
@@ -21,7 +18,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             self._auxiliary_test_function(settings)
 
     def _auxiliary_test_function(self, settings, matrix_name="A.mm", absolute_norm=False):
-        comm = KratosMultiphysics.TrilinosApplication.CreateCommunicator()
+        comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
