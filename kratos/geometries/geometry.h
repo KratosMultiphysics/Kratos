@@ -3833,12 +3833,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// Sets Id of this Geometry (avoids checks, can be used only as private)
-    void SetIdWithoutCheck(const IndexType Id)
-    {
-        mId = Id;
-    }
-
     static const GeometryData& GeometryDataInstance()
     {
         IntegrationPointsContainerType integration_points = {};
