@@ -10,8 +10,8 @@
 //  Main authors:   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TRILINOS_FACTORY_H_INCLUDED )
-#define  KRATOS_TRILINOS_FACTORY_H_INCLUDED
+#if !defined(KRATOS_REGISTER_TRILINOS_FACTORY_H_INCLUDED )
+#define  KRATOS_REGISTER_TRILINOS_FACTORY_H_INCLUDED
 
 // System includes
 
@@ -29,11 +29,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-void RegisterTrilinosStrategies();
-void RegisterTrilinosBuilderAndSolvers();
-void RegisterTrilinosSchemes();
-void RegisterTrilinosConvergenceCriterias();
-
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 typedef LinearSolver<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> TrilinosLinearSolverType;
@@ -45,38 +40,22 @@ typedef ConvergenceCriteria<TrilinosSparseSpaceType,TrilinosLocalSpaceType> Tril
 
 KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosSolvingStrategyType>;
 
-#ifdef KRATOS_REGISTER_TRILINOS_STRATEGY
-#undef KRATOS_REGISTER_TRILINOS_STRATEGY
-#endif
-#define KRATOS_REGISTER_TRILINOS_STRATEGY(name, reference) \
-    KratosComponents<TrilinosSolvingStrategyType>::Add(name, reference);
+void KRATOS_API(TRILINOS_APPLICATION) AddKratosComponent(std::string const& Name, TrilinosSolvingStrategyType const& ThisComponent);
 
 KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosBuilderAndSolverType>;
 
-#ifdef KRATOS_REGISTER_TRILINOS_BUILDER_AND_SOLVER
-#undef KRATOS_REGISTER_TRILINOS_BUILDER_AND_SOLVER
-#endif
-#define KRATOS_REGISTER_TRILINOS_BUILDER_AND_SOLVER(name, reference) \
-    KratosComponents<TrilinosBuilderAndSolverType>::Add(name, reference);
+void KRATOS_API(TRILINOS_APPLICATION) AddKratosComponent(std::string const& Name, TrilinosBuilderAndSolverType const& ThisComponent);
 
 KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosSchemeType>;
 
-#ifdef KRATOS_REGISTER_TRILINOS_SCHEME
-#undef KRATOS_REGISTER_TRILINOS_SCHEME
-#endif
-#define KRATOS_REGISTER_TRILINOS_SCHEME(name, reference) \
-    KratosComponents<TrilinosSchemeType>::Add(name, reference);
+void KRATOS_API(TRILINOS_APPLICATION) AddKratosComponent(std::string const& Name, TrilinosSchemeType const& ThisComponent);
 
 KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosConvergenceCriteriaType>;
 
-#ifdef KRATOS_REGISTER_TRILINOS_CONVERGENCE_CRITERIA
-#undef KRATOS_REGISTER_TRILINOS_CONVERGENCE_CRITERIA
-#endif
-#define KRATOS_REGISTER_TRILINOS_CONVERGENCE_CRITERIA(name, reference) \
-    KratosComponents<TrilinosConvergenceCriteriaType>::Add(name, reference);
+void KRATOS_API(TRILINOS_APPLICATION) AddKratosComponent(std::string const& Name, TrilinosConvergenceCriteriaType const& ThisComponent);
 
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_FACTORY_H_INCLUDED  defined
+#endif // KRATOS_REGISTER_TRILINOS_FACTORY_H_INCLUDED  defined
