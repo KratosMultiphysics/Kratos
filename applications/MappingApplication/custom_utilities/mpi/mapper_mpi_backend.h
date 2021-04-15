@@ -10,6 +10,9 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
+#if !defined(KRATOS_MAPPER_MPI_BACKEND_H_INCLUDED)
+#define KRATOS_MAPPER_MPI_BACKEND_H_INCLUDED
+
 // System includes
 
 // External includes
@@ -30,3 +33,5 @@ struct MapperMPIBackend
 };
 
 }  // namespace Kratos.
+
+#endif // KRATOS_MAPPER_MPI_BACKEND_H_INCLUDED defined
