@@ -57,7 +57,7 @@ namespace Kratos
 
  */
 
-class FaceAngleResponseFunctionUtility
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FaceAngleResponseFunctionUtility
 {
 public:
 	///@name Type Definitions
