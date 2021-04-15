@@ -27,8 +27,10 @@ namespace Kratos {
 
 namespace {
 
-typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
+using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
+using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
+
+typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
@@ -40,7 +42,7 @@ typedef std::size_t SizeType;
 /* Functions for internal use in this file */
 /***********************************************************************************/
 
-void ConstructMatrixStructure(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo,
+void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                               std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
@@ -73,7 +75,7 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename SparseSpaceType::Matri
         num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
     }
 
-    auto p_Mdo = Kratos::make_unique<typename SparseSpaceType::MatrixType>(
+    auto p_Mdo = Kratos::make_unique<typename MappingSparseSpaceType::MatrixType>(
         NumNodesDestination,
         NumNodesOrigin,
         num_non_zero_entries);
@@ -108,7 +110,7 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename SparseSpaceType::Matri
     rpMdo.swap(p_Mdo);
 }
 
-void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo,
+void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
     MatrixType local_mapping_matrix;
@@ -135,22 +137,22 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
 
 } // anonymous namespace
 
-template<class TSparseSpace, class TDenseSpace>
-void MappingMatrixUtilities<TSparseSpace, TDenseSpace>::CheckRowSum(
-    const typename TSparseSpace::MatrixType& rM,
+template<>
+void MappingMatrixUtilitiesType::CheckRowSum(
+    const typename MappingSparseSpaceType::MatrixType& rM,
     const std::string& rBaseFileName,
     const bool ThrowError,
     const double Tolerance)
 {
-    typename TSparseSpace::VectorType unit_vector(TSparseSpace::Size2(rM));
-    TSparseSpace::Set(unit_vector, 1.0);
+    typename MappingSparseSpaceType::VectorType unit_vector(MappingSparseSpaceType::Size2(rM));
+    MappingSparseSpaceType::Set(unit_vector, 1.0);
 
-    typename TSparseSpace::VectorType row_sums_vector(TSparseSpace::Size1(rM));
+    typename MappingSparseSpaceType::VectorType row_sums_vector(MappingSparseSpaceType::Size1(rM));
 
-    TSparseSpace::Mult(rM, unit_vector, row_sums_vector);
+    MappingSparseSpaceType::Mult(rM, unit_vector, row_sums_vector);
 
     bool write_mm_file = false;
-    for (std::size_t i = 0; i < TSparseSpace::Size(row_sums_vector); ++i) {
+    for (std::size_t i = 0; i < MappingSparseSpaceType::Size(row_sums_vector); ++i) {
         if (std::abs(row_sums_vector[i] - 1.0) > Tolerance) {
             KRATOS_WARNING("MappingMatrixAssembly") << "The row sum in row " << i << " is unequal 1.0: " << row_sums_vector[i] << std::endl;
             write_mm_file = true;
@@ -158,33 +160,33 @@ void MappingMatrixUtilities<TSparseSpace, TDenseSpace>::CheckRowSum(
     }
 
     if (write_mm_file) {
-        TSparseSpace::WriteMatrixMarketVector(("RowSumVector_" + rBaseFileName).c_str(), row_sums_vector);
+        MappingSparseSpaceType::WriteMatrixMarketVector(("RowSumVector_" + rBaseFileName).c_str(), row_sums_vector);
         KRATOS_ERROR_IF(ThrowError) << "Mapping matrix does not sum to unity. Please check file " << rBaseFileName << " in your project directory for row sums\n";
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void MappingMatrixUtilities<TSparseSpace, TDenseSpace>::InitializeSystemVector(
-    Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpVector,
+template<>
+void MappingMatrixUtilitiesType::InitializeSystemVector(
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpVector,
     const std::size_t VectorSize)
 {
     // The vectors dont have graphs, that why we don't always have to reinitialize them
     if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
-        Kratos::unique_ptr<typename TSparseSpace::VectorType> p_new_vector = Kratos::make_unique<typename TSparseSpace::VectorType>(VectorSize);
+        Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename MappingSparseSpaceType::VectorType>(VectorSize);
         rpVector.swap(p_new_vector);
 
         // TODO do I also have to set to zero the contents?
     }
     else {
-        TSparseSpace::SetToZero(*rpVector);
+        MappingSparseSpaceType::SetToZero(*rpVector);
     }
 }
 
-template<class TSparseSpace, class TDenseSpace>
-void MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
-    Kratos::unique_ptr<typename TSparseSpace::MatrixType>& rpMappingMatrix,
-    Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorOrigin,
-    Kratos::unique_ptr<typename TSparseSpace::VectorType>& rpInterfaceVectorDestination,
+template<>
+void MappingMatrixUtilitiesType::BuildMappingMatrix(
+    Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMappingMatrix,
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorDestination,
     const ModelPart& rModelPartOrigin,
     const ModelPart& rModelPartDestination,
     std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
@@ -192,7 +194,7 @@ void MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
 {
     KRATOS_TRY
 
-    static_assert(!TSparseSpace::IsDistributed(), "Using a distributed Space!");
+    static_assert(!MappingSparseSpaceType::IsDistributed(), "Using a distributed Space!");
 
     const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
     const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
@@ -207,18 +209,18 @@ void MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
     // refactor to be used from the mapper directly
     // if (EchoLevel > 2) {
     //     const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
-    //     TSparseSpace::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
-    //     CheckRowSum<TSparseSpace, DenseSpaceType>(*rpMappingMatrix, base_file_name);
+    //     MappingSparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
+    //     CheckRowSum<MappingSparseSpaceType, DenseSpaceType>(*rpMappingMatrix, base_file_name);
     // }
 
-    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
-    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);
+    MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
+    MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);
 
     KRATOS_CATCH("")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MappingMatrixUtilities< SparseSpaceType, DenseSpaceType >;
+template class MappingMatrixUtilities< MappingSparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
