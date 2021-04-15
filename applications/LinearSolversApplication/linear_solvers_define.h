@@ -21,11 +21,11 @@ namespace Kratos
 
 // IMPORTANT:
 //
-// The matrices in Kratos use colum-major storage ordering.
-// Eigen matrices, however, use row-major storage ordering by default.
+// The matrices in Kratos use row-major storage ordering.
+// Eigen matrices, however, use column-major storage ordering by default.
 //
 // If these two worlds are combined, it is crucial that Eigen matrices are used
-// with **column-major** storage order to match the Kratos matrices!
+// with **row-major** storage order to match the Kratos matrices!
 //
 // To simplify things, the most commonly used types are defined below:
 
