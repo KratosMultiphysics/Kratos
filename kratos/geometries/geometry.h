@@ -433,6 +433,221 @@ public:
     }
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        PointsArrayType const& rThisPoints
+    ) const
+    {
+        // Create geometry
+        auto p_geom = this->Create(0, rThisPoints);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+    ) const
+    {
+        return Pointer(new Geometry(NewGeometryId, rThisPoints, mpGeometryData));
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+    ) const
+    {
+        auto p_geom = this->Create(0, rThisPoints);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const GeometryType& rGeometry
+    ) const
+    {
+        // Create geometry
+        auto p_geom = this->Create(0, rGeometry);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        const GeometryType& rGeometry
+    ) const
+    {
+        auto p_geometry = Pointer(new Geometry(NewGeometryId, rGeometry.Points(), mpGeometryData));
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        const GeometryType& rGeometry
+    ) const
+    {
+        auto p_geom = this->Create(0, rGeometry);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
+    }
+
+    /** This methods will create a duplicate of all its points and
+    substitute them with its points. */
+    void ClonePoints()
+    {
+        for (ptr_iterator i = this->ptr_begin(); i != this->ptr_end(); i++)
+            *i = typename PointType::Pointer(new PointType(**i));
+    }
+
+    ///@}
+    ///@name Geometry Data and Geometry Shape Function Container
+    ///@{
+
+    /**
+    * @brief GeometryData contains all information about dimensions
+    *        and has a set of precomputed values for integration points
+    *        and shape functions, including derivatives.
+    * @return the geometry data of a certain geometry class.
+    */
+    GeometryData const& GetGeometryData() const
+    {
+        return *mpGeometryData;
+    }
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     *        E.g. QuadraturePointGeometries.
+     */
+    virtual void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer)
+    {
+        KRATOS_ERROR <<
+            "Calling SetGeometryShapeFunctionContainer from base geometry class."
+            << std::endl;
+    }
+
+    ///@}
+    ///@name Id
+    ///@{
+
+    /// Id of this Geometry
+    IndexType const& Id() const
+    {
+        return mId;
+    }
+
+    /// Returns if id was generated from a geometry name
+    bool IsIdGeneratedFromString()
+    {
+        return IsIdGeneratedFromString(mId);
+    }
+
+    /// Returns if id was generated by itself
+    bool IsIdSelfAssigned()
+    {
+        return IsIdSelfAssigned(mId);
+    }
+
+    /// Sets Id of this Geometry
+    void SetId(const IndexType Id)
+    {
+        // The first bit of the Id is used to detect if Id
+        // is int or hash of name. Second bit defines if Id
+        // is self assigned or not.
+        KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
+            || IsIdSelfAssigned(Id))
+            << "Id: " << Id << " out of range. The Id must me lower than 2^62 = 4.61e+18. "
+            << "Geometry being recognized as generated from string: " << IsIdGeneratedFromString(Id)
+            << ", self assigned: " << IsIdSelfAssigned(Id) << "."
+            << std::endl;
+
+        mId = Id;
+    }
+
+    /// Sets Id with the use of the name of this geometry
+    void SetId(const std::string& rName)
+    {
+        mId = GenerateId(rName);
+    }
+
+    /// Gets the corresponding hash-Id to a string name
+    static inline IndexType GenerateId(const std::string& rName)
+    {
+        // Create id hash from provided name.
+        std::hash<std::string> string_hash_generator;
+        auto id = string_hash_generator(rName);
+
+        // Sets first bit to one.
+        SetIdGeneratedFromString(id);
+
+        // Sets second bit to zero.
+        SetIdNotSelfAssigned(id);
+
+        return id;
+    }
+
+    ///@}
     ///@name PointerVector Operators
     ///@{
 
@@ -789,221 +1004,6 @@ public:
         Matrix& rOutput) const {}
 
     ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        PointsArrayType const& rThisPoints
-    ) const
-    {
-        // Create geometry
-        auto p_geom = this->Create(0, rThisPoints);
-
-        // Generate Id
-        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
-
-        // Sets second bit to zero.
-        p_geom->SetIdSelfAssigned(id);
-
-        // Sets first bit to zero.
-        p_geom->SetIdNotGeneratedFromString(id);
-
-        // Sets Id
-        p_geom->SetIdWithoutCheck(id);
-
-        return p_geom;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        const IndexType NewGeometryId,
-        PointsArrayType const& rThisPoints
-    ) const
-    {
-        return Pointer( new Geometry( NewGeometryId, rThisPoints, mpGeometryData));
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rNewGeometryName the name of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    Pointer Create(
-        const std::string& rNewGeometryName,
-        PointsArrayType const& rThisPoints
-        ) const
-    {
-        auto p_geom = this->Create(0, rThisPoints);
-        p_geom->SetId(rNewGeometryName);
-        return p_geom;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rGeometry Reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        const GeometryType& rGeometry
-    ) const
-    {
-        // Create geometry
-        auto p_geom = this->Create(0, rGeometry);
-
-        // Generate Id
-        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
-
-        // Sets second bit to zero.
-        p_geom->SetIdSelfAssigned(id);
-
-        // Sets first bit to zero.
-        p_geom->SetIdNotGeneratedFromString(id);
-
-        // Sets Id
-        p_geom->SetIdWithoutCheck(id);
-
-        return p_geom;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rGeometry Reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        const IndexType NewGeometryId,
-        const GeometryType& rGeometry
-    ) const
-    {
-        auto p_geometry = Pointer( new Geometry( NewGeometryId, rGeometry.Points(), mpGeometryData));
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rNewGeometryName the name of the new geometry
-     * @param rGeometry Reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    Pointer Create(
-        const std::string& rNewGeometryName,
-        const GeometryType& rGeometry
-        ) const
-    {
-        auto p_geom = this->Create(0, rGeometry);
-        p_geom->SetId(rNewGeometryName);
-        return p_geom;
-    }
-
-    /** This methods will create a duplicate of all its points and
-    substitute them with its points. */
-    void ClonePoints()
-    {
-        for ( ptr_iterator i = this->ptr_begin() ; i != this->ptr_end() ; i++ )
-            *i = typename PointType::Pointer( new PointType( **i ) );
-    }
-
-    ///@}
-    ///@name Geometry Data and Geometry Shape Function Container
-    ///@{
-
-    /**
-    * @brief GeometryData contains all information about dimensions
-    *        and has a set of precomputed values for integration points
-    *        and shape functions, including derivatives.
-    * @return the geometry data of a certain geometry class.
-    */
-    GeometryData const& GetGeometryData() const
-    {
-        return *mpGeometryData;
-    }
-
-    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
-     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
-     *        E.g. QuadraturePointGeometries.
-     */
-    virtual void SetGeometryShapeFunctionContainer(
-        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&  rGeometryShapeFunctionContainer)
-    {
-        KRATOS_ERROR <<
-            "Calling SetGeometryShapeFunctionContainer from base geometry class."
-            << std::endl;
-    }
-
-    ///@}
-    ///@name Id
-    ///@{
-
-    /// Id of this Geometry
-    IndexType const& Id() const
-    {
-        return mId;
-    }
-
-    /// Returns if id was generated from a geometry name
-    bool IsIdGeneratedFromString()
-    {
-        return IsIdGeneratedFromString(mId);
-    }
-
-    /// Returns if id was generated by itself
-    bool IsIdSelfAssigned()
-    {
-        return IsIdSelfAssigned(mId);
-    }
-
-    /// Sets Id of this Geometry
-    void SetId(const IndexType Id)
-    {
-        // The first bit of the Id is used to detect if Id
-        // is int or hash of name. Second bit defines if Id
-        // is self assigned or not.
-        KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
-            || IsIdSelfAssigned(Id))
-            << "Id: " << Id << " out of range. The Id must me lower than 2^62 = 4.61e+18. "
-            << "Geometry being recognized as generated from string: " << IsIdGeneratedFromString(Id)
-            << ", self assigned: " << IsIdSelfAssigned(Id) << "."
-            << std::endl;
-
-        mId = Id;
-    }
-
-    /// Sets Id with the use of the name of this geometry
-    void SetId(const std::string& rName)
-    {
-        mId = GenerateId(rName);
-    }
-
-    /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(const std::string& rName)
-    {
-        // Create id hash from provided name.
-        std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(rName);
-
-        // Sets first bit to one.
-        SetIdGeneratedFromString(id);
-
-        // Sets second bit to zero.
-        SetIdNotSelfAssigned(id);
-
-        return id;
-    }
-
-    ///@}
     ///@name Parent
     ///@{
 
@@ -1151,112 +1151,6 @@ public:
     virtual SizeType NumberOfGeometryParts() const
     {
         return 0;
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief Lumping factors for the calculation of the lumped mass matrix
-     * @param rResult Vector containing the lumping factors
-     * @param LumpingMethod The lumping method considered. The three methods available are:
-     *      - The row sum method
-     *      - Diagonal scaling
-     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
-     */
-    virtual Vector& LumpingFactors(
-        Vector& rResult,
-        const LumpingMethods LumpingMethod = LumpingMethods::ROW_SUM
-        )  const
-    {
-        const SizeType number_of_nodes = this->size();
-        const SizeType local_space_dimension = this->LocalSpaceDimension();
-
-        // Clear lumping factors
-        if (rResult.size() != number_of_nodes)
-            rResult.resize(number_of_nodes, false);
-        noalias(rResult) = ZeroVector(number_of_nodes);
-
-        if (LumpingMethod == LumpingMethods::ROW_SUM) {
-            const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
-            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
-            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
-
-            // Vector fo jacobians
-            Vector detJ_vector(r_integrations_points.size());
-            DeterminantOfJacobian(detJ_vector, integration_method);
-
-            // Iterate over the integration points
-            double domain_size = 0.0;
-            for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
-                const double integration_weight = r_integrations_points[point_number].Weight() * detJ_vector[point_number];
-                const Vector& rN = row(r_Ncontainer,point_number);
-
-                // Computing domain size
-                domain_size += integration_weight;
-
-                for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                    rResult[i] += rN[i] * integration_weight;
-                }
-            }
-
-            // Divide by the domain size
-            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                rResult[i] /= domain_size;
-            }
-        } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
-            IntegrationMethod integration_method = GetDefaultIntegrationMethod();
-            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
-            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
-            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
-
-            // Vector fo jacobians
-            Vector detJ_vector(r_integrations_points.size());
-            DeterminantOfJacobian(detJ_vector, integration_method);
-
-            // Iterate over the integration points
-            for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
-                const double detJ = detJ_vector[point_number];
-                const double integration_weight = r_integrations_points[point_number].Weight() * detJ;
-                const Vector& rN = row(r_Ncontainer,point_number);
-
-                for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                    rResult[i] += std::pow(rN[i], 2) * integration_weight;
-                }
-            }
-
-            // Computing diagonal scaling coefficient
-            double total_value = 0.0;
-            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                total_value += rResult[i];
-            }
-            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                rResult[i] /= total_value;
-            }
-        } else if (LumpingMethod == LumpingMethods::QUADRATURE_ON_NODES) {
-            // Divide by the domain size
-            const double domain_size = DomainSize();
-
-            // Getting local coordinates
-            Matrix local_coordinates(number_of_nodes, local_space_dimension);
-            PointsLocalCoordinates(local_coordinates);
-            Point local_point(ZeroVector(3));
-            array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
-
-            // Iterate over integration points
-            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( GeometryData::GI_GAUSS_1 ); // First order
-            const double weight = r_integrations_points[0].Weight()/static_cast<double>(number_of_nodes);
-            for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
-                for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
-                    r_local_coordinates[dim] = local_coordinates(point_number, dim);
-                }
-                const double detJ = DeterminantOfJacobian(local_point);
-                rResult[point_number] = weight * detJ/domain_size;
-            }
-        }
-
-        return rResult;
     }
 
     ///@}
@@ -1681,77 +1575,6 @@ public:
         return normal_vector;
     }
 
-    ///@}
-    ///@name Quality
-    ///@{
-
-    /** Calculates the quality of the geometry according to a given criteria.
-     *
-     * Calculates the quality of the geometry according to a given criteria. In General
-     * The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
-     * inverted elements.
-     *
-     * Different crtieria can be used to stablish the quality of the geometry.
-     *
-     * @return double value contains quality of the geometry
-     *
-     * @see QualityCriteria
-     * @see QualityAspectRatio
-     * @see QualityAverageEdgeLenght
-     */
-     double Quality(const QualityCriteria qualityCriteria) const {
-       double quality = 0.0f;
-
-       if(qualityCriteria == QualityCriteria::INRADIUS_TO_CIRCUMRADIUS) {
-         quality = InradiusToCircumradiusQuality();
-       } else if(qualityCriteria == QualityCriteria::AREA_TO_LENGTH) {
-         quality = AreaToEdgeLengthRatio();
-       } else if(qualityCriteria == QualityCriteria::SHORTEST_ALTITUDE_TO_LENGTH) {
-         quality = ShortestAltitudeToEdgeLengthRatio();
-       } else if(qualityCriteria == QualityCriteria::INRADIUS_TO_LONGEST_EDGE) {
-         quality = InradiusToLongestEdgeQuality();
-       } else if(qualityCriteria == QualityCriteria::SHORTEST_TO_LONGEST_EDGE) {
-         quality = ShortestToLongestEdgeQuality();
-       } else if(qualityCriteria == QualityCriteria::REGULARITY) {
-         quality = RegularityQuality();
-       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_SURFACE_AREA) {
-         quality = VolumeToSurfaceAreaQuality();
-       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_EDGE_LENGTH) {
-         quality = VolumeToEdgeLengthQuality();
-       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH) {
-         quality = VolumeToAverageEdgeLength();
-       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH) {
-         quality = VolumeToRMSEdgeLength();
-       } else if(qualityCriteria == QualityCriteria::MIN_DIHEDRAL_ANGLE) {
-         quality = MinDihedralAngle();
-       } else if (qualityCriteria == QualityCriteria::MAX_DIHEDRAL_ANGLE) {
-         quality = MaxDihedralAngle();
-       } else if(qualityCriteria == QualityCriteria::MIN_SOLID_ANGLE) {
-         quality = MinSolidAngle();
-       }
-
-       return quality;
-     }
-
-    /** Calculates the dihedral angles of the geometry.
-     * Calculates the dihedral angles of the geometry.
-     *
-     * @return a vector of dihedral angles of the geometry..
-     */
-    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles )  const
-    {
-        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
-    }
-
-    /** Calculates the solid angles of the geometry.
-     * Calculates the solid angles of the geometry.
-     *
-     * @return a vector of dihedral angles of the geometry..
-     */
-    virtual inline void ComputeSolidAngles(Vector& rSolidAngles )  const
-    {
-        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
-    }
 
     /** This method is to know if this geometry is symmetric or
     not.
@@ -3456,6 +3279,198 @@ public:
         ShapeFunctionsIntegrationPointsGradients(rResult,determinants_of_jacobian,ThisMethod);
         ShapeFunctionsIntegrationPointsValues = ShapeFunctionsValues(ThisMethod);
         return rResult;
+    }
+
+    ///@}
+    ///@name Lamping Factors
+    ///@{
+
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    virtual Vector& LumpingFactors(
+        Vector& rResult,
+        const LumpingMethods LumpingMethod = LumpingMethods::ROW_SUM
+    )  const
+    {
+        const SizeType number_of_nodes = this->size();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+
+        // Clear lumping factors
+        if (rResult.size() != number_of_nodes)
+            rResult.resize(number_of_nodes, false);
+        noalias(rResult) = ZeroVector(number_of_nodes);
+
+        if (LumpingMethod == LumpingMethods::ROW_SUM) {
+            const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints(integration_method);
+            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
+
+            // Vector fo jacobians
+            Vector detJ_vector(r_integrations_points.size());
+            DeterminantOfJacobian(detJ_vector, integration_method);
+
+            // Iterate over the integration points
+            double domain_size = 0.0;
+            for (IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number) {
+                const double integration_weight = r_integrations_points[point_number].Weight() * detJ_vector[point_number];
+                const Vector& rN = row(r_Ncontainer, point_number);
+
+                // Computing domain size
+                domain_size += integration_weight;
+
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    rResult[i] += rN[i] * integration_weight;
+                }
+            }
+
+            // Divide by the domain size
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                rResult[i] /= domain_size;
+            }
+        }
+        else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
+            IntegrationMethod integration_method = GetDefaultIntegrationMethod();
+            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints(integration_method);
+            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
+
+            // Vector fo jacobians
+            Vector detJ_vector(r_integrations_points.size());
+            DeterminantOfJacobian(detJ_vector, integration_method);
+
+            // Iterate over the integration points
+            for (IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number) {
+                const double detJ = detJ_vector[point_number];
+                const double integration_weight = r_integrations_points[point_number].Weight() * detJ;
+                const Vector& rN = row(r_Ncontainer, point_number);
+
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    rResult[i] += std::pow(rN[i], 2) * integration_weight;
+                }
+            }
+
+            // Computing diagonal scaling coefficient
+            double total_value = 0.0;
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                total_value += rResult[i];
+            }
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                rResult[i] /= total_value;
+            }
+        }
+        else if (LumpingMethod == LumpingMethods::QUADRATURE_ON_NODES) {
+            // Divide by the domain size
+            const double domain_size = DomainSize();
+
+            // Getting local coordinates
+            Matrix local_coordinates(number_of_nodes, local_space_dimension);
+            PointsLocalCoordinates(local_coordinates);
+            Point local_point(ZeroVector(3));
+            array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
+
+            // Iterate over integration points
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints(GeometryData::GI_GAUSS_1); // First order
+            const double weight = r_integrations_points[0].Weight() / static_cast<double>(number_of_nodes);
+            for (IndexType point_number = 0; point_number < number_of_nodes; ++point_number) {
+                for (IndexType dim = 0; dim < local_space_dimension; ++dim) {
+                    r_local_coordinates[dim] = local_coordinates(point_number, dim);
+                }
+                const double detJ = DeterminantOfJacobian(local_point);
+                rResult[point_number] = weight * detJ / domain_size;
+            }
+        }
+
+        return rResult;
+    }
+
+    ///@}
+    ///@name Quality
+    ///@{
+
+    /** Calculates the quality of the geometry according to a given criteria.
+     *
+     * Calculates the quality of the geometry according to a given criteria. In General
+     * The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
+     * inverted elements.
+     *
+     * Different crtieria can be used to stablish the quality of the geometry.
+     *
+     * @return double value contains quality of the geometry
+     *
+     * @see QualityCriteria
+     * @see QualityAspectRatio
+     * @see QualityAverageEdgeLenght
+     */
+    double Quality(const QualityCriteria qualityCriteria) const {
+        double quality = 0.0f;
+
+        if (qualityCriteria == QualityCriteria::INRADIUS_TO_CIRCUMRADIUS) {
+            quality = InradiusToCircumradiusQuality();
+        }
+        else if (qualityCriteria == QualityCriteria::AREA_TO_LENGTH) {
+            quality = AreaToEdgeLengthRatio();
+        }
+        else if (qualityCriteria == QualityCriteria::SHORTEST_ALTITUDE_TO_LENGTH) {
+            quality = ShortestAltitudeToEdgeLengthRatio();
+        }
+        else if (qualityCriteria == QualityCriteria::INRADIUS_TO_LONGEST_EDGE) {
+            quality = InradiusToLongestEdgeQuality();
+        }
+        else if (qualityCriteria == QualityCriteria::SHORTEST_TO_LONGEST_EDGE) {
+            quality = ShortestToLongestEdgeQuality();
+        }
+        else if (qualityCriteria == QualityCriteria::REGULARITY) {
+            quality = RegularityQuality();
+        }
+        else if (qualityCriteria == QualityCriteria::VOLUME_TO_SURFACE_AREA) {
+            quality = VolumeToSurfaceAreaQuality();
+        }
+        else if (qualityCriteria == QualityCriteria::VOLUME_TO_EDGE_LENGTH) {
+            quality = VolumeToEdgeLengthQuality();
+        }
+        else if (qualityCriteria == QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH) {
+            quality = VolumeToAverageEdgeLength();
+        }
+        else if (qualityCriteria == QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH) {
+            quality = VolumeToRMSEdgeLength();
+        }
+        else if (qualityCriteria == QualityCriteria::MIN_DIHEDRAL_ANGLE) {
+            quality = MinDihedralAngle();
+        }
+        else if (qualityCriteria == QualityCriteria::MAX_DIHEDRAL_ANGLE) {
+            quality = MaxDihedralAngle();
+        }
+        else if (qualityCriteria == QualityCriteria::MIN_SOLID_ANGLE) {
+            quality = MinSolidAngle();
+        }
+
+        return quality;
+    }
+
+    /** Calculates the dihedral angles of the geometry.
+     * Calculates the dihedral angles of the geometry.
+     *
+     * @return a vector of dihedral angles of the geometry..
+     */
+    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles)  const
+    {
+        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
+    }
+
+    /** Calculates the solid angles of the geometry.
+     * Calculates the solid angles of the geometry.
+     *
+     * @return a vector of dihedral angles of the geometry..
+     */
+    virtual inline void ComputeSolidAngles(Vector& rSolidAngles)  const
+    {
+        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
     }
 
     ///@}
