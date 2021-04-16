@@ -14,7 +14,7 @@ from KratosMultiphysics.RANSApplication.response_functions.utilities import Solv
 from KratosMultiphysics.RANSApplication.response_functions.utilities import RecursiveCopy
 from KratosMultiphysics.RANSApplication import RansAuxiliaryUtilities
 
-class VortexSheddingEnergy(ResponseFunctionInterface):
+class VortexSheddingFrequency(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
         self.response_settings = response_settings
@@ -237,5 +237,5 @@ class VortexSheddingEnergy(ResponseFunctionInterface):
 
     @staticmethod
     def _GetLabel():
-        return "AdjointVortexSheddingEnergy"
+        return "AdjointVortexSheddingFrequency"
 
