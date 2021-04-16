@@ -50,6 +50,12 @@ namespace Kratos {
                 pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
             }
         }
+        if(!pProp->Has(FRICTION_DECAY)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMContinuumConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION_DECAY) = 500.0;
+        }
         if(!pProp->Has(YOUNG_MODULUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;

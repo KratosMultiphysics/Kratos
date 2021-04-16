@@ -24,6 +24,8 @@
 
 #include "integration/integration_point_utilities.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
+
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TContainerPointType>
@@ -118,17 +120,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -138,17 +130,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// @brief Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType>
     NurbsCurveGeometry& operator=(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -203,7 +185,7 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /* 
+    /*
     * @brief Knot vector is defined to have a multiplicity of p
     *        at the beginning and end (NOT: p + 1).
     * @return knot vector.
@@ -253,10 +235,9 @@ public:
         return mWeights;
     }
 
-    /* 
-    * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
-    * @return domain interval.
-    */
+    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
     NurbsInterval DomainInterval() const
     {
         return NurbsInterval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
@@ -314,6 +295,33 @@ public:
                 counter++;
             }
         }
+    }
+
+    ///@}
+    ///@name Projection Point
+    ///@{
+
+    /* Makes projection of rPointGlobalCoordinates to
+     * the closest point rProjectedPointGlobalCoordinates on the curve,
+     * with local coordinates rProjectedPointLocalCoordinates.
+     *
+     * @param Tolerance is the breaking criteria.
+     * @return 1 -> projection succeeded
+     *         0 -> projection failed
+     */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+            rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates,
+            rProjectedPointGlobalCoordinates,
+            *this,
+            20, Tolerance);
     }
 
     ///@}
@@ -465,11 +473,10 @@ public:
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
                 nonzero_control_points(j) = pGetPoint(first_cp_index + j);
             }
+
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...
@@ -525,7 +532,7 @@ public:
         return rResult;
     }
 
-    /** 
+    /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2

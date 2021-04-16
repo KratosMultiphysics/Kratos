@@ -186,7 +186,7 @@ public:
      * @param rR The vector containing the normalized components of the diagonal
      * @param rM The "mass" matrix
      */
-    static void Initialize(
+    static void InitializeSystem(
         VectorType& rR,
         const SparseMatrixType& rM
         )
@@ -197,10 +197,9 @@ public:
         if (rR.size() != size_m)
             rR.resize(size_m);
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(size_m); ++i) {
-            rR[i] = rM(i,i);
-        }
+        IndexPartition<std::size_t>(size_m).for_each([&](std::size_t Index){
+            rR[Index] = rM(Index, Index);
+        });
 
         KRATOS_ERROR_IF(norm_2(rR) == 0.0) << "Invalid M matrix. The norm2 of its diagonal is Zero" << std::endl;
 
@@ -252,7 +251,7 @@ public:
         VectorType x = boost::numeric::ublas::zero_vector<double>(size);
         VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
-        Initialize(y,M);
+        InitializeSystem(y,M);
 
         if(Eigenvalues.size() < 1) {
             Eigenvalues.resize(1,0.0);
