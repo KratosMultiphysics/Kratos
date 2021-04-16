@@ -905,7 +905,7 @@ namespace Kratos {
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
 
-        block_for_each(pConditions, [&](ModelPart::ConditionType& rCondition){
+        block_for_each(pConditions, [&r_process_info](ModelPart::ConditionType& rCondition){
             rCondition.FinalizeSolutionStep(r_process_info);
         });
         KRATOS_CATCH("")

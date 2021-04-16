@@ -751,7 +751,7 @@ namespace Kratos {
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
+        block_for_each(pElements, [&r_process_info](ModelPart::ElementType& rElement) {
             rElement.FinalizeSolutionStep(r_process_info);
         });
 
@@ -765,7 +765,7 @@ namespace Kratos {
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
+        block_for_each(pElements, [&r_process_info](ModelPart::ElementType& rElement) {
             rElement.Initialize(r_process_info);
         });
 
@@ -1651,7 +1651,7 @@ namespace Kratos {
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
         const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
-        block_for_each(pContactElements, [&](ModelPart::ElementType& rContactElement) {
+        block_for_each(pContactElements, [&r_process_info](ModelPart::ElementType& rContactElement) {
             rContactElement.Initialize(r_process_info);
         });
 
@@ -1671,11 +1671,11 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
         KRATOS_TRY
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
+
+        IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->ComputeNewRigidFaceNeighboursHistoricalData();
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
@@ -1693,7 +1693,6 @@ namespace Kratos {
 
             //Fast Bins Search
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
-
 
             #pragma omp parallel for schedule(dynamic, 100)
             for (int i = 0; i < number_of_particles; i++) {
