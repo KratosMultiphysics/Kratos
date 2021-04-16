@@ -50,7 +50,7 @@ ConstitutiveLaw::Pointer ElasticIsotropic3D::Clone() const
 
 ElasticIsotropic3D::~ElasticIsotropic3D()
 {
-};
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -58,26 +58,25 @@ ElasticIsotropic3D::~ElasticIsotropic3D()
 void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
-    // b.- Get Values to compute the constitutive law:
+
     Flags & r_constitutive_law_options = rValues.GetOptions();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        CalculateCauchyGreenStrain( rValues, r_strain_vector);
+        //Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
+        CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
-
-    AddInitialStrainVectorContribution<Vector>( r_strain_vector );
+    AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
-        CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-        AddInitialStressVectorContribution<Vector>( r_stress_vector );
+        CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
+        AddInitialStressVectorContribution<Vector>(r_stress_vector);
     }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix( r_constitutive_matrix, rValues);
+        CalculateElasticMatrix(r_constitutive_matrix, rValues);
     }
 
     KRATOS_CATCH("");
@@ -213,28 +212,52 @@ Vector& ElasticIsotropic3D::CalculateValue(
     if (rThisVariable == STRAIN ||
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
-        this->CalculateCauchyGreenStrain( rParameterValues, rValue);
-    } else if (rThisVariable == STRESSES ||
-        rThisVariable == CAUCHY_STRESS_VECTOR ||
-        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
-        rThisVariable == PK2_STRESS_VECTOR) {
-        // Get Values to compute the constitutive law:
+
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        // Set flags to only compute the strain
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
-        // We compute the stress
-        ElasticIsotropic3D::CalculateMaterialResponseCauchy(rParameterValues);
-        rValue = rParameterValues.GetStressVector();
+        ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+
+    } else if (rThisVariable == STRESSES ||
+        rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+        rThisVariable == PK2_STRESS_VECTOR) {
+
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        // Set flags to only compute the stress
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        noalias(rValue) = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+
+    } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
+        if (this->HasInitialState()) {
+            noalias(rValue) = GetInitialState().GetInitialStrainVector();
+        } else {
+            noalias(rValue) = ZeroVector(0);
+        }
     }
 
     return( rValue );
