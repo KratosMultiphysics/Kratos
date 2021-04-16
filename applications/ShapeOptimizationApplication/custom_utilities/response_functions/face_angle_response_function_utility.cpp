@@ -120,8 +120,7 @@ double FaceAngleResponseFunctionUtility::CalculateConditionValue(const Condition
 {
 	// face normal
 	const array_3d local_coords = ZeroVector(3);
-	array_3d face_normal = rFace.GetGeometry().Normal(local_coords);
-	face_normal /= norm_2(face_normal);
+	const array_3d face_normal = rFace.GetGeometry().UnitNormal(local_coords);
 
 	// positive inner product results in negative nodal value to conform to g_i < 0
 	return - ((inner_prod(mMainDirection, face_normal)) - mSinMinAngle);
