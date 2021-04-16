@@ -25,13 +25,13 @@
 
 namespace Kratos {
 
-namespace MapperDefinitions {
+namespace MPIMapperDefinitions {
 
     typedef TUblasDenseSpace<double> DenseSpaceType;
 
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;
+    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> SparseSpaceType;
 
-}  // namespace MapperDefinitions.
+}  // namespace MPIMapperDefinitions.
 
 }  // namespace Kratos.
 

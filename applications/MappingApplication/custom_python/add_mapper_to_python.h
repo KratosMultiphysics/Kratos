@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_MAPPER_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_MAPPER_TO_PYTHON_H_INCLUDED
 
 // System includes
 
@@ -181,6 +181,9 @@ void AddMapperToPython(pybind11::module& m)
 
     // Exposing the MapperFactory
     const std::string mapper_factory_name = TSparseSpace::IsDistributed() ? "MPIMapperFactory" : "MapperFactory";
+
+    std::cout << "Name of mapper fac: " << mapper_factory_name << std::endl;
+
     pybind11::class_<MapperFactory, MapperFactory::Pointer>(m, mapper_factory_name.c_str())
         .def_static("CreateMapper", &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
         .def_static("HasMapper", &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
@@ -191,4 +194,4 @@ void AddMapperToPython(pybind11::module& m)
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_MAPPER_TO_PYTHON_H_INCLUDED  defined

@@ -24,15 +24,15 @@
 
 namespace Kratos {
 
-template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>();
+template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MPIMapperDefinitions::SparseSpaceType,
+    MPIMapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MPIMapperDefinitions::SparseSpaceType,
+    MPIMapperDefinitions::DenseSpaceType>();
 template<>
-std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>()
+std::unordered_map<std::string, typename Mapper<MPIMapperDefinitions::SparseSpaceType,
+    MPIMapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MPIMapperDefinitions::SparseSpaceType,
+    MPIMapperDefinitions::DenseSpaceType>()
 {
-    static std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
+    static std::unordered_map<std::string, typename Mapper<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
 
     return registered_mappers;
 }
