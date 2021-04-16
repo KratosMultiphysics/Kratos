@@ -10,19 +10,19 @@ _ImportApplication(application, application_name)
 # hack for backward compatibility
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 def CreateMPIMapper(*args):
-    IssueDeprecationWarning("MappingApplication", "bbb")
+    IssueDeprecationWarning("MappingApplication", 'CreateMPIMapper is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.CreateMapper" instead')
     from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
     return MPIMapperFactory.CreateMapper(*args)
 
 def HasMPIMapper(*args):
-    IssueDeprecationWarning("MappingApplication", "sss")
+    IssueDeprecationWarning("MappingApplication", 'HasMPIMapper is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.HasMapper" instead')
     from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
-    return MPIMapperFactory.HasMPIMapper(*args)
+    return MPIMapperFactory.HasMapper(*args)
 
 def GetRegisteredMPIMapperNames(*args):
-    IssueDeprecationWarning("MappingApplication", "aaa")
+    IssueDeprecationWarning("MappingApplication", 'GetRegisteredMPIMapperNames is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.GetRegisteredMapperNames" instead')
     from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
-    return MPIMapperFactory.GetRegisteredMPIMapperNames(*args)
+    return MPIMapperFactory.GetRegisteredMapperNames(*args)
 
 setattr(MapperFactory, 'CreateMPIMapper', CreateMPIMapper)
 setattr(MapperFactory, 'HasMPIMapper', HasMPIMapper)
