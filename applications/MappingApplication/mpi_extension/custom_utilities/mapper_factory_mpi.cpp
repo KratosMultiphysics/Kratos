@@ -24,18 +24,21 @@
 
 namespace Kratos {
 
-template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MPIMapperDefinitions::SparseSpaceType,
-    MPIMapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MPIMapperDefinitions::SparseSpaceType,
-    MPIMapperDefinitions::DenseSpaceType>();
+typedef typename MPIMapperDefinitions::SparseSpaceType SparseSpaceType;
+typedef typename MPIMapperDefinitions::DenseSpaceType  DenseSpaceType;
+
 template<>
-std::unordered_map<std::string, typename Mapper<MPIMapperDefinitions::SparseSpaceType,
-    MPIMapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MPIMapperDefinitions::SparseSpaceType,
-    MPIMapperDefinitions::DenseSpaceType>()
+std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer>& MapperFactory<SparseSpaceType,
+    DenseSpaceType>::GetRegisteredMappersList()
 {
-    static std::unordered_map<std::string, typename Mapper<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
+    static std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
     return registered_mappers;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+template class MapperFactory< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
 

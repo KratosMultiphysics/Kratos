@@ -28,7 +28,7 @@ namespace Kratos {
 namespace {
 
 typedef typename MapperDefinitions::SparseSpaceType MappingSparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
+typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
 
 typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
 

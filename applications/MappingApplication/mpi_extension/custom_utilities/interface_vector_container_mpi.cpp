@@ -25,7 +25,7 @@
 namespace Kratos
 {
 typedef typename MPIMapperDefinitions::SparseSpaceType SparseSpaceType;
-typedef typename MPIMapperDefinitions::DenseSpaceType DenseSpaceType;
+typedef typename MPIMapperDefinitions::DenseSpaceType  DenseSpaceType;
 
 typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContainerType;
 

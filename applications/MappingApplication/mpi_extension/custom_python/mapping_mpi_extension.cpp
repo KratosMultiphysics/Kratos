@@ -37,7 +37,7 @@ PYBIND11_MODULE(KratosMappingMPIExtension,m)
         {                                                                                                    \
         Model current_model;                                                                                 \
         ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                                \
-        MapperFactory::Register<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType> \
+        MapperFactory<MPIMapperDefinitions::SparseSpaceType, MPIMapperDefinitions::DenseSpaceType>::Register \
             (MapperName, Kratos::make_shared<MapperType<                                                     \
             MPIMapperDefinitions::SparseSpaceType,MPIMapperDefinitions::DenseSpaceType, MapperMPIBackend<    \
                 MPIMapperDefinitions::SparseSpaceType,MPIMapperDefinitions::DenseSpaceType>>>                \

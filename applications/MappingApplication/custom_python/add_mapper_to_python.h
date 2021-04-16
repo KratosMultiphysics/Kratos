@@ -133,10 +133,10 @@ inline void InverseMapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy
 template<class TSparseSpace, class TDenseSpace>
 void ExposeMapperToPython(pybind11::module& m)
 {
-    typedef Mapper<TSparseSpace, TDenseSpace> MapperType;
     namespace py = pybind11;
     // Exposing the base class of the Mappers to Python, but without constructor
     const std::string mapper_name = TSparseSpace::IsDistributed() ? "MPIMapper" : "Mapper";
+    typedef Mapper<TSparseSpace, TDenseSpace> MapperType;
     const auto mapper
         = py::class_< MapperType, typename MapperType::Pointer >(m, mapper_name.c_str())
             .def("UpdateInterface",     UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
@@ -181,13 +181,11 @@ void AddMapperToPython(pybind11::module& m)
 
     // Exposing the MapperFactory
     const std::string mapper_factory_name = TSparseSpace::IsDistributed() ? "MPIMapperFactory" : "MapperFactory";
-
-    std::cout << "Name of mapper fac: " << mapper_factory_name << std::endl;
-
-    pybind11::class_<MapperFactory, MapperFactory::Pointer>(m, mapper_factory_name.c_str())
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<TSparseSpace, TDenseSpace>)
-        .def_static("HasMapper", &MapperFactory::HasMapper<TSparseSpace, TDenseSpace>)
-        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<TSparseSpace, TDenseSpace>)
+    typedef MapperFactory<TSparseSpace, TDenseSpace> MapperFactoryType;
+    pybind11::class_<MapperFactoryType, typename MapperFactoryType::Pointer>(m, mapper_factory_name.c_str())
+        .def_static("CreateMapper",             &MapperFactoryType::CreateMapper)
+        .def_static("HasMapper",                &MapperFactoryType::HasMapper)
+        .def_static("GetRegisteredMapperNames", &MapperFactoryType::GetRegisteredMapperNames)
     ;
 }
 

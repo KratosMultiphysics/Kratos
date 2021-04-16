@@ -42,7 +42,7 @@
     {                                                                                                 \
     Model current_model;                                                                              \
     ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                             \
-    MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
+    MapperFactory<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::Register    \
         (MapperName, Kratos::make_shared<MapperType<                                                  \
         MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
         (dummy_model_part, dummy_model_part));                                                        \
@@ -52,7 +52,7 @@
     {                                                                                                 \
     Model current_model;                                                                              \
     ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                             \
-    MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
+    MapperFactory<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::Register    \
         (MapperName, Kratos::make_shared<MapperType<                                                  \
         MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType,MapperBackend<           \
                 MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>>               \
