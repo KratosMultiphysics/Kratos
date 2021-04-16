@@ -119,6 +119,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # this is used to perform one step BFECC for the eulerian LS convection
         self._eulerian_error_compensation = self.settings["levelset_convection_settings"]["eulerian_error_compensation"].GetBool()
 
+        # this is used to enable algebraic stabilization for the eulerian LS convection
+        self._algebraic_stabilization = self.settings["levelset_convection_settings"]["algebraic_stabilization"].GetBool()
+
+        # this is used to enable high-order terms in the algebraic stabilization for the eulerian LS convection
+        self._high_order_terms = self.settings["levelset_convection_settings"]["high_order_terms"].GetBool()
+
         # this is used to identify the splitting of LS convection (Strang splitting idea)
         self._levelset_splitting = self.settings["levelset_convection_settings"]["levelset_splitting"].GetBool()
         self._levelset_dt_factor = 0.5 if self._levelset_splitting else 1.0
@@ -299,7 +305,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._levelset_convection_variable,
                 self.settings["bfecc_number_substeps"].GetInt())
         else:
-            if (self._eulerian_error_compensation):
+            if (self._eulerian_error_compensation or (self._algebraic_stabilization and self._high_order_terms)):
                 self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
             self._GetLevelSetConvectionProcess().Execute()
 
