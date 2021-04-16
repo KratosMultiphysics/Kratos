@@ -235,29 +235,10 @@ public:
         this->Points().push_back( pSixthPoint );
     }
 
-    explicit Triangle3D6(
-        const PointsArrayType& ThisPoints
-    ) : BaseType( ThisPoints, &msGeometryData )
+    Triangle3D6( const PointsArrayType& ThisPoints )
+        : BaseType( ThisPoints, &msGeometryData )
     {
-        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
-    }
-
-    /// Constructor with Geometry Id
-    explicit Triangle3D6(
-        const IndexType GeometryId,
-        const PointsArrayType& rThisPoints
-    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
-    {
-        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
-    }
-
-    /// Constructor with Geometry Name
-    explicit Triangle3D6(
-        const std::string& rGeometryName,
-        const PointsArrayType& rThisPoints
-    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
-    {
-        KRATOS_ERROR_IF(this->PointsNumber() != 20) << "Invalid points number. Expected 20, given " << this->PointsNumber() << std::endl;
+    	KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -349,61 +330,28 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        PointsArrayType const& rThisPoints
-        ) const override
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new Triangle3D6( rThisPoints ) );
+        return typename BaseType::Pointer( new Triangle3D6( ThisPoints ) );
     }
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const IndexType NewGeometryId,
-        PointsArrayType const& rThisPoints
-        ) const override
-    {
-        return typename BaseType::Pointer( new Triangle3D6( NewGeometryId, rThisPoints ) );
-    }
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rGeometry reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const BaseType& rGeometry
-        ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new Triangle3D6( rGeometry.Points() ) );
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rGeometry reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const IndexType NewGeometryId,
-        const BaseType& rGeometry
-        ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new Triangle3D6( NewGeometryId, rGeometry.Points() ) );
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //         Point<3>::Pointer pnew_point = Kratos::make_shared< Point<3> >(( *this )[i]);
+    //         NewPoints.push_back(pnew_point);
+    //     }
+
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Triangle3D6< Point<3> >( NewPoints ) );
+
+    //     return p_clone;
+    // }
 
     /**
      * returns the local coordinates of all nodes of the current geometry

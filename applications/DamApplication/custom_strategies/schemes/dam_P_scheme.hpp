@@ -388,7 +388,7 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = ParallelUtilities::GetNumThreads();
+        int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

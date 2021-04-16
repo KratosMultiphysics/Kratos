@@ -100,15 +100,12 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
-
         // Converged values
         double threshold = this->GetThreshold();
         double damage = this->GetDamage();
 
-        // S0 = C:(E-E0) + S0
+        // S0 = C:E
         array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
         // Initialize Plastic Parameters
         double uniaxial_stress;
@@ -258,15 +255,12 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
-
         // Converged values
         double threshold = this->GetThreshold();
         double damage = this->GetDamage();
 
-        // S0 = C:(E-E0) + S0
+        // S0 = C:E
         array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
         // Initialize Plastic Parameters
         double uniaxial_stress;
@@ -283,7 +277,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
                 threshold, rValues,
                 characteristic_length);
             mDamage = damage;
-            mThreshold = uniaxial_stress;
+			mThreshold = uniaxial_stress;
 
             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());

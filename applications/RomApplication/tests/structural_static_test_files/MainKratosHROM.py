@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import StructuralMechanicsAnalysisROM
@@ -6,10 +8,10 @@ import json
 class TestStructuralMechanicsStaticHROM(StructuralMechanicsAnalysisROM):
 
     def __init__(self,model,project_parameters):
-        super().__init__(model,project_parameters)
+        super(TestStructuralMechanicsStaticHROM,self).__init__(model,project_parameters)
 
-    def ModifyAfterSolverInitialize(self):
-        super().ModifyAfterSolverInitialize()
+    def ModifyInitialGeometry(self):
+        super(TestStructuralMechanicsStaticHROM,self).ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
 
         ## Adding the weights to the corresponding elements

@@ -68,15 +68,15 @@ void rename(const std::string& rPathFrom, const std::string& rPathTo)
 {
     return ghc::filesystem::rename(rPathFrom, rPathTo);
 }
-
+    
 std::string parent_path(const std::string& rPath)
 {
-    return ghc::filesystem::path(rPath).parent_path().string();
+    return ghc::filesystem::path(rPath).parent_path();
 }
 
 std::string filename(const std::string& rPath)
 {
-    return ghc::filesystem::path(rPath).filename().string();
+    return ghc::filesystem::path(rPath).filename();
 }
 
 } // namespace filesystem
@@ -111,12 +111,12 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
 
     return full_path;
 }
-
+    
 std::vector<std::string> ListDirectory(const std::string& rPath)
 {
     std::vector<std::string> result;
     for (const auto& current_directory : ghc::filesystem::directory_iterator(rPath)) {
-        result.push_back(current_directory.path().string());
+        result.push_back(current_directory.path());
     }
     return result;
 }

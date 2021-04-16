@@ -109,7 +109,7 @@ namespace Kratos {
         }*/
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              LocalRelVel, sliding, element1, element2, indentation, previous_indentation);
+                                        sliding, element1, element2, indentation, previous_indentation);
 
     }
 
@@ -172,7 +172,6 @@ namespace Kratos {
                                                                           double LocalElasticContactForce[3],
                                                                           double ViscoDampingLocalContactForce[3],
                                                                           const double LocalDeltDisp[3],
-                                                                          const double LocalRelVel[3],
                                                                           bool& sliding,
                                                                           SphericParticle* const element,
                                                                           NeighbourClassType* const neighbour,

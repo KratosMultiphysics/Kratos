@@ -136,7 +136,17 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
+    /**
+     * Assignment operator.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
     NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -148,7 +158,17 @@ public:
         return *this;
     }
 
-    /// @brief Assignment operator for geometries with different point type.
+    /**
+     * @brief Assignment operator for geometries with different point type.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
     template<class TOtherContainerPointType>
     NurbsSurfaceGeometry& operator=(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -213,13 +233,13 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /// @return returns the polynomial degree 'p' in u direction.
+    /* @return returns the polynomial degree 'p' in u direction. */
     SizeType PolynomialDegreeU() const
     {
         return mPolynomialDegreeU;
     }
 
-    /// @return returns the polynomial degree 'p' in u direction.
+    /* @return returns the polynomial degree 'p' in u direction. */
     SizeType PolynomialDegreeV() const
     {
         return mPolynomialDegreeV;
@@ -241,28 +261,30 @@ public:
         return mKnotsV;
     }
 
-    /// @return Gives the size of the knot vector in u-direction.
+    /* @return Gives the size of the knot vector in u-direction.
+    */
     SizeType NumberOfKnotsU() const
     {
         return mKnotsU.size();
     }
 
-    /// @return Gives the size of the knot vector in v-direction.
+    /* @return Gives the size of the knot vector in v-direction.
+    */
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
     }
 
     /* Checks if shape functions are rational or not.
-     * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
         return mWeights.size() != 0;
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
-     * @return weights vector.
-     */
+    @return weights vector.
+    */
     const Vector& Weights() const
     {
         return mWeights;
@@ -338,8 +360,8 @@ public:
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
-     * @return domain interval.
-     */
+    @return domain interval.
+    */
     NurbsInterval DomainIntervalU() const
     {
         return NurbsInterval(
@@ -348,8 +370,8 @@ public:
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
-     * @return domain interval.
-     */
+    @return domain interval.
+    */
     NurbsInterval DomainIntervalV() const
     {
         return NurbsInterval(
@@ -358,8 +380,8 @@ public:
     }
 
     /* Provides all knot span intervals of the surface in u-direction.
-     * @return vector of knot span intervals.
-     */
+    @return vector of knot span intervals.
+    */
     std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
@@ -380,8 +402,8 @@ public:
     }
 
     /* Provides all knot span intervals of the surface in u-direction.
-     * @return vector of knot span intervals.
-     */
+    @return vector of knot span intervals.
+    */
     std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
@@ -507,8 +529,10 @@ public:
                 nonzero_control_points(j) = pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
-            for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                N(0, j) = shape_function_container(j, 0);
+            if (NumberOfShapeFunctionDerivatives >= 0) {
+                for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                    N(0, j) = shape_function_container(j, 0);
+                }
             }
 
             /// Get Shape Function Derivatives DN_De, ...

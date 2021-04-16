@@ -91,7 +91,7 @@ namespace Kratos {
         double MaximumAdmisibleShearForce;
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              LocalRelVel, sliding, element1, element2, indentation, previous_indentation, ElasticShearForceModulus, MaximumAdmisibleShearForce);
+                                              sliding, element1, element2, indentation, previous_indentation, ElasticShearForceModulus, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element1->GetElasticEnergy();
         CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
@@ -203,7 +203,7 @@ namespace Kratos {
         double MaximumAdmisibleShearForce;
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              LocalRelVel, sliding, element, wall, indentation, previous_indentation, ElasticShearForceModulus, MaximumAdmisibleShearForce);
+                                              sliding, element, wall, indentation, previous_indentation, ElasticShearForceModulus, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element->GetElasticEnergy();
         CalculateElasticEnergyFEM(elastic_energy, indentation, LocalElasticContactForce);//MSIMSI
@@ -233,16 +233,12 @@ namespace Kratos {
 
     }
 
-    double DEM_D_Linear_viscous_Coulomb::GetTgOfStaticFrictionAngleOfElement(SphericParticle* element){
-        return element->GetTgOfStaticFrictionAngle();
-    }
-
     double DEM_D_Linear_viscous_Coulomb::GetTgOfDynamicFrictionAngleOfElement(SphericParticle* element){
         return element->GetTgOfDynamicFrictionAngle();
     }
 
-    double DEM_D_Linear_viscous_Coulomb::GetFrictionDecayCoefficient(SphericParticle* element){
-        return element->GetFrictionDecayCoefficient();
+    double DEM_D_Linear_viscous_Coulomb::GetTgOfStaticFrictionAngleOfElement(SphericParticle* element){
+        return element->GetTgOfStaticFrictionAngle();
     }
 
     std::size_t DEM_D_Linear_viscous_Coulomb::GetElementId(SphericParticle* element){

@@ -17,7 +17,6 @@
 #include "custom_utilities/active_set_utilities.h"
 #include "utilities/openmp_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -82,7 +81,6 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
     is_converged[0] = 0;
     is_converged[1] = 0;
 
-    const std::size_t aux_1_index = 1; 
     std::size_t& is_converged_0 = is_converged[0];
     std::size_t& is_converged_1 = is_converged[1];
 
@@ -133,7 +131,8 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                     // We activate the deactivated nodes and add the contribution
                     if (it_node->IsNot(ACTIVE)) {
                         it_node->Set(ACTIVE, true);
-                        AtomicAdd(is_converged_0, aux_1_index);
+                        #pragma omp atomic
+                        is_converged_0 += 1;
                     }
 
 //                     // BEGIN Adding debugging value of TANGENTIAL_CONTACT_STRESS
@@ -147,7 +146,8 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                         KRATOS_WARNING_IF("ComputePenaltyFrictionalActiveSet", PureSlip && EchoLevel > 0) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff.: " << mu * std::abs(augmented_normal_pressure)  << std::endl;
                         if (is_slip && !PureSlip) {
                             it_node->Set(SLIP, false);
-                            AtomicAdd(is_converged_1, aux_1_index);
+                            #pragma omp atomic
+                            is_converged_1 += 1;
                         }
                     } else { // SLIP CASE
                         const double norm_slip = norm_2(r_gt);
@@ -155,7 +155,8 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                         it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, mu * augmented_normal_pressure * tangent_direction);
                         if (!is_slip && !PureSlip) {
                             it_node->Set(SLIP, true);
-                            AtomicAdd(is_converged_1, aux_1_index);
+                            #pragma omp atomic
+                            is_converged_1 += 1;
                         } else if (PureSlip) {
                             it_node->Set(SLIP, true);
                         }
@@ -165,7 +166,8 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
                         it_node->Reset(SLIP);
-                        AtomicAdd(is_converged_0, aux_1_index);
+                        #pragma omp atomic
+                        is_converged_0 += 1;
                     }
                 }
             }
@@ -291,7 +293,6 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
     is_converged[0] = 0;
     is_converged[1] = 0;
 
-    const std::size_t aux_1_index = 1; 
     std::size_t& is_converged_0 = is_converged[0];
     std::size_t& is_converged_1 = is_converged[1];
 
@@ -345,7 +346,8 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
                     if (it_node->IsNot(ACTIVE)) {
                         noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor + (mu < std::numeric_limits<double>::epsilon() ? zero_array : augmented_tangent_pressure_components/scale_factor);
                         it_node->Set(ACTIVE, true);
-                        AtomicAdd(is_converged_0, aux_1_index);
+                        #pragma omp atomic
+                        is_converged_0 += 1;
                     }
 
                     // Check for the slip/stick state
@@ -358,7 +360,8 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
                         KRATOS_WARNING_IF("ComputeALMFrictionalActiveSet", PureSlip && EchoLevel > 0) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff.: " << mu * std::abs(augmented_normal_pressure)  << std::endl;
                         if (is_slip && !PureSlip) {
                             it_node->Set(SLIP, false);
-                            AtomicAdd(is_converged_1, aux_1_index);
+                            #pragma omp atomic
+                            is_converged_1 += 1;
                         }
                     } else { // SLIP CASE
                         const array_1d<double, 3> tangent_direction = tangent_lagrange_multiplier/norm_2(tangent_lagrange_multiplier);
@@ -368,7 +371,8 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
                         if (!is_slip && !PureSlip) {
                             it_node->Set(SLIP, true);
-                            AtomicAdd(is_converged_1, aux_1_index);
+                            #pragma omp atomic
+                            is_converged_1 += 1;
                         } else if (PureSlip) {
                             it_node->Set(SLIP, true);
                         }
@@ -378,7 +382,8 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
                         it_node->Reset(SLIP);
-                        AtomicAdd(is_converged_0, aux_1_index);
+                        #pragma omp atomic
+                        is_converged_0 += 1;
                     }
                 }
             }

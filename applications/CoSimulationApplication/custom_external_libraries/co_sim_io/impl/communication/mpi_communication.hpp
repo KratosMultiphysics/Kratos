@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#ifndef CO_SIM_IO_MPI_COMMUNICATION_INCLUDED
-#define CO_SIM_IO_MPI_COMMUNICATION_INCLUDED
+#ifndef CO_SIM_IO_MPI_COMMUNICATION_H_INCLUDED
+#define CO_SIM_IO_MPI_COMMUNICATION_H_INCLUDED
 
 // System includes
 #include "mpi.h"
@@ -25,7 +25,8 @@ namespace Internals {
 class MPICommunication : public Communication
 {
 public:
-    explicit MPICommunication(const Info& I_Settings) : Communication(I_Settings)
+    explicit MPICommunication(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
+        : Communication(rName, rSettings, IsConnectionMaster)
     {
        static_assert(false,"MPI Communication is not implemented yet");
        /*
@@ -40,4 +41,4 @@ public:
 } // namespace Internals
 } // namespace CoSimIO
 
-#endif // CO_SIM_IO_MPI_COMMUNICATION_INCLUDED
+#endif // CO_SIM_IO_MPI_COMMUNICATION_H_INCLUDED

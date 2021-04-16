@@ -17,7 +17,6 @@
 // System includes
 #include <iostream>
 #include <limits>
-#include <span/span.hpp>
 
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/system_vector.h"
@@ -27,6 +26,7 @@
 
 // Project includes
 #include "includes/define.h"
+
 
 namespace Kratos
 {
@@ -80,27 +80,21 @@ public:
     template<class TGraphType>
     CsrMatrix(const TGraphType& rSparseGraph)
     {
-        TIndexType row_data_size=0;
-        TIndexType col_data_size=0;
-        rSparseGraph.ExportCSRArrays(mpRowIndicesData,row_data_size,mpColIndicesData, col_data_size);
-        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, row_data_size); //no copying of data happening here
-        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, col_data_size);
-
+        rSparseGraph.ExportCSRArrays(mRowIndices,mColIndices);
         mNrows = size1();
 
         ComputeColSize();
 
         //initialize mValuesVector to zero
-        ResizeValueData(mColIndices.size());
+        mValuesVector.resize(mColIndices.size(),false);
         SetValue(0.0);
     }
 
     explicit CsrMatrix(const CsrMatrix<TDataType,TIndexType>& rOtherMatrix)
     {
-        ResizeIndex1Data(rOtherMatrix.mRowIndices.size());
-        ResizeIndex2Data(rOtherMatrix.mColIndices.size());
-        ResizeValueData(rOtherMatrix.mValuesVector.size());
-
+        mRowIndices.resize(rOtherMatrix.mRowIndices.size(),false);
+        mColIndices.resize(rOtherMatrix.mColIndices.size(),false);
+        mValuesVector.resize(rOtherMatrix.mValuesVector.size(),false);
         mNrows = rOtherMatrix.mNrows;
         mNcols = rOtherMatrix.mNcols;
 
@@ -117,67 +111,21 @@ public:
         });
     }
 
-    //move constructor
-    CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
-    {
-        mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
-        rOtherMatrix.mIsOwnerOfData=false;
-
-        //swap the pointers to take owership of data
-        mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
-        mpColIndicesData = rOtherMatrix.mpColIndicesData;
-        mpValuesVectorData = rOtherMatrix.mpValuesVectorData;
-
-        //here we assign the span
-        mRowIndices = rOtherMatrix.mRowIndices;
-        mColIndices = rOtherMatrix.mColIndices;
-        mValuesVector = rOtherMatrix.mValuesVector;
-        
-        mNrows = rOtherMatrix.mNrows;
-        mNcols = rOtherMatrix.mNcols;
-
-    }
 
     /// Destructor.
-    virtual ~CsrMatrix(){
-        AssignIndex1Data(nullptr,0);
-        AssignIndex2Data(nullptr,0);
-        AssignValueData(nullptr,0);        
-    }
+    virtual ~CsrMatrix(){}
 
     /// Assignment operator. 
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
  
-    //move assignement operator
-    CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
-    {
-        mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
-        rOtherMatrix.mIsOwnerOfData=false;
-
-        //swap the pointers to take owership of data
-        mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
-        mpColIndicesData = rOtherMatrix.mpColIndicesData;
-        mpValuesVectorData = rOtherMatrix.mpValuesVectorData;
-
-        //here we assign the span
-        mRowIndices = rOtherMatrix.mRowIndices;
-        mColIndices = rOtherMatrix.mColIndices;
-        mValuesVector = rOtherMatrix.mValuesVector;
-        
-        mNrows = rOtherMatrix.mNrows;
-        mNcols = rOtherMatrix.mNcols;
-        return *this;
-    }
     ///@}
     ///@name Operators
     ///@{
     void Clear()
     {
-        AssignIndex1Data(nullptr,0);
-        AssignIndex2Data(nullptr,0);
-        AssignValueData(nullptr,0);
-        mNrows=0;
-        mNcols=0;
+        mRowIndices.clear();
+        mColIndices.clear();
+        mValuesVector.clear();
     }
 
     void SetValue(const TDataType value)
@@ -201,40 +149,28 @@ public:
         return index2_data().size();
     }
 
-    bool IsOwnerOfData() const{
-        return mIsOwnerOfData;
-    }
-
-    void SetIsOwnerOfData(bool IsOwner){
-        mIsOwnerOfData = IsOwner;
-    }
-
-    inline Kratos::span<IndexType>& index1_data(){
+    inline DenseVector<IndexType>& index1_data(){
         return mRowIndices;
     }
-    inline Kratos::span<IndexType>& index2_data(){
+    inline DenseVector<IndexType>& index2_data(){
         return mColIndices;
     }
-    inline Kratos::span<TDataType>& value_data(){
+    inline DenseVector<TDataType>& value_data(){
         return mValuesVector;
     }
 
-    inline const Kratos::span<IndexType>& index1_data() const{
+    inline const DenseVector<IndexType>& index1_data() const{
         return mRowIndices;
     }
-    inline const Kratos::span<IndexType>& index2_data() const{
+    inline const DenseVector<IndexType>& index2_data() const{
         return mColIndices;
     }
-    inline const Kratos::span<TDataType>& value_data() const{
+    inline const DenseVector<TDataType>& value_data() const{
         return mValuesVector;
     }
 
     void SetColSize(IndexType Ncols){
         mNcols = Ncols;
-    }
-
-    void SetRowSize(IndexType Nrows){
-        mNrows = Nrows;
     }
 
     void ComputeColSize()
@@ -246,62 +182,6 @@ public:
 
         mNcols = max_col+1; //note that we must add 1 to the greatest column id
     }
-
-    void AssignIndex1Data(TIndexType* pExternalData, TIndexType DataSize){
-        if(IsOwnerOfData() && mpRowIndicesData != nullptr)
-            delete [] mpRowIndicesData;
-        mpRowIndicesData = pExternalData;
-        if(DataSize!=0)
-            mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, DataSize);
-        else
-            mRowIndices = Kratos::span<TIndexType>();
-    }
-
-    void AssignIndex2Data(TIndexType* pExternalData, TIndexType DataSize){
-        if(IsOwnerOfData() && mpColIndicesData != nullptr)
-            delete [] mpColIndicesData;
-        mpColIndicesData = pExternalData;
-        if(DataSize!=0)
-            mColIndices = Kratos::span<TIndexType>(mpColIndicesData, DataSize);
-        else
-            mColIndices = Kratos::span<TIndexType>();
-    }
-
-    void AssignValueData(TDataType* pExternalData, TIndexType DataSize){
-        if(IsOwnerOfData() && mpValuesVectorData != nullptr)
-            delete [] mpValuesVectorData;
-        mpValuesVectorData = pExternalData;
-        if(DataSize!=0)
-            mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
-        else
-            mValuesVector = Kratos::span<TDataType>();
-    }
-
-    void ResizeIndex1Data(TIndexType DataSize){
-        KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeIndex1Data is only allowed if the data are locally owned" << std::endl;
-        if(mpRowIndicesData != nullptr)
-            delete [] mpRowIndicesData;
-        mpRowIndicesData = new TIndexType[DataSize];
-        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, DataSize);
-    }
-
-    void ResizeIndex2Data(TIndexType DataSize){
-        KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeIndex2Data is only allowed if the data are locally owned" << std::endl;
-        if(mpColIndicesData != nullptr)
-            delete [] mpColIndicesData;
-        mpColIndicesData = new TIndexType[DataSize];
-        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, DataSize);
-    }
-
-    void ResizeValueData(TIndexType DataSize){
-        KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeValueData is only allowed if the data are locally owned" << std::endl;
-        if(mpValuesVectorData != nullptr)
-            delete [] mpValuesVectorData;
-        mpValuesVectorData = new TDataType[DataSize];
-        mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
-    }
-
-
 
     void CheckColSize()
     {
@@ -339,19 +219,16 @@ public:
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TInputVectorType& x, TOutputVectorType& y) const
     {
-        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between row sizes : " << size1()  << " and destination vector size " << y.size() << std::endl;
-        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between col sizes : " << size2()  << " and input vector size " << x.size() << std::endl;
-        if(nnz() != 0)
-        {
-            IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
-                IndexType row_begin = index1_data()[i];
-                IndexType row_end   = index1_data()[i+1];
-                for(IndexType k = row_begin; k < row_end; ++k){
-                    IndexType col = index2_data()[k];
-                    y(i) += value_data()[k] * x(col);
-                }  
-            });
-        }
+        KRATOS_ERROR_IF(size1() != y.size() ) << "SpMV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and destination vector size " << y.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != x.size() ) << "SpmV: mismatch between matrix sizes : " << size1() << " " <<size2() << " and input vector size " << x.size() << std::endl;
+        IndexPartition<IndexType>(y.size()).for_each( [&](IndexType i){
+            IndexType row_begin = index1_data()[i];
+            IndexType row_end   = index1_data()[i+1];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                IndexType col = index2_data()[k];
+                y(i) += value_data()[k] * x(col);
+            }  
+        });
     }
 
     //y = alpha*y + beta*A*x
@@ -432,13 +309,11 @@ public:
     //*
 
     void reserve(IndexType NRows, IndexType nnz){
-        ResizeIndex1Data(NRows+1);
-
+        index1_data().resize(NRows+1,false);
         if(NRows > 0)
             index1_data()[0] = 0;
-
-        ResizeIndex2Data(nnz);
-        ResizeValueData(nnz);
+        index2_data().resize(nnz,false);
+        value_data().resize(nnz,false);
         mNrows = NRows;
     }
 
@@ -463,6 +338,12 @@ public:
 
     void FinalizeAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
+
+    void Assemble(TDataType Value, IndexType GlobalI, IndexType GlobalJ)
+    {
+        IndexType k = BinarySearch(index2_data(), index1_data()[GlobalI], index1_data()[GlobalI+1], GlobalJ);
+        AtomicAdd(value_data()[k], Value);
+    }
 
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
@@ -557,12 +438,6 @@ public:
         }
     }
 
-    void AssembleEntry(const TDataType Value, const IndexType GlobalI, const IndexType GlobalJ)
-    {
-        IndexType k = BinarySearch(index2_data(), index1_data()[GlobalI], index1_data()[GlobalI+1], GlobalJ);
-        AtomicAdd(value_data()[k], Value);
-    }
-
     //TODO
     // LeftScaling
     // RightScaling
@@ -600,23 +475,7 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
-        rOStream << "size1 : " << size1() <<std::endl;
-        rOStream << "size2 : " << size2() <<std::endl;
-        rOStream << "nnz : " << nnz() <<std::endl; 
-        rOStream << "index1_data : " << std::endl;
-        for(auto item : index1_data())
-            rOStream << item << ",";
-        rOStream << std::endl;
-        rOStream << "index2_data : " << std::endl;
-        for(auto item : index2_data())
-            rOStream << item << ",";
-        rOStream << std::endl;        
-        rOStream << "value_data  : " << std::endl;
-        for(auto item : value_data())
-            rOStream << item << ",";
-        rOStream << std::endl;
-    }
+    virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends
@@ -695,13 +554,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    bool mIsOwnerOfData = true;
-    IndexType* mpRowIndicesData = nullptr;
-    IndexType* mpColIndicesData = nullptr;
-    TDataType* mpValuesVectorData = nullptr;
-    Kratos::span<IndexType> mRowIndices;
-    Kratos::span<IndexType> mColIndices;
-    Kratos::span<TDataType> mValuesVector;
+    DenseVector<IndexType> mRowIndices;
+    DenseVector<IndexType> mColIndices;
+    DenseVector<TDataType> mValuesVector;
     IndexType mNrows=0;
     IndexType mNcols=0;
 
@@ -712,54 +567,18 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("IsOwnerOfData",mIsOwnerOfData);
-
-        rSerializer.save("nrows",mRowIndices.size());
-        for(IndexType i=0; i<mRowIndices.size(); ++i)
-            rSerializer.save("i",mRowIndices[i]);
-
-        rSerializer.save("cols_size",mColIndices.size());
-        for(IndexType i=0; i<mColIndices.size(); ++i)
-            rSerializer.save("i",mColIndices[i]);
-
-        rSerializer.save("val_size",mValuesVector.size());
-        for(IndexType i=0; i<mValuesVector.size(); ++i)
-            rSerializer.save("d",mValuesVector[i]);
-        
+        rSerializer.save("rows",mRowIndices);
+        rSerializer.save("cols",mColIndices);
+        rSerializer.save("values",mValuesVector);
         rSerializer.save("Nrow",mNrows);
         rSerializer.save("Ncol",mNcols);
     }
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("IsOwnerOfData",mIsOwnerOfData);
-        if(mIsOwnerOfData == false)
-        {
-            mIsOwnerOfData=true;
-            KRATOS_WARNING("csr_matrix becomes owner of a copy of data after serialization");
-        }
-
-        IndexType rows_size;
-        rSerializer.load("nrows",rows_size);
-        mpRowIndicesData = new TIndexType[rows_size];
-        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, rows_size);
-        for(IndexType i=0; i<rows_size; ++i)
-            rSerializer.load("i",mRowIndices[i]);
-
-        IndexType cols_size;
-        rSerializer.load("cols_size",cols_size);
-        mpColIndicesData = new TIndexType[cols_size];
-        mColIndices = Kratos::span<TIndexType>(mpRowIndicesData, cols_size);
-        for(IndexType i=0; i<mColIndices.size(); ++i)
-            rSerializer.load("i",mColIndices[i]);
-
-        IndexType vals_size;
-        rSerializer.load("val_size",vals_size);
-        mpValuesVectorData = new TDataType[vals_size];
-        mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, vals_size);
-        for(IndexType i=0; i<mValuesVector.size(); ++i)
-            rSerializer.load("d",mValuesVector[i]);
-        
+        rSerializer.load("rows",mRowIndices);
+        rSerializer.load("cols",mColIndices);
+        rSerializer.load("values",mValuesVector);
         rSerializer.load("Nrow",mNrows);
         rSerializer.load("Ncol",mNcols);
     }

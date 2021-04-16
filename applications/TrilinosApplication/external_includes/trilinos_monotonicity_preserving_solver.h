@@ -247,9 +247,6 @@ public:
             }
         }
 
-        rA.GlobalAssemble();
-        rB.GlobalAssemble();
-
         if (mpLinearSolver->AdditionalPhysicalDataIsNeeded()) {
             mpLinearSolver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
         }

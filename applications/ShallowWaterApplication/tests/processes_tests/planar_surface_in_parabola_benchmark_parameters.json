@@ -2,7 +2,7 @@
     "problem_data"         : {
         "echo_level"           : 0,
         "start_time"           : 0.0,
-        "end_time"             : 3.9,
+        "end_time"             : 2.0,
         "parallel_type"        : "OpenMP"
     },
     "solver_settings"      : {
@@ -19,13 +19,6 @@
             "automatic_time_step"      : false,
             "time_step"                : 2.0
         }
-    },
-    "output_processes" : {
-        "enforce_print_output_with_something" : [{
-            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "python_module"   : "testing.empty_output_process",
-            "Parameters"      : {}
-        }]
     },
     "processes" : {
         "initial_conditions_process_list"   : [],
@@ -53,7 +46,7 @@
                 "check_variables"  : ["EXACT_HEIGHT"],
                 "input_file_name"  : "planar_surface_in_parabola_benchmark_reference.json",
                 "historical_value" : false,
-                "time_frequency"   : 3.9,
+                "time_frequency"   : 1.9,
                 "tolerance"        : 1e-12
             }
         }]
@@ -67,7 +60,7 @@
                 "output_variables" : ["EXACT_HEIGHT"],
                 "output_file_name" : "planar_surface_in_parabola_benchmark_reference.json",
                 "historical_value" : false,
-                "time_frequency"   : 3.9
+                "time_frequency"   : 1.9
             }
         },{
             "kratos_module"   : "KratosMultiphysics",
@@ -77,7 +70,7 @@
                 "check_variables"  : ["EXACT_HEIGHT"],
                 "input_file_name"  : "planar_surface_in_parabola_benchmark_reference.json",
                 "historical_value" : false,
-                "time_frequency"   : 3.9,
+                "time_frequency"   : 1.9,
                 "tolerance"        : 1e-12
             }
         }]

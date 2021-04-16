@@ -14,19 +14,21 @@
 #if !defined(KRATOS_DEFLATION_UTILS )
 #define  KRATOS_DEFLATION_UTILS
 
-/* System includes */
 
-/* External includes */
+/* System includes */
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
 #include "boost/numeric/ublas/matrix.hpp" // for the vector used here.
 #else
 #endif // KRATOS_USE_AMATRIX
 
+/* External includes */
+
+
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/global_pointer_variables.h"
-#include "utilities/atomic_utilities.h"
+
 
 namespace Kratos
 {
@@ -355,8 +357,10 @@ public:
 #else
         //now apply the Wtranspose
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(w.size()); i++) {
-            AtomicAdd(y[w[i]], x[i]);
+        for(int i=0; i<static_cast<int>(w.size()); i++)
+        {
+            #pragma omp atomic
+            y[w[i]] += x[i];
         }
 #endif
     }

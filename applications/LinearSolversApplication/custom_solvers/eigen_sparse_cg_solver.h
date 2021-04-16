@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "linear_solvers_define.h"
 #include "linear_solvers/direct_solver.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
@@ -28,8 +27,8 @@ class EigenSparseCGSolver
 {
 public:
     using Scalar = TScalar;
-    using SparseMatrix = Kratos::EigenSparseMatrix<Scalar>;
-    using Vector = Kratos::EigenDynamicVector<Scalar>;
+    using SparseMatrix = Eigen::SparseMatrix<Scalar, Eigen::RowMajor, int>;
+    using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 
 private:
     SparseMatrix m_a;

@@ -1,13 +1,17 @@
+﻿from __future__ import print_function, absolute_import, division
+
 import os
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
+from KratosMultiphysics import ParallelEnvironment
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -43,9 +47,12 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
     def tearDown(self):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
+        # Remove the .time file
+        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh.time")
+
         # Remove the Metis partitioning files
-        self.model_part.GetCommunicator().GetDataCommunicator().Barrier() # required as all ranks must be done with using the partitioning files
-        KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
+        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh_" + str(my_pid) + ".time")
+        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh_" + str(my_pid) + ".mdpa")
 
         # While compining in debug, in memory partitioner also writes down the mpda in plain text
         # and needs to be cleaned.
@@ -83,7 +90,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }""")
         )
 
-        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
+        epetra_comm = TrilinosApplication.CreateCommunicator()
 
         # Fake time advance
         self.model_part.CloneTimeStep(40.0)
@@ -142,14 +149,16 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }""")
         )
-        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
+        epetra_comm = TrilinosApplication.CreateCommunicator()
+        comm = ParallelEnvironment.GetDefaultDataCommunicator()
+        #self.model_part.GetCommunicator().GetDataCommunicator()
 
         # Fake time advance
         self.model_part.CloneTimeStep(30.0)
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
+        #kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(
-                kratos_comm, self.model_part).Execute()
+                comm, self.model_part).Execute()
 
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
@@ -181,8 +190,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        min_distance = kratos_comm.MinAll(min_distance)
-        max_distance = kratos_comm.MaxAll(max_distance)
+        min_distance = comm.MinAll(min_distance)
+        max_distance = comm.MaxAll(max_distance)
 
         # gid_output = GiDOutputProcess(model_part,
         #                            "levelset_test_2D",

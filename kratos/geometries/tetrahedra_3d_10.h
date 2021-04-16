@@ -233,24 +233,6 @@ public:
             KRATOS_ERROR << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
 
-    /// Constructor with Geometry Id
-    explicit Tetrahedra3D10(
-        const IndexType GeometryId,
-        const PointsArrayType& rThisPoints
-    ) : BaseType(GeometryId, rThisPoints, &msGeometryData)
-    {
-        KRATOS_ERROR_IF( this->PointsNumber() != 10 ) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
-    }
-
-    /// Constructor with Geometry Name
-    explicit Tetrahedra3D10(
-        const std::string& rGeometryName,
-        const PointsArrayType& rThisPoints
-    ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
-    {
-        KRATOS_ERROR_IF(this->PointsNumber() != 10) << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
-    }
-
     /**
      * Copy constructor.
      * Construct this geometry as a copy of given geometry.
@@ -336,69 +318,18 @@ public:
     }
 
 
-    ///@}
-    ///@name Operations
-    ///@{
-
     /**
-     * @brief Creates a new geometry pointer
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
+     * Operations
      */
-    typename BaseType::Pointer Create(
-        PointsArrayType const& rThisPoints
-        ) const override
+
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new Tetrahedra3D10( rThisPoints ) );
+        return typename BaseType::Pointer( new Tetrahedra3D10( ThisPoints ) );
     }
 
     /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param ThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
+     * Informations
      */
-    typename BaseType::Pointer Create(
-        const IndexType NewGeometryId,
-        PointsArrayType const& rThisPoints
-        ) const override
-    {
-        return typename BaseType::Pointer( new Tetrahedra3D10( NewGeometryId, rThisPoints ) );
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rGeometry reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const BaseType& rGeometry
-        ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D10( rGeometry.Points() ) );
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rGeometry reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const IndexType NewGeometryId,
-        const BaseType& rGeometry
-        ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new Tetrahedra3D10( NewGeometryId, rGeometry.Points() ) );
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
-
-    ///@}
-    ///@name Information
-    ///@{
 
     /**
      * This method calculates and returns Length or charactereistic

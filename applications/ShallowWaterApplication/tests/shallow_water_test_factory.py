@@ -3,17 +3,8 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
 
-try:
-    import scipy
-    scipy_available = True
-except ImportError:
-    scipy_available = False
-
 class ShallowWaterTestFactory(KratosUnittest.TestCase):
-    need_scipy = False
     def test_execution(self):
-        if self.need_scipy and not scipy_available:
-            self.skipTest("Scipy not available")
         with KratosUnittest.WorkFolderScope(self.execution_directory, __file__):
             with open(self.execution_file + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -52,12 +43,10 @@ class TestVisualizationMeshProcess(ShallowWaterTestFactory):
 class TestMacDonaldShockBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "mac_donald_shock_benchmark"
-    need_scipy = True
 
 class TestDamBreakBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "dam_break_benchmark"
-    need_scipy = True
 
 class TestDryDamBreakBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"

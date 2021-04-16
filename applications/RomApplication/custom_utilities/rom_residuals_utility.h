@@ -165,8 +165,8 @@ namespace Kratos
             std::vector< std::string > mNodalVariablesNames;
             int mNodalDofs;
             unsigned int mRomDofs;
-            ModelPart& mpModelPart;
             BaseSchemeType::Pointer mpScheme;
+            ModelPart& mpModelPart;
             std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
         };
 

@@ -116,8 +116,6 @@ namespace Kratos
 
     static void AddOutput(LoggerOutput::Pointer pTheOutput);
 
-    static void RemoveOutput(LoggerOutput::Pointer pTheOutput);
-
     static void Flush();
 
 

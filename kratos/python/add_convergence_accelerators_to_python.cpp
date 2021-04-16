@@ -45,7 +45,6 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
         .def("Finalize",                     &BaseConvergenceAcceleratorType::Finalize)
         .def("GetEchoLevel",                 &BaseConvergenceAcceleratorType::GetEchoLevel)
         .def("SetEchoLevel",                 &BaseConvergenceAcceleratorType::SetEchoLevel)
-        .def("IsBlockNewton",                &BaseConvergenceAcceleratorType::IsBlockNewton) 
     ;
 
 }

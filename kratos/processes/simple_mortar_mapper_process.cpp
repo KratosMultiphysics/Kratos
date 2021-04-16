@@ -22,7 +22,6 @@
 #include "utilities/mortar_utilities.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/math_utils.h"
-#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -737,7 +736,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         // First we assemble the RHS
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
-            AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
+            #pragma omp atomic
+            aux_b += rResidualMatrix(i_node, i_var);
         }
 
         SizeType left_limit = index1_vector[pos_i_id];
@@ -745,7 +745,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         while(pos_i_id != index2_vector[last_pos]) last_pos++;
         double& a_value = values_vector[last_pos];
 
-        AtomicAdd(a_value, rThisMortarOperators.DOperator(i_node, i_node));
+        #pragma omp atomic
+        a_value += rThisMortarOperators.DOperator(i_node, i_node);
     }
 }
 
@@ -767,7 +768,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         const int pos_i_id = rInverseConectivityDatabase[node_i_id];
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
-            AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
+            #pragma omp atomic
+            aux_b += rResidualMatrix(i_node, i_var);
         }
     }
 }
@@ -964,7 +966,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
                 const double value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
-                AtomicAdd(residual_norm[i_size], std::pow(value, 2));
+                #pragma omp atomic
+                residual_norm[i_size] += std::pow(value, 2);
             }
         }
 

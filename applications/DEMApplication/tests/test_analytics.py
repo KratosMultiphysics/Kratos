@@ -59,8 +59,9 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
             self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
-            self.CheckTotalNumberOfCrossingParticles()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.CheckTotalNumberOfCrossingParticles()
 
         self.FaceAnalyzerClass.RemoveOldFile()
 
@@ -82,15 +83,16 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def RunAnalytics(self, time, is_time_to_print=True):
-        self.MakeAnalyticsMeasurements()
-        if is_time_to_print:  # or IsCountStep()
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.MakeAnalyticsMeasurements()
+            if is_time_to_print:  # or IsCountStep()
+                self.FaceAnalyzerClass.CreateNewFile()
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[DEM.IS_GHOST]):
+                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
 
-            if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
-                self.CheckTotalNumberOfCrossingParticles()
+                    if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
+                        self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+                self.FaceAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -130,11 +132,11 @@ class TestAnalytics(KratosUnittest.TestCase):
     #     model = Kratos.Model()
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 
+
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("analytics_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+
         os.chdir(this_working_dir_backup)
 
 

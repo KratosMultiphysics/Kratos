@@ -34,9 +34,6 @@ def CreateConvergenceAccelerator(configuration):
     elif(convergence_accelerator_type == "MVQN_recursive"):
         return KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration)
 
-    elif(convergence_accelerator_type == "IBQN_MVQN"):
-        return KratosFSI.IBQNMVQNConvergenceAccelerator(configuration)
-
     else:
         raise Exception("Convergence accelerator not found. Asking for : " + convergence_accelerator_type)
 

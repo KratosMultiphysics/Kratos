@@ -6,7 +6,6 @@
 #include <string>
 #include <iostream>
 #include <random>
-#include <functional>
 
 #include "inlet.h"
 #include "create_and_destroy.h"
@@ -42,7 +41,7 @@ namespace Kratos {
 
     /// Constructor
 
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed): mInletModelPart(inlet_modelpart)
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
         mPartialParticleToInsert.resize(number_of_submodelparts);
@@ -51,9 +50,6 @@ namespace Kratos {
         mLayerRemoved.resize(number_of_submodelparts);
         mNumberOfParticlesInjected.resize(number_of_submodelparts);
         mMassInjected.resize(number_of_submodelparts);
-
-        std::mt19937 gen(seed);
-        mGenerator = gen;
 
         int smp_iterator_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {
@@ -548,6 +544,8 @@ namespace Kratos {
             }
 
             if (number_of_particles_to_insert) {
+                //randomizing mesh
+                std::mt19937 random_generator(r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
                 ModelPart::ElementsContainerType::ContainerType valid_elements(mesh_size_elements); //This is a new vector we are going to work on
                 int valid_elements_length = 0;
@@ -612,8 +610,7 @@ namespace Kratos {
                         }
                     }
 
-                    int random_pos = mGenerator() % valid_elements_length;
-
+                    int random_pos = random_generator() % valid_elements_length;
                     Element* p_injector_element = valid_elements[random_pos].get();
 
                     if (mp[CONTAINS_CLUSTERS] == false) {

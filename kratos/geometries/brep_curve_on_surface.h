@@ -26,7 +26,6 @@
 
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
-#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 namespace Kratos
 {
@@ -74,15 +73,15 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
-    static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits<IndexType>::max() - 2;
+    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// constructor for untrimmed surface
-    BrepCurveOnSurface(
+    BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         bool SameCurveDirection = true)
@@ -90,7 +89,6 @@ public:
         , mpCurveOnSurface(
             Kratos::make_shared<NurbsCurveOnSurfaceType>(
                 pSurface, pCurve))
-        , mCurveNurbsInterval(pCurve->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -116,7 +114,6 @@ public:
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpCurveOnSurface(pNurbsCurveOnSurface)
-        , mCurveNurbsInterval(pNurbsCurveOnSurface->DomainInterval())
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -127,8 +124,8 @@ public:
         NurbsInterval CurveNurbsInterval,
         bool SameCurveDirection = true)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpCurveOnSurface(pNurbsCurveOnSurface)
         , mCurveNurbsInterval(CurveNurbsInterval)
+        , mpCurveOnSurface(pNurbsCurveOnSurface)
         , mSameCurveDirection(SameCurveDirection)
     {
     }
@@ -169,7 +166,17 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
+    /**
+     * Assignment operator.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -179,7 +186,17 @@ public:
         return *this;
     }
 
-    /// Assignment operator for geometries with different point type.
+    /**
+     * Assignment operator for geometries with different point type.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -277,14 +294,6 @@ public:
     ///@name Set/ Get functions
     ///@{
 
-    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
-     * @return domain interval.
-     */
-    NurbsInterval DomainInterval() const
-    {
-        return mCurveNurbsInterval;
-    }
-
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
@@ -330,43 +339,8 @@ public:
     }
 
     ///@}
-    ///@name Projection
-    ///@{
-
-    /* Makes projection of rPointGlobalCoordinates to
-     * the closest point rProjectedPointGlobalCoordinates on the curve,
-     * with local coordinates rProjectedPointLocalCoordinates.
-     *
-     * Condiders limits of this BrepCurveOnSurface as borders.
-     *
-     * @param Tolerance is the breaking criteria.
-     * @return 1 -> projection succeeded
-     *         0 -> projection failed
-     */
-    int ProjectionPoint(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
-            rProjectedPointLocalCoordinates,
-            rPointGlobalCoordinates,
-            rProjectedPointGlobalCoordinates,
-            *this,
-            20, Tolerance);
-    }
-
-    ///@}
     ///@name Geometrical Operations
     ///@{
-
-    /// Provides the center of the underlying curve on surface
-    Point Center() const override
-    {
-        return mpCurveOnSurface->Center();
-    }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -477,15 +451,6 @@ public:
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
-    {
-        return GeometryData::Kratos_Brep;
-    }
-
-    GeometryData::KratosGeometryType GetGeometryType() const override
-    {
-        return GeometryData::Kratos_Brep_Curve;
-    }
     ///@}
     ///@name Input and output
     ///@{

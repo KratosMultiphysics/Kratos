@@ -37,8 +37,7 @@ class MeshSolverLaplacian(MeshSolverBase):
                                                             reform_dofs_each_step,
                                                             compute_reactions,
                                                             False,
-                                                            self.echo_level,
-                                                            self.reinitialize_model_part_each_step)
+                                                            self.echo_level)
         return solving_strategy
 
 

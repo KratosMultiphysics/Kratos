@@ -49,7 +49,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # TIME RELATED PARAMETERS
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
         for properties in self.model_part.Properties:
             self.ModifyProperties(properties)

@@ -177,7 +177,7 @@ CMAKE_EXTRA=(
   -DTRILINOS_APPLICATION=OFF
   -DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"
 
-  -DCMAKE_UNITY_BUILD=OFF
+  -DUSE_COTIRE=OFF
 )
 
 ########################################################################################################################

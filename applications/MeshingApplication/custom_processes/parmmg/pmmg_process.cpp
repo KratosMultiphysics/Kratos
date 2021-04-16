@@ -378,41 +378,47 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 
     // First we empty the model part
     auto& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
-    block_for_each(r_nodes_array,
-        [&](NodeType& rNode) {
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
 
-        const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            rNode.Set(TO_ERASE, true);
+            it_node->Set(TO_ERASE, true);
         }
-    });
+    }
     r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     auto& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
 
-    block_for_each(r_conditions_array,
-        [&](Condition& rCondition) {
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
 
-        const bool old_entity = rCondition.IsDefined(OLD_ENTITY) ? rCondition.Is(OLD_ENTITY) : false;
+        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            rCondition.Set(TO_ERASE, true);
+            it_cond->Set(TO_ERASE, true);
         }
-    });
+    }
     r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     auto& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
 
-    block_for_each(r_elements_array,
-        [&](Element& rElement) {
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = it_elem_begin + i;
 
-        const bool old_entity = rElement.IsDefined(OLD_ENTITY) ? rElement.Is(OLD_ENTITY) : false;
+        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            rElement.Set(TO_ERASE, true);
+            it_elem->Set(TO_ERASE, true);
         }
-    });
+    }
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 

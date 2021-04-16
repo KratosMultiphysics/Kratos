@@ -740,120 +740,9 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        PointsArrayType const& rThisPoints
-    ) const
+    virtual Pointer Create( PointsArrayType const& ThisPoints ) const
     {
-        // Create geometry
-        auto p_geom = this->Create(0, rThisPoints);
-
-        // Generate Id
-        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
-
-        // Sets second bit to zero.
-        p_geom->SetIdSelfAssigned(id);
-
-        // Sets first bit to zero.
-        p_geom->SetIdNotGeneratedFromString(id);
-
-        // Sets Id
-        p_geom->SetIdWithoutCheck(id);
-
-        return p_geom;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        const IndexType NewGeometryId,
-        PointsArrayType const& rThisPoints
-    ) const
-    {
-        return Pointer( new Geometry( NewGeometryId, rThisPoints, mpGeometryData));
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rNewGeometryName the name of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    Pointer Create(
-        const std::string& rNewGeometryName,
-        PointsArrayType const& rThisPoints
-        ) const
-    {
-        auto p_geom = this->Create(0, rThisPoints);
-        p_geom->SetId(rNewGeometryName);
-        return p_geom;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rGeometry Reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        const GeometryType& rGeometry
-    ) const
-    {
-        // Create geometry
-        auto p_geom = this->Create(0, rGeometry);
-
-        // Generate Id
-        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
-
-        // Sets second bit to zero.
-        p_geom->SetIdSelfAssigned(id);
-
-        // Sets first bit to zero.
-        p_geom->SetIdNotGeneratedFromString(id);
-
-        // Sets Id
-        p_geom->SetIdWithoutCheck(id);
-
-        return p_geom;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rGeometry Reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    virtual Pointer Create(
-        const IndexType NewGeometryId,
-        const GeometryType& rGeometry
-    ) const
-    {
-        auto p_geometry = Pointer( new Geometry( NewGeometryId, rGeometry.Points(), mpGeometryData));
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
-
-    /**
-     * @brief Creates a new geometry pointer
-     * @param rNewGeometryName the name of the new geometry
-     * @param rGeometry Reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    Pointer Create(
-        const std::string& rNewGeometryName,
-        const GeometryType& rGeometry
-        ) const
-    {
-        auto p_geom = this->Create(0, rGeometry);
-        p_geom->SetId(rNewGeometryName);
-        return p_geom;
+        return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
     }
 
     /** This methods will create a duplicate of all its points and
@@ -914,7 +803,7 @@ public:
     }
 
     /// Sets Id of this Geometry
-    void SetId(const IndexType Id)
+    void SetId(IndexType Id)
     {
         // The first bit of the Id is used to detect if Id
         // is int or hash of name. Second bit defines if Id
@@ -930,17 +819,17 @@ public:
     }
 
     /// Sets Id with the use of the name of this geometry
-    void SetId(const std::string& rName)
+    void SetId(std::string Name)
     {
-        mId = GenerateId(rName);
+        mId = GenerateId(Name);
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(const std::string& rName)
+    static inline IndexType GenerateId(std::string Name)
     {
         // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(rName);
+        auto id = string_hash_generator(Name);
 
         // Sets first bit to one.
         SetIdGeneratedFromString(id);
@@ -1620,7 +1509,7 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex, ThisMethod);
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
         const double norm_normal = norm_2(normal_vector);
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
@@ -3572,15 +3461,6 @@ public:
         return rResult;
     }
 
-    virtual int Check() const
-    {
-        KRATOS_TRY
-
-        return 0;
-
-        KRATOS_CATCH("")
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -3923,7 +3803,7 @@ private:
     ///@{
 
     /// Gets the corresponding self assigned id from pointer
-    IndexType GenerateSelfAssignedId() const
+    IndexType GenerateSelfAssignedId()
     {
         // Create id hash from provided name.
         IndexType id = reinterpret_cast<IndexType>(this);
@@ -3996,12 +3876,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /// Sets Id of this Geometry (avoids checks, can be used only as private)
-    void SetIdWithoutCheck(const IndexType Id)
-    {
-        mId = Id;
-    }
 
     static const GeometryData& GeometryDataInstance()
     {

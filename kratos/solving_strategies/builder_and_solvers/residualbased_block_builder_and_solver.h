@@ -33,7 +33,6 @@
 #include "includes/lock_object.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -1419,9 +1418,9 @@ protected:
 
                 // Merging all the temporal indexes
                 for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].lock();
+                    lock_array[i].SetLock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].unlock();
+                    lock_array[i].UnSetLock();
                 }
             }
 
@@ -1526,7 +1525,8 @@ protected:
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
                         double& r_value = mConstantVector[i_global];
-                        AtomicAdd(r_value, constant_value);
+                        #pragma omp atomic
+                        r_value += constant_value;
                     }
                 } else { // Taking into account inactive constraints
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
@@ -1591,10 +1591,10 @@ protected:
             typename ElementsContainerType::iterator i_element = el_begin + iii;
             pScheme->EquationId(*i_element, ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++) {
-                lock_array[ids[i]].lock();
+                lock_array[ids[i]].SetLock();
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-                lock_array[ids[i]].unlock();
+                lock_array[ids[i]].UnSetLock();
             }
         }
 
@@ -1603,37 +1603,37 @@ protected:
             typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
             pScheme->EquationId(*i_condition, ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++) {
-                lock_array[ids[i]].lock();
+                lock_array[ids[i]].SetLock();
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-                lock_array[ids[i]].unlock();
+                lock_array[ids[i]].UnSetLock();
             }
         }
-
+             
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             Element::EquationIdVectorType master_ids(3, 0);
             Element::EquationIdVectorType slave_ids(3, 0);
-
+            
             const int nmasterSlaveConstraints = rModelPart.MasterSlaveConstraints().size();
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
-
+            
             #pragma omp parallel for firstprivate(nmasterSlaveConstraints, slave_ids, master_ids)
             for (int iii = 0; iii<nmasterSlaveConstraints; ++iii) {
                 auto i_const = const_begin + iii;
                 i_const->EquationIdVector(slave_ids, master_ids, CurrentProcessInfo);
-
+                
                 for (std::size_t i = 0; i < slave_ids.size(); i++) {
-                    lock_array[slave_ids[i]].lock();
+                    lock_array[slave_ids[i]].SetLock();
                     auto& row_indices = indices[slave_ids[i]];
                     row_indices.insert(slave_ids[i]);
-                    lock_array[slave_ids[i]].unlock();
+                    lock_array[slave_ids[i]].UnSetLock();
                 }
 
                 for (std::size_t i = 0; i < master_ids.size(); i++) {
-                    lock_array[master_ids[i]].lock();
+                    lock_array[master_ids[i]].SetLock();
                     auto& row_indices = indices[master_ids[i]];
                     row_indices.insert(master_ids[i]);
-                    lock_array[master_ids[i]].unlock();
+                    lock_array[master_ids[i]].UnSetLock();
                 }
             }
         }
@@ -1696,7 +1696,8 @@ protected:
 
             double& r_a = b[i_global];
             const double& v_a = RHS_Contribution(i_local);
-            AtomicAdd(r_a, v_a);
+            #pragma omp atomic
+            r_a += v_a;
 
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
         }
@@ -1735,7 +1736,8 @@ protected:
             double& b_value = b[i_global];
             const double& rhs_value = RHS_Contribution[i_local];
 
-            AtomicAdd(b_value, rhs_value);
+            #pragma omp atomic
+            b_value += rhs_value;
         }
     }
 
@@ -1754,7 +1756,8 @@ protected:
 
         double& r_a = values_vector[last_pos];
         const double& v_a = Alocal(i_local,0);
-        AtomicAdd(r_a,  v_a);
+        #pragma omp atomic
+        r_a +=  v_a;
 
         //now find all of the other entries
         size_t pos = 0;
@@ -1770,7 +1773,8 @@ protected:
 
             double& r = values_vector[pos];
             const double& v = Alocal(i_local,j);
-            AtomicAdd(r,  v);
+            #pragma omp atomic
+            r +=  v;
 
             last_found = id_to_find;
             last_pos = pos;

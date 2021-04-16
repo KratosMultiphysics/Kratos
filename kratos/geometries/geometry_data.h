@@ -97,7 +97,6 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
-        Kratos_Brep,
         Kratos_generic_family
     };
 
@@ -127,10 +126,9 @@ public:
         Kratos_Line3D3,
         Kratos_Point2D,
         Kratos_Point3D,
-        Kratos_Sphere3D1,
-        Kratos_Brep_Surface,
-        Kratos_Brep_Curve
+        Kratos_Sphere3D1
     };
+
 
     ///@}
     ///@name Type Definitions
@@ -279,7 +277,7 @@ public:
     * Constructor which has a precomputed shape function container.
     * @param pThisGeometryDimension pointer to the dimensional data
     * @param ThisGeometryShapeFunctionContainer including the evaluated
-    *        values for the shape functions, it's derivatives and the
+    *        values for the shape functions, it's derivatives and the 
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
@@ -789,3 +787,5 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined
+
+

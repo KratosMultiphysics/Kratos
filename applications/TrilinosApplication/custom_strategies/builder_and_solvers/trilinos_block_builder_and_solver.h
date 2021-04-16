@@ -372,11 +372,13 @@ public:
     {
         KRATOS_TRY
 
-        START_TIMER("Build", 0)
+        if (BaseType::GetEchoLevel() > 0)
+            START_TIMER("Build", 0)
 
         Build(pScheme, rModelPart, rA, rb);
 
-        STOP_TIMER("Build", 0)
+        if (BaseType::GetEchoLevel() > 0)
+            STOP_TIMER("Build", 0)
 
         // apply dirichlet conditions
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
@@ -386,7 +388,8 @@ public:
             << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
 
-        START_TIMER("Solve", 0)
+        if (BaseType::GetEchoLevel() > 0)
+            START_TIMER("System solve time ", 0)
 
         BuiltinTimer solve_timer;
 
@@ -394,7 +397,8 @@ public:
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
 
-        STOP_TIMER("Solve", 0)
+        if (BaseType::GetEchoLevel() > 0)
+            STOP_TIMER("System solve time ", 0)
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
@@ -443,8 +447,9 @@ public:
                   TSystemVectorType& rb) override
     {
         KRATOS_TRY
-        
-        START_TIMER("BuildRHS ", 0)
+        if (BaseType::GetEchoLevel() > 0) {
+            START_TIMER("BuildRHS ", 0)
+        }
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -481,8 +486,9 @@ public:
         // finalizing the assembly
         rb.GlobalAssemble();
 
-        STOP_TIMER("BuildRHS ", 0)
-        
+        if (BaseType::GetEchoLevel() > 0) {
+            STOP_TIMER("BuildRHS ", 0)
+        }
         KRATOS_CATCH("")
     }
 

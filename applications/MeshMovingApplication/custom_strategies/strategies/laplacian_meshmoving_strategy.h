@@ -80,19 +80,17 @@ public:
                               bool ReformDofSetAtEachStep = false,
                               bool ComputeReactions = false,
                               bool CalculateMeshVelocities = true,
-                              int EchoLevel = 0,
-                              const bool ReInitializeModelPartEachStep = false)
+                              int EchoLevel = 0)
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(ModelPart) {
 
     KRATOS_TRY;
 
-    mreform_dof_set_at_each_step = ReformDofSetAtEachStep || ReInitializeModelPartEachStep;
+    mreform_dof_set_at_each_step = ReformDofSetAtEachStep;
     mecho_level = EchoLevel;
     mcompute_reactions = ComputeReactions;
     mcalculate_mesh_velocities = CalculateMeshVelocities;
     mtime_order = TimeOrder;
     bool calculate_norm_dx_flag = false;
-    mreinitialize_model_part_at_each_step = ReInitializeModelPartEachStep;
 
     typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
@@ -163,12 +161,6 @@ public:
 
   double Solve() override {
     KRATOS_TRY;
-
-    if (mreinitialize_model_part_at_each_step) {
-        MoveMeshUtilities::InitializeMeshPartWithElements(
-            *mpmesh_model_part, BaseType::GetModelPart(),
-            mpmesh_model_part->pGetProperties(0), "LaplacianMeshMovingElement");
-    }
 
     ProcessInfo &rCurrentProcessInfo = (mpmesh_model_part)->GetProcessInfo();
 
@@ -283,7 +275,6 @@ private:
   int mtime_order;
   int mecho_level;
   bool mcalculate_mesh_velocities;
-  bool mreinitialize_model_part_at_each_step;
 
   /*@} */
   /**@name Private Operators*/

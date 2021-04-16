@@ -11,11 +11,10 @@ except:
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class ROMDynamicConvDiff(KratosUnittest.TestCase):
 #########################################################################################
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
+    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
     def test_ConvDiff_Dynamic_ROM_2D(self):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -28,8 +27,8 @@ class ROMDynamicConvDiff(KratosUnittest.TestCase):
             ExpectedOutput = np.load('ExpectedOutput.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
             for i in range (np.shape(ObtainedOutput)[1]):
-                l2 = np.sqrt(      (sum(NodalArea*((1 - ObtainedOutput[:,i]/ExpectedOutput[:,i] )**2)))  /     (sum(NodalArea))      )*100
-                self.assertLess(l2, 1e-12) #percent
+                L2 = np.sqrt(      (sum(NodalArea*((1 - ObtainedOutput[:,i]/ExpectedOutput[:,i] )**2)))  /     (sum(NodalArea))      )*100
+                self.assertLess(L2, 1e-12) #percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 

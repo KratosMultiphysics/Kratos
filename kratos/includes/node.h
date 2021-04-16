@@ -301,12 +301,12 @@ public:
 
     inline void SetLock()
     {
-        mNodeLock.lock();
+        mNodeLock.SetLock();
     }
 
     inline void UnSetLock()
     {
-        mNodeLock.unlock();
+        mNodeLock.UnSetLock();
     }
 
     ///@}

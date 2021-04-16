@@ -34,7 +34,6 @@
         "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"  : 1.0
-        },
-        "distance_reinitialization": "none"
+        }
     }
 }

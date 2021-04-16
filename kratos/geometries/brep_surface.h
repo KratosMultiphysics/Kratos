@@ -72,7 +72,7 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
+    static constexpr IndexType SURFACE_INDEX = -1;
 
     ///@}
     ///@name Life Cycle
@@ -148,7 +148,17 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
+    /**
+     * Assignment operator.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
     BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -159,7 +169,17 @@ public:
         return *this;
     }
 
-    /// Assignment operator for geometries with different point type.
+    /**
+     * Assignment operator for geometries with different point type.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -326,12 +346,6 @@ public:
     ///@name Geometrical Operations
     ///@{
 
-    /// Provides the center of the underlying surface
-    Point Center() const override
-    {
-        return mpNurbsSurface->Center();
-    }
-
     /**
     * @brief Calls projection of its nurbs surface.
     *        Projects a certain point on the geometry, or finds
@@ -473,16 +487,6 @@ public:
         mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
-    }
-
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
-    {
-        return GeometryData::Kratos_Brep;
-    }
-
-    GeometryData::KratosGeometryType GetGeometryType() const override
-    {
-        return GeometryData::Kratos_Brep_Surface;
     }
 
     ///@}

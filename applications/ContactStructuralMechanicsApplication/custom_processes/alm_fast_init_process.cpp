@@ -16,7 +16,6 @@
 // Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_processes/alm_fast_init_process.h"
-#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -105,14 +104,16 @@ void ALMFastInit::Execute()
 
                 for (auto& r_node : r_geom) {
                     double& r_nodal_area = r_node.GetValue(NODAL_AREA);
-                    AtomicAdd(r_nodal_area, 1.0);
+                    #pragma omp atomic
+                    r_nodal_area += 1.0;
                 }
 
                 if (p_prop->Has(FRICTION_COEFFICIENT)) {
                     const double friction_coefficient = p_prop->GetValue(FRICTION_COEFFICIENT);
                     for (auto& r_node : r_geom) {
                         double& r_friction_coefficient = r_node.GetValue(FRICTION_COEFFICIENT);
-                        AtomicAdd(r_friction_coefficient, friction_coefficient);
+                        #pragma omp atomic
+                        r_friction_coefficient += friction_coefficient;
                     }
                 } else {
                     KRATOS_WARNING("ALMFastInit") << "WARNING:: Friction coefficient not defined, zero will be considered" << std::endl;

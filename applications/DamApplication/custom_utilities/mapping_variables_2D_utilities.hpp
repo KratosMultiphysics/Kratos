@@ -495,7 +495,7 @@ private:
         ModelPart& rModelPart)
     {
         // Compute X and Y limits of the current geometry
-        unsigned int NumThreads = ParallelUtilities::GetNumThreads();
+        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);
         std::vector<double> Y_max_partition(NumThreads);

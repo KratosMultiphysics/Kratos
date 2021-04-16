@@ -86,7 +86,7 @@ public:
             mrModelPart(rComputingModelPart)
     {
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
+        mRSquaredTreshold = ThisParameters["r_squared_treshold"].GetDouble();
         FindApproximatingGeometry(mpBoundary, rBoundaryModelPart);
     }
 
@@ -157,7 +157,7 @@ private:
 
     ModelPart& mrModelPart;
     GeometryType::Pointer mpBoundary;
-    double mRSquaredThreshold;
+    double mRSquaredTreshold;
     double mRSquared;
 
     ///@}

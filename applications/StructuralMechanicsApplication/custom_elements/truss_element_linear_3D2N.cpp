@@ -98,7 +98,7 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(msLocalSize);
 
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    UpdateInternalForces(internal_forces, rCurrentProcessInfo);
+    UpdateInternalForces(internal_forces);
 
     noalias(rRightHandSideVector) -= internal_forces;
 
@@ -146,8 +146,9 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         }
 
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+        ProcessInfo temp_process_information;
 
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
         Vector temp_strain = ZeroVector(1);
         Vector temp_stress = ZeroVector(1);
         temp_strain[0] = CalculateLinearStrain();
@@ -221,12 +222,13 @@ double TrussElementLinear3D2N::CalculateLinearStrain()
 }
 
 
-void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
+void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces)
 {
     KRATOS_TRY;
 
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
 
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
@@ -253,7 +255,8 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 void TrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateLinearStrain();

@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "linear_solvers_define.h"
 #include "linear_solvers/direct_solver.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 #include "custom_solvers/eigen_direct_solver.h"
@@ -70,7 +69,7 @@ public:
      */
     void InitializeSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        Eigen::Map<Kratos::EigenDynamicMatrix<DataType>> A(rA.data().begin(), rA.size1(), rA.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> A(rA.data().begin(), rA.size1(), rA.size2());
 
         const bool success = m_solver.Compute(A);
 
@@ -86,8 +85,8 @@ public:
      */
     void PerformSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        Eigen::Map<Kratos::EigenDynamicVector<DataType>> x(rX.data().begin(), rX.size());
-        Eigen::Map<Kratos::EigenDynamicVector<DataType>> b(rB.data().begin(), rB.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> x(rX.data().begin(), rX.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> b(rB.data().begin(), rB.size());
 
         const bool success = m_solver.Solve(b, x);
 
@@ -120,8 +119,8 @@ public:
         VectorType dummy;
         InitializeSolutionStep(rA, dummy, dummy);
 
-        Eigen::Map<Kratos::EigenDynamicMatrix<DataType>> X(rX.data().begin(), rX.size1(), rX.size2());
-        Eigen::Map<Kratos::EigenDynamicMatrix<DataType>> B(rB.data().begin(), rB.size1(), rB.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> X(rX.data().begin(), rX.size1(), rX.size2());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>> B(rB.data().begin(), rB.size1(), rB.size2());
 
         const bool success = m_solver.SolveMultiple(B, X);
 

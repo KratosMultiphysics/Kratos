@@ -15,7 +15,6 @@
 
 // Project includes
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
-#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -126,7 +125,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-                AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
+                #pragma omp atomic
+                r_nodal_area += DOperator(i_node, i_node);
             }
         }
 
@@ -146,7 +146,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            AtomicAdd(r_weighted_gap, inner_prod(aux_array, - aux_normal));
+            #pragma omp atomic
+            r_weighted_gap += inner_prod(aux_array, - aux_normal);
         }
 
         // We reset the flag
@@ -274,7 +275,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-                AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
+                #pragma omp atomic
+                r_nodal_area += DOperator(i_node, i_node);
             }
         }
 
@@ -317,7 +319,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            AtomicAdd(r_weighted_gap, inner_prod(aux_array, - normal));
+            #pragma omp atomic
+            r_weighted_gap += inner_prod(aux_array, - normal);
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
@@ -327,7 +330,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             array_1d<double, 3>& r_weighted_slip = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
             for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                AtomicAdd(r_weighted_slip[i_dim], slip_node[i_dim]);
+                #pragma omp atomic
+                r_weighted_slip[i_dim] += slip_node[i_dim];
             }
         }
 
@@ -469,7 +473,8 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-            AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
+            #pragma omp atomic
+            r_nodal_area += DOperator(i_node, i_node);
         }
     }
 
