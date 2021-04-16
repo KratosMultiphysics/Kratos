@@ -284,7 +284,7 @@ class RigidBodySolver(object):
         RHS += np.dot(self.a1k * self.K, self.x[:,1]) + F
 
         # Make zero the corrresponding values of RHS so the not active dofs are not excited
-        for index, dof in self.available_dofs:
+        for index, dof in enumerate(self.available_dofs):
             if dof not in self.active_dofs:
                 RHS[index] = 0
 
