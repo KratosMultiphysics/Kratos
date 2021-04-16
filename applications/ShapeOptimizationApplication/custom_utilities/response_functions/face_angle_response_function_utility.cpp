@@ -29,7 +29,7 @@ FaceAngleResponseFunctionUtility::FaceAngleResponseFunctionUtility(ModelPart& rM
 
 	mMainDirection = ResponseSettings["main_direction"].GetVector();
 	const double direction_norm = norm_2(mMainDirection);
-	KRATOS_ERROR_IF(direction_norm < epsilon) << "FaceAngleResponseFunctionUtility: 'main_direction' vector norm is 0!" << std::endl;
+	KRATOS_ERROR_IF(direction_norm < std::numeric_limits<double>::epsilon()) << "FaceAngleResponseFunctionUtility: 'main_direction' vector norm is 0!" << std::endl;
 	mMainDirection /= direction_norm;
 
 	const double min_angle = ResponseSettings["min_angle"].GetDouble();
@@ -116,11 +116,10 @@ void FaceAngleResponseFunctionUtility::CalculateGradient()
 	KRATOS_CATCH("");
 }
 
-double FaceAngleResponseFunctionUtility::CalculateConditionValue(Condition& rFace)
+double FaceAngleResponseFunctionUtility::CalculateConditionValue(const Condition& rFace)
 {
 	// face normal
-	array_3d local_coords;
-	local_coords.clear();
+	const array_3d local_coords = ZeroVector(3);
 	array_3d face_normal = rFace.GetGeometry().Normal(local_coords);
 	face_normal /= norm_2(face_normal);
 

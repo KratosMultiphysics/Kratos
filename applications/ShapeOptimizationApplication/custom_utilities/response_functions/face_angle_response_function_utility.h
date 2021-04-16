@@ -126,7 +126,7 @@ private:
 	///@name Operations
 	///@{
 
-	double CalculateConditionValue(Condition& rFace);
+	double CalculateConditionValue(const Condition& rFace);
 
 	///@}
 	///@name Static Member Variables
