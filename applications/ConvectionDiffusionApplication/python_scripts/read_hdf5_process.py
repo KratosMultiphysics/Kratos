@@ -8,9 +8,6 @@ import KratosMultiphysics.ConvectionDiffusionApplication as CD
 import KratosMultiphysics.ConvectionDiffusionApplication.CDProjectionModule as CDProjectionModule
 import KratosMultiphysics.ConvectionDiffusionApplication.WriteMdpaToHdf5 as WriteMdpaToHdf5
 
-
-
-
 from KratosMultiphysics import *
 import sys
 import os
