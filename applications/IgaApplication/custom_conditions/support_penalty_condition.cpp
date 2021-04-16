@@ -38,7 +38,7 @@ namespace Kratos
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
-        // initial determinant of jacobian 
+        // Initial determinant of jacobian
         Vector determinant_jacobian_vector_initial(integration_points.size());
         DeterminantOfJacobianInitial(r_geometry, determinant_jacobian_vector_initial);
 
@@ -118,8 +118,9 @@ namespace Kratos
 
             array_1d<double, 3> a_1 = column(J, 0);
             array_1d<double, 3> a_2 = column(J, 1);
+            array_1d<double, 3> a_3 = column(J, 2);
 
-            rDeterminantOfJacobian[point_number] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
+            rDeterminantOfJacobian[point_number] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1] + a_3 * local_tangent[2]);
         }
     }
 
