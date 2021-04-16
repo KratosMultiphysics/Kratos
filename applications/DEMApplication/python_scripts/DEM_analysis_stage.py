@@ -62,7 +62,7 @@ class DEMAnalysisStage(AnalysisStage):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self, model, DEM_parameters):
+    def __init__(self, model, DEM_parameters, DEM_material_parameters):
         self.model = model
         self.main_path = self.GetMainPath()
         self.mdpas_folder_path = self.main_path
@@ -72,6 +72,8 @@ class DEMAnalysisStage(AnalysisStage):
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
         self.FixParametersInconsistencies()
+
+        self.DEM_material_parameters = DEM_material_parameters
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         if not "WriteMdpaFromResults" in self.DEM_parameters.keys():
@@ -311,10 +313,8 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
-    def SetMaterials(self):
-        with open(os.path.join(self.GetMainPath(),"MaterialsDEM.json"),'r') as materials_file:
-            materials_parameters = KratosMultiphysics.Parameters(materials_file.read())
-        
+    def SetMaterials(self):        
+        materials_parameters = self.DEM_material_parameters
         list_of_materials = materials_parameters["materials"]
         list_of_material_relations = materials_parameters["material_relations"]
         material_assignation_table = materials_parameters["material_assignation_table"]
@@ -354,19 +354,21 @@ class DEMAnalysisStage(AnalysisStage):
                     subprops[DYNAMIC_FRICTION] = contact_properties["DYNAMIC_FRICTION"].GetDouble()
                     subprops[FRICTION_DECAY] = contact_properties["FRICTION_DECAY"].GetDouble()
                     subprops[ROLLING_FRICTION] = contact_properties["ROLLING_FRICTION"].GetDouble()
-                    subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["discontinuum_contact_law_parameters"]["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
+                    subprops[ROLLING_FRICTION_WITH_WALLS] = contact_properties["ROLLING_FRICTION_WITH_WALLS"].GetDouble()
+                    if contact_properties.Has("SEVERITY_OF_WEAR"):
+                        subprops[SEVERITY_OF_WEAR] = contact_properties["SEVERITY_OF_WEAR"].GetDouble()
+                    if contact_properties.Has("IMPACT_WEAR_SEVERITY"):
+                        subprops[IMPACT_WEAR_SEVERITY] = contact_properties["IMPACT_WEAR_SEVERITY"].GetDouble()
+                    if contact_properties.Has("BRINELL_HARDNESS"):
+                        subprops[BRINELL_HARDNESS] = contact_properties["BRINELL_HARDNESS"].GetDouble()     
+
+                    subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
                     DiscontinuumConstitutiveLaw = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                    DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(subprops, True)
-                    
-                    if contact_properties["continuum_contact_law_parameters"].Has("DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"):
+                    DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(subprops, True)                     
+
+                    if contact_properties.Has("continuum_contact_law_parameters"):
                         subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()                    
-                    if contact_properties["continuum_contact_law_parameters"].Has("SEVERITY_OF_WEAR"):
-                        subprops[SEVERITY_OF_WEAR] = contact_properties["continuum_contact_law_parameters"]["SEVERITY_OF_WEAR"].GetDouble()
-                    if contact_properties["continuum_contact_law_parameters"].Has("IMPACT_WEAR_SEVERITY"):
-                        subprops[IMPACT_WEAR_SEVERITY] = contact_properties["continuum_contact_law_parameters"]["IMPACT_WEAR_SEVERITY"].GetDouble()
-                    if contact_properties["continuum_contact_law_parameters"].Has("BRINELL_HARDNESS"):
-                        subprops[BRINELL_HARDNESS] = contact_properties["continuum_contact_law_parameters"]["BRINELL_HARDNESS"].GetDouble()                
-                    
+                                                  
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
         
         for pair in material_assignation_table:

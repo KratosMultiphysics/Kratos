@@ -90,8 +90,9 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
     def test_ForcesAndMoments(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "forces_and_moments_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        materials_file_name = os.path.join(path, "MaterialsDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, materials_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("forces_and_moments_tests_files", "TimesPartialRelease")

@@ -27,9 +27,15 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+    
+    '''def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        for node in self.spheres_model_part.Nodes:
+            final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+            print(final_vel)'''
 
     def Finalize(self):
-        tolerance = 1.0+1.0e-4
+        tolerance = 0.1
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             Logger.PrintInfo("initial velocity:", self.initial_normal_vel)
@@ -62,7 +68,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
-        coordinates[1] = 0.00255
+        coordinates[1] = 0.0025002
         coordinates[2] = 0.0
         radius = 0.0025
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
@@ -83,9 +89,9 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
-        properties[DEM.PARTICLE_COHESION] = 0.0
-        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 1.0
-        self.coeff = 1.0985200123566359      # reference value at dt=1.0e-6
+        properties[DEM.PARTICLE_COHESION] = 0.0        
+        self.coeff = 1.0
+        properties[DEM.COEFFICIENT_OF_RESTITUTION] = self.coeff
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
         properties[DEM.ROLLING_FRICTION] = 0.0
         properties[DEM.DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
@@ -113,8 +119,8 @@ class DEM2D_RestitutionTestSolution_2(DEM2D_RestitutionTestSolution):
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
         properties[DEM.PARTICLE_COHESION] = 0.0
-        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
-        self.coeff = 0.5455811757241611      # reference value at dt=1.0e-6
+        self.coeff = 0.5
+        properties[DEM.COEFFICIENT_OF_RESTITUTION] = self.coeff
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
         properties[DEM.ROLLING_FRICTION] = 0.0
         properties[DEM.DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
@@ -140,15 +146,17 @@ class TestDEM2DRestitution(KratosUnittest.TestCase):
     def test_DEM2D_restitution_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        materials_file_name = os.path.join(path, "MaterialsDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution, model, parameters_file_name, materials_file_name, 1)
 
-    '''@classmethod
+    @classmethod
     def test_DEM2D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        materials_file_name = os.path.join(path, "MaterialsDEM2.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution_2, model, parameters_file_name, 1)'''
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution_2, model, parameters_file_name, materials_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_restitution_tests_files", "TimesPartialRelease")

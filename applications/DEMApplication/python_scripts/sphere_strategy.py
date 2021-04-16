@@ -275,7 +275,7 @@ class ExplicitStrategy():
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
             for subproperties in properties.GetSubProperties():
-                self.ModifyProperties(subproperties)
+                self.ModifySubProperties(subproperties)
 
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
@@ -298,7 +298,7 @@ class ExplicitStrategy():
             self.ModifyProperties(properties)
 
         for properties in self.fem_model_part.Properties:
-            self.ModifyProperties(properties, 1)
+            self.ModifyProperties(properties)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -637,45 +637,7 @@ class ExplicitStrategy():
     def ModifyProperties(self, properties, param = 0):
 
         if param:
-            return
-            
-        if properties.Has(COEFFICIENT_OF_RESTITUTION):
-            DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-            coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
-
-            type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
-
-            write_gamma = False
-
-            write_AlphaFunction = False
-
-            if (type_of_law == 'Linear'):
-                gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
-                write_gamma = True
-
-            elif (type_of_law == 'Hertz'):
-                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-                write_gamma = True
-
-            elif (type_of_law == 'Conical_damage'):
-                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-                write_gamma = True
-                conical_damage_alpha = properties[CONICAL_DAMAGE_ALPHA]
-                AlphaFunction = self.SinAlphaConicalDamage(conical_damage_alpha)
-                write_AlphaFunction = True
-                if not properties.Has(LEVEL_OF_FOULING):
-                    properties[LEVEL_OF_FOULING] = 0.0
-
-            else:
-                pass
-
-            if write_gamma == True:
-                properties[DAMPING_GAMMA] = gamma
-
-            if write_AlphaFunction == True:
-                properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
-
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+            return                    
 
         if properties.Has(CLUSTER_FILE_NAME):
             cluster_file_name = properties[CLUSTER_FILE_NAME]
@@ -684,13 +646,63 @@ class ExplicitStrategy():
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             self.Procedures.KratosPrintInfo(properties)
             if not properties.Has(BREAKABLE_CLUSTER):
-                properties.SetValue(BREAKABLE_CLUSTER, False)
-        
+                properties.SetValue(BREAKABLE_CLUSTER, False)                
 
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+
+        translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
+
+        translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
+
+        if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
+            rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
+        else:
+            rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
+
+        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
+        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)    
+
+    def ModifySubProperties(self, properties, param = 0):        
+            
+        DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
+        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+
+        type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
+
+        write_gamma = False
+
+        write_AlphaFunction = False
+
+        if (type_of_law == 'Linear'):
+            gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
+            write_gamma = True
+
+        elif (type_of_law == 'Hertz'):
+            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+            write_gamma = True
+
+        elif (type_of_law == 'Conical_damage'):
+            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+            write_gamma = True
+            conical_damage_alpha = properties[CONICAL_DAMAGE_ALPHA]
+            AlphaFunction = self.SinAlphaConicalDamage(conical_damage_alpha)
+            write_AlphaFunction = True
+            if not properties.Has(LEVEL_OF_FOULING):
+                properties[LEVEL_OF_FOULING] = 0.0
+
+        else:
+            pass
+
+        if write_gamma == True:            
+            properties[DAMPING_GAMMA] = gamma
+
+        if write_AlphaFunction == True:
+            properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
+
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)                  
 
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
@@ -706,19 +718,7 @@ class ExplicitStrategy():
             properties[FRICTION_DECAY] = 500.0
 
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
-            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
-
-        translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
-
-        translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
-
-        if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
-            rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
-        else:
-            rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
-
-        rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
-        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)        
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]       
 
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass

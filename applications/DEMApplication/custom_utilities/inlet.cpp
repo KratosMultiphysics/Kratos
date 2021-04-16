@@ -569,7 +569,7 @@ namespace Kratos {
 
 
                 PropertiesProxy* p_fast_properties = NULL;
-                int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();
+                int general_properties_id = r_modelpart.GetProperties(mp[PROPERTIES_ID]).Id();
                 for (unsigned int i = 0; i < mFastProperties.size(); i++) {
                     int fast_properties_id = mFastProperties[i].GetId();
                     if (fast_properties_id == general_properties_id) {
