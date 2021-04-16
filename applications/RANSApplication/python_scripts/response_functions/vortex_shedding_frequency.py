@@ -58,15 +58,15 @@ class VortexSheddingFrequency(ResponseFunctionInterface):
             self.total_number_of_time_steps = adjoint_response_function_settings["total_number_of_time_steps"].GetInt()
             self.number_of_windowing_steps = adjoint_response_function_settings["window_size"].GetInt()
 
-            current_parameters["frequency_bin_index"].SetInt(frequency_bin_index)
+            current_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["frequency_bin_index"].SetInt(frequency_bin_index)
 
             # add the real component adjoint parameters
-            current_parameters["is_real_component"].SetBool(True)
+            current_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["is_real_component"].SetBool(True)
             self.adjoint_project_parameters_list.append(current_parameters)
 
             # add the imaginary component adjoint parameters
             current_parameters = current_parameters.Clone()
-            current_parameters["is_real_component"].SetBool(False)
+            current_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["is_real_component"].SetBool(False)
             self.adjoint_project_parameters_list.append(current_parameters)
 
         self.frequency_real_components = []
