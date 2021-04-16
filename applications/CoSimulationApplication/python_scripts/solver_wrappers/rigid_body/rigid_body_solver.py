@@ -141,7 +141,7 @@ class RigidBodySolver(object):
         self.a2a = -1.0 / (self.beta * self.delta_t)
         self.a3a = 1.0 - 1.0 / (2.0 * self.beta)
 
-        # In a linear case, the LEft-Hand_Side can be calculated now
+        # In a linear case, the Left-Hand Side can be calculated now
         self.LHS = self.a1h * self.M + self.a2h * self.C + self.a3h * self.K
         
     def Initialize(self):
@@ -184,7 +184,7 @@ class RigidBodySolver(object):
         data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
             self.output_file_name = {}
-            for dof in self.active_dofs:
+            for dof in self.available_dofs: #TODO: create only files for active dofs
                 self.output_file_name[dof] = os.path.join(self.output_file_path, dof + '.dat')
                 if os.path.isfile(self.output_file_name[dof]):
                     os.remove(self.output_file_name[dof])
@@ -207,7 +207,8 @@ class RigidBodySolver(object):
         if data_comm.Rank()==0:
             if self.write_output_file:
                 reaction = self.CalculateReaction()
-                for index, dof in enumerate(self.active_dofs):
+                for index, dof in enumerate(self.available_dofs):
+                    # TODO: Ad a filter here so only active dofs are written
                     with open(self.output_file_name[dof], "a") as results_rigid_body:
                         results_rigid_body.write(str(np.around(self.time, 3)) + " " +
                                                 str(self.x[index,0]) + " " +
@@ -281,6 +282,11 @@ class RigidBodySolver(object):
         RHS += np.dot(self.C, (self.a1b * self.x[:,1] +
                             self.a2b * self.v[:,1] + self.a3b * self.a[:,1]))
         RHS += np.dot(self.a1k * self.K, self.x[:,1]) + F
+
+        # Make zero the corrresponding values of RHS so the not active dofs are not excited
+        for index, dof in self.available_dofs:
+            if dof not in self.active_dofs:
+                RHS[index] = 0
 
         self.x[:,0] = np.linalg.solve(self.LHS, RHS)
         self.v[:,0] = self.UpdateVelocity(self.x[:,0])
