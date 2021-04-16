@@ -25,9 +25,7 @@ namespace Python {
 
 PYBIND11_MODULE(KratosMappingMPIExtension,m)
 {
-    auto py_mapper_factory = pybind11::class_<MapperFactory, MapperFactory::Pointer>(m, "MapperFactory");
-
-    AddMapperToPython<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>(m, py_mapper_factory);
+    AddMapperToPython<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>(m);
 }
 
 }
