@@ -73,6 +73,13 @@ class VortexSheddingFrequency(ResponseFunctionInterface):
         self.frequency_imag_components = []
         self.frequency_amplitudes = []
 
+        # check for model part name settings
+        primal_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
+        with open(primal_project_parameters_file, "r") as file_input:
+            primal_settings = Kratos.Parameters(file_input.read())
+
+        self.mdpa_name = primal_settings["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+
     def UpdateDesign(self, updated_model_part, variable):
         self.updated_model_part = updated_model_part
 
