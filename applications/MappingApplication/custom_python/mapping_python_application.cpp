@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -25,13 +25,6 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/mapper_define.h"
 
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "custom_utilities/mpi/mapper_mpi_define.h"
-#endif
-
-
-
-
 namespace Kratos {
 namespace Python {
 
@@ -46,13 +39,8 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         .def(py::init<>())
         ;
 
-
     auto py_mapper_factory = py::class_<MapperFactory, MapperFactory::Pointer>(m, "MapperFactory");
-
     AddMapperToPython<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>(m, py_mapper_factory);
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    AddMapperToPython<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>(m, py_mapper_factory);
-#endif
 
     AddCustomUtilitiesToPython(m);
 }

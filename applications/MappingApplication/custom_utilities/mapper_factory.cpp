@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -18,13 +18,8 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mapper_define.h"
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "custom_utilities/mpi/mapper_mpi_define.h"
-#endif
-
 #include "mapper_factory.h"
+#include "custom_utilities/mapper_define.h"
 
 
 namespace Kratos
@@ -33,12 +28,6 @@ namespace Kratos
 template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
     MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::SparseSpaceType,
     MapperDefinitions::DenseSpaceType>();
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>();
-#endif
 
 template<>
 std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
@@ -49,18 +38,6 @@ std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceTy
 
     return registered_mappers;
 }
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template<>
-std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>()
-{
-    static std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
-
-    return registered_mappers;
-}
-#endif
 
 ModelPart& MapperFactory::ReadInterfaceModelPart(ModelPart& rModelPart,
                                                     Parameters InterfaceParameters,

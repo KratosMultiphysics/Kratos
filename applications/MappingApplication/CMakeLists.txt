@@ -22,33 +22,11 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
-## If we have mpi support, use it
-if(${USE_MPI} MATCHES ON )
-    include_directories( ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication )
-    find_package(TRILINOS REQUIRED)
-    include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR}) # Included as "SYSTEM" to suppress warnings from it
-
-    file( GLOB KRATOS_MAPPING_APPLICATION_CORE ${KRATOS_MAPPING_APPLICATION_CORE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mpi/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
-    )
-
-    set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} KratosMPICore)
-    set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${TRILINOS_LIBRARIES})
-
-    ## define test sources (cpp mpi tests)
-    if(${KRATOS_BUILD_TESTING} MATCHES ON)
-         file(GLOB KRATOS_MAPPING_APPLICATION_TESTING_SOURCES ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/mpi/*.cpp)
-    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-endif(${USE_MPI} MATCHES ON )
-
-
 ## Mapping python interface sources
 file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE} ${KRATOS_MAPPING_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMappingCore PUBLIC KratosCore ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS})
+target_link_libraries(KratosMappingCore PUBLIC KratosCore )
 set_target_properties(KratosMappingCore PROPERTIES COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -103,3 +81,9 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMappingCore DESTINATION libs )
 install(TARGETS KratosMappingApplication DESTINATION libs )
+
+## If MPI is used, then enable the MPIExtension
+if(${USE_MPI})
+  message("Enabling mpi extension for MappingApplication")
+  add_subdirectory(mpi_extension)
+endif(${USE_MPI})
