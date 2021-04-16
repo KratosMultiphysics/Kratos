@@ -21,6 +21,7 @@
 #include "includes/global_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -1002,13 +1003,9 @@ void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
     }
     rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-    bool use_consistent_mass_matrix = false;
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
-    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
-        use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
-    }
-
-    if (!use_consistent_mass_matrix) {
+    if (compute_lumped_mass_matrix) {
         CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
     } else {
         CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
@@ -1214,15 +1211,15 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-
     KRATOS_TRY
-    // element with two nodes can only represent results at one node
-    const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+
+    // Element with two nodes can only represent results at one node
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::GI_GAUSS_3);
+    const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }
-
 
     // rOutput[GP 1,2,3][x,y,z]
 
@@ -1252,9 +1249,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         rOutput[0][2] = -1.0 * nodal_forces_local_qe[2] * 0.75 + nodal_forces_local_qe[8] * 0.25;
         rOutput[1][2] = -1.0 * nodal_forces_local_qe[2] * 0.50 + nodal_forces_local_qe[8] * 0.50;
         rOutput[2][2] = -1.0 * nodal_forces_local_qe[2] * 0.25 + nodal_forces_local_qe[8] * 0.75;
-    }
-
-    else if (rVariable == LOCAL_AXIS_1) {
+    } else if (rVariable == LOCAL_AXIS_1) {
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix = GetTransformationMatrixGlobal();
         for (SizeType i =0; i<msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 0)[i];
@@ -1269,8 +1264,13 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         for (SizeType i =0; i<msDimension; ++i) {
             rOutput[1][i] = column(rotation_matrix, 2)[i];
         }
+    } else if (rVariable == INTEGRATION_COORDINATES) {
+        Point global_point;
+        for (IndexType point_number = 0; point_number < write_points_number; ++point_number) {
+            r_geometry.GlobalCoordinates(global_point, r_integration_points[point_number]);
+            rOutput[point_number] = global_point.Coordinates();
+        }
     }
-
 
     KRATOS_CATCH("")
 }
@@ -1554,14 +1554,12 @@ void CrBeamElement3D2N::AddExplicitContribution(
 
     BoundedVector<double, msElementSize> damping_residual_contribution = ZeroVector(msElementSize);
     // Calculate damping contribution to residual -->
-    if ((GetProperties().Has(RAYLEIGH_ALPHA) ||
-            GetProperties().Has(RAYLEIGH_BETA)) &&
+    if (StructuralMechanicsElementUtilities::HasRayleighDamping(GetProperties(), rCurrentProcessInfo) &&
             (rDestinationVariable != NODAL_INERTIA)) {
         Vector current_nodal_velocities = ZeroVector(msElementSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
     }
@@ -1575,8 +1573,7 @@ void CrBeamElement3D2N::AddExplicitContribution(
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
             for (IndexType j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     }
@@ -1590,16 +1587,14 @@ void CrBeamElement3D2N::AddExplicitContribution(
             array_1d<double, 3>& r_moment_residual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
             for (IndexType j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_moment_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_moment_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     }
 
     if (rDestinationVariable == NODAL_INERTIA) {
         Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_info; // Dummy
-        CalculateMassMatrix(element_mass_matrix, temp_info);
+        CalculateMassMatrix(element_mass_matrix, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {
             double aux_nodal_mass = 0.0;
@@ -1614,13 +1609,11 @@ void CrBeamElement3D2N::AddExplicitContribution(
                 }
             }
 
-            #pragma omp atomic
-            GetGeometry()[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+            AtomicAdd(GetGeometry()[i].GetValue(NODAL_MASS), aux_nodal_mass);
 
             array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
             for (IndexType k = 0; k < msDimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += std::abs(aux_nodal_inertia[k]);
+                AtomicAdd(r_nodal_inertia[k], std::abs(aux_nodal_inertia[k]) );
             }
         }
     }

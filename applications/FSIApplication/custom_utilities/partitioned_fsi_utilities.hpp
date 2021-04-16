@@ -31,6 +31,7 @@
 #include "includes/ublas_interface.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/math_utils.h"
+#include "utilities/normal_calculation_utils.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -102,28 +103,38 @@ public:
     /*@{ */
 
     /**
-     * @brief Create a coupling element based skin object
-     * This method creates an element based skin model part by
+     * @brief Create a coupling condition-based skin object
+     * This method creates an condition-based skin model part by
      * copying the conditions of a given skin model part
      * @param rOriginInterfaceModelPart Origin skin model part to copy the conditions from
-     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin elements
+     * @param rDestinationInterfaceModelPart Empty destination modelpart to create the skin nodes and conditions
      */
-    void CreateCouplingElementBasedSkin(
+    void CreateCouplingSkin(
         const ModelPart &rOriginInterfaceModelPart,
         ModelPart &rDestinationInterfaceModelPart)
     {
         // Check the origin interface model part
-        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
+        const auto& r_communicator = rOriginInterfaceModelPart.GetCommunicator();
+        KRATOS_ERROR_IF(r_communicator.GlobalNumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(r_communicator.GlobalNumberOfConditions() == 0) << "Origin model part has no conditions." << std::endl;
 
         // Check the destination interface model part
         KRATOS_ERROR_IF(rDestinationInterfaceModelPart.IsSubModelPart()) << "Destination model part must be a root model part." << std::endl;
         KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfNodes() != 0) << "Destination interface model part should be empty. Current number of nodes: " << rDestinationInterfaceModelPart.NumberOfNodes() << std::endl;
         KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfElements() != 0) << "Destination interface model part should be empty. Current number of elements: " << rDestinationInterfaceModelPart.NumberOfElements() << std::endl;
+        KRATOS_ERROR_IF(rDestinationInterfaceModelPart.NumberOfConditions() != 0) << "Destination interface model part should be empty. Current number of conditions: " << rDestinationInterfaceModelPart.NumberOfConditions() << std::endl;
 
         // Emulate the origin interface nodes in the coupling skin
-        for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
-            rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+        // Note that if the origin model part is MPI parallel we copy the PARTITION_INDEX to the coupling skin mesh
+        if (rOriginInterfaceModelPart.IsDistributed()) {
+            for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
+                auto p_new_node = rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+                p_new_node->FastGetSolutionStepValue(PARTITION_INDEX) = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
+            }
+        } else {
+            for (const auto &r_node : rOriginInterfaceModelPart.Nodes()) {
+                rDestinationInterfaceModelPart.CreateNewNode(r_node.Id(), r_node);
+            }
         }
 
         // Create the new element based skin
@@ -134,34 +145,8 @@ public:
                 nodes_vect.push_back(r_node.Id());
             }
 
-            // Create the new skin element
-            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
-        }
-    }
-
-    /**
-     * @brief Creates an element based skin
-     * For a modelpart defining the skin using conditions, this method
-     * copies such skin to the elements of an auxiliar model part. Note
-     * that the same geometry is used so the nodes of the auxiliar geometry
-     * are actually the ones in the origin modelpart.
-     * @param rOriginInterfaceModelPart
-     * @param rDestinationInterfaceModelPart
-     */
-    void CopySkinToElements(
-        const ModelPart& rOriginInterfaceModelPart,
-        ModelPart& rDestinationInterfaceModelPart)
-    {
-        // Add the origin interface nodes to the destination interface model part
-        rDestinationInterfaceModelPart.AddNodes(
-            rOriginInterfaceModelPart.NodesBegin(),
-            rOriginInterfaceModelPart.NodesEnd());
-
-        // Create new elements emulating the condition based interface
-        for (std::size_t i_cond = 0; i_cond < rOriginInterfaceModelPart.NumberOfConditions(); ++i_cond) {
-            const auto &it_cond = rOriginInterfaceModelPart.ConditionsBegin() + i_cond;
-            auto p_elem = Kratos::make_intrusive<Element>(it_cond->Id(), it_cond->pGetGeometry());
-            rDestinationInterfaceModelPart.AddElement(p_elem);
+            // Create the new condition element
+            rDestinationInterfaceModelPart.CreateNewCondition(this->GetSkinConditionName(), r_cond.Id(), nodes_vect, r_cond.pGetProperties());
         }
     }
 
@@ -622,13 +607,71 @@ public:
             // If the structure skin is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
             if (found) {
                 const auto &r_geom = p_elem->GetGeometry();
-                double &r_pres = it_node->FastGetSolutionStepValue(PRESSURE);
+                double &r_pres = it_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
                 r_pres = 0.0;
                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
                     r_pres += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
                 }
             }
         }
+    }
+
+    void CalculateTractionFromPressureValues(
+        ModelPart& rModelPart,
+        const Variable<double>& rPressureVariable,
+        const Variable<array_1d<double,3>>& rTractionVariable,
+        const bool SwapTractionSign)
+    {
+        // Update the nodal normals
+        NormalCalculationUtils().CalculateOnSimplex(rModelPart);
+
+        // Set the nodal traction modulus calculation function
+        std::function<double(const double, const array_1d<double,3>)> traction_modulus_func;
+        if (SwapTractionSign)  {
+            traction_modulus_func = [](const double PosPressure, const array_1d<double,3>& rNormal){return - PosPressure / norm_2(rNormal);};
+        } else {
+            traction_modulus_func = [](const double PosPressure, const array_1d<double,3>& rNormal){return PosPressure / norm_2(rNormal);};
+        }
+
+        // Calculate the tractions from the pressure values
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+            const double p_pos = rNode.FastGetSolutionStepValue(rPressureVariable);
+            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, r_normal) * r_normal;
+        });
+
+        // Synchronize values among processes
+        rModelPart.GetCommunicator().SynchronizeVariable(rTractionVariable);
+    }
+
+    void CalculateTractionFromPressureValues(
+        ModelPart& rModelPart,
+        const Variable<double>& rPositivePressureVariable,
+        const Variable<double>& rNegativePressureVariable,
+        const Variable<array_1d<double,3>>& rTractionVariable,
+        const bool SwapTractionSign)
+    {
+        // Update the nodal normals
+        NormalCalculationUtils().CalculateOnSimplex(rModelPart);
+
+        // Set the nodal traction modulus calculation function
+        std::function<double(const double, const double, const array_1d<double,3>)> traction_modulus_func;
+        if (SwapTractionSign)  {
+            traction_modulus_func = [](const double PosPressure, const double NegPressure, const array_1d<double,3>& rNormal){return (NegPressure - PosPressure) / norm_2(rNormal);};
+        } else {
+            traction_modulus_func = [](const double PosPressure, const double NegPressure, const array_1d<double,3>& rNormal){return (PosPressure - NegPressure) / norm_2(rNormal);};
+        }
+
+        // Calculate the tractions from the pressure values
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+            const double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
+            const double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);
+            noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, p_neg, r_normal) * r_normal;
+        });
+
+        // Synchronize values among processes
+        rModelPart.GetCommunicator().SynchronizeVariable(rTractionVariable);
     }
 
     /*@} */
@@ -664,6 +707,20 @@ protected:
         }
 
         return element_name;
+    }
+
+    /**
+     * @brief Get the skin condition name
+     * Auxiliary method that returns the auxiliary embedded skin condition type name
+     * @return std::string Condition type registering name
+     */
+    std::string GetSkinConditionName()
+    {
+        if (TDim == 2) {
+            return "LineCondition2D2N";
+        } else {
+            return "SurfaceCondition3D3N";
+        }
     }
 
     /**
@@ -754,7 +811,7 @@ protected:
             auto &r_error_storage = it_node->FastGetSolutionStepValue(rErrorStorageVariable);
             const auto &value_origin = it_node->FastGetSolutionStepValue(rOriginalVariable);
             const auto &value_modified = it_node->FastGetSolutionStepValue(rModifiedVariable);
-            r_error_storage = value_origin - value_modified;
+            r_error_storage = value_modified - value_origin;
         }
     }
 

@@ -289,8 +289,9 @@ public:
 		KRATOS_CATCH("");
 	}
 
-	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override
+	void CalculateLeftHandSide(
+		MatrixType& rLeftHandSideMatrix,
+		const ProcessInfo& rCurrentProcessInfo) override
 	{
 		VectorType RHS;
 		this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);

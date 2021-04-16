@@ -369,18 +369,13 @@ private:
                 KRATOS_THROW_ERROR(std::runtime_error, " Trying to fix a dofs which was not allocated. Variable is --> ",rVar.Name() );
             }
 
-             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
+            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node<3>& rNode){
                 if(to_be_fixed)
                 {
-                    it->Fix(rVar);
+                    rNode.Fix(rVar);
                 }
-
-                it->FastGetSolutionStepValue(rVar) = value;
-            }
+                rNode.FastGetSolutionStepValue(rVar) = value;
+            });
         }
     }
 

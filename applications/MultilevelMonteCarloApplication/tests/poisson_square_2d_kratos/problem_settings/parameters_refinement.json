@@ -1,7 +1,7 @@
 {
 	"hessian_metric": {
 		"hessian_strategy_parameters" :{
-			"metric_variable"                 : "TEMPERATURE",
+			"metric_variable"                 : ["TEMPERATURE"],
 			"estimate_interpolation_error"    : false,
 			"interpolation_error"             : 0.01,
 			"coefficient_interpolation_error" : 2.0

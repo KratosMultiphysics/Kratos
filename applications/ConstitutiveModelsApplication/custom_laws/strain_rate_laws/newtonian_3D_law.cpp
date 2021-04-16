@@ -235,8 +235,6 @@ void NewtonianFluid3DLaw::CalculateStress(Vector& rStressVector,
   {
     KRATOS_TRY
 
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-
     if( rProperties[DYNAMIC_VISCOSITY] <= 0.00 )
       KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for NewtonianFluid3DLaw: " << rProperties[DYNAMIC_VISCOSITY] << std::endl;
 

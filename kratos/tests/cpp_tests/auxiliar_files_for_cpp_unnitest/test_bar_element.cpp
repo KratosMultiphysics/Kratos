@@ -340,6 +340,40 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
+    void TestBarElement::CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const
+    {
+        KRATOS_TRY;
+
+        unsigned int system_size = 4;
+        // Initialize the lumped mass vector
+        if (rLumpedMassVector.size() != system_size) {
+            rLumpedMassVector.resize(system_size, false);
+        }
+
+        const double rho = this->GetProperties()[DENSITY];
+        const double A = this->GetProperties()[NODAL_AREA];
+        const double L = this->GetGeometry().Length();
+        const double aux_val = A * rho * L / 6.0;
+
+        const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+        const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+        const double l = dx / L;
+        const double m = dy / L;
+
+        // Fill the lumped mass vector
+        rLumpedMassVector(0) = 3.0 * aux_val * l * l + 3.0 * aux_val * l * m;
+        rLumpedMassVector(1) = 3.0 * aux_val * l * m + 3.0 * aux_val * m * m;
+        rLumpedMassVector(2) = 3.0 * aux_val * l * l + 3.0 * aux_val * l * m;
+        rLumpedMassVector(3) = 3.0 * aux_val * l * m + 3.0 * aux_val * m * m;
+
+        KRATOS_CATCH( "" );
+    }
+
+    //************************************************************************************//
+    //************************************************************************************//
+
     int TestBarElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY

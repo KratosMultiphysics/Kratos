@@ -21,7 +21,7 @@
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
 #include "input_output/logger.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -118,10 +118,10 @@ std::string Kernel::Version() {
 
 void Kernel::PrintParallelismSupportInfo() const
 {
-    #ifdef _OPENMP
-    constexpr bool openmp_support = true;
+    #ifdef KRATOS_SMP_NONE
+    constexpr bool threading_support = false;
     #else
-    constexpr bool openmp_support = false;
+    constexpr bool threading_support = true;
     #endif
 
     #ifdef KRATOS_USING_MPI
@@ -133,12 +133,12 @@ void Kernel::PrintParallelismSupportInfo() const
     Logger logger("");
     logger << LoggerMessage::Severity::INFO;
 
-    if (openmp_support) {
+    if (threading_support) {
         if (mpi_support) {
-            logger << "Compiled with OpenMP and MPI support." << std::endl;
+            logger << "Compiled with threading and MPI support." << std::endl;
         }
         else {
-            logger << "Compiled with OpenMP support." << std::endl;
+            logger << "Compiled with threading support." << std::endl;
         }
     }
     else if (mpi_support) {
@@ -148,8 +148,8 @@ void Kernel::PrintParallelismSupportInfo() const
         logger << "Serial compilation." << std::endl;
     }
 
-    if (openmp_support) {
-        logger << "Maximum OpenMP threads: " << OpenMPUtils::GetNumThreads() << "." << std::endl;
+    if (threading_support) {
+        logger << "Maximum number of threads: " << ParallelUtilities::GetNumThreads() << "." << std::endl;
     }
 
     if (mpi_support) {

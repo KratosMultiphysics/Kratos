@@ -90,6 +90,19 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
+    NodalTensorData& rData,
+    const Variable<Matrix>& rVariable,
+    const Geometry<Node<3>>& rGeometry)
+{
+    for (size_t i = 0; i < TNumNodes; i++) {
+        const Matrix& r_nodal_values =
+            rGeometry[i].FastGetSolutionStepValue(rVariable);
+        rData[i] = r_nodal_values;
+    }
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistoricalNodalData(
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry, const unsigned int Step)
 {

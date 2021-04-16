@@ -140,7 +140,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << "------------------DISCONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         DisplayThreadInfo();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -314,7 +314,7 @@ namespace Kratos {
         bool has_mpi = false; //check MPI not available in this strategy. refer to continuum strategy
         //          Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(), 0.0);
+        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for
@@ -324,7 +324,7 @@ namespace Kratos {
         }
 
         double max_across_threads = 0.0;
-        for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++) {
+        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
             if (thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
         }
 
@@ -867,6 +867,7 @@ namespace Kratos {
                 RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
 
                 fem_model_part.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
+                submp.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
 
                 std::size_t element_id = Element_Id_1 + 1;
                 std::vector<std::size_t> ElementIds;
@@ -1268,6 +1269,18 @@ namespace Kratos {
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                     }
 
+                    if (submp.Has(EXTERNAL_APPLIED_FORCE)) { // JIG: Backward compatibility, it should be removed in the future
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = submp[EXTERNAL_APPLIED_FORCE][0];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = submp[EXTERNAL_APPLIED_FORCE][1];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = submp[EXTERNAL_APPLIED_FORCE][2];
+                    }
+
+                    if (submp.Has(EXTERNAL_APPLIED_MOMENT)) { // JIG: Backward compatibility, it should be removed in the future
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = submp[EXTERNAL_APPLIED_MOMENT][0];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = submp[EXTERNAL_APPLIED_MOMENT][1];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = submp[EXTERNAL_APPLIED_MOMENT][2];
+                    }
+
                     if (submp.Has(TABLE_NUMBER_FORCE)) { // JIG: Backward compatibility, it should be removed in the future
                         if (submp[TABLE_NUMBER_FORCE][0] != 0) {
                             const int table_number = submp[TABLE_NUMBER_FORCE][0];
@@ -1424,7 +1437,7 @@ namespace Kratos {
 
         typedef std::map<SphericParticle*,std::vector<SphericParticle*>> ConnectivitiesMap;
         std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
-        thread_maps_of_connectivities.resize(OpenMPUtils::GetNumThreads());
+        thread_maps_of_connectivities.resize(ParallelUtilities::GetNumThreads());
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
@@ -1806,7 +1819,7 @@ namespace Kratos {
         KRATOS_CATCH("")
         }//CheckHierarchyWithCurrentNeighbours
 
-    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(ProcessInfo& r_process_info) {
+    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(const ProcessInfo& r_process_info) {
         KRATOS_TRY
         std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());

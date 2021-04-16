@@ -126,7 +126,7 @@ public:
          mpBDFUtility(Kratos::make_unique<TimeDiscretization::BDF>(Order))
     {
         // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        const std::size_t num_threads = ParallelUtilities::GetNumThreads();
 
         mVector.dotun0.resize(num_threads);
         mVector.dot2un0.resize(num_threads);
@@ -386,13 +386,12 @@ protected:
         // Getting first node iterator
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
-        }
+        });
     }
 
     /**

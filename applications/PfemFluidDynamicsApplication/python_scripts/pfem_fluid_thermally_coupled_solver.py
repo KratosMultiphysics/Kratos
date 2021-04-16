@@ -212,6 +212,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
         pfem_is_converged = self.fluid_solver.SolveSolutionStep()
         KratosPfemFluid.SetMeshVelocityForThermalCouplingProcess(self.fluid_solver.main_model_part).Execute()
+        KratosPfemFluid.SetMaterialPropertiesForThermalCouplingProcess(self.fluid_solver.main_model_part,self.thermal_solver.main_model_part).Execute()
         KM.Logger.Print("\nSolution of convection-diffusion at t=" + "{:.3f}".format(self.fluid_solver.main_model_part.ProcessInfo[KM.TIME]) + "s", label="")
         KM.Logger.Flush()
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
@@ -344,8 +345,5 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
-
-        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM):
-            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
 

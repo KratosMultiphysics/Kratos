@@ -517,11 +517,6 @@ namespace Kratos
     int ErrorCode = 0;
     ErrorCode = BoundaryCondition::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-
     return ErrorCode;
 
     KRATOS_CATCH( "" )

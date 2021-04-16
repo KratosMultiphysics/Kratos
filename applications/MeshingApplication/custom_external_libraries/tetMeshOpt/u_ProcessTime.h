@@ -1,3 +1,6 @@
+#if !defined(U_PROCESSTIME_H )
+#define  U_PROCESSTIME_H
+
 #include <vector>
 #include "u_delphiClasses.h"
 #include <time.h>
@@ -32,3 +35,4 @@ void endProcess(char* procName);
 TTimeSignal* findProcess(char* procName);
 void showProcessTime();
 
+#endif

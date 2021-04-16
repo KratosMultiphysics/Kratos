@@ -146,6 +146,7 @@ public:
         
         mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
         mprm.put("precond.pmask_size", mp.size());
+        mprm.put("solver.verbose", mVerbosity > 1);
 
         if(mVerbosity > 1)
             write_json(std::cout, mprm);
@@ -224,6 +225,7 @@ public:
                 );
 
         Solver solve(*pA, mprm);
+        KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
         return solve(*pA, rB, rX);
     }
 
@@ -259,6 +261,7 @@ public:
                 );
 
         Solver solve(*pA, mprm);
+        KRATOS_INFO_IF("AMGCL NS Solver", mVerbosity > 1) << "AMGCL-NS Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
         return solve(*pA, rB, rX);
     }
 
@@ -458,8 +461,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-
-//#undef MPI_COMM_WORLD
 
 }  // namespace Kratos.
 
