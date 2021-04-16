@@ -19,13 +19,13 @@
 
 // Project includes
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_typedefs.h"
+#include "mapper_mpi_define.h"
 #include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos
 {
-typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
+typedef typename MPIMapperDefinitions::SparseSpaceType SparseSpaceType;
+typedef typename MPIMapperDefinitions::DenseSpaceType  DenseSpaceType;
 
 typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContainerType;
 
