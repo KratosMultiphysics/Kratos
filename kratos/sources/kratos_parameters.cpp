@@ -696,7 +696,7 @@ void Parameters::SetMatrix(const Matrix& rValue)
 
 /***********************************************************************************/
 /***********************************************************************************/
-  
+
 void Parameters::AddDouble(
     const std::string& rEntry,
     const double Value

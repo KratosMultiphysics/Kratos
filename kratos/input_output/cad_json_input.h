@@ -651,7 +651,7 @@ private:
 
         for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
         {
-            rControlPoints.push_back(ReadNode(rParameters[cp_idx], rModelPart));
+            rControlPoints.push_back(ReadAndCreateNode(rParameters[cp_idx], rModelPart));
         }
     }
 
@@ -682,7 +682,7 @@ private:
     * Input needs to be a Parameter object:
     * [id, [x, y, z, weight]]
     */
-    static Node<3>::Pointer ReadNode(
+    static Node<3>::Pointer ReadAndCreateNode(
         const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
