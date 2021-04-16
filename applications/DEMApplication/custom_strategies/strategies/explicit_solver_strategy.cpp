@@ -17,13 +17,19 @@ namespace Kratos {
         //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
         KRATOS_TRY
 
-        const int number_of_particles = (int) rCustomListOfSphericParticles.size();
+
         std::vector<PropertiesProxy>& vector_of_properties_proxies = PropertiesProxiesManager().GetPropertiesProxies(*mpDem_model_part);
 
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
+        IndexPartition<unsigned int>(rCustomListOfSphericParticles.size()).for_each([&](unsigned int i){
             rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
-        }
+        });
+
+        //const int number_of_particles = (int) rCustomListOfSphericParticles.size();
+        // #pragma omp parallel for
+        // for (int i = 0; i < number_of_particles; i++) {
+        //     rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
+        // }
+
         return;
         KRATOS_CATCH("")
     }
@@ -70,12 +76,10 @@ namespace Kratos {
         KRATOS_TRY
 
         bool found = false;
-        const int number_of_particles = (int) rCustomListOfSphericParticles.size();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
+        // Using IndexPartition should be fine since 'break' affects the internal for loops while the replaced continues only has an effect on the for_each loop.
+        IndexPartition<unsigned int>(rCustomListOfSphericParticles.size()).for_each([&](unsigned int i){
 
             int own_properties_id = rCustomListOfSphericParticles[i]->GetProperties().Id();
-
             for (PropertiesIterator props_it = mpDem_model_part->GetMesh(0).PropertiesBegin(); props_it != mpDem_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
                 int model_part_id = props_it->GetId();
                 if (own_properties_id == model_part_id) {
@@ -84,8 +88,7 @@ namespace Kratos {
                     break;
                 }
             }
-
-            if (found) continue;
+            if (found) return;
 
             for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it != mpInlet_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
                 int model_part_id = props_it->GetId();
@@ -95,8 +98,7 @@ namespace Kratos {
                     break;
                 }
             }
-
-            if (found) continue;
+            if (found) return;
 
             for (PropertiesIterator props_it = mpCluster_model_part->GetMesh(0).PropertiesBegin(); props_it != mpCluster_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
                 int model_part_id = props_it->GetId();
@@ -108,7 +110,7 @@ namespace Kratos {
             }
 
             KRATOS_ERROR_IF_NOT(found) << "This particle could not find its properties!!" << std::endl;
-        }
+        });
 
         KRATOS_CATCH("")
     }
@@ -226,11 +228,15 @@ namespace Kratos {
 
             ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
 
-            #pragma omp parallel for
-            for (int k = 0; k < (int) rConditions.size(); k++) {
-                ConditionsArrayType::iterator it = rConditions.ptr_begin() + k;
-                (it)->Set(DEMFlags::STICKY, true);
-            }
+            // #pragma omp parallel for
+            // for (int k = 0; k < (int) rConditions.size(); k++) {
+            //     ConditionsArrayType::iterator it = rConditions.ptr_begin() + k;
+            //     (it)->Set(DEMFlags::STICKY, true);
+            // }
+
+            block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition){
+            rCondition.Set(DEMFlags::STICKY, true);
+        });
         }
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
@@ -259,17 +265,28 @@ namespace Kratos {
         KRATOS_TRY
         ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pElements.size(); k++) {
-            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-            Element* p_element = &(*it);
+        // #pragma omp parallel for
+        // for (int k = 0; k < (int)pElements.size(); k++) {
+        //     ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+        //     Element* p_element = &(*it);
+        //     SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
+
+        //     if (p_sphere->mNeighbourRigidFaces.size()) {
+        //         p_sphere->Set(TO_ERASE);
+        //         p_sphere->GetGeometry()[0].Set(TO_ERASE);
+        //     }
+        // }
+
+        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
+            Element* p_element = &(rElement);
             SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
 
             if (p_sphere->mNeighbourRigidFaces.size()) {
                 p_sphere->Set(TO_ERASE);
                 p_sphere->GetGeometry()[0].Set(TO_ERASE);
             }
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
@@ -315,13 +332,18 @@ namespace Kratos {
         //          Check_MPI(has_mpi);
 
         std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
-        const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
+        // const int number_of_particles = (int) mListOfSphericParticles.size();
+        // #pragma omp parallel for
+        // for (int i = 0; i < number_of_particles; i++) {
+        //     double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
+        //     if (max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
+        // }
+
+        IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
             double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
             if (max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
-        }
+        });
 
         double max_across_threads = 0.0;
         for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
@@ -779,19 +801,12 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        const int number_of_particles = (int) mListOfSphericParticles.size();
         double total_mass = 0.0;
-
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
+        IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
+            mListOfSphericParticles[i]->ComputeNewRigidFaceNeighboursHistoricalData();
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
-        }
-
-        // block_for_each(mListOfSphericParticles, [&](Kratos::SphericParticle& rSphericParticle) {
-        //     rSphericParticle.Initialize(r_process_info);
-        //     total_mass += rSphericParticle.GetMass();
-        // });
+        });
 
         KRATOS_CATCH("")
     }
@@ -817,11 +832,9 @@ namespace Kratos {
                     }
                 }
 
-                #pragma omp parallel for
-                for (int i=0; i<(int)pTConditions.size(); i++) {
-                    ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                    (it)->Initialize(r_process_info);
-                }
+                block_for_each(pTConditions, [&](ModelPart::ConditionType& rTCondition){
+                    rTCondition.Initialize(r_process_info);
+                });
 
                 if (!r_process_info[IS_RESTARTED]){
                 // Central Node
@@ -1026,16 +1039,14 @@ namespace Kratos {
         ModelPart& fem_model_part = GetFemModelPart();
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pNodes.size(); k++) {
-            ModelPart::NodeIterator i = pNodes.begin() + k;
+        block_for_each(pNodes, [&](ModelPart::NodeType& rNode) {
 
-            array_1d<double, 3>& node_rhs = i->FastGetSolutionStepValue(CONTACT_FORCES);
-            array_1d<double, 3>& node_rhs_elas = i->FastGetSolutionStepValue(ELASTIC_FORCES);
-            array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-            double& node_pressure = i->GetSolutionStepValue(DEM_PRESSURE);
-            //double& node_area = i->GetSolutionStepValue(DEM_NODAL_AREA);
-            double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
+            array_1d<double, 3>& node_rhs = rNode.FastGetSolutionStepValue(CONTACT_FORCES);
+            array_1d<double, 3>& node_rhs_elas = rNode.FastGetSolutionStepValue(ELASTIC_FORCES);
+            array_1d<double, 3>& node_rhs_tang = rNode.FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+            double& node_pressure = rNode.GetSolutionStepValue(DEM_PRESSURE);
+            //double& node_area = rNode.GetSolutionStepValue(DEM_NODAL_AREA);
+            double& shear_stress = rNode.FastGetSolutionStepValue(SHEAR_STRESS);
 
             noalias(node_rhs) = ZeroVector(3);
             noalias(node_rhs_elas) = ZeroVector(3);
@@ -1043,7 +1054,7 @@ namespace Kratos {
             node_pressure = 0.0;
             //node_area = 0.0;
             shear_stress = 0.0;
-        }
+        });
         KRATOS_CATCH("")
     }
 
@@ -1053,41 +1064,36 @@ namespace Kratos {
         ModelPart& fem_model_part = GetFemModelPart();
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pNodes.size(); k++) {
-            ModelPart::NodeIterator i = pNodes.begin() + k;
+        block_for_each(pNodes, [&](ModelPart::NodeType& rNode) {
 
-            double& node_pressure = i->FastGetSolutionStepValue(DEM_PRESSURE);
-            double node_area = i->FastGetSolutionStepValue(DEM_NODAL_AREA);
-            double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
-            array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+            double& node_pressure = rNode.FastGetSolutionStepValue(DEM_PRESSURE);
+            double node_area = rNode.FastGetSolutionStepValue(DEM_NODAL_AREA);
+            double& shear_stress = rNode.FastGetSolutionStepValue(SHEAR_STRESS);
+            array_1d<double, 3>& node_rhs_tang = rNode.FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
 
             if (node_area > 0.0){
                 node_pressure = node_pressure / node_area;
                 shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
             }
-        }
+        });
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array) {
         KRATOS_TRY
-        #pragma omp parallel for
-        for (int i = 0; i < (int) r_nodes_array.size(); i++) {
-            NodesArrayType::iterator node_i = r_nodes_array.ptr_begin() + i;
-            node_i->FastGetSolutionStepValue(r_variable_to_set) = value;
-            node_i->Set(r_flag_name, true);
-        }
+
+        block_for_each(r_nodes_array, [&](ModelPart::NodeType& rNode) {
+            rNode.FastGetSolutionStepValue(r_variable_to_set) = value;
+            rNode.Set(r_flag_name, true);
+        });
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array) {
         KRATOS_TRY
-        #pragma omp parallel for
-        for (int i = 0; i < (int) r_nodes_array.size(); i++) {
-            NodesArrayType::iterator node_i = r_nodes_array.ptr_begin() + i;
-            node_i->FastGetSolutionStepValue(r_variable_to_set) = value;
-        }
+        block_for_each(r_nodes_array, [&](ModelPart::NodeType& rNode) {
+            rNode.FastGetSolutionStepValue(r_variable_to_set) = value;
+        });
         KRATOS_CATCH("")
     }
 
@@ -1102,11 +1108,11 @@ namespace Kratos {
         const unsigned int vel_x_dof_position = (r_model_part.NodesBegin())->GetDofPosition(VELOCITY_X);
         const unsigned int ang_vel_x_dof_position = (r_model_part.NodesBegin())->GetDofPosition(ANGULAR_VELOCITY_X);
 
-        #pragma omp parallel for
-        for (int i = 0; i < (int) r_model_part_nodes.size(); i++) {
-            ModelPart::NodesContainerType::iterator node_i = r_model_part.NodesBegin() + i;
-            if (node_i->Is(BLOCKED)) continue;
-            Node<3>& node = *node_i;
+
+        block_for_each(r_model_part_nodes, [&](ModelPart::NodeType& rNode) {
+
+            if (rNode.Is(BLOCKED)) return;
+            Node<3>& node = rNode;
 
             if (node.GetDof(VELOCITY_X, vel_x_dof_position).IsFixed()) {
                 node.Set(DEMFlags::FIXED_VEL_X, true);
@@ -1138,7 +1144,7 @@ namespace Kratos {
             } else {
                 node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
             }
-        }
+        });
         KRATOS_CATCH("")
     }
 
