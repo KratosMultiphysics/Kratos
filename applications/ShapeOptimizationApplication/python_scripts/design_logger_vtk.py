@@ -32,7 +32,7 @@ class DesignLoggerVTK( DesignLogger ):
                 "model_part_name"        : "PLEASE_SPECIFY_MODEL_PART_NAME",
                 "file_format"            : "binary",
                 "output_sub_model_parts" : false,
-                "folder_name"            : "Optimization_Results"
+                "output_path"            : "Optimization_Results"
             }
         }""")
 
@@ -42,8 +42,8 @@ class DesignLoggerVTK( DesignLogger ):
         else:
             if output_format["vtk_parameters"].Has("model_part_name"):
                 KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `model_part_name` will be overwritten!")
-            if output_format["vtk_parameters"].Has("folder_name"):
-                KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `folder_name` will be overwritten!")
+            if output_format["vtk_parameters"].Has("output_path"):
+                KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `output_path` will be overwritten!")
 
         output_format["vtk_parameters"].ValidateAndAssignDefaults(minimal_vtk_settings["vtk_parameters"])
 
@@ -69,7 +69,7 @@ class DesignLoggerVTK( DesignLogger ):
         else:
             raise NameError("The following design output mode is not defined within a VTK output (name may be misspelled): " + output_mode)
 
-        vtk_parameters["folder_name"].SetString(self.output_settings["output_directory"].GetString())
+        vtk_parameters["output_path"].SetString(self.output_settings["output_directory"].GetString())
 
         return VtkOutputProcess(self.model, vtk_parameters)
 
