@@ -95,7 +95,7 @@ class FrequencyBinOutputProcess(Kratos.OutputProcess):
         header  = '# Frequency bin results ' + '\n'
         header += '# time'
 
-        for frequency_bin_index in self.frequency_bin_indices:
+        for frequency_bin_index in self.frequency_bin_indices_list:
             header += ", Bin {0:d}-real, Bin {0:d}-imag".format(frequency_bin_index)
 
         header += "\n"
