@@ -283,12 +283,12 @@ public:
 
         for (IndexType point_index = 0; point_index < number_of_points; ++point_index)
         {
-            std::vector<CoordinatesArrayType> global_space_derivatives(3);
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
             mpSurface->GlobalSpaceDerivatives(global_space_derivatives, integration_points[point_index], 1);
 
             shape_function_container.ComputeBSplineShapeFunctionValues(
                 mpNurbsVolume->KnotsU(), mpNurbsVolume->KnotsV(),  mpNurbsVolume->KnotsW(),
-                global_space_derivatives[0][1], global_space_derivatives[0][1], global_space_derivatives[0][2]);
+                global_space_derivatives[0][0], global_space_derivatives[0][1], global_space_derivatives[0][2]);
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -318,8 +318,10 @@ public:
                 }
             }
 
-            const double area = mpSurface->Area();
-            IntegrationPoint<3> tmp_integration_point(global_space_derivatives[0][1], global_space_derivatives[0][1], global_space_derivatives[0][2], area);
+            const double determinant_volume = mpNurbsVolume->DeterminantOfJacobian(global_space_derivatives[0]);
+            // Get area of surface in global space
+            const double weight = mpSurface->Area() * determinant_volume;
+            IntegrationPoint<3> tmp_integration_point(global_space_derivatives[0][0], global_space_derivatives[0][1], global_space_derivatives[0][2], weight);
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, tmp_integration_point,
