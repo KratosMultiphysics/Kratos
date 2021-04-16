@@ -262,6 +262,10 @@ class AdjointRANSSolver(CoupledRANSSolver):
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
+        elif response_type == "windowed_frequency_bin_component":
+            response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
+                self.adjoint_settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
