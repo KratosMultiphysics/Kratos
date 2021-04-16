@@ -333,7 +333,7 @@ class RigidBodySolver(object):
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         self._CheckBufferId(buffer_idx, identifier)
-        output = np.zeros(self.system_size)
+        output = KratosMultiphysics.Vector(self.system_size)
         for index, dof in enumerate(self.available_dofs):
             if dof in self.active_dofs:
                 if identifier == "DISPLACEMENT":
