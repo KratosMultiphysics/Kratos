@@ -29,17 +29,16 @@ FaceAngleResponseFunctionUtility::FaceAngleResponseFunctionUtility(ModelPart& rM
 
 	mMainDirection = ResponseSettings["main_direction"].GetVector();
 	const double direction_norm = norm_2(mMainDirection);
-	KRATOS_ERROR_IF(domain_size != 3) << "FaceAngleResponseFunctionUtility: 'main_direction' vector norm is 0!" << std::endl;
+	KRATOS_ERROR_IF(direction_norm < epsilon) << "FaceAngleResponseFunctionUtility: 'main_direction' vector norm is 0!" << std::endl;
 	mMainDirection /= direction_norm;
 
-	double min_angle = ResponseSettings["min_angle"].GetDouble();
+	const double min_angle = ResponseSettings["min_angle"].GetDouble();
 	mSinMinAngle = std::sin(min_angle * Globals::Pi / 180);
 
-	std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
+	const std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
 	if (gradient_mode == "finite_differencing")
 	{
-		double delta = ResponseSettings["step_size"].GetDouble();
-		mDelta = delta;
+		mDelta = ResponseSettings["step_size"].GetDouble();
 	}
 	else
 		KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
