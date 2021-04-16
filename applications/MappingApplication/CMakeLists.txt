@@ -53,10 +53,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Unity build
 if(CMAKE_UNITY_BUILD MATCHES ON)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/interpolative_mapper_base.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/interface_vector_container_mpi.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
