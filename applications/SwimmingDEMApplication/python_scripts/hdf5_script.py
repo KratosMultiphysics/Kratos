@@ -27,7 +27,7 @@ class ErrorProjectionPostProcessTool(object):
         self.problem_path = os.getcwd()
         self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
         self.dtype = np.float64
-        self.group_name = str(test_number)
+        self.group_name = str(test_number)        
 
     def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected):
         self.error_model_part = error_model_part

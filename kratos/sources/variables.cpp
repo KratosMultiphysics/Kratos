@@ -290,6 +290,7 @@ KRATOS_CREATE_VARIABLE(double, PR_ART_VISC)
 KRATOS_CREATE_VARIABLE(double, LATENT_HEAT)
 KRATOS_CREATE_VARIABLE(double, AMBIENT_TEMPERATURE)
 
+
 //vectors
 
 //for General kratos application:
@@ -402,6 +403,7 @@ KRATOS_CREATE_VARIABLE(Vector, BDF_COEFFICIENTS)
 
 //for Vulcan application
 KRATOS_CREATE_VARIABLE(Vector, ENRICHED_PRESSURES)
+
 
 //matrices
 

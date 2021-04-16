@@ -302,6 +302,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, LATENT_HEAT )
     KRATOS_DEFINE_VARIABLE( double, AMBIENT_TEMPERATURE )
 
+
     //vectors
 
     //for General kratos application:
@@ -414,6 +415,7 @@ namespace Kratos
 
     //for Vulcan application
     KRATOS_DEFINE_VARIABLE( Vector, ENRICHED_PRESSURES )
+
 
     //matrices
 

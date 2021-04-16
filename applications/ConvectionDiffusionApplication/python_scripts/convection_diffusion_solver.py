@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
+import KratosMultiphysics.ConvectionDiffusionApplication as CD
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
@@ -145,6 +146,14 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
         '''
+        # Here it is added velocity and concentration variables for data projection
+        target_model_part.AddNodalSolutionStepVariable(CD.VELOCITY_PROJECTED)
+        target_model_part.AddNodalSolutionStepVariable(CD.CONCENTRATION_PROJECTED)
+        target_model_part.AddNodalSolutionStepVariable(CD.VECTORIAL_STAT_ERROR)
+        target_model_part.AddNodalSolutionStepVariable(CD.SCALAR_STAT_ERROR)
+        target_model_part.AddNodalSolutionStepVariable(CD.VECTORIAL_MESH_ERROR)
+        target_model_part.AddNodalSolutionStepVariable(CD.SCALAR_MESH_ERROR)
+
         convention_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
         density_variable = self.settings["convection_diffusion_variables"]["density_variable"].GetString()
         if (density_variable != ""):
@@ -214,7 +223,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
         # Adding nodal area variable (some solvers use it. TODO: Ask)
-        #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        # target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # If LaplacianElement is used
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)

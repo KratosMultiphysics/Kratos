@@ -107,7 +107,7 @@ class ProjectionModule:
     def ProjectFromFluid(self, alpha):
 
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
-                                                self.particles_model_part,
+                                                self.particles_model_part, #des/ori model part
                                                 self.project_parameters,
                                                 self.bin_of_objects_fluid,
                                                 alpha)

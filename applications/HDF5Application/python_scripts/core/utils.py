@@ -25,6 +25,7 @@ class ParametersWrapper(Mapping):
             self._parameters = params._parameters
         elif isinstance(params, str):
             self._parameters = KratosMultiphysics.Parameters(params)
+            return SetDefault
         else:
             self._parameters = params
 
