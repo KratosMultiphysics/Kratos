@@ -180,7 +180,7 @@ class RigidBodySolver(object):
             self.InitializeOutput()
 
     def InitializeOutput(self):
-        
+
         data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
             self.output_file_name = {}
@@ -303,11 +303,11 @@ class RigidBodySolver(object):
         return a
 
     def CalculateReaction(self, buffer_idx=0):
-        reaction = self.C.dot(self.v[:,buffer_idx][1] - self.v_f[:,buffer_idx][1]) \
-                + self.K.dot(self.x[:,buffer_idx][0] - self.x_f[:,buffer_idx][0])
+        reaction = self.C.dot(self.v[:,buffer_idx] - self.v_f[:,buffer_idx]) \
+                + self.K.dot(self.x[:,buffer_idx] - self.x_f[:,buffer_idx])
         return reaction
 
-    def CalculateSelfWeight(self, dof):
+    def CalculateSelfWeight(self):
         self_weight = self.M.dot(self.modulus_self_weight)
         return self_weight
 
