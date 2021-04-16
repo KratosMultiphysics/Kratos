@@ -19,10 +19,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     def Initialize(self):
         super().Initialize()
         for node in self.spheres_model_part.Nodes:
-            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-
-        for prop in self.spheres_model_part.GetProperties():
-            print(prop)           
+            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)         
 
     @classmethod
     def GetMainPath(self):
@@ -146,12 +143,12 @@ class TestDEM2DRestitution(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution, model, parameters_file_name, 1)
 
-    @classmethod
+    '''@classmethod
     def test_DEM2D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution_2, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution_2, model, parameters_file_name, 1)'''
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_restitution_tests_files", "TimesPartialRelease")

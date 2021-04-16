@@ -1312,9 +1312,11 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
 
     array_1d<double, 3>& sphere_center = this->GetGeometry()[0].Coordinates();
     double volume_wear = 0.0;
-    const double WallSeverityOfWear       = wall->GetProperties()[SEVERITY_OF_WEAR];
-    const double WallImpactSeverityOfWear = wall->GetProperties()[IMPACT_WEAR_SEVERITY];
-    const double WallBrinellHardness      = wall->GetProperties()[BRINELL_HARDNESS];
+
+    Properties& properties_of_this_contact = GetProperties().GetSubProperties(wall->GetProperties().Id());
+    const double WallSeverityOfWear       = properties_of_this_contact[SEVERITY_OF_WEAR];
+    const double WallImpactSeverityOfWear = properties_of_this_contact[IMPACT_WEAR_SEVERITY];
+    const double WallBrinellHardness      = properties_of_this_contact[BRINELL_HARDNESS];
     double InverseOfWallBrinellHardness;
 
     if (WallBrinellHardness) InverseOfWallBrinellHardness = 1.0 / WallBrinellHardness;

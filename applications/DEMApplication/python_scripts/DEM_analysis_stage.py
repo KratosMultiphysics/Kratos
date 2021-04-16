@@ -328,9 +328,14 @@ class DEMAnalysisStage(AnalysisStage):
            
             properties = material["properties"]        
             properties_of_model_part_with_this_id[PARTICLE_MATERIAL] = material_id
-            properties_of_model_part_with_this_id[PARTICLE_DENSITY] = properties["PARTICLE_DENSITY"].GetDouble()
+            if properties.Has("PARTICLE_DENSITY"):
+                properties_of_model_part_with_this_id[PARTICLE_DENSITY] = properties["PARTICLE_DENSITY"].GetDouble()
             properties_of_model_part_with_this_id[YOUNG_MODULUS] = properties["YOUNG_MODULUS"].GetDouble()
-            properties_of_model_part_with_this_id[POISSON_RATIO] = properties["POISSON_RATIO"].GetDouble()    
+            properties_of_model_part_with_this_id[POISSON_RATIO] = properties["POISSON_RATIO"].GetDouble()  
+            if properties.Has("COMPUTE_WEAR"):
+                properties_of_model_part_with_this_id[COMPUTE_WEAR] = properties["COMPUTE_WEAR"].GetBool()
+            else:
+                properties_of_model_part_with_this_id[COMPUTE_WEAR] = False  
 
             for material_relation in list_of_material_relations:
                 subprops = None
@@ -352,8 +357,16 @@ class DEMAnalysisStage(AnalysisStage):
                     subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["discontinuum_contact_law_parameters"]["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
                     DiscontinuumConstitutiveLaw = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
                     DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(subprops, True)
-                    subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
-
+                    
+                    if contact_properties["continuum_contact_law_parameters"].Has("DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"):
+                        subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()                    
+                    if contact_properties["continuum_contact_law_parameters"].Has("SEVERITY_OF_WEAR"):
+                        subprops[SEVERITY_OF_WEAR] = contact_properties["continuum_contact_law_parameters"]["SEVERITY_OF_WEAR"].GetDouble()
+                    if contact_properties["continuum_contact_law_parameters"].Has("IMPACT_WEAR_SEVERITY"):
+                        subprops[IMPACT_WEAR_SEVERITY] = contact_properties["continuum_contact_law_parameters"]["IMPACT_WEAR_SEVERITY"].GetDouble()
+                    if contact_properties["continuum_contact_law_parameters"].Has("BRINELL_HARDNESS"):
+                        subprops[BRINELL_HARDNESS] = contact_properties["continuum_contact_law_parameters"]["BRINELL_HARDNESS"].GetDouble()                
+                    
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
         
         for pair in material_assignation_table:
@@ -367,7 +380,9 @@ class DEMAnalysisStage(AnalysisStage):
                     material_id = material["material_id"].GetInt()
                     props = self.spheres_model_part.GetProperties()[material_id]
             for element in submodelpart.Elements:
-                element.Properties = props            
+                element.Properties = props      
+            for condition in submodelpart.Conditions:
+                condition.Properties = props
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
