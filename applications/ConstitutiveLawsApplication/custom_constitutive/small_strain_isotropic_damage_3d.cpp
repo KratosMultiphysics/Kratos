@@ -152,55 +152,57 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rInternalVariables)
 {
-    double strain_variable = mStrainVariable;
+    double r = mStrainVariable;
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
-    Vector& r_strain_vector = rParametersValues.GetStrainVector();
-    CalculateValue(rParametersValues, STRAIN, r_strain_vector);
+    Vector& r_strain = rParametersValues.GetStrainVector();
+    CalculateValue(rParametersValues, STRAIN, r_strain);
 
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
-        Vector& r_stress_vector = rParametersValues.GetStressVector();
+        Vector& r_stress = rParametersValues.GetStressVector();
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
-        noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
+        noalias(r_stress) = prod(r_constitutive_matrix, r_strain);
 
         // Auxiliary stress vector to allow derived models (e.g. traction-only damage)
-        // to set the value of r_stress_vector_pos with the ComputePositiveStressVector
+        // to set the value of r_stress_pos with the ComputePositiveStressVector
         // function.
-        // In the symmetric model, ComputePositiveStressVector does nothing.
-        Vector r_stress_vector_pos = r_stress_vector;
-        ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
+        // In this symmetric model, ComputePositiveStressVector function does nothing.
+        Vector r_stress_pos = r_stress;
+        ComputePositiveStressVector(r_stress_pos, r_stress);
 
+        double energy = inner_prod(r_stress_pos, r_strain);
         // energy may be a small negative due to machine precision error, forcing zero
-        const double product = inner_prod(r_stress_vector_pos, r_strain_vector);
-        const double strain_norm = (product >=0 ) ? std::sqrt(product) : 0;
-        if (strain_norm <= mStrainVariable)
+        if (energy < 0) {
+            energy = 0;
+        }
+        const double tau = std::sqrt(energy);
+
+        if (tau <= mStrainVariable)
         {
             // ELASTIC
-            strain_variable = mStrainVariable;
-            const double stress_variable = EvaluateHardeningLaw(strain_variable, r_material_properties);
-            const double damage_variable = 1. - stress_variable / strain_variable;
-            r_constitutive_matrix *= (1 - damage_variable);
-            r_stress_vector *= (1 - damage_variable);
+            r = mStrainVariable;
+            const double q = EvaluateHardeningLaw(r, r_material_properties);
+            const double d = 1. - q / r;
+            r_constitutive_matrix *= (1 - d);
+            r_stress *= (1 - d);
         }
         else
         {
             // INELASTIC
-            strain_variable = strain_norm;
-            const double stress_variable = EvaluateHardeningLaw(strain_variable, r_material_properties);
-            const double damage_variable = 1. - stress_variable / strain_variable;
-            const double hardening_modulus = EvaluateHardeningModulus(strain_variable, r_material_properties);
-            const double damage_rate = (stress_variable - hardening_modulus * strain_variable)
-                                       / (strain_variable * strain_variable * strain_variable);
-            r_constitutive_matrix *= (1. - damage_variable);
-            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
+            r = tau;
+            const double q = EvaluateHardeningLaw(r, r_material_properties);
+            const double d = 1. - q / r;
+            const double H = EvaluateHardeningModulus(r, r_material_properties);
+            r_constitutive_matrix *= (1. - d);
+            r_constitutive_matrix -= (q - H*r) / (r*r*r) * outer_prod(r_stress, r_stress_pos);
             // Computing: real stress = (1-d) * effective stress
-            r_stress_vector *= (1. - damage_variable);
+            r_stress *= (1. - d);
         }
     }
-    rInternalVariables[0] = strain_variable;
+    rInternalVariables[0] = r;
 }
 
 //************************************************************************************
@@ -209,7 +211,10 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
 void SmallStrainIsotropicDamage3D::ComputePositiveStressVector(
             Vector& rStressVectorPos, Vector& rStressVector)
 {
-    // explicit pass for the symmetric model
+    // Function to be overided by derived CLs if needed.
+
+    // In this symmetric damage model, ComputePositiveStressVector function does
+    // nothing, as rStressVectorPos = rStressVector already.
 }
 
 //************************************************************************************
