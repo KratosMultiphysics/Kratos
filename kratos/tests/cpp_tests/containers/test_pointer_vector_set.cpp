@@ -22,9 +22,7 @@
 #include "includes/variables.h"
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/parallel_environment.h"
-#include "utilities/global_pointer_utilities.h"
-#include "utilities/pointer_communicator.h"
+#include "includes/model_part.h"
 
 namespace Kratos {
 
@@ -62,7 +60,7 @@ namespace Kratos {
             std::vector<int> ids = {2};
 
             for(auto& element : r_model_part.Elements()){
-                KRATOS_CHECK(element.Id(), 2)
+                KRATOS_CHECK(element.Id() == 2);
             }
         }
     }
