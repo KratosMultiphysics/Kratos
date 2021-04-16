@@ -21,7 +21,6 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/kratos_components.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "factories/factory.h"
 
@@ -484,4 +483,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_AND_CRITERIA_H  defined */
-
