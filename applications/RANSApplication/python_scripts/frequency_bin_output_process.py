@@ -64,7 +64,7 @@ class FrequencyBinOutputProcess(Kratos.OutputProcess):
             self.frequency_bin_indices_list.append(int(v))
 
     def ExecuteInitialize(self):
-        self.element_id, self.point_shape_function_values = self._GetElementId()
+        self.element_id, self.point_shape_function_values = self._GetElementData()
 
         # Only rank 0 writes in MPI
         my_rank = 0
