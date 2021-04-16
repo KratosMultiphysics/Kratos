@@ -722,18 +722,20 @@ void ShallowWater2D3::ShockCapturingParameters(
 
     // Final assembly of the parameters
     const double length = this->GetGeometry().Length();
-    const double slope = 1e-0;
+    const double min_slope = 0.5;
+    const double max_slope = 1.0;
 
     const double q_residual_norm = norm_2(flow_residual);
     const double q_grad_frobenius = norm_frobenius(flow_grad);
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    const double q_slope = std::max(eigenvalue * slope, slope);
-    const double q_gradient_norm = std::max(q_grad_frobenius, q_slope);
-    rArtViscosity = 0.5 * rData.shock_stab_factor * length * q_residual_norm / (q_gradient_norm);
+    const double max_q_slope = std::max(eigenvalue * max_slope, max_slope);
+    const double min_q_slope = std::max(eigenvalue * min_slope, min_slope);
+    const double q_gradient_norm = std::min(std::max(q_grad_frobenius, min_q_slope), max_q_slope);
+    rArtViscosity = rData.shock_stab_factor * length * q_residual_norm / q_gradient_norm;
 
     const double h_residual_norm = std::abs(height_residual);
-    const double h_gradient_norm = std::max(norm_2(height_grad), 0.1 * slope);
-    rArtDiffusion = 0.5 * rData.shock_stab_factor * length * h_residual_norm / (h_gradient_norm);
+    const double h_gradient_norm = std::min(std::max(norm_2(height_grad), min_slope), max_slope);
+    rArtDiffusion = rData.shock_stab_factor * length * h_residual_norm / h_gradient_norm;
 }
 
 void ShallowWater2D3::ShockCapturingViscosityMatrix(
