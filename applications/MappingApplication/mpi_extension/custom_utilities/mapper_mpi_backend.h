@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_searching/mpi/interface_communicator_mpi.h"
+#include "custom_searching/interface_communicator_mpi.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/interface_vector_container.h"
 
