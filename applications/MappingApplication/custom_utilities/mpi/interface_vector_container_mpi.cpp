@@ -19,7 +19,7 @@
 
 // Project includes
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mpi/mapper_mpi_define.h"
 #include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos

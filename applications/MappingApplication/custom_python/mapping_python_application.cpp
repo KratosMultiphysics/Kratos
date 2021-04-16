@@ -23,8 +23,13 @@
 #include "mapping_application.h"
 #include "custom_python/add_mapper_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/mapper_define.h"
 
-#include "custom_utilities/mapper_typedefs.h"
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+#include "custom_utilities/mpi/mapper_mpi_define.h"
+#endif
+
+
 
 
 namespace Kratos {

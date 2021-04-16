@@ -18,7 +18,11 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mapper_define.h"
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+#include "custom_utilities/mpi/mapper_mpi_define.h"
+#endif
 
 #include "mapper_factory.h"
 

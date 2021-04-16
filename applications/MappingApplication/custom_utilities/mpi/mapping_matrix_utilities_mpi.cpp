@@ -21,7 +21,7 @@
 
 // Project includes
 #include "custom_utilities/mapping_matrix_utilities.h"
-#include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mpi/mapper_mpi_define.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 

@@ -25,10 +25,11 @@
 
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
-
-#include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mapper_define.h"
 #include "custom_utilities/mapper_backend.h"
+
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+#include "custom_utilities/mpi/mapper_mpi_define.h"
 #include "custom_utilities/mpi/mapper_mpi_backend.h"
 #endif
 
