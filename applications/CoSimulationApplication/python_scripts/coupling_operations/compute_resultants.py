@@ -1,6 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.FluidDynamicsApplication as FDA
+import KratosMultiphysics.CoSimulationApplication as KMC
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -72,9 +72,9 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
         resultant = force + moment
 
         # here [] is the equivalent of .SetValue()
-        force_and_moment_calculator[FDA.RESULTANT_FORCE] = force
-        force_and_moment_calculator[FDA.RESULTANT_MOMENT] = moment
-        force_and_moment_calculator[FDA.RESULTANT_FORCE_MOMENT] = resultant
+        force_and_moment_calculator[KMC.RESULTANT_FORCE] = force
+        force_and_moment_calculator[KMC.RESULTANT_MOMENT] = moment
+        force_and_moment_calculator[KMC.RESULTANT_FORCE_MOMENT] = resultant
 
     def PrintInfo(self):
         pass
