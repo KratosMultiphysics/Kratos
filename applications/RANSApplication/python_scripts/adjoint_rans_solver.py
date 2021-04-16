@@ -263,7 +263,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
         elif response_type == "windowed_frequency_bin_component":
-            response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
+            response_function = KratosRANS.WindowedFrequencyBinComponentResponseFunction(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
         else:

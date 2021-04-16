@@ -53,7 +53,6 @@ class VortexSheddingFrequency(ResponseFunctionInterface):
             current_parameters = Kratos.Parameters(input_adjoint_project_parameters_lines.replace("<VORTEX_SHEDDING_FREQUENCY_BIN_INDEX>", str(current_frequency_bin_index)))
 
             adjoint_response_function_settings = current_parameters["solver_settings"]["response_function_settings"]["custom_settings"]
-            self.model_part_name = adjoint_response_function_settings["model_part_name"].GetString()
             self.point_coordinates = adjoint_response_function_settings["point_coordinates"].GetVector()
             self.velocity_direction = adjoint_response_function_settings["velocity_direction"].GetVector()
             self.total_number_of_time_steps = adjoint_response_function_settings["total_number_of_time_steps"].GetInt()
@@ -98,6 +97,8 @@ class VortexSheddingFrequency(ResponseFunctionInterface):
         # open primal settings
         primal_settings_file_name = self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
         primal_parameters = SolvePrimalProblem(primal_settings_file_name)
+
+        self.model_part_name = primal_parameters["solver_settings"]["model_part_name"].GetString()
 
         # get primal output process and settings
         primal_frequency_bin_indices_list, primal_output_process_parameters = self._GetResponseFunctionOutputProcess(primal_parameters)
