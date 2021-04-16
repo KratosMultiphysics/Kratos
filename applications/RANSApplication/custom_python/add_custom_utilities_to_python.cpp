@@ -19,9 +19,10 @@
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/rans_auxiliary_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/rans_nut_utility.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
 
 namespace Kratos
@@ -57,7 +58,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def_submodule("RansCalculationUtilities")
-        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6);
+        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6)
+        ;
+
+    m.def_submodule("RansAuxiliaryUtilities")
+        .def("CalculateFrequencyBinValues", &RansAuxiliaryUtilities::CalculateFrequencyBinValues)
+        .def("ApplyHannWindow", &RansAuxiliaryUtilities::ApplyHannWindow)
+        .def("VectorSummation", &RansAuxiliaryUtilities::VectorSummation)
+        ;
+
 }
 
 } // namespace Python.
