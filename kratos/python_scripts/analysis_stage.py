@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+from KratosMultiphysics.PFEM2Application import * 
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -45,6 +46,10 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         self.Initialize()
+        with open("DragAndLift_juliosmesh_dt_0_0125_utility_weak.txt", "w") as text_file:
+         text_file.write("Time \t Fx \t Fy\n")
+        with open("DragAndLift_juliosmesh_dt_0_0125_utility_strong.txt", "w") as text_file2:
+         text_file2.write("Time \t Fx \t Fy\n")
         self.RunSolutionLoop()
         self.Finalize()
 
@@ -65,6 +70,29 @@ class AnalysisStage(object):
             is_converged = self._GetSolver().SolveSolutionStep()
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
+            for node in self._GetSolver().GetComputingModelPart().Nodes:
+              if node.X>15.49999999 and node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)<0.0:
+               print("correction is being done")
+               vely = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
+               velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0)
+               node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, [0.00000001, vely, velz])
+            traction_vector=[]   
+            dragandlift=IntegrateTractionVectorWeakUtility(self._GetSolver().GetComputingModelPart(),0.001)
+            traction_vector=dragandlift.ReturnDrag()
+            drag=traction_vector[0]
+            lift=traction_vector[1]
+            time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+            with open("DragAndLift_juliosmesh_dt_0_0125_utility_weak.txt", "a") as text_file:
+             text_file.write("%f \t %f \t %f\n"%(time,drag,lift))
+             
+            traction_vector2=[]   
+            dragandlift2=IntegrateTractionVectorStrongUtility(self._GetSolver().GetComputingModelPart(),0.001)
+            traction_vector2=dragandlift2.ReturnDrag()
+            drag2=traction_vector2[0]
+            lift2=traction_vector2[1]
+            time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+            with open("DragAndLift_juliosmesh_dt_0_0125_utility_strong.txt", "a") as text_file2:
+             text_file2.write("%f \t %f \t %f\n"%(time,drag2,lift2)) 
             self.OutputSolutionStep()
 
     def Initialize(self):

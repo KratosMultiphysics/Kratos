@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_particle_utility_pfem2.h"
 #include "custom_utilities/integrate_traction_vector_weak.h" 
+#include "custom_utilities/integrate_traction_vector_strong.h" 
 
 #include "custom_utilities/visualization.h"
 #include "custom_utilities/calculate_water_fraction.h"
@@ -136,6 +137,10 @@ namespace py = pybind11;
  py::class_< IntegrateTractionVectorWeakUtility<2> > (m,"IntegrateTractionVectorWeakUtility").def(py::init<ModelPart&, double >())
    .def("ReturnDrag",&IntegrateTractionVectorWeakUtility<2>::ReturnDrag)  
    ;   
+
+ py::class_< IntegrateTractionVectorStrongUtility<2> > (m,"IntegrateTractionVectorStrongUtility").def(py::init<ModelPart&, double >())
+   .def("ReturnDrag",&IntegrateTractionVectorStrongUtility<2>::ReturnDrag)  
+   ;  
 
  py::class_<AddFixedVelocityCondition2D > (m,"AddFixedVelocityCondition2D").def(py::init<ModelPart& >())
    .def("AddThem", &AddFixedVelocityCondition2D::AddThem)

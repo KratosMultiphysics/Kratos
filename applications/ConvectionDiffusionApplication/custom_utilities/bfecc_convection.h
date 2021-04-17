@@ -201,7 +201,7 @@ public:
 //             else
 //                 std::cout << "it should find it" << std::endl;
 
-            it_particle->FastGetSolutionStepValue(conv_var, 1) = it_particle->GetValue(conv_var); // Restoring the old velocity
+            // it_particle->FastGetSolutionStepValue(conv_var, 1) = it_particle->GetValue(conv_var); // Restoring the old velocity
         }
 
         KRATOS_CATCH("")
