@@ -170,16 +170,18 @@ public:
 
             if (p_inv_jac_QU_right != nullptr && p_inv_jac_SigmaV_right != nullptr) {
                 // Calculate auxiliary intermediate small matrices
-                MatrixType aux_C = ZeroMatrix(n_modes, n_modes);
-                IndexPartition<std::size_t>(n_modes).for_each(
-                    VectorType(n_modes),
-                    [&aux_C, &p_inv_jac_SigmaV_left, &p_inv_jac_QU_right, &n_modes](std::size_t Col, VectorType& rAuxColumnTLS)
-                {
-                    TDenseSpace::GetColumn(Col, *p_inv_jac_QU_right, rAuxColumnTLS);
-                    for (std::size_t row = 0; row < n_modes; ++row) {
-                        aux_C(row,Col) = TDenseSpace::RowDot(row, *p_inv_jac_SigmaV_left, rAuxColumnTLS);
-                    }
-                });
+                // MatrixType aux_C = ZeroMatrix(n_modes, n_modes);
+                // IndexPartition<std::size_t>(n_modes).for_each(
+                //     VectorType(n_modes),
+                //     [&aux_C, &p_inv_jac_SigmaV_left, &p_inv_jac_QU_right, &n_modes](std::size_t Col, VectorType& rAuxColumnTLS)
+                // {
+                //     TDenseSpace::GetColumn(Col, *p_inv_jac_QU_right, rAuxColumnTLS);
+                //     for (std::size_t row = 0; row < n_modes; ++row) {
+                //         aux_C(row,Col) = TDenseSpace::RowDot(row, *p_inv_jac_SigmaV_left, rAuxColumnTLS);
+                //     }
+                // });
+                MatrixType aux_C;
+                CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_left, *p_inv_jac_QU_right, aux_C);
 
                 // Calculate the correction with the Woodbury matrix identity
                 ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_left, *p_inv_jac_SigmaV_right, aux_C, aux_RHS, rLeftCorrection);
@@ -188,6 +190,7 @@ public:
                 rLeftCorrection = aux_RHS;
             }
         } else {
+            //TODO: I THINK THIS CAN BE REMOVED
             KRATOS_WATCH("NO POINTERS LEFT")
             rLeftCorrection = aux_RHS;
         }
@@ -222,57 +225,44 @@ public:
             TSparseSpace::Mult(*p_inv_jac_QU_right, aux_vect, aux_right_onto_left);
             TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
 
-            KRATOS_WATCH(aux_RHS(0))
-            KRATOS_WATCH(aux_RHS(10))
-            KRATOS_WATCH(aux_RHS(13))
-            KRATOS_WATCH(aux_RHS(23))
+            //TODO:DELETE AFTER DEBUGGING
+            auto aux_jacobian = prod(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_right);
+            //TODO:DELETE AFTER DEBUGGING
 
             // Calculate auxiliary intermediate small matrices
             if (p_inv_jac_QU_left != nullptr && p_inv_jac_SigmaV_left != nullptr) {
 
                 auto jac_left = prod(*p_inv_jac_QU_left, *p_inv_jac_SigmaV_left);
                 auto jac_right = prod(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_right);
-                KRATOS_WATCH(jac_left(100,100))
-                KRATOS_WATCH(jac_right(100,100))
-                KRATOS_WATCH(jac_left(100,200))
-                KRATOS_WATCH(jac_right(100,200))
 
-                const std::size_t n_modes_left = TDenseSpace::Size1(*p_inv_jac_SigmaV_left);
-                MatrixType aux_C = ZeroMatrix(n_modes_right, n_modes_left);
-                IndexPartition<std::size_t>(n_modes_left).for_each(
-                    VectorType(n_dofs),
-                    [&aux_C, &p_inv_jac_SigmaV_right, &p_inv_jac_QU_left, &n_modes_right](std::size_t Col, VectorType& rAuxColumnTLS)
-                {
-                    TDenseSpace::GetColumn(Col, *p_inv_jac_QU_left, rAuxColumnTLS);
-                    for (std::size_t row = 0; row < n_modes_right; ++row) {
-                        aux_C(row,Col) = TDenseSpace::RowDot(row, *p_inv_jac_SigmaV_right, rAuxColumnTLS);
-                    }
-                });
+                MatrixType aux_C;
+                const bool is_extended = CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_right, *p_inv_jac_QU_left, aux_C);
 
-                // // Calculate the correction with the Woodbury matrix identity
-                // ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
-
-                //TODO:REMOVE THIS AFTER TESTING
-                MatrixType aux_LHS = IdentityMatrix(n_dofs, n_dofs);
-                for (std::size_t i = 0; i < n_dofs; ++i) {
-                    for (std::size_t j = 0; j < n_dofs; ++j) {
-                        for (std::size_t k = 0; k < p_inv_jac_QU_right->size2(); ++k) {
-                            for (std::size_t m = 0; m < p_inv_jac_SigmaV_left->size1(); ++m) {
-                                aux_LHS(i,j) -= (*p_inv_jac_QU_right)(i,k) * aux_C(k,m) * (*p_inv_jac_SigmaV_left)(m,j);
-                            }
+                if (is_extended) {
+                    // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
+                    const std::size_t n_modes_left = TDenseSpace::Size1(*p_inv_jac_SigmaV_left);
+                    MatrixType extended_inv_jac_SigmaV_left = ZeroMatrix(n_modes_left + 1, n_dofs);
+                    IndexPartition<std::size_t>(n_dofs).for_each(
+                        [&extended_inv_jac_SigmaV_left, &p_inv_jac_SigmaV_left, &n_modes_left](std::size_t Col){
+                            const auto& r_inv_jac_SigmaV_left = *p_inv_jac_SigmaV_left;
+                            for (std::size_t row = 0; row < n_modes_left; ++row)
+                            extended_inv_jac_SigmaV_left(row, Col) = r_inv_jac_SigmaV_left(row, Col);
                         }
-                    }
+                    );
+
+                    // Calculate the correction with the Woodbury matrix identity
+                    ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, extended_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
+                } else {
+                    // Calculate the correction with the Woodbury matrix identity
+                    // Note that in here no extension of the left side matrix is done. This happens when the previous step SVD is used (first iteration)
+                    ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
                 }
-                QR<double, row_major> qr_util;
-                qr_util.compute(n_dofs, n_dofs, &(aux_LHS)(0,0));
-                qr_util.solve(&(aux_RHS)(0), &(rRightCorrection)(0));
-
-
 
             } else {
                 rRightCorrection = aux_RHS;
             }
         } else {
+            //TODO: I THINK THIS CAN BE REMOVED
             KRATOS_WATCH("NO POINTERS RIGHT")
             rRightCorrection = aux_RHS;
         }
@@ -320,6 +310,50 @@ private:
     ///@{
 
     /**
+     * @brief Calculates the auxiliary matrix C
+     * This method calculates the auxiliary matrix C required for the application of the Woodbury matrix identity
+     * Note that if the resultant matrix is not squared, it adds a zero column with a one in the bottom right corner
+     * @param rA Horizontal-shaped input matrix
+     * @param rB Vertical-shaped input matrix
+     * @param rC Squared output matrix
+     * @return true if the matrix has been extended
+     * @return false if the matrix has not been extended
+     */
+    bool CalculateAuxiliaryMatrixC(
+        MatrixType& rA,
+        MatrixType& rB,
+        MatrixType& rC)
+    {
+        const std::size_t n_dofs = TDenseSpace::Size2(rA);
+        const std::size_t n_row_A = TDenseSpace::Size1(rA);
+        const std::size_t n_col_B = TDenseSpace::Size2(rB);
+
+        auto matrix_A_B_product = [&rC, &rA, &rB, &n_row_A](std::size_t Col, VectorType& rAuxColumnTLS){
+            TDenseSpace::GetColumn(Col, rB, rAuxColumnTLS);
+            for (std::size_t row = 0; row < n_row_A; ++row) {
+                rC(row,Col) = TDenseSpace::RowDot(row, rA, rAuxColumnTLS);
+            }
+        };
+
+        bool is_extended = false;
+        if (n_row_A != n_col_B) {
+            if (n_row_A == n_col_B + 1) {
+                is_extended = true;
+                rC = ZeroMatrix(n_row_A, n_col_B +1);
+                IndexPartition<std::size_t>(n_col_B).for_each(VectorType(n_dofs), matrix_A_B_product);
+                rC(n_row_A - 1, n_col_B) = 1.0;
+            } else {
+                KRATOS_ERROR << "Auxiliary matrix C for Woodbury matrix identity cannot be computed." << std::endl;
+            }
+        } else {
+            rC = ZeroMatrix(n_row_A, n_col_B);
+            IndexPartition<std::size_t>(n_col_B).for_each(VectorType(n_dofs), matrix_A_B_product);
+        }
+
+        return is_extended;
+    }
+
+    /**
      * @brief Apply the Woodbury matrix identity to solve the update
      * This method applies the Woodbury matrix identity to solve the problem (I - ACB) * x = y
      */
@@ -330,15 +364,14 @@ private:
         VectorType& rY,
         VectorType& rX)
     {
+        std::size_t n_row_C = TDenseSpace::Size1(rC);
+        std::size_t n_col_C = TDenseSpace::Size2(rC);
+        KRATOS_ERROR_IF(n_row_C != n_col_C) << "C matrix is not square. Woodbury matrix identity cannot be applied." << std::endl;
+
         TDenseSpace::Assign(rX, 1.0, rY);
 
         MatrixType aux_C_inv;
         CalculateMoorePenroseInverse(rC, aux_C_inv);
-
-        KRATOS_WATCH(rC)
-        KRATOS_WATCH(aux_C_inv)
-
-        KRATOS_WATCH(prod(MatrixType(prod(rC, aux_C_inv)), rC))
 
         const std::size_t n_dofs = TDenseSpace::Size(rY);
         const std::size_t n_col_A = TDenseSpace::Size2(rA);

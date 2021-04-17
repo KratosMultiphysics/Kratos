@@ -196,7 +196,9 @@ public:
             mpJac_n = mpJac_k1;
         }
 
-        //TODO: MOST PROBABLY WE CAN CLEAR THE OBSERVATION MATRICES IN HERE (then we can check if these are nullptr)
+        // Clear the observation matrices for the next step
+        mpObsMatrixV = nullptr;
+        mpObsMatrixW = nullptr;
 
         KRATOS_CATCH( "" );
     }
@@ -434,16 +436,22 @@ protected:
     virtual void UpdateCurrentJacobianMatrix()
     {
         // Compute the current inverse Jacobian approximation
-        const auto& r_V = *mpObsMatrixV;
-        const auto& r_W = *mpObsMatrixW;
-        const std::size_t n_dofs = GetProblemSize();
-        const std::size_t data_cols = TDenseSpace::Size2(r_V);
-        MatrixType aux1(n_dofs, data_cols);
-        MatrixType aux2(n_dofs, data_cols);
-        noalias(aux1) = r_W - prod(*mpJac_n, r_V);
-        noalias(aux2) = prod(aux1, *mpVtransVPseudoInv);
-        MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(*mpJac_n + prod(aux2,trans(r_V))));
-        std::swap(mpJac_k1, p_aux_jac_k1);
+        if (mpObsMatrixV != nullptr && mpObsMatrixW != nullptr) {
+            // If there are already observations use these in the Jacobian update formula
+            const auto& r_V = *mpObsMatrixV;
+            const auto& r_W = *mpObsMatrixW;
+            const std::size_t n_dofs = GetProblemSize();
+            const std::size_t data_cols = TDenseSpace::Size2(r_V);
+            MatrixType aux1(n_dofs, data_cols);
+            MatrixType aux2(n_dofs, data_cols);
+            noalias(aux1) = r_W - prod(*mpJac_n, r_V);
+            noalias(aux2) = prod(aux1, *mpVtransVPseudoInv);
+            MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(*mpJac_n + prod(aux2,trans(r_V))));
+            std::swap(mpJac_k1, p_aux_jac_k1);
+        } else {
+            // If there is no observations yet (iteration 0) use the previous step Jacobian as current one
+            mpJac_k1 = mpJac_n;
+        }
     }
 
     ///@}
@@ -534,12 +542,6 @@ protected:
     void SetCutOffTolerance(const double CutOffTolerance)
     {
         mAbsCutOff = CutOffTolerance;
-    }
-
-    //FIXME: THIS SHOULD BE REMOVED AFTER WE IMPLEMENT THE WOODBURY INVERSE
-    void SetInverseJacobianApproximation(MatrixPointerType pInverseJacobianApproximation)
-    {
-        mpJac_k1 = pInverseJacobianApproximation;
     }
 
     virtual MatrixPointerType pGetJacobianDecompositionMatixQU()

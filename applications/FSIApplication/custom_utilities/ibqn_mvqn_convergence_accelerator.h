@@ -199,7 +199,6 @@ public:
         } else {
             SolveInterfaceBlockQuasiNewtonRightUpdate(rForceInputVector, rDisplacementOutputVector, rIterationGuess, right_correction);
 
-            KRATOS_WATCH(right_correction)
             // // Get the interface problem size
             // std::size_t problem_size = mpConvergenceAcceleratorRight->GetProblemSize();
 
@@ -265,7 +264,6 @@ public:
         } else {
             SolveInterfaceBlockQuasiNewtonLeftUpdate(rDisplacementInputVector, rForceOutputVector, rIterationGuess, left_correction);
 
-            KRATOS_WATCH(left_correction)
             // // Get the interface problem size
             // std::size_t problem_size = mpConvergenceAcceleratorLeft->GetProblemSize();
 
@@ -454,22 +452,12 @@ protected:
         auto p_inv_jac_right = mpConvergenceAcceleratorRight->pGetInverseJacobianApproximation();
         auto p_inv_jac_left = mpConvergenceAcceleratorLeft->pGetInverseJacobianApproximation();
 
-        KRATOS_WATCH((*p_inv_jac_left)(100,100))
-        KRATOS_WATCH((*p_inv_jac_right)(100,100))
-        KRATOS_WATCH((*p_inv_jac_left)(100,200))
-        KRATOS_WATCH((*p_inv_jac_right)(100,200))
-
         // Set the residual of the update problem to be solved
         VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
         VectorType aux_right_onto_left(problem_size);
         VectorType force_iteration_update = *mpUncorrectedForceVector - rForceInputVector;
         TSparseSpace::Mult(*p_inv_jac_right, force_iteration_update, aux_right_onto_left);
         TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
-
-        KRATOS_WATCH(aux_RHS(0))
-        KRATOS_WATCH(aux_RHS(10))
-        KRATOS_WATCH(aux_RHS(13))
-        KRATOS_WATCH(aux_RHS(23))
 
         // Set the LHS of the update problem to be solved
         MatrixType aux_LHS = IdentityMatrix(problem_size, problem_size);
