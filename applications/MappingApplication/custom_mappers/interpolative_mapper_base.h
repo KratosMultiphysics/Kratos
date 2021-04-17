@@ -39,7 +39,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<class TSparseSpace, class TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
 class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
@@ -51,6 +51,7 @@ public:
 
     typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
 
+    typedef typename TMapperBackend::InterfaceCommunicatorType InterfaceCommunicatorType;
     typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
     typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
@@ -273,7 +274,13 @@ private:
 
 
 
-    void InitializeInterfaceCommunicator();
+    void InitializeInterfaceCommunicator()
+    {
+        mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorType>(
+            mrModelPartOrigin,
+            mMapperLocalSystems,
+            mMapperSettings);
+    }
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags())
     {

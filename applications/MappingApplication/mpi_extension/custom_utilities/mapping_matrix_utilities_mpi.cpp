@@ -21,7 +21,7 @@
 
 // Project includes
 #include "custom_utilities/mapping_matrix_utilities.h"
-#include "custom_utilities/mapper_typedefs.h"
+#include "mapper_mpi_define.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
@@ -29,8 +29,8 @@ namespace Kratos {
 
 namespace {
 
-typedef typename MapperDefinitions::MPISparseSpaceType MappingSparseSpaceType;
-typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
+typedef typename MPIMapperDefinitions::SparseSpaceType MappingSparseSpaceType;
+typedef typename MPIMapperDefinitions::DenseSpaceType  DenseSpaceType;
 
 typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
 
