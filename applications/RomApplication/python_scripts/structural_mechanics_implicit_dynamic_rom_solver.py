@@ -42,7 +42,7 @@ class ROMSolver(ImplicitMechanicalSolver):
 
     def AddVariables(self):
         super(ROMSolver, self).AddVariables() #Adding nodal area variable
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
