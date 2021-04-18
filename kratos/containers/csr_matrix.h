@@ -194,12 +194,12 @@ public:
         mNcols=0;
     }
 
-    DataCommunicator& GetComm() const
+    const DataCommunicator& GetComm() const
     {
         return *mpComm;
     }
 
-    DataCommunicator* pGetComm() const
+    const DataCommunicator* pGetComm() const
     {
         return mpComm;
     }
@@ -719,7 +719,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    DataCommunicator* mpComm;
+    const DataCommunicator* mpComm;
     bool mIsOwnerOfData = true;
     IndexType* mpRowIndicesData = nullptr;
     IndexType* mpColIndicesData = nullptr;

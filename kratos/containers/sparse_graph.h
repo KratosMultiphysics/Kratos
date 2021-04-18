@@ -116,12 +116,12 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    DataCommunicator& GetComm() const
+    const DataCommunicator& GetComm() const
     {
         return *mpComm;
     }
 
-    DataCommunicator* pGetComm() const
+    const DataCommunicator* pGetComm() const
     {
         return mpComm;
     }
