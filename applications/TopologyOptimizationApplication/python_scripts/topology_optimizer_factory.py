@@ -123,6 +123,10 @@ class SIMPMethod:
         if(self.config.optimization_algorithm == "oc_algorithm"):
            self.start_oc_algorithm()
 
+        if(self.config.optimization_algorithm == "MMA_alogrithm"):
+           self.start_oc_algorithm()
+
+
         else:
             raise TypeError("Specified optimization_algorithm not implemented!")
 
@@ -218,6 +222,12 @@ class SIMPMethod:
                                                                    self.config.q_max )
             if (self.config.optimization_algorithm == "MMA_alogrithm"):
                 print("\n No valid Updating algorithm used!")
+                self.design_update_utils.UpdateDensitiesUsingMMAMethod( self.config.optimization_algorithm,
+                                                self.config.initial_volume_fraction,
+                                                self.config.grey_scale_filter,
+                                                opt_itr,
+                                                self.config.q_max,
+                                                self.config.filter_type , self.config.filter_kernel  )
 
             if (self.config.density_filter == "density"):
                 print("\n::[Filter Densities]::") 
@@ -290,9 +300,11 @@ class SIMPMethod:
                     self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
                     break
 
-            # Set X_PHYS_OLD to X_PHYS to update the value for the next simulation's "change percentage"
+            # Set X_PHYS_OLD, DCDX_OLD and DCDX_OLD_2  to update the value for the next simulation's "change percentage"
             for element_i in self.opt_model_part.Elements:
                 element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
+                element_i.SetValue(DCDX_OLD_2, element_i.GetValue(DCDX_OLD))
+                element_i.SetValue(DCDX_OLD, element_i.GetValue(DCDX))
 
             # Take time needed for current optimization step
             end_time = time.time()

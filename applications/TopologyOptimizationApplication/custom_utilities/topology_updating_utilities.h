@@ -29,6 +29,9 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
+/* #include "MMASolver.cpp" */
+#include "mma_solver.h"
+
 
 // Application includes
 #include "topology_optimization_application.h"
@@ -206,12 +209,45 @@ public:
 
 
 
-	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac, double greyscale , double OptItr , double qmax)
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac, double greyscale , double OptItr , double qmax, char FilterType[], char FilterFunctionType[] )
 	{
 		KRATOS_TRY;
-		double z = 0;
 
-	
+		// Create object of updating function
+		MMACalculateNewDensities MMASolve(FilterFunctionType);
+		double x = 0;
+
+				array_1d<double,3> center_coord = ZeroVector(3);
+
+				for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+				{
+					double x_old = element_i->GetValue(X_PHYS_OLD);
+					int solid_void = element_i->GetValue(SOLID_VOID);
+					double dcdx  = element_i->GetValue(DCDX);
+					double dvdx  = element_i->GetValue(DVDX);
+					double x_old_2 = 0;
+					double dcdx_old = 0;
+					double xval = element_i->GetValue(X_PHYS);
+					double gx = 0.5;
+					double dfdx = element_i->GetValue(DCDX);
+					double dgdx = 0;
+					double xmin = 0;
+					double xmax = 1;
+					double xold1 = element_i->GetValue(DCDX_OLD);
+					double xold2 = element_i->GetValue(DCDX_OLD_2);
+
+
+					int i=0;
+					int j=0;
+					x = MMASolve.UpdateMMA(xval, dfdx,  gx,  dgdx,  xmin, xmax, xold1, xold2); 
+					double rest = 0;
+					rest = x -xval;
+					std::cout << "  Updating of values performed X="<< rest << std::endl;
+
+					
+
+				}
+
 
 
 
