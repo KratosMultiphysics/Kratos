@@ -63,7 +63,7 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -449,10 +449,8 @@ public:
                 nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...

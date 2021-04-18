@@ -13,25 +13,24 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
+#if !defined(KRATOS_ADD_MAPPER_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_MAPPER_TO_PYTHON_H_INCLUDED
+
 // System includes
 
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-#include "custom_python/add_custom_mappers_to_python.h"
 #include "custom_mappers/mapper.h"
 #include "custom_utilities/mapper_factory.h"
 #include "custom_utilities/mapper_flags.h"
-#include "custom_utilities/mapper_typedefs.h"
 
-// Mappers
-#include "custom_mappers/nearest_neighbor_mapper.h"
-#include "custom_mappers/nearest_element_mapper.h"
 
 
 namespace Kratos {
 namespace Python {
+namespace {
 
 // Wrapper functions for taking a default argument for the flags
 template<class TSparseSpace, class TDenseSpace>
@@ -132,13 +131,14 @@ inline void InverseMapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy
 
 
 template<class TSparseSpace, class TDenseSpace>
-void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
+void ExposeMapperToPython(pybind11::module& m)
 {
-    typedef Mapper<TSparseSpace, TDenseSpace> MapperType;
     namespace py = pybind11;
     // Exposing the base class of the Mappers to Python, but without constructor
+    const std::string mapper_name = TSparseSpace::IsDistributed() ? "MPIMapper" : "Mapper";
+    typedef Mapper<TSparseSpace, TDenseSpace> MapperType;
     const auto mapper
-        = py::class_< MapperType, typename MapperType::Pointer >(m, rName.c_str())
+        = py::class_< MapperType, typename MapperType::Pointer >(m, mapper_name.c_str())
             .def("UpdateInterface",     UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",     UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",     UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
@@ -172,30 +172,24 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
     mapper.attr("FROM_NON_HISTORICAL") = MapperFlags::FROM_NON_HISTORICAL;
 }
 
-void  AddCustomMappersToPython(pybind11::module& m)
-{
-    namespace py = pybind11;
+} // anonymous namespace
 
-    typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
-    typedef MapperDefinitions::SparseSpaceType SparseSpaceType;
-    ExposeMapperToPython<SparseSpaceType, DenseSpaceType>(m, "Mapper");
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    typedef MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
-    ExposeMapperToPython<MPISparseSpaceType, DenseSpaceType>(m, "MPIMapper");
-#endif
+template<class TSparseSpace, class TDenseSpace>
+void AddMapperToPython(pybind11::module& m)
+{
+    ExposeMapperToPython<TSparseSpace, TDenseSpace>(m);
 
     // Exposing the MapperFactory
-    py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
-        .def_static("HasMapper", &MapperFactory::HasMapper<SparseSpaceType, DenseSpaceType>)
-        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<SparseSpaceType, DenseSpaceType>)
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
-        .def_static("HasMPIMapper", &MapperFactory::HasMapper<MPISparseSpaceType, DenseSpaceType>)
-        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<MPISparseSpaceType, DenseSpaceType>)
-#endif
+    const std::string mapper_factory_name = TSparseSpace::IsDistributed() ? "MPIMapperFactory" : "MapperFactory";
+    typedef MapperFactory<TSparseSpace, TDenseSpace> MapperFactoryType;
+    pybind11::class_<MapperFactoryType, typename MapperFactoryType::Pointer>(m, mapper_factory_name.c_str())
+        .def_static("CreateMapper",             &MapperFactoryType::CreateMapper)
+        .def_static("HasMapper",                &MapperFactoryType::HasMapper)
+        .def_static("GetRegisteredMapperNames", &MapperFactoryType::GetRegisteredMapperNames)
     ;
 }
 
 }  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos.
+
+#endif // KRATOS_ADD_MAPPER_TO_PYTHON_H_INCLUDED  defined
