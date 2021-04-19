@@ -57,7 +57,7 @@ void ForceAndTorqueUtils::SumForceAndTorque(const ModelPart& rModelPart,
         }
     );
 
-    //rModelPart.GetCommunicator().GetDataCommunicator().SumAll(force_and_moment);
+    rModelPart.GetCommunicator().GetDataCommunicator().SumAll(force_and_moment);
 
     rForce[0] = force_and_moment[0];
     rForce[1] = force_and_moment[1];
