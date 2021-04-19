@@ -21,10 +21,8 @@ namespace Kratos
 {
 
 
-void ForceAndTorqueUtils::SumForceAndTorque(const ModelPart& rModelPart,
-                                            const array_1d<double,3>& rReferencePoint,
-                                            array_1d<double,3>& rForce,
-                                            array_1d<double,3>& rTorque)
+std::array<array_1d<double,3>,2> ForceAndTorqueUtils::SumForceAndTorque(const ModelPart& rModelPart,
+                                                                        const array_1d<double,3>& rReferencePoint)
 {
     KRATOS_TRY
 
@@ -57,14 +55,18 @@ void ForceAndTorqueUtils::SumForceAndTorque(const ModelPart& rModelPart,
         }
     );
 
-    rModelPart.GetCommunicator().GetDataCommunicator().SumAll(force_and_moment);
+    std::array<array_1d<double,3>,2> output;
+    output[0][0] = force_and_moment[0];
+    output[0][1] = force_and_moment[1];
+    output[0][2] = force_and_moment[2];
+    output[1][0] = force_and_moment[3];
+    output[1][1] = force_and_moment[4];
+    output[1][2] = force_and_moment[5];
 
-    rForce[0] = force_and_moment[0];
-    rForce[1] = force_and_moment[1];
-    rForce[2] = force_and_moment[2];
-    rTorque[0] = force_and_moment[3];
-    rTorque[1] = force_and_moment[4];
-    rTorque[2] = force_and_moment[5];
+    output[0] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(output[0]);
+    output[1] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(output[1]);
+
+    return output;
 
     KRATOS_CATCH("")
 }

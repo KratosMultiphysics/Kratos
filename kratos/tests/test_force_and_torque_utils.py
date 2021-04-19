@@ -39,14 +39,10 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
 
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
-        force = Array3()
-        moment = Array3()
 
-        KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
+        force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
-            reference_point,
-            force,
-            moment
+            reference_point
         )
 
         self.assertAlmostEqual(force[0], 10.0)
@@ -61,14 +57,10 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
 
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
-        force = Array3()
-        moment = Array3()
 
-        KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
+        force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
-            reference_point,
-            force,
-            moment
+            reference_point
         )
 
         self.assertAlmostEqual(force[0], 10.0)

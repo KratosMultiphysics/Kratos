@@ -66,10 +66,7 @@ public:
     ///@name Operations
     ///@{
 
-    static void SumForceAndTorque(const ModelPart& rModelPart,
-                                  const array_1d<double,3>& rReferencePoint,
-                                  array_1d<double,3>& rForce,
-                                  array_1d<double,3>& rTorque);
+    static std::array<array_1d<double,3>,2> SumForceAndTorque(const ModelPart& rModelPart, const array_1d<double,3>& rReferencePoint);
 
     ///@}
     ///@name Acces

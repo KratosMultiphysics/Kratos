@@ -81,14 +81,13 @@ KRATOS_TEST_CASE_IN_SUITE(SumForceAndTorque, KratosCoreFastSuite)
     ModelPart& r_model_part = model.CreateModelPart("Main", 2);
     FillModelPart(r_model_part);
 
-    ForceAndTorqueUtils force_and_torque_utils;
-    array_1d<double,3> force, moment;
-    force_and_torque_utils.SumForceAndTorque(
+    const auto force_and_moment = ForceAndTorqueUtils::SumForceAndTorque(
         r_model_part,
-        array_1d<double,3> {1.0, 1.0, 0.0},
-        force,
-        moment
+        array_1d<double,3> {1.0, 1.0, 0.0}
     );
+
+    const auto& force = force_and_moment[0];
+    const auto& moment = force_and_moment[1];
 
     KRATOS_CHECK_NEAR(force[0], 63.0, 1e-15);
     KRATOS_CHECK_NEAR(force[1], 51.0, 1e-15);
@@ -104,14 +103,13 @@ KRATOS_TEST_CASE_IN_SUITE(SumForceAndTorqueNoMoment, KratosCoreFastSuite)
     ModelPart& r_model_part = model.CreateModelPart("Main", 2);
     FillModelPart(r_model_part, false);
 
-    ForceAndTorqueUtils force_and_torque_utils;
-    array_1d<double,3> force, moment;
-    force_and_torque_utils.SumForceAndTorque(
+    const auto force_and_moment = ForceAndTorqueUtils::SumForceAndTorque(
         r_model_part,
-        array_1d<double,3> {1.0, 1.0, 0.0},
-        force,
-        moment
+        array_1d<double,3> {1.0, 1.0, 0.0}
     );
+
+    const auto& force = force_and_moment[0];
+    const auto& moment = force_and_moment[1];
 
     KRATOS_CHECK_NEAR(force[0], 63.0, 1e-15);
     KRATOS_CHECK_NEAR(force[1], 51.0, 1e-15);
