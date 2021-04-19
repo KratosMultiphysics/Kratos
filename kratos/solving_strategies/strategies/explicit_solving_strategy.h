@@ -98,7 +98,6 @@ public:
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-        mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
     /**
@@ -567,6 +566,17 @@ protected:
         const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
         SetMoveMeshFlag(move_mesh_flag);
         SetRebuildLevel(rebuild_level);
+
+        // Setting up the default builder and solver
+        const std::string& r_name = ThisParameters.Has("explicit_builder_settings") ? ThisParameters["explicit_builder_settings"].Has("name") ? ThisParameters["explicit_builder_settings"]["name"].GetString() : "explicit_builder" : "explicit_builder";
+        if (KratosComponents<ExplicitBuilderType>::Has( r_name )) {
+            // Defining the builder and solver
+            mpExplicitBuilder = KratosComponents<ExplicitBuilderType>::Get(r_name).Create(ThisParameters["explicit_builder_settings"]);
+        } else {
+            KRATOS_ERROR << "Trying to construct explicit builder with name= " << r_name << std::endl <<
+                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                            KratosComponents<ExplicitBuilderType>() << std::endl;
+        }
     }
 
     ///@}
