@@ -178,7 +178,7 @@ public:
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
                 noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
             }
-        } else {
+        } else if (ApproximationOrder == 2) {
             for (IndexType i_component = 0; i_component < num_components; ++i_component) {
                 // Apply the perturbation (positive)
                 PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
@@ -206,6 +206,42 @@ public:
 
                 // Finally we compute the components
                 CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, i_component);
+
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+            }
+        } else if (ApproximationOrder == 4) {
+            for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+                // Apply the perturbation (positive)
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
+
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+                // Compute stress (plus)
+                const Vector strain_plus = r_perturbed_strain;
+                const Vector stress_plus = r_perturbed_integrated_stress;
+
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+
+                // Apply the perturbation twice
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, 2.0*pertubation, i_component);
+
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+                // Compute stress (minus)
+                const Vector strain_2_plus = r_perturbed_strain;
+                const Vector stress_2_plus = r_perturbed_integrated_stress;
+
+                // Finally we compute the components
+                const SizeType voigt_size = stress_plus.size();
+                for (IndexType row = 0; row < voigt_size; ++row) {
+                    auxiliar_tensor(row, i_component) = (stress_plus[row] - unperturbed_stress_vector_gp[row]) / pertubation - (stress_2_plus[row] - 2.0 * stress_plus[row] + unperturbed_stress_vector_gp[row]) / (2.0 * pertubation);
+                }
 
                 // Reset the values to the initial ones
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
