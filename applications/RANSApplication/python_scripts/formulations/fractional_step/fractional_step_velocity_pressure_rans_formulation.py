@@ -247,7 +247,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
                 self.ExecuteBeforeCouplingSolveStep()
-                self.solver.Predict()
                 self.is_converged = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")

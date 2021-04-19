@@ -107,6 +107,13 @@ class RansFormulation:
         if (self.GetStrategy() is not None):
             self.GetStrategy().InitializeSolutionStep()
 
+    def Predict(self):
+        for formulation in self.__list_of_formulations:
+            formulation.Predict()
+
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Predict()
+
     def SolveCouplingStep(self):
         """Solves current formulation
 
