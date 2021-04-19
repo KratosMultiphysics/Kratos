@@ -178,6 +178,13 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         settings = self.GetParameters()
 
+        for constraint in model_part.MasterSlaveConstraints:
+            if (constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_X or
+                constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Y or
+                constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Z or
+                constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.PRESSURE):
+                self.monolithic_model_part.AddMasterSlaveConstraint(constraint)
+
         if (self.IsPeriodic()):
             if (self.GetDomainSize() == 2):
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
@@ -239,7 +246,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
                 self.ExecuteBeforeCouplingSolveStep()
-                self.solver.Predict()
                 _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
