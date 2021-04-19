@@ -27,6 +27,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "includes/serializer.h" 
 
 namespace Kratos
 {
@@ -171,6 +172,28 @@ namespace Kratos
       ModelPart& mrModelPart;
 
       double mtheta, mk_0, mp_0, mrho_0;
+
+      ///@}
+      ///@name Serialization
+      ///@{
+  
+      friend class Serializer;
+
+      virtual void save(Serializer& rSerializer) const
+      {
+        rSerializer.save("theta", mtheta);
+        rSerializer.save("k_0", mk_0);
+        rSerializer.save("p_0", mp_0);
+        rSerializer.save("rho_0", mrho_0);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+        rSerializer.load("theta", mtheta);
+        rSerializer.load("k_0", mk_0);
+        rSerializer.load("p_0", mp_0);
+        rSerializer.load("rho_0", mrho_0);
+      }
 
       ///@}
       ///@name Private Operators
