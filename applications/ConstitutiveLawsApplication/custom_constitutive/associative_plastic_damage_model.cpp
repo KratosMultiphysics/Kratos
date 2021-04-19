@@ -214,7 +214,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangen
         prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
 
-    noalias(rValues.GetConstitutiveMatrix()) = r_C - outer_prod(right_vector, left_vector) / denominator;
+    noalias(rPDParameters.TangentTensor) = r_C - outer_prod(right_vector, left_vector) / denominator;
 }
 
 /***********************************************************************************/
@@ -386,6 +386,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     const auto& r_mat_properties = rValues.GetMaterialProperties();
     BoundedMatrixType constitutive_matrix_increment;
     CalculateConstitutiveMatrix(rValues, rPDParameters);
+    noalias(rPDParameters.TangentTensor) = rPDParameters.ConstitutiveMatrix;
 
     bool is_converged = false;
     IndexType iteration = 0, max_iter = 1000;
@@ -402,8 +403,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateComplianceMatrixIncrement(rValues, rPDParameters);
         noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
 
+        // Update the analytical tangent tensor
+        if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+            CalculateAnalyticalTangentTensor(rValues, rPDParameters);
+
         noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
             prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
+
         CalculateConstitutiveMatrix(rValues, rPDParameters);
 
         // Compute the non-linear dissipation performed
@@ -469,14 +475,14 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CheckMinimumFractureEnerg
     const bool is_yield_symmetric = r_material_properties.Has(YIELD_STRESS_TENSION) ? false : true;
 
     const double young_modulus = r_material_properties[YOUNG_MODULUS];
-    const double yield = (is_yield_symmetric == false) ? r_material_properties[YIELD_STRESS_TENSION] : 
+    const double yield = (is_yield_symmetric == false) ? r_material_properties[YIELD_STRESS_TENSION] :
         r_material_properties[YIELD_STRESS];
     const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
 
     const double hlim = 2.0 * young_modulus * fracture_energy / (std::pow(yield, 2));
     KRATOS_ERROR_IF(rPDParameters.CharacteristicLength > hlim) << "The Fracture Energy is to low: " <<
         rPDParameters.CharacteristicLength << std::endl;
-    
+
     if (is_yield_symmetric == false) { // Check frac energy in compression
         const double yield_compression =  r_material_properties[YIELD_STRESS_COMPRESSION];
         const double fracture_energy_compr = r_material_properties[FRACTURE_ENERGY_COMPRESSION];
@@ -485,12 +491,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CheckMinimumFractureEnerg
             rPDParameters.CharacteristicLength << std::endl;
     }
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1068,7 +1068,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateTangentTensor(
         static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
 
     if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
-        CalculateAnalyticalTangentTensor(rValues, rPlasticDamageParameters);
+        // CalculateAnalyticalTangentTensor(rValues, rPlasticDamageParameters);
+        noalias(rValues.GetConstitutiveMatrix()) = rPlasticDamageParameters.TangentTensor;
     } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (first order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);

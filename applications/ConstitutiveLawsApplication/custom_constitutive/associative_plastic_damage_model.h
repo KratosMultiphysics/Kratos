@@ -99,6 +99,7 @@ public:
         BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType TangentTensor          = ZeroMatrix(VoigtSize,VoigtSize);
         BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize);
         BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize);
         BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize);
