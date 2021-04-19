@@ -66,6 +66,7 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
             if (settings["activate_wall_functions"].GetBool()):
                 for node in self.model_part.Nodes:
                     node.Set(KratosMultiphysics.SLIP, True)
+                    node.SetValue(KratosMultiphysics.Y_WALL, 1.0)
 
                 for condition in self.model_part.Conditions:
                     condition.Set(KratosMultiphysics.SLIP, True)

@@ -233,6 +233,9 @@ class CoupledRANSSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self.formulation.InitializeSolutionStep()
 
+    def Predict(self):
+        self.formulation.Predict()
+
     def SolveSolutionStep(self):
         self.formulation.SolveCouplingStep()
         self.is_converged = self.formulation.IsConverged()
