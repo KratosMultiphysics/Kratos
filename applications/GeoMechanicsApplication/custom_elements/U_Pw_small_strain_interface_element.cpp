@@ -239,8 +239,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     this->CalculateRotationMatrix(RotationMatrix,Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> RelDispVector;
-    const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-    double JointWidth;
 
     //Create constitutive law parameters:
     Vector StrainVector(TDim);
