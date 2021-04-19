@@ -8,34 +8,34 @@ import pathlib
 def GetFullPathToFile(fileName):
     return pathlib.Path(__file__).parent / fileName
 
+def GenerateModelPart(generate_moments=True):
+    model = KratosMultiphysics.Model()
+    model_part = model.CreateModelPart("Main")
+
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+    if generate_moments:
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT)
+
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+    KratosMultiphysics.ModelPartIO(
+        str(GetFullPathToFile("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+    ).ReadModelPart(model_part)
+
+    model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.REACTION_X, 10.0)
+    model_part.GetNode(2).SetSolutionStepValue(KratosMultiphysics.REACTION_Z, 20.0)
+    if (generate_moments):
+        model_part.GetNode(3).SetSolutionStepValue(KratosMultiphysics.MOMENT_Z, 1.0)
+
+    return model_part
+
 class TestForceAndTorqueUtils(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def GenerateModelPart(self, generate_moments=True):
-        model = KratosMultiphysics.Model()
-        model_part = model.CreateModelPart("Main")
-
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        if generate_moments:
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT)
-
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        KratosMultiphysics.ModelPartIO(
-            str(GetFullPathToFile("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
-        ).ReadModelPart(model_part)
-
-        model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.REACTION_X, 10.0)
-        model_part.GetNode(2).SetSolutionStepValue(KratosMultiphysics.REACTION_Z, 20.0)
-        if (generate_moments):
-            model_part.GetNode(3).SetSolutionStepValue(KratosMultiphysics.MOMENT_Z, 1.0)
-
-        return model_part
-
     def test_with_moment(self):
-        model_part = self.GenerateModelPart()
+        model_part = GenerateModelPart()
 
         Array3 = KratosMultiphysics.Array3
         referencePoint = Array3([0.0, 0.0, 0.0])
@@ -57,7 +57,7 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         self.assertAlmostEqual(moment[2], 1.0)
 
     def test_without_moment(self):
-        model_part = self.GenerateModelPart(generate_moments=False)
+        model_part = GenerateModelPart(generate_moments=False)
 
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
