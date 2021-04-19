@@ -38,13 +38,13 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         model_part = GenerateModelPart()
 
         Array3 = KratosMultiphysics.Array3
-        referencePoint = Array3([0.0, 0.0, 0.0])
+        reference_point = Array3([0.0, 0.0, 0.0])
         force = Array3()
         moment = Array3()
 
         KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
-            KratosMultiphysics.Array3([0.0, 0.0, 0.0]),
+            reference_point,
             force,
             moment
         )
