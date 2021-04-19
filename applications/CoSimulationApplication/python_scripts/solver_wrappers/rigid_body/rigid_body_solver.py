@@ -404,8 +404,7 @@ class RigidBodySolver(object):
             },
             "initial_values":{
                 "displacement"  : 0.0,
-                "velocity"      : 0.0,
-                "acceleration"  : 0.0
+                "velocity"      : 0.0
             },
             "boundary_conditions":{
                 "load_impulse": 0.0,
