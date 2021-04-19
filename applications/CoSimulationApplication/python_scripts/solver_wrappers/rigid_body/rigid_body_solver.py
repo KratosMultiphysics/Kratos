@@ -223,18 +223,17 @@ class RigidBodySolver(object):
                                                 str(reaction[index]) + "\n")
 
     def AdvanceInTime(self, current_time):
-        for dof in self.active_dofs:
-            # similar to the Kratos CloneTimeStep function
-            # advances values along the buffer axis (so rolling columns) using numpy's roll
-            self.x = np.roll(self.x,1,axis=1)
-            self.x_f = np.roll(self.x_f,1,axis=1)
-            self.v = np.roll(self.v,1,axis=1)
-            self.v_f = np.roll(self.v_f,1,axis=1)
-            self.a = np.roll(self.a,1,axis=1)
-            self.a_f = np.roll(self.a_f,1,axis=1)
-            self.total_load = np.roll(self.total_load,1,axis=1)
-            self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
-            self.effective_load = np.roll(self.effective_load,1,axis=1)
+        # similar to the Kratos CloneTimeStep function
+        # advances values along the buffer axis (so rolling columns) using numpy's roll
+        self.x = np.roll(self.x,1,axis=1)
+        self.x_f = np.roll(self.x_f,1,axis=1)
+        self.v = np.roll(self.v,1,axis=1)
+        self.v_f = np.roll(self.v_f,1,axis=1)
+        self.a = np.roll(self.a,1,axis=1)
+        self.a_f = np.roll(self.a_f,1,axis=1)
+        self.total_load = np.roll(self.total_load,1,axis=1)
+        self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
+        self.effective_load = np.roll(self.effective_load,1,axis=1)
 
         self.time = current_time + self.delta_t
         return self.time
