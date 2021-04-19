@@ -66,6 +66,7 @@
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
 #include "add_dofs_to_python.h"
+#include "add_force_and_torque_utils_to_python.h"
 
 namespace Kratos
 {
@@ -125,6 +126,7 @@ PYBIND11_MODULE(Kratos, m)
     AddSerializerToPython(m);
     AddTableToPython(m);
     AddGeometriesToPython(m);
+    AddForceAndTorqueUtilsToPython(m);
 
     AddMatrixMarketInterfaceToPython(m);
     AddKratosParametersToPython(m);
