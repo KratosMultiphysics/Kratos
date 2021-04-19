@@ -211,7 +211,7 @@ public:
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
                 noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
             }
-        } else if (ApproximationOrder == 4) {
+        } else if (ApproximationOrder == 4) { // Second order but with another approach. It is computed as first order but taking into account the second derivatives
             for (IndexType i_component = 0; i_component < num_components; ++i_component) {
                 // Apply the perturbation (positive)
                 PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
