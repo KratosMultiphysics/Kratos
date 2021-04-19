@@ -108,48 +108,58 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             #     POINT_LOAD_X,0,load_size_dir)
 
     def _solve_linear(self,mp):
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-
-        compute_reactions = True
-        reform_step_dofs = True
-        calculate_norm_dx = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
-                                                                scheme,
-                                                                builder_and_solver,
-                                                                compute_reactions,
-                                                                reform_step_dofs,
-                                                                calculate_norm_dx,
-                                                                move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
-        strategy.Initialize()
+        # Define a minimal linear solver
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "linear_strategy",
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : true,
+            "move_mesh_flag"           : true,
+            "compute_norm_dx"          : false,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static_scheme"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
 
     def _solve_nonlinear(self,mp):
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-12,1e-8)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 1000
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                scheme,
-                                                                convergence_criterion,
-                                                                builder_and_solver,
-                                                                max_iters,
-                                                                compute_reactions,
-                                                                reform_step_dofs,
-                                                                move_mesh_flag)
-        strategy.SetEchoLevel(0)
-        strategy.Initialize()
+        # Define a minimal newton raphson solver
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "newton_raphson_strategy",
+            "max_iteration"            : 1000,
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : true,
+            "move_mesh_flag"           : true,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static_scheme"
+            },
+            "convergence_criteria_settings" : {
+                "name"                        : "residual_criteria",
+                "residual_absolute_tolerance" : 1.0e-8,
+                "residual_relative_tolerance" : 1.0e-12,
+                "echo_level"                  : 0
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
 
@@ -699,6 +709,90 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic(mp,time_i)
             time_step += 1
 
+    def test_truss3D2N_dynamic_energy(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
+        self._add_variables(mp)
+        _add_explicit_variables(mp)
+        self._apply_material_properties(mp,dim)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,10.0)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e4)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.0)
+        self._add_constitutive_law(mp,True)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.5,0.0,0.0)
+        mp.CreateNewNode(3,1.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2,3])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([3])
+        bcs_neumann.AddConditions([1])
+        #create Elements
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_X = 100000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+        self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.01
+        time_delta = 0.00002
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        strategy = _create_dynamic_explicit_strategy(mp,"central_differences")
+
+        e_damp = 0.0
+        while (time_i <= time_end):
+
+            e_strain = 0.0
+            e_kin = 0.0
+            e_ext = 0.0
+
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+            #solve + compare
+            strategy.Solve()
+
+            e_ext += Force_X * mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
+
+            for element_i in mp.Elements:
+                e_strain += element_i.Calculate(KratosMultiphysics.STRAIN_ENERGY,mp.ProcessInfo)
+                e_kin    += element_i.Calculate(KratosMultiphysics.KINETIC_ENERGY,mp.ProcessInfo)
+                e_damp += time_delta*element_i.Calculate(StructuralMechanicsApplication.ENERGY_DAMPING_DISSIPATION,mp.ProcessInfo)
+                # adding external energy due to dead load
+                e_ext   += element_i.Calculate(KratosMultiphysics.EXTERNAL_ENERGY,mp.ProcessInfo)
+
+
+
+            # total energy should be ca. 0
+            e_total = sum([-e_ext,e_kin,e_strain,e_damp])
+            self.assertLessEqual(abs(e_total), 60.0)
+            # respective energy parts should be > or < 0 after first step
+            if time_step>0:
+                self.assertGreater(abs(e_ext), 0.0)
+                self.assertGreater(abs(e_damp), 0.0)
+                self.assertGreater(abs(e_kin), 0.0)
+                self.assertGreater(abs(e_strain), 0.0)
+
+            time_step += 1
+
     def test_truss3D2N_dynamic_consistent_mm(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
@@ -1177,31 +1271,38 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
 def _set_up_dynamic_solver(mp):
-    #define a minimal newton raphson solver
-    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-    scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.00)
-    convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
-    convergence_criterion.SetEchoLevel(0)
-
-    max_iters = 1000
-    compute_reactions = True
-    reform_step_dofs = True
-    move_mesh_flag = True
-    strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                            scheme,
-                                                            convergence_criterion,
-                                                            builder_and_solver,
-                                                            max_iters,
-                                                            compute_reactions,
-                                                            reform_step_dofs,
-                                                            move_mesh_flag)
-    strategy.SetEchoLevel(0)
-
+    # Define a minimal newton raphson solver
+    settings = KratosMultiphysics.Parameters("""
+    {
+        "name"                     : "newton_raphson_strategy",
+        "max_iteration"            : 1000,
+        "compute_reactions"        : true,
+        "reform_dofs_at_each_step" : true,
+        "move_mesh_flag"           : true,
+        "echo_level"               : 0,
+        "linear_solver_settings" : {
+            "solver_type" : "skyline_lu_factorization"
+        },
+        "scheme_settings" : {
+            "name"          : "bossak_scheme",
+            "damp_factor_m" : 0.0
+        },
+        "convergence_criteria_settings" : {
+            "name"                        : "residual_criteria",
+            "residual_absolute_tolerance" : 1.0e-8,
+            "residual_relative_tolerance" : 1.0e-8,
+            "echo_level"                  : 0
+        },
+        "builder_and_solver_settings" : {
+            "name" : "block_builder_and_solver"
+        }
+    }
+    """)
+    strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
     strategy.Initialize()
     strategy.Check()
+   
     return strategy
-
 
 def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)

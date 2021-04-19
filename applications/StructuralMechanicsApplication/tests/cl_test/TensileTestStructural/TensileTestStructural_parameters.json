@@ -68,7 +68,7 @@
                 "model_part_name"              : "Structure.Parts_Central",
                 "tolerance"                    : 1e-2,
                 "relative_tolerance"           : 1e-4,
-                "time_frequency"               : 0.1
+                "time_frequency"               : 0.4
             }
         }
         ]

@@ -17,8 +17,6 @@
 
 
 // Project includes
-#include "includes/model_part.h"
-#include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_utilities.h"
 
@@ -303,6 +301,16 @@ void ShallowWaterUtilities::SetMeshZCoordinateToZero(ModelPart& rModelPart)
     }
 }
 
+void ShallowWaterUtilities::SetMeshZ0CoordinateToZero(ModelPart& rModelPart)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        it_node->Z0() = 0.0;
+    }
+}
+
 void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     #pragma omp parallel for
@@ -376,6 +384,18 @@ void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const Geome
     {
         KRATOS_ERROR << "ShallowWaterUtilities::MassMatrix. Method implemented for lines, triangles and quadrilaterals" << std::endl;
     }
+}
+
+template<>
+double ShallowWaterUtilities::GetValue<true>(NodeType& rNode, const Variable<double>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+double ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<double>& rVariable)
+{
+    return rNode.GetValue(rVariable);
 }
 
 }  // namespace Kratos.
