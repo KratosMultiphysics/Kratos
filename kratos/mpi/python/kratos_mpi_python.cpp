@@ -34,7 +34,7 @@ void InitializeMPIParallelRun()
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
     ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
     // Register the MPICommunicator to be used as factory for the communicator.
-    ParallelEnvironment::RegisterCommunicatorFactory([](ModelPart& rModelPart)->Communicator::Pointer{return Communicator::Pointer(new MPICommunicator(&(rModelPart.GetNodalSolutionStepVariablesList())));});
+    ParallelEnvironment::RegisterCommunicatorFactory([](ModelPart& rModelPart, DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{return Communicator::UniquePointer(new MPICommunicator(&(rModelPart.GetNodalSolutionStepVariablesList()), rDataCommunicator));});
     // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
     ParallelEnvironment::RegisterFillCommunicatorFactory([](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new ParallelFillCommunicator(rModelPart));});
 }
