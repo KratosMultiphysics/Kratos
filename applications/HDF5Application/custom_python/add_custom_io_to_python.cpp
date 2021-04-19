@@ -38,6 +38,8 @@
 #include "custom_io/hdf5_nodal_data_value_io.h"
 #include "custom_io/hdf5_nodal_flag_value_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
+#include "custom_io/hdf5_element_gauss_point_output.h"
+#include "custom_io/hdf5_condition_gauss_point_output.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -95,7 +97,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteElementFlags", &HDF5::ElementFlagValueIO::WriteElementFlags)
         .def("ReadElementFlags", &HDF5::ElementFlagValueIO::ReadElementFlags)
-        ; 
+        ;
 
     py::class_<HDF5::ElementDataValueIO, HDF5::ElementDataValueIO::Pointer>(
         m,"HDF5ElementDataValueIO")
@@ -109,7 +111,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteConditionFlags", &HDF5::ConditionFlagValueIO::WriteConditionFlags)
         .def("ReadConditionFlags", &HDF5::ConditionFlagValueIO::ReadConditionFlags)
-        ; 
+        ;
 
     py::class_<HDF5::ConditionDataValueIO, HDF5::ConditionDataValueIO::Pointer>(
         m,"HDF5ConditionDataValueIO")
@@ -123,13 +125,25 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalFlags", &HDF5::NodalFlagValueIO::WriteNodalFlags)
         .def("ReadNodalFlags", &HDF5::NodalFlagValueIO::ReadNodalFlags)
-        ; 
+        ;
 
     py::class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
         m,"HDF5NodalDataValueIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalDataValueIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalDataValueIO::ReadNodalResults)
+        ;
+
+    py::class_<HDF5::ElementGaussPointOutput, HDF5::ElementGaussPointOutput::Pointer>(
+        m,"HDF5ElementGaussPointOutput")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("WriteElementGaussPointValues", &HDF5::ElementGaussPointOutput::WriteElementGaussPointValues)
+        ;
+
+    py::class_<HDF5::ConditionGaussPointOutput, HDF5::ConditionGaussPointOutput::Pointer>(
+        m,"HDF5ConditionGaussPointOutput")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
         ;
 
 #ifdef KRATOS_USING_MPI

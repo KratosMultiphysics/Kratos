@@ -80,7 +80,7 @@ class EigenSolver(MechanicalSolver):
         computing_model_part = self.GetComputingModelPart()
 
         solver_type = self.settings["eigensolver_settings"]["solver_type"].GetString()
-        if solver_type == "eigen_eigensystem":
+        if solver_type in ["eigen_eigensystem", "spectra_sym_g_eigs_shift"]: # TODO evaluate what has to be used for spectra
             mass_matrix_diagonal_value = 0.0
             stiffness_matrix_diagonal_value = 1.0
         elif solver_type == "feast":

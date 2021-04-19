@@ -231,10 +231,14 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
         const std::string output_path = mOutputSettings["output_path"].GetString();
 
-        // create folder if it doesn't exist before
-        if (!Kratos::filesystem::is_directory(output_path)) {
+        // Create folder if it doesn't exist before
+        if (!Kratos::filesystem::is_directory(output_path) && rModelPart.GetCommunicator().MyPID() == 0) {
             Kratos::filesystem::create_directories(output_path);
         }
+
+        // All ranks must wait until the folder is created otherwise writing might fail
+        // if some ranks are faster and try to create files in a not-yet existing folder
+        rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
 
         output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }

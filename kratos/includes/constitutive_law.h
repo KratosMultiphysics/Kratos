@@ -852,6 +852,114 @@ public:
     virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
                           array_1d<double, 6 > & rValue);
 
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a scalar function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * Eg: Assume following function (gauss point evaluated):
+     *      \[
+     *          \nu = \nu_{fluid} + \nu_t = \nu_{fluid} + \left(\frac{y}{\omega}\right)^2 \frac{\partial k}{\partial x_i}\frac{\partial \omega}{\partial x_i}
+     *      \]
+     *
+     *      Then in here we use rFunctionVariable = EFFECTIVE_VISCOSITY
+     *
+     *      Then if we want to take derivatives w.r.t. $\omega$ (i.e. rDerivativeVariable = OMEGA).
+     *      So following steps needs to be used.
+     *
+     *           1. First calculate derivatives w.r.t. omega (rDerivativeVariable = OMEGA)
+     *              using the call:
+     *                   CalculateDerivative(Values, EFFECTIVE_VISCOSITY, OMEGA, output);
+     *              The output will hold the following:
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \omega} = \frac{\partial \nu_t}{\partial \omega} = -2\frac{y^2}{\omega^3}\frac{\partial k}{\partial x_i}\frac{\partial \omega}{\partial x_i}
+     *                   \]
+     *           2. Then calculate derivatives w.r.t. omega gradients (rDerivativeVariable = OMEGA_GRADIENT_X)
+     *              using the call: (where OMEGA_GRADIENT is a 3D vector with components)
+     *                   CalculateDerivative(Values, EFFECTIVE_VISCOSITY, OMEGA_GRADIENT_X, output);
+     *              The output will hold the following:
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \nabla\omega_x} = \frac{\partial \nu_t}{\partial \nabla\omega_x} =  \left(\frac{y}{\omega}\right)^2 \frac{\partial k}{\partial x_x}
+     *                   \]
+     *              Once you have these outputs, you can transform it to a nodal derivative (eg: discrete adjoint computation)
+     *              within your element by using the chain rule. [Where $c$ is the node index of the geometry.]
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \omega^c} = \frac{\partial \nu}{\partial \omega}\frac{\partial \omega}{\partial \omega^c} + \frac{\partial \nu}{\partial \nabla\omega_i}\frac{\partial \nabla\omega_i}{\partial \omega^c}
+     *                   \]
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Vector function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Matrix function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a array_1d<double, 3> function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<array_1d<double, 3>>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        array_1d<double, 3>& rOutput);
+
 
      /**
       * Is called to check whether the provided material parameters in the Properties

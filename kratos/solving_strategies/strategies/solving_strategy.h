@@ -25,6 +25,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/parallel_utilities.h"
+#include "factories/factory.h"
 
 namespace Kratos
 {
@@ -557,11 +558,11 @@ protected:
     ///@{
 
 private:
-
     ///@}
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
 
     ///@}
     ///@name Member Variables

@@ -46,6 +46,7 @@ add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
+add_app ${KRATOS_APP_DIR}/RomApplication;
 
 # Clean
 clear
@@ -64,9 +65,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
--DUSE_COTIRE=ON \
+-DCMAKE_UNITY_BUILD=ON \
 -DINCLUDE_MMG=ON                                    \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1 && \
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2

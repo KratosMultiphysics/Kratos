@@ -61,6 +61,7 @@ class DistributedSystemVector
 public:
     ///@name Type Definitions
     ///@{
+    typedef TDataType value_type;
     typedef TIndexType IndexType;
     typedef int MpiIndexType;
 
