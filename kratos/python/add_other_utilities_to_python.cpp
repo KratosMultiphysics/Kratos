@@ -53,6 +53,7 @@
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
 #include "utilities/dense_svd_decomposition.h"
+#include "utilities/force_and_torque_utils.h"
 
 namespace Kratos {
 namespace Python {
@@ -604,6 +605,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
+
+    py::class_<ForceAndTorqueUtils>(rModule, "ForceAndTorqueUtils")
+        .def(py::init<>())
+        .def("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
+        ;
 
 }
 
