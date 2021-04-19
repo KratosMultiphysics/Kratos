@@ -55,6 +55,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
     def tearDown(self):
         # Remove the Metis partitioning files
         KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
+        # next test can only start after all the processes arrived here, otherwise race conditions with deleting the files can occur
+        self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
     def test_trilinos_levelset_convection(self):
         # Set the initial distance field and the convection velocity
