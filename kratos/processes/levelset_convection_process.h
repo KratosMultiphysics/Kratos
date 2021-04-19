@@ -263,7 +263,7 @@ public:
             );
 
             // Storing the levelset variable for error calculation and Evaluating the limiter
-            if (mIsBfecc || mIsAlgebraicStabilization) {
+            if (mIsBfecc || (mIsAlgebraicStabilization && mIsHighOrder)) {
                 EvaluateLimiter();
             }
 
@@ -308,7 +308,7 @@ public:
         mVelocityOld.clear();
         mOldDistance.clear();
 
-        if (mIsBfecc || mIsAlgebraicStabilization){
+        if (mIsBfecc || (mIsAlgebraicStabilization && mIsHighOrder)){
             mSigmaPlus.clear();
             mSigmaMinus.clear();
             mLimiter.clear();
@@ -597,7 +597,7 @@ protected:
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
 
-        if (mIsBfecc || mIsAlgebraicStabilization){
+        if (mIsBfecc || (mIsAlgebraicStabilization && mIsHighOrder)){
             mSigmaPlus.resize(n_nodes);
             mSigmaMinus.resize(n_nodes);
             mLimiter.resize(n_nodes);
