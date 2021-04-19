@@ -230,7 +230,7 @@ public:
         {
             noalias(position) += small_dt*initial_velocity;
             unsigned int substep=0;
-            while(++substep < subdivisions)
+            while(substep++ < subdivisions)
             {
                 is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
 
@@ -260,7 +260,7 @@ public:
         {
             noalias(position) -= small_dt*initial_velocity;
             unsigned int substep=0;
-            while(++substep < subdivisions)
+            while(substep++ < subdivisions)
             {
                 is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
 
