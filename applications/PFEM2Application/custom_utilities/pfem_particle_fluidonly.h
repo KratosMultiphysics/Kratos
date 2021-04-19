@@ -135,6 +135,7 @@ public:
 		this->ERASE_FLAG=true; //initializing as useless particle
 		this->VELOCITY=ZeroVector(3);
 		this->DISTANCE=0.0;
+		this->ELEMENT_ID=0;
     }
     
     PFEM_Particle_Fluid() : Point(0.0, 0.0, 0.0)
@@ -142,6 +143,7 @@ public:
 		this->ERASE_FLAG=true;
 		this->VELOCITY=ZeroVector(3);
 		this->DISTANCE=0.0;
+		this->ELEMENT_ID=0;
     }
     
     ~PFEM_Particle_Fluid()
@@ -188,6 +190,12 @@ public:
 		return this->ELEMENT_ID;
 	}
 	*/
+	
+	int& GetElementId()
+	{
+		return this->ELEMENT_ID;
+	}
+	
 	bool& GetEraseFlag()
 	{
 		return this->ERASE_FLAG;
@@ -211,6 +219,7 @@ private:
 	//double OXYGEN;
 	//Element::Pointer ELEMENT_WEAKPOINTER;
 	//unsigned int ELEMENT_ID;
+	int ELEMENT_ID;
 	//double GRADIENT_DISCONTINUITY;
 	bool ERASE_FLAG;
 	

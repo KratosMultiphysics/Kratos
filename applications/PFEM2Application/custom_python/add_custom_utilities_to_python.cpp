@@ -60,6 +60,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_particle_utility_pfem2.h"
+#include "custom_utilities/move_particle_utility_fullbins_pfem2.h" 
+#include "custom_utilities/nitsche_decondensation_utility.h" 
+#include "custom_utilities/nitsche_decondensation_positivepart_utility.h" 
 #include "custom_utilities/integrate_traction_vector_weak.h" 
 #include "custom_utilities/integrate_traction_vector_strong.h" 
 
@@ -132,6 +135,80 @@ namespace py = pybind11;
    .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityPFEM2<3>::AssignNodalVelocityUsingInletConditions)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<3>::RotateParticlesAndDomainVelocities)
    ;
+
+   py::class_< MoveParticleUtilityFullBinsPFEM2<2> > (m,"MoveParticleUtilityFullBinsPFEM22D").def(py::init<ModelPart& , int >())
+   .def("MountBin", &MoveParticleUtilityFullBinsPFEM2<2>::MountBin)
+   .def("MoveParticles", &MoveParticleUtilityFullBinsPFEM2<2>::MoveParticles)
+   .def("MoveParticles_Nitsche", &MoveParticleUtilityFullBinsPFEM2<2>::MoveParticles_Nitsche)
+   .def("MoveParticlesRK4", &MoveParticleUtilityFullBinsPFEM2<2>::MoveParticlesRK4)
+   .def("MoveParticlesRK4_Nitsche", &MoveParticleUtilityFullBinsPFEM2<2>::MoveParticlesRK4_Nitsche)
+   .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
+   .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity_Nitsche", &MoveParticleUtilityFullBinsPFEM2<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity_Nitsche)
+   .def("AccelerateParticlesWithoutMovingUsingMeshDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<2>::AccelerateParticlesWithoutMovingUsingMeshDeltaVelocity)   
+   .def("PreReseed", &MoveParticleUtilityFullBinsPFEM2<2>::PreReseed)
+   .def("PostReseed", &MoveParticleUtilityFullBinsPFEM2<2>::PostReseed)
+   .def("PostReseed_Nitsche", &MoveParticleUtilityFullBinsPFEM2<2>::PostReseed_Nitsche)
+   .def("ResetBoundaryConditions", &MoveParticleUtilityFullBinsPFEM2<2>::ResetBoundaryConditions)
+   .def("ResetBoundaryConditionsSlip", &MoveParticleUtilityFullBinsPFEM2<2>::ResetBoundaryConditionsSlip)
+   .def("ResetBoundaryConditionsOnProjectedVelocity", &MoveParticleUtilityFullBinsPFEM2<2>::ResetBoundaryConditionsOnProjectedVelocity)
+   .def("TransferLagrangianToEulerian",&MoveParticleUtilityFullBinsPFEM2<2>::TransferLagrangianToEulerian)
+   .def("TransferLagrangianToEulerianDistance_Nitsche",&MoveParticleUtilityFullBinsPFEM2<2>::TransferLagrangianToEulerianDistance_Nitsche)
+   .def("TransferLagrangianToEulerianVelocity_Nitsche",&MoveParticleUtilityFullBinsPFEM2<2>::TransferLagrangianToEulerianVelocity_Nitsche)
+   .def("TransferLagrangianToEulerianSecondOrder",&MoveParticleUtilityFullBinsPFEM2<2>::TransferLagrangianToEulerianSecondOrder)
+   .def("TransferLagrangianToEulerianSecondOrderDistance_Nitsche",&MoveParticleUtilityFullBinsPFEM2<2>::TransferLagrangianToEulerianSecondOrderDistance_Nitsche)
+//    .def("TransferLagrangianToEulerianSecondOrderVelocity_Nitsche",&MoveParticleUtilityFullBinsPFEM2<2>::TransferLagrangianToEulerianSecondOrderVelocity_Nitsche)
+   .def("CalculateVelOverElemSize", &MoveParticleUtilityFullBinsPFEM2<2>::CalculateVelOverElemSize)
+   .def("CalculateDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<2>::CalculateDeltaVelocity)
+   .def("CalculateDeltaVelocity_Nitsche", &MoveParticleUtilityFullBinsPFEM2<2>::CalculateDeltaVelocity_Nitsche)
+  //  .def("CalculateMeshDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<2>::CalculateMeshDeltaVelocity)
+   .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityFullBinsPFEM2<2>::CopyVectorVarToPreviousTimeStep)
+   .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityFullBinsPFEM2<2>::CopyScalarVarToPreviousTimeStep)
+   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityFullBinsPFEM2<2>::ExecuteParticlesPritingTool)
+   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityFullBinsPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityFullBinsPFEM2<2>::RotateParticlesAndDomainVelocities)
+   ;
+   
+    py::class_< MoveParticleUtilityFullBinsPFEM2<3> > (m,"MoveParticleUtilityFullBinsPFEM23D").def(py::init<ModelPart& , int >())
+   .def("MountBin", &MoveParticleUtilityFullBinsPFEM2<3>::MountBin)
+   .def("MoveParticles", &MoveParticleUtilityFullBinsPFEM2<3>::MoveParticles)
+   .def("MoveParticles_Nitsche", &MoveParticleUtilityFullBinsPFEM2<3>::MoveParticles_Nitsche)
+   .def("MoveParticlesRK4", &MoveParticleUtilityFullBinsPFEM2<3>::MoveParticlesRK4)
+   .def("MoveParticlesRK4_Nitsche", &MoveParticleUtilityFullBinsPFEM2<3>::MoveParticlesRK4_Nitsche)
+   .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
+   .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity_Nitsche", &MoveParticleUtilityFullBinsPFEM2<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity_Nitsche)
+   .def("AccelerateParticlesWithoutMovingUsingMeshDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<3>::AccelerateParticlesWithoutMovingUsingMeshDeltaVelocity)   
+   .def("PreReseed", &MoveParticleUtilityFullBinsPFEM2<3>::PreReseed)
+   .def("PostReseed", &MoveParticleUtilityFullBinsPFEM2<3>::PostReseed)
+   .def("PostReseed_Nitsche", &MoveParticleUtilityFullBinsPFEM2<3>::PostReseed_Nitsche)
+   .def("ResetBoundaryConditions", &MoveParticleUtilityFullBinsPFEM2<3>::ResetBoundaryConditions)
+   .def("ResetBoundaryConditionsSlip", &MoveParticleUtilityFullBinsPFEM2<3>::ResetBoundaryConditionsSlip)
+   .def("ResetBoundaryConditionsOnProjectedVelocity", &MoveParticleUtilityFullBinsPFEM2<3>::ResetBoundaryConditionsOnProjectedVelocity)
+   .def("TransferLagrangianToEulerian",&MoveParticleUtilityFullBinsPFEM2<3>::TransferLagrangianToEulerian)
+   .def("TransferLagrangianToEulerianDistance_Nitsche",&MoveParticleUtilityFullBinsPFEM2<3>::TransferLagrangianToEulerianDistance_Nitsche)
+   .def("TransferLagrangianToEulerianVelocity_Nitsche",&MoveParticleUtilityFullBinsPFEM2<3>::TransferLagrangianToEulerianVelocity_Nitsche)
+   .def("TransferLagrangianToEulerianSecondOrder",&MoveParticleUtilityFullBinsPFEM2<3>::TransferLagrangianToEulerianSecondOrder)
+   .def("TransferLagrangianToEulerianSecondOrderDistance_Nitsche",&MoveParticleUtilityFullBinsPFEM2<3>::TransferLagrangianToEulerianSecondOrderDistance_Nitsche)
+//    .def("TransferLagrangianToEulerianSecondOrderVelocity_Nitsche",&MoveParticleUtilityFullBinsPFEM2<3>::TransferLagrangianToEulerianSecondOrderVelocity_Nitsche)
+   .def("CalculateVelOverElemSize", &MoveParticleUtilityFullBinsPFEM2<3>::CalculateVelOverElemSize)
+   .def("CalculateDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<3>::CalculateDeltaVelocity)
+   .def("CalculateDeltaVelocity_Nitsche", &MoveParticleUtilityFullBinsPFEM2<3>::CalculateDeltaVelocity_Nitsche)
+  //  .def("CalculateMeshDeltaVelocity", &MoveParticleUtilityFullBinsPFEM2<3>::CalculateMeshDeltaVelocity)
+   .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityFullBinsPFEM2<3>::CopyVectorVarToPreviousTimeStep)
+   .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityFullBinsPFEM2<3>::CopyScalarVarToPreviousTimeStep)
+   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityFullBinsPFEM2<3>::ExecuteParticlesPritingTool)
+   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityFullBinsPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityFullBinsPFEM2<3>::AssignNodalVelocityUsingInletConditions)
+   .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityFullBinsPFEM2<3>::RotateParticlesAndDomainVelocities)
+   ; 
+
+
+   py::class_< NitscheDecondensationUtility<2> > (m,"NitscheDecondensationUtility").def(py::init<ModelPart& , ModelPart&, double& >())
+   .def("MountBin", &NitscheDecondensationUtility<2>::MountBin)
+   ;   
+
+   py::class_< NitscheDecondensationPositivePartUtility<2> > (m,"NitscheDecondensationPositivePartUtility").def(py::init<ModelPart& , ModelPart&, double& >())
+   .def("MountBin", &NitscheDecondensationPositivePartUtility<2>::MountBin)
+   ;  
 
 
  py::class_< IntegrateTractionVectorWeakUtility<2> > (m,"IntegrateTractionVectorWeakUtility").def(py::init<ModelPart&, double >())
