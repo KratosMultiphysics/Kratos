@@ -46,10 +46,10 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 cmake ..                                                                                            \
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
--DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp -Wl,--no-as-needed -ldl"           \
--DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -Wl,--no-as-needed -ldl"                                   \
+-DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl"                                      \
+-DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -Wl,--no-as-needed -ldl"                                          \
 -DUSE_MPI=OFF                                                                                       \
--DUSE_COTIRE=OFF 						       		                    \
+-DUSE_COTIRE=OFF                                                                                    \
 -DUSE_EIGEN_MKL=OFF
 
 
