@@ -89,6 +89,11 @@ endif(${INCLUDE_PASTIX} MATCHES ON)
 
 set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosExternalSolversApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 #     set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .pyd)
@@ -98,11 +103,6 @@ set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #     set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .so)
 # endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Add Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosExternalSolversApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py KratosMultiphysics/ExternalSolversApplication/__init__.py )

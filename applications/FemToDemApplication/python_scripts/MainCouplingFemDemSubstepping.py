@@ -109,11 +109,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time += self.DEM_Solution.solver.dt
         self.DEM_Solution.step += 1
-        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
-                                                                   self.DEM_Solution.time,
-                                                                   self.DEM_Solution.solver.dt,
-                                                                   self.DEM_Solution.step,
-                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+        self.DEM_Solution.UpdateTimeInModelParts()
 
 #============================================================================================================================
     def OnlyUpdateTimeAndStepInDEM(self):
