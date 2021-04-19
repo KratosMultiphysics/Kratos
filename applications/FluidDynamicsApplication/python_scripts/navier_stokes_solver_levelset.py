@@ -234,7 +234,8 @@ class NavierStokesSolverLevelSet(FluidSolver):
             "pressure_relaxation":0.9,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "levelset_convection_settings" : {}
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesSolverLevelSet, cls).GetDefaultParameters())
@@ -382,7 +383,7 @@ class NavierStokesSolverLevelSet(FluidSolver):
             # If required, compute the BDF coefficients
             if hasattr(self, 'time_discretization'):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-            
+
             # Perform the level-set convection according to the previous step velocity
             self.__PerformLevelSetConvection()
 
@@ -415,7 +416,7 @@ class NavierStokesSolverLevelSet(FluidSolver):
 
             # Perform the solver InitializeSolutionStep
             self._GetSolutionStrategy().InitializeSolutionStep()
-            
+
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
         self.shock_process.ExecuteFinalizeSolutionStep()
@@ -437,7 +438,7 @@ class NavierStokesSolverLevelSet(FluidSolver):
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list 
+        self.historical_nodal_properties_variables_list = self.formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.formulation.non_historical_nodal_properties_variables_list
 
     def _SetTimeSchemeBufferSize(self):
@@ -509,9 +510,15 @@ class NavierStokesSolverLevelSet(FluidSolver):
         #     KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         if set_viscosity:
             KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+<<<<<<< HEAD
         # if set_sound_velocity:
         #     KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
     
+=======
+        #if set_sound_velocity:
+            #KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.SOUND_VELOCITY, sound_velocity, self.main_model_part.Nodes)
+
+>>>>>>> origin/level-set-area-branch
     def _CreateLevelSetConvectionProcess(self):
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

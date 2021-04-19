@@ -19,6 +19,7 @@
 
 /* Project includes */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -878,9 +879,9 @@ protected:
 
                 // Merging all the temporal indexes
                 for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].SetLock();
+                    lock_array[i].lock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].UnSetLock();
+                    lock_array[i].unlock();
                 }
             }
 
@@ -1002,8 +1003,7 @@ protected:
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
                         double& r_value = BaseType::mConstantVector[i_global];
-                        #pragma omp atomic
-                        r_value += constant_value;
+                        AtomicAdd(r_value, constant_value);
                     }
                 }
             }

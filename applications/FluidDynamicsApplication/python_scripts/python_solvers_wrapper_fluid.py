@@ -15,15 +15,21 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/level-set-area-branch
         if (solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic_old"
 
         elif (solver_type == "MonolithicLS"):
             solver_module_name = "navier_stokes_solver_levelset"
+<<<<<<< HEAD
 =======
         if solver_type == "monolithic" or solver_type == "Monolithic":
             solver_module_name = "navier_stokes_solver_vmsmonolithic"
 >>>>>>> master
+=======
+>>>>>>> origin/level-set-area-branch
 
         elif solver_type == "monolithic_stokes" or solver_type == "MonolithicStokes":
             solver_module_name = "stokes_solver_monolithic"
