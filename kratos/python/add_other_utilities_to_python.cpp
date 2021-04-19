@@ -606,7 +606,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
 
-    py::class_<ForceAndTorqueUtils>(rModule, "ForceAndTorqueUtils")
+    py::class_<ForceAndTorqueUtils>(m, "ForceAndTorqueUtils")
         .def(py::init<>())
         .def("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
         ;
