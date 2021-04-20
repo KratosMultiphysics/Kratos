@@ -1,7 +1,10 @@
 import KratosMultiphysics
 
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
+    from KratosMultiphysics import StructuralMechanicsApplication
 
 import os
 import math
@@ -9,7 +12,7 @@ import math
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -223,7 +226,7 @@ def _create_check_outputs(current_model):
     }
     """)
 
-    check_parameters["input_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
+    check_parameters["input_file_name"].SetString(GetFilePath("test_perfect_plasticity_implementation_verification_reference.json"))
 
     check = FromJsonCheckResultProcess(current_model, check_parameters)
     check.ExecuteInitialize()
@@ -245,7 +248,7 @@ def _create_reference_solution(current_model):
     }
     """)
 
-    out_parameters["output_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
+    out_parameters["output_file_name"].SetString(GetFilePath("test_perfect_plasticity_implementation_verification_reference.json"))
 
     out = JsonOutputProcess(current_model, out_parameters)
     out.ExecuteInitialize()

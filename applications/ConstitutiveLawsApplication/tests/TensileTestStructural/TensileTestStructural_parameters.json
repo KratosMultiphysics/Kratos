@@ -1,37 +1,37 @@
 {
     "problem_data"             : {
-        "problem_name"    : "bigcube_small_deformation_plasticity_VM_test",
+        "problem_name"    : "TensileTestStructural",
         "parallel_type"   : "OpenMP",
-        "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "start_time"      : 0.847,
+        "end_time"        : 3.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,
-        "domain_size"                        : 3,
         "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_test"
+            "input_filename" : "TensileTestStructural/TensileTestStructural"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test_materials.json"
+            "materials_filename" : "TensileTestStructural/TensileTestStructural_materials.json"
         },
         "time_stepping"                      : {
-            "time_step" : 1.1
+            "time_step" : 0.005
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
+        "residual_relative_tolerance"        : 0.001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "rotation_dofs"                      : false,
         "linear_solver_settings":{
-                "solver_type": "amgcl"
+            "solver_type": "amgcl"
         }
     },
     "processes" : {
@@ -39,7 +39,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_fijado",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -49,15 +49,13 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_displ",
                 "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [false,false,true],
-                "value"           : [null,null,"0.0001*t"],
+                "constrained"     : [true,true,true],
+                "value"           : ["0.003*t",0.0,0.0],
                 "interval"        : [0.0,"End"]
             }
         }],
-        "loads_process_list"       : [],
-        "list_other_processes"     : [],
         "json_check_process" : [
         {
             "python_module"   : "from_json_check_result_process",
@@ -66,9 +64,11 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
-                "input_file_name"              : "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test_results.json",
-                "model_part_name"              : "Structure.Parts_Parts_Auto1",
-                "time_frequency"               : 1.0
+                "input_file_name"              : "TensileTestStructural/TensileTestStructural_results.json",
+                "model_part_name"              : "Structure.Parts_Central",
+                "tolerance"                    : 1e-2,
+                "relative_tolerance"           : 1e-4,
+                "time_frequency"               : 0.4
             }
         }
         ]
@@ -81,12 +81,11 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
-            "output_file_name"              : "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test_results.json",
-            "model_part_name"               : "Structure.Parts_Parts_Auto1",
-            "time_frequency"                : 1.0
+            "output_file_name"              : "TensileTestStructural/TensileTestStructural_results.json",
+            "model_part_name"               : "Structure.Parts_Central",
+            "time_frequency"                : 0.1
         }
-    }
-    ],
+    }],
     "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
@@ -95,7 +94,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "Structure.computing_domain",
-                "output_name"            : "bigcube_small_deformation_plasticity_VM_test",
+                "output_name"            : "TensileTestStructural",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {

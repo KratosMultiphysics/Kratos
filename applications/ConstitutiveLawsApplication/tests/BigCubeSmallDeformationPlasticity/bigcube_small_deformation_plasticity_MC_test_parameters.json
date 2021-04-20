@@ -1,9 +1,9 @@
 {
     "problem_data"             : {
-        "problem_name"    : "simple_small_deformation_plasticity_T_test",
+        "problem_name"    : "bigcube_small_deformation_plasticity_MC_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 10.0,
+        "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -14,13 +14,13 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_test"
+            "input_filename" : "BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test_materials.json"
+            "materials_filename" : "BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test_materials.json"
         },
         "time_stepping"                      : {
-            "time_step" : 1.0
+            "time_step" : 1.1
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -39,7 +39,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -49,40 +49,10 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [true,false,false],
-                "value"           : ["0.00005*t",null,null],
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto4",
-                "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [true,false,true],
-                "value"           : [0.0,null,0.0],
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto5",
-                "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [true,true,false],
-                "value"           : [0.0,0.0,null],
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto6",
-                "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [true,false,false],
-                "value"           : [0.0,null,null],
+                "constrained"     : [false,false,true],
+                "value"           : [null,null,"0.0001*t"],
                 "interval"        : [0.0,"End"]
             }
         }],
@@ -96,7 +66,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
-                "input_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test_results.json",
+                "input_file_name"              : "BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test_results.json",
                 "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 1.0
             }
@@ -111,7 +81,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
-            "output_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test_results.json",
+            "output_file_name"              : "BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test_results.json",
             "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 1.0
         }

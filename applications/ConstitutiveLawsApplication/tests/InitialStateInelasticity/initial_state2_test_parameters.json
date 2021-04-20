@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/InitialStateInelasticity/initial_state3_test"
+            "input_filename" : "InitialStateInelasticity/initial_state2_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/InitialStateInelasticity/initial_state3_test_materials.json"
+            "materials_filename" : "InitialStateInelasticity/initial_state2_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -79,7 +79,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["GREEN_LAGRANGE_STRAIN_VECTOR","CAUCHY_STRESS_VECTOR"],
-                "input_file_name"              : "cl_test/InitialStateInelasticity/initial_state3_test_results.json",
+                "input_file_name"              : "InitialStateInelasticity/initial_state2_test_results.json",
                 "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 0.2
             }
@@ -94,7 +94,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["GREEN_LAGRANGE_STRAIN_VECTOR","CAUCHY_STRESS_VECTOR"],
-            "output_file_name"              : "cl_test/InitialStateInelasticity/initial_state3_test_results.json",
+            "output_file_name"              : "InitialStateInelasticity/initial_state_test_results.json",
             "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 0.2
         }

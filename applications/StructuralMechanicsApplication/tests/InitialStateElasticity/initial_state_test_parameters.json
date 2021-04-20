@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
+            "input_filename" : "InitialStateElasticity/initial_state_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_materials.json"
+            "materials_filename" : "InitialStateElasticity/initial_state_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -51,12 +51,25 @@
             "Parameters"    : {
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [false,false,true],
-                "value"           : [null,null,"0.00001*t"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
             }
         }],
-        "loads_process_list"       : [],
+        "loads_process_list"       : [{
+            "python_module" : "set_initial_state_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "set_initial_state_process",
+            "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure",
+            "dimension"       : 2,
+            "imposed_strain"  : [0.1,0,0,0,0,0],
+            "imposed_stress"  : [0,0,0,0,0,10000],
+            "imposed_deformation_gradient"  : [[1,0,0],[0,1,0],[0,0,1]],
+            "interval"        : [0.0, 1e30]
+            }
+        }],
         "list_other_processes"     : [],
         "json_check_process" : [
         {
@@ -65,8 +78,8 @@
             "help"                  : "",
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "gauss_points_check_variables" : ["DAMAGE"],
-                "input_file_name"              : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
+                "gauss_points_check_variables" : ["GREEN_LAGRANGE_STRAIN_VECTOR","CAUCHY_STRESS_VECTOR"],
+                "input_file_name"              : "InitialStateElasticity/initial_state_test_results.json",
                 "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 0.2
             }
@@ -80,8 +93,8 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "gauss_points_output_variables" : ["DAMAGE"],
-            "output_file_name"              : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
+            "gauss_points_output_variables" : ["GREEN_LAGRANGE_STRAIN_VECTOR","CAUCHY_STRESS_VECTOR"],
+            "output_file_name"              : "InitialStateElasticity/initial_state_test_results.json",
             "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 0.2
         }

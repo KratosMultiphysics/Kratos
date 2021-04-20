@@ -235,63 +235,8 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class BigCubeSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class BigCubeSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_DP_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class AnisotropyTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/AnisotropyCube/anisotropy_test"
-
 class InitialStateElasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/InitialStateElasticity/initial_state_test"
-    
-
-class InitialStateInelasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/InitialStateInelasticity/initial_state2_test"
-
-class InitialStateInelasticity2Test(StructuralMechanicsTestFactory):
-    file_name = "cl_test/InitialStateInelasticity/initial_state3_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
-
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
+    file_name = "InitialStateElasticity/initial_state_test"
 
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
@@ -419,9 +364,6 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
-
-class TensileTestStructuralTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/TensileTestStructural/TensileTestStructural"
 
 class Solid2p5DElementTest(StructuralMechanicsTestFactory):
     file_name = "solid_2p5d_test/solid_2p5d"
