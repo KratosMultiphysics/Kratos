@@ -15,8 +15,8 @@
 
    "dem_inlet_option"               : false,
    "GravityX"                       : 0.0,
-   "GravityY"                       : 0.0,
-   "GravityZ"                       : -9.81,
+   "GravityY"                       : -9.81,
+   "GravityZ"                       : 0.0,
 
    "EnergyCalculationOption"        : false,
    "VelocityTrapOption"             : false,
@@ -77,5 +77,5 @@
    "PostGroupId"                    : false,
    "PostExportId"                   : false,
 
-   "problem_name"                   : "free_fall_contact"
+   "problem_name"                   : "fifth_notched_400mm"
 }
