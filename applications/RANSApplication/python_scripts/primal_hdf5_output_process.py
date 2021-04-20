@@ -102,13 +102,27 @@ def Factory(parameters, model):
         "list_of_variables" : ["SLIP"]
     }""")
 
-    core_settings[0]["list_of_operations"] = [
+    initialize_list = []
+    finalize_list = []
+    if (is_steady):
+        initialize_list = []
+        finalize_list = [
+            CreateOperationSettings(model_part_output_type, ParametersWrapper(settings["model_part_output_settings"]))
+        ]
+    else:
+        initialize_list = [
+            CreateOperationSettings(model_part_output_type, ParametersWrapper(settings["model_part_output_settings"]))
+        ]
+        finalize_list = []
+
+    initialize_list.extend([
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
         CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
         CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables),
         CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
-    ]
+    ])
+    core_settings[0]["list_of_operations"] = initialize_list
 
     core_settings[1]["list_of_operations"] = [
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
@@ -118,15 +132,15 @@ def Factory(parameters, model):
         CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
     ]
 
-    core_settings[2]["list_of_operations"] = [
-        CreateOperationSettings(model_part_output_type, ParametersWrapper(settings["model_part_output_settings"])),
+    finalize_list.extend([
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
         CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
         CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables),
         CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
-    ]
+    ])
+    core_settings[2]["list_of_operations"] = finalize_list
 
     core_settings[1]["controller_settings"]["step_frequency"] = 1
 
