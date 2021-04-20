@@ -254,9 +254,34 @@ public:
         CalculateResidualNorm(rModelPart, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm, size_residual, rDofSet, rb);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "residual_displacement_and_other_dof_criteria",
+            "other_dof_name"              : "ROTATION",
+            "residual_absolute_tolerance" : 1.0e-4,
+            "residual_relative_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "residual_displacement_and_other_dof_criteria";
+    }
 
     ///@}
     ///@name Access
@@ -287,6 +312,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mOtherDoFName = ThisParameters["other_dof_name"].GetString();
+        mAbsoluteTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+        mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access
