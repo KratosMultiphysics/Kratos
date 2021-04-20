@@ -409,11 +409,11 @@ class RigidBodySolver(object):
             "boundary_conditions":{
                 "load_impulse": 0.0,
                 "omega_force": 0.0,
-                "omega_root_point_displacement": 0.0,
+                "amplitude_force": 0.0,
                 "excitation_function_force": "A * sin(omega * t)",
-                "excitation_function_root_point_displacement": "A * sin(omega * t)",
+                "omega_root_point_displacement": 0.0,
                 "amplitude_root_point_displacement": 0.0,
-                "amplitude_force": 0.0
+                "excitation_function_root_point_displacement": "A * sin(omega * t)"
             }
         }''')
         default_solution_parameters = KratosMultiphysics.Parameters('''{
