@@ -69,25 +69,29 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ErrorMeshCriteria );
 
+    /// The definition of the base ConvergenceCriteria
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >        BaseType;
 
-    typedef TSparseSpace                                     SparseSpaceType;
+    /// The definition of the current class
+    typedef ErrorMeshCriteria< TSparseSpace, TDenseSpace >         ClassType;
 
-    typedef typename BaseType::TDataType                           TDataType;
+    /// The data type
+    typedef typename BaseType::TDataType TDataType;
 
-    typedef typename BaseType::DofsArrayType                   DofsArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType           TSystemMatrixType;
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType           TSystemVectorType;
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef ModelPart::ConditionsContainerType           ConditionsArrayType;
+    /// Definition of the IndexType
+    typedef std::size_t IndexType;
 
-    typedef ModelPart::NodesContainerType                     NodesArrayType;
-
-    typedef std::size_t                                              KeyType;
-
-    typedef std::size_t                                             SizeType;
+    /// Definition of the size type
+    typedef std::size_t SizeType;
 
     ///@}
     ///@name Enum's
