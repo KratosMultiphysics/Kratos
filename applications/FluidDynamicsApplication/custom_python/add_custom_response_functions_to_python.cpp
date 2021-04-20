@@ -6,6 +6,7 @@
 
 // Application includes
 #include "custom_response_functions/drag_response_function.h"
+#include "custom_response_functions/drag_frequency_response_function.h"
 #include "custom_response_functions/velocity_pressure_norm_square_response_function.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
@@ -51,6 +52,20 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         DragResponseFunction<3>::Pointer,
         AdjointResponseFunction>(m,"DragResponseFunction3D")
         .def(py::init<Parameters, ModelPart&>());
+
+    py::class_<
+        DragFrequencyResponseFunction<2>,
+        DragFrequencyResponseFunction<2>::Pointer,
+        AdjointResponseFunction>(m,"DragFrequencyResponseFunction2D")
+        .def(py::init<Parameters, ModelPart&>())
+        ;
+
+    py::class_<
+        DragFrequencyResponseFunction<3>,
+        DragFrequencyResponseFunction<3>::Pointer,
+        AdjointResponseFunction>(m,"DragFrequencyResponseFunction3D")
+        .def(py::init<Parameters, ModelPart&>())
+        ;
 
     py::class_<
         VelocityPressureNormSquareResponseFunction,
