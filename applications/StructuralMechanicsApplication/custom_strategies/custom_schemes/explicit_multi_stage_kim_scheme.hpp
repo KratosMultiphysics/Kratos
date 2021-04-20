@@ -569,14 +569,11 @@ public:
         const Double3DArray& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable, 1);
         const Double3DArray& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable, 1);
 
-
         for (IndexType j = 0; j < DomainSize; j++) {
-
             r_current_displacement[j] = r_previous_displacement[j] + mTime.Delta * r_previous_velocity[j];
             r_current_displacement[j] += 0.50 * mTime.Delta * mTime.Delta * r_previous_acceleration[j] * ((4.0*mDeltaTime.Fraction-1.0)/(6.0*mDeltaTime.Fraction));
             r_current_displacement[j] -= 0.50 * mTime.Delta * mTime.Delta * r_fractional_acceleration[j] * (1.0/(6.0*mDeltaTime.Fraction*(mDeltaTime.Fraction-1.0)));
             r_current_displacement[j] += 0.50 * mTime.Delta * mTime.Delta * r_current_acceleration[j] * ((2.0*mDeltaTime.Fraction-1.0)/(6.0*(mDeltaTime.Fraction-1.0)));
-
 
             r_current_velocity[j] = r_previous_velocity[j];
             r_current_velocity[j] += mTime.Delta * r_previous_acceleration[j] * ((3.0*mDeltaTime.Fraction-1.0)/(6.0*mDeltaTime.Fraction));
@@ -716,8 +713,6 @@ public:
         KRATOS_CATCH("")
     }
 
-
-
     void CalculateAndAddRHS(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -743,8 +738,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-
 
     void Predict(
         ModelPart& rModelPart,
