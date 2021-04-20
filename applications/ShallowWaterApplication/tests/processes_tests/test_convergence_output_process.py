@@ -9,7 +9,6 @@ try:
 except ImportError:
     h5py_available = False
 
-@KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):
 
     def tearDown(self):
@@ -120,7 +119,7 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
             for (variable, value) in zip(variables_list, values_list):
                 KM.VariableUtils().SetNonHistoricalVariable(variable, value, mp.Nodes)
 
-        process.ExecuteFinalize()
+        process.PrintOutput()
 
 if __name__ == '__main__':
     KratosUnittest.main()
