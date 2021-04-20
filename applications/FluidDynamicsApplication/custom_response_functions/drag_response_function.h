@@ -98,14 +98,14 @@ public:
         KRATOS_CATCH("");
     }
 
-    /// Destructor.
-    ~DragResponseFunction() override
+    DragResponseFunction(
+        ModelPart& rModelPart)
+        : mrModelPart(rModelPart)
     {
     }
 
-    ///@}
-    ///@name Operators
-    ///@{
+    /// Destructor.
+    ~DragResponseFunction() override = default;
 
     ///@}
     ///@name Operations
@@ -214,21 +214,7 @@ public:
     ///@}
 
 protected:
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Member Variables
+    ///@name Protected Member Variables
     ///@{
 
     ModelPart& mrModelPart;
@@ -236,11 +222,7 @@ private:
     array_1d<double, TDim> mDragDirection;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
 
     void Check()
