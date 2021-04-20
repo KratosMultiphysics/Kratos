@@ -237,21 +237,21 @@ if __name__ == "__main__":
         for i in range (N_nodes):
             basis_POD_stresses["nodal_modes"][i+1] = (U[i].tolist())
 
-        # with open('RomParameters_Stresses.json', 'w') as w:
-        #     json.dump(basis_POD_stresses,w, indent=2)
+        with open('RomParameters_Stresses.json', 'w') as w:
+            json.dump(basis_POD_stresses,w, indent=2)
 
-        # print('\n\nStress basis printed in json format\n\n')
+        print('\n\nStress basis printed in json format\n\n')
 
         # Create rom parameters for restricted residuals
         basis_POD={"rom_settings":{},"nodal_modes":{}}
         basis_POD["rom_settings"]["nodal_unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
         basis_POD["rom_settings"]["number_of_rom_dofs"] = np.shape(U_residuals)[1]
-        basis_POD["rom_settings"]["restricted_elements"] = simulation.HR_restricted_residual_elements
-        N_cond= len(simulation.HR_restricted_residual_conditions)
+        basis_POD["rom_settings"]["restricted_elements"] = simulation.restricted_residual_elements
+        N_cond= len(simulation.restricted_residual_elements)
         Dimensions = int(np.shape(U_residuals)[0]/N_cond)
-        basis_POD["rom_settings"]["number_of_dofs_per_condition"] = Dimensions
+        basis_POD["rom_settings"]["number_of_dofs_per_element"] = Dimensions
         i = 0
-        for j in simulation.HR_restricted_residual_conditions:
+        for j in simulation.restricted_residual_elements:
             basis_POD["nodal_modes"][int(j)] = (U_residuals[i:i+Dimensions].tolist())
             i=i+Dimensions
 

@@ -62,6 +62,7 @@ class RunHROM(StructuralMechanicsAnalysisROM):
             "number_of_dofs" : 1
         }""" )
         self.ResidualUtilityObject_Restricted_Residuals = romapp.RomModelPartUtility(self._GetSolver().GetComputingModelPart().GetSubModelPart("COMPUTE_HROM").GetSubModelPart("GENERIC_Interface_frame_1"), restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+        self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(computing_model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.HR_restricted_residual_elements = self.ResidualUtilityObject_Restricted_Residuals.GetElementListFromNode(computing_model_part)
         with open('RomParameters_Stresses.json') as s:
             HR_data_stresses = json.load(s) # Load SVD of Stresses
@@ -134,8 +135,8 @@ class RunHROM(StructuralMechanicsAnalysisROM):
             counter+=1
         self.HR_stresses.append(new_stress) 
         self.time_step+=1  
-        HR_restricted_residual = self.ResidualUtilityObject_Restricted_Residuals.GetNonProjectedResiduals() 
-        self.time_step_solution_container_restricted_residuals.append(self.ResidualUtilityObject_Main_Part.GetNonProjectedResidualsFromElementList(self.HR_restricted_residual_elements))
+        HR_restricted_residual = self.ResidualUtilityObject_Main_Part.GetNonProjectedResidualsFromElementList(self.HR_restricted_residual_elements) 
+        self.HR_residuals.append(HR_restricted_residual)
         ##########################################3  
         # ############################## EN REVISION #############################
         # with open('SnapshotMatrix_residuals.npy', 'rb') as f:
@@ -181,7 +182,8 @@ class RunHROM(StructuralMechanicsAnalysisROM):
     def Finalize(self):
         super().Finalize()
         ##########################################3  
-        # self.HR_residuals = ArrangeSnapshotMatrix(self.HR_residuals)
+        self.HR_residuals = ArrangeSnapshotMatrix(self.HR_residuals)
+        hola = 5################################################### Debemos seleccionar el U_residuals HROM para hacer la reconstruccion
         # with open('SnapshotMatrix_residuals.npy', 'rb') as f:
         #     SnapshotMatrix_residuals = np.load(f) 
         # #U_RESIDUAL,_,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix_residuals)#####
