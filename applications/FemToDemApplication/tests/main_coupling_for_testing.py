@@ -116,7 +116,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         shutil.rmtree(self.FEM_Solution.problem_name + "_MPI_results")
         shutil.rmtree(self.FEM_Solution.problem_name + "_Post_Files")
         shutil.rmtree(self.FEM_Solution.problem_name + "_Results_and_Data")
-        # shutil.rmtree("__pycache__")
+        shutil.rmtree("__pycache__")
         os.remove("PlotFile.txt")
         os.remove(self.FEM_Solution.problem_name + "_0.post.bin")
         os.remove(self.FEM_Solution.problem_name + ".post.lst")
