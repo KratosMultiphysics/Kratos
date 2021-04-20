@@ -20,7 +20,7 @@
 #include "includes/checks.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
 namespace Kratos

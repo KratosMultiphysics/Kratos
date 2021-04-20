@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/associative_plastic_damage_model.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 // Plasticity Integrator includes

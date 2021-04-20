@@ -25,7 +25,7 @@
 #include "custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

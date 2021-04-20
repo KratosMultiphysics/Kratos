@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/wrinkling_linear_2d_law.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

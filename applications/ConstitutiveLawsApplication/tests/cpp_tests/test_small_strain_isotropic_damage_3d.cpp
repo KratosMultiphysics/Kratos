@@ -20,7 +20,7 @@
 #include "containers/model.h"
 
 // Application includes
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 // Constitutive law
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_3d.h"

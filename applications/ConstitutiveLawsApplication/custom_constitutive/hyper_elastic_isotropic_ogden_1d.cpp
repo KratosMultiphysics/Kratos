@@ -16,6 +16,7 @@
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "custom_constitutive/hyper_elastic_isotropic_ogden_1d.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

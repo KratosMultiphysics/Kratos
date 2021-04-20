@@ -19,8 +19,10 @@
 // Project includes
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "structural_mechanics_application_variables.h"
+
 
 #define OPTIMIZE_CHARACTERISTIC_LENGTH
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)

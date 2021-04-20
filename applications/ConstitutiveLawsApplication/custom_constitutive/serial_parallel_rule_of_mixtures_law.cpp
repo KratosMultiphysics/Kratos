@@ -18,7 +18,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "serial_parallel_rule_of_mixtures_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 

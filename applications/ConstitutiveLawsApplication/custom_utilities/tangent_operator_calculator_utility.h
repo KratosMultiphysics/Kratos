@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

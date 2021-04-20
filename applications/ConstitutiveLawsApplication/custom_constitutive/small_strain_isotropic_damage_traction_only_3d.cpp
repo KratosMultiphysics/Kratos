@@ -12,6 +12,7 @@
 
 // Project includes
 #include "small_strain_isotropic_damage_traction_only_3d.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "plasticity_isotropic_kinematic_j2.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

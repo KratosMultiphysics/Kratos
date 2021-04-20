@@ -20,13 +20,13 @@
 #include "containers/model.h"
 
 // Application includes
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 // Constitutive law
 #include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

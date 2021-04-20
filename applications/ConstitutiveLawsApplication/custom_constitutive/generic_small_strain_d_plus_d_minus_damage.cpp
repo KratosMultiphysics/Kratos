@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
 #include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
 #include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"

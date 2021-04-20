@@ -19,7 +19,7 @@
 #include "containers/model.h"
 
 // Application includes
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 // Integrator
 #include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"

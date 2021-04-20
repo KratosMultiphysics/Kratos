@@ -20,7 +20,7 @@
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

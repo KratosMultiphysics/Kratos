@@ -15,7 +15,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_constitutive/generic_finite_strain_kinematic_plasticity.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_kinematic_plasticity.h"

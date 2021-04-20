@@ -19,8 +19,8 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
-
 #include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

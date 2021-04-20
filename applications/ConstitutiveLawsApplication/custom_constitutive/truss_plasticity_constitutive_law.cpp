@@ -15,7 +15,9 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
+
 
 namespace Kratos
 {

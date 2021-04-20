@@ -17,7 +17,9 @@
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "custom_constitutive/multi_linear_isotropic_plane_stress_2d.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
+
 
 namespace Kratos
 {

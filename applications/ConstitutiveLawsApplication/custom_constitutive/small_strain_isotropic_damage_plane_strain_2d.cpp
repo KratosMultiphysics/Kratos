@@ -9,7 +9,9 @@
 //  Main authors:    Marcelo Raschi
 
 #include "small_strain_isotropic_damage_plane_strain_2d.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
