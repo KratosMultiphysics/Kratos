@@ -52,7 +52,6 @@ def AssembleTestSuites():
     smallSuite.addTest(InitialStateInelasticityTest('test_execution'))
     smallSuite.addTest(InitialStateInelasticity2Test('test_execution'))
     smallSuite.addTest(SimpleJ2PlasticityTest('test_execution'))
-    smallSuite.addTest(TensileTestStructuralTest('test_execution'))
 
     # Create a test suit with the selected tests (Nightly tests):
     nightSuite = suites['nightly']
@@ -63,10 +62,16 @@ def AssembleTestSuites():
     nightSuite.addTest(SimpleSmallDeformationPlasticityMCTest('test_execution'))
     nightSuite.addTest(SerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
 
+    ### Adding Validation Tests
+    # For very long tests that should not be in nighly and you can use to validate
+    validationSuite = suites['validation']
+    validationSuite.addTest(TensileTestStructuralTest('test_execution'))
+
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(nightSuite) # Already contains the smallSuite
+    validationSuite.addTests(allSuite) # Validation contains all
 
     return suites
 
