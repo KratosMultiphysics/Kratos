@@ -867,6 +867,7 @@ namespace Kratos {
                 RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
 
                 fem_model_part.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
+                submp.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
 
                 std::size_t element_id = Element_Id_1 + 1;
                 std::vector<std::size_t> ElementIds;
