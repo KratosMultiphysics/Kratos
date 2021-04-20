@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -23,9 +23,12 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
-//default builder and solver
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+/* Default builder and solver */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
+/* Factories */
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {
@@ -95,6 +98,11 @@ public:
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -838,12 +846,23 @@ protected:
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
         }
 
         // Setting up the default builder and solver
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
         }
     }
 
@@ -865,12 +884,13 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
+    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
 
     TSystemVectorPointerType mpDx; /// The incremement in the solution
