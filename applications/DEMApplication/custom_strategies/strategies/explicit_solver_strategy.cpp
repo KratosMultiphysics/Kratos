@@ -1421,30 +1421,32 @@ namespace Kratos {
     void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++) {
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++) {
+
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetRadius();
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++) {
+
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
@@ -1889,13 +1891,12 @@ namespace Kratos {
         ProcessInfo& r_process_info = (*mpDem_model_part).GetProcessInfo();
         ElementsArrayType& pElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int) pElements.size(); k++) {
-            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-            Element* raw_p_element = &(*it);
+        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
+            Element* raw_p_element = &(rElement);
             SphericParticle* p_sphere = dynamic_cast<SphericParticle*> (raw_p_element);
             p_sphere->PrepareForPrinting(r_process_info);
-        }
+        });
+
         KRATOS_CATCH("")
     }
 
