@@ -1,6 +1,6 @@
 // KRATOS   ___                _   _ _         _   _             __                       _
 //        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
-//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_ \  
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
@@ -397,6 +397,10 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateFlowVector(rValues, rPDParameters);
         CalculatePlasticConsistencyIncrement(rValues, rPDParameters);
 
+        // Update the analytical tangent tensor
+        if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+            CalculateAnalyticalTangentTensor(rValues, rPDParameters);
+
         // Compute the plastic strain increment
         CalculatePlasticStrainIncrement(rValues, rPDParameters);
         noalias(rPDParameters.PlasticStrain) += rPDParameters.PlasticStrainIncrement;
@@ -405,14 +409,15 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateComplianceMatrixIncrement(rValues, rPDParameters);
         noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
 
-        // Update the analytical tangent tensor
-        if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-            CalculateAnalyticalTangentTensor(rValues, rPDParameters);
+        // // Update the analytical tangent tensor
+        // if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
+        //     CalculateAnalyticalTangentTensor(rValues, rPDParameters);
 
         noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
             prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
         CalculateConstitutiveMatrix(rValues, rPDParameters);
+
 
         // Compute the non-linear dissipation performed
         CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
