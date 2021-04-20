@@ -179,7 +179,7 @@ public:
     //***************************************************************************
 
     void Update(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -188,57 +188,30 @@ public:
     {
         KRATOS_TRY
 
-        //update of displacement (by DOF)
-        for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
-        {
-            if (i_dof->IsFree())
-            {
+        // Update of displacement (by DOF)
+        for (auto i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof) {
+            if (i_dof->IsFree()) {
                 i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
             }
         }
 
-        //updating time derivatives (nodally for efficiency)
+        // Updating time derivatives (nodally for efficiency)
         array_1d<double, 3 > DeltaDisp;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
+        for (auto i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i) {
 
             noalias(DeltaDisp) = (i)->FastGetSolutionStepValue(DISPLACEMENT) - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            //KRATOS_WATCH( i->Id() )
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
-            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT) )
-            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT,1) )
-            //KRATOS_WATCH( DeltaDisp )
-            //KRATOS_WATCH( OldVelocity )
-            //KRATOS_WATCH( CurrentVelocity )
-            //std::cout << "after update" << std::endl;
-
-            //std::cout  << std::endl;
-
         }
 
-
-        //          //updating time derivatives
-        //          for (it2=rDofSet.begin(); it2 != rDofSet.end(); ++it2)
-        //          {
-        ////                Dof::VariableType dof_variable = (*it2)->GetVariable();
-        //  //              if ((*it2)->HasTimeDerivative())
-        //                      mpModel->Value((*it2)->GetTimeDerivative(), *it2) = Dt(**it2, CurrentTime, DeltaTime);
-        //  //              if ((*it2)->HasSecondTimeDerivative())
-        //                      mpModel->Value((*it2)->GetSecondTimeDerivative(), *it2) = Dtt(**it2, CurrentTime, DeltaTime);
-        //          }
-
         KRATOS_CATCH( "" )
-
     }
 
 
@@ -247,31 +220,24 @@ public:
     // x = xold + vold * Dt
 
     void Predict(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
     ) override
     {
-        std::cout << "prediction" << std::endl;
+        KRATOS_INFO("ResidualBasedRelaxationScheme") << "Prediction" << std::endl;
         array_1d<double, 3 > DeltaDisp;
-        double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+        double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
+        for (auto i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i) {
 
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            //KRATOS_WATCH( i->Id())
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(DISPLACEMENT) )
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(VELOCITY) )
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(ACCELERATION) )
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             //predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
             //ATTENTION::: the prediction is performed only on free nodes
             array_1d<double, 3 > & CurrentDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            //KRATOS_WATCH( "1" )
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                 (CurrentDisp[0]) = OldDisp[0] + DeltaTime * OldVelocity[0];
@@ -280,27 +246,20 @@ public:
             if (i->HasDofFor(DISPLACEMENT_Z))
                 if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
                     (CurrentDisp[2]) = OldDisp[2] + DeltaTime * OldVelocity[2];
-            //KRATOS_WATCH( "2" )
 
             //updating time derivatives ::: please note that displacements and its time derivatives
             //can not be consistently fixed separately
             noalias(DeltaDisp) = CurrentDisp - OldDisp;
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            //KRATOS_WATCH( DeltaDisp )
 
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-            //KRATOS_WATCH( CurrentVelocity )
-            //KRATOS_WATCH( CurrentAcceleration )
-
 
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
         }
-
     }
-
 
     //***************************************************************************
 
@@ -327,23 +286,18 @@ public:
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
         rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
+
         //basic operations for the element considered
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentElement.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
-        //KRATOS_WATCH( RHS_Contribution )
-        //KRATOS_WATCH( mMass )
-        //KRATOS_WATCH( mDamp )
-        //adding the dynamic contributions (statics is already included)
 
+        //adding the dynamic contributions (statics is already included)
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
-        //KRATOS_WATCH( RHS_Contribution )
+
         KRATOS_CATCH( "" )
 
     }
@@ -365,7 +319,6 @@ public:
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)
-
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
     }
@@ -387,7 +340,6 @@ public:
         rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
-
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
@@ -421,20 +373,19 @@ public:
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
     ) override
     {
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
+        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+        const double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
-        if (DeltaTime == 0)
-            KRATOS_THROW_ERROR( std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "" )
+        KRATOS_ERROR_IF(DeltaTime == 0) << "Detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part" << std::endl;
 
         //initializing constants
         ma0 = 1.0 / (mBetaNewmark * pow(DeltaTime, 2));
