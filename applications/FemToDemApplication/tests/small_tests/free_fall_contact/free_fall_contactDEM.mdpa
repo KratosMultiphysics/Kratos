@@ -7,6 +7,9 @@ Begin Properties 1
   DYNAMIC_FRICTION                        0.5773502691896257
   PARTICLE_COHESION                       0.0
   COEFFICIENT_OF_RESTITUTION              0.9
+
+  ROLLING_FRICTION_WITH_WALLS 0.01
+  
   PARTICLE_MATERIAL                       1
   ROLLING_FRICTION                        0.1
   FRICTION_DECAY                          500

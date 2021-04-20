@@ -24,8 +24,18 @@ class MainCoupledFemDem_Solution:
     def __init__(self, Model, path = ""):
         self.model = Model
         # Initialize solutions
+
+        if path == "":
+            DEM_json_file = open("MaterialsDEM.json",'r')
+            DEMProjectParametersFile = open("ProjectParametersDEM.json",'r')
+        else:
+            DEM_json_file = open(path + "MaterialsDEM.json")
+            DEMProjectParametersFile = open(path + "ProjectParametersDEM.json",'r')
+        DEM_materials_parameters = KratosMultiphysics.Parameters(DEM_json_file.read())
+        DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
+
         self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path)
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters, DEM_materials_parameters)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -220,7 +230,7 @@ class MainCoupledFemDem_Solution:
         self.BeforeSolveDEMOperations()
 
         #### SOLVE DEM #########################################
-        self.DEM_Solution.solver.Solve()
+        self.DEM_Solution.SolverSolve()
         ########################################################
 
 
@@ -228,7 +238,7 @@ class MainCoupledFemDem_Solution:
     def FinalizeSolutionStep(self):
 
         self.DEM_Solution.FinalizeSolutionStep()
-        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+        # self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
@@ -929,7 +939,7 @@ class MainCoupledFemDem_Solution:
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
-        self.DEM_Solution.UpdateTimeInModelParts()
+        # self.DEM_Solution.UpdateTimeInModelParts()
 
 #TransferFEMSkinToDEM============================================================================================================================
     def TransferFEMSkinToDEM(self):

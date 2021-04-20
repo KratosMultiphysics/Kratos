@@ -22,7 +22,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
     def FinalizeSolutionStep(self):
 
         self.DEM_Solution.FinalizeSolutionStep()
-        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+        # self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
