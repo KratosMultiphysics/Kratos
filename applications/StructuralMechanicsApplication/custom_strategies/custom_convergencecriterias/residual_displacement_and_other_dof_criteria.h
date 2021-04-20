@@ -109,8 +109,18 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Copy constructor.
+    /// Default constructors
+    explicit ResidualDisplacementAndOtherDoFCriteria(Parameters ThisParameters = Parameters(R"({})"))
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
+        this->mActualizeRHSIsNeeded = true;
+    }
+
+    //* Copy constructor.
     ResidualDisplacementAndOtherDoFCriteria( ResidualDisplacementAndOtherDoFCriteria const& rOther )
       :BaseType(rOther)
       ,mOtherDoFName(rOther.mOtherDoFName)
