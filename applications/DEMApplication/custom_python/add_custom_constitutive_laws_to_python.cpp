@@ -142,6 +142,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         .def("Clone", &DEMContinuumConstitutiveLaw::Clone)
         .def("SetConstitutiveLawInProperties", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties)
+        .def("SetConstitutiveLawInPropertiesWithParameters", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInPropertiesWithParameters)
         .def("GetTypeOfLaw", &DEMContinuumConstitutiveLaw::GetTypeOfLaw)
         .def("CheckRequirementsOfStressTensor", &DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor)
         ;

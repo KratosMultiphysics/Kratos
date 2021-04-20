@@ -299,6 +299,7 @@ namespace Kratos {
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+        
         const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
         const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 

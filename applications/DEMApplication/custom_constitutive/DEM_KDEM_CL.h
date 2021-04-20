@@ -9,6 +9,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM : public DEMContinuumConstitutiveLaw {
+
+        typedef DEMContinuumConstitutiveLaw BaseClassType;
+        
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);
@@ -16,7 +19,9 @@ namespace Kratos {
         DEM_KDEM() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override; //deprecated
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override;
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM() {
@@ -80,8 +85,10 @@ namespace Kratos {
                 int time_steps,
             const ProcessInfo& r_process_info) override;
 
-        double GetContactSigmaMax(SphericContinuumParticle* element);
+        double GetContactSigmaMax();
 
+        virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
+            
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
@@ -140,7 +147,7 @@ namespace Kratos {
         virtual void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor);
 
     protected:
-
+    
         virtual double GetTauZero(SphericContinuumParticle* element1);
 
         virtual double GetInternalFricc(SphericContinuumParticle* element1);

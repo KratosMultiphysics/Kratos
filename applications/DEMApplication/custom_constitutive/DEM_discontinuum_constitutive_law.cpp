@@ -254,9 +254,11 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;
         const double my_mass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
 
-        equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (my_mass + other_real_mass)) * (sqrt(my_mass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double coefficient_of_restitution = properties_of_this_contact[COEFFICIENT_OF_RESTITUTION];
+
+        equiv_visco_damp_coeff_normal = (1-coefficient_of_restitution) * 2.0 * sqrt(kn_el / (my_mass + other_real_mass)) * (sqrt(my_mass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
         KRATOS_CATCH("")
     }

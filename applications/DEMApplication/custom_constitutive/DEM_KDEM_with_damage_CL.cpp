@@ -123,8 +123,8 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
-        const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
+        const double tension_limit = GetContactSigmaMax();
+        const double damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
         double k_unload = 0.0;
         double limit_force = 0.0;
         static bool first_time_entered = true;
@@ -224,9 +224,9 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tau_zero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
-        const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
-        const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
+        const double tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+        const double internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
+        const double damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
         double k_unload = 0.0;
         double tau_strength = 0.0;
         static bool first_time_entered = true;
@@ -336,13 +336,9 @@ namespace Kratos {
                 }
             }
         } else {
-            double equiv_tg_of_static_fri_ang = 0.5 * (element1->GetTgOfStaticFrictionAngle() + element2->GetTgOfStaticFrictionAngle());
-            double equiv_tg_of_dynamic_fri_ang = 0.5 * (element1->GetTgOfDynamicFrictionAngle() + element2->GetTgOfDynamicFrictionAngle());
-            double equiv_friction_decay_coefficient = 0.5 * (element1->GetFrictionDecayCoefficient() + element2->GetFrictionDecayCoefficient());
-
-            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
-            }
+            const double equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
@@ -361,11 +357,11 @@ namespace Kratos {
         if (element1->Id() == sphere_id) {
             static std::ofstream tangential_forces_file("tangential_forces_damage.txt", std::ios_base::out | std::ios_base::app);
             tangential_forces_file << r_process_info[TIME] << " " << int(failure_type) << " " << LocalElasticContactForce[0] << " "
-                                   << tau_strength << " " << delta_acummulated << " " << returned_by_mapping_force << " "
-                                   << kt_updated << " " << damage_process << " " << int(sliding) << " " << contact_sigma << " " << mDamageNormal << " "
-                                   << contact_tau << " " << current_tangential_force_module << " " << LocalElasticContactForce[2] << " "
-                                   << maximum_frictional_shear_force << " " << mDamageTangential << " " << LocalDeltDisp[0] << " "
-                                   << total_delta_displ_module << '\n';
+                                    << tau_strength << " " << delta_acummulated << " " << returned_by_mapping_force << " "
+                                    << kt_updated << " " << damage_process << " " << int(sliding) << " " << contact_sigma << " " << mDamageNormal << " "
+                                    << contact_tau << " " << current_tangential_force_module << " " << LocalElasticContactForce[2] << " "
+                                    << maximum_frictional_shear_force << " " << mDamageTangential << " " << LocalDeltDisp[0] << " "
+                                    << total_delta_displ_module << '\n';
             tangential_forces_file.flush();
         }
 

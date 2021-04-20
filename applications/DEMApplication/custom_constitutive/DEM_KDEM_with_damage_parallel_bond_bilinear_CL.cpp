@@ -42,8 +42,8 @@ namespace Kratos {
     void DEM_KDEM_with_damage_parallel_bond_bilinear::AdjustTauStrengthAndUpdatedMaxTauStrength(double& tau_strength, double& updated_max_tau_strength, const double internal_friction,
                                                                                                 double contact_sigma, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
         KRATOS_TRY
-        const double sigma_slope_change_threshold = 0.5 * (element1->GetProperties()[SIGMA_SLOPE_CHANGE_THRESHOLD] + element2->GetProperties()[SIGMA_SLOPE_CHANGE_THRESHOLD]);
-        const double internal_friction_after_threshold = 0.5 * (element1->GetProperties()[INTERNAL_FRICTION_AFTER_THRESHOLD] + element2->GetProperties()[INTERNAL_FRICTION_AFTER_THRESHOLD]);
+        const double sigma_slope_change_threshold = (*mpProperties)[SIGMA_SLOPE_CHANGE_THRESHOLD];
+        const double internal_friction_after_threshold = (*mpProperties)[SIGMA_SLOPE_CHANGE_THRESHOLD];
 
         if (contact_sigma <= sigma_slope_change_threshold) {
             tau_strength += (1.0 - mDamageTangential) * internal_friction * contact_sigma;

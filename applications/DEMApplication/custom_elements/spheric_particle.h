@@ -193,32 +193,13 @@ virtual void   SetMass(double real_mass);
 virtual double   CalculateMomentOfInertia();
 virtual double GetYoung();
 void   SetYoungFromProperties(double* young);
-virtual double GetRollingFriction();
-void   SetRollingFrictionFromProperties(double* rolling_friction);
-virtual double GetRollingFrictionWithWalls();
-void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 virtual double GetPoisson();
 void   SetPoissonFromProperties(double* poisson);
-virtual double GetTgOfStaticFrictionAngle();
-void   SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
-virtual double GetTgOfDynamicFrictionAngle();
-void   SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle);
-virtual double GetFrictionDecayCoefficient();
-void   SetFrictionDecayCoefficientFromProperties(double* tg_of_dynamic_friction_angle);
-virtual double GetCoefficientOfRestitution();
-void   SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution);
-virtual double GetLnOfRestitCoeff();
-void   SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff);
 virtual double GetDensity();
 void   SetDensityFromProperties(double* density);
 virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
-virtual double GetParticleCohesion();
-void   SetParticleCohesionFromProperties(double* particle_cohesion);
-virtual double GetParticleKNormal();
-void   SetParticleKNormalFromProperties(double* particle_k_normal);
-virtual double GetParticleKTangential();
-void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
+
 
 array_1d<double, 3>& GetForce();
 
@@ -231,15 +212,8 @@ void   SetFastProperties(PropertiesProxy* pProps);
 void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
 double SlowGetYoung() const;
-double SlowGetRollingFriction() const;
-double SlowGetRollingFrictionWithWalls() const;
 double SlowGetPoisson() const;
-double SlowGetTgOfStaticFrictionAngle() const;
-double SlowGetTgOfDynamicFrictionAngle() const;
-double SlowGetFrictionDecayCoefficient() const;
-double SlowGetCoefficientOfRestitution() const;
 double SlowGetDensity() const;
-double SlowGetParticleCohesion() const;
 int    SlowGetParticleMaterial() const;
 
 /// Turn back information as a string.
@@ -355,7 +329,14 @@ virtual void ComputeMoments(double normalLocalContactForce,
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
-                            bool wall,
+                            unsigned int i);
+
+virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
+                            double GlobalElasticContactForces[3],
+                            double& RollingResistance,
+                            double LocalCoordSystem_2[3],
+                            Condition* wall,
+                            double indentation,
                             unsigned int i);
 
 virtual void ComputeRollingResistance(double& RollingResistance,

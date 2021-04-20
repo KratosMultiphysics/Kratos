@@ -114,6 +114,7 @@ class DEMAnalysisStage(AnalysisStage):
         #self._solver = self._GetSolver()
         self.SetFinalTime()
         self.AddVariables()
+        
         super().__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
@@ -363,12 +364,14 @@ class DEMAnalysisStage(AnalysisStage):
                         subprops[BRINELL_HARDNESS] = contact_properties["BRINELL_HARDNESS"].GetDouble()     
 
                     subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
-                    DiscontinuumConstitutiveLaw = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                    DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(subprops, True)                     
+                    discontinuum_constitutive_law_instance = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
+                    discontinuum_constitutive_law_instance.SetConstitutiveLawInProperties(subprops, True)                     
 
                     if contact_properties.Has("continuum_contact_law_parameters"):
-                        subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()                    
-                                                  
+                        subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()   
+                        continuum_constitutive_law_instance = globals().get(subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME])()
+                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, contact_properties["continuum_contact_law_parameters"], True)                 
+                        
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
         
         for pair in material_assignation_table:
@@ -682,7 +685,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         del self.KratosPrintInfo
         del self.all_model_parts
-        del self.demio
+        if self.do_print_results_option:
+            del self.demio
         del self.procedures
         del self.creator_destructor
         del self.dem_fem_search
