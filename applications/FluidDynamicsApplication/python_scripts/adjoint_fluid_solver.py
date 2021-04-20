@@ -112,21 +112,28 @@ class AdjointFluidSolver(FluidSolver):
     def __CreateResponseFunction(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
+
+        if domain_size == 2:
+            drag_response_function_type = KratosCFD.DragResponseFunction2D
+            drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction2D
+        elif domain_size == 3:
+            drag_response_function_type = KratosCFD.DragResponseFunction3D
+            drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction3D
+        else:
+            raise RuntimeError("Invalid DOMAIN_SIZE: " + str(domain_size))
+
         if response_type == "drag":
-            if domain_size == 2:
-                response_function = KratosCFD.DragResponseFunction2D(
-                    self.settings["response_function_settings"]["custom_settings"],
-                    self.main_model_part)
-            elif domain_size == 3:
-                response_function = KratosCFD.DragResponseFunction3D(
-                    self.settings["response_function_settings"]["custom_settings"],
-                    self.main_model_part)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+            response_function = drag_response_function_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         elif response_type == "norm_square":
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.settings["response_function_settings"]["custom_settings"],
                 self.model)
+        elif response_type == "drag_frequency":
+            response_function = drag_frequency_response_function_type(
+                self.settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
