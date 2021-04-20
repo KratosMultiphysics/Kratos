@@ -314,7 +314,13 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
-    def SetMaterials(self):        
+    def SetMaterials(self):   
+        
+        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]  
+        input_type = model_part_import_settings["input_type"].GetString()
+        if input_type == "rest":   
+            return
+
         materials_parameters = self.DEM_material_parameters
         list_of_materials = materials_parameters["materials"]
         list_of_material_relations = materials_parameters["material_relations"]

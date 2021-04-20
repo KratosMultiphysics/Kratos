@@ -515,14 +515,10 @@ virtual void load(Serializer& rSerializer) override
     }
 
     // protected members
-    rSerializer.load("mDiscontinuumConstitutiveLaw", mDiscontinuumConstitutiveLaw);
     rSerializer.load("mRadius", mRadius);
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
-    //rSerializer.load("mFastProperties", mFastProperties);
     rSerializer.load("mClusterId", mClusterId);
-    //rSerializer.load("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
-    //rSerializer.load("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
     rSerializer.load("mGlobalDamping",mGlobalDamping);
 }
 
