@@ -637,21 +637,38 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
+    /**
+    * @brief Variable initialization
+    */
+    void VariableInitialization()
+    {
+        mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+        mGammaNewmark = 0.5 - mAlphaBossak;
+    }
+
+    /**
+    * @brief This method allocates the auxiliar memory
+    */
+    void AllocateAuxiliarMemory()
+    {
+        // Allocate auxiliary memory
+        const int num_threads = ParallelUtilities::GetNumThreads();
+        mMass.resize(num_threads);
+        mDamp.resize(num_threads);
+        mvel.resize(num_threads);
+    }
 
     /*@} */
     /**@name Private  Access */
     /*@{ */
 
-
     /*@} */
     /**@name Private Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
-
 
     /*@} */
 
