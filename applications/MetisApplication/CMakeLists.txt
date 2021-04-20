@@ -35,7 +35,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 
 add_library(KratosMetisCore SHARED ${KRATOS_METIS_APPLICATION_CORE} ${KRATOS_METIS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMetisCore PUBLIC KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES}) # todo refactor to use DataCommunicator then MPI can be removed
+target_link_libraries(KratosMetisCore PUBLIC KratosCore KratosMPICore ${METIS_LIBRARY})
 set_target_properties(KratosMetisCore PROPERTIES COMPILE_DEFINITIONS "METIS_APPLICATION=EXPORT,API")
 
 ###############################################################
