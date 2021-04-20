@@ -66,11 +66,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    // We get the constitutive tensor
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
@@ -127,12 +122,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    // We get the constitutive tensor
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
