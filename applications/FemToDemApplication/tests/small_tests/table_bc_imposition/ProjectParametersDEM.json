@@ -43,6 +43,11 @@
    "ControlTime"                    : 4.0,
    "NeighbourSearchFrequency"       : 1,
 
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy"
+    },
+    
    "GraphExportFreq"                : 1e-3,
    "VelTrapGraphExportFreq"         : 1e-3,
    "OutputTimeStep"                 : 5,
