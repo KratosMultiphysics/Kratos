@@ -173,6 +173,15 @@ public:
     /*@{ */
     
     /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
         Performing the update of the solution.
      */
 
