@@ -453,7 +453,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"               : "relaxation_scheme",
+            "name"               : "relaxation",
             "alpha_bossak"       : -0.3,
             "damping_factor"     : 10.0
         })");
@@ -470,7 +470,7 @@ public:
      */
     static std::string Name()
     {
-        return "relaxation_scheme";
+        return "relaxation";
     }
 
     /*@} */
