@@ -74,22 +74,26 @@ def RecursiveCopy(src, dest):
             new_path.mkdir(exist_ok=True)
             RecursiveCopy(str(item), str(new_path))
 
-def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction):
+def GetDragValues(kratos_parameters, model_part_name):
     output_process = _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name)
     if (output_process is not None):
         output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
         time_steps, reactions = _ReadDrag(output_file_name)
-        total_drag = 0.0
-        for reaction in reversed(reactions):
-            total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
-            if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
-                break
-        if len(time_steps) > 1:
-            delta_time = time_steps[1] - time_steps[0]
-            total_drag *= delta_time
-        return total_drag
+        return time_steps, reactions
     else:
         raise RuntimeError("No \"compute_body_fitted_drag_process\" found in auxiliar_process_list.")
+
+def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction):
+    time_steps, reactions = GetDragValues(kratos_parameters, model_part_name)
+    total_drag = 0.0
+    for reaction in reversed(reactions):
+        total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
+        if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
+            break
+    if len(time_steps) > 1:
+        delta_time = time_steps[1] - time_steps[0]
+        total_drag *= delta_time
+    return total_drag
 
 def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
     auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
