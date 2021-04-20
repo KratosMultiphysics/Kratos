@@ -216,7 +216,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangen
         prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
 
-    noalias(rPDParameters.TangentTensor) = r_C - outer_prod(right_vector, left_vector) / denominator;
+    noalias(rPDParameters.TangentTensor) += -outer_prod(right_vector, left_vector) / denominator;
 }
 
 /***********************************************************************************/
@@ -413,7 +413,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
         CalculateConstitutiveMatrix(rValues, rPDParameters);
-
 
         // Compute the non-linear dissipation performed
         CalculatePlasticDissipationIncrement(r_mat_properties, rPDParameters);
