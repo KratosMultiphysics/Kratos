@@ -72,6 +72,9 @@ namespace Kratos {
                                                    Condition* const wall,
                                                    const double indentation) override;
 
+        Properties& GetPropertiesOfThisContact(SphericParticle* const element, SphericParticle* const neighbour);
+        Properties& GetPropertiesOfThisContact(SphericParticle* const element, Condition* const neighbour);
+
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
                                                    const double OldLocalElasticContactForce[3],
@@ -91,8 +94,8 @@ namespace Kratos {
             LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
 
             AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-
-            Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+            
+            Properties& properties_of_this_contact = GetPropertiesOfThisContact(element, neighbour);
 
             const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
             const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];

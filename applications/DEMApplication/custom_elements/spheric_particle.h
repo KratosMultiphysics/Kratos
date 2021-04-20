@@ -470,14 +470,10 @@ virtual void save(Serializer& rSerializer) const override
     }
 
     // protected members
-    rSerializer.save("mDiscontinuumConstitutiveLaw", mDiscontinuumConstitutiveLaw);
     rSerializer.save("mRadius", mRadius);
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
-    //rSerializer.save("mFastProperties", mFastProperties);
     rSerializer.save("mClusterId", mClusterId);
-    //rSerializer.save("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
-    //rSerializer.save("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
     rSerializer.save("mGlobalDamping",mGlobalDamping);
 }
 

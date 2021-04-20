@@ -270,7 +270,6 @@ namespace Kratos {
 
 		int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
-		double mTensionLimit;
 		double minimal_radius;
 		double kn = 0;
 		indentation = - indentation;

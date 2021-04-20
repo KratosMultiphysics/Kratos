@@ -428,11 +428,9 @@ namespace Kratos {
 
         const double young_modulus = GetYoungModulusForComputingRotationalMoments(equiv_young);
 
-        const double equiv_shear   = young_modulus / (2.0 * (1 + equiv_poisson));
         const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
 
-       
         const double damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'

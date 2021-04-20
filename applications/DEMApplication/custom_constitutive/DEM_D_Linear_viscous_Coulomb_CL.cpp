@@ -106,6 +106,14 @@ namespace Kratos {
 
     }
 
+    Properties& DEM_D_Linear_viscous_Coulomb::GetPropertiesOfThisContact(SphericParticle* const element, SphericParticle* const neighbour){
+        return element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    }
+
+    Properties& DEM_D_Linear_viscous_Coulomb::GetPropertiesOfThisContact(SphericParticle* const element, Condition* const neighbour){
+        return element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    }
+
     void DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                   double ViscoDampingLocalContactForce[3],
                                                                   SphericParticle* const element1,

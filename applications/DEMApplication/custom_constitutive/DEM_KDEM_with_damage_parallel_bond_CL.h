@@ -21,9 +21,9 @@ namespace Kratos {
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
-        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true);
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override;
 
-        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp);
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
 
         void Check(Properties::Pointer pProp) const override;
 
