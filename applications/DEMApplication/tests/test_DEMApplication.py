@@ -40,7 +40,6 @@ def AssembleTestSuites():
     #smallSuite.addTest(test_guis.TestGUIs("test_GUIs_2"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle1"))
-    smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
     smallSuite.addTest(test_wall_creator_destructor.TestWallCreatorDestructor("test_CreateWallTriangle"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
