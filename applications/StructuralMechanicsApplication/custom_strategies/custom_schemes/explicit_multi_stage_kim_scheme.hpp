@@ -123,19 +123,15 @@ public:
     /**
      * @brief Constructor with parameters
      * @details The ExplicitMultiStageKimScheme method
-     * @param rParameters The parameters containing the configuration parameters
+     * @param ThisParameters The parameters containing the configuration parameters
      * @warning time_step_prediction_level should be an integer
      */
-    ExplicitMultiStageKimScheme(Parameters rParameters =  Parameters(R"({})"))
+    ExplicitMultiStageKimScheme(Parameters ThisParameters =  Parameters(R"({})"))
         : BaseType()
     {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "fraction_delta_time"        : 0.333333333333333333333333333333333333
-        })" );
-
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-        mDeltaTime.Fraction = rParameters["fraction_delta_time"].GetDouble();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);   
     }
 
     /** Destructor.
@@ -144,6 +140,10 @@ public:
 
     ///@}
     ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
     ///@{
 
     /**
@@ -840,9 +840,32 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                : "multi_stage",
+            "fraction_delta_time" : 0.333333333333333333333333333333333333
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "multi_stage";
+    }
 
     ///@}
     ///@name Access
@@ -896,6 +919,16 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mDeltaTime.Fraction = ThisParameters["fraction_delta_time"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access
