@@ -242,10 +242,10 @@ class RigidBodySolver(object):
 
     def CalculateEquivalentForceFromRootPointExcitation(self, displ):
         self.x_f[:,0] = displ
-        self.v_f[:,0] = self.v_f[:,1] + self.delta_t * (self.gamma * displ + (1-self.gamma) * self.a_f[:,1])
-        self.a_f[:,0] = 1/(self.delta_t**2 * self.beta) * (displ - self.x_f[:,1])\
-            - 1/(self.delta_t * self.beta) * self.v_f[:,1]\
-            + (1-1/(2*self.beta)) * self.a_f[:,1]
+        self.v_f[:,0] = self.a1v * (self.x_f[:,0] - self.x_f[:,1]) + self.a2v * \
+            self.v_f[:,1] + self.a3v * self.a_f[:,1]
+        self.a_f[:,0] = self.a1a * (self.x_f[:,0] - self.x_f[:,1]) + self.a2a * \
+            self.v_f[:,1] + self.a3a * self.a_f[:,1]
         equivalent_force = self.K.dot(self.x_f[:,0]) + self.C.dot(self.v_f[:,0])
         return equivalent_force
 
