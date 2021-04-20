@@ -23,23 +23,21 @@ class CalculateStationarityProcessUtility(Kratos.Process):
         super().__init__()
         default_settings = Kratos.Parameters("""
             {
+                "file_name" : "PLEASE_SPECIFY_HDF5_FILENAME",
                 "model_part_name" : "please_specify_model_part_name",
                 "compute_stationarity" : true,
                 "domain_size" : 2,
                 "error_projection_parameters" : {
                 	"u_characteristic"  : 1.0
-            	},
-                "plot_stationarity" : true
+            	}
             }
             """)
 
         settings.ValidateAndAssignDefaults(default_settings)
-        # self.parameters = settings
+        self.parameters = settings
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
         self.u_characteristic = settings["error_projection_parameters"]["u_characteristic"].GetDouble()
-        self.plot_stationarity = settings["plot_stationarity"].GetBool()
-        file_path = os.getcwd()
-        self.dir_path = os.path.dirname(file_path)+'/Norouzi_mesh_1_StationarityL2ErrorNorm.hdf5'
+        self.problem_name = self.parameters["file_name"].GetString()
         self.velocity_error = []
         self.concentration_error = []
         self.step = []
@@ -54,7 +52,7 @@ class CalculateStationarityProcessUtility(Kratos.Process):
         self.velocity_error.append(velocity_error)
         self.concentration_error.append(concentration_error)
         self.step.append(step)
-        WriteStationarityError.WriteStationarityErrorToHdf5(self.fluid_model_part, self.dir_path, velocity_error, concentration_error)
+        WriteStationarityError.WriteStationarityErrorToHdf5(self.fluid_model_part, velocity_error, concentration_error, self.problem_name)
 
     def CalculateL2(self):
         self.ComputeDofsErrors(self.fluid_model_part)

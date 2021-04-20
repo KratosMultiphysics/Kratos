@@ -33,20 +33,18 @@ def GetFieldDataFile(mdpa_name):
 def PlotMeshConvergence(velocity, concentration, n_elem, n_size):
             
     # plt.subplot(1, 2, 1)
-    plt.plot(n_size, velocity, color='b', marker = 'o')
+    plt.plot(n_size[::-1], velocity[::-1], color='b', marker = 'o')
     #convergence rate
     # q1 = (math.log(velocity[0][0]/velocity[1][0])/math.log(n_size[0]/n_size[1]))
     # q0 = (math.log(velocity[1][0]/velocity[2][0])/math.log(n_size[1]/n_size[2]))
     plt.title("Velocity", fontsize=17)
     plt.grid()
-    # plt.xlim(0, 11)
-    plt.yscale('log')
-    plt.xscale('log')
+    plt.xlim(15e-5, 4e-5)
     plt.ylabel('L2  error  norm', fontsize=15, labelpad=5)
-    plt.xlabel('mesh size (# elements)', fontsize=15, labelpad=5)
+    plt.xlabel('mesh size', fontsize=15, labelpad=5)
     lgnd = plt.legend(loc = 'lower left', prop={'size':15}, frameon=False)
     plt.tick_params(axis='both', which='major', labelsize=15)
-    # plt.semilogy()
+    plt.semilogy()
     ax = plt.gca()
     ax.tick_params(axis='x', pad=20)
     ax.tick_params(axis='y', pad=10)
@@ -81,12 +79,14 @@ n_size = []
 velocity = []
 concentration = []
 for j in range(2,5):
-    d['mesh_'+str(j)+'_dirPath'] = '/home/aitor/Escritorio/Norouzi_mesh_'+str(j)+'.gid/Norouzi_mesh_'+str(j)+'_MeshConvergenceL2ErrorNorm.hdf5'
+    d['mesh_'+str(j)+'_dirPath'] = '/home/aitor/Escritorio/Norouzi_mesh_'+str(j)+'.gid/Norouzi_mesh_'+str(j)+'.hdf5'
     velocity_error_s, concentration_error_s, n_element_s, n_size_s = GetFieldDataFile(d['mesh_'+str(j)+'_dirPath'])
     velocity.append(velocity_error_s)
     concentration.append(concentration_error_s)
     n_size.append(n_size_s)
     n_element.append(n_element_s)
+    # ad0 = (n_element[j-2]*n_size[j-2]**2)*0.5
+
 PlotMeshConvergence(velocity, concentration, n_element, n_size)
 
         

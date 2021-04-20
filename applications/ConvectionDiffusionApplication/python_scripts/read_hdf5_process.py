@@ -7,7 +7,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.ConvectionDiffusionApplication as CD
 import KratosMultiphysics.ConvectionDiffusionApplication.CDProjectionModule as CDProjectionModule
 import KratosMultiphysics.ConvectionDiffusionApplication.WriteMdpaToHdf5 as WriteMdpaToHdf5
-
 from KratosMultiphysics import *
 import sys
 import os
@@ -26,7 +25,7 @@ class ReadHdf5Process(Kratos.Process):
             {
                 "file_name" : "PLEASE_SPECIFY_HDF5_FILENAME",
                 "model_part_name" : "please_specify_model_part_name",
-                "prefix" : "/Norouzi_mesh_1",
+                "reference_model_part_name" : "specify_model_part_name",
                 "list_of_variables" : ["VELOCITY", "TEMPERATURE", "COORDINATES"],
                 "error_projection_parameters" : {
                 	"u_characteristic"  : 1.0
@@ -37,6 +36,7 @@ class ReadHdf5Process(Kratos.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
         self.parameters = settings
+        self.problem_name = self.parameters["file_name"].GetString()
         self.destination_model_part = Model[settings["model_part_name"].GetString()]
         self.u_characteristic = settings["error_projection_parameters"]["u_characteristic"].GetDouble()
         for element in self.destination_model_part.Elements:
@@ -65,7 +65,7 @@ class ReadHdf5Process(Kratos.Process):
         # model_part_cloner.GenerateModelPart(self.destination_model_part, self.destination_model_part_new, self.element_name)
         CDProjectionModule.ProjectionModuleConvectionDiffusion(self.reference_model_part, self.destination_model_part, self.parameters, self.fluid_variables, self.projected_variables)
         velocity_error, concentration_error = self.CalculateErrorNorm()
-        WriteMdpaToHdf5.WriteConvergenceNodalErrorToHdf5(self.destination_model_part, velocity_error, concentration_error)
+        WriteMdpaToHdf5.WriteConvergenceNodalErrorToHdf5(self.destination_model_part, velocity_error, concentration_error, self.problem_name)
     
 
     def ReadModelPartFile(self): 
@@ -83,7 +83,7 @@ class ReadHdf5Process(Kratos.Process):
 
     def GetFieldDataFile(self, model):
         import h5py
-        file_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1_StationarityL2ErrorNorm'
+        file_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
         self.hf = h5py.File(file_name+".hdf5", 'r')
         group_names = list(self.hf.keys())
         self.velocities = self.hf[str(self.destination_model_part.ProcessInfo[Kratos.STEP])+'/VELOCITIES']

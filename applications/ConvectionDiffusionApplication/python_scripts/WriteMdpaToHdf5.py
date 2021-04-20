@@ -6,7 +6,7 @@ import h5py
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.ConvectionDiffusionApplication as CD
 class WriteConvergenceNodalErrorToHdf5:
-    def __init__(self, destination_model_part, velocity_error, concentration_error):
+    def __init__(self, destination_model_part, velocity_error, concentration_error, problem_name):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -14,9 +14,8 @@ class WriteConvergenceNodalErrorToHdf5:
         test_number -- It is the number of the mesh that is computing
         """
         
-        file_path = os.getcwd()
-        dir_path = os.path.dirname(file_path)
-        self.file_path = dir_path+'/Norouzi_mesh_2_MeshConvergenceL2ErrorNorm.hdf5'
+        file_path_dir = os.getcwd()
+        self.file_name = file_path_dir+'/'+problem_name
         self.model_part_fluid = destination_model_part  
         self.group_name = str(self.model_part_fluid.ProcessInfo[Kratos.STEP])
         self.velocity_error = velocity_error
@@ -49,7 +48,7 @@ class WriteConvergenceNodalErrorToHdf5:
             self.element_size = Element.GetGeometry().Length()
             break
      
-        with h5py.File(self.file_path, 'a') as f:
+        with h5py.File(self.file_name, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
                             names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID','VELOCITY_NODAL_ERROR', 'CONCENTRATION_NODAL_ERROR', 'VELOCITY_ERROR', 'CONCENTRATION_ERROR'],
                             data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.vectorial_error, self.scalar_error, self.velocity_error, self.concentration_error])

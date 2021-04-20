@@ -8,15 +8,15 @@ import KratosMultiphysics.ConvectionDiffusionApplication as CD
 
 class WriteStationarityErrorToHdf5:
     
-    def __init__(self, fluid_model_part, dir_path, velocity_error, concentration_error):
+    def __init__(self, fluid_model_part, velocity_error, concentration_error, problem_name):
         """The default constructor of the class.
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         test_number -- It is the number of the mesh that is computing
         """
-        
-        self.file_path = dir_path
+        file_path_dir = os.getcwd()
+        self.file_name = file_path_dir+'/'+problem_name
         self.model_part_fluid = fluid_model_part  
         self.group_name = str(self.model_part_fluid.ProcessInfo[Kratos.STEP])
         self.velocity_error = velocity_error
@@ -49,9 +49,9 @@ class WriteStationarityErrorToHdf5:
             break
         
 
-        with h5py.File(self.file_path, 'a') as f:
+        with h5py.File(self.file_name, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID','VELOCITY_NODAL_ERROR', 'CONCENTRATION_NODAL_ERROR', 'VELOCITY_ERROR', 'CONCENTRATION_ERROR'],
+                            names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID','VELOCITY_NODAL_STAT_ERROR', 'CONCENTRATION_NODAL_STAT_ERROR', 'VELOCITY_STAT_ERROR', 'CONCENTRATION_STAT_ERROR'],
                             data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.vectorial_error, self.scalar_error, self.velocity_error, self.concentration_error])
 
     def WriteDataToFile(self, file_or_group, names, data):

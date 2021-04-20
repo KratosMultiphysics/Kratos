@@ -133,7 +133,7 @@ void BinBasedInterpolationUtility<TDim>::Interpolate(
         step_datum[i] = step_datum_fast[i];
     }
     auto& r_vectorial_error = p_node->FastGetSolutionStepValue(VECTORIAL_MESH_ERROR);
-    r_vectorial_error = step_datum- first_origin_datum;
+    r_vectorial_error = step_datum - geom[0].FastGetSolutionStepValue(r_origin_variable);
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
