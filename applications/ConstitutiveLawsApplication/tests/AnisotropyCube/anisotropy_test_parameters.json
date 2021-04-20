@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
+            "input_filename" : "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_materials.json"
+            "materials_filename" : "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -66,7 +66,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["DAMAGE"],
-                "input_file_name"              : "cl_test/AnisotropyCube/anisotropy_test_results.json",
+                "input_file_name"              : "AnisotropyCube/anisotropy_test_results.json",
                 "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 0.2
             }
@@ -81,7 +81,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["DAMAGE"],
-            "output_file_name"              : "cl_test/AnisotropyCube/anisotropy_test_results.json",
+            "output_file_name"              : "AnisotropyCube/anisotropy_test_results.json",
             "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 0.2
         }

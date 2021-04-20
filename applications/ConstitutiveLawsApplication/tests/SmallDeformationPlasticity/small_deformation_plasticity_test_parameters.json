@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
+            "input_filename" : "SmallDeformationPlasticity/small_deformation_plasticity_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test_materials.json"
+            "materials_filename" : "SmallDeformationPlasticity/small_deformation_plasticity_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 0.1
@@ -61,7 +61,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["UNIAXIAL_STRESS"],
-                "input_file_name"              : "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test_results.json",
+                "input_file_name"              : "SmallDeformationPlasticity/small_deformation_plasticity_test_results.json",
                 "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 1.0
             }
@@ -78,7 +78,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["UNIAXIAL_STRESS"],
-            "output_file_name"              : "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test_results.json",
+            "output_file_name"              : "SmallDeformationPlasticity/small_deformation_plasticity_test_results.json",
             "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 1.0
         }

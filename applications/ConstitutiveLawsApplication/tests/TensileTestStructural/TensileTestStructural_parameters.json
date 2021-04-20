@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_test/TensileTestStructural/TensileTestStructural"
+            "input_filename" : "TensileTestStructural/TensileTestStructural"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/TensileTestStructural/TensileTestStructural_materials.json"
+            "materials_filename" : "TensileTestStructural/TensileTestStructural_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 0.005
@@ -64,7 +64,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
-                "input_file_name"              : "cl_test/TensileTestStructural/TensileTestStructural_results.json",
+                "input_file_name"              : "TensileTestStructural/TensileTestStructural_results.json",
                 "model_part_name"              : "Structure.Parts_Central",
                 "tolerance"                    : 1e-2,
                 "relative_tolerance"           : 1e-4,
@@ -81,7 +81,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
-            "output_file_name"              : "cl_test/TensileTestStructural/TensileTestStructural_results.json",
+            "output_file_name"              : "TensileTestStructural/TensileTestStructural_results.json",
             "model_part_name"               : "Structure.Parts_Central",
             "time_frequency"                : 0.1
         }

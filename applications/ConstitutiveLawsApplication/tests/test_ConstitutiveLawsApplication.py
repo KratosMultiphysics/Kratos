@@ -1,12 +1,26 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ConstitutiveLawsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
 from test_perfect_plasticity_implementation_verification import TestPerfectPlasticityImplementationVerification
+
+from test_factory import SimpleSmallDeformationPlasticityMCTest
+from test_factory import SimpleSmallDeformationPlasticityVMTest
+from test_factory import SimpleSmallDeformationPlasticityDPTest
+from test_factory import SimpleSmallDeformationPlasticityTTest
+from test_factory import BigCubeSmallDeformationPlasticityMCTest
+from test_factory import BigCubeSmallDeformationPlasticityVMTest
+from test_factory import BigCubeSmallDeformationPlasticityDPTest
+from test_factory import BigCubeSmallDeformationPlasticityTTest
+from test_factory import SerialParallelRuleOfMixturesCubeDamageTest
+from test_factory import AnisotropyTest
+from test_factory import InitialStateInelasticityTest
+from test_factory import InitialStateInelasticity2Test
+from test_factory import SmallDeformationPlasticityTest
+from test_factory import SimpleJ2PlasticityTest
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -26,16 +40,26 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
 
+    smallSuite.addTest(SimpleSmallDeformationPlasticityVMTest('test_execution'))
+    smallSuite.addTest(SimpleSmallDeformationPlasticityDPTest('test_execution'))
+    smallSuite.addTest(SimpleSmallDeformationPlasticityTTest('test_execution'))
+    smallSuite.addTest(BigCubeSmallDeformationPlasticityMCTest('test_execution'))
+    smallSuite.addTest(BigCubeSmallDeformationPlasticityVMTest('test_execution'))
+    smallSuite.addTest(BigCubeSmallDeformationPlasticityDPTest('test_execution'))
+    smallSuite.addTest(BigCubeSmallDeformationPlasticityTTest('test_execution'))
+    smallSuite.addTest(AnisotropyTest('test_execution'))
+    smallSuite.addTest(InitialStateInelasticityTest('test_execution'))
+    smallSuite.addTest(InitialStateInelasticity2Test('test_execution'))
+    smallSuite.addTest(SimpleJ2PlasticityTest('test_execution'))
+
     # Create a test suit with the selected tests (Nightly tests):
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPerfectPlasticityImplementationVerification]))
-
-
-    ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate
-    validationSuite = suites['validation']
+    nightSuite.addTest(SmallDeformationPlasticityTest('test_execution'))
+    nightSuite.addTest(SimpleSmallDeformationPlasticityMCTest('test_execution'))
+    nightSuite.addTest(SerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
