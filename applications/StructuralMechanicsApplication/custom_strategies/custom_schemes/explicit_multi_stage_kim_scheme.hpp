@@ -112,7 +112,7 @@ public:
     ExplicitMultiStageKimScheme(
         const double DeltaTimeFraction
         )
-        : Scheme<TSparseSpace, TDenseSpace>()
+        : BaseType()
     {
         mDeltaTime.Fraction = DeltaTimeFraction;
     }
@@ -124,7 +124,7 @@ public:
      * @warning time_step_prediction_level should be an integer
      */
     ExplicitMultiStageKimScheme(Parameters rParameters =  Parameters(R"({})"))
-        : Scheme<TSparseSpace, TDenseSpace>()
+        : BaseType()
     {
         Parameters default_parameters = Parameters(R"(
         {
