@@ -401,79 +401,86 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param r_model_part
+     * @param rModelPart
      * @return 0 all ok
      */
-    int Check(const ModelPart& r_model_part) const override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
 
-        int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
+        int err = BaseType::Check(rModelPart);
         if (err != 0) return err;
 
-        //check that variables are correctly allocated
-        for (const auto& r_node : r_model_part.Nodes())
-        {
-            if (r_node.SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
-            if (r_node.SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
-            if (r_node.SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
+        // Check that variables are correctly allocated
+        for (const auto& r_node : rModelPart.Nodes()) {
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(DISPLACEMENT)) <<  "DISPLACEMENT variable is not allocated for node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(VELOCITY))     <<      "VELOCITY variable is not allocated for node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(ACCELERATION)) <<  "ACCELERATION variable is not allocated for node " << r_node.Id() << std::endl;
         }
 
-        //check that dofs exist
-        for (const auto& r_node : r_model_part.Nodes())
-        {
-            if (r_node.HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_X dof on node ", r_node.Id() )
-            if (r_node.HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Y dof on node ", r_node.Id() )
-            if (r_node.HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Z dof on node ", r_node.Id() )
+        // Check that dofs exist
+        for (const auto& r_node : rModelPart.Nodes()) {
+            KRATOS_ERROR_IF_NOT(r_node.HasDofFor(DISPLACEMENT_X)) << "Missing DISPLACEMENT_X dof on node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.HasDofFor(DISPLACEMENT_Y)) << "Missing DISPLACEMENT_Y dof on node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.HasDofFor(DISPLACEMENT_Z)) << "Missing DISPLACEMENT_Z dof on node " << r_node.Id() << std::endl;
         }
 
+        // Check for admissible value of the AlphaBossak
+        KRATOS_ERROR_IF(mAlphaBossak > 0.0 || mAlphaBossak < -0.3) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlphaBossak << std::endl;
 
-        //check for admissible value of the AlphaBossak
-        if (mAlphaBossak > 0.0 || mAlphaBossak < -0.3)
-            KRATOS_THROW_ERROR( std::logic_error, "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlphaBossak )
-
-            //check for minimum value of the buffer index
-            //verify buffer size
-            if (r_model_part.GetBufferSize() < 2)
-                KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
-
+        // Check for minimum value of the buffer index
+        // Verify buffer size
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
 
         return 0;
         KRATOS_CATCH( "" )
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "relaxation_scheme",
+            "alpha_bossak"       : -0.3,
+            "damping_factor"     : 10.0
+        })");
 
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "relaxation_scheme";
+    }
 
     /*@} */
     /**@name Access */
     /*@{ */
 
-
     /*@} */
     /**@name Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Friends */
     /*@{ */
-
 
     /*@} */
 
 protected:
     /**@name Protected static Member Variables */
     /*@{ */
-
 
     /*@} */
     /**@name Protected member Variables */
