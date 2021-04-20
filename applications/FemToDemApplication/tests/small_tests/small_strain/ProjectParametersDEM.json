@@ -1,5 +1,5 @@
 {
-   "Dimension"                      : 2,
+   "Dimension"                      : 3,
    "PeriodicDomainOption"           : false,
    "BoundingBoxOption"              : false,
    "AutomaticBoundingBoxOption"     : false,
@@ -72,5 +72,5 @@
    "PostGroupId"                    : false,
    "PostExportId"                   : false,
 
-   "problem_name"                   : "small_test_damage"
+   "problem_name"                   : "free_fall_contact"
 }

@@ -280,7 +280,7 @@ class MainCoupledFemDem_Solution:
     def Finalize(self):
         self.FEM_Solution.Finalize()
         self.DEM_Solution.Finalize()
-        self.DEM_Solution.CleanUpOperations()
+        # self.DEM_Solution.CleanUpOperations()
 
         if self.DoRemeshing:
             self.RemeshingProcessMMG.ExecuteFinalize()

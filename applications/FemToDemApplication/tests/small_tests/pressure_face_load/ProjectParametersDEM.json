@@ -24,6 +24,11 @@
    "CleanIndentationsOption"        : false,
    "RemoveBallsInEmbeddedOption"    : true,
 
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy"
+    },
+    
    "DeltaOption"                    : "Absolute",
    "SearchTolerance"                : 0.0,
    "AmplifiedSearchRadiusExtension" : 0.0,
@@ -45,7 +50,7 @@
 
    "GraphExportFreq"                : 1e-3,
    "VelTrapGraphExportFreq"         : 1e-3,
-   "OutputTimeStep"                 : 1,
+   "OutputTimeStep"                 : 5,
    "PostBoundingBox"                : false,
    "PostDisplacement"               : true,
    "PostVelocity"                   : true,
@@ -72,5 +77,5 @@
    "PostGroupId"                    : false,
    "PostExportId"                   : false,
 
-   "problem_name"                   : "face_load"
+   "problem_name"                   : "free_fall_contact"
 }

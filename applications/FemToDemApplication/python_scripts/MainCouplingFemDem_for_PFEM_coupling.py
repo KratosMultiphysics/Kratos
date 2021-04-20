@@ -20,8 +20,18 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
 #============================================================================================================================
     def __init__(self, Model, path = ""):
         # Initialize solutions
-        self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model, path)
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
+
+        if path == "":
+            DEM_json_file = open("MaterialsDEM.json",'r')
+            DEMProjectParametersFile = open("ProjectParametersDEM.json",'r')
+        else:
+            DEM_json_file = open(path + "MaterialsDEM.json")
+            DEMProjectParametersFile = open(path + "ProjectParametersDEM.json",'r')
+        DEM_materials_parameters = KratosMultiphysics.Parameters(DEM_json_file.read())
+        DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
+
+        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters, DEM_materials_parameters)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
