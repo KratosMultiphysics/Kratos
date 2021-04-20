@@ -64,6 +64,8 @@ public:
 
     void Initialize() override;
 
+    void InitializeSolutionStep() override;
+
     void CalculateGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,

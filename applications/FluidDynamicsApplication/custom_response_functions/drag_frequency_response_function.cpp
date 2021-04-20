@@ -111,10 +111,7 @@ void DragFrequencyResponseFunction<TDim>::Initialize()
 {
     KRATOS_TRY;
 
-    BaseType::Check();
-
-    VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Nodes());
-    VariableUtils().SetFlag(STRUCTURE, true,  mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
+    BaseType::Initialize();
 
     const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
@@ -129,6 +126,22 @@ void DragFrequencyResponseFunction<TDim>::Initialize()
         << "\tMaximum possible frequency: " << 1.0 / (delta_time * 2.0) << " Hz \n"
         << "\tTotal number of time steps: " << mTotalNumberOfTimeSteps << "\n"
         << "\tComponent type            : " << (mIsRealComponentRequested ? "real\n" : "imaginary\n");
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim>
+void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    BaseType::InitializeSolutionStep();
+
+    const int step = mrModelPart.GetProcessInfo()[STEP];
+
+    KRATOS_WARNING_IF("DragFrequencyResponseFunction", step > mTotalNumberOfTimeSteps)
+        << "Current step is larger than total number of steps provided in settings. [ Current step = "
+        << step << ", Total number of steps in settings = " << mTotalNumberOfTimeSteps << " ].\n";
 
     KRATOS_CATCH("");
 }
