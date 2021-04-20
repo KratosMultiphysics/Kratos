@@ -88,10 +88,11 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef Kratos::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRelaxationScheme );
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+
+    typedef ResidualBasedRelaxationScheme<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -107,31 +108,53 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-
     /*@} */
     /**@name Life Cycle
      */
     /*@{ */
 
+    /** Default constructor.
+     */
+    explicit ResidualBasedRelaxationScheme()
+        : BaseType()
+    {
+    }
+
     /** Constructor.
      */
-    ResidualBasedRelaxationScheme(double NewAlphaBossak, double damping_factor)
-        : Scheme<TSparseSpace, TDenseSpace>()
+    explicit ResidualBasedRelaxationScheme(const double NewAlphaBossak, const double DampingFactor)
+        : BaseType()
     {
         //default values for the Newmark Scheme
         mAlphaBossak = NewAlphaBossak;
-        mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
-        mGammaNewmark = 0.5 - mAlphaBossak;
 
-        mdamping_factor = damping_factor;
+        // Variable initialization
+        VariableInitialization();
 
-        // Allocate auxiliary memory
-        const int num_threads = ParallelUtilities::GetNumThreads();
-        mMass.resize(num_threads);
-        mDamp.resize(num_threads);
-        mvel.resize(num_threads);
+        // Damping factor
+        mDampingFactor = DampingFactor;
 
-        //std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
+        // Allocate auxiliar memory
+        AllocateAuxiliarMemory();
+    }
+
+    /**
+     * @brief Constructor
+     * @param ThisParameters The parameters containing the list of variables to consider
+     * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
+     */
+    explicit ResidualBasedRelaxationScheme(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Variable initialization
+        VariableInitialization();
+
+        // Allocate auxiliar memory
+        AllocateAuxiliarMemory();
     }
 
     /** Destructor.
@@ -140,12 +163,15 @@ public:
     {
     }
 
-
     /*@} */
     /**@name Operators
      */
     /*@{ */
 
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+    
     /**
         Performing the update of the solution.
      */
