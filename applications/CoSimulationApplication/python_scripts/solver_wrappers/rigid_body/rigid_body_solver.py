@@ -55,6 +55,7 @@ class RigidBodySolver(object):
 
     def _InitializeDofsVariables(self, dof_params):
 
+        self.is_blocked = {}
         self.excitation_function_force = {}
         self.excitation_function_root_point_displ = {}
         self.load_impulse = {}
@@ -65,6 +66,7 @@ class RigidBodySolver(object):
 
         for dof in self.available_dofs:
 
+            self.is_blocked[dof] = dof_params[dof]["blocked"].GetBool()
             self.excitation_function_force[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_force"].GetString()
             self.excitation_function_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_root_point_displacement"].GetString()
             self.load_impulse[dof] = dof_params[dof]["boundary_conditions"]["load_impulse"].GetDouble()
@@ -288,6 +290,12 @@ class RigidBodySolver(object):
                 RHS[index] = 0
 
         self.x[:,0] = np.linalg.solve(self.LHS, RHS)
+
+        # Blocked dofs will have the root_point_displacement as a total displacement
+        for index, dof in enumerate(self.available_dofs):
+            if self.is_blocked[dof]:
+                self.x[index,0] = self.total_root_point_displ[index,0]
+
         self.v[:,0] = self.UpdateVelocity(self.x[:,0])
         self.a[:,0] = self.UpdateAcceleration(self.x[:,0])
     
