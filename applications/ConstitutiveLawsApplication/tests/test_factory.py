@@ -112,6 +112,9 @@ class SmallDeformationPlasticityTest(TestFactory):
 class SimpleJ2PlasticityTest(TestFactory):
     file_name = "SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
 
+class TensileTestStructuralTest(TestFactory):
+    file_name = "TensileTestStructural/TensileTestStructural"
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
