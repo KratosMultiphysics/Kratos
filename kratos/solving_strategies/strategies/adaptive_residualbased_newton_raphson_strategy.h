@@ -28,6 +28,7 @@
 #include "includes/matrix_market_interface.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "factories/linear_solver_factory.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -124,6 +125,18 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Convergence criteria factory
+    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
+
+    /// Builder and solver factory
+    typedef Factory< TBuilderAndSolverType> BuilderAndSolverFactoryType;
+
     /*@} */
     /**@name Life Cycle
     */
@@ -166,9 +179,21 @@ public:
         mpb = TSparseSpace::CreateEmptyVectorPointer();
     }
 
-    /** Constructor.
-    */
-    AdaptiveResidualBasedNewtonRaphsonStrategy(
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param ReductionFactor The factor of reduction
+     * @param IncreaseFactor The increase factor
+     * @param NumberOfCycles The number of cycles
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -893,6 +918,7 @@ private:
     /**@name Protected static Member Variables */
     /*@{ */
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     /*@} */
     /**@name Protected member Variables */
@@ -931,7 +957,6 @@ private:
 protected:
     /**@name Static Member Variables */
     /*@{ */
-
 
     /*@} */
     /**@name Member Variables */
@@ -1103,17 +1128,28 @@ protected:
 
         // Saving the convergence criteria to be used
         if (ThisParameters["convergence_criteria_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
         }
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
         }
 
         // Setting up the default builder and solver
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
         }
     }
 

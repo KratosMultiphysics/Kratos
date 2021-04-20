@@ -23,30 +23,22 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
-
-
 ///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
 ///@{
-
-
 
 ///@}
 ///@name Kratos Classes
@@ -394,8 +386,6 @@ private:
     ///@name Protected Operations
     ///@{
 
-
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -404,12 +394,9 @@ private:
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-
 
     ///@}
 
@@ -417,11 +404,11 @@ protected:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<SolvingStrategyType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators

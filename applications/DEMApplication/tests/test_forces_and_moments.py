@@ -42,17 +42,37 @@ class ForcesAndMomentsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
                     self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
                     expected_value =  0.000718
                     self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
+                if node.Id == 2:
+                    expected_value =  0.048
+                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+                    expected_value = -0.986
+                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+                    expected_value = 0.043
+                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+                    expected_value = 0.587
+                    self.CheckValueOfVelocity(angular_velocity, 0, expected_value, tolerance)
+                    expected_value =  0.006
+                    self.CheckValueOfVelocity(angular_velocity, 1, expected_value, tolerance)
+                    expected_value =  0.084
+                    self.CheckValueOfVelocity(angular_velocity, 2, expected_value, tolerance)
 
         if self.time > 0.299999 and self.time < 0.300001:
             for node in self.rigid_face_model_part.Nodes:
                 velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
                 angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
                 if node.Id == 4:
-                    expected_value = 154.930
+                    expected_value = -85.265
                     self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = 128.674
+                    expected_value = 157.177
                     self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value =  21.112
+                    expected_value =  32.412
+                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+                if node.Id == 13:
+                    expected_value = 6309.350
+                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+                    expected_value = 37395.854
+                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+                    expected_value =  -13433.566
                     self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
 
     def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):

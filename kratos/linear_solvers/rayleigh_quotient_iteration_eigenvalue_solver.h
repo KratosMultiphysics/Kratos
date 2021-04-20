@@ -186,7 +186,7 @@ public:
      * @param rR The vector containing the normalized components of the diagonal
      * @param rM The "mass" matrix
      */
-    static void Initialize(
+    static void InitializeSystem(
         VectorType& rR,
         const SparseMatrixType& rM
         )
@@ -251,7 +251,7 @@ public:
         VectorType x = boost::numeric::ublas::zero_vector<double>(size);
         VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
-        Initialize(y,M);
+        InitializeSystem(y,M);
 
         if(Eigenvalues.size() < 1) {
             Eigenvalues.resize(1,0.0);
