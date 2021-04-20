@@ -500,16 +500,17 @@ protected:
     std::vector< Matrix >mMass;
     std::vector< Matrix >mDamp;
     std::vector< Vector >mvel;
-    //std::vector< Vector >macc;
-    //std::vector< Vector >maccold;
 
-    double mdamping_factor;
-
+    double mDampingFactor;
 
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
 
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
+    
     //*********************************************************************************
     //Updating first time Derivative
 
@@ -523,8 +524,6 @@ protected:
         noalias(CurrentVelocity) = ma1 * DeltaDisp - ma4 * OldVelocity - ma5*OldAcceleration;
     }
 
-
-
     //**************************************************************************
 
     inline void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
@@ -535,9 +534,6 @@ protected:
 
         noalias(CurrentAcceleration) = ma0 * DeltaDisp - ma2 * OldVelocity - ma3*OldAcceleration;
     }
-
-
-
 
     //****************************************************************************
 
@@ -551,22 +547,11 @@ protected:
         LocalSystemMatrixType& M,
         const ProcessInfo& CurrentProcessInfo)
     {
-        // adding mass contribution to the dynamic stiffness
-        if (M.size1() != 0) // if M matrix declared
-        {
-            //              noalias(LHS_Contribution) += mam*M;
-            //          }
-            //
-            //          //adding  damping contribution
-            //          if(D.size1() != 0) // if M matrix declared
-            //          {
-            noalias(LHS_Contribution) += (mdamping_factor * ma1) * M;
+        // Adding mass contribution to the dynamic stiffness
+        if (M.size1() != 0) { // if M matrix declared
+            noalias(LHS_Contribution) += (mDampingFactor * ma1) * M;
         }
     }
-
-
-
-
 
     //****************************************************************************
 
@@ -582,28 +567,12 @@ protected:
         const ProcessInfo& CurrentProcessInfo)
     {
         //adding inertia contribution
-        if (M.size1() != 0)
-        {
+        if (M.size1() != 0) {
             int k = OpenMPUtils::ThisThread();
             const auto& r_const_elem_ref = rCurrentElement;
-            /*              rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
-                            (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
-                            rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::maccold,1);
-                            noalias(RelaxationAuxiliaries::macc) += mAlphaBossak *
-            RelaxationAuxiliaries::maccold;
 
-                            noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaries::macc );*/
-            /*          }
-
-                        //adding damping contribution
-                        //damping contribution
-                        if (D.size1() != 0)
-                        {*/
             r_const_elem_ref.GetFirstDerivativesVector(mvel[k], 0);
-            noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
+            noalias(RHS_Contribution) -= mDampingFactor * prod(M, mvel[k]);
         }
 
     }
@@ -616,53 +585,37 @@ protected:
         const ProcessInfo& CurrentProcessInfo)
     {
         //adding inertia contribution - DO NOT ADD
-        if (M.size1() != 0)
-        {
+        if (M.size1() != 0) {
             int k = OpenMPUtils::ThisThread();
-            /*              rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
-                            (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
-                            rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::maccold,1);
-                            noalias(RelaxationAuxiliaries::macc) += mAlphaBossak *
-            RelaxationAuxiliaries::maccold;
-
-                            noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaries::macc );*/
-            /*          }
-
-                        //adding damping contribution
-                        //damping contribution - here we use daming matrix = MAss
-            MAtrix * mdamping_factor
-                        if (D.size1() != 0)
-                        {*/
             const auto& r_const_cond_ref = rCurrentCondition;
             r_const_cond_ref.GetFirstDerivativesVector(mvel[k], 0);
-            noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
+            noalias(RHS_Contribution) -= mDampingFactor * prod(M, mvel[k]);
         }
 
     }
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mAlphaBossak = ThisParameters["alpha_bossak"].GetDouble();
+        mDampingFactor = ThisParameters["damping_factor"].GetDouble();
+    }
 
     /*@} */
     /**@name Protected  Access */
     /*@{ */
 
-
     /*@} */
     /**@name Protected Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
-
-
 
     /*@} */
 
@@ -670,6 +623,7 @@ private:
     /**@name Static Member Variables */
     /*@{ */
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     /*@} */
     /**@name Member Variables */
