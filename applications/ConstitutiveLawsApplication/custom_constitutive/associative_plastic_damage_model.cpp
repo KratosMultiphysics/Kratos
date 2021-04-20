@@ -409,10 +409,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
         CalculateComplianceMatrixIncrement(rValues, rPDParameters);
         noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
 
-        // // Update the analytical tangent tensor
-        // if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
-        //     CalculateAnalyticalTangentTensor(rValues, rPDParameters);
-
         noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement *
             prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
