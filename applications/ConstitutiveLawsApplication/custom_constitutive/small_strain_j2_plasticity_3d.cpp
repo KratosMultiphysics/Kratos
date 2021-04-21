@@ -21,7 +21,6 @@
 // Project includes
 #include "small_strain_j2_plasticity_3d.h"
 #include "constitutive_laws_application_variables.h"
-#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/checks.h"
 
