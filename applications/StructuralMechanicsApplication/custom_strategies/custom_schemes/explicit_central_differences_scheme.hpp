@@ -739,9 +739,35 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                       : "central_differences",
+            "time_step_prediction_level" : 0.0,
+            "fraction_delta_time"        : 0.9,
+            "max_delta_time"             : 1.0e0
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "central_differences";
+    }
 
     ///@}
     ///@name Access
@@ -801,6 +827,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mDeltaTime.PredictionLevel = ThisParameters["time_step_prediction_level"].GetDouble();
+        mDeltaTime.Maximum = ThisParameters["max_delta_time"].GetDouble();
+        mDeltaTime.Fraction = ThisParameters["fraction_delta_time"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access
