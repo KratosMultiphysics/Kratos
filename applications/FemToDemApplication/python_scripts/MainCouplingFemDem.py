@@ -25,12 +25,13 @@ class MainCoupledFemDem_Solution:
         self.model = Model
         # Initialize solutions
 
+        a= os.getcwd()
         if path == "":
             DEM_json_file = open("MaterialsDEM.json",'r')
-            DEMProjectParametersFile = open("ProjectParametersDEM.json",'r')
+            DEMProjectParametersFile = open("ProjectParametersDEM.json", 'r')
         else:
-            DEM_json_file = open(path + "MaterialsDEM.json")
-            DEMProjectParametersFile = open(path + "ProjectParametersDEM.json",'r')
+            DEM_json_file = open(os.path.join(path, "MaterialsDEM.json"))
+            DEMProjectParametersFile = open(os.path.join(path, "ProjectParametersDEM.json"), 'r')
         DEM_materials_parameters = KratosMultiphysics.Parameters(DEM_json_file.read())
         DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
 

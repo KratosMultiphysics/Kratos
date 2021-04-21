@@ -5,6 +5,7 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 # import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 import main_coupling_for_testing
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
 
 def Wait():
     input("Press Something")
@@ -45,7 +46,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             ref = 0.7517771156595967
             if abs((dy-ref)/ref) > tol:
                 raise ValueError('The computed displacement at step = 140 is not correct')
-        
+
         vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
         if self.FEM_Solution.step == 20:
             ref = -0.9564750000005906
@@ -65,14 +66,15 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
                 raise ValueError('The computed velocity at step = 140 is not correct')
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 
     @classmethod
     def free_fall(self):
         model = KratosMultiphysics.Model()
-        MainCouplingFemDemForTestingSolution(model, "small_tests/free_fall_contact/").Run()
+
+        MainCouplingFemDemForTestingSolution(model, os.path.join(os.path.abspath(os.path.dirname(__file__)), "small_tests", "free_fall_contact")).Run()
 
 
 
