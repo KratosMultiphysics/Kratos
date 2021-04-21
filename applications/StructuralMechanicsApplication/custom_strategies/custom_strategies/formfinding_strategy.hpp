@@ -42,7 +42,15 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(FormfindingStrategy);
 
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    // Base class definition
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    // ResidualBasedNewtonRaphsonStrategy class definition
+    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ResidualBasedNewtonRaphsonStrategyType;
+
+    /// Definition of the current scheme
+    typedef FormfindingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
