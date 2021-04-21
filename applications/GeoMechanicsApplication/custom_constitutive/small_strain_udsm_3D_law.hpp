@@ -375,11 +375,11 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       ///@}
       ///@name Protected member Variables
       ///@{
-      std::array<double, VOIGT_SIZE_3D> mStressVector;
-      std::array<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+      array_1d<double, VOIGT_SIZE_3D> mStressVector;
+      array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
 
-      std::array<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-      std::array<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+      array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
+      array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
 
       double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
@@ -406,9 +406,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       void CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix);
       void CalculateStress(ConstitutiveLaw::Parameters &rValues, Vector& rStressVector);
 
-      // Get number of StateVariables
-      int GetNumberOfStateVariables() {return mStateVariables.size();}
-
       // returns 1 if the stiffness matrix of the material is non symmetric
       int getIsNonSymmetric() {return mAttributes[IS_NON_SYMMETRIC];}
 
@@ -420,10 +417,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
       // returns 1 if the stiffness matrix of the material is tanential
       int getUseTangentMatrix() {return mAttributes[USE_TANGENT_MATRIX];}
-
-      // Get StateVariables 
-      const std::vector<double> &GetStateVariables() {return mStateVariables;}
-      const std::vector<double> &GetStateVariablesFilalized() {return mStateVariablesFinalized;}
 
       ///@}
       ///@name Protected Inquiry
@@ -457,8 +450,8 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
       std::vector<int> mProjectDirectory;
 
-      std::vector<double> mStateVariables;
-      std::vector<double> mStateVariablesFinalized;
+      Vector mStateVariables;
+      Vector mStateVariablesFinalized;
 
 
       ///@}
