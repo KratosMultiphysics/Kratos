@@ -116,26 +116,12 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
             time_step_index = index + number_of_steps - windowing_steps
             window_value = 0.5 * (1.0 - math.cos(2.0 * math.pi * index / windowing_steps))
             for k in range(number_of_frequencies):
-                self.frequency_real_components[k] += window_value * drag * math.cos(2.0 * math.pi * time_step_index * k / number_of_steps)
-                self.frequency_imag_components[k] += window_value * drag * math.sin(2.0 * math.pi * time_step_index * k / number_of_steps)
+                time_step_value = 2.0 * math.pi * time_step_index * k / number_of_steps
+                self.frequency_real_components[k] += window_value * drag * math.cos(time_step_value)
+                self.frequency_imag_components[k] += window_value * drag * math.sin(time_step_value)
 
         for k in range(number_of_frequencies):
             self.frequency_amplitudes[k] = math.sqrt(self.frequency_real_components[k] ** 2 + self.frequency_imag_components[k] ** 2) * 2 / windowing_steps
-
-        # compute the windowed frequency distribution real and imaginary components
-        for index, reaction in enumerate(reactions[number_of_steps - self.number_of_windowing_steps:]):
-            current_step = index + (number_of_steps - self.number_of_windowing_steps)
-            windowing_value = 0.5 * (1.0 - math.cos(2.0 * math.pi * index / self.number_of_windowing_steps))
-            drag_value = reaction[0] * self.drag_direction[0] + reaction[1] * self.drag_direction[1] + reaction[2] * self.drag_direction[2]
-
-            for index, k in enumerate(self.frequency_bin_indices):
-                self.frequency_real_components[index] += windowing_value * math.cos(2.0 * math.pi * current_step * k / number_of_steps) * drag_value
-                self.frequency_imag_components[index] += windowing_value * math.sin(2.0 * math.pi * current_step * k / number_of_steps) * drag_value
-
-        # compute windowed frequency distribution amplitudes
-        for i in range(number_of_frequencies):
-            frequency_list[i] = i / (delta_time * number_of_steps)
-            self.frequency_amplitudes[i] = math.sqrt(self.frequency_real_components[i] ** 2 + self.frequency_imag_components[i] ** 2) * 2 / windowing_steps
 
         # now get the maximum amplitude frequency from the chosen range
         self.max_frequency_bin_index = -1
@@ -146,6 +132,9 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
 
                 if (self.frequency_amplitudes[i] > self.frequency_amplitudes[self.max_frequency_bin_index]):
                     self.max_frequency_bin_index = i
+
+        if (self.max_frequency_bin_index == -1):
+            raise RuntimeError("No frequencies were found in the given range. Please try reducing time step to have more resolution in frequency domain.")
 
         frequency_resolution = 1.0 / (delta_time * number_of_steps)
         max_frequency_bin_value = self.max_frequency_bin_index * frequency_resolution
