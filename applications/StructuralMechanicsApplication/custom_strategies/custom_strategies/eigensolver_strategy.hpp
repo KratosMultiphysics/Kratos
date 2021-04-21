@@ -544,6 +544,47 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                          : "eigensolver_strategy",
+            "builder_and_solver_settings"   : {},
+            "linear_solver_settings"        : {},
+            "scheme_settings"               : {},
+            "compute_modal_decomposition"   : false,
+            "eigensolver_settings" : {
+                "solver_type"           : "eigen_eigensystem",
+                "max_iteration"         : 1000,
+                "tolerance"             : 1e-6,
+                "number_of_eigenvalues" : 5,
+                "echo_level"            : 1
+            },
+            "eigensolver_diagonal_values"   : { 
+                "mass_matrix_diagonal_value"      : 0.0,
+                "stiffness_matrix_diagonal_value" : 0.0
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "eigensolver_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -562,6 +603,8 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -573,6 +616,39 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMassMatrixDiagonalValue = ThisParameters["eigensolver_diagonal_values"]["mass_matrix_diagonal_value"].GetDouble();
+        mStiffnessMatrixDiagonalValue = ThisParameters["eigensolver_diagonal_values"]["stiffness_matrix_diagonal_value"].GetDouble();
+        mComputeModalDecompostion = ThisParameters["compute_modal_decomposition"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access
