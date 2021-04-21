@@ -213,9 +213,10 @@ class MainCoupledFemDem_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 
+        self.FEM_Solution.InitializeSolutionStep()
         self.DEM_Solution._GetSolver().AdvanceInTime(self.FEM_Solution.time)
-        self.DEM_Solution.InitializeSolutionStep()
-        self.DEM_Solution.InitializeSolutionStep()
+        # self.DEM_Solution.InitializeSolutionStep()
+        self.DEM_Solution._GetSolver().Predict()
 
 #============================================================================================================================
     def SolveSolutionStep(self):  # Method to perform the coupling FEM <-> DEM
@@ -533,35 +534,6 @@ class MainCoupledFemDem_Solution:
                 self.FEM_Solution.solver.Solve()
                 self.ExecuteAfterGeneratingDEM()
 
-
-#RemoveIsolatedFiniteElements============================================================================================================================
-    def RemoveIsolatedFiniteElements(self):
-        FEM_Elements = self.FEM_Solution.main_model_part.Elements
-        FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
-
-        for node in FEM_Nodes:
-            node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
-
-        for Element in FEM_Elements:
-            is_active = True
-            if Element.IsDefined(KratosMultiphysics.ACTIVE):
-                is_active = Element.Is(KratosMultiphysics.ACTIVE)
-
-            if is_active == True:
-                for i in range(0,3): # Loop over nodes of the element
-                    node = Element.GetNodes()[i]
-                    number_active_elements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
-                    number_active_elements += 1
-                    node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, number_active_elements)
-
-        for Element in FEM_Elements:
-            total_elements_on_nodes = 0
-            for i in range(0,3): # Loop over nodes of the element
-                node = Element.GetNodes()[i]
-                number_active_elements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
-                total_elements_on_nodes = total_elements_on_nodes + number_active_elements
-            if total_elements_on_nodes == 3:
-                Element.Set(KratosMultiphysics.TO_ERASE, True)
 
 #ExtrapolatePressureLoad============================================================================================================================
     def ExtrapolatePressureLoad(self):
@@ -914,15 +886,6 @@ class MainCoupledFemDem_Solution:
             self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R, Id)
             node.SetValue(KratosFemDem.IS_DEM, True)
 
-#RemoveAloneDEMElements============================================================================================================================
-    def RemoveAloneDEMElements(self):
-        if self.echo_level > 0:
-            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
-
-        remove_alone_DEM_elements_process = KratosFemDem.RemoveAloneDEMElementsProcess(
-                                                         self.FEM_Solution.main_model_part,
-                                                         self.SpheresModelPart)
-        remove_alone_DEM_elements_process.Execute()
 
 #ExecuteBeforeGeneratingDEM============================================================================================================================
     def ExecuteBeforeGeneratingDEM(self):
@@ -964,29 +927,7 @@ class MainCoupledFemDem_Solution:
         DEM_sub_model_part = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
         self.DEM_Solution.rigid_face_model_part.Conditions.clear()
         self.DEM_Solution.rigid_face_model_part.Nodes.clear()
-    #-----------------------------------
-    def CreateFEMPropertiesForDEFEContact(self):
-        max_id_properties = 0
-        young = 0
-        poisson = 0
-        for prop in self.FEM_Solution.main_model_part.Properties:
-            young = prop[KratosMultiphysics.YOUNG_MODULUS]
-            poisson = prop[KratosMultiphysics.POISSON_RATIO]
-            if max_id_properties < prop.Id:
-                max_id_properties = prop.Id
-        props = KratosMultiphysics.Properties(max_id_properties + 1)
-        self.created_props_id = max_id_properties + 1
-        props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
-        props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
-        props[KratosDEM.FRICTION_DECAY] = 500
-        props[KratosDEM.WALL_COHESION] = 0.0
-        props[KratosDEM.COMPUTE_WEAR] = False
-        props[KratosDEM.SEVERITY_OF_WEAR] = 0.001
-        props[KratosDEM.IMPACT_WEAR_SEVERITY] = 0.001
-        props[KratosDEM.BRINELL_HARDNESS] = 200.0
-        props[KratosMultiphysics.YOUNG_MODULUS] = young # the PENALTY
-        props[KratosMultiphysics.POISSON_RATIO] = poisson
-        return props
+
 
 #============================================================================================================================
 

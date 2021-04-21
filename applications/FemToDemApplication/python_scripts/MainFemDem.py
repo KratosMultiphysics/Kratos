@@ -101,7 +101,6 @@ class FEM_Solution(MainSolidFEM.Solution):
                                                                self.ProjectParameters["solver_settings"],
                                                                DEMStrategy)
         #### Output settings start ####
-        self.problem_path = os.getcwd()
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
 
 
