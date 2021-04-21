@@ -111,6 +111,7 @@ void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
         mIsInitialized = true;
 
         // since transient adjoints are run in backwards in time
+        // in here it is assumed that always transient simulations start with time = 0.0s
         mTotalLength = current_time;
         const double delta_time = -1.0 * r_process_info[DELTA_TIME];
 
