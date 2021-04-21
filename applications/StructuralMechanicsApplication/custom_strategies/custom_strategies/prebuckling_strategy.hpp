@@ -228,7 +228,7 @@ public:
      * @brief Get method for the builder and solver
      * @return mpBuilderAndSolver: The pointer to the builder and solver considered
      */
-    BuilderAndSolverPointerType &pGetBuilderAndSolver()
+    BuilderAndSolverPointerType& pGetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
     };
@@ -237,7 +237,7 @@ public:
      * @brief Get method for the convergence criteria
      * @return mpConvergenceCriteria: The pointer to the convergence criteria considered
      */
-    ConvergenceCriteriaType &GetConvergenceCriteria()
+    typename TConvergenceCriteriaType::Pointer& GetConvergenceCriteria()
     {
         return mpConvergenceCriteria;
     }
