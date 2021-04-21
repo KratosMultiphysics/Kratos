@@ -190,7 +190,7 @@ if __name__ == "__main__":
         
         u,s,_ = rSVD(SnapshotMatrix,10,1,0)
         U,S,_ = rSVD(SnapshotMatrix_stresses,10,1,0)
-        U_residuals,S_residuals, _ = rSVD(SnapshotMatrix_restricted_residuals,10,1,0)
+        U_residuals,S_residuals, _ = rSVD(SnapshotMatrix_restricted_residuals,5,1,0)
 
         ### Plotting singular values  ###
         # plt.plot( range(0,len(s)), np.log(s), marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4)

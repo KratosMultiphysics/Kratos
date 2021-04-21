@@ -96,6 +96,7 @@ class RunHROM(StructuralMechanicsAnalysisROM):
                 aux_index_in = int(i*HR_dofs_per_element)
                 aux_index_fin = aux_index_in + HR_dofs_per_element
                 self.HR_U_RESIDUAL[counter_in:counter_fin,:] = self.U_RESIDUAL[aux_index_in:aux_index_fin,:]
+                counter_in = counter_fin
                 
 
 
@@ -231,10 +232,6 @@ class RunHROM(StructuralMechanicsAnalysisROM):
             aux_fin = aux_in+12
             Residual_hrom[counter:counter+12,:] =  SnapshotMatrix_residuals[aux_in:aux_fin,:]
             counter += 12
-        ################## Eliminar por completo, es solo para verificar la reconstruccion con los valors fom de los residuales
-        B = np.linalg.pinv(self.HR_U_RESIDUAL)@Residual_hrom
-        residual_comparisson = self.U_RESIDUAL@B
-        ##################
         frobenius_norm = np.linalg.norm(self.HR_residuals-Residual_hrom)
         self.relative_error_5 = np.divide(frobenius_norm,np.linalg.norm(Residual_hrom))
         print("HROM reconstruction error of residuals on selected elements:")
