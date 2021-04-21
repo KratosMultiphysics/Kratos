@@ -23,3 +23,6 @@ class DEM_for_coupling_Solution(MainDEM.DEMAnalysisStage):
 
     def PrintResults(self):
         pass
+
+    def RunAnalytics(self, time, is_time_to_print=True):
+        pass

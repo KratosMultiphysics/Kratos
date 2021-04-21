@@ -913,7 +913,7 @@ class MainCoupledFemDem_Solution:
         if self.DEM_Solution.rigid_face_model_part.HasSubModelPart("SkinTransferredFromStructure"):
             self.EraseConditionsAndNodesSubModelPart()
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
-            props = self.DEM_Solution.rigid_face_model_part.GetProperties(self.created_props_id,0)
+            props = self.DEM_Solution.spheres_model_part.GetProperties()[2]
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
         else: # have to create it
             # props = self.CreateFEMPropertiesForDEFEContact()
