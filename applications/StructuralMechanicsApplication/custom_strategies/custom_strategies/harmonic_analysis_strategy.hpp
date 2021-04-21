@@ -671,7 +671,7 @@ private:
 
     bool mUseMaterialDamping;
 
-    vector< double > mMaterialDampingRatios;
+    Vector mMaterialDampingRatios;
 
     ///@}
     ///@name Private Operators
