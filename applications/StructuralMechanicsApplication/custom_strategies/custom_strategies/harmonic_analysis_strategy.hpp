@@ -115,7 +115,7 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         bool UseMaterialDampingFlag = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : BaseType(rModelPart)
     {
         KRATOS_TRY
 
