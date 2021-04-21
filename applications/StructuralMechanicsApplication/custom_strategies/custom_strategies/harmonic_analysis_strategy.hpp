@@ -600,6 +600,37 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mUseMaterialDamping = ThisParameters["harmonic_analysis_settings"]["use_effective_material_damping"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
