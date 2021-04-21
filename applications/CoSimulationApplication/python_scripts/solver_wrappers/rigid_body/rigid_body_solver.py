@@ -182,26 +182,30 @@ class RigidBodySolver(object):
             self.InitializeOutput()
 
     def InitializeOutput(self):
-
         data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
+            if not os.path.exists(self.output_file_path):
+                os.makedirs(self.output_file_path)
             self.output_file_name = {}
-            for dof in self.available_dofs: #TODO: create only files for active dofs
-                self.output_file_name[dof] = os.path.join(self.output_file_path, dof + '.dat')
-                if os.path.isfile(self.output_file_name[dof]):
-                    os.remove(self.output_file_name[dof])
-                with open(self.output_file_name[dof], "w") as results_rigid_body:
-                    results_rigid_body.write("time"+ " " +
-                                            "displacement" + " " +
-                                            "velocity" + " " +
-                                            "acceleration" + " " +
-                                            "root_point_displacement" + " " +
-                                            "root_point_velocity" + " " +
-                                            "root_point_acceleration" + " " +
-                                            "relative_displacement" + " " +
-                                            "relative_velocity" + " " +
-                                            "relative_accleration" + " " +
-                                            "reaction" + "\n")
+            for dof in self.available_dofs:
+                dof_file_name = os.path.join(self.output_file_path, dof + '.dat')
+                if dof in self.active_dofs:
+                    self.output_file_name[dof] = dof_file_name
+                    with open(self.output_file_name[dof], "w") as results_rigid_body:
+                        results_rigid_body.write("time"+ " " +
+                                                "displacement" + " " +
+                                                "velocity" + " " +
+                                                "acceleration" + " " +
+                                                "root_point_displacement" + " " +
+                                                "root_point_velocity" + " " +
+                                                "root_point_acceleration" + " " +
+                                                "relative_displacement" + " " +
+                                                "relative_velocity" + " " +
+                                                "relative_accleration" + " " +
+                                                "reaction" + "\n")
+                else:
+                    if os.path.isfile(dof_file_name):
+                        os.remove(dof_file_name)
             self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
@@ -210,19 +214,19 @@ class RigidBodySolver(object):
             if self.write_output_file:
                 reaction = self.CalculateReaction()
                 for index, dof in enumerate(self.available_dofs):
-                    # TODO: Ad a filter here so only active dofs are written
-                    with open(self.output_file_name[dof], "a") as results_rigid_body:
-                        results_rigid_body.write(str(np.around(self.time, 3)) + " " +
-                                                str(self.x[index,0]) + " " +
-                                                str(self.v[index,0]) + " " +
-                                                str(self.a[index,0]) + " " +
-                                                str(self.x_f[index,0]) + " " +
-                                                str(self.v_f[index,0]) + " " +
-                                                str(self.a_f[index,0]) + " " +
-                                                str(self.x[index,0] - self.x_f[index,0]) + " " +
-                                                str(self.v[index,0] - self.v_f[index,0]) + " " +
-                                                str(self.a[index,0] - self.a_f[index,0]) + " " +
-                                                str(reaction[index]) + "\n")
+                    if dof in self.active_dofs:
+                        with open(self.output_file_name[dof], "a") as results_rigid_body:
+                            results_rigid_body.write(str(np.around(self.time, 3)) + " " +
+                                                    str(self.x[index,0]) + " " +
+                                                    str(self.v[index,0]) + " " +
+                                                    str(self.a[index,0]) + " " +
+                                                    str(self.x_f[index,0]) + " " +
+                                                    str(self.v_f[index,0]) + " " +
+                                                    str(self.a_f[index,0]) + " " +
+                                                    str(self.x[index,0] - self.x_f[index,0]) + " " +
+                                                    str(self.v[index,0] - self.v_f[index,0]) + " " +
+                                                    str(self.a[index,0] - self.a_f[index,0]) + " " +
+                                                    str(reaction[index]) + "\n")
 
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function
