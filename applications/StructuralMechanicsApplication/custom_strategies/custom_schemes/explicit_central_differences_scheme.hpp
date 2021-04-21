@@ -705,8 +705,8 @@ public:
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ConditionsArrayType& r_conditions = rModelPart.Conditions();
-        ElementsArrayType& r_elements = rModelPart.Elements();
+        auto& r_conditions = rModelPart.Conditions();
+        auto& r_elements = rModelPart.Elements();
 
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
         Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
@@ -725,7 +725,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
      void Predict(
         ModelPart& rModelPart,
