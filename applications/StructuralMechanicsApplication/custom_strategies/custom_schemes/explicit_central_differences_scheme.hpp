@@ -68,6 +68,9 @@ public:
     /// The definition of the base type
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
+    /// Definition of the current scheme
+    typedef ExplicitCentralDifferencesScheme<TSparseSpace, TDenseSpace> ClassType;
+
     /// Some definitions related with the base class
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
