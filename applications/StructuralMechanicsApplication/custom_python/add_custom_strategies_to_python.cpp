@@ -117,6 +117,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
+        .def(py::init<ModelPart&, Parameters >())
         .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag)
         ;
