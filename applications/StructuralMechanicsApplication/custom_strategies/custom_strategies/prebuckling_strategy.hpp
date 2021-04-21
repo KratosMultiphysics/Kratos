@@ -19,6 +19,8 @@
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -63,9 +65,17 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PrebucklingStrategy);
 
+    // Base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef PrebucklingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    typedef typename BaseType::TSchemeType TSchemeType;
+
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
+
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
@@ -83,11 +93,27 @@ public:
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
 
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> ConvergenceCriteriaType;
+    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Convergence criteria factory
+    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+    
+    /**
+     * @brief Default constructor
+     */
+    explicit PrebucklingStrategy() : BaseType()
+    {
+    }
 
     /**
      * @brief Constructor
