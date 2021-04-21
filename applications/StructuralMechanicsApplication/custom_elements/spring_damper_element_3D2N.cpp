@@ -365,11 +365,7 @@ void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, cons
 //************************************************************************************
 //************************************************************************************
 
-<<<<<<< HEAD
-void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix,const ProcessInfo& rCurrentProcessInfo )
-=======
 void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
->>>>>>> 0a4fa95cdcb1fb7d74f3b53819b5f4d050e1da93
 {
     KRATOS_TRY;
 
