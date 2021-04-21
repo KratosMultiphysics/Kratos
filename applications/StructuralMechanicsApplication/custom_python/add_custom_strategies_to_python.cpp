@@ -110,11 +110,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters >())
         .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
         ;
+
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
+        .def(py::init<ModelPart&, Parameters >())
         .def_static("WriteFormFoundMdpa", &FormfindingStrategyType::WriteFormFoundMdpa)
         ;
-
 
     py::class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
