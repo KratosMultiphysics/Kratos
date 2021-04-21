@@ -21,6 +21,7 @@
 // Project includes
 #include "small_strain_j2_plasticity_plane_strain_2d.h"
 #include "constitutive_laws_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
