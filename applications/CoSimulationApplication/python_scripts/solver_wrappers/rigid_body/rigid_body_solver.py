@@ -270,7 +270,8 @@ class RigidBodySolver(object):
     def SolveSolutionStep(self):
         #external load
         prescribed_load = self.ApplyForceExcitation()
-        self.total_load[:,0] = self.external_load + prescribed_load
+        self_weight = self.CalculateSelfWeight()
+        self.total_load[:,0] = self.external_load + prescribed_load + self_weight
         #root point displacement
         prescribed_root_point_displ = self.ApplyRootPointExcitation()
         self.total_root_point_displ[:,0] = self.external_root_point_displ + prescribed_root_point_displ
