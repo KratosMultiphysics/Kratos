@@ -11,7 +11,7 @@
         "material_name": "mat2",
         "material_id": 2,
         "properties":{
-            "YOUNG_MODULUS": 1.0e20,
+            "YOUNG_MODULUS": 1.0e8,
             "POISSON_RATIO": 0.25,
             "COMPUTE_WEAR": false
         }
@@ -45,7 +45,5 @@
         }
     }],
     "material_assignation_table":[
-        ["SpheresPart", "mat1"],
-        ["RigidFacePart","mat2"]
     ]
 }
