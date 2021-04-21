@@ -716,6 +716,25 @@ private:
             }
         }
     }
+    
+    /**
+     * @brief Some auxiliar initilizations
+     */
+    void AuxiliarInitialization()
+    {
+        // Set Eigensolver flags
+        // ensure initialization of system matrices in InitializeSolutionStep()
+        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+
+        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
+        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
+
+        // default echo level (mute)
+        this->SetEchoLevel(0);
+
+        // default rebuild level (build only once)
+        this->SetRebuildLevel(0);
+    }
 
     ///@}
     ///@name Private  Access
