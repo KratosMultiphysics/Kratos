@@ -23,6 +23,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos {
 
