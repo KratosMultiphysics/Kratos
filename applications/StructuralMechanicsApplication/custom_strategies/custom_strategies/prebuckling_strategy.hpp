@@ -137,7 +137,7 @@ public:
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria,
         int MaxIteration,
         Parameters BucklingSettings )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : BaseType(rModelPart)
     {
         KRATOS_TRY
 
