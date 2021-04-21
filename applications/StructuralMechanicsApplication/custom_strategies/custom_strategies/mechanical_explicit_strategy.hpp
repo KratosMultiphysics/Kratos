@@ -22,6 +22,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
+#include "factories/factory.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -57,6 +58,9 @@ public:
     // Base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef MechanicalExplicitStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     /// Some definitions from the base class
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -73,12 +77,22 @@ public:
     typedef typename Node<3>::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
+
     /// Counted pointer of MechanicalExplicitStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit MechanicalExplicitStrategy() : BaseType()
+    {
+    }
 
     /**
      * @brief Default constructor
