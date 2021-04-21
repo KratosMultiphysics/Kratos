@@ -452,7 +452,7 @@ public:
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
         // Initializing the parameters of the Newton-Raphson cycle
-        unsigned int iteration_number = 1;
+        std::size_t iteration_number = 1;
         rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
 
@@ -593,7 +593,7 @@ public:
 
             // Update eigenvalues to loadfactors (Instead of dividing matrix by delta_load_multiplier, here eigenvalues are multiplied)
             mLambda = Eigenvalues(0)*delta_load_multiplier;
-            for(unsigned int i = 0; i < Eigenvalues.size(); i++ )
+            for(std::size_t i = 0; i < Eigenvalues.size(); i++ )
             {
                 Eigenvalues[i] = mLambdaPrev + Eigenvalues[i]*delta_load_multiplier;
             }
@@ -764,9 +764,9 @@ private:
 
     bool mSolutionFound = false;
 
-    unsigned int mLoadStepIteration = 0;
+    std::size_t mLoadStepIteration = 0;
 
-    unsigned int mMaxIteration;
+    std::size_t mMaxIteration;
 
     std::vector<array_1d<double,3>> mpInitialLoads;
 
