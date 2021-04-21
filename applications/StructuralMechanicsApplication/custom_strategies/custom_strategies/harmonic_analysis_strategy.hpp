@@ -123,21 +123,27 @@ public:
 
         mpBuilderAndSolver = pBuilderAndSolver;
 
-        // ensure initialization of system matrices in InitializeSolutionStep()
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        mUseMaterialDamping = UseMaterialDampingFlag;
 
-        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
-        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
-
-        this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
-
-        // default echo level (mute)
-        this->SetEchoLevel(0);
-
-        // default rebuild level (build only once)
-        this->SetRebuildLevel(0);
+        AuxiliarInitialization();
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit HarmonicAnalysisStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Some initializations
+        AuxiliarInitialization();
     }
 
     /// Deleted copy constructor.
@@ -530,6 +536,38 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+    
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                          : "harmonic_analysis_strategy",
+            "builder_and_solver_settings"   : {},
+            "linear_solver_settings"        : {},
+            "scheme_settings"               : {},
+            "harmonic_analysis_settings"    : {
+                "use_effective_material_damping" : false
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "harmonic_analysis_strategy";
     }
 
     ///@}
