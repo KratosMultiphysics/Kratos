@@ -7,6 +7,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
 import KratosMultiphysics.DEMApplication.dem_default_input_parameters
 from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
+from KratosMultiphysics.DEMApplication.materials_assignation_utility import MaterialsAssignationUtility
 
 from importlib import import_module
 
@@ -321,95 +322,9 @@ class DEMAnalysisStage(AnalysisStage):
         if input_type == "rest":
             return
 
-        materials_parameters = self.DEM_material_parameters
-        list_of_materials = materials_parameters["materials"]
-        list_of_material_relations = materials_parameters["material_relations"]
-        material_assignation_table = materials_parameters["material_assignation_table"]
-
-        for material in list_of_materials:
-            material_id = material["material_id"].GetInt()
-            if  not self.spheres_model_part.HasProperties(material_id):
-                self.spheres_model_part.AddProperties(Properties(material_id))
-
-            properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
-
-            properties = material["properties"]
-            properties_of_model_part_with_this_id[PARTICLE_MATERIAL] = material_id
-            if properties.Has("PARTICLE_DENSITY"):
-                properties_of_model_part_with_this_id[PARTICLE_DENSITY] = properties["PARTICLE_DENSITY"].GetDouble()
-            properties_of_model_part_with_this_id[YOUNG_MODULUS] = properties["YOUNG_MODULUS"].GetDouble()
-            properties_of_model_part_with_this_id[POISSON_RATIO] = properties["POISSON_RATIO"].GetDouble()
-            if properties.Has("COMPUTE_WEAR"):
-                properties_of_model_part_with_this_id[COMPUTE_WEAR] = properties["COMPUTE_WEAR"].GetBool()
-            else:
-                properties_of_model_part_with_this_id[COMPUTE_WEAR] = False
-
-            for material_relation in list_of_material_relations:
-                subprops = None
-                material_ids_list = material_relation["material_ids_list"].GetVector()
-                if material_id == material_ids_list[0]:
-                    index_of_the_other_material = int(material_ids_list[1])
-                    subprops = Properties(index_of_the_other_material)
-                elif material_id == material_ids_list[1]:
-                    index_of_the_other_material = int(material_ids_list[0])
-                    subprops = Properties(index_of_the_other_material)
-
-                if subprops:
-                    contact_properties = material_relation["properties"]
-                    subprops[COEFFICIENT_OF_RESTITUTION] = contact_properties["COEFFICIENT_OF_RESTITUTION"].GetDouble()
-                    subprops[STATIC_FRICTION] = contact_properties["STATIC_FRICTION"].GetDouble()
-                    subprops[DYNAMIC_FRICTION] = contact_properties["DYNAMIC_FRICTION"].GetDouble()
-                    subprops[FRICTION_DECAY] = contact_properties["FRICTION_DECAY"].GetDouble()
-                    subprops[ROLLING_FRICTION] = contact_properties["ROLLING_FRICTION"].GetDouble()
-                    subprops[ROLLING_FRICTION_WITH_WALLS] = contact_properties["ROLLING_FRICTION_WITH_WALLS"].GetDouble()
-                    if contact_properties.Has("SEVERITY_OF_WEAR"):
-                        subprops[SEVERITY_OF_WEAR] = contact_properties["SEVERITY_OF_WEAR"].GetDouble()
-                    if contact_properties.Has("IMPACT_WEAR_SEVERITY"):
-                        subprops[IMPACT_WEAR_SEVERITY] = contact_properties["IMPACT_WEAR_SEVERITY"].GetDouble()
-                    if contact_properties.Has("BRINELL_HARDNESS"):
-                        subprops[BRINELL_HARDNESS] = contact_properties["BRINELL_HARDNESS"].GetDouble()
-                    if contact_properties.Has("CONICAL_DAMAGE_CONTACT_RADIUS"):
-                        subprops[CONICAL_DAMAGE_CONTACT_RADIUS] = contact_properties["CONICAL_DAMAGE_CONTACT_RADIUS"].GetDouble()
-                    if contact_properties.Has("CONICAL_DAMAGE_MAX_STRESS"):
-                        subprops[CONICAL_DAMAGE_MAX_STRESS] = contact_properties["CONICAL_DAMAGE_MAX_STRESS"].GetDouble()
-                    if contact_properties.Has("CONICAL_DAMAGE_ALPHA"):
-                        subprops[CONICAL_DAMAGE_ALPHA] = contact_properties["CONICAL_DAMAGE_ALPHA"].GetDouble()
-                    if contact_properties.Has("CONICAL_DAMAGE_GAMMA"):
-                        subprops[CONICAL_DAMAGE_GAMMA] = contact_properties["CONICAL_DAMAGE_GAMMA"].GetDouble()
-                    if contact_properties.Has("LEVEL_OF_FOULING"):
-                        subprops[LEVEL_OF_FOULING] = contact_properties["LEVEL_OF_FOULING"].GetDouble()
-                    if contact_properties.Has("PARTICLE_COHESION"):
-                        subprops[PARTICLE_COHESION] = contact_properties["PARTICLE_COHESION"].GetDouble()
-                    if contact_properties.Has("INITIAL_COHESION"):
-                        subprops[INITIAL_COHESION] = contact_properties["INITIAL_COHESION"].GetDouble()
-                    if contact_properties.Has("AMOUNT_OF_COHESION_FROM_STRESS"):
-                        subprops[AMOUNT_OF_COHESION_FROM_STRESS] = contact_properties["AMOUNT_OF_COHESION_FROM_STRESS"].GetDouble()
-
-                    subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
-                    discontinuum_constitutive_law_instance = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                    discontinuum_constitutive_law_instance.SetConstitutiveLawInProperties(subprops, True)
-
-                    if contact_properties.Has("continuum_contact_law_parameters"):
-                        subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
-                        continuum_constitutive_law_instance = globals().get(subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, contact_properties["continuum_contact_law_parameters"], True)
-
-                    properties_of_model_part_with_this_id.AddSubProperties(subprops)
-
-        for pair in material_assignation_table:
-            submodelpart_name_in_assignation_table = pair[0].GetString()
-            material_name_in_assignation_table = pair[1].GetString()
-            submodelpart = None
-            for material in list_of_materials:
-                material_name_in_materials_list = material["material_name"].GetString()
-                if material_name_in_assignation_table == material_name_in_materials_list:
-                    submodelpart = self.model.GetModelPart(submodelpart_name_in_assignation_table)
-                    material_id = material["material_id"].GetInt()
-                    props = self.spheres_model_part.GetProperties()[material_id]
-            for element in submodelpart.Elements:
-                element.Properties = props
-            for condition in submodelpart.Conditions:
-                condition.Properties = props
+        materials_setter = MaterialsAssignationUtility(self.model, self.spheres_model_part, self.DEM_material_parameters)
+        materials_setter.AssignMaterialParametersToProperties()
+        materials_setter.AssignPropertiesToEntities()
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
