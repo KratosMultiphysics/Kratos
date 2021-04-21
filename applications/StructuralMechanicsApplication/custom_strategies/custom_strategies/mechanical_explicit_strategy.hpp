@@ -102,13 +102,13 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    MechanicalExplicitStrategy(
+    explicit MechanicalExplicitStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart, MoveMeshFlag),
           mpScheme(pScheme),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions)
