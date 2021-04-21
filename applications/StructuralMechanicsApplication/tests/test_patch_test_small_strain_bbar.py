@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 
 class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
     def setUp(self):
@@ -32,6 +36,7 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
     def _apply_material_properties(self,mp,dim):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
@@ -44,9 +49,9 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         if(dim == 2):
-            cl = StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
+            cl = ConstitutiveLawsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
         else:
-            cl = StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
+            cl = ConstitutiveLawsApplication.SmallStrainJ2Plasticity3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _define_movement(self,dim):
@@ -81,41 +86,39 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         return A,b
 
     def _solve(self,mp, linear = True):
-
-        #define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        calculate_norm_dx = False
-        move_mesh_flag = True
-        if (linear):
-            strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
-                                                                            scheme,
-                                                                            builder_and_solver,
-                                                                            compute_reactions,
-                                                                            reform_step_dofs,
-                                                                            calculate_norm_dx,
-                                                                            move_mesh_flag)
-
-        else:
-            strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                            scheme,
-                                                                            convergence_criterion,
-                                                                            builder_and_solver,
-                                                                            max_iters,
-                                                                            compute_reactions,
-                                                                            reform_step_dofs,
-                                                                            move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+        # Define a minimal newton raphson solver
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "newton_raphson_strategy",
+            "max_iteration"            : 20,
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : true,
+            "move_mesh_flag"           : true,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static_scheme"
+            },
+            "convergence_criteria_settings" : {
+                "name"                        : "residual_criteria",
+                "residual_absolute_tolerance" : 1.0e-20,
+                "residual_relative_tolerance" : 1.0e-14,
+                "echo_level"                  : 0
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        if linear:
+          settings["name"].SetString("linear_strategy")
+          settings.RemoveValue("max_iteration")
+          settings.RemoveValue("convergence_criteria_settings")
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
-
 
     def _check_results(self,mp,A,b):
 

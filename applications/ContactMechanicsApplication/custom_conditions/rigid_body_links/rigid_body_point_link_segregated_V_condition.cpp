@@ -124,7 +124,7 @@ void RigidBodyPointLinkSegregatedVCondition::EquationIdVector(EquationIdVectorTy
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::GetValuesVector(Vector& rValues, int Step)
+void RigidBodyPointLinkSegregatedVCondition::GetValuesVector(Vector& rValues, int Step) const
 {
   KRATOS_TRY
 
@@ -151,7 +151,7 @@ void RigidBodyPointLinkSegregatedVCondition::GetValuesVector(Vector& rValues, in
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointLinkSegregatedVCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
   KRATOS_TRY
 
@@ -179,7 +179,7 @@ void RigidBodyPointLinkSegregatedVCondition::GetFirstDerivativesVector( Vector& 
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointLinkSegregatedVCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
   KRATOS_TRY
 

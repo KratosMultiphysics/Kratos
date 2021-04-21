@@ -355,6 +355,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseSchemeType>> msPrototypes;
 
     ///@}
     ///@name Member Variables

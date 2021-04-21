@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_utility import PerturbGeometrySparseUtility
 from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_utility import PerturbGeometrySubgridUtility
 
-import numpy as np
+import math
 
 class SparseUtilityCustom(PerturbGeometrySparseUtility):
     """ SparseUtilityCustom
@@ -84,7 +84,7 @@ class BaseTestPerturbGeometryUtility(KratosUnittest.TestCase):
         for node1, node2 in zip(nodes1, nodes2):
             sum_ += (node1.Z0 - node2.Z0)**2
 
-        self.assertLess( np.sqrt(sum_), 1.0e-10)
+        self.assertLess( math.sqrt(sum_), 1.0e-10)
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestPerturbGeometryUtility(BaseTestPerturbGeometryUtility):

@@ -544,7 +544,6 @@ class SolutionScheme : public Flags
    */
   virtual void Clear(Element::Pointer rCurrentElement)
   {
-    rCurrentElement->CleanMemory();
   }
 
   /**
@@ -552,7 +551,6 @@ class SolutionScheme : public Flags
    */
   virtual void Clear(Condition::Pointer rCurrentCondition)
   {
-    rCurrentCondition->CleanMemory();
   }
 
   /**

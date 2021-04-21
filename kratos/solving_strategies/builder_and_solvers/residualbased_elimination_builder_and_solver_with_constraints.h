@@ -24,6 +24,7 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/constraint_utilities.h"
 #include "input_output/logger.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -169,17 +170,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
-            "check_constraint_relation"            : true,
-            "reset_relation_matrix_each_iteration" : true
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
-        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -381,6 +374,25 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "elimination_builder_and_solver_with_constraints",
+            "check_constraint_relation"            : true,
+            "reset_relation_matrix_each_iteration" : true
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -539,21 +551,22 @@ protected:
         "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         // We solve the system of equations
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
+        const double start_solve = timer.ElapsedSeconds();
         Timer::Start("Solve");
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        const double stop_solve = timer.ElapsedSeconds();
 
         // We compute the effective constant vector
         ComputeEffectiveConstant(pScheme, rModelPart, rDx);
 
         // We reconstruct the Unknowns vector and the residual
-        const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        const double start_reconstruct_slaves = timer.ElapsedSeconds();
         ReconstructSlaveSolutionAfterSolve(pScheme, rModelPart, rA, rDx, rb);
 
-        const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        const double stop_reconstruct_slaves = timer.ElapsedSeconds();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
         // Some verbosity
@@ -1145,7 +1158,7 @@ protected:
             BuildWithoutConstraints(pScheme, rModelPart, rA, rb);
 
         // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1195,10 +1208,9 @@ protected:
         auxiliar_A_matrix.resize(0, 0, false);
         T_transpose_matrix.resize(0, 0, false);
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "Finished parallel building with constraints" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1219,7 +1231,7 @@ protected:
         KRATOS_TRY
 
         // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1262,10 +1274,9 @@ protected:
         // Final multiplication
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "Finished parallel building with constraints" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1514,6 +1525,17 @@ protected:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
+        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1531,6 +1553,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<BuilderAndSolverBaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
@@ -1857,9 +1881,6 @@ private:
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -1880,9 +1901,6 @@ private:
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
@@ -2010,8 +2028,7 @@ private:
                     double& r_b_value = rb[i_global];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         } else {
@@ -2026,15 +2043,13 @@ private:
                     double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 } else if (it_dof->IsFree()) {  // Free dof not in the MPC
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& r_b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         }
@@ -2208,8 +2223,7 @@ private:
                                 if (std::abs(constant_value) > 0.0) {
                                     auxiliar_temp_constant_equations_ids.insert(i_global);
                                     double& r_value = rConstantVector[i_global];
-                                    #pragma omp atomic
-                                    r_value += constant_value;
+                                    AtomicAdd(r_value, constant_value);
                                 }
                             }
                         }
@@ -2218,8 +2232,7 @@ private:
                             const IndexType i_global = slave_equation_id[i];
                             if (i_global < BaseType::mEquationSystemSize) {
                                 const double constant_value = constant_vector[i];
-                                #pragma omp atomic
-                                aux_constant_value += std::abs(constant_value);
+                                AtomicAdd(aux_constant_value, std::abs(constant_value));
                             }
                         }
                     }

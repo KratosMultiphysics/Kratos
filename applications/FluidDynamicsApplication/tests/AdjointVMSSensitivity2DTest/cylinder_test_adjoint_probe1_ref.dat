@@ -1,4 +1,4 @@
-# Results for "element" with Id # 130 at position: x: 0.020957; y: 0.0055272; z: 0
+# Results for "element" with Id # 130 for search config "initial" at position: x0: 0.020957; y0: 0.0055272; z0: 0
 # time ADJOINT_FLUID_VECTOR_1_X ADJOINT_FLUID_VECTOR_1_Y
 0.1 0.39369543723117884 -0.08371360085246521
 0.09000000000000001 -1.8530905984335313 0.4574103243450827

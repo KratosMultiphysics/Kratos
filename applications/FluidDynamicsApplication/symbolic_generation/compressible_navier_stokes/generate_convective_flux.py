@@ -1,50 +1,45 @@
+from sympy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
-from sympy import *
-import pprint
+def ComputeEulerJacobianMatrix(dofs, params):
+    """This function calculates the Euler Jacobian matrix for convection"""
 
-## Computation of the Convective Matrix
-def computeA(dofs, params):
-    print("\nCompute Convective Matrix \n")
-    dim = params["dim"]				        # Spatial dimensions
+    print("\nCompute Euler Jacobian matrix \n")
 
-    ## Unknown field definition
-    F = DefineMatrix('F',dim+2,dim)		    # Convective Flux matrix
-    Ug = dofs                               # Data interpolation to the Gauss points
+    ## Auxiliary variables
+    dim = params["dim"]
+    gamma = params["gamma"]
+    rho = dofs[0]
+    mom = []
+    vel = []
+    mom_prod = 0.0
+    for i in range(dim):
+        mom.append(dofs[i + 1])
+        vel.append(dofs[i + 1] / rho)
+        mom_prod += dofs[i + 1]**2
+    e_tot = dofs[dim + 1]
+    p = (gamma - 1) * (e_tot - 0.5 * mom_prod / rho)
 
-    ## Other symbols definitions
-    y = params["gamma"]				        # Gamma (Cp/Cv)
+    ## Define and fill the convective flux matrix
+    E = DefineMatrix('E', dim + 2, dim)
+    for j in range(dim):
+        E[0,j] = mom[j]
+        for d in range(dim):
+            E[1 + d,j] = mom[j]*vel[d]
+            if j == d:
+                E[1 + d,j] += p
+        E[dim + 1,j] = vel[j] * (e_tot + p)
 
-    ## Pgauss - Pressure definition
-    pg = (y-1)*Ug[dim+1]
-    for i in range(0,dim):
-        pg += (y-1)*(-Ug[i+1]*Ug[i+1]/(2*Ug[0]))
-
-    ## F - Convective Flux Matrix definition
-    for j in range(0,dim):
-        F[0,j] = Ug[j+1]
-
-    for i in range (1,dim+1):
-        for j in range(0,dim):
-            F[i,j] = Ug[i]*Ug[j+1]/Ug[0]
-            if i==j+1:
-               F[i,j]+=pg
-
-    for j in range(0,dim):
-        F[dim+1,j] = (Ug[dim+1]+pg)*Ug[j+1]/Ug[0]
-
-
-    ## A - Jacobian Convective Matrix definition
+    ## Define and derive the Euler Jacobian matrix
     A = []
+    for j in range(dim):
+        A_j = DefineMatrix('A_j', dim + 2, dim + 2)
+        for m in range(dim + 2):
+            for n in range(dim + 2):
+                A_j[m,n] = diff(E[m,j], dofs[n])
+        A.append(A_j)
 
-    for j in range(0,dim):
-        tmp = DefineMatrix('tmp',dim+2,dim+2)
-        for i in range(0,dim+2):
-            for k in range(0,dim+2):
-      	        tmp[i,k] = diff(F[i,j], Ug[k])
-      	        #print(j,'	',i,k,'=',tmp[i,k])
-        A.append(tmp)
     return A
 
 ## Printing the Convective Matrix

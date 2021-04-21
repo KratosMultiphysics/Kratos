@@ -257,15 +257,9 @@ namespace Kratos
       if( this->mpFirstDerivative == nullptr ){
         KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
       }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*this->mpFirstDerivative));
-      }
 
       if( this->mpSecondDerivative == nullptr ){
         KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
-      }
-      else{
-        KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
       }
 
       return ErrorCode;
@@ -465,7 +459,7 @@ namespace Kratos
       TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
-      
+
       CurrentSecondDerivative = ( 1.0 / (this->mNewmark.gamma * this->mNewmark.delta_time) ) * ( CurrentFirstDerivative - PreviousFirstDerivative - ( 1.0 - this->mNewmark.gamma ) * this->mNewmark.delta_time * PreviousSecondDerivative );
 
       KRATOS_CATCH( "" )

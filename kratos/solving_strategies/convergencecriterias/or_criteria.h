@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "factories/factory.h"
 
 namespace Kratos
 {
@@ -79,7 +80,9 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
+    typedef typename BaseType::Pointer ConvergenceCriteriaPointerType;
+
+    typedef Factory< BaseType > ConvergenceCriteriaFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -94,11 +97,17 @@ public:
     /**
      * @brief Default constructor. (with parameters)
      * @details It takes two different convergence criteria in order to work
+     * @param ThisParameters The configuration parameters
      */
-    explicit Or_Criteria(Kratos::Parameters Settings)
+    explicit Or_Criteria(Kratos::Parameters ThisParameters)
         :BaseType()
     {
-        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(ThisParameters["first_criterion_settings"]);
+        mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(ThisParameters["second_criterion_settings"]);
     }
 
     /**
@@ -106,7 +115,7 @@ public:
      * @details It takes two different convergence criteria in order to work
      * @param pFirstCriterion The first convergence criteria
      * @param pSecondCriterion The second convergence criteria
-    */
+     */
     explicit Or_Criteria(
         ConvergenceCriteriaPointerType pFirstCriterion,
         ConvergenceCriteriaPointerType pSecondCriterion
@@ -325,6 +334,33 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                     : "or_criteria",
+            "first_criterion_settings" : {
+                "name"                            : "residual_criteria",
+                "residual_absolute_tolerance"     : 1.0e-4,
+                "residual_relative_tolerance"     : 1.0e-9
+            },
+            "second_criterion_settings" : {
+                "name"                            : "displacement_criteria",
+                "displacement_relative_tolerance" : 1.0e-4,
+                "displacement_absolute_tolerance" : 1.0e-9
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -402,6 +438,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables

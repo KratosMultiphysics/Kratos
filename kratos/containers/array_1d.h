@@ -12,17 +12,16 @@
 //
 //
 
-
 #if	!defined(KRATOS_ARRAY_1D_H_INCLUDED	)
 #define	 KRATOS_ARRAY_1D_H_INCLUDED
-
 
 
 // System includes
 #include <string>
 #include <iostream>
 #include <array>
-
+#include <algorithm>
+#include <initializer_list>
 
 // External	includes
 
@@ -103,29 +102,41 @@ public:
     array_1d ():
         vector_expression<self_type> ()
     {
-        //sin esto no funciona en windows!!
-        //std::fill (data().begin(), data().end(), value_type	());
+        // intentionally does not initialize the contents for performance reasons
     }
+
     explicit BOOST_UBLAS_INLINE
     array_1d (size_type array_size):
         vector_expression<self_type> ()
     {
-        //sin esto no funciona en windows!!
-        //std::fill (data().begin(), data().end(), value_type	());
-
-        /* 				std::fill (data().begin(), data().end(), value_type	()); */
+        // intentionally does not initialize the contents for performance reasons
     }
 
     explicit BOOST_UBLAS_INLINE
     array_1d (size_type array_size, value_type v):
         vector_expression<self_type> ()
     {
-        std::fill (data().begin(), data().begin() + array_size, v);
+        KRATOS_DEBUG_ERROR_IF(array_size>N) << "Given size is greater than the size of the array!" << std::endl;
+
+        std::fill(data().begin(), data().begin() + array_size, v);
+        // intentionally does not initialize the remaining entries for performance reasons
     }
+
+    explicit BOOST_UBLAS_INLINE
+    array_1d (const std::initializer_list<value_type>& rInitList):
+        vector_expression<self_type> ()
+    {
+        KRATOS_DEBUG_ERROR_IF(rInitList.size()>N) << "Size of list greater than the size of the array!" << std::endl;
+
+        std::copy(rInitList.begin(), rInitList.end(), data().begin()); // copy content of initializer list
+        // intentionally does not initialize the remaining entries for performance reasons
+    }
+
     BOOST_UBLAS_INLINE
     array_1d (size_type array_size,	const array_type & rdata):
         vector_expression<self_type> (),
         data_ (rdata) {}
+
     BOOST_UBLAS_INLINE
     array_1d (const array_1d &v):
         vector_expression<self_type> (),
@@ -149,7 +160,6 @@ public:
         boost::numeric::ublas::vector_assign<boost::numeric::ublas::scalar_assign> (*this, ae);
     }
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -158,34 +168,26 @@ public:
     BOOST_UBLAS_INLINE
     const_reference	operator ()	(size_type i) const
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
     BOOST_UBLAS_INLINE
     reference operator () (size_type i)
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
 
     BOOST_UBLAS_INLINE
     const_reference	operator []	(size_type i) const
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
     BOOST_UBLAS_INLINE
     reference operator [] (size_type i)
     {
-#ifndef NDEBUG
-        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
-#endif
+        KRATOS_DEBUG_ERROR_IF(i>=N) << "Index greater than the size of the array - index is i = " << i << std::endl;
         return data_[i];
     }
 

@@ -1,6 +1,10 @@
+# Importing the Kratos Library
 import KratosMultiphysics as KM
 
-class PythonMapper(object):
+# Other imports
+from abc import ABCMeta, abstractmethod
+
+class PythonMapper(metaclass=ABCMeta):
     """Baseclass for python based mappers in Kratos
     The inteface matches the C++ version ("custom_mappers/mapper.h")
     The py-mappers are intentionally NOT derived from the c++ version.
@@ -11,13 +15,41 @@ class PythonMapper(object):
     def __init__(self, model_part_origin, model_part_destination, mapper_settings):
         self.model_part_origin = model_part_origin
         self.model_part_destination = model_part_destination
-        self.mapper_settings = mapper_settings # Note: no validation done here, should be done in derived class
 
+        self.mapper_settings = mapper_settings
+        self.mapper_settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
+
+        self.echo_level = self.mapper_settings["echo_level"].GetInt()
+
+    # public methods, same as in "custom_mappers/mapper.h"
     def Map(self, variable_origin, variable_destination, mapper_flags=KM.Flags()):
-        raise NotImplementedError('"Map" was not implemented for "{}"'.format(self.__class__.__name__))
+        CheckVariables(variable_origin, variable_destination)
+        self._MapInternal(variable_origin, variable_destination, mapper_flags)
 
     def InverseMap(self, variable_origin, variable_destination, mapper_flags=KM.Flags()):
-        raise NotImplementedError('"InverseMap" was not implemented for "{}"'.format(self.__class__.__name__))
+        CheckVariables(variable_origin, variable_destination)
+        self._InverseMapInternal(variable_origin, variable_destination, mapper_flags)
 
-    def UpdateInterface(self):
-        raise NotImplementedError('"UpdateInterface" was not implemented for "{}"'.format(self.__class__.__name__))
+    @abstractmethod
+    def UpdateInterface(self): pass
+
+    # protected methods
+    @abstractmethod
+    def _MapInternal(self, variable_origin, variable_destination, mapper_flags): pass
+
+    @abstractmethod
+    def _InverseMapInternal(self, variable_origin, variable_destination, mapper_flags): pass
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        return KM.Parameters("""{
+            "mapper_type" : "",
+            "echo_level"  : 0
+        }""")
+
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
+
+def CheckVariables(variable_origin, variable_destination):
+    pass

@@ -7,7 +7,7 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeComponentGradientSimplex<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
     if (current_component == 0){
@@ -23,16 +23,14 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::CalculateLocalSystem(Matr
     }
 
     else {
-        KRATOS_THROW_ERROR(std::invalid_argument, "The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but ", current_component);
+        KRATOS_ERROR << "The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but " << current_component << std::endl;
     }
 
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
 
     const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;
@@ -52,9 +50,7 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(Equation
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rElementalDofList.size() != LocalSize)
@@ -73,7 +69,7 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -81,20 +77,13 @@ int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    if(this->GetGeometry().size() != TDim+1)
-        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-    if(VELOCITY_COMPONENT_GRADIENT.Key() == 0)
-
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_COMPONENT_GRADIENT Key is 0. Check if the application was correctly registered.","");
+    KRATOS_ERROR_IF(this->GetGeometry().size() != TDim+1) << "Wrong number of nodes for element " << this->Id() << std::endl;
 
     // Checks on nodes
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i < this->GetGeometry().size(); ++i)
-    {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_COMPONENT_GRADIENT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_COMPONENT_GRADIENT variable on solution step data for node ",this->GetGeometry()[i].Id());
+    for(unsigned int i=0; i < this->GetGeometry().size(); ++i) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_COMPONENT_GRADIENT, this->GetGeometry()[i])
     }
     return 0;
 

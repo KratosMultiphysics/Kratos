@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 
 def GetDefaultInputParameters():
@@ -28,6 +27,10 @@ def GetDefaultInputParameters():
 
         "ElementType" : "SwimmingDEMElement",
 
+        "error_projection_parameters"   :{
+            "u_characteristic"  : 1.0
+        },
+
         "do_print_results_option" : true,
         "output_interval" : 0.5,
 
@@ -53,7 +56,8 @@ def GetDefaultInputParameters():
                 "min_fluid_fraction" : 0.2,
                 "fluid_fraction_grad_type" : 0,
                 "calculate_diffusivity_option" : false,
-                "viscosity_modification_type" : 0
+                "viscosity_modification_type" : 0,
+                "averaging_time_interval" : 1
             }
         },
 
@@ -161,7 +165,9 @@ def GetDefaultInputParameters():
             "fluid_model_type_comment" : " untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)"
         },
 
-        "dem_parameters" : {},
+        "dem_parameters" : {
+            "seed" : 42
+        },
 
         "custom_dem" : {
             "do_solve_dem" : true,

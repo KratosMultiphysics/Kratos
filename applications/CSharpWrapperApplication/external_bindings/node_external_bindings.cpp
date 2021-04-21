@@ -40,11 +40,6 @@ EXPORT double __stdcall Node_GetVariable1d(NodeType *instance, Kratos::Variable<
     return instance->FastGetSolutionStepValue(*variable);
 }
 
-EXPORT double __stdcall Node_GetVariableComponent1d(NodeType *instance,
-                                                    Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > *variable) {
-    return instance->FastGetSolutionStepValue(*variable);
-}
-
 EXPORT double *
 __stdcall Node_GetVariable3d(NodeType *instance, Kratos::Variable<Kratos::array_1d<double, 3>> *variable) {
     auto value = instance->FastGetSolutionStepValue(*variable);

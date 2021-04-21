@@ -92,7 +92,7 @@ public:
      * @brief This method checks if the linear solver is registered
      * @return True if registered, false otherwise
      */
-    virtual bool Has(const std::string& rSolverType)
+    virtual bool Has(const std::string& rSolverType) const
     {
         return KratosComponents< FactoryType >::Has( rSolverType );
     }
@@ -101,7 +101,7 @@ public:
      * @brief This method creates a new solver
      * @return The pointer to the solver of interest
      */
-    virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)
+    virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)  const
     {
         // remove name of the application (if passed)
         // e.g. "ExternalSolversApplication.super_lu" => "super_lu"

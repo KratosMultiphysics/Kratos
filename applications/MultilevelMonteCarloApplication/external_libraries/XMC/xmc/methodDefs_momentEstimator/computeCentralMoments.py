@@ -1,7 +1,4 @@
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute import *
 
 def centralMomentWrapper(dimension,order,*args):
     if dimension==0:
@@ -23,7 +20,7 @@ def centralMomentWrapper(dimension,order,*args):
     else:
         raise ValueError('Index sets of dimension > 0 are not supported yet.')
 
-@ExaquteTask(returns=1)
+@task(keep=True, returns=1)
 def centralMomentWrapper_Task(*args):
     return centralMomentWrapper(*args)
 
@@ -38,7 +35,7 @@ def centralCombinedMomentWrapper(dimension,order,*args):
     else:
         raise ValueError('Index sets of dimension > 0 are not supported yet.')
 
-@ExaquteTask(returns=1)
+@task(keep=True, returns=1)
 def centralCombinedMomentWrapper_Task(*args):
     return centralCombinedMomentWrapper(*args)
 

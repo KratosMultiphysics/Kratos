@@ -333,7 +333,7 @@ class RefineElementsInEdgesMesherProcess
 
     std::vector<double> ShapeFunctionsN;
 
-    unsigned int id = MesherUtilities::GetMaxNodeId(*(rModelPart.GetParentModelPart())) + 1;
+    unsigned int id = MesherUtilities::GetMaxNodeId(rModelPart.GetParentModelPart()) + 1;
 
     unsigned int size  = 0;
     //unsigned int count = 0;

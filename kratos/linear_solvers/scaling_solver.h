@@ -84,6 +84,9 @@ public:
     /// The definition of the linear solver factory type
     typedef LinearSolverFactory<TSparseSpaceType,TDenseSpaceType> LinearSolverFactoryType;
 
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -225,9 +228,9 @@ public:
         }
         else
         {
-            #pragma omp parallel for
-            for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
-                scaling_vector[i] = sqrt(std::abs(scaling_vector[i]));
+            IndexPartition<std::size_t>(scaling_vector.size()).for_each([&](std::size_t Index){
+                scaling_vector[Index] = sqrt(std::abs(scaling_vector[Index]));
+            });
 
             SymmetricScaling(rA,scaling_vector);
 
@@ -235,9 +238,9 @@ public:
         }
 
         //scale RHS
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
-            rB[i] /= scaling_vector[i];
+        IndexPartition<std::size_t>(scaling_vector.size()).for_each([&](std::size_t Index){
+            rB[Index] /= scaling_vector[Index];
+        });
 
 
         //solve the problem
@@ -246,9 +249,9 @@ public:
         //backscale the solution
         if(mSymmetricScaling == true)
         {
-            #pragma omp parallel for
-            for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
-                rX[i] /= scaling_vector[i];
+            IndexPartition<std::size_t>(scaling_vector.size()).for_each([&](std::size_t Index){
+                rX[Index] /= scaling_vector[Index];
+            });
         }
 
         return is_solved;
@@ -259,6 +262,11 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    IndexType GetIterationsNumber() override
+    {
+        return mpLinearSolver->GetIterationsNumber();
+    }
 
 
     ///@}
@@ -356,7 +364,7 @@ private:
 
         //create partition
         OpenMPUtils::PartitionVector partition;
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,  partition);
         //parallel loop
 
@@ -420,7 +428,7 @@ private:
 
         //create partition
         OpenMPUtils::PartitionVector partition;
-        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int number_of_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,  partition);
         //parallel loop
 

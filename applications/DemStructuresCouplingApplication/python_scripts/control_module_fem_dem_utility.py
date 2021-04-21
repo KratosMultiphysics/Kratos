@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
 
-class ControlModuleFemDemUtility(object):
+class ControlModuleFemDemUtility():
     def __init__(self, Model, spheres_model_part, test_number):
 
         fem_main_model_part = Model["Structure"]

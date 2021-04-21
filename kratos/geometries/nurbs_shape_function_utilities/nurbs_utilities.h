@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "containers/array_1d.h"
 
 namespace Kratos {
 
@@ -136,6 +137,18 @@ namespace NurbsUtilities
         return ColumnIndex * NumberPerRow + RowIndex;
     }
 
+    /**
+     * @brief Computes a vector index from three matrix indices.
+     * @details Matrix serialization: First walk along rows, then colums, then into depths.
+     * @return Index within vector.
+     **/
+    static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
+        const SizeType NumberPerRow, const SizeType NumberPerColumn, const SizeType NumberPerDepth,
+        const IndexType RowIndex, const IndexType ColumnIndex, const IndexType DepthIndex) noexcept
+    {
+        return DepthIndex * (NumberPerColumn*NumberPerRow) + ColumnIndex * NumberPerRow + RowIndex;
+    }
+
     /*
     * @brief Computes two matrix indices from vector index.
     * @return indices within Matrix
@@ -149,6 +162,26 @@ namespace NurbsUtilities
         const IndexType col = Index / NumberPerRow;
 
         return std::make_pair(row, col);
+    }
+
+    /**
+     * @brief Computes three matrix indices from vector index.
+     * @details Matrix serialization: First walk along rows, then colums, then into depths.
+     * @return indices within Matrix.
+     **/
+    static inline array_1d<IndexType,3> GetMatrixIndicesFromVectorIndex(
+        const SizeType NumberPerRow,
+        const SizeType NumberPerColumn,
+        const SizeType NumberPerDepth,
+        const IndexType Index) noexcept
+    {
+        array_1d<IndexType,3> result;
+        const IndexType index_in_row_column_plane = Index % (NumberPerRow*NumberPerColumn);
+        result[0] = index_in_row_column_plane % NumberPerRow; // row
+        result[1] = index_in_row_column_plane / NumberPerRow; // column 
+        result[2] = Index / (NumberPerRow*NumberPerColumn);   // depth
+
+        return result;
     }
     ///@}
 }; // class NurbsUtility

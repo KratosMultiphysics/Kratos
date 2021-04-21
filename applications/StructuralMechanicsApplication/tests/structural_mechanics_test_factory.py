@@ -175,9 +175,11 @@ class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
 class MembraneHemisphereTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_hemisphere_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
 
@@ -199,18 +201,22 @@ class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/dynamic_3D2NTruss_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
 
 class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
 
@@ -229,41 +235,8 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
-
-class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
-
-class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
-
-class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
-
-class BigCubeSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test"
-
-class BigCubeSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test"
-
-class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_DP_test"
-
-class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
-
-class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
-
-class AnisotropyTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/AnisotropyCube/anisotropy_test"
-
-class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
-
-class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
+class InitialStateElasticityTest(StructuralMechanicsTestFactory):
+    file_name = "InitialStateElasticity/initial_state_test"
 
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
@@ -391,9 +364,6 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
-
-class TensileTestStructuralTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/TensileTestStructural/TensileTestStructural"
 
 class Solid2p5DElementTest(StructuralMechanicsTestFactory):
     file_name = "solid_2p5d_test/solid_2p5d"

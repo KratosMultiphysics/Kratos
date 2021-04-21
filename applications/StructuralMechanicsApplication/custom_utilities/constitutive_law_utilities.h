@@ -111,11 +111,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @brief This method computes the first invariant from a given stress vector
      * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
+     * @tparam TVector The themplate for the vector class
      */
+    template<class TVector>
     static void CalculateI1Invariant(
-        const BoundedVectorType& rStressVector,
+        const TVector& rStressVector,
         double& rI1
-        );
+        )
+    {
+        rI1 = rStressVector[0];
+        for (IndexType i = 1; i < Dimension; ++i)
+            rI1 += rStressVector[i];
+    }
 
     /**
      * @brief This method computes the second invariant from a given stress vector
@@ -145,13 +152,34 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param I1 The first invariant
      * @param rDeviator The deviator of the stress
      * @param rJ2 The second invariant of J
+     * @tparam TVector The themplate for the vector class
      */
+    template<class TVector>
     static void CalculateJ2Invariant(
-        const BoundedVectorType& rStressVector,
+        const TVector& rStressVector,
         const double I1,
         BoundedVectorType& rDeviator,
         double& rJ2
-        );
+        )
+    {
+        if (Dimension == 3) {
+            rDeviator = rStressVector;
+            const double p_mean = I1 / 3.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rDeviator[i] -= p_mean;
+            rJ2 = 0.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rJ2 += 0.5 * std::pow(rDeviator[i], 2);
+            for (IndexType i = Dimension; i < 6; ++i)
+                rJ2 += std::pow(rDeviator[i], 2);
+        } else {
+            rDeviator = rStressVector;
+            const double p_mean = I1 / 3.0;
+            for (IndexType i = 0; i < Dimension; ++i)
+                rDeviator[i] -= p_mean;
+            rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
+        }
+    }
 
     /**
      * @brief This method computes the third invariant of J
@@ -448,7 +476,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     );
 
     /**
-     * @brief This converts the 
+     * @brief This converts the
      * 3x3 rotation matrix to the 6x6
      * Cook et al., "Concepts and applications
      * of finite element analysis"
@@ -458,6 +486,23 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         BoundedMatrixVoigtType &rNewOperator
     );
 
+    /**
+     * @brief This method the uniaxial equivalent stress for Von Mises
+     * @param rStressVector The stress vector S = C:E
+     * @return The VM equivalent stress
+     * @tparam TVector The themplate for the vector class
+     */
+    template<class TVector>
+    static double CalculateVonMisesEquivalentStress(const TVector& rStressVector)
+    {
+        double I1, J2;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+
+        return std::sqrt(3.0 * J2);
+    }
 
 private:
 

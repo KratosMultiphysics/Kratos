@@ -24,9 +24,6 @@
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy_for_FSI.h"
 #include "custom_strategies/strategies/two_step_v_p_DEM_coupling_strategy.h"
 
-//schemes
-#include "custom_strategies/schemes/first_order_forward_euler_scheme.hpp"
-
 // builder_and_solvers
 
 //convergence criterias
@@ -55,7 +52,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
   typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
   typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
   //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
-  typedef FirstOrderForwardEulerScheme<SparseSpaceType, LocalSpaceType> FirstOrderForwardEulerSchemeType;
 
   //custom strategy types
   typedef TwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPStrategyType;
@@ -90,10 +86,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
       .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
       .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver);
 
-  // Explicit scheme: Central differences
-  py::class_<FirstOrderForwardEulerSchemeType, FirstOrderForwardEulerSchemeType::Pointer, BaseSchemeType>(m, "FirstOrderForwardEulerSchemeType")
-      .def(py::init<const double, const double, const double, const bool>())
-      .def("Initialize", &FirstOrderForwardEulerScheme<SparseSpaceType, LocalSpaceType>::Initialize);
 }
 
 } // namespace Python.

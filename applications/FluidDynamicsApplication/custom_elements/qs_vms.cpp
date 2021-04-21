@@ -16,6 +16,7 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/fluid_element_time_integration_detail.h"
 
@@ -94,24 +95,17 @@ void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
 // Inquiry
 
 template< class TElementData >
-int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
-    for(unsigned int i=0; i<NumNodes; ++i)
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const auto& rNode = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,rNode);
     }
@@ -122,7 +116,7 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -148,13 +142,13 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
         }
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -181,35 +175,35 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
     }
     else {
-        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+void QSVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    FluidElement<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -790,5 +784,10 @@ template class QSVMS< QSVMSData<3,8> >;
 template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
 template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
 
+template class QSVMS< QSVMSDEMCoupledData<2,3> >;
+template class QSVMS< QSVMSDEMCoupledData<3,4> >;
+
+template class QSVMS< QSVMSDEMCoupledData<2,4> >;
+template class QSVMS< QSVMSDEMCoupledData<3,8> >;
 
 } // namespace Kratos

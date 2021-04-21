@@ -23,7 +23,7 @@
 #include "custom_includes/kratos_internals.h"
 #include "utilities/variable_utils.h"
 #include "utilities/read_materials_utility.h"
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 //#define SKIN_SUBMODEL_PART_NAME "skin_model_part"
 
@@ -89,7 +89,7 @@ void KratosInternals::loadSettingsParameters(const std::string& rJSONFilePath) {
         mSettingsParameters = Kratos::Parameters(buffer.str());
     }
 
-    Kratos::Parameters default_parameters = GetDefaultSettings();
+    Kratos::Parameters default_parameters = GetDefaultParameters();
     mSettingsParameters.RecursivelyAddMissingParameters(default_parameters);
 }
 
@@ -103,7 +103,6 @@ void KratosInternals::initDofs() {
     Kratos::VariableUtils().AddDofWithReaction(Kratos::DISPLACEMENT_Z, Kratos::REACTION_Z, r_model_part);
 
     // Adding custom dofs
-    typedef Kratos::VectorComponentAdaptor<Kratos::array_1d<double,3>> ComponentType;
     const std::size_t n_variables = mSettingsParameters["solver_settings"]["auxiliary_dofs_list"].size();
     for (std::size_t i_var = 0; i_var < n_variables; ++i_var) {
         const std::string& r_variable_name = mSettingsParameters["solver_settings"]["auxiliary_dofs_list"].GetArrayItem(i_var).GetString();
@@ -113,13 +112,13 @@ void KratosInternals::initDofs() {
             const auto& r_reaction_variable = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name);
             Kratos::VariableUtils().AddDofWithReaction(r_variable, r_reaction_variable, r_model_part);
         } else if (Kratos::KratosComponents<Kratos::Variable<Kratos::array_1d<double, 3>>>::Has(r_variable_name)) {
-            const auto& r_component_x = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_variable_name + "_X");
-            const auto& r_component_y = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_variable_name + "_Y");
-            const auto& r_component_z = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_variable_name + "_Z");
+            const auto& r_component_x = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_X");
+            const auto& r_component_y = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_Y");
+            const auto& r_component_z = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_Z");
 
-            const auto& r_reaction_component_x = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_reaction_variable_name + "_X");
-            const auto& r_reaction_component_y = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_reaction_variable_name + "_Y");
-            const auto& r_reaction_component_z = Kratos::KratosComponents<Kratos::VariableComponent<ComponentType>>::Get(r_reaction_variable_name + "_Z");
+            const auto& r_reaction_component_x = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_X");
+            const auto& r_reaction_component_y = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_Y");
+            const auto& r_reaction_component_z = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_Z");
 
             Kratos::VariableUtils().AddDofWithReaction(r_component_x, r_reaction_component_x, r_model_part);
             Kratos::VariableUtils().AddDofWithReaction(r_component_y, r_reaction_component_y, r_model_part);
@@ -136,7 +135,7 @@ void KratosInternals::initProperties() {
 
     // We will hardcode the CL
     if (r_materials_filename == "") {
-        Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::HyperElasticIsotropicNeoHookean3D>();
+        Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::ElasticIsotropic3D>();
         r_model_part.GetProperties(0).SetValue(Kratos::CONSTITUTIVE_LAW, pCl);
     } else { // We read the materials json
         Kratos::Parameters material_settings = Kratos::Parameters(R"({"Parameters": {"materials_filename": ""}})" );
@@ -200,7 +199,7 @@ Kratos::Parameters KratosInternals::GetSettings() {
     return mSettingsParameters;
 }
 
-Kratos::Parameters KratosInternals::GetDefaultSettings() {
+Kratos::Parameters KratosInternals::GetDefaultParameters() {
     Kratos::Parameters default_parameters = Kratos::Parameters(R"(
     {
         "problem_data"    : {

@@ -70,6 +70,43 @@ namespace Kratos
         }
     }
 
+    void IntegrationPointUtilities::IntegrationPoints3D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
+        double U0, double U1, double V0, double V1, double W0, double W1)
+    {
+        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW < 1)
+            << "PointsInU, -V and -W need to be bigger than 0 - PointsInU:"
+            << PointsInU << ", PointsInV:" << PointsInV << " and PointsInW:" << PointsInW << std::endl;
+
+        const double distance_u = U1 - U0;
+        const double length_u = std::abs(U1 - U0);
+        const double distance_v = V1 - V0;
+        const double length_v = std::abs(V1 - V0);
+        const double distance_w = W1 - W0;
+        const double length_w = std::abs(W1 - W0);
+
+        const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[PointsInU - 1];
+        const std::vector<std::array<double, 2>>& integration_point_list_v = IntegrationPointUtilities::s_gauss_legendre[PointsInV - 1];
+        const std::vector<std::array<double, 2>>& integration_point_list_w = IntegrationPointUtilities::s_gauss_legendre[PointsInW - 1];
+
+        for (SizeType u = 0; u < PointsInU; ++u) {
+            for (SizeType v = 0; v < PointsInV; ++v) {
+                for( SizeType w = 0; w < PointsInW; ++w) {
+                    (*rIntegrationPointsBegin)[0] = U0 + distance_u * integration_point_list_u[u][0];
+                    (*rIntegrationPointsBegin)[1] = V0 + distance_v * integration_point_list_v[v][0];
+                    (*rIntegrationPointsBegin)[2] = W0 + distance_w * integration_point_list_w[w][0];
+                    (*rIntegrationPointsBegin).Weight() =
+                        integration_point_list_u[u][1] * length_u *
+                        integration_point_list_v[v][1] * length_v *
+                        integration_point_list_w[w][1] * length_w;
+
+                    rIntegrationPointsBegin++;
+                }
+            }
+        }
+    }
+
     const std::vector<std::vector<std::array<double, 2>>> IntegrationPointUtilities::s_gauss_legendre = {
     {   // degree 1
         { 0.5000000000000000000, 1.0000000000000000000 }

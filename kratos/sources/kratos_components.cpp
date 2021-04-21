@@ -27,6 +27,7 @@
 #include "utilities/quaternion.h"
 
 /* Factories */
+#include "factories/register_factories.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
 
@@ -92,26 +93,6 @@ void AddKratosComponent(std::string const& Name, Variable<std::string> const& Th
     KratosComponents<Variable<std::string> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > const& ThisComponent)
-{
-    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::Add(Name, ThisComponent);
-}
-
 void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent)
 {
     KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
@@ -159,10 +140,6 @@ template class KratosComponents<Variable<Quaternion<double> > >;
 template class KratosComponents<Variable<Vector> >;
 template class KratosComponents<Variable<Matrix> >;
 template class KratosComponents<Variable<std::string> >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
-template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
 template class KratosComponents<Variable<Flags> >;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
@@ -179,10 +156,17 @@ using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_mat
 using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
 using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
 using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
+using RealLinearSolverType = LinearSolver<RealSparseSpace, RealDenseSpace>;
 
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<SolvingStrategy<RealSparseSpace, RealDenseSpace, RealLinearSolverType>>;
+template class KratosComponents<ExplicitSolvingStrategy<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<BuilderAndSolver<RealSparseSpace, RealDenseSpace, RealLinearSolverType>>;
+template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<Scheme<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<ConvergenceCriteria<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;

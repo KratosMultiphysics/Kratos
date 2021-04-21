@@ -21,13 +21,13 @@ class MPMImplicitDynamicSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMImplicitDynamicSolver]:: ", "Construction is finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"   : "bossak",
             "damp_factor_m" : -0.3,
             "newmark_beta"  : 0.25
         }""")
-        this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMImplicitDynamicSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

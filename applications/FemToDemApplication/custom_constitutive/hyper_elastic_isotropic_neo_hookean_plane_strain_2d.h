@@ -41,15 +41,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class HyperElasticIsotropicNeoHookeanPlaneStrain2D
+ * @class HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines an hyperelastic material according to the NeoHookean formulation for 2D-plane strain cases
  * @details A neo-Hookean solid is a hyperelastic material model, similar to Hooke's law, that can be used for predicting the nonlinear stress-strain behavior of materials undergoing large deformations. The model was proposed by Ronald Rivlin in 1948. In contrast to linear elastic materials, the stress-strain curve of a neo-Hookean material is not linear. Instead, the relationship between applied stress and strain is initially linear, but at a certain point the stress-strain curve will plateau. The neo-Hookean model does not account for the dissipative release of energy as heat while straining the material and perfect elasticity is assumed at all stages of deformation. he neo-Hookean model is based on the statistical thermodynamics of cross-linked polymer chains and is usable for plastics and rubber-like substances.
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class HyperElasticIsotropicNeoHookeanPlaneStrain2D
-    : public HyperElasticIsotropicNeoHookean3D
+class HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM
+    : public HyperElasticIsotropicNeoHookean3DFEMDEM
 {
 public:
 
@@ -63,7 +63,7 @@ public:
     typedef ConstitutiveLaw                CLBaseType;
 
     /// The definition of the base class
-    typedef HyperElasticIsotropicNeoHookean3D BaseType;
+    typedef HyperElasticIsotropicNeoHookean3DFEMDEM BaseType;
 
     /// The definition of the size type
     typedef std::size_t                      SizeType;
@@ -77,8 +77,8 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
 
-    /// Pointer definition of HyperElasticIsotropicNeoHookeanPlaneStrain2D
-    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookeanPlaneStrain2D );
+    /// Pointer definition of HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM );
 
     ///@name Lyfe Cycle
     ///@{
@@ -86,17 +86,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    HyperElasticIsotropicNeoHookeanPlaneStrain2D();
+    HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM();
 
     /**
      * @brief Copy constructor.
      */
-    HyperElasticIsotropicNeoHookeanPlaneStrain2D (const HyperElasticIsotropicNeoHookeanPlaneStrain2D& rOther);
+    HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM (const HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~HyperElasticIsotropicNeoHookeanPlaneStrain2D() override;
+    ~HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM() override;
 
     ///@}
     ///@name Operators
@@ -241,6 +241,6 @@ private:
     }
 
 
-}; // Class HyperElasticIsotropicNeoHookeanPlaneStrain2D
+}; // Class HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM
 }  // namespace Kratos.
 #endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

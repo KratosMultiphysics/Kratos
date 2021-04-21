@@ -181,7 +181,12 @@ public:
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
-                                                                        (r_fs_velocity_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
+                (r_fs_velocity_model_part,
+                p_scheme,
+                p_build_and_solver,
+                calculate_reactions,
+                reform_dof_set,
+                calculate_norm_dx_flag);
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
@@ -194,8 +199,13 @@ public:
             p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
-                                                                        (r_fs_pressure_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>(
+                r_fs_pressure_model_part,
+                p_scheme,
+                p_build_and_solver,
+                calculate_reactions,
+                reform_dof_set,
+                calculate_norm_dx_flag);
         }
         else
         {

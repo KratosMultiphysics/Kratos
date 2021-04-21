@@ -12,6 +12,3 @@ Please summarize the changes in one a list to generate the changelog:
 E.g.
 - Added feature X to Y (#XXXX)
 - Added Foo Application
-
-**Additional info**
-Add any other releavant information here.
