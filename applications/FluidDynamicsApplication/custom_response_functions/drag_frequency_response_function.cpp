@@ -46,8 +46,7 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
         "drag_direction"            : [1.0, 0.0, 0.0],
         "is_real_component"         : true,
         "frequency_bin_index"       : 1,
-        "window_size"               : 300,
-        "total_number_of_time_steps": 1000,
+        "window_time_length"        : 300.0,
         "echo_level"                : 0
         "
     })");
@@ -85,12 +84,6 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
            "frequency_bin_index = "
         << mFrequencyBinIndex << " ].\n";
 
-    mTotalNumberOfTimeSteps = Settings["total_number_of_time_steps"].GetInt();
-    KRATOS_ERROR_IF(mTotalNumberOfTimeSteps <= 0)
-        << "Total number of time steps should be greater than to zero. [ "
-           "total_number_of_time_steps = "
-        << mTotalNumberOfTimeSteps << " ].\n";
-
     mIsRealComponentRequested = Settings["is_real_component"].GetBool();
     if (mIsRealComponentRequested) {
         mComponentFunction = [](double x) { return std::cos(x); };
@@ -98,34 +91,10 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
         mComponentFunction = [](double x) { return std::sin(x); };
     }
 
-    mWindowSize = Settings["window_size"].GetInt();
-    KRATOS_ERROR_IF(mWindowSize <= 0)
-        << "Window size should be greater than to zero. [ "
-        << "window_size = " << mWindowSize << " ].\n";
-
-    KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-void DragFrequencyResponseFunction<TDim>::Initialize()
-{
-    KRATOS_TRY;
-
-    BaseType::Initialize();
-
-    const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
-
-    KRATOS_INFO_IF("DragFrequencyResponseFunction", mEchoLevel > 0) << "Summary: \n"
-        << "\tMain model part name      : " << mrModelPart.Name() << "\n"
-        << "\tStructural model part name: " << mStructureModelPartName << "\n"
-        << "\tDrag direction            : " << mDragDirection << "\n"
-        << "\tWindow size               : " << mWindowSize << "\n"
-        << "\tWindow duration           : " << mWindowSize * delta_time << " s\n"
-        << "\tEvaluated frequency bin   : " << mFrequencyBinIndex << "\n"
-        << "\tEvaluated frequency       : " << mFrequencyBinIndex / (delta_time * mTotalNumberOfTimeSteps) << " Hz \n"
-        << "\tMaximum possible frequency: " << 1.0 / (delta_time * 2.0) << " Hz \n"
-        << "\tTotal number of time steps: " << mTotalNumberOfTimeSteps << "\n"
-        << "\tComponent type            : " << (mIsRealComponentRequested ? "real\n" : "imaginary\n");
+    mWindowingLength = Settings["window_time_length"].GetDouble();
+    KRATOS_ERROR_IF(mWindowingLength <= 0)
+        << "Window time length should be greater than to zero. [ "
+        << "window_time_length = " << mWindowingLength << " ].\n";
 
     KRATOS_CATCH("");
 }
@@ -135,13 +104,33 @@ void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
 {
     KRATOS_TRY
 
+    if (!mIsInitialized) {
+        mIsInitialized = true;
+
+        const auto& r_process_info = mrModelPart.GetProcessInfo();
+
+        mTotalLength = r_process_info[TIME];
+        const double delta_time = -1.0 * r_process_info[DELTA_TIME];
+
+        KRATOS_ERROR_IF(mWindowingLength > mTotalLength)
+            << "Total time length of the simulation should be greater than the "
+            "windowing time length. [ Total time length = "
+            << mTotalLength << "s, windowing time length = " << mWindowingLength << "s ].\n";
+
+        KRATOS_INFO_IF("DragFrequencyResponseFunction", mEchoLevel > 0) << "Summary: \n"
+            << "\tMain model part name      : " << mrModelPart.Name() << "\n"
+            << "\tStructural model part name: " << mStructureModelPartName << "\n"
+            << "\tDrag direction            : " << mDragDirection << "\n"
+            << "\tTime step length          : " << delta_time << " s\n"
+            << "\tWindowing duration        : " << mWindowingLength << " s\n"
+            << "\tTotal duration            : " << mTotalLength << " s\n"
+            << "\tEvaluated frequency bin   : " << mFrequencyBinIndex << "\n"
+            << "\tEvaluated frequency       : " << mFrequencyBinIndex / mTotalLength << " Hz \n"
+            << "\tMaximum possible frequency: " << 1.0 / (delta_time * 2.0) << " Hz \n"
+            << "\tComponent type            : " << (mIsRealComponentRequested ? "real\n" : "imaginary\n");
+    }
+
     BaseType::InitializeSolutionStep();
-
-    const int step = mrModelPart.GetProcessInfo()[STEP];
-
-    KRATOS_WARNING_IF("DragFrequencyResponseFunction", step > mTotalNumberOfTimeSteps)
-        << "Current step is larger than total number of steps provided in settings. [ Current step = "
-        << step << ", Total number of steps in settings = " << mTotalNumberOfTimeSteps << " ].\n";
 
     KRATOS_CATCH("");
 }
@@ -154,7 +143,7 @@ void DragFrequencyResponseFunction<TDim>::CalculateGradient(
     const ProcessInfo& rProcessInfo)
 {
     CalculateDragFrequencyContribution(
-        rResidualGradient, rAdjointElement.GetGeometry().Points(), rProcessInfo[STEP], rResponseGradient);
+        rResidualGradient, rAdjointElement.GetGeometry().Points(), rProcessInfo, rResponseGradient);
 }
 
 
@@ -166,7 +155,7 @@ void DragFrequencyResponseFunction<TDim>::CalculateFirstDerivativesGradient(
     const ProcessInfo& rProcessInfo)
 {
     CalculateDragFrequencyContribution(
-        rResidualGradient, rAdjointElement.GetGeometry().Points(), rProcessInfo[STEP], rResponseGradient);
+        rResidualGradient, rAdjointElement.GetGeometry().Points(), rProcessInfo, rResponseGradient);
 }
 
 
@@ -179,7 +168,7 @@ void DragFrequencyResponseFunction<TDim>::CalculateSecondDerivativesGradient(
 {
     CalculateDragFrequencyContribution(rResidualGradient,
                                         rAdjointElement.GetGeometry().Points(),
-                                        rProcessInfo[STEP], rResponseGradient);
+                                        rProcessInfo, rResponseGradient);
 }
 
 template <unsigned int TDim>
@@ -194,7 +183,7 @@ void DragFrequencyResponseFunction<TDim>::CalculatePartialSensitivity(
 
     CalculateDragFrequencyContribution(rSensitivityMatrix,
                                         rAdjointElement.GetGeometry().Points(),
-                                        rProcessInfo[STEP], rSensitivityGradient);
+                                        rProcessInfo, rSensitivityGradient);
 
     KRATOS_CATCH("");
 }
@@ -215,18 +204,20 @@ template <unsigned int TDim>
 void DragFrequencyResponseFunction<TDim>::CalculateDragFrequencyContribution(
     const Matrix& rDerivativesOfResidual,
     const Element::NodesArrayType& rNodes,
-    const int Step,
+    const ProcessInfo& rProcessInfo,
     Vector& rDerivativesOfDrag) const
 {
     KRATOS_TRY
 
-    const int offsetted_step = Step - mTotalNumberOfTimeSteps + mWindowSize;
-    if (offsetted_step >= 0) {
+    const double current_time = rProcessInfo[TIME];
+    const double offsetted_window_time = current_time - mTotalLength + mWindowingLength;
+
+    if (offsetted_window_time >= 0.0) {
         // calculate raw drag sensitivities
         BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag);
 
-        const double component_coefficient = mComponentFunction(2 * M_PI * Step * mFrequencyBinIndex / mTotalNumberOfTimeSteps);
-        const double windowing_value = 0.5 * (1.0 - std::cos(2.0 * M_PI * offsetted_step / mWindowSize));
+        const double component_coefficient = mComponentFunction(2 * M_PI * current_time * mFrequencyBinIndex / mTotalLength);
+        const double windowing_value = 0.5 * (1.0 - std::cos(2.0 * M_PI * offsetted_window_time / mWindowingLength));
 
         rDerivativesOfDrag *= (component_coefficient * windowing_value);
     } else {

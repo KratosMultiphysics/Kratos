@@ -62,8 +62,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override;
-
     void InitializeSolutionStep() override;
 
     void CalculateGradient(
@@ -108,10 +106,11 @@ private:
     int mEchoLevel;
 
     int mFrequencyBinIndex;
-    int mTotalNumberOfTimeSteps;
-    int mWindowSize;
+    double mWindowingLength;
+    double mTotalLength;
 
     bool mIsRealComponentRequested;
+    bool mIsInitialized;
 
     std::function<double(double)> mComponentFunction;
 
@@ -122,7 +121,7 @@ private:
     void CalculateDragFrequencyContribution(
         const Matrix& rDerivativesOfResidual,
         const Element::NodesArrayType& rNodes,
-        const int Step,
+        const ProcessInfo& rProcessInfo,
         Vector& rDerivativesOfDrag) const;
 
     ///@}
