@@ -687,6 +687,44 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                          : "prebuckling_strategy",
+            "max_iteration"                 : 10,
+            "builder_and_solver_settings"   : {},
+            "convergence_criteria_settings" : {},
+            "linear_solver_settings"        : {},
+            "scheme_settings"               : {},
+            "buckling_settings"             : {
+                "initial_load_increment"    : 1.0,
+                "small_load_increment"      : 0.0005,
+                "path_following_step"       : 0.5,
+                "convergence_ratio"         : 0.05,
+                "make_matrices_symmetric"   : true
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "prebuckling_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
