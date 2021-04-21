@@ -97,7 +97,7 @@ class MaterialTest():
         self.PrepareTestOedometric()
 
         domain_volume = math.pi * 0.5 * 0.5 * self.diameter * self.diameter * self.height
-        self.Procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
+        #self.Procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
 
     def BreakBondUtility(self, spheres_model_part):
         self.PreUtilities.BreakBondUtility(self.spheres_model_part)
