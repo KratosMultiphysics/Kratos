@@ -755,6 +755,47 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMaxIteration = ThisParameters["max_iteration"].GetInt();
+        mInitialLoadIncrement = ThisParameters["buckling_settings"]["initial_load_increment"].GetDouble();
+        mSmallLoadIncrement = ThisParameters["buckling_settings"]["small_load_increment"].GetDouble();
+        mPathFollowingStep = ThisParameters["buckling_settings"]["path_following_step"].GetDouble();
+        mConvergenceRatio = ThisParameters["buckling_settings"]["convergence_ratio"].GetDouble();
+        mMakeMatricesSymmetricFlag = ThisParameters["buckling_settings"]["make_matrices_symmetric"].GetBool();
+
+        // Saving the convergence criteria to be used
+        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
+            mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
+        }
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
