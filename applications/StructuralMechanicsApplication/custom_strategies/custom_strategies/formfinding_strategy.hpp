@@ -137,6 +137,102 @@ public:
         model_part_io.WriteModelPart(rModelPart);
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                             : "formfinding_strategy",
+            "printing_format"                  : "all",
+            "write_formfound_geometry_file"    : true,
+            "formfinding_model_part_name"      : "",
+            "projection_settings": {
+                "model_part_name"             : "Structure",
+                "echo_level"                  : 0,
+                "projection_type"             : "planar",
+                "global_direction"            : [1,0,0],
+                "variable_name"               : "PLEASE_SPECIFY",
+                "visualize_in_vtk"            : false,
+                "method_specific_settings"    : { },
+                "check_local_space_dimension" : false
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = ResidualBasedNewtonRaphsonStrategyType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "formfinding_strategy";
+    }
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        ResidualBasedNewtonRaphsonStrategyType::AssignSettings(ThisParameters);
+        mpFormFindingModelPart = &ResidualBasedNewtonRaphsonStrategyType::GetModelPart().GetSubModelPart(ThisParameters["formfinding_model_part_name"].GetString());
+        mPrintingFormat = ThisParameters["printing_format"].GetString();
+        mWriteFormFoundGeometryFile = ThisParameters["write_formfound_geometry_file"].GetBool();
+        mProjectionSettings = ThisParameters["projection_settings"];
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
 private:
     void UpdateDatabase(
         TSystemMatrixType& A,
