@@ -65,7 +65,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         if (self.total_length < self.windowing_length):
             raise RuntimeError("Total duration of the simulation should be greater than or equal to windowing length. [ Total simulation duration = {:f}s, windowing length = {:f}s ]".format(self.total_length, self.windowing_length))
 
-        self.drag_model_part_name = dummy_adjoint_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["structure_model_part_name"].GetString()
+        self.drag_model_part_name = self.main_model_part_name + "." + dummy_adjoint_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["structure_model_part_name"].GetString()
 
         frequency_range = self.response_settings["frequency_range"].GetVector()
         if (frequency_range.Size() != 2):
