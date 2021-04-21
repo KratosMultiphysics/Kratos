@@ -112,7 +112,7 @@ public:
         const double DeltaTimeFraction,
         const double DeltaTimePredictionLevel
         )
-        : Scheme<TSparseSpace, TDenseSpace>()
+        : BaseType()
     {
         mDeltaTime.PredictionLevel = DeltaTimePredictionLevel;
         mDeltaTime.Maximum = MaximumDeltaTime;
@@ -122,24 +122,15 @@ public:
     /**
      * @brief Constructor with parameters
      * @details The ExplicitCentralDifferencesScheme method
-     * @param rParameters The parameters containing the configuration parameters
+     * @param ThisParameters The parameters containing the configuration parameters
      * @warning time_step_prediction_level should be an integer
      */
-    ExplicitCentralDifferencesScheme(Parameters rParameters =  Parameters(R"({})"))
-        : Scheme<TSparseSpace, TDenseSpace>()
+    ExplicitCentralDifferencesScheme(Parameters ThisParameters = Parameters(R"({})"))
+        : BaseType()
     {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "time_step_prediction_level" : 0.0,
-            "fraction_delta_time"        : 0.9,
-            "max_delta_time"             : 1.0e0
-        })" );
-
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mDeltaTime.PredictionLevel = rParameters["time_step_prediction_level"].GetDouble();
-        mDeltaTime.Maximum = rParameters["max_delta_time"].GetDouble();
-        mDeltaTime.Fraction = rParameters["fraction_delta_time"].GetDouble();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters); 
     }
 
     /** Destructor.
