@@ -74,11 +74,23 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
                 ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-                SnapshotMatrix_residuals = self.ArrangeSnapshotMatrix(self.time_step_residual_matrix_container)###########################################
-                with open('SnapshotMatrix_residuals.npy', 'wb') as f:###########################################
-                    np.save(f, SnapshotMatrix_residuals)###########################################
-                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
-                self.hyper_reduction_element_selector.Run()
+                ###### Sebastian #######
+                SnapshotMatrix_residuals = self.ArrangeSnapshotMatrix(self.time_step_residual_matrix_container)
+                with open('SnapshotMatrix_residuals.npy', 'wb') as f:
+                    np.save(f, SnapshotMatrix_residuals)
+                hola = True
+                if hola:
+                    with open('RomParameters_Residuals.json') as s:
+                        HR_data_residuals = json.load(s)
+                        restricted_residual_elements = np.array(HR_data_residuals["rom_settings"]["restricted_elements"])-1
+                    selected_restricted_residual_elements = np.random.choice(restricted_residual_elements, 5).tolist()
+                    selected_restricted_residual_elements.sort()
+                    self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName,selected_restricted_residual_elements)
+                    self.hyper_reduction_element_selector.Run()
+                else:
+                ########################
+                    self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
+                    self.hyper_reduction_element_selector.Run()
 
     def ArrangeSnapshotMatrix(self,ResidualSnapshots):
         ### Building the Snapshot matrix ####
