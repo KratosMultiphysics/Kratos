@@ -61,8 +61,14 @@ public:
 
     ///@}
     ///@name Life Cycle
-
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit FormfindingStrategy() 
+    {
+    }
 
     /**
     * Constructor.
@@ -70,7 +76,7 @@ public:
 
     // constructor with Builder and Solver
     FormfindingStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
