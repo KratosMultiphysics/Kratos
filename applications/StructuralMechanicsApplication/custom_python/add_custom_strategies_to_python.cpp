@@ -136,12 +136,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Residual Based Relaxation Scheme Type
     py::class_< ResidualBasedRelaxationSchemeType,typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType >(m,"ResidualBasedRelaxationScheme")
         .def(py::init< double , double >() )
+        .def(py::init< Parameters>() )
         .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
         ;
 
     // Eigensolver Scheme Type
     py::class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
         .def(py::init<>() )
+        .def(py::init< Parameters>() )
         ;
 
     // Explicit Central Differences Scheme Type
@@ -156,8 +158,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< Parameters>())
         ;
 
-
-
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
@@ -166,6 +166,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
         .def(py::init< double, double, const std::string >())
         .def(py::init< double, double>())
+        .def(py::init< Parameters>() )
         ;
 
     // Error mesh Convergence Criterion
