@@ -213,7 +213,9 @@ class MainCoupledFemDem_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 
-        self.FEM_Solution.InitializeSolutionStep()
+        self.DEM_Solution._GetSolver().AdvanceInTime(self.FEM_Solution.time)
+        self.DEM_Solution.InitializeSolutionStep()
+        self.DEM_Solution.InitializeSolutionStep()
 
 #============================================================================================================================
     def SolveSolutionStep(self):  # Method to perform the coupling FEM <-> DEM
@@ -951,9 +953,10 @@ class MainCoupledFemDem_Solution:
             props = self.DEM_Solution.rigid_face_model_part.GetProperties(self.created_props_id,0)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
         else: # have to create it
-            props = self.CreateFEMPropertiesForDEFEContact()
+            # props = self.CreateFEMPropertiesForDEFEContact()
+            props = self.DEM_Solution.spheres_model_part.GetProperties()[2]
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
-            dem_walls_mp.AddProperties(props)
+            # dem_walls_mp.AddProperties(props)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
 
     #-----------------------------------
