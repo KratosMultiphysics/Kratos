@@ -110,7 +110,7 @@ private:
     double mTotalLength;
 
     bool mIsRealComponentRequested;
-    bool mIsInitialized;
+    bool mIsInitialized = false;
 
     std::function<double(double)> mComponentFunction;
 
