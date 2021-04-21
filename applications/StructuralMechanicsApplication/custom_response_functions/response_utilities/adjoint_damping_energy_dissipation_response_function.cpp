@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+
 #include "adjoint_damping_energy_dissipation_response_function.h"
 
 namespace Kratos
