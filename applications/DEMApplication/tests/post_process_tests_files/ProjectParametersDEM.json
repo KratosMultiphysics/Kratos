@@ -20,7 +20,10 @@
     "CleanIndentationsOption"             : false,
     "solver_settings"                     : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "continuum_sphere_strategy"
+        "strategy"                          : "continuum_sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
     },
     "VirtualMassCoefficient"              : 1.0,
     "RollingFrictionOption"               : false,

@@ -28,7 +28,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
-    
+
     '''def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         for node in self.spheres_model_part.Nodes:
@@ -88,9 +88,14 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         self.coeff = 1.0
-        
+
 
 class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
+
+    def ReadMaterialsFile(self):
+        materials_file_abs_path = os.path.join(self.GetMainPath(), "MaterialsDEM2.json")
+        with open(materials_file_abs_path, 'r') as materials_file:
+            self.DEM_material_parameters = KratosMultiphysics.Parameters(materials_file.read())
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
