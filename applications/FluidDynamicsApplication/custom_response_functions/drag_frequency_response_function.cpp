@@ -48,7 +48,6 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
         "frequency_bin_index"       : 1,
         "window_time_length"        : 300.0,
         "echo_level"                : 0
-        "
     })");
 
     Settings.ValidateAndAssignDefaults(default_settings);
@@ -124,12 +123,13 @@ void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
             << "\tMain model part name      : " << mrModelPart.Name() << "\n"
             << "\tStructural model part name: " << mStructureModelPartName << "\n"
             << "\tDrag direction            : " << mDragDirection << "\n"
-            << "\tTime step length          : " << delta_time << " s\n"
-            << "\tWindowing duration        : " << mWindowingLength << " s\n"
-            << "\tTotal duration            : " << mTotalLength << " s\n"
+            << "\tTime step length          : " << delta_time << "s\n"
+            << "\tWindowing duration        : " << mWindowingLength << "s\n"
+            << "\tTotal duration            : " << mTotalLength << "s\n"
+            << "\tFrequency resolution      : " << 1.0 / mTotalLength << "Hz\n"
             << "\tEvaluated frequency bin   : " << mFrequencyBinIndex << "\n"
-            << "\tEvaluated frequency       : " << mFrequencyBinIndex / mTotalLength << " Hz \n"
-            << "\tMaximum possible frequency: " << 1.0 / (delta_time * 2.0) << " Hz \n"
+            << "\tEvaluated frequency       : " << mFrequencyBinIndex / mTotalLength << "Hz \n"
+            << "\tMaximum possible frequency: " << 1.0 / (delta_time * 2.0) << "Hz \n"
             << "\tComponent type            : " << (mIsRealComponentRequested ? "real\n" : "imaginary\n");
     }
 
