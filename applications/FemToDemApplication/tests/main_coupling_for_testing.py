@@ -45,8 +45,6 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
 
         self.CheckControlValuesForTesting()
 
-        self.PrintResults()
-
 #============================================================================================================================
     def CheckControlValuesForTesting(self): # KratosPrintInfo(str(dy))
 
@@ -116,7 +114,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
 
         shutil.rmtree(self.FEM_Solution.problem_name + "_Graphs")
         shutil.rmtree(self.FEM_Solution.problem_name + "_MPI_results")
-        # shutil.rmtree(self.FEM_Solution.problem_name + "_Post_Files")
+        shutil.rmtree(self.FEM_Solution.problem_name + "_Post_Files")
         shutil.rmtree(self.FEM_Solution.problem_name + "_Results_and_Data")
         shutil.rmtree("__pycache__")
         os.remove("PlotFile.txt")

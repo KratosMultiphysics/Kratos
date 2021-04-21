@@ -27,42 +27,42 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 
         tol = 1e-8
         # Here we check the vertical displacement of a node
-        # node = self.FEM_Solution.main_model_part.GetNode(39)
-        # dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-        # if self.FEM_Solution.step == 20:
-        #     ref = -0.0466600448812516
-        #     if abs((dy-ref)/ref) > tol:
-        #         raise ValueError('The computed displacement at step = 20 is not correct')
-        # elif self.FEM_Solution.step == 50:
-        #     ref = -0.3004937948812539
-        #     if abs((dy-ref)/ref) > tol:
-        #         raise ValueError('The computed displacement at step = 50 is not correct')
-        # elif self.FEM_Solution.step == 90:
-        #     ref = -0.9715544613341046
-        #     if abs((dy-ref)/ref) > tol:
-        #         raise ValueError('The computed displacement at step = 90 is not correct')
-        # elif self.FEM_Solution.step == 140:
-        #     ref = 0.7517771156595967
-        #     if abs((dy-ref)/ref) > tol:
-        #         raise ValueError('The computed displacement at step = 140 is not correct')
+        node = self.FEM_Solution.main_model_part.GetNode(39)
+        dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+        if self.FEM_Solution.step == 20:
+            ref = -0.0466600448812516
+            if abs((dy-ref)/ref) > tol:
+                raise ValueError('The computed displacement at step = 20 is not correct')
+        elif self.FEM_Solution.step == 50:
+            ref = -0.3004937948812539
+            if abs((dy-ref)/ref) > tol:
+                raise ValueError('The computed displacement at step = 50 is not correct')
+        elif self.FEM_Solution.step == 90:
+            ref = -0.9715544613341046
+            if abs((dy-ref)/ref) > tol:
+                raise ValueError('The computed displacement at step = 90 is not correct')
+        elif self.FEM_Solution.step == 140:
+            ref = 0.7517771156595967
+            if abs((dy-ref)/ref) > tol:
+                raise ValueError('The computed displacement at step = 140 is not correct')
         
-        # vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-        # if self.FEM_Solution.step == 20:
-        #     ref = -0.9564750000005906
-        #     if abs((vy-ref)/ref) > tol:
-        #         raise ValueError('The computed velocity at step = 20 is not correct')
-        # elif self.FEM_Solution.step == 50:
-        #     ref = -2.4279750000009126
-        #     if abs((vy-ref)/ref) > tol:
-        #         raise ValueError('The computed velocity at step = 50 is not correct')
-        # elif self.FEM_Solution.step == 90:
-        #     ref = -1.933665933874924
-        #     if abs((vy-ref)/ref) > tol:
-        #         raise ValueError('The computed velocity at step = 90 is not correct')
-        # elif self.FEM_Solution.step == 140:
-        #     ref = 6.0908142795684155
-        #     if abs((vy-ref)/ref) > tol:
-        #         raise ValueError('The computed velocity at step = 140 is not correct')
+        vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+        if self.FEM_Solution.step == 20:
+            ref = -0.9564750000005906
+            if abs((vy-ref)/ref) > tol:
+                raise ValueError('The computed velocity at step = 20 is not correct')
+        elif self.FEM_Solution.step == 50:
+            ref = -2.4279750000009126
+            if abs((vy-ref)/ref) > tol:
+                raise ValueError('The computed velocity at step = 50 is not correct')
+        elif self.FEM_Solution.step == 90:
+            ref = -1.933665933874924
+            if abs((vy-ref)/ref) > tol:
+                raise ValueError('The computed velocity at step = 90 is not correct')
+        elif self.FEM_Solution.step == 140:
+            ref = 6.0908142795684155
+            if abs((vy-ref)/ref) > tol:
+                raise ValueError('The computed velocity at step = 140 is not correct')
 
 class TestAnalytics(KratosUnittest.TestCase):
     
