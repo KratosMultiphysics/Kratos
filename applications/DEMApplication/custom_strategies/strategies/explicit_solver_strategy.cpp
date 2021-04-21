@@ -263,7 +263,17 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
         KRATOS_TRY
-        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& rElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+            Element* p_element = &(rElement);
+            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
+
+            if (p_sphere->mNeighbourRigidFaces.size()) {
+                p_sphere->Set(TO_ERASE);
+                p_sphere->GetGeometry()[0].Set(TO_ERASE);
+            }
+        });
 
         // #pragma omp parallel for
         // for (int k = 0; k < (int)pElements.size(); k++) {
@@ -276,16 +286,6 @@ namespace Kratos {
         //         p_sphere->GetGeometry()[0].Set(TO_ERASE);
         //     }
         // }
-
-        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
-            Element* p_element = &(rElement);
-            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
-
-            if (p_sphere->mNeighbourRigidFaces.size()) {
-                p_sphere->Set(TO_ERASE);
-                p_sphere->GetGeometry()[0].Set(TO_ERASE);
-            }
-        });
 
         KRATOS_CATCH("")
     }
@@ -771,9 +771,9 @@ namespace Kratos {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        block_for_each(pElements, [&r_process_info](ModelPart::ElementType& rElement) {
+        block_for_each(rElements, [&r_process_info](ModelPart::ElementType& rElement) {
             rElement.FinalizeSolutionStep(r_process_info);
         });
 
@@ -785,9 +785,9 @@ namespace Kratos {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        block_for_each(pElements, [&r_process_info](ModelPart::ElementType& rElement) {
+        block_for_each(rElements, [&r_process_info](ModelPart::ElementType& rElement) {
             rElement.Initialize(r_process_info);
         });
 
@@ -940,7 +940,7 @@ namespace Kratos {
 
         KRATOS_TRY
         ClearFEMForces();
-        ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
+        ConditionsArrayType& rConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
 
@@ -951,7 +951,7 @@ namespace Kratos {
         };
 
         //here the my_tls is constructed in place, which is the equivalent of "private" in OpenMP
-        block_for_each(pConditions, my_tls(), [&](Condition& rCondition, my_tls& rTLS){
+        block_for_each(rConditions, my_tls(), [&](Condition& rCondition, my_tls& rTLS){
             Condition::GeometryType& geom = rCondition.GetGeometry();
             rCondition.CalculateRightHandSide(rTLS.rhs_cond, r_const_process_info);
             DEMWall* p_wall = dynamic_cast<DEMWall*> (&(rCondition));
@@ -1037,9 +1037,9 @@ namespace Kratos {
 
         KRATOS_TRY
         ModelPart& fem_model_part = GetFemModelPart();
-        NodesArrayType& pNodes = fem_model_part.Nodes();
+        NodesArrayType& rNodes = fem_model_part.Nodes();
 
-        block_for_each(pNodes, [&](ModelPart::NodeType& rNode) {
+        block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
 
             array_1d<double, 3>& node_rhs = rNode.FastGetSolutionStepValue(CONTACT_FORCES);
             array_1d<double, 3>& node_rhs_elas = rNode.FastGetSolutionStepValue(ELASTIC_FORCES);
@@ -1062,9 +1062,9 @@ namespace Kratos {
         KRATOS_TRY
 
         ModelPart& fem_model_part = GetFemModelPart();
-        NodesArrayType& pNodes = fem_model_part.Nodes();
+        NodesArrayType& rNodes = fem_model_part.Nodes();
 
-        block_for_each(pNodes, [&](ModelPart::NodeType& rNode) {
+        block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
 
             double& node_pressure = rNode.FastGetSolutionStepValue(DEM_PRESSURE);
             double node_area = rNode.FastGetSolutionStepValue(DEM_NODAL_AREA);
@@ -1889,9 +1889,9 @@ namespace Kratos {
     void ExplicitSolverStrategy::PrepareElementsForPrinting() {
         KRATOS_TRY
         ProcessInfo& r_process_info = (*mpDem_model_part).GetProcessInfo();
-        ElementsArrayType& pElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& rElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
 
-        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
             Element* raw_p_element = &(rElement);
             SphericParticle* p_sphere = dynamic_cast<SphericParticle*> (raw_p_element);
             p_sphere->PrepareForPrinting(r_process_info);

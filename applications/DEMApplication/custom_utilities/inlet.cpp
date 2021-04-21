@@ -308,9 +308,8 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-        ElementsArrayType& pElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
-
-        block_for_each(pElements, [&](ModelPart::ElementType& rElement) {
+        ElementsArrayType& rElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
             if (rElement.Is(BLOCKED)) return;
             SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(rElement);
 
