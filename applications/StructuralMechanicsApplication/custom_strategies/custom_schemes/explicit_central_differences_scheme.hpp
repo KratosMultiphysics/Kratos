@@ -739,7 +739,6 @@ public:
         KRATOS_CATCH("")
     }
 
-
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
