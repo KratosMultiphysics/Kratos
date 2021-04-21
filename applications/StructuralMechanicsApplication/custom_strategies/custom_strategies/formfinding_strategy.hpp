@@ -106,7 +106,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit FormfindingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart)
+        : ResidualBasedNewtonRaphsonStrategyType(rModelPart)
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
