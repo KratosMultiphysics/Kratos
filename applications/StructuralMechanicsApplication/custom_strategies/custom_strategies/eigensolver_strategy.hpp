@@ -129,21 +129,25 @@ public:
 
         mpBuilderAndSolver = pBuilderAndSolver;
 
-        // ensure initialization of system matrices in InitializeSolutionStep()
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-
-        // default echo level (mute)
-        this->SetEchoLevel(0);
-
-        // default rebuild level (build at each solution step)
-        this->SetRebuildLevel(1);
-
-        SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
-        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
-        SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
-        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
+        AuxiliarInitialization();
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit EigensolverStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Some initializations
+        AuxiliarInitialization();
     }
 
     /// Deleted copy constructor.
@@ -828,6 +832,27 @@ private:
 
         KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
         KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
+    }
+
+    
+    /**
+     * @brief Some auxiliar initilizations
+     */
+    void AuxiliarInitialization()
+    {
+        // ensure initialization of system matrices in InitializeSolutionStep()
+        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+
+        // default echo level (mute)
+        this->SetEchoLevel(0);
+
+        // default rebuild level (build at each solution step)
+        this->SetRebuildLevel(1);
+
+        SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
+        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
+        SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
+        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
     }
 
     ///@}
