@@ -297,20 +297,20 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    ResetStateVariables(rMaterialProperties);
 
    // set stress vectors:
-   std::fill(mStressVector.begin(), mStressVector.end(), 0.0);
-   std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+   noalias(mStressVector)          = ZeroVector(mStressVector.size());
+   noalias(mStressVectorFinalized) = ZeroVector(mStressVectorFinalized.size());
 
    // set strain vectors:
-   std::fill(mDeltaStrainVector.begin(), mDeltaStrainVector.end(), 0.0);
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
+   noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
+   noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
       for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
          mMatrixD[i][j] = 0.0;
 
    // state variables
-   std::fill(mStateVariables.begin(), mStateVariables.end(), 0.0);
-   std::fill(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(), 0.0);
+   noalias(mStateVariables)         = ZeroVector(mStateVariables.size());
+   noalias(mStateVariablesFinalized)= ZeroVector(mStateVariablesFinalized.size());
 
    mIsModelInitialized = false;
 

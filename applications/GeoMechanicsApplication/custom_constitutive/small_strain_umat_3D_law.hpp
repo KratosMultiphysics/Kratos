@@ -351,11 +351,11 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
    protected:
       ///@name Protected member Variables
       ///@{
-      std::array<double, VOIGT_SIZE_3D> mStressVector;
-      std::array<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+      array_1d<double, VOIGT_SIZE_3D> mStressVector;
+      array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
 
-      std::array<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-      std::array<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+      array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
+      array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
 
       double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
