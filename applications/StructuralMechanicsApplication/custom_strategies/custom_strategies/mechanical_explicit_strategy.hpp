@@ -231,7 +231,20 @@ public:
     {
         return mReformDofSetAtEachStep;
     }
-//
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
     /**
      * @brief Initialization of member variables and prior operations
      */
