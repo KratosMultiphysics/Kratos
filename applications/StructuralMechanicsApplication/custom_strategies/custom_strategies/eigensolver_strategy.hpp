@@ -118,10 +118,10 @@ public:
         double StiffnessMatrixDiagonalValue,
         bool ComputeModalDecomposition = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
-            mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
-            mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-            mComputeModalDecompostion(ComputeModalDecomposition)
+        : BaseType(rModelPart),
+          mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
+          mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
+          mComputeModalDecompostion(ComputeModalDecomposition)
     {
         KRATOS_TRY
 
