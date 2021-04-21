@@ -188,9 +188,9 @@ if __name__ == "__main__":
         # U,S,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix_stresses,1e-5)#,tolerance_2[i])
         # U_residuals,S_residuals,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix_restricted_residuals)
         
-        u,s,_ = rSVD(SnapshotMatrix,5,1,0)
-        U,S,_ = rSVD(SnapshotMatrix_stresses,5,1,0)
-        U_residuals,S_residuals, _ = rSVD(SnapshotMatrix_restricted_residuals,5,0,0)
+        u,s,_ = rSVD(SnapshotMatrix,10,1,0)
+        U,S,_ = rSVD(SnapshotMatrix_stresses,10,1,0)
+        U_residuals,S_residuals, _ = rSVD(SnapshotMatrix_restricted_residuals,10,1,0)
 
         ### Plotting singular values  ###
         # plt.plot( range(0,len(s)), np.log(s), marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4)
@@ -243,7 +243,7 @@ if __name__ == "__main__":
         print('\n\nStress basis printed in json format\n\n')
 
         # Create rom parameters for restricted residuals
-        basis_POD={"rom_settings":{},"nodal_modes":{}}
+        basis_POD={"rom_settings":{},"elemental_modes":{}}
         basis_POD["rom_settings"]["nodal_unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
         basis_POD["rom_settings"]["number_of_rom_dofs"] = np.shape(U_residuals)[1]
         basis_POD["rom_settings"]["restricted_elements"] = simulation.restricted_residual_elements
@@ -252,7 +252,7 @@ if __name__ == "__main__":
         basis_POD["rom_settings"]["number_of_dofs_per_element"] = Dimensions
         i = 0
         for j in simulation.restricted_residual_elements:
-            basis_POD["nodal_modes"][int(j)] = (U_residuals[i:i+Dimensions].tolist())
+            basis_POD["elemental_modes"][int(j)] = (U_residuals[i:i+Dimensions].tolist())
             i=i+Dimensions
 
         with open('RomParameters_Residuals.json', 'w') as f:

@@ -36,6 +36,15 @@ def ArrangeSnapshotMatrix(ResidualSnapshots):
             SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
     return SnapshotMatrix
 
+def FindDuplicateIndex(List_1,List_2):
+    Index_list = []
+    for i in range(len(List_1)):
+        for j in range(len(List_2)):
+            if List_1[i]==List_2[j]:
+                Index_list.append(i)
+                continue
+    return Index_list
+
 class RunHROM(StructuralMechanicsAnalysisROM):
 
     def ModifyInitialGeometry(self):
@@ -58,12 +67,38 @@ class RunHROM(StructuralMechanicsAnalysisROM):
             self.HR_conditions.sort()
             restricted_residual_parameters = KratosMultiphysics.Parameters("""
         {
-            "nodal_unknowns" : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+            "nodal_unknowns" : ["REACTION_X","REACTION_Y","REACTION_Z"],
             "number_of_dofs" : 1
         }""" )
         self.ResidualUtilityObject_Restricted_Residuals = romapp.RomModelPartUtility(self._GetSolver().GetComputingModelPart().GetSubModelPart("COMPUTE_HROM").GetSubModelPart("GENERIC_Interface_frame_1"), restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(computing_model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.HR_restricted_residual_elements = self.ResidualUtilityObject_Restricted_Residuals.GetElementListFromNode(computing_model_part)
+        with open('RomParameters_Residuals.json') as s:
+            HR_data_residuals = json.load(s) # Load SVD of Residuals
+            HR_modes_size = HR_data_residuals["rom_settings"]["number_of_rom_dofs"]
+            HR_dofs_per_element = HR_data_residuals["rom_settings"]["number_of_dofs_per_element"]
+            HR_elements_size = len(HR_data_residuals["elemental_modes"])
+            total_restricted_dofs = int(HR_dofs_per_element*HR_elements_size)
+            self.U_RESIDUAL = np.zeros((total_restricted_dofs,HR_modes_size))
+            restricted_residual_elements = []
+            counter_in = 0
+            for key in HR_data_residuals["elemental_modes"].keys():
+                counter_fin = counter_in+HR_dofs_per_element
+                self.U_RESIDUAL[counter_in:counter_fin,:] = np.array(HR_data_residuals["elemental_modes"][key])
+                restricted_residual_elements.append(int(key))
+                counter_in = counter_fin
+            self.restricted_residual_elements_index = FindDuplicateIndex(restricted_residual_elements,self.HR_restricted_residual_elements) #No need to be saved "self"
+            HR_total_restricted_dofs = int(HR_dofs_per_element*len(self.HR_restricted_residual_elements))
+            self.HR_U_RESIDUAL = np.zeros((HR_total_restricted_dofs,HR_modes_size))
+            counter_in = 0
+            for i in self.restricted_residual_elements_index:
+                counter_fin = counter_in+HR_dofs_per_element
+                aux_index_in = int(i*HR_dofs_per_element)
+                aux_index_fin = aux_index_in + HR_dofs_per_element
+                self.HR_U_RESIDUAL[counter_in:counter_fin,:] = self.U_RESIDUAL[aux_index_in:aux_index_fin,:]
+                
+
+
         with open('RomParameters_Stresses.json') as s:
             HR_data_stresses = json.load(s) # Load SVD of Stresses
             HR_dofs_size = HR_data_stresses["rom_settings"]["number_of_rom_dofs"] # To initialize left singular values of Stresses
@@ -182,10 +217,32 @@ class RunHROM(StructuralMechanicsAnalysisROM):
     def Finalize(self):
         super().Finalize()
         ##########################################3  
+        # Build the hrom projection for the residuals and compare the norm of the fom residuals
         self.HR_residuals = ArrangeSnapshotMatrix(self.HR_residuals)
-        hola = 5################################################### Debemos seleccionar el U_residuals HROM para hacer la reconstruccion
-        # with open('SnapshotMatrix_residuals.npy', 'rb') as f:
-        #     SnapshotMatrix_residuals = np.load(f) 
+        B = np.linalg.pinv(self.HR_U_RESIDUAL)@self.HR_residuals
+        residual_comparisson = self.U_RESIDUAL@B
+        with open('test_restricted_residuals.npy', 'rb') as f:
+            SnapshotMatrix_residuals = np.load(f) 
+        ## Comparisson purposes
+        Residual_hrom = np.zeros((np.shape(self.HR_residuals)))
+        counter = 0
+        for i in self.restricted_residual_elements_index:
+            aux_in = int(i*12)
+            aux_fin = aux_in+12
+            Residual_hrom[counter:counter+12,:] =  SnapshotMatrix_residuals[aux_in:aux_fin,:]
+            counter += 12
+        ################## Eliminar por completo, es solo para verificar la reconstruccion con los valors fom de los residuales
+        B = np.linalg.pinv(self.HR_U_RESIDUAL)@Residual_hrom
+        residual_comparisson = self.U_RESIDUAL@B
+        ##################
+        frobenius_norm = np.linalg.norm(self.HR_residuals-Residual_hrom)
+        self.relative_error_5 = np.divide(frobenius_norm,np.linalg.norm(Residual_hrom))
+        print("HROM reconstruction error of residuals on selected elements:")
+        print(self.relative_error_5)
+        frobenius_norm = np.linalg.norm(residual_comparisson-SnapshotMatrix_residuals)
+        self.relative_error_4 = np.divide(frobenius_norm,np.linalg.norm(SnapshotMatrix_residuals)) 
+        print("HROM reconstruction error of residuals:")
+        print(self.relative_error_4)
         # #U_RESIDUAL,_,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix_residuals)#####
         # U_RESIDUAL,_,_ = rSVD(SnapshotMatrix_residuals,10,1,0)
         # i=0
