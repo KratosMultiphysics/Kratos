@@ -33,7 +33,15 @@ class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
             dem_analysis_module = DEMAnalysisStageWithWorkingDir
 
-        return dem_analysis_module(self.model, self.project_parameters)
+
+        material_file_name = self.settings["solver_wrapper_settings"]["material_file"].GetString()
+        if not material_file_name.endswith(".json"):
+            material_file_name += ".json"
+
+        with open(material_file_name,'r') as material_file:
+            material_file_parameters = KM.Parameters(material_file.read())
+
+        return dem_analysis_module(self.model, self.project_parameters,material_file_parameters)
 
     def Initialize(self):
         super().Initialize()
