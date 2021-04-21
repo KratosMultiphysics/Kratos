@@ -240,8 +240,8 @@ private:
         TSystemVectorType& b,
         const bool MoveMesh) override
     {
-        BaseType::UpdateDatabase(A,Dx, b, MoveMesh);
-        for(auto& r_node : mrFormFindingModelPart.Nodes()){
+        ResidualBasedNewtonRaphsonStrategyType::UpdateDatabase(A,Dx, b, MoveMesh);
+        for(auto& r_node : mpFormFindingModelPart->Nodes()){
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
@@ -251,14 +251,14 @@ private:
 
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
         }
-        ProjectVectorOnSurfaceUtility::Execute(mrFormFindingModelPart, mProjectionSettings);
+        ProjectVectorOnSurfaceUtility::Execute(*mpFormFindingModelPart, mProjectionSettings);
 
         PrintResults();
     }
 
     void EchoInfo(const unsigned int IterationNumber) override
     {
-        BaseType::EchoInfo(IterationNumber);
+        ResidualBasedNewtonRaphsonStrategyType::EchoInfo(IterationNumber);
         mIterationNumber = IterationNumber;
     }
 
@@ -275,7 +275,7 @@ private:
 
     void FinalizeSolutionStep() override
     {
-        BaseType::FinalizeSolutionStep();
+        ResidualBasedNewtonRaphsonStrategyType::FinalizeSolutionStep();
         if (mPrintingFormat=="all" || mPrintingFormat=="gid") mpIterationIO->FinalizeResults();
     }
 
@@ -292,16 +292,16 @@ private:
             "nodal_data_value_variables"         : ["DISPLACEMENT"]
         })");
 
-        const int max_prefix = int(std::floor(std::log10(BaseType::mMaxIterationNumber)))+1;
+        const int max_prefix = int(std::floor(std::log10(ResidualBasedNewtonRaphsonStrategyType::mMaxIterationNumber)))+1;
         std::stringstream postfix;
         postfix << std::setw(max_prefix) << std::setfill('0') << rIterationNumber;
-        VtkOutput(BaseType::GetModelPart(), vtk_params).PrintOutput("formfinding_"+postfix.str());
+        VtkOutput(ResidualBasedNewtonRaphsonStrategyType::GetModelPart(), vtk_params).PrintOutput("formfinding_"+postfix.str());
     }
 
     void PrintGiDFiles(const int rIterationNumber)
     {
         double solution_tag = rIterationNumber;
-        mpIterationIO->WriteNodalResultsNonHistorical(DISPLACEMENT,BaseType::GetModelPart().Nodes(),solution_tag);
+        mpIterationIO->WriteNodalResultsNonHistorical(DISPLACEMENT,ResidualBasedNewtonRaphsonStrategyType::GetModelPart().Nodes(),solution_tag);
     }
 
     void InitializeIterationIO()
@@ -330,17 +330,16 @@ private:
                 WriteConditionsFlag::WriteConditions);
 
             mpIterationIO->InitializeMesh(0.0);
-            mpIterationIO->WriteMesh(BaseType::GetModelPart().GetMesh());
-            mpIterationIO->WriteNodeMesh(BaseType::GetModelPart().GetMesh());
+            mpIterationIO->WriteMesh(ResidualBasedNewtonRaphsonStrategyType::GetModelPart().GetMesh());
+            mpIterationIO->WriteNodeMesh(ResidualBasedNewtonRaphsonStrategyType::GetModelPart().GetMesh());
             mpIterationIO->FinalizeMesh();
-            mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
+            mpIterationIO->InitializeResults(0.0, ResidualBasedNewtonRaphsonStrategyType::GetModelPart().GetMesh());
         }
     }
 
-
     IterationIOPointerType mpIterationIO;
     Parameters mProjectionSettings;
-    ModelPart& mrFormFindingModelPart;
+    ModelPart* mpFormFindingModelPart;
     std::string mPrintingFormat;
     int mIterationNumber = 0;
     bool mWriteFormFoundGeometryFile = true;
