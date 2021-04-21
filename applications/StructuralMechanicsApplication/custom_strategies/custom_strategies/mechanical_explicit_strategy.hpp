@@ -638,22 +638,6 @@ private:
         }
     }
 
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
-    void AssignSettings(const Parameters ThisParameters) override
-    {
-        BaseType::AssignSettings(ThisParameters);
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
-        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
-
-        // Saving the scheme
-        if (ThisParameters["scheme_settings"].Has("name")) {
-            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
-        }
-    }
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -709,6 +693,22 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+    }
 
     ///@}
     ///@name Protected  Access
