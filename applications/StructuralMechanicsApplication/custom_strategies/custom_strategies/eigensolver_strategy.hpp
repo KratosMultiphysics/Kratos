@@ -22,6 +22,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -62,9 +64,17 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(EigensolverStrategy);
 
+    // Base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef EigensolverStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    typedef typename BaseType::TSchemeType TSchemeType;
+
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
+
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
@@ -82,12 +92,25 @@ public:
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+    
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Default constructor
+     */
+    explicit EigensolverStrategy() : BaseType()
+    {
+    }
+
     /// Constructor.
-    EigensolverStrategy(
+    explicit EigensolverStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
