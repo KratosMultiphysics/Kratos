@@ -19,6 +19,8 @@
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -59,9 +61,17 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(HarmonicAnalysisStrategy);
 
+    // Base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef HarmonicAnalysisStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    typedef typename BaseType::TSchemeType TSchemeType;
+
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
+
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
@@ -81,9 +91,22 @@ public:
 
     typedef DenseVector<ComplexType> ComplexVectorType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit HarmonicAnalysisStrategy() : BaseType()
+    {
+    }
 
     /// Constructor.
     HarmonicAnalysisStrategy(
