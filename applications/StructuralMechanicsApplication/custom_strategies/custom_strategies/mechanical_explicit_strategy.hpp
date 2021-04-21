@@ -675,6 +675,8 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
+
     ///@}
     ///@name Protected member Variables
     ///@{
