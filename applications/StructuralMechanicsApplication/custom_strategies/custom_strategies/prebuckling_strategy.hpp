@@ -161,30 +161,30 @@ public:
 
         mMakeMatricesSymmetricFlag = BucklingSettings["make_matrices_symmetric"].GetBool();
 
-        // Set Eigensolver flags
-        mpEigenSolver->SetDofSetIsInitializedFlag(false);
-        mpEigenSolver->SetReshapeMatrixFlag(false);
-        mpEigenSolver->SetCalculateReactionsFlag(false);
-        // Set Static Builder and Solver flags
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        mpBuilderAndSolver->SetCalculateReactionsFlag(false);
-        mpBuilderAndSolver->SetReshapeMatrixFlag(false);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        this->SetEchoLevel(1);
-
-        // Default rebuild level (build at each solution step)
-        this->SetRebuildLevel(1);
-
-        // Set Matrices and Vectors to empty pointers
-        mpStiffnessMatrix = TSparseSpace::CreateEmptyMatrixPointer();
-        mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        // Some initializations
+        AuxiliarInitialization();
 
         rModelPart.GetProcessInfo()[TIME] = 1.0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit PrebucklingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Some initializations
+        AuxiliarInitialization();
+
+        rModelPart.GetProcessInfo()[TIME] = 1.0;
     }
 
     /// Deleted copy constructor.
@@ -853,6 +853,33 @@ private:
                 }
             }
         }
+    }
+
+    /**
+     * @brief Some auxiliar initilizations
+     */
+    void AuxiliarInitialization()
+    {
+        // Set Eigensolver flags
+        mpEigenSolver->SetDofSetIsInitializedFlag(false);
+        mpEigenSolver->SetReshapeMatrixFlag(false);
+        mpEigenSolver->SetCalculateReactionsFlag(false);
+        // Set Static Builder and Solver flags
+        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        mpBuilderAndSolver->SetCalculateReactionsFlag(false);
+        mpBuilderAndSolver->SetReshapeMatrixFlag(false);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        this->SetEchoLevel(1);
+
+        // Default rebuild level (build at each solution step)
+        this->SetRebuildLevel(1);
+
+        // Set Matrices and Vectors to empty pointers
+        mpStiffnessMatrix = TSparseSpace::CreateEmptyMatrixPointer();
+        mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
     }
 
     ///@}
