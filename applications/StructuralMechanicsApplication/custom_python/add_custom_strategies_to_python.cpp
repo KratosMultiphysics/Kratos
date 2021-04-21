@@ -90,6 +90,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
+        .def(py::init<ModelPart&, Parameters >())
         .def(py::init<ModelPart&,
              BaseSchemeType::Pointer,
              BuilderAndSolverPointer,
