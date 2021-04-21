@@ -25,7 +25,6 @@ class MainCoupledFemDem_Solution:
         self.model = Model
         # Initialize solutions
 
-        a= os.getcwd()
         if path == "":
             DEM_json_file = open("MaterialsDEM.json",'r')
             DEMProjectParametersFile = open("ProjectParametersDEM.json", 'r')

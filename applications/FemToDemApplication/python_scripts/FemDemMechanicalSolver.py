@@ -212,7 +212,7 @@ class FemDemMechanicalSolver(object):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
             print("   Reading model part from file: " + os.path.join(problem_path, path_to_mdpa, input_filename) + ".mdpa ")
-            KratosMultiphysics.ModelPartIO(path_to_mdpa + input_filename).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.ModelPartIO(os.path.join(path_to_mdpa, input_filename)).ReadModelPart(self.main_model_part)
             # print("   Finished reading model part from mdpa file ")
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
