@@ -124,6 +124,25 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit MechanicalExplicitStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        BaseType::SetEchoLevel(1);
+
+        // Set RebuildLevel to the default value
+        BaseType::SetRebuildLevel(0);
+    }
+
     /** Destructor.
     */
     virtual ~MechanicalExplicitStrategy()
