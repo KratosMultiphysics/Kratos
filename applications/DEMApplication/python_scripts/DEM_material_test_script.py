@@ -96,6 +96,9 @@ class MaterialTest():
         self.PrepareTestTriaxialHydro()
         self.PrepareTestOedometric()
 
+        domain_volume = math.pi * 0.5 * 0.5 * self.diameter * self.diameter * self.height
+        self.Procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
+
     def BreakBondUtility(self, spheres_model_part):
         self.PreUtilities.BreakBondUtility(self.spheres_model_part)
 
@@ -117,9 +120,9 @@ class MaterialTest():
 
         if self.test_type == "Triaxial" or self.test_type == "Hydrostatic":
             ####### Correction Coefs  TODO 0.25* for cylinder section EXXON
-            self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
-            self.alpha_bot = 3.141592*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
-            self.alpha_lat = 3.141592*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area)
+            self.alpha_top = math.pi*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
+            self.alpha_bot = math.pi*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
+            self.alpha_lat = math.pi*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area)
 
     def PrepareTests(self):
 
@@ -140,7 +143,7 @@ class MaterialTest():
         if self.test_type == "BTS":
             absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + ".grf")
             self.bts_export = open(absolute_path_to_file, 'w')
-            #self.BtsSkinDetermination()
+            self.BtsSkinDetermination()
 
         elif self.test_type == "Shear":
             self.BreakBondUtility(self.spheres_model_part)
@@ -187,9 +190,9 @@ class MaterialTest():
         h = self.height
         d = self.diameter
 
-        eps = 4.0 #2.0
+        eps = 3.0 #2.0
 
-        surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
+        surface = 2 * math.pi * d * d * 0.25 + math.pi * d * h
 
         xlat_area = 0.0
         xbot_area = 0.0
@@ -213,9 +216,9 @@ class MaterialTest():
             y = node.Y
             z = node.Z
 
-            cross_section = 3.141592 * r * r
+            cross_section = math.pi * r * r
 
-            if (x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r)):
+            if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
@@ -245,7 +248,7 @@ class MaterialTest():
                     y_top_total += y*r
                     weight_top += r
 
-                if (x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r)):
+                if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
                     if y > h / 2:
 
@@ -277,11 +280,11 @@ class MaterialTest():
 
     def BtsSkinDetermination(self):
 
-        # SKIN DETERMINATION
+        # BTS SKIN DETERMINATION
         # Cylinder dimensions
         h = self.height
         d = self.diameter
-        eps = 2.0
+        eps = 3.0 #2.0
 
         for element in self.spheres_model_part.Elements:
 
@@ -292,13 +295,13 @@ class MaterialTest():
             y = node.Y
             z = node.Z
 
-            if (x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r)):
+            if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
             if (z <= eps * r) or (z >= (h - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-        self.Procedures.KratosPrintInfo("End 30x15 Bts Skin Determination" + "\n")
+        self.Procedures.KratosPrintInfo("Finished computing the skin of the BTS specimen..." + "\n")
 
     def PrepareDataForGraph(self):
 
@@ -345,7 +348,7 @@ class MaterialTest():
                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_bts += force_node_y
 
-            self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter)
+            self.total_stress_bts = 2.0*total_force_bts/(math.pi*self.height*self.diameter)
             self.strain_bts += -100 * 2.0 * self.LoadingVelocity * dt / self.diameter # Here the 2.0 is correcty included! TODO
 
         else:
@@ -626,7 +629,7 @@ class MaterialTest():
             values = Array3()
             vect = Array3()
 
-            cross_section = 3.141592 * r * r
+            cross_section = math.pi * r * r
 
             # normal vector to the center:
             vect_moduli = math.sqrt(x * x + z * z)
@@ -652,7 +655,7 @@ class MaterialTest():
             values = Array3()
             vect = Array3()
 
-            cross_section = 3.141592 * r * r
+            cross_section = math.pi * r * r
 
             # normal vector to the center:
             vect_moduli = math.sqrt(x * x + z * z)
@@ -678,7 +681,7 @@ class MaterialTest():
             values = Array3()
             vect = Array3()
 
-            cross_section = 3.141592 * r * r
+            cross_section = math.pi * r * r
 
             # vector normal al centre:
             vect_moduli = math.sqrt(x * x + z * z)

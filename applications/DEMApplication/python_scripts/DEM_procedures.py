@@ -160,6 +160,8 @@ class GranulometryUtils():
         self.voids_volume = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
 
+        self.PrintCurrentData()
+
     def PrintCurrentData(self):
 
         Logger.Print("number_of_spheres: ", self.number_of_spheres, label="")
