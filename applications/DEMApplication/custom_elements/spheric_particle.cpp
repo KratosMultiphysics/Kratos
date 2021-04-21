@@ -714,7 +714,7 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
 
     const double other_young = p_neighbour->GetYoung();
     arm_length = GetInteractionRadius() - indentation * other_young / (other_young + GetYoung());
-    
+
     array_1d<double, 3> arm_vector;
     arm_vector[0] = -LocalCoordSystem2[0] * arm_length;
     arm_vector[1] = -LocalCoordSystem2[1] * arm_length;
@@ -727,9 +727,9 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
         Properties& properties_of_this_contact = GetProperties().GetSubProperties(p_neighbour->GetProperties().Id());
-        const double min_radius = std::min(GetRadius(), p_neighbour->GetRadius());            
+        const double min_radius = std::min(GetRadius(), p_neighbour->GetRadius());
         const double equiv_rolling_friction_coeff = properties_of_this_contact[ROLLING_FRICTION] * min_radius;
-        
+
         if (equiv_rolling_friction_coeff) {
             ComputeRollingResistance(RollingResistance,  NormalLocalContactForce,  equiv_rolling_friction_coeff, i);
         }
@@ -744,7 +744,7 @@ void SphericParticle::ComputeMomentsWithWalls(double NormalLocalContactForce,
                                      double indentation,
                                      unsigned int i)
 {
-    double arm_length = GetInteractionRadius() - indentation;    
+    double arm_length = GetInteractionRadius() - indentation;
 
     array_1d<double, 3> arm_vector;
     arm_vector[0] = -LocalCoordSystem2[0] * arm_length;
@@ -1791,7 +1791,7 @@ double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const Proces
 
 DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]; 
+    return &*properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER];
 }
 
 DEMDiscontinuumConstitutiveLaw* SphericParticle::pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour) {

@@ -114,7 +114,7 @@ class DEMAnalysisStage(AnalysisStage):
         #self._solver = self._GetSolver()
         self.SetFinalTime()
         self.AddVariables()
-        
+
         super().__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
@@ -314,11 +314,11 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
-    def SetMaterials(self):   
-        
-        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]  
+    def SetMaterials(self):
+
+        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
-        if input_type == "rest":   
+        if input_type == "rest":
             return
 
         materials_parameters = self.DEM_material_parameters
@@ -332,17 +332,17 @@ class DEMAnalysisStage(AnalysisStage):
                 self.spheres_model_part.AddProperties(Properties(material_id))
 
             properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
-           
-            properties = material["properties"]        
+
+            properties = material["properties"]
             properties_of_model_part_with_this_id[PARTICLE_MATERIAL] = material_id
             if properties.Has("PARTICLE_DENSITY"):
                 properties_of_model_part_with_this_id[PARTICLE_DENSITY] = properties["PARTICLE_DENSITY"].GetDouble()
             properties_of_model_part_with_this_id[YOUNG_MODULUS] = properties["YOUNG_MODULUS"].GetDouble()
-            properties_of_model_part_with_this_id[POISSON_RATIO] = properties["POISSON_RATIO"].GetDouble()  
+            properties_of_model_part_with_this_id[POISSON_RATIO] = properties["POISSON_RATIO"].GetDouble()
             if properties.Has("COMPUTE_WEAR"):
                 properties_of_model_part_with_this_id[COMPUTE_WEAR] = properties["COMPUTE_WEAR"].GetBool()
             else:
-                properties_of_model_part_with_this_id[COMPUTE_WEAR] = False  
+                properties_of_model_part_with_this_id[COMPUTE_WEAR] = False
 
             for material_relation in list_of_material_relations:
                 subprops = None
@@ -367,19 +367,35 @@ class DEMAnalysisStage(AnalysisStage):
                     if contact_properties.Has("IMPACT_WEAR_SEVERITY"):
                         subprops[IMPACT_WEAR_SEVERITY] = contact_properties["IMPACT_WEAR_SEVERITY"].GetDouble()
                     if contact_properties.Has("BRINELL_HARDNESS"):
-                        subprops[BRINELL_HARDNESS] = contact_properties["BRINELL_HARDNESS"].GetDouble()     
+                        subprops[BRINELL_HARDNESS] = contact_properties["BRINELL_HARDNESS"].GetDouble()
+                    if contact_properties.Has("CONICAL_DAMAGE_CONTACT_RADIUS"):
+                        subprops[CONICAL_DAMAGE_CONTACT_RADIUS] = contact_properties["CONICAL_DAMAGE_CONTACT_RADIUS"].GetDouble()
+                    if contact_properties.Has("CONICAL_DAMAGE_MAX_STRESS"):
+                        subprops[CONICAL_DAMAGE_MAX_STRESS] = contact_properties["CONICAL_DAMAGE_MAX_STRESS"].GetDouble()
+                    if contact_properties.Has("CONICAL_DAMAGE_ALPHA"):
+                        subprops[CONICAL_DAMAGE_ALPHA] = contact_properties["CONICAL_DAMAGE_ALPHA"].GetDouble()
+                    if contact_properties.Has("CONICAL_DAMAGE_GAMMA"):
+                        subprops[CONICAL_DAMAGE_GAMMA] = contact_properties["CONICAL_DAMAGE_GAMMA"].GetDouble()
+                    if contact_properties.Has("LEVEL_OF_FOULING"):
+                        subprops[LEVEL_OF_FOULING] = contact_properties["LEVEL_OF_FOULING"].GetDouble()
+                    if contact_properties.Has("PARTICLE_COHESION"):
+                        subprops[PARTICLE_COHESION] = contact_properties["PARTICLE_COHESION"].GetDouble()
+                    if contact_properties.Has("INITIAL_COHESION"):
+                        subprops[INITIAL_COHESION] = contact_properties["INITIAL_COHESION"].GetDouble()
+                    if contact_properties.Has("AMOUNT_OF_COHESION_FROM_STRESS"):
+                        subprops[AMOUNT_OF_COHESION_FROM_STRESS] = contact_properties["AMOUNT_OF_COHESION_FROM_STRESS"].GetDouble()
 
                     subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
                     discontinuum_constitutive_law_instance = globals().get(subprops[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                    discontinuum_constitutive_law_instance.SetConstitutiveLawInProperties(subprops, True)                     
+                    discontinuum_constitutive_law_instance.SetConstitutiveLawInProperties(subprops, True)
 
                     if contact_properties.Has("continuum_contact_law_parameters"):
-                        subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()   
+                        subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = contact_properties["continuum_contact_law_parameters"]["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
                         continuum_constitutive_law_instance = globals().get(subprops[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME])()
-                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, contact_properties["continuum_contact_law_parameters"], True)                 
-                        
+                        continuum_constitutive_law_instance.SetConstitutiveLawInPropertiesWithParameters(subprops, contact_properties["continuum_contact_law_parameters"], True)
+
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
-        
+
         for pair in material_assignation_table:
             submodelpart_name_in_assignation_table = pair[0].GetString()
             material_name_in_assignation_table = pair[1].GetString()
@@ -391,7 +407,7 @@ class DEMAnalysisStage(AnalysisStage):
                     material_id = material["material_id"].GetInt()
                     props = self.spheres_model_part.GetProperties()[material_id]
             for element in submodelpart.Elements:
-                element.Properties = props      
+                element.Properties = props
             for condition in submodelpart.Conditions:
                 condition.Properties = props
 
