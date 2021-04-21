@@ -89,16 +89,32 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     )
-    : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+    : ResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme,
         pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
         MoveMeshFlag),
         mProjectionSettings(ProjectionSetting),
-        mrFormFindingModelPart(rFormFindingModelPart),
+        mpFormFindingModelPart(&rFormFindingModelPart),
         mPrintingFormat(rPrintingFormat),
         mWriteFormFoundGeometryFile(WriteFormFoundGeometryFile)
     {
         InitializeIterationIO();
     }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit FormfindingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        InitializeIterationIO();
+    }
+
 
     // Destructor
     ~FormfindingStrategy() = default;
