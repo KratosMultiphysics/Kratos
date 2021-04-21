@@ -81,8 +81,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
-    EigensolverDynamicScheme() : Scheme<TSparseSpace,TDenseSpace>() {}
+    /**
+     * @brief Constructor with parameters
+     * @details The EigensolverDynamicScheme method
+     * @param ThisParameters The parameters containing the configuration parameters
+     */
+    EigensolverDynamicScheme(Parameters ThisParameters = Parameters(R"({})"))
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters); 
+    }
 
     /// Destructor.
     ~EigensolverDynamicScheme() override {}
