@@ -77,7 +77,7 @@ namespace Kratos {
 
         //Get new Equivalent Radius
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
-        double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS],1.5)); 
+        double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS],1.5));
 
         if (equiv_radius_new > equiv_level_of_fouling * equiv_radius) {
             const double AlphaFunction = properties_of_this_contact[CONICAL_DAMAGE_ALPHA_FUNCTION];
@@ -120,7 +120,7 @@ namespace Kratos {
 
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
 
-        double equiv_radius         = properties_of_this_contact[CONICAL_DAMAGE_CONTACT_RADIUS];
+        double equiv_radius          = properties_of_this_contact[CONICAL_DAMAGE_CONTACT_RADIUS];
         double original_equiv_radius = equiv_radius;
 
         double elastic_indentation = indentation;
@@ -150,7 +150,7 @@ namespace Kratos {
             const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
             //Level of fouling in case it is considered
-            const double equiv_level_of_fouling = 1.0 + properties_of_this_contact[LEVEL_OF_FOULING]; //TODO: JIG check this plz
+            const double equiv_level_of_fouling = 1.0 + properties_of_this_contact[LEVEL_OF_FOULING];
 
             InitializeDependentContact(equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation);
 
@@ -219,9 +219,9 @@ namespace Kratos {
                                                     const double normal_contact_force) {
         //Get new Equivalent Radius
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
-        double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS],1.5)); 
+        double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS],1.5));
 
-        if (effective_radius_new > equiv_level_of_fouling * effective_radius) {            
+        if (effective_radius_new > equiv_level_of_fouling * effective_radius) {
             const double AlphaFunction = properties_of_this_contact[CONICAL_DAMAGE_ALPHA_FUNCTION];
             double offset = (effective_radius_new - effective_radius) * AlphaFunction;
             effective_radius = effective_radius_new;
@@ -290,7 +290,7 @@ namespace Kratos {
 
 
             //Level of fouling in case it is considered
-            const double equiv_level_of_fouling = 1.0 + properties_of_this_contact[LEVEL_OF_FOULING]; //TOFDO: check this JIG
+            const double equiv_level_of_fouling = 1.0 + properties_of_this_contact[LEVEL_OF_FOULING];
 
             InitializeDependentContactWithFEM(effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation);
 
@@ -298,7 +298,7 @@ namespace Kratos {
 
             double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
 
-            if (contact_stress > properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS]) { 
+            if (contact_stress > properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS]) {
                 DamageContactWithFEM(p_element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
                 if (elastic_indentation > 0.0) LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
                 else LocalElasticContactForce[2] = 0.0;
@@ -386,7 +386,7 @@ namespace Kratos {
 
         double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
         double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
-        double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];         
+        double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
         if (fabs(equiv_tg_of_static_fri_ang) > 1.0e-12 || fabs(equiv_tg_of_dynamic_fri_ang) > 1.0e-12) {
             double critical_force = 0.166666667 * pow(Globals::Pi * properties_of_this_contact[CONICAL_DAMAGE_MAX_STRESS], 3) * pow(original_equiv_radius / equiv_young, 2);
@@ -398,7 +398,7 @@ namespace Kratos {
             }
         }
 
-        for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) { //TODO: check this carefully JIG
+        for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) {
             if (element1->mNeighbourElements[i]->Id() == element2->Id()) {
                 if (element1->mNeighbourTgOfStatFriAng[i] <= equiv_tg_of_static_fri_ang) equiv_tg_of_static_fri_ang = element1->mNeighbourTgOfStatFriAng[i];
                 else element1->mNeighbourTgOfStatFriAng[i] = equiv_tg_of_static_fri_ang;

@@ -637,7 +637,7 @@ class ExplicitStrategy():
     def ModifyProperties(self, properties, param = 0):
 
         if param:
-            return                    
+            return
 
         if properties.Has(CLUSTER_FILE_NAME):
             cluster_file_name = properties[CLUSTER_FILE_NAME]
@@ -646,7 +646,7 @@ class ExplicitStrategy():
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             self.Procedures.KratosPrintInfo(properties)
             if not properties.Has(BREAKABLE_CLUSTER):
-                properties.SetValue(BREAKABLE_CLUSTER, False)                
+                properties.SetValue(BREAKABLE_CLUSTER, False)
 
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
@@ -663,10 +663,10 @@ class ExplicitStrategy():
             rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
 
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
-        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)    
+        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
 
-    def ModifySubProperties(self, properties, param = 0):        
-            
+    def ModifySubProperties(self, properties, param = 0):
+
         DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
         coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
@@ -696,13 +696,13 @@ class ExplicitStrategy():
         else:
             pass
 
-        if write_gamma == True:            
+        if write_gamma == True:
             properties[DAMPING_GAMMA] = gamma
 
         if write_AlphaFunction == True:
             properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
 
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)                  
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
@@ -718,7 +718,7 @@ class ExplicitStrategy():
             properties[FRICTION_DECAY] = 500.0
 
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
-            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]       
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass

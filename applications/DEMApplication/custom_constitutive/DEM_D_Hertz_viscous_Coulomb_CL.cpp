@@ -220,7 +220,7 @@ namespace Kratos {
                                                                             double& AuxElasticShearForce,
                                                                             double& MaximumAdmisibleShearForce) {
 
-        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());                                                                            
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
 
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
@@ -233,7 +233,7 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        
+
         const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
         const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
         const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
@@ -299,7 +299,7 @@ namespace Kratos {
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
-        
+
         const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
         const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 
