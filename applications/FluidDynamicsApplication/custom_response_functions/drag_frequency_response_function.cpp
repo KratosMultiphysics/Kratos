@@ -104,12 +104,14 @@ void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
 {
     KRATOS_TRY
 
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    const double current_time = r_process_info[TIME];
+
     if (!mIsInitialized) {
         mIsInitialized = true;
 
-        const auto& r_process_info = mrModelPart.GetProcessInfo();
-
-        mTotalLength = r_process_info[TIME];
+        // since transient adjoints are run in backwards in time
+        mTotalLength = current_time;
         const double delta_time = -1.0 * r_process_info[DELTA_TIME];
 
         KRATOS_ERROR_IF(mWindowingLength > mTotalLength)
@@ -216,7 +218,7 @@ void DragFrequencyResponseFunction<TDim>::CalculateDragFrequencyContribution(
         // calculate raw drag sensitivities
         BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag);
 
-        const double component_coefficient = mComponentFunction(2 * M_PI * current_time * mFrequencyBinIndex / mTotalLength);
+        const double component_coefficient = mComponentFunction(2.0 * M_PI * current_time * mFrequencyBinIndex / mTotalLength);
         const double windowing_value = 0.5 * (1.0 - std::cos(2.0 * M_PI * offsetted_window_time / mWindowingLength));
 
         rDerivativesOfDrag *= (component_coefficient * windowing_value);
