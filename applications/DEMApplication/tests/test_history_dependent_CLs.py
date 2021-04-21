@@ -71,7 +71,7 @@ class TestHistoryDependentCLs(KratosUnittest.TestCase):
         pass
 
     @classmethod
-    def test_HistoryDependentCLs_1(self):
+    def test_HistoryDependentCLs(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "history_dependent_CLs_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         materials_file_name = os.path.join(path, "MaterialsDEM.json")
