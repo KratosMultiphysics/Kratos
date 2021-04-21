@@ -219,6 +219,8 @@ void DragFrequencyResponseFunction<TDim>::CalculateDragFrequencyContribution(
         BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag);
 
         const double component_coefficient = mComponentFunction(2.0 * M_PI * current_time * mFrequencyBinIndex / mTotalLength);
+
+        // Applying Hann window
         const double windowing_value = 0.5 * (1.0 - std::cos(2.0 * M_PI * offsetted_window_time / mWindowingLength));
 
         rDerivativesOfDrag *= (component_coefficient * windowing_value);
