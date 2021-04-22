@@ -5,6 +5,7 @@ import weakref
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 class MaterialTest():
 
@@ -97,7 +98,7 @@ class MaterialTest():
         self.PrepareTestOedometric()
 
         domain_volume = math.pi * 0.5 * 0.5 * self.diameter * self.diameter * self.height
-        #self.Procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
+        DEM_procedures.GranulometryUtils(domain_volume, self.spheres_model_part)
 
     def BreakBondUtility(self, spheres_model_part):
         self.PreUtilities.BreakBondUtility(self.spheres_model_part)
@@ -274,7 +275,7 @@ class MaterialTest():
         if len(self.XLAT)==0:
             self.Procedures.KratosPrintWarning("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
         else:
-            self.Procedures.KratosPrintInfo("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
+            self.Procedures.KratosPrintInfo(str(h) + " * " + str(d) + " cylinder skin determination" + "\n")
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
 
