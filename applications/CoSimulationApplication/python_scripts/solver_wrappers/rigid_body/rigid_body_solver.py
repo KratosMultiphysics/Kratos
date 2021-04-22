@@ -1,6 +1,8 @@
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 import KratosMultiphysics
+
+# RigidBody imports
+from . import rigid_body_process
 
 # Other imports
 import numpy as np
@@ -20,8 +22,8 @@ class RigidBodySolver(object):
         elif isinstance(input_name, str):
             if not input_name.endswith(".json"):
                 input_name += ".json"
-            with open(input_name,'r') as ProjectParameters:
-                parameters = json.load(ProjectParameters)
+            with open(input_name,'r') as parameter_file:
+                parameters = json.load(parameter_file)
         else:
             raise Exception("The input has to be provided as a dict or a string")
 
@@ -42,38 +44,20 @@ class RigidBodySolver(object):
         # Fill with defaults and check that mandatory fields are given
         self._CheckMandatoryInputParameters(parameters)
         dof_params, sol_params = self._ValidateAndAssignRigidBodySolverDefaults(parameters)
+
+        # Create all the processes stated in the project parameters
+        if "processes" in parameters:
+            self.process_list = []
+            for process_settings in parameters["processes"]:
+                process_settings = KratosMultiphysics.Parameters(json.dumps(process_settings))
+                self.process_list.append(rigid_body_process.CreateRigidBodyProcess(self, process_settings))
         
         # Safe all the filled data in their respective class variables
         self._InitializeDofsVariables(dof_params)
         self._InitializeSolutionVariables(sol_params)
 
-        # Create the stiffness, damping and mass matrix
-        self._InitializeStructuralParameters(dof_params)
-
         # Prepare the parameters for the generalized-alpha method
         self._InitializeGeneralizedAlphaParameters()
-
-    def _InitializeDofsVariables(self, dof_params):
-
-        self.is_blocked = {}
-        self.excitation_function_force = {}
-        self.excitation_function_root_point_displ = {}
-        self.load_impulse = {}
-        self.omega_force = {}
-        self.omega_root_point_displ = {}
-        self.amplitude_root_point_displ = {}
-        self.amplitude_force = {}
-
-        for dof in self.available_dofs:
-
-            self.is_blocked[dof] = dof_params[dof]["blocked"].GetBool()
-            self.excitation_function_force[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_force"].GetString()
-            self.excitation_function_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["excitation_function_root_point_displacement"].GetString()
-            self.load_impulse[dof] = dof_params[dof]["boundary_conditions"]["load_impulse"].GetDouble()
-            self.omega_force[dof] = dof_params[dof]["boundary_conditions"]["omega_force"].GetDouble()
-            self.omega_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["omega_root_point_displacement"].GetDouble()
-            self.amplitude_root_point_displ[dof] = dof_params[dof]["boundary_conditions"]["amplitude_root_point_displacement"].GetDouble()
-            self.amplitude_force[dof] = dof_params[dof]["boundary_conditions"]["amplitude_force"].GetDouble()
 
     def _InitializeSolutionVariables(self, sol_params):
         
@@ -85,7 +69,9 @@ class RigidBodySolver(object):
         self.output_file_path = sol_params["output_parameters"]["file_path"].GetString()
         self.write_output_file = sol_params["output_parameters"]["write_output_files"].GetBool()
 
-    def _InitializeStructuralParameters(self, dof_params):
+    def _InitializeDofsVariables(self, dof_params):
+
+        self.is_blocked = {}
 
         self.M = np.zeros((self.system_size,self.system_size)) # Mass matrix
         self.C = np.zeros((self.system_size,self.system_size)) # Damping matrix
@@ -95,17 +81,21 @@ class RigidBodySolver(object):
         self.initial_displacement = np.zeros(self.system_size)
         self.initial_velocity = np.zeros(self.system_size)
         self.initial_acceleration = np.zeros(self.system_size)
+        self.load_impulse = np.zeros(self.system_size)
 
         for index, dof in enumerate(self.available_dofs):
+
+            self.is_blocked[dof] = dof_params[dof]["blocked"].GetBool()
 
             self.M[index][index] = dof_params[dof]['system_parameters']['mass'].GetDouble()
             self.C[index][index] = dof_params[dof]['system_parameters']['damping'].GetDouble()
             self.K[index][index] = dof_params[dof]['system_parameters']['stiffness'].GetDouble()
             self.modulus_self_weight[index] = dof_params[dof]['system_parameters']['modulus_self_weight'].GetDouble()
 
-            self.initial_displacement[index] = dof_params[dof]["initial_values"]["displacement"].GetDouble()
-            self.initial_velocity[index] = dof_params[dof]["initial_values"]["velocity"].GetDouble()
-            factor = self.load_impulse[dof] - self.K[index][index] * self.initial_displacement[index]
+            self.initial_displacement[index] = dof_params[dof]["initial_conditions"]["displacement"].GetDouble()
+            self.initial_velocity[index] = dof_params[dof]["initial_conditions"]["velocity"].GetDouble()
+            self.load_impulse[index] = dof_params[dof]["initial_conditions"]["load_impulse"].GetDouble()
+            factor = self.load_impulse[index] - self.K[index][index] * self.initial_displacement[index]
             self.initial_acceleration[index] = (1/self.M[index][index]) * factor
 
     def _InitializeGeneralizedAlphaParameters(self):
@@ -163,8 +153,10 @@ class RigidBodySolver(object):
         # Others
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
         self.total_load = np.zeros((self.system_size, self.buffer_size))
-        self.external_root_point_displ = np.zeros(self.system_size)
+        self.prescribed_load = np.zeros(self.system_size)
+        self.prescribed_root_point_displ = np.zeros(self.system_size)
         self.external_load = np.zeros(self.system_size)
+        self.external_root_point_displ = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
         # Apply initial conditions
@@ -173,9 +165,8 @@ class RigidBodySolver(object):
         self.a[:,0] = self.initial_acceleration
 
         #Apply external load as an initial impulse
-        for index, dof in enumerate(self.available_dofs):
-            self.total_load[index,0] = self.load_impulse[dof]
-        self.effective_load[:,0] = self.total_load[index,0]
+        self.total_load[:,0] = self.load_impulse
+        self.effective_load[:,0] = self.total_load[:,0]
 
         # Create output file and wrrite the time=start_time step
         if self.write_output_file:
@@ -240,6 +231,10 @@ class RigidBodySolver(object):
         self.total_load = np.roll(self.total_load,1,axis=1)
         self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
         self.effective_load = np.roll(self.effective_load,1,axis=1)
+        self.prescribed_load = np.zeros(self.system_size)
+        self.prescribed_root_point_displ = np.zeros(self.system_size)
+        self.external_load = np.zeros(self.system_size)
+        self.external_root_point_displ = np.zeros(self.system_size)
 
         self.time = current_time + self.delta_t
         return self.time
@@ -253,28 +248,16 @@ class RigidBodySolver(object):
         equivalent_force = self.K.dot(self.x_f[:,0]) + self.C.dot(self.v_f[:,0])
         return equivalent_force
 
-    def ApplyRootPointExcitation(self):
-        root_point_excitation = np.zeros(self.system_size)
-        for index, dof in enumerate(self.available_dofs):
-            scope_vars = {'t' : self.time, 'omega': self.omega_root_point_displ[dof], 'A': self.amplitude_root_point_displ[dof]}
-            root_point_excitation[index] = GenericCallFunction(self.excitation_function_root_point_displ[dof], scope_vars, check=False)
-        return root_point_excitation
-
-    def ApplyForceExcitation(self):
-        force_excitation = np.zeros(self.system_size)
-        for index, dof in enumerate(self.available_dofs):
-            scope_vars = {'t' : self.time, 'omega': self.omega_force[dof], 'A': self.amplitude_force[dof]}
-            force_excitation[index] = GenericCallFunction(self.excitation_function_force[dof], scope_vars, check=False)
-        return force_excitation
-
     def SolveSolutionStep(self):
+        
+        for process in self.process_list:
+            process.ExecuteBeforeSolutionLoop()
+
         #external load
-        prescribed_load = self.ApplyForceExcitation()
         self_weight = self.CalculateSelfWeight()
-        self.total_load[:,0] = self.external_load + prescribed_load + self_weight
+        self.total_load[:,0] = self.external_load + self.prescribed_load + self_weight
         #root point displacement
-        prescribed_root_point_displ = self.ApplyRootPointExcitation()
-        self.total_root_point_displ[:,0] = self.external_root_point_displ + prescribed_root_point_displ
+        self.total_root_point_displ[:,0] = self.external_root_point_displ + self.prescribed_root_point_displ
         #root point force
         root_point_force = self.CalculateEquivalentForceFromRootPointExcitation(self.total_root_point_displ[:,0])
         #equivalent force
@@ -362,6 +345,7 @@ class RigidBodySolver(object):
                     raise Exception("Identifier is unknown!")
         return output
 
+    # TODO: Check this function
     def _CheckBufferId(self, buffer_idx, identifier):
         if identifier in ["VOLUME_WEIGHT", "ROOT_POINT_DISPLACEMENT","FORCE","MOMENT","RESULTANT"] and buffer_idx != 0:
             msg = 'The buffer_idx can only be 0 for the variable "' + identifier + '".'
@@ -415,18 +399,10 @@ class RigidBodySolver(object):
                 "damping"   : 0.0,
                 "modulus_self_weight": 0.0
             },
-            "initial_values":{
+            "initial_conditions":{
                 "displacement"  : 0.0,
-                "velocity"      : 0.0
-            },
-            "boundary_conditions":{
-                "load_impulse": 0.0,
-                "omega_force": 0.0,
-                "amplitude_force": 0.0,
-                "excitation_function_force": "A * sin(omega * t)",
-                "omega_root_point_displacement": 0.0,
-                "amplitude_root_point_displacement": 0.0,
-                "excitation_function_root_point_displacement": "A * sin(omega * t)"
+                "velocity"      : 0.0,
+                "load_impulse"  : 0.0
             }
         }''')
         default_solution_parameters = KratosMultiphysics.Parameters('''{
