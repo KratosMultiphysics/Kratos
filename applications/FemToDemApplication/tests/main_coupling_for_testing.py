@@ -129,7 +129,7 @@ class TestAnalytics(KratosUnittest.TestCase):
     @classmethod
     def small_strain(self):
         model = KratosMultiphysics.Model()
-        MainCouplingFemDemForTestingSolution(model, "small_tests/small_strain/").Run()
+        MainCouplingFemDemForTestingSolution(model, os.path.join(os.path.dirname(os.path.realpath(__file__)), "small_tests", "small_strain")).Run()
 
 
 
