@@ -5,23 +5,24 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:        BSD License
+//                  license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
-//                   Fernando Rastellini
-//                   Alejandro Cornejo Velazquez
+//  Main authors:    Alejandro Cornejo
+//                   Sergio Jimenez
+//
 //
 
-#if !defined (KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED)
-#define  KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED
+#if !defined (KRATOS_UNIFIED_FATIGUE_LAW_H_INCLUDED)
+#define  KRATOS_UNIFIED_FATIGUE_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
@@ -45,50 +46,80 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ParallelRuleOfMixturesLaw
+ * @class AssociativePlasticDamageModel
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
- * @details The constitutive law show have defined a subproperties in order to work properly
- * This law combines parallel CL considering the following principles:
- *  - All layer have the same strain
- *  - The total stress is the addition of the strain in each layer
- *  - The constitutive tensor is the addition of the constitutive tensor of each layer
- * @author Vicente Mataix Ferrandiz
- * @author Fernando Rastellini
- * @author Alejandro Cornejo Velazquez
+ * @details This constitutive law unifies the High cycle, Ultra Low cycle and Low cicle fatigue processes
+ * by means of a plastic damage model. Source: A thermodynamically consistent plastic-damage framework for
+localized failure in quasi-brittle solids: Material model and strain
+localization analysis (Wu and Cervera https://doi.org/10.1016/j.ijsolstr.2016.03.005)
+ * @author Alejandro Cornejo
+ * @author Sergio Jimenez
  */
-template<unsigned int TDim>
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ParallelRuleOfMixturesLaw
-    : public ConstitutiveLaw
+template<class TYieldSurfaceType>
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AssociativePlasticDamageModel
+    : public std::conditional<TYieldSurfaceType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
 
     ///@name Type Definitions
     ///@{
+    /// The define the working dimension size, already defined in the integrator
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
+    static constexpr SizeType Dimension = TYieldSurfaceType::Dimension;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = TYieldSurfaceType::VoigtSize;
 
     /// The definition of the process info
     typedef ProcessInfo ProcessInfoType;
 
     /// The definition of the CL base  class
-    typedef ConstitutiveLaw    BaseType;
-
-    /// The definition of the size type
-    typedef std::size_t        SizeType;
-
-    /// The definition of the index type
-    typedef std::size_t       IndexType;
-
-    /// The define the working dimension size, already defined in the integrator
-    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
-
-    /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType Dimension = TDim;
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of ParallelRuleOfMixturesLaw
-    KRATOS_CLASS_POINTER_DEFINITION( ParallelRuleOfMixturesLaw );
+    /// The node definition
+    typedef Node<3> NodeType;
+
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedVectorType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixType;
+
+    /// Pointer definition of AssociativePlasticDamageModel
+    KRATOS_CLASS_POINTER_DEFINITION(AssociativePlasticDamageModel);
+
+    struct PlasticDamageParameters {
+        BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedMatrixType TangentTensor          = ZeroMatrix(VoigtSize,VoigtSize);
+        BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize);
+        BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize);
+        BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize);
+        BoundedVectorType StrainVector           = ZeroVector(VoigtSize);
+        BoundedVectorType StressVector           = ZeroVector(VoigtSize);
+        double NonLinearIndicator          = 0.0; // F
+        double PlasticConsistencyIncrement = 0.0; // Lambda dot
+        double UniaxialStress              = 0.0;
+        double DamageDissipation           = 0.0; // Kappa d
+        double DamageDissipationIncrement  = 0.0; // Kappa d dot
+        double PlasticDissipation          = 0.0; // Kappa p
+        double PlasticDissipationIncrement = 0.0; // Kappa p dot
+        double TotalDissipation            = 0.0; // Kappa
+        double CharacteristicLength        = 0.0;
+        double Threshold                   = 0.0;
+        double Slope                       = 0.0; // d(Threshold)/d(dissipation)
+        double PlasticDamageProportion     = 0.5; // 0-> Plastic    1->Damage
+    };
 
     ///@name Lyfe Cycle
     ///@{
@@ -96,23 +127,14 @@ public:
     /**
      * @brief Default constructor.
      */
-    ParallelRuleOfMixturesLaw();
-
-    /**
-     * @brief Constructor with values
-     * @param rCombinationFactors The list of subproperties combination factors
-     */
-    ParallelRuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
-
-    /**
-     * @brief Copy constructor.
-     */
-    ParallelRuleOfMixturesLaw (const ParallelRuleOfMixturesLaw& rOther);
+    AssociativePlasticDamageModel()
+    {}
 
     /**
      * @brief Destructor.
      */
-    ~ParallelRuleOfMixturesLaw() override;
+    ~AssociativePlasticDamageModel() override
+    {}
 
     ///@}
     ///@name Operators
@@ -128,23 +150,17 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
-     * @brief Creates a new constitutive law pointer
-     * @param NewParameters The configuration parameters of the new constitutive law
-     * @return a Pointer to the new constitutive law
-     */
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
-
-    /**
-     * @brief Dimension of the law
-     * @details This is not used, so 0 is returned
-     */
-    SizeType WorkingSpaceDimension() override;
-
-    /**
-     * @brief Voigt tensor size
-     * @details This is not used, so 0 is returned
-     */
-    SizeType GetStrainSize() override;
+    * Copy constructor.
+    */
+    AssociativePlasticDamageModel(const AssociativePlasticDamageModel &rOther)
+        : BaseType(rOther),
+          mPlasticDissipation(rOther.mPlasticDissipation),
+          mDamageDissipation(rOther.mDamageDissipation),
+          mThreshold(rOther.mThreshold),
+          mPlasticStrain(rOther.mPlasticStrain),
+          mComplianceMatrix(rOther.mComplianceMatrix)
+    {
+    }
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -381,7 +397,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue
         ) override;
@@ -394,7 +410,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
@@ -407,7 +423,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
      Matrix& CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
@@ -420,7 +436,7 @@ public:
      * @param rValue output: the value of the specified variable
      */
      array_1d<double, 3 > & CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 3 > >& rVariable,
         array_1d<double, 3 > & rValue
         ) override;
@@ -432,37 +448,10 @@ public:
      * @return The value of the specified variable
      */
     array_1d<double, 6 > & CalculateValue(
-        Parameters& rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 6 > >& rVariable,
         array_1d<double, 6 > & rValue
         ) override;
-
-     /**
-      * @brief Is called to check whether the provided material parameters in the Properties match the requirements of current constitutive model.
-      * @param rMaterialProperties the current Properties to be validated against.
-      * @return true, if parameters are correct; false, if parameters are insufficient / faulty
-      * @note  this has to be implemented by each constitutive model. Returns false in base class since no valid implementation is contained here.
-      */
-    bool ValidateInput(const Properties& rMaterialProperties) override;
-
-    /**
-     * @brief Returns the expected strain measure of this constitutive law (by default linear strains)
-     * @return the expected strain measure
-     */
-    StrainMeasure GetStrainMeasure() override;
-
-    /**
-     * @brief Returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    StressMeasure GetStressMeasure() override;
-
-    /**
-     * @brief Returns whether this constitutive model is formulated in incremental strains/stresses
-     * @note By default, all constitutive models should be formulated in total strains
-     * @return true, if formulated in incremental strains/stresses, false otherwise
-     */
-    bool IsIncremental() override;
 
     /**
      * @brief This is to be called at the very beginning of the calculation
@@ -478,155 +467,76 @@ public:
         ) override;
 
     /**
-     * @brief To be called at the beginning of each solution step
-     * @details (e.g. from Element::InitializeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void InitializeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief  To be called at the beginning of each step iteration
-     * @details (e.g. from Element::InitializeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void InitializeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief To be called at the end of each step iteration
-     * @details (e.g. from Element::FinalizeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK1 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseCauchy (Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy (Parameters& rValues) override;
-
-    /**
-     * @brief This can be used in order to reset all internal variables of the
-     * constitutive law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void ResetMaterial(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(Features& rFeatures) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
@@ -642,25 +552,171 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    /**
-     * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
-     * or S_glob = trans(T)S_loc for the stresses
-     */
-    void CalculateRotationMatrix(
-        const Properties& rMaterialProperties,
-        BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
-        const IndexType Layer
-    );
-
 
     /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(
+        ConstitutiveLaw::ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+
+    /**
+     * @brief This method computes the compliance elasatic matrix
+     * (https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateElasticComplianceMatrix(
+        BoundedMatrixType& rConstitutiveMatrix,
+        const Properties& rMaterialProperties
+        );
+
+    /**
+     * @brief This method add somehting if the increment is positive
+     */
+    void AddIfPositive(
+        double&  rToBeAdded,
+        const double Increment
+        )
+    {
+        if (Increment > machine_tolerance)
+            rToBeAdded += Increment;
+    }
+
+    /**
+     * @brief This method evaluates the Macaulay brackets
+     */
+    double MacaullyBrackets(const double Number)
+    {
+        return (Number > machine_tolerance) ? Number : 0.0;
+    }
+
+    /**
+     * @brief This method computes the normalized
+     * plastic dissipation
+     */
+    void CalculatePlasticDissipationIncrement(
+        const Properties &rMaterialProperties,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the normalized
+     * plastic dissipation
+     */
+    void CalculateDamageDissipationIncrement(
+        const Properties &rMaterialProperties,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the threshold
+     * and the dThreshold/dKappa according to energy dissipation
+     */
+    void CalculateThresholdAndSlope(
         ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the plastic flow (dF/dS)
+     */
+    void CalculateFlowVector(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the Plastic Strain increment
+     */
+    void CalculatePlasticStrainIncrement(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the Compliance matrix increment
+     */
+    void CalculateComplianceMatrixIncrement(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the plastic consistency increment
+     */
+    void CalculatePlasticConsistencyIncrement(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method integrates the stress
+     */
+    void IntegrateStressPlasticDamageMechanics(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method computes the constitutive matrix
+     */
+    void CalculateConstitutiveMatrix(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPlasticDamageParameters);
+
+    /**
+     * @brief This method updates all the internal variables
+     */
+    void UpdateInternalVariables(
+        PlasticDamageParameters &rPlasticDamageParameters
     );
+
+    /**
+     * @brief This method updates all the internal variables
+     */
+    void CheckMinimumFractureEnergy(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rPDParameters
+    );
+
+    void InitializePlasticDamageParameters(
+        const BoundedVectorType& rStrainVector,
+        const Properties& rMaterialProperties,
+        const double CharateristicLength,
+        PlasticDamageParameters &rPlasticDamageParameters
+        )
+    {
+        rPlasticDamageParameters.PlasticDissipation     = mPlasticDissipation;
+        rPlasticDamageParameters.DamageDissipation      = mDamageDissipation;
+        rPlasticDamageParameters.TotalDissipation       = mPlasticDissipation + mDamageDissipation;
+        rPlasticDamageParameters.Threshold              = mThreshold;
+        noalias(rPlasticDamageParameters.PlasticStrain) = mPlasticStrain;
+        noalias(rPlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
+        noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
+        rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
+        rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
+    }
+
+    void CalculateAnalyticalTangentTensor(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rParam
+        );
+
+    void AddNonLinearDissipation(
+        PlasticDamageParameters &rPDParameters
+        )
+    {
+        rPDParameters.DamageDissipation  += rPDParameters.DamageDissipationIncrement;
+        rPDParameters.PlasticDissipation += rPDParameters.PlasticDissipationIncrement;
+
+        rPDParameters.TotalDissipation = (rPDParameters.PlasticDissipation +
+            rPDParameters.DamageDissipation);
+        rPDParameters.TotalDissipation = (rPDParameters.TotalDissipation > 0.99999) ?
+            0.99999 : rPDParameters.TotalDissipation;
+    }
+
+    double CalculateVolumetricFractureEnergy( // g_F
+        const Properties& rMaterialProperties,
+        PlasticDamageParameters &rPDParameters
+        );
+
+    double CalculatePlasticDenominator(
+        ConstitutiveLaw::Parameters& rValues,
+        PlasticDamageParameters &rParam);
 
 protected:
 
@@ -690,8 +746,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
+    double mPlasticDissipation = 0.0;
+    double mDamageDissipation  = 0.0;
+    double mThreshold          = 0.0;
+    BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
+    BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -712,21 +771,27 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.save("CombinationFactors", mCombinationFactors);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("PlasticDissipation", mPlasticDissipation);
+        rSerializer.save("DamageDissipation", mDamageDissipation);
+        rSerializer.save("Threshold", mThreshold);
+        rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("ComplianceMatrix", mComplianceMatrix);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.load("CombinationFactors", mCombinationFactors);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("PlasticDissipation", mPlasticDissipation);
+        rSerializer.load("DamageDissipation", mDamageDissipation);
+        rSerializer.load("Threshold", mThreshold);
+        rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("ComplianceMatrix", mComplianceMatrix);
     }
 
 
-}; // Class ParallelRuleOfMixturesLaw
+}; // Class AssociativePlasticDamageModel
 }  // namespace Kratos.
 #endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined

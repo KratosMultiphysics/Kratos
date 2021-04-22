@@ -97,6 +97,9 @@ class BigCubeSmallDeformationPlasticityTTest(TestFactory):
 class SerialParallelRuleOfMixturesCubeDamageTest(TestFactory):
     file_name = "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
 
+class PlasticDamageTest(TestFactory):
+    file_name = "PlasticDamageModel/plastic_damage_test"
+
 class AnisotropyTest(TestFactory):
     file_name = "AnisotropyCube/anisotropy_test"
 
