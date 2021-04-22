@@ -23,14 +23,11 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
         # Initialize solutions
 
         if path == "":
-            DEM_json_file = open("MaterialsDEM.json",'r')
             DEMProjectParametersFile = open("ProjectParametersDEM.json", 'r')
         else:
-            DEM_json_file = open(os.path.join(path, "MaterialsDEM.json"))
             DEMProjectParametersFile = open(os.path.join(path, "ProjectParametersDEM.json"), 'r')
-        DEM_materials_parameters = KratosMultiphysics.Parameters(DEM_json_file.read())
         DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters, DEM_materials_parameters)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
 
         self.DEM_Solution.Initialize()
         self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path, self.DEM_Solution._GetSolver())
