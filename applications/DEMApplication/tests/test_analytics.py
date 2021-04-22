@@ -109,9 +109,8 @@ class TestAnalytics(KratosUnittest.TestCase):
     def test_Analytics_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        materials_file_name = os.path.join(path, "MaterialsDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(AnalyticsTestSolution, model, parameters_file_name, materials_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(AnalyticsTestSolution, model, parameters_file_name, 1)
 
 
     # @classmethod
@@ -119,9 +118,8 @@ class TestAnalytics(KratosUnittest.TestCase):
     # def test_Analytics_2(self):
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
-    #     materials_file_name = os.path.join(path, "MaterialsDEM.json")
     #     model = Kratos.Model()
-    #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(GhostsTestSolution, model, parameters_file_name, materials_file_name, 1)
+    #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(GhostsTestSolution, model, parameters_file_name, 1)
 
 
     # @classmethod
@@ -129,9 +127,9 @@ class TestAnalytics(KratosUnittest.TestCase):
     # def test_Analytics_3(self):
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
-    #     materials_file_name = os.path.join(path, "MaterialsDEM.json")
+    #      = os.path.join(path, "MaterialsDEM.json")
     #     model = Kratos.Model()
-    #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, materials_file_name, 1)
+    #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")

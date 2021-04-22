@@ -46,9 +46,8 @@ class TestDEM2DInlet(KratosUnittest.TestCase):
     def test_DEM2D_inlet(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_inlet_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        materials_file_name = os.path.join(path, "MaterialsDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_InletTestSolution, model, parameters_file_name, materials_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_InletTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_inlet_tests_files", "TimesPartialRelease")

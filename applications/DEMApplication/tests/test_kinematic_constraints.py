@@ -138,9 +138,8 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
     def test_KinematicConstraints_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "kinematic_constraints_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        materials_file_name = os.path.join(path, "MaterialsDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, materials_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("kinematic_constraints_tests_files", "TimesPartialRelease")
