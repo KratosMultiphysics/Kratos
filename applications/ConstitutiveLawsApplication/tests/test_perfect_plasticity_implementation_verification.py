@@ -7,6 +7,7 @@ if CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     from KratosMultiphysics import StructuralMechanicsApplication
 
 from KratosMultiphysics import ConstitutiveLawsApplication
+
 import os
 import math
 
@@ -148,7 +149,7 @@ def _apply_material_properties(mp, constitutive_law_type = "SmallStrainJ2Plastic
 
     if constitutive_law_type == "SmallStrainJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.0)
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 9.0)
+        mp.GetProperties()[1].SetValue(ConstitutiveLawsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 9.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
     else:
         mp.GetProperties()[1].SetValue(KratosMultiphysics.FRACTURE_ENERGY, 1.0e16) # Perfect plasticity
