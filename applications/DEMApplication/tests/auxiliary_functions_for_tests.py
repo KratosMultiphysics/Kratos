@@ -3,7 +3,7 @@ import KratosMultiphysics
 from KratosMultiphysics import Logger
 import multiprocessing
 
-def CreateAndRunStageInSelectedNumberOfOpenMPThreads(my_obj, model, parameters_file_name, materials_file_name, number_of_threads):
+def CreateAndRunStageInSelectedNumberOfOpenMPThreads(my_obj, model, parameters_file_name, number_of_threads):
 
     if "OMP_NUM_THREADS" in os.environ:
         initial_number_of_threads = os.environ['OMP_NUM_THREADS']
@@ -15,10 +15,7 @@ def CreateAndRunStageInSelectedNumberOfOpenMPThreads(my_obj, model, parameters_f
     with open(parameters_file_name,'r') as parameter_file:
         project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    with open(materials_file_name,'r') as parameter_file:
-        materials_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters, materials_parameters).Run()
+    my_obj(model, project_parameters).Run()
 
     if "OMP_NUM_THREADS" in os.environ:
         KratosMultiphysics.ParallelUtilities.SetNumThreads(int(initial_number_of_threads))
