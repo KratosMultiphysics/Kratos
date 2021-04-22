@@ -110,9 +110,9 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 
     # Check against specifications
     TestCase().assertEqual(n_iter, 10)
-    TestCase().assertAlmostEqual(f, 6.61655E+01, 4)
-    TestCase().assertAlmostEqual(c1, -9.98583E-01, 4)
-    TestCase().assertAlmostEqual(c2, 2.03941E+00, 4)
-    TestCase().assertAlmostEqual(c3, 1.00106E+00, 4)
+    TestCase().assertAlmostEqual(f, 6.12648E+01, 4)
+    TestCase().assertAlmostEqual(c1, -9.98899E-01, 4)
+    TestCase().assertAlmostEqual(c2, 1.95929E+00, 4)
+    TestCase().assertAlmostEqual(c3, 1.00112E+00, 4)
 
 # =======================================================================================================

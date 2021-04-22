@@ -58,7 +58,7 @@
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : false,
-                "step_size"                  : 0.5
+                "step_size"                  : 1.0
             }
         },
         "output" : {

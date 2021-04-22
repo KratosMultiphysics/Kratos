@@ -24,6 +24,11 @@ from . import data_logger_factory
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
@@ -31,14 +36,15 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         default_algorithm_settings = KM.Parameters("""
         {
             "name"                    : "penalized_projection",
-            "max_correction_share"    : 0.75,
+            "max_correction_factor"   : 1.0,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
                 "step_size"                  : 1.0
-            }
+            },
+            "local_variable_damping"  : false
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -65,7 +71,10 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                     "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
                 }
             })
-        self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
+        self.max_correction_factor = self.algorithm_settings["max_correction_factor"].GetDouble()
+        self.local_variable_damping = self.algorithm_settings["local_variable_damping"].GetBool()
+        if self.local_variable_damping and np is None:
+            raise RuntimeError("'local_variable_damping' requires numpy!")
 
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
@@ -74,6 +83,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.LOCAL_DAMPING)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -102,6 +112,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def RunOptimizationLoop(self):
         timer = Timer()
         timer.StartTimer()
+
+        self.local_damping_factors = [1.0]*self.design_surface.NumberOfNodes()*3
+        self.old_ds = [0.0] * self.design_surface.NumberOfNodes()*3
 
         for self.optimization_iteration in range(1,self.max_iterations):
             KM.Logger.Print("")
@@ -209,20 +222,30 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         nabla_f = KM.Vector()
         s = KM.Vector()
         gp_utilities.AssembleVector(nabla_f, KSO.DF1DX_MAPPED)
+        for i, f in enumerate(self.local_damping_factors):
+            nabla_f[i] *= f
 
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             s = nabla_f * (-1.0)
             s *= self.step_size / s.norm_inf()
+            for i, f in enumerate(self.local_damping_factors):
+                s[i] *= f
             gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
             gp_utilities.AssignVectorToVariable([0.0]*len(s), KSO.CORRECTION)
+            gp_utilities.AssignVectorToVariable(self.local_damping_factors, KSO.LOCAL_DAMPING)
             gp_utilities.AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
             return
 
+        nabla_f *= self.step_size / nabla_f.norm_inf()
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
         gp_utilities.AssembleMatrix(N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+
+        for i, f in enumerate(self.local_damping_factors):
+            for j in range(len(g_a)):
+                N[i, j] *= f
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -238,19 +261,41 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             c)
 
         if c.norm_inf() != 0.0:
-            if c.norm_inf() <= self.max_correction_share * self.step_size:
-                delta = self.step_size - c.norm_inf()
-                s *= delta/s.norm_inf()
+            if c.norm_inf() <= self.max_correction_factor*self.step_size:
+                pass
             else:
-                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                c *= self.max_correction_share * self.step_size / c.norm_inf()
-                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
-        else:
-            s *= self.step_size / s.norm_inf()
+                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_factor*self.step_size}.")
+                c *= self.max_correction_factor*self.step_size / c.norm_inf()
 
         gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
         gp_utilities.AssignVectorToVariable(c, KSO.CORRECTION)
-        gp_utilities.AssignVectorToVariable(s+c, KSO.CONTROL_POINT_UPDATE)
+
+        update = s+c
+
+        if self.local_variable_damping:
+            # local damping of zig-zagging variables - inspired by the moving asymptotes for each variable in MMA
+            ds = np.zeros(len(self.local_damping_factors))
+            for i, _ in enumerate(self.local_damping_factors):
+                ds[i] = update[i]
+            _factor = np.ones(ds.size)
+            sign = np.multiply(ds, np.array(self.old_ds))
+            _factor[np.where(sign>0)] = 1.2
+            _factor[np.where(sign<0)] = 0.7
+            new_factors = np.multiply(np.array(self.local_damping_factors), _factor)
+            new_factors = np.minimum(new_factors, np.ones(ds.size)*1.0)
+            new_factors = np.maximum(new_factors, np.ones(ds.size)*0.01)
+            new_factors = new_factors.tolist()
+            self.old_ds = ds.tolist()
+            KM.Logger.PrintInfo("ShapeOpt", f"Local damping factors: min: {min(self.local_damping_factors)}, max: {max(self.local_damping_factors)}, mean: {np.mean(self.local_damping_factors)}")
+
+        for i, f in enumerate(self.local_damping_factors):
+            update[i] *= self.local_damping_factors[i]
+
+        gp_utilities.AssignVectorToVariable(self.local_damping_factors, KSO.LOCAL_DAMPING)
+        gp_utilities.AssignVectorToVariable(update, KSO.CONTROL_POINT_UPDATE)
+
+        if self.local_variable_damping:
+            self.local_damping_factors = np.array(new_factors).tolist()
 
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
