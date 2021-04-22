@@ -312,10 +312,12 @@ public:
     {
         KRATOS_TRY
 
-        BuilderAndSolverPointerType &pBuilderAndSolver = this->pGetBuilderAndSolver();
-        pBuilderAndSolver->GetLinearSystemSolver()->Clear();
-        BuilderAndSolverPointerType &pEigenSolver = this->pGetEigenSolver();
-        pEigenSolver->GetLinearSystemSolver()->Clear();
+        auto pBuilderAndSolver = this->pGetBuilderAndSolver();
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->GetLinearSystemSolver()->Clear();
+        auto pEigenSolver = this->pGetEigenSolver();
+        if (pEigenSolver != nullptr)
+            pEigenSolver->GetLinearSystemSolver()->Clear();
 
         if (mpStiffnessMatrix != nullptr)
             mpStiffnessMatrix = nullptr;
@@ -330,17 +332,21 @@ public:
             mpDx = nullptr;
 
         // Re-setting internal flag to ensure that the dof sets are recalculated
-        pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        pEigenSolver->SetDofSetIsInitializedFlag(false);
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        if (pEigenSolver != nullptr)
+            pEigenSolver->SetDofSetIsInitializedFlag(false);
 
-        pBuilderAndSolver->Clear();
-        pEigenSolver->Clear();
-
-        this->pGetScheme()->Clear();
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->Clear();
+        if (pEigenSolver != nullptr)
+            pEigenSolver->Clear();
+        
+        if (this->pGetScheme() != nullptr)
+            this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;
-
 
         KRATOS_CATCH("")
     }
@@ -818,11 +824,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    SchemePointerType mpScheme;
+    SchemePointerType mpScheme = nullptr;
 
-    BuilderAndSolverPointerType mpEigenSolver;
+    BuilderAndSolverPointerType mpEigenSolver = nullptr;
 
-    BuilderAndSolverPointerType mpBuilderAndSolver;
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
     // SparseMatrixPointerType mpMassMatrix;
 
@@ -834,7 +840,7 @@ private:
 
     SparseVectorPointerType mpDx;
 
-    typename ConvergenceCriteriaType::Pointer mpConvergenceCriteria;
+    typename ConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr;
     /// The pointer to the convergence criteria employed
 
     bool mInitializeWasPerformed = false;
