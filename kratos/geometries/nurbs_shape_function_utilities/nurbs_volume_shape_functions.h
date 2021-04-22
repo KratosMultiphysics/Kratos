@@ -284,6 +284,10 @@ public:
         return mShapeFunctionValues[index];
     }
 
+    double ShapeFunctionValue(const SizeType index){
+        return mShapeFunctionValues[index];
+    }
+
     /**
      * @brief Get shape function value for given CP-index and derivative row.
      **/
@@ -375,6 +379,79 @@ public:
         }
     }
 
+    const std::vector<std::array<int,3>> combinations = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1},  // level 0 and 1
+                                                          {2,0,0}, {1,1,0}, {1,0,1}, {0,2,0}, {0,1,1}, {0,0,2}, // level 2
+                                                          {2,1,0}, {2,0,1}, {1,2,0}, {1,1,1}, {1,0,2}, {0,2,1}, {0,1,2}, //level 3
+                                                          {2,1,1}, {2,2,0}, {2,0,2}, {1,2,1}, {1,1,2}, {0,2,2}, // level 4
+                                                          {2,2,1}, {2,1,2}, {1,2,2}, // level 5
+                                                          {2,2,2}};
+    /**
+     * @brief Computes the shape function values at the given parameter and span.
+     **/
+    void ComputeBSplineShapeFunctionValuesAtSpanForMomentFitting(
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rKnotsW,
+        const int SpanU,
+        const int SpanV,
+        const int SpanW,
+        const double ParameterU,
+        const double ParameterV,
+        const double ParameterW)
+    {
+        mShapeFunctionValues = ZeroVector(mShapeFunctionValues.size());
+
+        mFirstNonzeroControlPointU = SpanU - PolynomialDegreeU() + 1;
+        mFirstNonzeroControlPointV = SpanV - PolynomialDegreeV() + 1;
+        mFirstNonzeroControlPointW = SpanW - PolynomialDegreeW() + 1;
+
+        // Compute 1D shape functions
+        mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsU, SpanU, ParameterU);
+        mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsV, SpanV, ParameterV);
+        mShapeFunctionsW.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsW, SpanW, ParameterW);
+        // Compute 3D shape functions
+        for( int i = 0; i < 27; ++i ){
+            for (IndexType a = 0; a < NumberOfNonzeroControlPointsU(); ++a) {
+                for (IndexType b = 0; b < NumberOfNonzeroControlPointsV(); ++b) {
+                    for (IndexType c = 0; c < NumberOfNonzeroControlPointsW(); ++c) {
+                        std::array<int,3> combination = combinations[i];
+                        const IndexType index = IndexOfShapeFunctionRow(combination[0], combination[1], combination[2]);
+                        ShapeFunctionValue(a, b, c, index) = mShapeFunctionsU(a, combination[0]) * mShapeFunctionsV(b, combination[1]) * mShapeFunctionsW(c, combination[2]);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Computes the shape function values at the given parameter.
+     * @details Finds the span, where the given parameters are located and
+     *          computes then the shape function values.
+     **/
+    void ComputeBSplineShapeFunctionValuesForMomentFitting(
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rKnotsW,
+        const double ParameterU,
+        const double ParameterV,
+        const double ParameterW)
+    {
+        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
+        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
+        const IndexType SpanW = NurbsUtilities::GetLowerSpan(PolynomialDegreeW(), rKnotsW, ParameterW);
+
+        ComputeBSplineShapeFunctionValuesAtSpanForMomentFitting(
+            rKnotsU,
+            rKnotsV,
+            rKnotsW,
+            SpanU,
+            SpanV,
+            SpanW,
+            ParameterU,
+            ParameterV,
+            ParameterW);
+    }
+
     /**
      * @brief Computes the shape function values at the given parameter.
      * @details Finds the span, where the given parameters are located and
@@ -447,7 +524,7 @@ private:
     ///@name Operations
     ///@{
 
-    // Attention: Weight ar not yet implemented.    
+    // Attention: Weight ar not yet implemented.
     // double& GetWeightedSum(const IndexType Index)
     // {
     //     return mWeightedSums[Index];
@@ -529,7 +606,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        
+
     int mDerivativeOrder;
     NurbsCurveShapeFunction mShapeFunctionsU;
     NurbsCurveShapeFunction mShapeFunctionsV;

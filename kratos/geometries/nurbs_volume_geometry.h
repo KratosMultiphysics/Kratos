@@ -829,6 +829,162 @@ public:
         }
     }
 
+        /**
+     * @brief This method maps from local space to working space and computes the
+     *        derivatives at the local space parameter in the dimension of the object.
+     * @param LocalCoordinates The local coordinates to be evaluated.
+     * @param Derivative Number of computed derivatives.
+     * @return std::vector<array_1d<double, 3>> with the coordinates and derivatives in working space.
+     **/
+    std::vector<double> LocalSpaceDerivatives(
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, DerivativeOrder);
+
+        // Attention: Weights are not yet implemented.
+        // if (IsRational()) {
+        //     shape_function_container.ComputeNurbsShapeFunctionValues(
+        //         mKnotsU, mKnotsV, mKnotsW, mWeights, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+        // }
+
+        shape_function_container.ComputeBSplineShapeFunctionValues(
+            mKnotsU, mKnotsV, mKnotsW, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+       
+        std::vector<double> rLocalSpaceDerivatives;
+
+        if (rLocalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
+            rLocalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
+        }
+        for (IndexType shape_function_row_i = 0;
+            shape_function_row_i < shape_function_container.NumberOfShapeFunctionRows();
+            ++shape_function_row_i) {
+            rLocalSpaceDerivatives[shape_function_row_i] = shape_function_container.ShapeFunctionValue(shape_function_row_i);
+        }
+
+        return rLocalSpaceDerivatives;
+    }
+
+    const std::vector<std::array<int,3>> combinations = {{0,0,0}, {1,0,0}, {0,1,0}, {0,0,1},  // level 0 and 1
+                                                          {2,0,0}, {1,1,0}, {1,0,1}, {0,2,0}, {0,1,1}, {0,0,2}, // level 2
+                                                          {2,1,0}, {2,0,1}, {1,2,0}, {1,1,1}, {1,0,2}, {0,2,1}, {0,1,2}, //level 3
+                                                          {2,1,1}, {2,2,0}, {2,0,2}, {1,2,1}, {1,1,2}, {0,2,2}, // level 4
+                                                          {2,2,1}, {2,1,2}, {1,2,2}, // level 5
+                                                          {2,2,2}};
+    
+    std::vector<double> GetConstantTermsSurfaceIntegral(
+        const std::vector<std::array<double,4>>& rLocalCoordinates,
+        const std::array<double,3>& rUpperPoints,
+        const std::vector<std::array<double,3>>& rNormal,
+        const SizeType DerivativeOrder)
+    {
+        SizeType number_of_coordinates = rLocalCoordinates.size();
+        std::vector<std::array<double,27>> derivatives(number_of_coordinates);
+        
+        #pragma omp parallel for schedule(dynamic)
+        for( int i = 0; i < number_of_coordinates; ++i){
+            
+            NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, DerivativeOrder);
+            CoordinatesArrayType tmp_local_coordinates;
+                tmp_local_coordinates[0] = rLocalCoordinates[i][0] - 1e-6*rNormal[i][0];
+                tmp_local_coordinates[1] = rLocalCoordinates[i][1] - 1e-6*rNormal[i][1];
+                tmp_local_coordinates[2] = rLocalCoordinates[i][2] - 1e-6*rNormal[i][2];
+            
+            double weight = rLocalCoordinates[i][3];
+
+            shape_function_container.ComputeBSplineShapeFunctionValuesForMomentFitting(
+                    mKnotsU, mKnotsV, mKnotsW, tmp_local_coordinates[0], tmp_local_coordinates[1], tmp_local_coordinates[2]);
+
+                double factor_0 = rUpperPoints[0] - tmp_local_coordinates[0];
+                double factor_1 = rUpperPoints[1] - tmp_local_coordinates[1];
+                double factor_2 = rUpperPoints[2] - tmp_local_coordinates[2];
+            
+            Matrix jacobian;
+            Jacobian(jacobian, tmp_local_coordinates);
+
+            for(int j = 0; j < 27; ++j){
+                std::array<int,3> combination = combinations[j];
+                int shape_function_row_i = shape_function_container.IndexOfShapeFunctionRow(combination[0], combination[1], combination[2]);
+                
+                std::array<double,3> g;
+                g[0] = shape_function_container.ShapeFunctionValue(shape_function_row_i) * jacobian(0,0)* factor_0;
+                g[1] = shape_function_container.ShapeFunctionValue(shape_function_row_i) * jacobian(1,1)* factor_1;
+                g[2] = shape_function_container.ShapeFunctionValue(shape_function_row_i) * jacobian(2,2)* factor_2;
+
+                double multiplicator = 0.0;
+                if( combination[0] == 0){
+                    derivatives[i][j] = 1.0/3.0 * g[0] * rNormal[i][0] * weight;
+                }
+                else if( combination[1] == 0){
+                    derivatives[i][j] = 1.0/3.0 * g[1] * rNormal[i][1] * weight;
+                }
+                else if( combination[2] == 0){
+                    derivatives[i][j] = 1.0/3.0 * g[2] * rNormal[i][2] * weight;
+                }
+                else{
+                    if( combination[0] == 1){
+                        derivatives[i][j] = 1.0/2.0 * g[0] * rNormal[i][0] * weight;
+                    }
+                    else if( combination[1] == 1){
+                        derivatives[i][j] = 1.0/2.0 * g[1] * rNormal[i][1] * weight;
+                    }
+                    else if( combination[2] == 1){
+                        derivatives[i][j] = 1.0/2.0 * g[2] * rNormal[i][2] * weight;
+                    }
+                    else {
+                        derivatives[i][j] = 1.0/3.0 * (g[0]*rNormal[i][0] + 
+                            g[1]*rNormal[i][1] + g[2]*rNormal[i][2] ) * weight;
+                    }
+                }
+            }
+        }
+        std::vector<double> constant_terms(27,0.0);
+        #pragma omp parallel for schedule(dynamic)
+        for( int j = 0; j < 27; ++j){
+            for( int i = 0; i < number_of_coordinates; ++i){
+                constant_terms[j] -= derivatives[i][j];
+            }
+        }
+        return constant_terms;
+    }
+    
+    std::vector<double> GetConstantTerms(
+        const std::vector<std::array<double,4>>& rLocalCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        std::vector<double> constant_terms(27,0.0);
+
+        #pragma omp parallel for schedule(dynamic)
+        for( int i = 0; i < 27; ++i){
+            for( auto& r_local_coordinates : rLocalCoordinates){
+
+                NurbsVolumeShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, DerivativeOrder);
+
+                // Attention: Weights are not yet implemented.
+                // if (IsRational()) {
+                //     shape_function_container.ComputeNurbsShapeFunctionValues(
+                //         mKnotsU, mKnotsV, mKnotsW, mWeights, rLocalCoordinates[0], rLocalCoordinates[1], rLocalCoordinates[2]);
+                // }
+
+                shape_function_container.ComputeBSplineShapeFunctionValuesForMomentFitting(
+                    mKnotsU, mKnotsV, mKnotsW, r_local_coordinates[0], r_local_coordinates[1], r_local_coordinates[2]);
+            
+                
+
+                // if (rLocalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
+                //     rLocalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
+                // }
+                std::array<int,3> combination = combinations[i];
+                int shape_function_row_i = shape_function_container.IndexOfShapeFunctionRow(combination[0], combination[1], combination[2]);
+                constant_terms[i] += shape_function_container.ShapeFunctionValue(shape_function_row_i)*r_local_coordinates[3];
+                
+                
+            }
+        }
+
+        return constant_terms;
+    }
+
     ///@}
     ///@name Shape Function
     ///@{

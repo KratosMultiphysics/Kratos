@@ -150,7 +150,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
-        { 
+        {
             IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
             for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
                 IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
@@ -298,6 +298,19 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
         .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
         .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
+        .def("DeterminantOfJacobianSpecial", [](GeometryType& self, const CoordinatesArrayType& rPoint)
+            { return(self.DeterminantOfJacobian(rPoint)); })
+        .def("LocalSpaceDerivatives", &NurbsVolumeGeometry<NodeContainerType>::LocalSpaceDerivatives)
+        .def("GlobalSpaceDerivatives", [](NurbsVolumeGeometry<NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {
+                std::vector<CoordinatesArrayType> result;
+                self.GlobalSpaceDerivatives(result, rCoordinates, 6);
+                return result;
+            } )
+        .def("GetConstantTermsSurfaceIntegral", &NurbsVolumeGeometry<NodeContainerType>::GetConstantTermsSurfaceIntegral)
+        .def("GetConstantTerms", &NurbsVolumeGeometry<NodeContainerType>::GetConstantTerms)
+        .def("Jacobian", [](NurbsVolumeGeometry<NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {Matrix rResult; return self.Jacobian(rResult, rCoordinates); })
         ;
 
     // NurbsSurfaceGeometry3D
@@ -338,6 +351,45 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPoints", &NurbsCurveGeometry<2, NodeContainerType>::NumberOfNonzeroControlPoints)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
+        ;
+
+    // NurbsCurveGeometry1D
+    py::class_<NurbsCurveGeometry<1, NodeContainerType>, NurbsCurveGeometry<1, NodeContainerType>::Pointer, GeometryType >(m, "NurbsCurveGeometry1D")
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector>())
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector, const Vector>())
+        .def("PolynomialDegree", &NurbsCurveGeometry<1, NodeContainerType>::PolynomialDegree)
+        .def("Knots", &NurbsCurveGeometry<1, NodeContainerType>::Knots)
+        .def("NumberOfKnots", &NurbsCurveGeometry<1, NodeContainerType>::NumberOfKnots)
+        .def("NumberOfControlPoints", &NurbsCurveGeometry<1, NodeContainerType>::NumberOfNonzeroControlPoints)
+        .def("IsRational", &NurbsCurveGeometry<1, NodeContainerType>::IsRational)
+        .def("Weights", &NurbsCurveGeometry<1, NodeContainerType>::Weights)
+        .def("GetFirstNonzeroControlPoint", &NurbsCurveGeometry<1, NodeContainerType>::GetFirstNonzeroControlPoint)
+        .def("ShapeFunctionsValues", [](NurbsCurveGeometry<1, NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {
+                Vector result;
+                self.ShapeFunctionsValues(result, rCoordinates);
+                return result;
+            } )
+        .def("ShapeFunctionsLocalGradients3", [](NurbsCurveGeometry<1, NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {
+                Matrix result;
+                self.ShapeFunctionsLocalGradients3(result, rCoordinates);
+                return result;
+            } )
+        .def("ShapeFunctionsLocalGradients2", [](NurbsCurveGeometry<1, NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {
+                Matrix result;
+                self.ShapeFunctionsLocalGradients2(result, rCoordinates);
+                return result;
+            } )
+        .def("ShapeFunctionsLocalGradients", [](NurbsCurveGeometry<1, NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {
+                Matrix result;
+                self.ShapeFunctionsLocalGradients(result, rCoordinates);
+                return result;
+            } )
+        .def("Jacobian", [](NurbsCurveGeometry<1, NodeContainerType>& self, const CoordinatesArrayType& rCoordinates)
+            {Matrix rResult; return self.Jacobian(rResult, rCoordinates); })
         ;
 
 }

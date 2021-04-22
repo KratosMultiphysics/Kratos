@@ -235,9 +235,10 @@ public:
         return mWeights;
     }
 
-    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
-     * @return domain interval.
-     */
+    /*
+    * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+    * @return domain interval.
+    */
     NurbsInterval DomainInterval() const
     {
         return NurbsInterval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
@@ -532,6 +533,13 @@ public:
         return rResult;
     }
 
+    int GetFirstNonzeroControlPoint(
+        const CoordinatesArrayType& rLocalCoordinates){
+
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
+        shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rLocalCoordinates[0]);
+        return shape_function_container.GetFirstNonzeroControlPoint();
+    }
     /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
@@ -600,6 +608,69 @@ public:
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult[i] = shape_function_container(i, 0);
+        }
+
+        return rResult;
+    }
+    /*
+    * @brief This function computes the first derivatives at a certain point.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+    * @param rResult the given Matrix which will be overwritten by the solution
+    * @param rCoordinates the given local coordinates, with the coordinates u and v.
+    * @return matrix of derivatives at rCoordinates.
+    *         (0,i): dN/du, (1,i): dN/dv
+    */
+    Matrix& ShapeFunctionsLocalGradients3(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates) const
+    {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 3);
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+        }
+
+        if (rResult.size1() != 1
+            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult(0, i) = shape_function_container(i, 3);
+        }
+
+        return rResult;
+    }
+
+    /*
+    * @brief This function computes the first derivatives at a certain point.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+    * @param rResult the given Matrix which will be overwritten by the solution
+    * @param rCoordinates the given local coordinates, with the coordinates u and v.
+    * @return matrix of derivatives at rCoordinates.
+    *         (0,i): dN/du, (1,i): dN/dv
+    */
+    Matrix& ShapeFunctionsLocalGradients2(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates) const
+    {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 2);
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+        }
+
+        if (rResult.size1() != 1
+            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult(0, i) = shape_function_container(i, 2);
         }
 
         return rResult;
