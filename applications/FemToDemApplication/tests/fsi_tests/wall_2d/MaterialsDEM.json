@@ -4,15 +4,15 @@
         "material_id": 1,
         "properties":{
             "PARTICLE_DENSITY": 1.0,
-            "YOUNG_MODULUS": 1.5e6,
+            "YOUNG_MODULUS": 1.0e9,
             "POISSON_RATIO": 0.20
         }
     },{
         "material_name": "mat2",
         "material_id": 2,
         "properties":{
-            "YOUNG_MODULUS": 1.0e20,
-            "POISSON_RATIO": 0.25,
+            "YOUNG_MODULUS": 1.0e9,
+            "POISSON_RATIO": 0.2,
             "COMPUTE_WEAR": false
         }
     }],
