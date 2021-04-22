@@ -1,0 +1,153 @@
+name: Extended CI
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+    - '*' # root dir
+    - '.github/workflows/extended_ci.yml' # this file
+    - 'kratos/**' # Core
+    - 'applications/LinearSolversApplication/**'
+    - 'applications/MetisApplication/**'
+    - 'applications/TrilinosApplication/**'
+
+  workflow_dispatch:
+
+
+jobs:
+  additional-builds:
+    runs-on: ubuntu-latest
+    name: "Unity-build: ${{ matrix.UNITY_BUILD }}, C++ testing: ${{ matrix.BUILD_TESTING }}"
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    strategy:
+      fail-fast: false
+      matrix:
+        UNITY_BUILD:   [ON, OFF]
+        BUILD_TESTING: [ON, OFF]
+        exclude:
+          # this is in the main CI
+          - UNITY_BUILD:   ON
+            BUILD_TESTING: ON
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      env:
+        CCACHE_SLOPPINESS: pch_defines,time_macros
+        CCACHE_COMPILERCHECK: content
+        CCACHE_COMPRESS: true
+        CCACHE_NODISABLE: true
+        CCACHE_MAXSIZE: 500M
+
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+    - uses: actions/checkout@v2
+
+    - name: Cache Build
+      id: cache-build
+      uses: actions/cache@v1
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-no-unity-ccache-
+
+    - name: Build
+      shell: bash
+      run: |
+
+        add_app () {
+            export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+        }
+
+        export CC=/usr/lib/ccache/clang
+        export CXX=/usr/lib/ccache/clang++
+
+        export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
+        export KRATOS_BUILD="${KRATOS_SOURCE}/build"
+        export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
+        export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+        export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
+        add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+        add_app ${KRATOS_APP_DIR}/MetisApplication;
+        add_app ${KRATOS_APP_DIR}/TrilinosApplication;
+
+        # Configure
+        cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+        -DUSE_MPI=ON \
+        -DPYBIND11_PYTHON_VERSION="3.8" \
+        -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
+        -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
+        -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
+        -DCMAKE_UNITY_BUILD=${{ matrix.UNITY_BUILD }} \
+        -DKRATOS_BUILD_TESTING=${{ matrix.BUILD_TESTING }} \
+        -DINSTALL_RUNKRATOS=OFF
+
+        # Buid
+        cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+
+        ccache -s
+
+    - name: Running small tests
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/run_tests.py -l small -c python3
+
+    - name: Running MPICore C++ tests (2 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore C++ tests (3 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore C++ tests (4 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running Python MPI tests (2 Cores)
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
+
+    - name: Running Python MPI tests (3 Cores)
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3 -f--oversubscribe
+
+    - name: Running Python MPI tests (4 Cores)
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4 -f--oversubscribe
