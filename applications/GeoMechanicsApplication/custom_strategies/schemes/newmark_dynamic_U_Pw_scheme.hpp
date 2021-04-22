@@ -69,6 +69,8 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
+        KRATOS_TRY
+
         // Predict Displacements on free nodes and update Acceleration, Velocity and DtPressure
 
         array_1d<double,3> DeltaDisplacement;
@@ -144,6 +146,8 @@ public:
 
             CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
         }
+
+        KRATOS_CATCH( "" )
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -248,6 +252,8 @@ protected:
                           LocalSystemMatrixType& C,
                           const ProcessInfo& CurrentProcessInfo)
     {
+        KRATOS_TRY
+
         // adding mass contribution
         if (M.size1() != 0)
             noalias(LHS_Contribution) += 1.0/(mBeta*mDeltaTime*mDeltaTime)*M;
@@ -255,6 +261,8 @@ protected:
         // adding damping contribution
         if (C.size1() != 0)
             noalias(LHS_Contribution) += mGamma/(mBeta*mDeltaTime)*C;
+
+        KRATOS_CATCH( "" )
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -265,13 +273,14 @@ protected:
                           LocalSystemMatrixType& C,
                           const ProcessInfo& CurrentProcessInfo)
     {
+        KRATOS_TRY
+
         int thread = OpenMPUtils::ThisThread();
 
         //adding inertia contribution
         if (M.size1() != 0)
         {
             rCurrentElement.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
-
             noalias(RHS_Contribution) -= prod(M, mAccelerationVector[thread]);
         }
 
@@ -279,9 +288,10 @@ protected:
         if (C.size1() != 0)
         {
             rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
-
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
         }
+
+        KRATOS_CATCH( "" )
     }
 
 }; // Class NewmarkDynamicUPwScheme

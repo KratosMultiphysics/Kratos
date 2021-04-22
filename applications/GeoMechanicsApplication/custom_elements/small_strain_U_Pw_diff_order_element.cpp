@@ -479,16 +479,26 @@ void SmallStrainUPwDiffOrderElement::
                                               Variables.detJ0,
                                               IntegrationPoints[PointNumber].Weight());
 
-        //Adding contribution to Mass matrix
-        noalias(M) += Density*outer_prod(Variables.Nu,Variables.Nu)*Variables.IntegrationCoefficient;
 
+        //Setting the shape function matrix
+        SizeType Index = 0;
+        for (SizeType i = 0; i < NumUNodes; ++i)
+        {
+            for (SizeType iDim = 0; iDim < Dim; ++iDim)
+            {
+                Nu(iDim,Index++) = Variables.Nu(i);
+            }
+        }
+
+        //Adding contribution to Mass matrix
+        noalias(M) += Density*prod(trans(Nu),Nu) * Variables.IntegrationCoefficient;
     }
 
     //Distribute mass block matrix into the elemental matrix
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    const SizeType ElementSize = BlockElementSize + NumPNodes;
 
-    if ( rMassMatrix.size1() != ElementSize )
+    if ( rMassMatrix.size1() != ElementSize || rMassMatrix.size2() != ElementSize)
         rMassMatrix.resize( ElementSize, ElementSize, false );
     noalias( rMassMatrix ) = ZeroMatrix( ElementSize, ElementSize );
 
@@ -499,9 +509,9 @@ void SmallStrainUPwDiffOrderElement::
         for (SizeType j = 0; j < NumUNodes; j++)
         {
             SizeType Index_j = j * Dim;
-            for (unsigned int idim = 0; idim < Dim; ++idim)
+            for (SizeType idim = 0; idim < Dim; ++idim)
             {
-                for (unsigned int jdim = 0; jdim < Dim; ++jdim)
+                for (SizeType jdim = 0; jdim < Dim; ++jdim)
                 {
                     rMassMatrix(Index_i+idim,  Index_j+jdim) += M(Index_i+idim,  Index_j+jdim);
                 }
@@ -595,6 +605,50 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_CATCH( "" )
 }
 
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    GetFirstDerivativesVector( Vector& rValues, int Step ) const
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector()") << std::endl;
+
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    if ( rValues.size() != ElementSize )
+        rValues.resize( ElementSize, false );
+
+    SizeType Index = 0;
+
+    if ( Dim > 2 )
+    {
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+        }
+    }
+    else
+    {
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        }
+    }
+
+    for ( SizeType i = 0; i < NumPNodes; i++ )
+        rValues[Index++] = 0.0;
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector()") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
@@ -613,12 +667,23 @@ void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues
 
     SizeType Index = 0;
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
+    if ( Dim > 2 )
     {
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
-        if ( Dim > 2 )
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+        }
+    }
+    else
+    {
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+        }
+
     }
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
