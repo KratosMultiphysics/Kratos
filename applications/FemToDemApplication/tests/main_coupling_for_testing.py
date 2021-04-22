@@ -30,7 +30,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         # Transfer the contact forces of the DEM to the FEM nodes
         if self.TransferDEMContactForcesToFEM:
             self.TransferNodalForcesToFEM()
-        
+
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -106,7 +106,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
                 raise ValueError('The computed stress at step = 61 is not correct')
             if Ex != 3.4025787965616143e-05:
                 raise ValueError('The computed strain at step = 61 is not correct')
-        
+
 
 #============================================================================================================================
     def Finalize(self):
@@ -117,13 +117,12 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         shutil.rmtree(self.FEM_Solution.problem_name + "_Post_Files")
         shutil.rmtree(self.FEM_Solution.problem_name + "_Results_and_Data")
         shutil.rmtree("__pycache__")
-        os.remove("PlotFile.txt")
         os.remove(self.FEM_Solution.problem_name + "_0.post.bin")
         os.remove(self.FEM_Solution.problem_name + ".post.lst")
         os.remove("tests.post.lst")
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 
