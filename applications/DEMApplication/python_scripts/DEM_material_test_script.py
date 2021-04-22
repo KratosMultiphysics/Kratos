@@ -5,7 +5,7 @@ import weakref
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
+from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
 
 class MaterialTest():
 
