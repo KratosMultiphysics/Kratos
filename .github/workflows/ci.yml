@@ -11,6 +11,7 @@ on:
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
+    name: "Build type: ${{ matrix.build-type }}, Compiler: ${{ matrix.compiler }}"
     strategy:
       fail-fast: false
       matrix:
