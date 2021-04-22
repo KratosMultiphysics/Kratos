@@ -34,6 +34,7 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001 # required for OpenMPI
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content
@@ -102,6 +103,7 @@ jobs:
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
+      if: ${{ matrix.BUILD_TESTING == 'ON' }}
       shell: bash
       timeout-minutes : 10
       run: |
@@ -111,6 +113,7 @@ jobs:
         mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (3 Cores)
+      if: ${{ matrix.BUILD_TESTING == 'ON' }}
       shell: bash
       timeout-minutes : 10
       run: |
@@ -120,6 +123,7 @@ jobs:
         mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPICore C++ tests (4 Cores)
+      if: ${{ matrix.BUILD_TESTING == 'ON' }}
       shell: bash
       timeout-minutes : 10
       run: |
