@@ -722,7 +722,7 @@ void ShallowWater2D3::ShockCapturingParameters(
 
     // Final assembly of the parameters
     const double length = this->GetGeometry().Length();
-    const double min_slope = 0.5;
+    const double min_slope = 0.1;
     const double max_slope = 1.0;
 
     const double q_residual_norm = norm_2(flow_residual);
