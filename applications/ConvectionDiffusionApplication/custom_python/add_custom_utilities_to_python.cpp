@@ -155,13 +155,22 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetL2ScalarErrorNormCD", &CalculateStationarityProcess::GetL2ScalarErrorNormCD)    
     ;
 
-    py::class_<BinBasedInterpolationUtility<2> > (m, "BinBasedInterpolationUtility")
+    py::class_<BinBasedInterpolationUtility<2> > (m, "BinBasedInterpolationUtility2D")
     .def(py::init<>())
     .def("InterpolateFromFluidMeshCD", &BinBasedInterpolationUtility<2>::InterpolateFromFluidMeshCD)
     .def("AddFluidVariable", &BinBasedInterpolationUtility<2>::AddFluidVariable<double>)
     .def("AddFluidVariable", &BinBasedInterpolationUtility<2>::AddFluidVariable<array_1d<double, 3>>)
 	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <2> ::AddVariablesToImposeProjection<double>)
 	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <2> ::AddVariablesToImposeProjection<array_1d<double, 3>>)
+    ;
+
+        py::class_<BinBasedInterpolationUtility<3> > (m, "BinBasedInterpolationUtility3D")
+    .def(py::init<>())
+    .def("InterpolateFromFluidMeshCD", &BinBasedInterpolationUtility<3>::InterpolateFromFluidMeshCD)
+    .def("AddFluidVariable", &BinBasedInterpolationUtility<3>::AddFluidVariable<double>)
+    .def("AddFluidVariable", &BinBasedInterpolationUtility<3>::AddFluidVariable<array_1d<double, 3>>)
+	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <3> ::AddVariablesToImposeProjection<double>)
+	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <3> ::AddVariablesToImposeProjection<array_1d<double, 3>>)
     ;
 
     py::class_<MeshConvergenceErrorCalculator> (m, "MeshConvergenceErrorCalculator")

@@ -74,7 +74,7 @@ class ReadHdf5Process(Kratos.Process):
         model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         model_part.AddNodalSolutionStepVariable(Kratos.TEMPERATURE)
 
-        mdpa_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        mdpa_name = '/data0/home/abazan/Norouzi_mesh_1.gid/Norouzi_mesh_1'
         model_part_io_exactMesh = Kratos.ModelPartIO(mdpa_name)
         model_part_io_exactMesh.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
@@ -83,7 +83,7 @@ class ReadHdf5Process(Kratos.Process):
 
     def GetFieldDataFile(self, model):
         import h5py
-        file_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        file_name = '/data0/home/abazan/Norouzi_mesh_1.gid/Norouzi_mesh_1'
         self.hf = h5py.File(file_name+".hdf5", 'r')
         group_names = list(self.hf.keys())
         self.velocities = self.hf[str(self.destination_model_part.ProcessInfo[Kratos.STEP])+'/VELOCITIES']
