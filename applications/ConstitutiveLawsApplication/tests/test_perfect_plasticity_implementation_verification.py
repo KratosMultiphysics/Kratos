@@ -6,6 +6,7 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     from KratosMultiphysics import StructuralMechanicsApplication
 
+from KratosMultiphysics import ConstitutiveLawsApplication
 import os
 import math
 
@@ -143,7 +144,7 @@ def _apply_material_properties(mp, constitutive_law_type = "SmallStrainJ2Plastic
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 2.0e11)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 9.0)
-    mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.MAX_NUMBER_NL_CL_ITERATIONS, 100)
+    mp.GetProperties()[1].SetValue(ConstitutiveLawsApplication.MAX_NUMBER_NL_CL_ITERATIONS, 100)
 
     if constitutive_law_type == "SmallStrainJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.0)
@@ -151,7 +152,7 @@ def _apply_material_properties(mp, constitutive_law_type = "SmallStrainJ2Plastic
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
     else:
         mp.GetProperties()[1].SetValue(KratosMultiphysics.FRACTURE_ENERGY, 1.0e16) # Perfect plasticity
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.HARDENING_CURVE, 3) # Perfect plasticity
+        mp.GetProperties()[1].SetValue(ConstitutiveLawsApplication.HARDENING_CURVE, 3) # Perfect plasticity
 
     g = [0,0,0]
     mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)

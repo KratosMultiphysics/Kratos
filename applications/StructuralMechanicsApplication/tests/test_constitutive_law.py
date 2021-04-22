@@ -992,7 +992,7 @@ class SmallStrainJ2Plasticity3D():
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, self.poisson_ratio)
         properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
         properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
-        properties.SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, self.exponential_saturation_yield_stress)
+        properties.SetValue(ConstitutiveLawsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, self.exponential_saturation_yield_stress)
         properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, self.hardening_exponent)
         return properties
 
@@ -1016,7 +1016,7 @@ class SmallStrainJ2PlasticityPlaneStrain2D():
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, self.poisson_ratio)
         properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
         properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
-        properties.SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, self.exponential_saturation_yield_stress)
+        properties.SetValue(ConstitutiveLawsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, self.exponential_saturation_yield_stress)
         properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, self.hardening_exponent)
         return properties
 
@@ -1039,11 +1039,11 @@ class SmallStrainIsotropicDamagePlaneStrain2D():
         properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.young_modulus)
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, self.poisson_ratio)
         properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
-        properties.SetValue(StructuralMechanicsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
+        properties.SetValue(ConstitutiveLawsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
         hardening_modulus = KratosMultiphysics.Vector(2)
         hardening_modulus[0] = 0.3
         hardening_modulus[1] = 0.
-        properties.SetValue(StructuralMechanicsApplication.HARDENING_MODULI_VECTOR, hardening_modulus)
+        properties.SetValue(ConstitutiveLawsApplication.HARDENING_MODULI_VECTOR, hardening_modulus)
         return properties
 
     @staticmethod

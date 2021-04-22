@@ -15,6 +15,7 @@ from test_factory import BigCubeSmallDeformationPlasticityVMTest
 from test_factory import BigCubeSmallDeformationPlasticityDPTest
 from test_factory import BigCubeSmallDeformationPlasticityTTest
 from test_factory import SerialParallelRuleOfMixturesCubeDamageTest
+from test_factory import PlasticDamageTest
 from test_factory import AnisotropyTest
 from test_factory import InitialStateInelasticityTest
 from test_factory import InitialStateInelasticity2Test
@@ -61,6 +62,7 @@ def AssembleTestSuites():
     nightSuite.addTest(SmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(SimpleSmallDeformationPlasticityMCTest('test_execution'))
     nightSuite.addTest(SerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    nightSuite.addTest(PlasticDamageTest('test_execution'))
 
     ### Adding Validation Tests
     # For very long tests that should not be in nighly and you can use to validate

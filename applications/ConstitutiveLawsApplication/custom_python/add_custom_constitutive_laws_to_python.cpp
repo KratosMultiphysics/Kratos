@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS   ___                _   _ _         _   _             __                       _
+//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -88,6 +90,8 @@
 
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
+
+#include "custom_constitutive/associative_plastic_damage_model.h"
 
 namespace Kratos {
 namespace Python {
@@ -1746,6 +1750,21 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< SerialParallelRuleOfMixturesLaw, typename SerialParallelRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
     (m,"SerialParallelRuleOfMixturesLaw").def(py::init<>())
     ;
+
+    py::class_< AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
+    typename AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"AssociativePlasticDamageModel3DVonMisesVonMises").def(py::init<>());
+
+    py::class_< AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>,
+    typename AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"AssociativePlasticDamageModel3DDruckerPragerDruckerPrager").def(py::init<>());
+
+    py::class_< AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>,
+    typename AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
 }
 
 }  // namespace Python.
