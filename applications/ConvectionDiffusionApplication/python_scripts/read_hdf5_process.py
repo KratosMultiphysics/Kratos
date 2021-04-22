@@ -29,7 +29,8 @@ class ReadHdf5Process(Kratos.Process):
                 "list_of_variables" : ["VELOCITY", "TEMPERATURE", "COORDINATES"],
                 "error_projection_parameters" : {
                 	"u_characteristic"  : 1.0
-            	}
+            	},
+                "domain_size" : 3
             }
             """
             )
@@ -39,6 +40,7 @@ class ReadHdf5Process(Kratos.Process):
         self.problem_name = self.parameters["file_name"].GetString()
         self.destination_model_part = Model[settings["model_part_name"].GetString()]
         self.u_characteristic = settings["error_projection_parameters"]["u_characteristic"].GetDouble()
+        self.domain_size = self.parameters["domain_size"].GetValue()
         for element in self.destination_model_part.Elements:
             rho = element.Properties.GetValue(Kratos.DENSITY)
             break
@@ -63,7 +65,7 @@ class ReadHdf5Process(Kratos.Process):
         # self.destination_model_part_new.AddNodalSolutionStepVariable(CD.CONCENTRATION_PROJECTED)
         # model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
         # model_part_cloner.GenerateModelPart(self.destination_model_part, self.destination_model_part_new, self.element_name)
-        CDProjectionModule.ProjectionModuleConvectionDiffusion(self.reference_model_part, self.destination_model_part, self.parameters, self.fluid_variables, self.projected_variables)
+        CDProjectionModule.ProjectionModuleConvectionDiffusion(self.reference_model_part, self.destination_model_part, self.parameters, self.fluid_variables, self.projected_variables, self.domain_size)
         velocity_error, concentration_error = self.CalculateErrorNorm()
         WriteMdpaToHdf5.WriteConvergenceNodalErrorToHdf5(self.destination_model_part, velocity_error, concentration_error, self.problem_name)
     
@@ -74,7 +76,7 @@ class ReadHdf5Process(Kratos.Process):
         model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         model_part.AddNodalSolutionStepVariable(Kratos.TEMPERATURE)
 
-        mdpa_name = '/data0/home/abazan/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        mdpa_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
         model_part_io_exactMesh = Kratos.ModelPartIO(mdpa_name)
         model_part_io_exactMesh.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
@@ -83,7 +85,7 @@ class ReadHdf5Process(Kratos.Process):
 
     def GetFieldDataFile(self, model):
         import h5py
-        file_name = '/data0/home/abazan/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        file_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
         self.hf = h5py.File(file_name+".hdf5", 'r')
         group_names = list(self.hf.keys())
         self.velocities = self.hf[str(self.destination_model_part.ProcessInfo[Kratos.STEP])+'/VELOCITIES']

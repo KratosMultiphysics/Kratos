@@ -164,7 +164,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <2> ::AddVariablesToImposeProjection<array_1d<double, 3>>)
     ;
 
-        py::class_<BinBasedInterpolationUtility<3> > (m, "BinBasedInterpolationUtility3D")
+    py::class_<BinBasedInterpolationUtility<3> > (m, "BinBasedInterpolationUtility3D")
     .def(py::init<>())
     .def("InterpolateFromFluidMeshCD", &BinBasedInterpolationUtility<3>::InterpolateFromFluidMeshCD)
     .def("AddFluidVariable", &BinBasedInterpolationUtility<3>::AddFluidVariable<double>)

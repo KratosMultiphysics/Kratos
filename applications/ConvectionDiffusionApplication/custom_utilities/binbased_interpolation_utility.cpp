@@ -190,6 +190,7 @@ inline void BinBasedInterpolationUtility<TDim>::ClearVariable(const NodeIterator
 
 // Explicit instantiations
 template class BinBasedInterpolationUtility<2>;
+template class BinBasedInterpolationUtility<3>;
 //***************************************************************************************************************
 //***************************************************************************************************************
 }//namespace Kratos
