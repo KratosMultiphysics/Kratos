@@ -489,17 +489,22 @@ public:
 
         // if the preconditioner is saved between solves, it should be cleared here
         auto& p_builder_and_solver = this->pGetBuilderAndSolver();
-        p_builder_and_solver->GetLinearSystemSolver()->Clear();
+        if (p_builder_and_solver !=  nullptr)
+            p_builder_and_solver->GetLinearSystemSolver()->Clear();
 
         SparseSpaceType::Clear(mpForceVector);
         DenseSpaceType::Clear(mpModalMatrix);
 
         // re-setting internal flag to ensure that the dof sets are recalculated
-        p_builder_and_solver->SetDofSetIsInitializedFlag(false);
+        if (p_builder_and_solver !=  nullptr) {
+            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
 
-        p_builder_and_solver->Clear();
+            p_builder_and_solver->Clear();
+        }
 
-        this->pGetScheme()->Clear();
+        if (this->pGetScheme() !=  nullptr) {
+            this->pGetScheme()->Clear();
+        }
 
         mInitializeWasPerformed = false;
         mUseMaterialDamping = false;
@@ -655,9 +660,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    SchemePointerType mpScheme;
+    SchemePointerType mpScheme = nullptr;
 
-    BuilderAndSolverPointerType mpBuilderAndSolver;
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
     bool mInitializeWasPerformed = false;
 
