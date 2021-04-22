@@ -559,14 +559,15 @@ class MainCoupledFemDem_Solution:
 
 #WritePostListFile============================================================================================================================
     def WritePostListFile(self):
-        post_file_name = self.FEM_Solution.problem_name + ".post.lst"
-        time_label = round(self.FEM_Solution.step, 0)
-        PostListFile = open(post_file_name, "w")
-        PostListFile.write("Merge\n\n")
-        PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.res\n")
-        PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.msh\n")
-        PostListFile.write(os.path.join(self.FEM_Solution.problem_name + "_Post_Files", self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.bin"))
-        PostListFile.close()
+        pass
+        # post_file_name = self.FEM_Solution.problem_name + ".post.lst"
+        # time_label = round(self.FEM_Solution.step, 0)
+        # PostListFile = open(post_file_name, "w")
+        # PostListFile.write("Merge\n\n")
+        # PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.res\n")
+        # PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.msh\n")
+        # PostListFile.write(os.path.join(self.FEM_Solution.problem_name + "_Post_Files", self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.bin"))
+        # PostListFile.close()
 
 #InitializePlotsFiles============================================================================================================================
     def InitializePlotsFiles(self):
