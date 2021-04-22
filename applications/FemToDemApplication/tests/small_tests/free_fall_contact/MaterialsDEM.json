@@ -45,7 +45,5 @@
         }
     }],
     "material_assignation_table":[
-        ["SpheresPart", "mat1"],
-        ["RigidFacePart","mat2"]
     ]
 }
