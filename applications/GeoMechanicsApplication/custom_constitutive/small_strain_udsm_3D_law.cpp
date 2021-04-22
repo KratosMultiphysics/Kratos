@@ -274,10 +274,10 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
    // reset state variables
    int nStateVariables = GetNumberOfStateVariablesFromUDSM(rMaterialProperties);
    mStateVariables.resize(nStateVariables);
-   std::fill(mStateVariables.begin(), mStateVariables.end(), 0.0);
+   noalias(mStateVariables) = ZeroVector(nStateVariables);
 
    mStateVariablesFinalized.resize(nStateVariables);
-   std::fill(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(), 0.0);
+   noalias(mStateVariablesFinalized) = ZeroVector(nStateVariables);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::ResetStateVariables()") << std::endl;
 
@@ -297,20 +297,20 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    ResetStateVariables(rMaterialProperties);
 
    // set stress vectors:
-   std::fill(mStressVector.begin(), mStressVector.end(), 0.0);
-   std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+   noalias(mStressVector)          = ZeroVector(mStressVector.size());
+   noalias(mStressVectorFinalized) = ZeroVector(mStressVectorFinalized.size());
 
    // set strain vectors:
-   std::fill(mDeltaStrainVector.begin(), mDeltaStrainVector.end(), 0.0);
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
+   noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
+   noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
       for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
          mMatrixD[i][j] = 0.0;
 
    // state variables
-   std::fill(mStateVariables.begin(), mStateVariables.end(), 0.0);
-   std::fill(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(), 0.0);
+   noalias(mStateVariables)         = ZeroVector(mStateVariables.size());
+   noalias(mStateVariablesFinalized)= ZeroVector(mStateVariablesFinalized.size());
 
    mIsModelInitialized = false;
 
@@ -374,10 +374,10 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-            mStateVariablesFinalized.data(),
-            mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            &(mStateVariablesFinalized.data()[0]),
+            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
             &nStateVariables, 
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -817,10 +817,10 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-            mStateVariablesFinalized.data(),
-            mDeltaStrainVector.data(), (double **) mMatrixD, &bulkWater,
-            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            &(mStateVariablesFinalized.data()[0]),
+            &(mDeltaStrainVector.data()[0]), (double **) mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
             &nStateVariables, 
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -884,10 +884,10 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProp
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-            mStateVariablesFinalized.data(),
-            mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            &(mStateVariablesFinalized.data()[0]),
+            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
             &nStateVariables,
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -1237,7 +1237,7 @@ int SmallStrainUDSM3DLaw::GetStateVariableIndex(const Variable<double>& rThisVar
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetStateVariableIndex()") << std::endl;
 
-   return index;
+   return index - 1;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1250,21 +1250,14 @@ Vector& SmallStrainUDSM3DLaw::GetValue( const Variable<Vector> &rThisVariable, V
       if (rValue.size() != mStateVariablesFinalized.size())
          rValue.resize(mStateVariablesFinalized.size());
 
-      for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i)
-      {
-         rValue[i] = mStateVariablesFinalized[i];
-      }
+      noalias(rValue) = mStateVariablesFinalized;
    }
    else if (rThisVariable == CAUCHY_STRESS_VECTOR)
    {
       if (rValue.size() != mStressVectorFinalized.size())
          rValue.resize(mStressVectorFinalized.size());
 
-      for (unsigned int i=0; i < mStressVectorFinalized.size(); ++i)
-      {
-         rValue[i] = mStressVectorFinalized[i];
-      }
-
+      noalias(rValue) = mStressVectorFinalized;
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetValue()") << std::endl;
@@ -1277,12 +1270,12 @@ double& SmallStrainUDSM3DLaw::GetValue( const Variable<double>& rThisVariable, d
 {
    // KRATOS_INFO("01-SmallStrainUDSM3DLaw::GetValue()") << std::endl;
 
-   int index = GetStateVariableIndex(rThisVariable);
+   const int index = GetStateVariableIndex(rThisVariable);
 
-   if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
-   {
-      rValue = mStateVariablesFinalized[index - 1];
-   }
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+   rValue = mStateVariablesFinalized[index];
 
    // KRATOS_INFO("11-SmallStrainUDSM3DLaw::GetValue()") << std::endl;
 
@@ -1313,10 +1306,10 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<double>& rThisVariable,
 
    const int index = GetStateVariableIndex(rThisVariable);
 
-   if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
-   {
-      mStateVariablesFinalized[index - 1] = rValue;
-   }
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+   mStateVariablesFinalized[index] = rValue;
 
    // KRATOS_INFO("11-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 
