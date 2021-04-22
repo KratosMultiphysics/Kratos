@@ -300,8 +300,9 @@ public:
         KRATOS_TRY
 
         // if the preconditioner is saved between solves, it should be cleared here
-        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        pBuilderAndSolver->GetLinearSystemSolver()->Clear();
+        auto pBuilderAndSolver = this->pGetBuilderAndSolver();
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->GetLinearSystemSolver()->Clear();
 
         if (this->pGetMassMatrix() != nullptr)
             this->pGetMassMatrix() = nullptr;
@@ -309,12 +310,14 @@ public:
         if (this->pGetStiffnessMatrix() != nullptr)
             this->pGetStiffnessMatrix() = nullptr;
 
-        // Re-setting internal flag to ensure that the dof sets are recalculated
-        pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        // Re-setting internal flag to ensure that the dof sets are 
+        if (pBuilderAndSolver != nullptr) {
+            pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+            pBuilderAndSolver->Clear();
+        }
 
-        pBuilderAndSolver->Clear();
-
-        this->pGetScheme()->Clear();
+        if (this->pGetScheme() != nullptr)
+            this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
 
@@ -672,9 +675,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    SchemePointerType mpScheme;
+    SchemePointerType mpScheme = nullptr;
 
-    BuilderAndSolverPointerType mpBuilderAndSolver;
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
     SparseMatrixPointerType mpMassMatrix;
 
