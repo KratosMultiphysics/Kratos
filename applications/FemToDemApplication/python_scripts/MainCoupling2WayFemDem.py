@@ -186,6 +186,9 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 
         self.FEM_Solution.InitializeSolutionStep()
+        self.DEM_Solution._GetSolver().AdvanceInTime(self.FEM_Solution.time)
+        self.DEM_Solution.time = self.FEM_Solution.time
+        self.DEM_Solution.step = self.FEM_Solution.step
 
 #============================================================================================================================
     def SolveSolutionStep(self):  # Method to perform the coupling FEM <-> DEM
