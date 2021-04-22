@@ -63,7 +63,7 @@ class DEMAnalysisStage(AnalysisStage):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self, model, DEM_parameters, DEM_material_parameters):
+    def __init__(self, model, DEM_parameters):
         self.model = model
         self.main_path = self.GetMainPath()
         self.mdpas_folder_path = self.main_path
