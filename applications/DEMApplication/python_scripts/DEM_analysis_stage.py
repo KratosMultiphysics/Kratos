@@ -74,7 +74,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
         self.FixParametersInconsistencies()
 
-        self.DEM_material_parameters = DEM_material_parameters
+        self.ReadMaterialsFile()
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         if not "WriteMdpaFromResults" in self.DEM_parameters.keys():
@@ -117,6 +117,11 @@ class DEMAnalysisStage(AnalysisStage):
         self.AddVariables()
 
         super().__init__(model, self.DEM_parameters)
+
+    def ReadMaterialsFile(self):
+        materials_file_abs_path = os.path.join(self.GetMainPath(), self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        with open(materials_file_abs_path, 'r') as materials_file:
+            self.DEM_material_parameters = Parameters(materials_file.read())
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")

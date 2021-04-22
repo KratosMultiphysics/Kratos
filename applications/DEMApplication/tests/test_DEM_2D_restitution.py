@@ -19,7 +19,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     def Initialize(self):
         super().Initialize()
         for node in self.spheres_model_part.Nodes:
-            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)         
+            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
 
     @classmethod
     def GetMainPath(self):
@@ -27,7 +27,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
-    
+
     '''def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         for node in self.spheres_model_part.Nodes:
@@ -85,8 +85,13 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
 class DEM2D_RestitutionTestSolution_2(DEM2D_RestitutionTestSolution):
 
+    def ReadMaterialsFile(self):
+        materials_file_abs_path = os.path.join(self.GetMainPath(), "MaterialsDEM2.json")
+        with open(materials_file_abs_path, 'r') as materials_file:
+            self.DEM_material_parameters = KratosMultiphysics.Parameters(materials_file.read())
+
     @classmethod
-    def SetHardcodedProperties(self, properties, properties_walls):        
+    def SetHardcodedProperties(self, properties, properties_walls):
         self.coeff = 0.5
 
 class TestDEM2DRestitution(KratosUnittest.TestCase):

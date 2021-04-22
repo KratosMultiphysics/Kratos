@@ -19,6 +19,9 @@ class ExplicitStrategy():
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings"           : {
+                "materials_filename" : "MaterialsDEM.json"
             }
         }""")
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
