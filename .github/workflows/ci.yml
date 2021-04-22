@@ -181,58 +181,6 @@ jobs:
         python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
 
 
-  ubuntu-without-unity:
-    runs-on: ubuntu-latest
-    env:
-      KRATOS_BUILD_TYPE: Custom
-
-    container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
-      env:
-        CCACHE_SLOPPINESS: pch_defines,time_macros
-        CCACHE_COMPILERCHECK: content
-        CCACHE_COMPRESS: true
-        CCACHE_NODISABLE: true
-        CCACHE_MAXSIZE: 500M
-
-    steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-    - uses: actions/checkout@v2
-
-    - name: Cache Build
-      id: cache-build
-      uses: actions/cache@v1
-      with:
-        path: ~/.ccache
-        key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-no-unity-ccache-
-
-    - name: Build
-      shell: bash
-      run: |
-        export CC=/usr/lib/ccache/clang
-        export CXX=/usr/lib/ccache/clang++
-
-        export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
-        export KRATOS_BUILD="${KRATOS_SOURCE}/build"
-        export PYTHON_EXECUTABLE="/usr/bin/python3.8"
-        export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
-
-        # Configure
-        cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
-        -DUSE_MPI=ON \
-        -DPYBIND11_PYTHON_VERSION="3.8" \
-        -DINSTALL_RUNKRATOS=OFF
-
-        # Buid
-        cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
-
-        ccache -s
-
-
   ubuntu-intel:
     runs-on: ubuntu-latest
     env:
