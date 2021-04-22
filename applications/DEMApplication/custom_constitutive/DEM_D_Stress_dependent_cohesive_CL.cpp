@@ -34,7 +34,7 @@ namespace Kratos {
     }
 
     std::string DEM_D_Stress_Dependent_Cohesive::GetTypeOfLaw() {
-        std::string type_of_law = "Stress_Dependent_Cohesive";
+        std::string type_of_law = "Linear";
         return type_of_law;
     }
 

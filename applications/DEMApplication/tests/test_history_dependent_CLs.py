@@ -47,19 +47,19 @@ class HistoryDependentCLsTestSolution(KratosMultiphysics.DEMApplication.DEM_anal
                     self.CheckValueOfForce(force, 2, expected_value, tolerance)
 
                 if node.Id == 5:
-                    expected_value = -1121.97380
+                    expected_value = -1219.77524
                     self.CheckValueOfForce(force, 0, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValueOfForce(force, 1, expected_value, tolerance)
-                    expected_value = 1706.20823
+                    expected_value = 1854.85877
                     self.CheckValueOfForce(force, 2, expected_value, tolerance)
 
                 if node.Id == 6:
-                    expected_value = -2435.94253
+                    expected_value = -2646.11603
                     self.CheckValueOfForce(force, 0, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValueOfForce(force, 1, expected_value, tolerance)
-                    expected_value = 3545.03794
+                    expected_value = 3850.74485
                     self.CheckValueOfForce(force, 2, expected_value, tolerance)
 
     def CheckValueOfForce(self, force, component, expected_value, tolerance):
