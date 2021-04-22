@@ -462,7 +462,8 @@ public:
 
         KRATOS_INFO("MechanicalExplicitStrategy") << "Clear function used" << std::endl;
 
-        GetScheme()->Clear();
+        if (GetScheme() !=  nullptr)
+            GetScheme()->Clear();
         mInitializeWasPerformed = false;
 
         KRATOS_CATCH("")
@@ -665,7 +666,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme; /// The pointer to the integration scheme
+    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the integration scheme
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each solution step or if it is possible to form it just once
