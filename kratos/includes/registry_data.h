@@ -17,6 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 
 // External includes
@@ -77,7 +78,10 @@ public:
     RegistryData(std::string Name) : mName(Name), mpValue(nullptr){}
 
     /// Destructor.
-    virtual ~RegistryData();
+    virtual ~RegistryData(){
+        if(mpValue)
+            delete mpValue;
+    }
 
     ///@}
     ///@name Operators
@@ -92,6 +96,10 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+        const std::string& Name() const{
+            return mName;
+        }
 
 
     ///@}
@@ -161,7 +169,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    string mName;
+    std::string mName;
     void* mpValue;
     std::unordered_map<std::string, Kratos::unique_ptr<RegistryData>> mSubRegistryData;
 
