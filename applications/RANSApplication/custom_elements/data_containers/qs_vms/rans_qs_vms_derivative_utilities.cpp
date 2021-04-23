@@ -26,6 +26,9 @@
 // k-omega
 #include "custom_elements/data_containers/k_omega/k_element_data.h"
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
+// k-omega-sst
+#include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 
 
 // Include base h
@@ -33,6 +36,33 @@
 
 namespace Kratos
 {
+namespace RANSQSVMSDerivativeHelperUtilities
+{
+template <unsigned int TDim>
+using AdjointVariableInformationType = AdjointVariableInformation::VariableInformation<TDim>;
+
+template <unsigned int TDim>
+std::vector<AdjointVariableInformationType<TDim>> GetEffectiveViscosityDependentVariables();
+
+template <>
+std::vector<AdjointVariableInformationType<2>> GetEffectiveViscosityDependentVariables<2>()
+{
+    return std::vector<AdjointVariableInformationType<2>>{
+        AdjointVariableInformation::VelocityInformation<2>(0),
+        AdjointVariableInformation::VelocityInformation<2>(1),
+    };
+}
+
+template <>
+std::vector<AdjointVariableInformationType<3>> GetEffectiveViscosityDependentVariables<3>()
+{
+    return std::vector<AdjointVariableInformationType<3>>{
+        AdjointVariableInformation::VelocityInformation<3>(0),
+        AdjointVariableInformation::VelocityInformation<3>(1),
+        AdjointVariableInformation::VelocityInformation<3>(2)};
+}
+} // namespace RANSQSVMSDerivativeHelperUtilities
+
 template <unsigned int TDim>
 template <unsigned int TNumNodes, class TElementData>
 array_1d<double, TDim> RansQSVMSDerivativeUtilities<TDim>::TurbulenceVariableDerivative<TNumNodes, TElementData>::CalculateEffectiveVelocityDerivative(
@@ -66,6 +96,20 @@ void RansQSVMSDerivativeUtilities<TDim>::TurbulenceVariableDerivative<TNumNodes,
     rOutput.clear();
 }
 
+template <unsigned int TDim>
+template <unsigned int TNumNodes>
+std::vector<AdjointVariableInformation::VariableInformation<TDim>> RansQSVMSDerivativeUtilities<TDim>::KOmegaSSTVelocityDerivative<TNumNodes>::GetEffectiveViscosityDependentVariables() const
+{
+    return RANSQSVMSDerivativeHelperUtilities::GetEffectiveViscosityDependentVariables<TDim>();
+}
+
+template <unsigned int TDim>
+template <unsigned int TNumNodes>
+std::vector<AdjointVariableInformation::VariableInformation<TDim>> RansQSVMSDerivativeUtilities<TDim>::KOmegaSSTShapeDerivative<TNumNodes>::GetEffectiveViscosityDependentVariables() const
+{
+    return RANSQSVMSDerivativeHelperUtilities::GetEffectiveViscosityDependentVariables<TDim>();
+}
+
 // template instantiations
 
 // k-epsilon
@@ -81,6 +125,21 @@ template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, 
 
 template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KOmegaElementData::KElementData<3>>;
 template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KOmegaElementData::OmegaElementData<3>>;
+
+// k-omega-sst
+template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, KOmegaSSTElementData::KElementData<2>>;
+template class RansQSVMSDerivativeUtilities<2>::TurbulenceVariableDerivative<3, KOmegaSSTElementData::OmegaElementData<2>>;
+
+template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KOmegaSSTElementData::KElementData<3>>;
+template class RansQSVMSDerivativeUtilities<3>::TurbulenceVariableDerivative<4, KOmegaSSTElementData::OmegaElementData<3>>;
+
+// k-omega-sst specific velocity derivatives
+template class RansQSVMSDerivativeUtilities<2>::KOmegaSSTVelocityDerivative<3>;
+template class RansQSVMSDerivativeUtilities<3>::KOmegaSSTVelocityDerivative<4>;
+
+// k-omega-sst specific shape derivatives
+template class RansQSVMSDerivativeUtilities<2>::KOmegaSSTShapeDerivative<3>;
+template class RansQSVMSDerivativeUtilities<3>::KOmegaSSTShapeDerivative<4>;
 
 template class RansQSVMSDerivativeUtilities<2>;
 template class RansQSVMSDerivativeUtilities<3>;

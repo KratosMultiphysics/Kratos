@@ -20,8 +20,10 @@
 #include "includes/checks.h"
 
 // Application includes
+#include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_elements/data_containers/k_omega_sst/element_data_derivative_utilities.h"
 #include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
@@ -112,6 +114,91 @@ double& RansKOmegaSSTNewtonianLaw<TDim, TPrimalBaseType>::CalculateValue(
     }
 
     return rValue;
+
+    KRATOS_CATCH("");
+}
+
+template<unsigned int TDim, class TPrimalBaseType>
+void RansKOmegaSSTNewtonianLaw<TDim, TPrimalBaseType>::CalculateDerivative(
+    ConstitutiveLaw::Parameters& rParameters,
+    const Variable<double>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    double& rOutput)
+{
+    KRATOS_TRY
+
+    using MatrixDD = BoundedMatrix<double, TDim, TDim>;
+
+    if (rFunctionVariable == EFFECTIVE_VISCOSITY) {
+        const auto& r_properties = rParameters.GetMaterialProperties();
+        const double rho = r_properties[DENSITY];
+        const double nu = r_properties[DYNAMIC_VISCOSITY] / rho;
+
+        rOutput = 0.0;
+
+        const auto& r_process_info = rParameters.GetProcessInfo();
+        const double beta_star = r_process_info[TURBULENCE_RANS_C_MU];
+        const double a1 = r_process_info[TURBULENCE_RANS_A1];
+
+        double y, tke, omega, tke_derivative{0.0}, omega_derivative{0.0}, t_derivative{0.0};
+
+        FluidCalculationUtilities::EvaluateInPoint(
+            rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues(),
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+            std::tie(y, DISTANCE)
+        );
+
+        MatrixDD velocity_gradient, velocity_gradient_derivative;
+        FluidCalculationUtilities::EvaluateGradientInPoint(
+            rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsDerivatives(),
+            std::tie(velocity_gradient, VELOCITY));
+
+        noalias(velocity_gradient_derivative) = ZeroMatrix(TDim, TDim);
+
+        const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, beta_star);
+
+        const MatrixDD symmetric_velocity_gradient =
+            (velocity_gradient + trans(velocity_gradient)) * 0.5;
+
+        const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+
+        const double nu_t = KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke, omega, t, f_2, a1);
+
+        if (nu_t > 1e-12) {
+            if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY) {
+                tke_derivative = 1.0;
+            } else if (rDerivativeVariable == TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE) {
+                omega_derivative = 1.0;
+            } else if (rDerivativeVariable.IsComponent()) {
+                if (rDerivativeVariable.GetSourceVariable() == VELOCITY_GRADIENT_TENSOR) {
+                    const int component_index = rDerivativeVariable.GetComponentIndex();
+                    const int row = component_index / 3;
+                    const int column = component_index % 3;
+                    velocity_gradient_derivative(row, column) = 1.0;
+                } else if (rDerivativeVariable.GetSourceVariable() == SHAPE_SENSITIVITY_GRADIENT_TENSOR) {
+
+                }
+            }
+        }
+
+        const MatrixDD& symmetric_velocity_gradient_derivative = 0.5 * (velocity_gradient_derivative + trans(velocity_gradient_derivative));
+        for (IndexType i = 0; i < TDim; ++i) {
+            for (IndexType j = 0; j < TDim; ++j) {
+                t_derivative += symmetric_velocity_gradient(i, j) * symmetric_velocity_gradient_derivative(i, j);
+            }
+        }
+        t_derivative *= (1.414 * 1.414  / t);
+
+        const double f_2_derivative = KOmegaSSTElementData::AdjointUtilities<TDim>::CalculateF2Derivative(
+            tke, tke_derivative, omega, omega_derivative, nu, y, 0.0, beta_star);
+
+        rOutput = KOmegaSSTElementData::AdjointUtilities<TDim>::CalculateTurbulentKinematicViscosityDerivative(
+            tke, tke_derivative, omega, omega_derivative, t, t_derivative,
+            f_2, f_2_derivative, a1);
+
+        rOutput *= rho;
+    }
 
     KRATOS_CATCH("");
 }

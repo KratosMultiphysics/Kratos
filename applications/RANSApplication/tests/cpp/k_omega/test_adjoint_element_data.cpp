@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(KOmegaKElementDataKDerivative, KratosRansFastSuite)
     AdjointTestUtilities::RunElementDataDerivativeTest<
         KOmegaElementData::KElementData<2>, KOmegaElementData::KElementDataDerivatives<2, 3>::KDerivative>(
         model, KOmegaAddVariables, KOmegaSetVariables,
-        KOmegaSetProperties, KOmegaUpdateVariables, 2, 1e-6, 1e-5);
+        KOmegaSetProperties, KOmegaUpdateVariables, 2, 1e-6, 1e-4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KOmegaKElementDataOmegaDerivative, KratosRansFastSuite)
