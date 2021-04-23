@@ -53,24 +53,24 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Registry
+class RegistryData
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Registry
-    KRATOS_CLASS_POINTER_DEFINITION(Registry);
+    /// Pointer definition of RegistryData
+    KRATOS_CLASS_POINTER_DEFINITION(RegistryData);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Registry();
+    RegistryData() = delete;
 
     /// Destructor.
-    virtual ~Registry();
+    virtual ~RegistryData();
 
     ///@}
     ///@name Operators
@@ -154,6 +154,11 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    string mName;
+    void* mpValue;
+    std::unordered_map<std::string, Kratos::unique_ptr<RegistryData>> mSubRegistryData;
+
+
 
     ///@}
     ///@name Member Variables
@@ -185,15 +190,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    Registry& operator=(Registry const& rOther);
+    RegistryData& operator=(RegistryData const& rOther);
 
     /// Copy constructor.
-    Registry(Registry const& rOther);
+    RegistryData(RegistryData const& rOther);
 
 
     ///@}
 
-}; // Class Registry
+}; // Class RegistryData
 
 ///@}
 
@@ -208,11 +213,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                Registry& rThis);
+                RegistryData& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const Registry& rThis)
+                const RegistryData& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
