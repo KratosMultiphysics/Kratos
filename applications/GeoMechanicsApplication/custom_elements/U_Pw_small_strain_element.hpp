@@ -275,6 +275,8 @@ protected:
                                      RetentionLaw::Parameters &rRetentionParameters,
                                      const unsigned int &GPoint );
 
+    void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
