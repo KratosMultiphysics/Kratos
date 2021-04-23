@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication import *
 
-class MaterialsAssignationUtility():
+class MaterialsAssignationUtility:
 
     def __init__(self, model, spheres_model_part, DEM_material_parameters):
         self.model = model
