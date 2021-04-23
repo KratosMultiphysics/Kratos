@@ -12,6 +12,7 @@ from . import plane_based_packaging
 from . import mesh_based_packaging
 from . import surface_normal_shape_change
 from . import geometric_centroid_deviation
+from . import total_volume
 
 
 def CreateResponseFunction(response_id, response_settings, model):
@@ -25,6 +26,8 @@ def CreateResponseFunction(response_id, response_settings, model):
         return surface_normal_shape_change.SurfaceNormalShapeChange(response_id, response_settings, model)
     elif response_type == "geometric_centroid_deviation":
         return geometric_centroid_deviation.GeometricCentroidDeviation(response_id, response_settings, model)
+    elif response_type == "total_volume":
+        return total_volume.TotalVolume(response_id, response_settings, model)
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
                         ".\nAvailable types are: 'plane_based_packaging', 'mesh_based_packaging'.")
