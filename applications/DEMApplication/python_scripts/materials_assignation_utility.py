@@ -41,15 +41,27 @@ class MaterialsAssignationUtility():
 
 
     def SetInputMaterialPropertiesIntoModelPartProperties(self, input_properties, mp_properties):
+
         if input_properties.Has("PARTICLE_DENSITY"):
             mp_properties[PARTICLE_DENSITY] = input_properties["PARTICLE_DENSITY"].GetDouble()
+
         mp_properties[Kratos.YOUNG_MODULUS] = input_properties["YOUNG_MODULUS"].GetDouble()
+
         mp_properties[Kratos.POISSON_RATIO] = input_properties["POISSON_RATIO"].GetDouble()
+
         if input_properties.Has("COMPUTE_WEAR"):
             mp_properties[COMPUTE_WEAR] = input_properties["COMPUTE_WEAR"].GetBool()
         else:
             mp_properties[COMPUTE_WEAR] = False
 
+        if input_properties.Has("BREAKABLE_CLUSTER"):
+            mp_properties[BREAKABLE_CLUSTER] = input_properties["BREAKABLE_CLUSTER"].GetBool()
+
+        if input_properties.Has("CLUSTER_FILE_NAME"):
+            mp_properties[CLUSTER_FILE_NAME] = input_properties["CLUSTER_FILE_NAME"].GetString()
+
+        if input_properties.Has("DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"):
+            mp_properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = input_properties["DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME"].GetString()
 
     def SetInputMaterialRelationPropertiesIntoModelPartSubProperties(self, contact_properties, subprops):
         subprops[COEFFICIENT_OF_RESTITUTION] = contact_properties["COEFFICIENT_OF_RESTITUTION"].GetDouble()

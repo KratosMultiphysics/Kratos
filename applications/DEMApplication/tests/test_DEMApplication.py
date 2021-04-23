@@ -21,6 +21,7 @@ import test_post_process
 import test_friction_decay
 import test_forces_and_moments
 import test_history_dependent_CLs
+import test_clusters
 
 def AssembleTestSuites():
 
@@ -62,6 +63,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
     smallSuite.addTest(test_history_dependent_CLs.TestHistoryDependentCLs("test_HistoryDependentCLs"))
+    smallSuite.addTest(test_clusters.TestClusters("test_clusters_1"))
+
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
