@@ -27,6 +27,10 @@ def GetKratosObjectPrototype(type_name):
             "KratosMultiphysics.python_linear_solver_factory.ConstructSolver",
             "KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory.ConstructSolver"
         ],
+        "ResidualBasedLinearStrategy": [
+            "KratosMultiphysics.ResidualBasedLinearStrategy",
+            "KratosMultiphysics.TrilinosApplication.TrilinosLinearStrategy"
+        ],
         "ResidualBasedNewtonRaphsonStrategy": [
             "KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy",
             "KratosMultiphysics.TrilinosApplication.TrilinosNewtonRaphsonStrategy"
@@ -74,6 +78,14 @@ def GetKratosObjectPrototype(type_name):
         "StrategyLabel":[
             "KratosMultiphysics.FluidDynamicsApplication.StrategyLabel",
             "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosStrategyLabel"
+        ],
+        "SimpleSteadyAdjointScheme":[
+            "KratosMultiphysics.FluidDynamicsApplication.SimpleSteadyAdjointScheme",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosSimpleSteadyAdjointScheme"
+        ],
+        "VelocityBossakAdjointScheme":[
+            "KratosMultiphysics.FluidDynamicsApplication.VelocityBossakAdjointScheme",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosVelocityBossakAdjointScheme"
         ]
     }
 
@@ -192,7 +204,8 @@ def InitializePeriodicConditions(
     base_model_part,
     model_part,
     variables_list,
-    periodic_condition_name = "PeriodicCondition"):
+    periodic_condition_name = "PeriodicCondition",
+    create_new_conditions = True):
 
     properties = model_part.CreateNewProperties(
         model_part.NumberOfProperties() + 1)
@@ -202,14 +215,25 @@ def InitializePeriodicConditions(
     for variable in variables_list:
         pcu.AddPeriodicVariable(properties, variable)
 
-    index = model_part.NumberOfConditions()
+    def modify_condition_properties(condition, _):
+        condition.SetProperties(properties)
+
+    def create_new_condition(condition, index):
+        node_id_list = [node.Id for node in condition.GetNodes()]
+        periodic_condition = model_part.CreateNewCondition(
+            periodic_condition_name, index, node_id_list, properties)
+        periodic_condition.Set(Kratos.PERIODIC)
+
+    if (create_new_conditions):
+        periodic_condition_update = create_new_condition
+    else:
+        periodic_condition_update = modify_condition_properties
+
+    index = model_part.GetCommunicator().GlobalNumberOfConditions()
     for condition in base_model_part.Conditions:
         if condition.Is(Kratos.PERIODIC):
             index += 1
-            node_id_list = [node.Id for node in condition.GetNodes()]
-            periodic_condition = model_part.CreateNewCondition(
-                periodic_condition_name, index, node_id_list, properties)
-            periodic_condition.Set(Kratos.PERIODIC)
+            periodic_condition_update(condition, index)
 
 def InitializeWallLawProperties(model):
     for model_part_name in model.GetModelPartNames():
