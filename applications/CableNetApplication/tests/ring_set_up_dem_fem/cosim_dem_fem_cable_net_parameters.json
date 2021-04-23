@@ -59,7 +59,6 @@
                 "type" : "solver_wrappers.kratos.dem_wrapper",
                 "solver_wrapper_settings" : {
                     "input_file"           : "ring_set_up_dem_fem/ProjectParametersDEM",
-                    "material_file"        : "ring_set_up_dem_fem/MaterialsDEM",
                     "move_mesh_model_part" : ["RigidFacePart.0"],
                     "working_directory"    : "ring_set_up_dem_fem"
                 },

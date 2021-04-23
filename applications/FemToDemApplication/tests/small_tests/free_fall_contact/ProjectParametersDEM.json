@@ -26,7 +26,10 @@
 
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "sphere_strategy"
+        "strategy"                          : "sphere_strategy",
+		"material_import_settings"   : {
+					"materials_filename" : "small_tests/free_fall_contact/MaterialsDEM.json"
+		}
     },
     
    "DeltaOption"                    : "Absolute",
