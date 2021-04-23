@@ -22,7 +22,6 @@
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
-#include "factories/factory.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -76,9 +75,6 @@ public:
     /// DoF types definition
     typedef typename Node<3>::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
-
-    /// Scheme factory
-    typedef Factory<TSchemeType> SchemeFactoryType;
 
     /// Counted pointer of MechanicalExplicitStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
@@ -707,7 +703,7 @@ protected:
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
     }
 

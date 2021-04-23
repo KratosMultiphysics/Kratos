@@ -22,8 +22,6 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
-#include "factories/linear_solver_factory.h"
-#include "factories/register_factories.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -91,12 +89,6 @@ public:
     typedef typename TSparseSpace::MatrixType SparseMatrixType;
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
-
-    /// Linear solver factory
-    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
-    
-    /// Scheme factory
-    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -631,23 +623,12 @@ protected:
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
 
         // Setting up the default builder and solver
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
-            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
-                // Defining the linear solver
-                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
-
-                // Defining the builder and solver
-                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
-            } else {
-                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
-                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
-                                KratosComponents<TBuilderAndSolverType>() << std::endl;
-            }
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
         }
     }
 
