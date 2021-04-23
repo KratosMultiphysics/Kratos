@@ -74,8 +74,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
         self.FixParametersInconsistencies()
 
-        self.ReadMaterialsFile()
-
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         if not "WriteMdpaFromResults" in self.DEM_parameters.keys():
             self.write_mdpa_from_results = False
@@ -117,11 +115,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.AddVariables()
 
         super().__init__(model, self.DEM_parameters)
-
-    def ReadMaterialsFile(self):
-        materials_file_abs_path = os.path.join(self.GetMainPath(), self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
-        with open(materials_file_abs_path, 'r') as materials_file:
-            self.DEM_material_parameters = Parameters(materials_file.read())
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -322,6 +315,8 @@ class DEMAnalysisStage(AnalysisStage):
 
     def SetMaterials(self):
 
+        self.ReadMaterialsFile()
+
         model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
         if input_type == "rest":
@@ -330,6 +325,13 @@ class DEMAnalysisStage(AnalysisStage):
         materials_setter = MaterialsAssignationUtility(self.model, self.spheres_model_part, self.DEM_material_parameters)
         materials_setter.AssignMaterialParametersToProperties()
         materials_setter.AssignPropertiesToEntities()
+
+    def ReadMaterialsFile(self):
+        print(self.main_path)
+        print(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        materials_file_abs_path = os.path.join(self.main_path, self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        with open(materials_file_abs_path, 'r') as materials_file:
+            self.DEM_material_parameters = Parameters(materials_file.read())
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
