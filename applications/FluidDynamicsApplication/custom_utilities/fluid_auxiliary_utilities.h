@@ -49,6 +49,7 @@ public:
     ///@name Static Operations
     ///@{
 
+    static double CalculateFluidVolume(ModelPart& rModelPart);
 
     ///@}
 private:
