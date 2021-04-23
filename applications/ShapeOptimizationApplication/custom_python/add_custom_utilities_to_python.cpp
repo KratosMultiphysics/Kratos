@@ -29,6 +29,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_revolution.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -149,6 +150,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Map", MapVector<MapperVertexMorphingSymmetric>)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingSymmetric>) // TODO
         .def("InverseMap", InverseMapVector<MapperVertexMorphingSymmetric>)
+        ;
+    py::class_<MapperVertexMorphingRevolution >(m, "MapperVertexMorphingRevolution")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingRevolution::Initialize)
+        .def("Update", &MapperVertexMorphingRevolution::Update)
+        .def("Map", MapScalar<MapperVertexMorphingRevolution>) // TODO
+        .def("Map", MapVector<MapperVertexMorphingRevolution>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingRevolution>) // TODO
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingRevolution>)
         ;
 
     // ================================================================
