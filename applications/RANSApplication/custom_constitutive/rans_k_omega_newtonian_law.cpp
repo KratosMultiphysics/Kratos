@@ -110,6 +110,46 @@ double& RansKOmegaNewtonianLaw<TPrimalBaseType>::CalculateValue(
 }
 
 template<class TPrimalBaseType>
+void RansKOmegaNewtonianLaw<TPrimalBaseType>::CalculateDerivative(
+    ConstitutiveLaw::Parameters& rParameters,
+    const Variable<double>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    double& rOutput)
+{
+    KRATOS_TRY
+
+    if (rFunctionVariable == EFFECTIVE_VISCOSITY) {
+        const Properties& r_prop = rParameters.GetMaterialProperties();
+        const double density = r_prop[DENSITY];
+
+        rOutput = 0.0;
+
+        double tke, omega;
+        FluidCalculationUtilities::EvaluateInPoint(
+            rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues(),
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+        double nu_t = 1e-12;
+        if (tke > 1e-12 && omega > 1e-12) {
+            nu_t = std::max(tke / omega, 1e-12);
+        }
+        if (tke > 0.0 && omega > 1e-12 && nu_t > 1e-12) {
+            // computing gauss point nu_t derivative
+            if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY) {
+                rOutput = 1 / omega;
+            } else if (rDerivativeVariable == TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE) {
+                rOutput = -tke / std::pow(omega, 2);
+            }
+        }
+
+        rOutput *= density;
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TPrimalBaseType>
 std::string RansKOmegaNewtonianLaw<TPrimalBaseType>::Info() const
 {
     return "RansKOmega" + TPrimalBaseType::Info();

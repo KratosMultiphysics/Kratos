@@ -134,7 +134,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mSigmaOmega;
     mReactionTerm = std::max(mBeta * mTurbulentKineticEnergy / mTurbulentKinematicViscosity + mGamma * 2.0 * mVelocityDivergence / 3.0, 0.0);
-    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) *  (mGamma / mTurbulentKinematicViscosity);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, 1.0) *  (mGamma);
 
     KRATOS_CATCH("");
 }

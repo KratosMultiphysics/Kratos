@@ -53,7 +53,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         self.adjoint_element_map = {
             ("QSVMS", ) : "QSVMSAdjoint",
-            ("QSVMS", "RansKEpsilonKRFC", "RansKEpsilonEpsilonRFC") : "RansKEpsilonQSVMSRFCAdjoint"
+            ("QSVMS", "RansKEpsilonKRFC", "RansKEpsilonEpsilonRFC") : "RansKEpsilonQSVMSRFCAdjoint",
+            ("QSVMS", "RansKOmegaKRFC", "RansKOmegaOmegaRFC") : "RansKOmegaQSVMSRFCAdjoint"
         }
 
         self.adjoint_condition_map = {
@@ -61,7 +62,10 @@ class AdjointRANSSolver(CoupledRANSSolver):
             ("RansVMSMonolithicKBasedWall",) : "AdjointMonolithicWallCondition",
             # k-epsilon conditions
             ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonKBasedWall") : "RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint",
-            ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonUBasedWall") : "RansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint"
+            ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonUBasedWall") : "RansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint",
+            # k-omega conditions
+            ("RansVMSMonolithicKBasedWall", "", "RansKOmegaOmegaKBasedWall") : "RansKOmegaVMSKBasedOmegaKBasedWallAdjoint",
+            ("RansVMSMonolithicKBasedWall", "", "RansKOmegaOmegaUBasedWall") : "RansKOmegaVMSKBasedOmegaUBasedWallAdjoint"
         }
 
         self.min_buffer_size = 2

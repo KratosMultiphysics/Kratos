@@ -24,73 +24,50 @@ def SolveAdjointProblem(kratos_parameters):
     return test
 
 @KratosUnittest.skipIfApplicationsNotAvailable("HDF5Application")
-class AdjointTwoElementsTest(KratosUnittest.TestCase):
+class AdjointKOmegaTwoElementsTest(KratosUnittest.TestCase):
     @staticmethod
     def _ReadParameters(parameters_file_name):
         parameters = ReadParameters(parameters_file_name)
         parameters["problem_data"]["parallel_type"].SetString("OpenMP")
         return parameters
 
-    def testQSVMSSteadySlip(self):
+    def testQSVMSKOmegaSteady(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             node_ids = [1]
 
             # calculate sensitivity by finite difference
-            primal_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/qsvms_test_parameters.json')
-            step_size = 1e-9
+            primal_parameters = AdjointKOmegaTwoElementsTest._ReadParameters('./TwoElementsTest/kw_steady_test_parameters.json')
+            step_size = 1e-10
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
                 node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
                 'MainModelPart.Structure',
                 SolvePrimalProblem,
-                AdjointTwoElementsTest._AddHDF5PrimalOutputProcess)
+                AdjointKOmegaTwoElementsTest._AddHDF5PrimalOutputProcess,
+                True)
 
             # solve adjoint
-            adjoint_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/qsvms_test_adjoint_parameters.json')
+            adjoint_parameters = AdjointKOmegaTwoElementsTest._ReadParameters('./TwoElementsTest/kw_steady_test_adjoint_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 3)
 
-    def testQSVMSKEpsilonSteady(self):
+    def testQSVMSKOmegaBossak(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             node_ids = [1]
 
             # calculate sensitivity by finite difference
-            primal_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/ke_steady_test_parameters.json')
-            step_size = 1e-4
+            primal_parameters = AdjointKOmegaTwoElementsTest._ReadParameters('./TwoElementsTest/kw_bossak_test_parameters.json')
+            step_size = 1.1111e-2
             fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
                 node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
                 'MainModelPart.Structure',
                 SolvePrimalProblem,
-                AdjointTwoElementsTest._AddHDF5PrimalOutputProcess,
-                True)
+                AdjointKOmegaTwoElementsTest._AddHDF5PrimalOutputProcess)
 
             # solve adjoint
-            adjoint_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/ke_steady_test_adjoint_parameters.json')
+            adjoint_parameters = AdjointKOmegaTwoElementsTest._ReadParameters('./TwoElementsTest/kw_bossak_test_adjoint_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
-            print(adjoint_sensitivities)
-            print(fd_sensitivities)
-            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 2)
-
-    def testQSVMSKEpsilonBossak(self):
-        with KratosUnittest.WorkFolderScope('.', __file__):
-            node_ids = [1]
-
-            # calculate sensitivity by finite difference
-            primal_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/ke_bossak_test_parameters.json')
-            step_size = 1e-8
-            fd_sensitivities = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis.ComputeSensitivity(
-                node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
-                'MainModelPart.Structure',
-                SolvePrimalProblem,
-                AdjointTwoElementsTest._AddHDF5PrimalOutputProcess)
-
-            # solve adjoint
-            adjoint_parameters = AdjointTwoElementsTest._ReadParameters('./TwoElementsTest/ke_bossak_test_adjoint_parameters.json')
-            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
-
-            print(adjoint_sensitivities)
-            print(fd_sensitivities)
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 1)
 
     @staticmethod

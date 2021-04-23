@@ -18,6 +18,7 @@
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_conditions/data_containers/k_omega/condition_data_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -87,8 +88,9 @@ double OmegaUBasedWallConditionData::CalculateWallFlux(
 
     const double u_tau = norm_2(velocity) / ((1.0 / rParameters.mKappa) * std::log(rParameters.mYPlus) + mBeta);
 
-    return (rParameters.mKinematicViscosity + mOmegaSigma * rParameters.mWallTurbulentViscosity) * std::pow(u_tau, 3) /
-           (rParameters.mKappa * std::pow(mCmu25 * rParameters.mYPlus * rParameters.mKinematicViscosity, 2));
+    return KOmegaConditionDataUtilities::CalculateWallFlux(
+        rParameters.mKinematicViscosity, mOmegaSigma, u_tau, mCmu25,
+        rParameters.mKappa, rParameters.mYPlus);
 }
 
 } // namespace KOmegaWallConditionData
