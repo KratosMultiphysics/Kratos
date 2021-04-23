@@ -497,8 +497,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -579,7 +577,7 @@ private:
                 mDoubleVariable.push_back(&r_var);
                 mFirstDoubleDerivatives.push_back(&(r_var.GetTimeDerivative()));
                 mSecondDoubleDerivatives.push_back(&((r_var.GetTimeDerivative()).GetTimeDerivative()));
-            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
+            } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 // Components
                 const auto& r_var_x = KratosComponents<Variable<double>>::Get(variable_name+"_X");
                 const auto& r_var_y = KratosComponents<Variable<double>>::Get(variable_name+"_Y");
@@ -596,8 +594,7 @@ private:
                     mSecondDoubleDerivatives.push_back(&((r_var_z.GetTimeDerivative()).GetTimeDerivative()));
                 }
             } else {
-                // Doing check to avoid error appearing when registering the class in the KratosComponents, when variables are not yet defined
-                KRATOS_ERROR_IF(KratosComponents<Variable<double>>::GetComponents().size() > 0) << "Only double and vector variables are allowed in the variables list. Variable: " << variable_name << std::endl;
+                KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
             }
         }
     }
