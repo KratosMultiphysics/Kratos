@@ -130,6 +130,9 @@ class RansFormulation:
                     return False
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+            if (self.IsConverged()):
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Coupling iter. {:d}/{:d} - *** CONVERGENCE ACHIEVED ***".format(iteration + 1, max_iterations))
+                return True
 
         return True
 
