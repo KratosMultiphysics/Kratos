@@ -26,6 +26,7 @@ def Factory(parameters, model):
             "time_format"      : "0.6f",
             "file_access_mode" : "truncate",
             "max_files_to_keep": "unlimited",
+            "use_steps"        : false,
             "echo_level"       : 0
         }
     }""")
@@ -39,7 +40,10 @@ def Factory(parameters, model):
     if (is_steady):
         file_settings["file_name"].SetString(os.path.join(file_settings["folder_name"].GetString(), "<model_part_name>-final.h5"))
     else:
-        file_settings["file_name"].SetString(os.path.join(file_settings["folder_name"].GetString(), "<model_part_name>-<time>.h5"))
+        if (file_settings.Has("use_steps") and file_settings["use_steps"].GetBool()):
+            file_settings["file_name"].SetString(os.path.join(file_settings["folder_name"].GetString(), "<model_part_name>-<step>.h5"))
+        else:
+            file_settings["file_name"].SetString(os.path.join(file_settings["folder_name"].GetString(), "<model_part_name>-<time>.h5"))
     file_settings.RemoveValue("folder_name")
 
     core_settings = ParametersWrapper("""
