@@ -57,8 +57,11 @@ class AdjointRANSSolver(CoupledRANSSolver):
         }
 
         self.adjoint_condition_map = {
+            # pure cfd conditions
             ("RansVMSMonolithicKBasedWall",) : "AdjointMonolithicWallCondition",
-            ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonKBasedWall") : "RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint"
+            # k-epsilon conditions
+            ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonKBasedWall") : "RansKEpsilonVMSKBasedEpsilonKBasedWallAdjoint",
+            ("RansVMSMonolithicKBasedWall", "", "RansKEpsilonEpsilonUBasedWall") : "RansKEpsilonVMSKBasedEpsilonUBasedWallAdjoint"
         }
 
         self.min_buffer_size = 2
