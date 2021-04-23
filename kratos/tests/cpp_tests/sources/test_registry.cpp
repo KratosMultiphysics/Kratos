@@ -32,6 +32,14 @@ namespace Testing {
 
 // }
 
+KRATOS_TEST_CASE_IN_SUITE(RegistryData, KratosCoreFastSuite)
+{
+    dobule value = 3.14;
+    RegistryData empty_registry_data("empty_data");
+    KRATOS_CHECK_STRING_EQUAL(empty_registry_data.Name(),"empty_data");
+    KRATOS_CHECK_IS(empty_registry_data)
+}
+
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
 // {
 //     KRATOS_CHECK(KratosComponents<Element>::Has("Element2D2N"));
