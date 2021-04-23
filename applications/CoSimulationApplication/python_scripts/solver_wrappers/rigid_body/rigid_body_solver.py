@@ -3,6 +3,7 @@ import KratosMultiphysics
 
 # RigidBody imports
 from . import rigid_body_process
+from . import input_check
 
 # Other imports
 import numpy as np
@@ -39,11 +40,11 @@ class RigidBodySolver(object):
         self.system_size = len(self.available_dofs)
 
         # Check that the activated dofs are not repeated and are among the available ones
-        self.active_dofs = self._CheckActiveDofs(parameters)
+        self.active_dofs = input_check._CheckActiveDofs(parameters, self.available_dofs)
 
         # Fill with defaults and check that mandatory fields are given
-        self._CheckMandatoryInputParameters(parameters)
-        dof_params, sol_params = self._ValidateAndAssignRigidBodySolverDefaults(parameters)
+        input_check._CheckMandatoryInputParameters(parameters)
+        dof_params, sol_params = input_check._ValidateAndAssignRigidBodySolverDefaults(parameters, self.available_dofs)
 
         # Create all the processes stated in the project parameters
         if "processes" in parameters:
@@ -307,7 +308,7 @@ class RigidBodySolver(object):
         return self_weight
 
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
-        self._CheckBufferId(buffer_idx,identifier)
+        input_check._CheckBufferId(buffer_idx,identifier)
         for index, value in enumerate(values):
             if identifier == "MOMENT":
                 index += 3
@@ -327,7 +328,7 @@ class RigidBodySolver(object):
                     raise Exception("Identifier is unknown!")
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
-        self._CheckBufferId(buffer_idx, identifier)
+        input_check._CheckBufferId(buffer_idx, identifier)
         output = KratosMultiphysics.Vector(self.system_size)
         for index, dof in enumerate(self.available_dofs):
             if dof in self.active_dofs:
@@ -344,96 +345,3 @@ class RigidBodySolver(object):
                 else:
                     raise Exception("Identifier is unknown!")
         return output
-
-    # TODO: Check this function
-    def _CheckBufferId(self, buffer_idx, identifier):
-        if identifier in ["VOLUME_WEIGHT", "ROOT_POINT_DISPLACEMENT","FORCE","MOMENT","RESULTANT"] and buffer_idx != 0:
-            msg = 'The buffer_idx can only be 0 for the variable "' + identifier + '".'
-            raise Exception(msg)
-    
-    def _CheckActiveDofs(self, parameters):
-
-        active_dofs = []
-        for dof in parameters["active_dofs"]:
-
-            if dof not in self.available_dofs:
-                msg = 'The degree of freedom "' + dof + '" is not among the available ones. '
-                msg += 'Chose one of the following: ' + str(self.available_dofs)[1:-1] + '.'
-                raise Exception(msg)
-
-            if dof in active_dofs:
-                msg = 'The active degree of freedom "' + dof + '" is repeated in the project parameters. '
-                raise Exception(msg)
-            active_dofs.append(dof)
-        
-        if len(active_dofs) == 0:
-            msg = 'At least an active degree of freedom is needed to use the solver '
-            msg += ' and none where provided in "active_dofs".'
-            raise Exception(msg)
-        
-        return active_dofs
-
-    def _CheckMandatoryInputParameters(self, parameters):
-
-        for key in ["active_dofs", "solution_parameters"]:
-            if key not in parameters:
-                msg = 'The key "' + key + '" was not found in the project parameters '
-                msg += 'and it is necessary to configure the RigidBodySolver.'
-                raise Exception(msg)
-        
-        msg = '"time_step" should be given as par of "time_integration_parameters" '
-        msg += 'in "solution_parameters".'
-        if "time_integration_parameters" not in parameters["solution_parameters"]:
-            raise Exception(msg)
-        else:
-            if "time_step" not in parameters["solution_parameters"]["time_integration_parameters"]:
-                raise Exception(msg)
-    
-    def _ValidateAndAssignRigidBodySolverDefaults(self, parameters):
-
-        default_single_dof_parameters = KratosMultiphysics.Parameters('''{
-            "blocked": false,
-            "system_parameters":{
-                "mass"      : 1.0,
-                "stiffness" : 1.0,
-                "damping"   : 0.0,
-                "modulus_self_weight": 0.0
-            },
-            "initial_conditions":{
-                "displacement"  : 0.0,
-                "velocity"      : 0.0,
-                "load_impulse"  : 0.0
-            }
-        }''')
-        default_solution_parameters = KratosMultiphysics.Parameters('''{
-            "time_integration_parameters":{
-                "rho_inf"   : 0.16,
-                "start_time": 0.0,
-                "time_step" : 0.05
-            },
-            "solver_parameters":{
-                "buffer_size"   : 2
-            },
-            "output_parameters":{
-                "write_output_files": true,
-                "file_path" : "results/rigid_body"
-            }
-        }''')
-
-        dof_parameters = {}
-        for dof in self.available_dofs:
-
-            if dof not in parameters["active_dofs"]:
-                parameters["active_dofs"][dof] = {}
-
-            single_dof_parameters = parameters["active_dofs"][dof]
-
-            single_dof_parameters = KratosMultiphysics.Parameters(json.dumps(single_dof_parameters))
-            single_dof_parameters.RecursivelyValidateAndAssignDefaults(default_single_dof_parameters)
-            
-            dof_parameters[dof] = single_dof_parameters
-        
-        solution_parameters = KratosMultiphysics.Parameters(json.dumps(parameters["solution_parameters"]))
-        solution_parameters.RecursivelyValidateAndAssignDefaults(default_solution_parameters)
-
-        return dof_parameters, solution_parameters
