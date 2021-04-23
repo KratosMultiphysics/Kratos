@@ -14,7 +14,7 @@
         "predictors" : [
             {
                 "type" : "average_value_based",
-                "solver"         : "openfoam_kratos_wrapper",
+                "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load"
             }
         ],
@@ -33,8 +33,8 @@
             "input_data_list": [
                 {
                     "data"              : "load",
-                    "from_solver"       : "openfoam_kratos_wrapper",
-                    "from_solver_data"  : "load", //Is it the name of the data field in the OpenFOAM??
+                    "from_solver"       : "Openfoam_Kratos_Wrapper",
+                    "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
                     "data_transfer_operator_options" : ["swap_sign"]
                 }
@@ -42,67 +42,51 @@
             "output_data_list": [
                 {
                     "data"           : "disp",
-                    "to_solver"      : "openfoam_kratos_wrapper",
-                    "to_solver_data" : "disp", //Is it the name of the data field in the OpenFOAM??
+                    "to_solver"      : "Openfoam_Kratos_Wrapper",
+                    "to_solver_data" : "disp",
                     "data_transfer_operator" : "mapper"
                 }
             ]
         },
         {
-            "name": "openfoam_kratos_wrapper",
-            "input_data_list": [
-                {
-                    "data"              : "disp",
-                    "from_solver"       : "structure",
-                    "from_solver_data"  : "disp", //Is it the name of the data field in the structural solver??
-                    "data_transfer_operator" : "mapper",
-                    "data_transfer_operator_options" : ["swap_sign"]
-                }
-            ],
-            "output_data_list": [
-                {
-                    "data"           : "load",
-                    "to_solver"      : "structure",
-                    "to_solver_data" : "load", //Is it the name of the data field in the structural solver??
-                    "data_transfer_operator" : "mapper"
-                }
-            ]
+            "name": "Openfoam_Kratos_Wrapper",
+            "input_data_list": [],
+            "output_data_list": []
         }
         ],
         "solvers" :
         {
-            "openfoam_kratos_wrapper":
+            "Openfoam_Kratos_Wrapper":
             {
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "fsi_wall/ProjectParametersCFD",
                     "import_meshes"    : ["interface_flap"],
-                    "export_data"      : ["DISPLACEMENT"],
-                    "import_data"      : ["FORCE"]
+                    "export_data"      : ["disp"],
+                    "import_data"      : ["load"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
                     "echo_level" : 1,
-                    "connect_to" : "Openfoam_adapter"
+                    "connect_to" : "Openfoam_Adapter"
                 },
                 "data" : {
                     "disp" : {
                         "model_part_name"   : "interface_flap",
                         "dimension" : 2,
-                        "variable_name" : "DISPLACEMENT" //Is it from OpenFOAM??
+                        "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
                         "model_part_name"   : "interface_flap",
                         "dimension" : 2,
-                        "variable_name" : "FORCE"  //Is it from OpenFOAM??
+                        "variable_name" : "FORCE"
                     }
                 }
             },
-            "structure" ://Inbuild Kratos Strcutural Solver right??
+            "structure" :
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "fsi_wall/ProjectParametersCSM"
+                    "input_file"  : "ProjectParametersCSM"
                 },
                 "data" : {
                     "disp" : {
