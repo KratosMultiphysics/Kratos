@@ -46,7 +46,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "            \"solver_type\":                       \"FemDemDynamicSolver\","
         puts $FileVar "            \"solution_type\":                     \"Dynamic\","
         puts $FileVar "            \"time_integration_method\":           \"Implicit\","
-        puts $FileVar "            \"scheme_type\":                       \"Newmark\","
+        puts $FileVar "            \"scheme_type\":                       \"[GiD_AccessValue get gendata Scheme_Type]\","
     }
 	puts $FileVar "            \"echo_level\":                         1,"
     puts $FileVar "            \"model_import_settings\":              \{"
