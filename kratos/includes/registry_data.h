@@ -80,6 +80,10 @@ public:
     /// Constructor with the name
     RegistryData(std::string Name) : mName(Name), mpValue(nullptr){}
 
+    /// Constructor with the name and value
+    template<typename TValueType>
+    RegistryData(std::string Name, TValueType const& Value) : mName(Name), mpValue(&Value){}
+
     /// Destructor.
     virtual ~RegistryData(){
     }
@@ -109,6 +113,10 @@ public:
 
         bool HasValue() const{
             return (mpValue != nullptr);
+        }
+
+        bool HasSubData() const{
+            return (!mSubRegistryData.empty());
         }
 
 
@@ -175,7 +183,7 @@ private:
     ///@{
 
     std::string mName;
-    void* mpValue;
+    const void* mpValue;
     std::unordered_map<std::string, Kratos::unique_ptr<RegistryData>> mSubRegistryData;
 
 
