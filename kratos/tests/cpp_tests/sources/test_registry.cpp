@@ -37,6 +37,13 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryData, KratosCoreFastSuite)
     RegistryData empty_registry_data("empty_data");
     KRATOS_CHECK_STRING_EQUAL(empty_registry_data.Name(),"empty_data");
     KRATOS_CHECK_IS_FALSE(empty_registry_data.HasValue());
+    KRATOS_CHECK_IS_FALSE(empty_registry_data.HasSubData());
+
+    double value = 3.14;
+    RegistryData value_registry_data("value_data", value);
+    KRATOS_CHECK_STRING_EQUAL(value_registry_data.Name(),"value_data");
+    KRATOS_CHECK(value_registry_data.HasValue());
+    KRATOS_CHECK_IS_FALSE(value_registry_data.HasSubData());
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
