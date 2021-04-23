@@ -76,18 +76,14 @@ public:
         mReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneNormal, mPlaneNormal));
 
         mOriginNodes.resize(mrOriginModelPart.Nodes().size());
-        mOriginReflect.resize(mrOriginModelPart.Nodes().size());
         for (auto& r_node_i : mrOriginModelPart.Nodes()){
             const int mapping_id = r_node_i.GetValue(MAPPING_ID);
-            mOriginReflect[mapping_id] = Reflect(r_node_i);
             mOriginNodes[mapping_id] = &r_node_i;
         }
 
         mDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
-        mDestinationReflect.resize(mrDestinationModelPart.Nodes().size());
         for (auto& r_node_i : mrDestinationModelPart.Nodes()){
             const int mapping_id = r_node_i.GetValue(MAPPING_ID);
-            mDestinationReflect[mapping_id] = Reflect(r_node_i);
             mDestinationNodes[mapping_id] = &r_node_i;
         }
     }
@@ -127,9 +123,6 @@ public:
     NodeVector mOriginNodes;
     NodeVector mDestinationNodes;
     Matrix mReflectionMatrix;
-    std::vector<bool> mOriginReflect;
-    std::vector<bool> mDestinationReflect;
-
 }; // Class PlaneSymmetricModelPart
 
 
