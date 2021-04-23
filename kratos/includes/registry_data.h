@@ -73,6 +73,9 @@ public:
     /// Default constructor deleted.
     RegistryData() = delete;
 
+    /// Constructor with the name
+    RegistryData(std::string Name) : mName(Name), mpValue(nullptr){}
+
     /// Destructor.
     virtual ~RegistryData();
 
