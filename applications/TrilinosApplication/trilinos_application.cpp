@@ -17,7 +17,6 @@
 // Project includes
 #include "trilinos_application.h"
 #include "custom_factories/trilinos_linear_solver_factory.h"
-#include "custom_factories/register_factories_trilinos.h"
 
 namespace Kratos
 {
@@ -32,11 +31,6 @@ void KratosTrilinosApplication::Register()
 
     RegisterTrilinosLinearSolvers();
 }
-
-template class KratosComponents<TrilinosSolvingStrategyType>;
-template class KratosComponents<TrilinosBuilderAndSolverType>;
-template class KratosComponents<TrilinosSchemeType>;
-template class KratosComponents<TrilinosConvergenceCriteriaType>;
 
 }  // namespace Kratos.
 

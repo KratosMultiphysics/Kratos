@@ -47,7 +47,6 @@ set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/register_factories_trilinos.cpp
 )
 
 # Sources for the Python module
