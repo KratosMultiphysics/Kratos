@@ -56,7 +56,10 @@ namespace Kratos
  *  value, and an unorder_set of its sub data. 
  *  This structure let us to have registry of the elements and then different
  *  registries for each elements inside it.
- *  Please note that RegistryData stores a copy of the value and delete it in its destructor to make the memory management easier.
+ *  Please note that RegistryData stores a pointer to the value. 
+ *  To have a copy of the value you may use the derived RegistryCopyOfData 
+ *  which crates a copy in construction and delete it in its destructor 
+ *  to make the memory management easier.
 */
 class RegistryData
 {
@@ -79,8 +82,6 @@ public:
 
     /// Destructor.
     virtual ~RegistryData(){
-        if(mpValue)
-            delete mpValue;
     }
 
     ///@}
@@ -105,6 +106,10 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+        bool HasValue() const{
+            return (mpValue != nullptr);
+        }
 
 
     ///@}
