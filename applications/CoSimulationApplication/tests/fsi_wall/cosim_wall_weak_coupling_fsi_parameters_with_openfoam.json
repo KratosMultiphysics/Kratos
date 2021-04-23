@@ -3,7 +3,7 @@
     {
         "start_time" : 0.0,
         "end_time" : 3.0,
-        "echo_level" : 0,
+        "echo_level" : 4,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
@@ -14,7 +14,7 @@
         "predictors" : [
             {
                 "type" : "average_value_based",
-                "solver"         : "fluid",
+                "solver"         : "openfoam_kratos_wrapper",
                 "data_name"      : "load"
             }
         ],
@@ -33,8 +33,8 @@
             "input_data_list": [
                 {
                     "data"              : "load",
-                    "from_solver"       : "fluid",
-                    "from_solver_data"  : "load",
+                    "from_solver"       : "openfoam_kratos_wrapper",
+                    "from_solver_data"  : "load", //Is it the name of the data field in the OpenFOAM??
                     "data_transfer_operator" : "mapper",
                     "data_transfer_operator_options" : ["swap_sign"]
                 }
@@ -42,16 +42,31 @@
             "output_data_list": [
                 {
                     "data"           : "disp",
-                    "to_solver"      : "fluid",
-                    "to_solver_data" : "disp",
+                    "to_solver"      : "openfoam_kratos_wrapper",
+                    "to_solver_data" : "disp", //Is it the name of the data field in the OpenFOAM??
                     "data_transfer_operator" : "mapper"
                 }
             ]
         },
         {
-            "name": "fluid",
-            "output_data_list": [],
-            "input_data_list": []
+            "name": "openfoam_kratos_wrapper",
+            "input_data_list": [
+                {
+                    "data"              : "disp",
+                    "from_solver"       : "structure",
+                    "from_solver_data"  : "disp", //Is it the name of the data field in the structural solver??
+                    "data_transfer_operator" : "mapper",
+                    "data_transfer_operator_options" : ["swap_sign"]
+                }
+            ],
+            "output_data_list": [
+                {
+                    "data"           : "load",
+                    "to_solver"      : "structure",
+                    "to_solver_data" : "load", //Is it the name of the data field in the structural solver??
+                    "data_transfer_operator" : "mapper"
+                }
+            ]
         }
         ],
         "solvers" :
@@ -60,29 +75,30 @@
             {
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "fsi_mok/ProjectParametersCFD"
+                    "input_file"  : "fsi_wall/ProjectParametersCFD",
+                    "import_meshes"    : ["interface_flap"],
+                    "export_data"      : ["DISPLACEMENT"],
+                    "import_data"      : ["FORCE"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
-                    "connect_to" : "openfoam"
+                    "echo_level" : 1,
+                    "connect_to" : "Openfoam_adapter"
                 },
-                "import_meshes"    : ["interface"],
-                "export_data"      : ["disp"],
-                "import_data"      : ["load"],
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "interface",
+                        "model_part_name"   : "interface_flap",
                         "dimension" : 2,
-                        "variable_name" : "MESH_DISPLACEMENT"
+                        "variable_name" : "DISPLACEMENT" //Is it from OpenFOAM??
                     },
                     "load" : {
-                        "model_part_name"   : "interface",
+                        "model_part_name"   : "interface_flap",
                         "dimension" : 2,
-                        "variable_name" : "REACTION"
+                        "variable_name" : "FORCE"  //Is it from OpenFOAM??
                     }
                 }
             },
-            "structure" :
+            "structure" ://Inbuild Kratos Strcutural Solver right??
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "solver_wrapper_settings" : {
