@@ -50,8 +50,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// The registry data to be stored by Registry class. It is the base class for some more specific ones.
+/** RegistryData has a tree node structure and stores its name, an optional
+ *  value, and an unorder_set of its sub data. 
+ *  This structure let us to have registry of the elements and then different
+ *  registries for each elements inside it.
+ *  Please note that RegistryData stores a copy of the value and delete it in its destructor to make the memory management easier.
 */
 class RegistryData
 {
@@ -66,7 +70,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Default constructor deleted.
     RegistryData() = delete;
 
     /// Destructor.
