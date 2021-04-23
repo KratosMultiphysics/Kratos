@@ -528,49 +528,35 @@ private:
 
 
         unsigned int row_id = destination_node.GetValue(MAPPING_ID);
-        Vector _vec(3);
+        array_3d _vec(3);
         _vec[0] = 1.0;
         _vec[1] = 1.0;
         _vec[2] = 1.0;
-        std::map<int, double> mx;
-        std::map<int, double> my;
-        std::map<int, double> mz;
 
+        std::vector<double> col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
-            mx[collumn_id] = 0.0;
-            my[collumn_id] = 0.0;
-            mz[collumn_id] = 0.0;
+            col_ids[neighbor_itr] = collumn_id;
         }
+        std::sort (col_ids.begin(), col_ids.end());
+
+        // initialize non-zeros row by row
+        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0); } // sorted access helps a lot
+        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0); }
+        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0); }
 
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
-            Vector vec = _vec;
-            if (transform[neighbor_itr]) {
-                vec = mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec);
-            }
+            array_3d vec = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec) : _vec;
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mx[collumn_id] += weight*vec[0];
-            my[collumn_id] += weight*vec[1];
-            mz[collumn_id] += weight*vec[2];
-        }
-
-        for(auto& it : mx)
-        {
-            mMappingMatrix.insert_element(row_id*3+0, it.first*3+0, it.second);
-        }
-        for(auto& it : my)
-        {
-            mMappingMatrix.insert_element(row_id*3+1, it.first*3+1, it.second);
-        }
-        for(auto& it : mz)
-        {
-            mMappingMatrix.insert_element(row_id*3+2, it.first*3+2, it.second);
+            mMappingMatrix(row_id*3+0, collumn_id*3+0) += weight*vec[0];
+            mMappingMatrix(row_id*3+1, collumn_id*3+1) += weight*vec[1];
+            mMappingMatrix(row_id*3+2, collumn_id*3+2) += weight*vec[2];
         }
     }
 
