@@ -70,34 +70,48 @@ public:
     typedef array_1d<double,3> array_3d;
 
 
-    PlaneSymmetricModelPart(ModelPart& rModelPart, array_3d PlanePoint,  array_3d PlaneNormal)
-    : mrModelPart(rModelPart), mPlanePoint(PlanePoint), mPlaneNormal(PlaneNormal)
+    PlaneSymmetricModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, array_3d PlanePoint,  array_3d PlaneNormal)
+    : mrOriginModelPart(rOriginModelPart), mrDestinationModelPart(rDestinationModelPart), mPlanePoint(PlanePoint), mPlaneNormal(PlaneNormal)
     {
         mReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneNormal, mPlaneNormal));
 
-        mTransformedPoints.reserve(mrModelPart.Nodes().size());
-        mReflect.reserve(mrModelPart.Nodes().size());
-        for (auto& r_node_i : mrModelPart.Nodes()){
-            NodeTypePointer p_new_node = Kratos::make_intrusive<Node<3> >( r_node_i.Id(),r_node_i[0],r_node_i[1],r_node_i[2]);
-            const bool reflect = Reflect(r_node_i);
-            if (reflect) {
-                array_3d& coordinates = p_new_node->Coordinates();
-                array_3d tmp = coordinates - mPlanePoint;
-                tmp = prod(mReflectionMatrix, tmp);
-                coordinates = tmp + mPlanePoint;
-            }
-            mReflect.push_back(reflect);
-            mTransformedPoints.push_back(p_new_node);
+        mOriginNodes.resize(mrOriginModelPart.Nodes().size());
+        mOriginReflect.resize(mrOriginModelPart.Nodes().size());
+        for (auto& r_node_i : mrOriginModelPart.Nodes()){
+            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
+            mOriginReflect[mapping_id] = Reflect(r_node_i);
+            mOriginNodes[mapping_id] = &r_node_i;
+        }
+
+        mDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
+        mDestinationReflect.resize(mrDestinationModelPart.Nodes().size());
+        for (auto& r_node_i : mrDestinationModelPart.Nodes()){
+            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
+            mDestinationReflect[mapping_id] = Reflect(r_node_i);
+            mDestinationNodes[mapping_id] = &r_node_i;
         }
     }
 
-    array_3d TransformVector(const size_t node_index, const array_3d& Input) const
-    {
-        if (mReflect[node_index]) {
-            return prod(mReflectionMatrix, Input);
-        }
+    NodeVector& GetOriginSearchNodes(){
+        return mOriginNodes;
+    }
 
-        return Input;
+    std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId){
+        return {
+            std::make_pair(mDestinationNodes[MappingId]->Coordinates(), false),
+            std::make_pair(ReflectPoint(mDestinationNodes[MappingId]->Coordinates()), true),
+        };
+    }
+
+    array_3d ReflectPoint(const array_3d& Coords){
+        array_3d tmp = Coords - mPlanePoint;
+        tmp = prod(mReflectionMatrix, tmp);
+        return tmp + mPlanePoint;
+    }
+
+    array_3d TransformVector(const size_t DestinationMappingId, const size_t OriginMappingId, const array_3d& Input) const
+    {
+        return prod(mReflectionMatrix, Input);
     }
 
     bool Reflect(NodeType& rNode)
@@ -105,13 +119,16 @@ public:
         return (inner_prod((rNode.Coordinates() - mPlanePoint), mPlaneNormal) > 0);
     }
 
-    ModelPart& mrModelPart;
+    ModelPart& mrOriginModelPart;
+    ModelPart& mrDestinationModelPart;
     array_3d mPlanePoint;
     array_3d mPlaneNormal;
 
-    NodeVector mTransformedPoints;
+    NodeVector mOriginNodes;
+    NodeVector mDestinationNodes;
     Matrix mReflectionMatrix;
-    std::vector<bool> mReflect;
+    std::vector<bool> mOriginReflect;
+    std::vector<bool> mDestinationReflect;
 
 }; // Class PlaneSymmetricModelPart
 
@@ -290,14 +307,13 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
+        InitializeMappingVariables();
+        AssignMappingIds();
+
         const array_3d point = mMapperSettings["plane_symmetry_settings"]["point"].GetVector();
         array_3d normal = mMapperSettings["plane_symmetry_settings"]["normal"].GetVector();
         normal /= norm_2(normal);
-        mpTransformedOrigin = Kratos::make_shared<PlaneSymmetricModelPart>(mrOriginModelPart, point, normal);
-        mpTransformedDestination = Kratos::make_shared<PlaneSymmetricModelPart>(mrDestinationModelPart, point, normal);
-
-        InitializeMappingVariables();
-        AssignMappingIds();
+        mpPlaneSymmetry = Kratos::make_shared<PlaneSymmetricModelPart>(mrOriginModelPart, mrDestinationModelPart, point, normal);
 
         InitializeComputationOfMappingMatrix();
         CreateSearchTreeWithAllNodesInOriginModelPart();
@@ -401,8 +417,7 @@ private:
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
 
-    PlaneSymmetricModelPart::Pointer mpTransformedOrigin;
-    PlaneSymmetricModelPart::Pointer mpTransformedDestination;
+    PlaneSymmetricModelPart::Pointer mpPlaneSymmetry;
 
     ///@}
     ///@name Private Operations
@@ -435,20 +450,12 @@ private:
         i = 0;
         for(auto& node_i : mrDestinationModelPart.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
-
-        i = 0;
-        for(auto& node_i : mpTransformedOrigin->mTransformedPoints)
-            node_i->SetValue(MAPPING_ID,i++);
-
-        i = 0;
-        for(auto& node_i : mpTransformedDestination->mTransformedPoints)
-            node_i->SetValue(MAPPING_ID,i++);
     }
 
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mpTransformedOrigin->mTransformedPoints.begin(), mpTransformedOrigin->mTransformedPoints.end(), mBucketSize));
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mpPlaneSymmetry->GetOriginSearchNodes().begin(), mpPlaneSymmetry->GetOriginSearchNodes().end(), mBucketSize));
     }
 
     // --------------------------------------------------------------------------
@@ -457,31 +464,44 @@ private:
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
-        for(auto& node_i : mpTransformedDestination->mTransformedPoints)
+        for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            NodeVector neighbor_nodes( max_number_of_neighbors );
-            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( *node_i,
-                                                                             filter_radius,
-                                                                             neighbor_nodes.begin(),
-                                                                             resulting_squared_distances.begin(),
-                                                                             max_number_of_neighbors );
-
-
-
-            std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+            auto search_nodes = mpPlaneSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
+            std::vector<bool> transform;
+            unsigned int total_number_of_neighbors = 0;
+            NodeVector total_neighbor_nodes;
+            std::vector<double> total_list_of_weights;
+            double total_sum_of_weights = 0;
             double sum_of_weights = 0.0;
+            for (auto& pair_i : search_nodes) {
+                NodeType search_node(0, pair_i.first);
+                NodeVector neighbor_nodes( max_number_of_neighbors );
+                std::vector<double> resulting_squared_distances( max_number_of_neighbors );
+                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
+                                                                                filter_radius,
+                                                                                neighbor_nodes.begin(),
+                                                                                resulting_squared_distances.begin(),
+                                                                                max_number_of_neighbors );
+                total_number_of_neighbors += number_of_neighbors;
+                transform.resize(total_number_of_neighbors, pair_i.second);
 
-            if(number_of_neighbors >= max_number_of_neighbors)
-                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << node_i->Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+                std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
+                ComputeWeightForAllNeighbors( search_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
 
-            ComputeWeightForAllNeighbors( *node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            FillMappingMatrixWithWeights( *node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+                total_list_of_weights.insert(total_list_of_weights.end(), list_of_weights.begin(), list_of_weights.begin()+number_of_neighbors);
+                total_neighbor_nodes.insert(total_neighbor_nodes.end(), neighbor_nodes.begin(), neighbor_nodes.begin()+number_of_neighbors);
+                total_sum_of_weights += sum_of_weights;
+            }
+
+            if(total_number_of_neighbors >= max_number_of_neighbors)
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
+            FillMappingMatrixWithWeights( node_i, total_neighbor_nodes, total_number_of_neighbors, total_list_of_weights, transform, total_sum_of_weights );
         }
     }
 
     // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& destination_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
@@ -490,7 +510,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;
@@ -498,30 +518,59 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
+                                        std::vector<bool>& transform,
                                         double& sum_of_weights )
     {
 
 
-        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
+        unsigned int row_id = destination_node.GetValue(MAPPING_ID);
         Vector _vec(3);
         _vec[0] = 1.0;
         _vec[1] = 1.0;
         _vec[2] = 1.0;
+        std::map<int, double> mx;
+        std::map<int, double> my;
+        std::map<int, double> mz;
+
+        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+            mx[collumn_id] = 0.0;
+            my[collumn_id] = 0.0;
+            mz[collumn_id] = 0.0;
+        }
+
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
-            Vector vec = mpTransformedDestination->TransformVector(row_id, _vec);
-
+            Vector vec = _vec;
+            if (transform[neighbor_itr]) {
+                vec = mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec);
+            }
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix.insert_element(row_id*3+0, collumn_id*3+0, weight*vec[0]);
-            mMappingMatrix.insert_element(row_id*3+1, collumn_id*3+1, weight*vec[1]);
-            mMappingMatrix.insert_element(row_id*3+2, collumn_id*3+2, weight*vec[2]);
+            mx[collumn_id] += weight*vec[0];
+            my[collumn_id] += weight*vec[1];
+            mz[collumn_id] += weight*vec[2];
+        }
+
+        for(auto& it : mx)
+        {
+            mMappingMatrix.insert_element(row_id*3+0, it.first*3+0, it.second);
+        }
+        for(auto& it : my)
+        {
+            mMappingMatrix.insert_element(row_id*3+1, it.first*3+1, it.second);
+        }
+        for(auto& it : mz)
+        {
+            mMappingMatrix.insert_element(row_id*3+2, it.first*3+2, it.second);
         }
     }
 
