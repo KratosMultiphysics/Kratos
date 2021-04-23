@@ -85,7 +85,7 @@ private:
 
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensitivity, KratosConstitutiveLawsFastSuite)
 {
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensit
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensitivity, KratosConstitutiveLawsFastSuite)
 {
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensit
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, KratosConstitutiveLawsFastSuite)
 {
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, Krat
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensitivity, KratosConstitutiveLawsFastSuite)
 {
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;

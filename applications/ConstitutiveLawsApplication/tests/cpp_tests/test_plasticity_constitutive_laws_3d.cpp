@@ -23,32 +23,32 @@
 // Application includes
 
 // Hyperelastic behaviours
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 
 // Integrator
-#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
 
 // Yield surfaces
-#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 // Constitutive law
-#include "custom_advanced_constitutive/generic_small_strain_isotropic_plasticity.h"
-#include "custom_advanced_constitutive/generic_finite_strain_isotropic_plasticity.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -59,7 +59,7 @@ namespace Testing
 // We test the associated plasticity Constitutive laws...
 typedef Node<3> NodeType;
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInternalVariables, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInternalVariables, KratosConstitutiveLawsFastSuite)
 {
     //
     // Test: check correct behavior of internal and calculated variables
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInt
 * Check the correct calculation of the integrated stress with the CL's in small strain
 */
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
@@ -213,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
 /**
 * Check the correct calculation of the integrated stress with the CL's in small strain
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
@@ -399,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
 /**
 * Check the correct calculation of the integrated stress with the CL's in finite strain
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKirchoff, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKirchoff, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
@@ -553,7 +553,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 /**
 * Check the correct calculation of the integrated stress with the CL's in finite strain
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
@@ -718,7 +718,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
 /**
 * Check the correct calculation of the integrated stress with the CL's in finite strain
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNeoHookean, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNeoHookean, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
@@ -872,7 +872,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
 /**
 * Check the correct calculation of the integrated stress with the CL's in finite strain
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean, KratosConstitutiveLawsFastSuite)
 {
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
     typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;

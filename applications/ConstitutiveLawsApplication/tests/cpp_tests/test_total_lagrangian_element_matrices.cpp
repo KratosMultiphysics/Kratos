@@ -32,7 +32,7 @@
 // Application includes
 #include "custom_elements/total_lagrangian.h"
 #include "custom_constitutive/linear_plane_strain.h"
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 
 namespace Kratos
 {
@@ -155,7 +155,7 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
     KRATOS_CATCH("");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosConstitutiveLawsFastSuite)
 {
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosStructu
         KRATOS_CHECK_NEAR(rhs(i), rhs_ref(i), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosConstitutiveLawsFastSuite)
 {
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");
@@ -389,7 +389,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructu
         KRATOS_CHECK_NEAR(rhs(i), rhs_ref(i), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosConstitutiveLawsFastSuite)
 {
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");
@@ -440,7 +440,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosStructuralMechani
             KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosConstitutiveLawsFastSuite)
 {
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");
@@ -491,7 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMech
             KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosConstitutiveLawsFastSuite)
 {
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");
@@ -544,7 +544,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     KRATOS_CHECK_NEAR(rotated_element_strain_energy, element_strain_energy, 1e-7);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosConstitutiveLawsFastSuite)
 {
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("test");

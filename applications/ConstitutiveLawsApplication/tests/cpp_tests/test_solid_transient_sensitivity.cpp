@@ -72,7 +72,7 @@ struct AdjointTestSolver
 
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_TransientSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_TransientSensitivity, KratosConstitutiveLawsFastSuite)
 {
     using test_solid_transient_sensitivity_cpp::AdjointTestSolver;
     using test_solid_transient_sensitivity_cpp::PrimalTestSolver;
@@ -114,7 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_TransientSen
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D8_SaintVenant_TransientSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D8_SaintVenant_TransientSensitivity, KratosConstitutiveLawsFastSuite)
 {
     using test_solid_transient_sensitivity_cpp::AdjointTestSolver;
     using test_solid_transient_sensitivity_cpp::PrimalTestSolver;
