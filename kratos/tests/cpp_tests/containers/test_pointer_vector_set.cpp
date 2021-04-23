@@ -23,6 +23,10 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "includes/parallel_environment.h"
+#include "utilities/global_pointer_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/retrieve_global_pointers_by_index_functor.h"
 
 namespace Kratos {
 
@@ -58,9 +62,11 @@ namespace Kratos {
 
             // list with only element 2
             std::vector<int> ids = {2};
+            const auto& container = r_model_part.Elements();
 
-            for(auto& element : r_model_part.Elements()){
-                KRATOS_CHECK(element.Id() == 2);
+            for(const int id : ids ) {
+                const auto it = container.find(id);
+                KRATOS_CHECK(it->Id() == 2);
             }
         }
     }
