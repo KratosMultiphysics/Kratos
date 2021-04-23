@@ -17,7 +17,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void HaiderAndLevenspielDragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void HaiderAndLevenspielDragLaw::ComputeForce(SphericParticle* p_particle,
                                        const double reynolds_number,
                                        double particle_radius,
                                        double fluid_density,
@@ -26,6 +26,7 @@ namespace Kratos {
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
+        Geometry<Node<3> >& r_geometry = p_particle->GetGeometry();
         const double sphericity = r_geometry[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
         double drag_coeff       = 0.5 * Globals::Pi * SWIMMING_POW_2(particle_radius) * fluid_density * SWIMMING_MODULUS_3(minus_slip_velocity);
 
