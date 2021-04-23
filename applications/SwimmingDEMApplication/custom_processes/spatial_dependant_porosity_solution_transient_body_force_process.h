@@ -67,13 +67,7 @@ public:
 
     /// Constructor.
     SpatialDependantPorositySolutionTransientBodyForceProcess(
-        ModelPart& rModelPart,
-        const double Density,
-        const double Viscosity,
-        const double IndependentTerm,
-        const double MaximumAlpha,
-        const double Centerx1,
-        const double Centerx2);
+        ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
     SpatialDependantPorositySolutionTransientBodyForceProcess(
@@ -139,7 +133,6 @@ public:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -154,14 +147,12 @@ private:
     double                                         mMaximumAlpha;
     double                                             mCenterx1;
     double                                             mCenterx2;
+    bool                                      mInitialConditions;
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     const Parameters GetDefaultParameters() const override;
@@ -170,7 +161,11 @@ private:
 
     void SetBodyForceAndPorosityField();
 
+    void SetFluidProperties();
+
     ///@}
+private:
+
     ///@name Private  Access
     ///@{
 
