@@ -32,8 +32,8 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
             node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
             if node.Id == 6:
                 if self.time >= 1.15:
-                    print(node_vel)
-                    print(node_force)
+                    Logger.PrintInfo(node_vel)
+                    Logger.PrintInfo(node_force)
                     self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
                     self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
 
@@ -51,6 +51,8 @@ class TestDEM2DInlet(KratosUnittest.TestCase):
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_inlet_tests_files", "TimesPartialRelease")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+        file_to_remove = os.path.join("DEM2D_inlet_tests_files", "flux_data_new.hdf5")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
 

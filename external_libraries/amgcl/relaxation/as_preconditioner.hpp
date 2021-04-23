@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -109,9 +109,9 @@ class as_preconditioner {
 
         friend std::ostream& operator<<(std::ostream &os, const as_preconditioner &p) {
             os << "Relaxation as preconditioner" << std::endl;
-            os << "  unknowns: " << backend::rows(p.system_matrix()) << std::endl;
-            os << "  nonzeros: " << backend::nonzeros(p.system_matrix()) << std::endl;
-            os << "  memory:   " << human_readable_memory(p.bytes()) << std::endl;
+            os << "  Unknowns: " << backend::rows(p.system_matrix()) << std::endl;
+            os << "  Nonzeros: " << backend::nonzeros(p.system_matrix()) << std::endl;
+            os << "  Memory:   " << human_readable_memory(p.bytes()) << std::endl;
 
             return os;
         }

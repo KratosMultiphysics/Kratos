@@ -164,7 +164,7 @@ namespace Kratos
   //*********************************DISPLACEMENT***************************************
   //************************************************************************************
 
-  void BeamElement::GetValuesVector(Vector& rValues, int Step)
+  void BeamElement::GetValuesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -205,7 +205,7 @@ namespace Kratos
   //************************************VELOCITY****************************************
   //************************************************************************************
 
-  void BeamElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+  void BeamElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -246,7 +246,7 @@ namespace Kratos
   //*********************************ACCELERATION***************************************
   //************************************************************************************
 
-  void BeamElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+  void BeamElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
   {
     KRATOS_TRY
 
@@ -376,7 +376,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  unsigned int BeamElement::GetDofsSize()
+  unsigned int BeamElement::GetDofsSize() const
   {
     KRATOS_TRY
 
@@ -1137,7 +1137,7 @@ namespace Kratos
 
   void BeamElement::AddExplicitContribution(const VectorType& rRHSVector,
 					    const Variable<VectorType>& rRHSVariable,
-					    Variable<array_1d<double,3> >& rDestinationVariable,
+					    const Variable<array_1d<double,3> >& rDestinationVariable,
 					    const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
@@ -1583,19 +1583,6 @@ namespace Kratos
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
-    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)

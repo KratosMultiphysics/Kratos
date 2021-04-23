@@ -13,8 +13,10 @@ Get-Content "$env:temp\vcvars.txt" | Foreach-Object {
 }
 
 mkdir c:\kratos
+mkdir c:\scripts
+
 cd c:\kratos
-git clone --depth 1 --single-branch --branch $branch https://github.com/KratosMultiphysics/Kratos.git
+git clone --depth 1 --single-branch --branch $branch https://github.com/KratosMultiphysics/Kratos.git kratos
 
 cp c:\kratos\Kratos\scripts\wheels\windows\build.ps1 c:\scripts\build.ps1
 & "c:\scripts\build.ps1" -cotire $cotire

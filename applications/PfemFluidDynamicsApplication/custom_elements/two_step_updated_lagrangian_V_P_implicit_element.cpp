@@ -33,7 +33,7 @@ namespace Kratos
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                                                              VectorType &rRightHandSideVector,
-                                                                             ProcessInfo &rCurrentProcessInfo)
+                                                                             const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -60,7 +60,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
+                                                                                        VectorType &rRightHandSideVector,
+                                                                                        const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -211,17 +213,35 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                                                                    std::vector<double> &rValues,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
+                                                                                    std::vector<bool> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == YIELDED)
     {
-      rValues[0] = this->GetValue(YIELDED);
+      rOutput[0] = this->GetValue(YIELDED);
     }
-    if (rVariable == FLOW_INDEX)
+  }
+
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable,
+                                                                                    std::vector<double> &rOutput,
+                                                                                    const ProcessInfo &rCurrentProcessInfo)
+  {
+    if (rVariable == EQ_STRAIN_RATE)
     {
-      rValues[0] = this->GetValue(FLOW_INDEX);
+      rOutput[0] = this->GetValue(EQ_STRAIN_RATE);
+    }
+  }
+
+  template <unsigned int TDim>
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
+                                                                                    std::vector<Vector> &rOutput,
+                                                                                    const ProcessInfo &rCurrentProcessInfo)
+  {
+    if (rVariable == CAUCHY_STRESS_VECTOR)
+    {
+      rOutput[0] = this->GetValue(CAUCHY_STRESS_VECTOR);
     }
   }
 
@@ -328,7 +348,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 

@@ -53,7 +53,9 @@
                 "solver_wrapper_settings" : {
                     "main_model_part_name" : "ping",
                     "domain_size" : 2,
-                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/ping"
+                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/ping",
+                    "export_data"      : ["send_data"],
+                    "import_data"      : ["recv_data"]
                 },
                 "io_settings":{
                     "type":"cpp_ping_pong.ping_pong_io"
@@ -77,7 +79,9 @@
                 "solver_wrapper_settings" : {
                     "main_model_part_name" : "pong",
                     "domain_size" : 2,
-                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/pong"
+                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/pong",
+                    "export_data"      : ["send_data"],
+                    "import_data"      : ["recv_data"]
                 },
                 "io_settings":{
                     "type":"cpp_ping_pong.ping_pong_io"

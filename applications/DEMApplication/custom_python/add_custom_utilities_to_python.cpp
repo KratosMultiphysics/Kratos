@@ -24,7 +24,6 @@
 #include "custom_utilities/omp_dem_search.h"
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
-#include "custom_utilities/benchmark_utilities.h"
 #include "custom_utilities/inlet.h"
 #include "custom_utilities/force_based_inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
@@ -179,6 +178,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
         .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const int>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
             ,py::arg("model_part")
@@ -189,6 +189,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
+        .def(py::init<ModelPart&, array_1d<double, 3>, const int>())
         .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
@@ -320,11 +321,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
-    py::class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
-        .def(py::init<>())
-        .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
-        ;
-
     py::class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
         .def(py::init<std::string const& >())
         .def(py::init<std::string const&, const int, const int, const int>())
@@ -334,6 +330,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
         .def(py::init<>())
         .def("ComputeAverageZStressFor2D", &AuxiliaryUtilities::ComputeAverageZStressFor2D)
+        .def("UpdateTimeInOneModelPart", &AuxiliaryUtilities::UpdateTimeInOneModelPart)
         ;
 
     py::class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")

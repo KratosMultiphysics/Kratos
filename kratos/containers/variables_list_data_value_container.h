@@ -461,6 +461,16 @@ public:
         return mpVariablesList;
     }
 
+    VariablesList& GetVariablesList()
+    {
+        return *mpVariablesList;
+    }
+
+    const VariablesList& GetVariablesList() const
+    {
+        return *mpVariablesList;
+    }
+
 
 
     void SetVariablesList(VariablesList::Pointer pVariablesList)

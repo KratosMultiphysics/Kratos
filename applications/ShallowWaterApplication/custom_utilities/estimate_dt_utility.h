@@ -11,8 +11,8 @@
 //
 
 
-#ifndef KRATOS_ESTIMATE_DT_SHALLOW_H_INCLUDED
-#define KRATOS_ESTIMATE_DT_SHALLOW_H_INCLUDED
+#ifndef KRATOS_ESTIMATE_TIME_STEP_UTILITY_H_INCLUDED
+#define KRATOS_ESTIMATE_TIME_STEP_UTILITY_H_INCLUDED
 
 
 // System includes
@@ -22,7 +22,8 @@
 
 
 // Project includes
-#include "includes/model_part.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 #include "includes/kratos_parameters.h"
 
 
@@ -50,27 +51,34 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/// Forward declaration of ModelPart
+class ModelPart;
+
 /// Utility to estimate the time step in terms of the courant number.
 /** The velocity can be the sum of the convective velocity and the wave speed
 */
-class KRATOS_API(SHALLOW_WATER_APPLICATION) EstimateDtShallow
+class KRATOS_API(SHALLOW_WATER_APPLICATION) EstimateTimeStepUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of EstimateDtShallow
-    KRATOS_CLASS_POINTER_DEFINITION(EstimateDtShallow);
+    /// Pointer definition of EstimateTimeStepUtility
+    KRATOS_CLASS_POINTER_DEFINITION(EstimateTimeStepUtility);
+
+    typedef Node <3> NodeType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    EstimateDtShallow(ModelPart& rThisModelPart, Parameters ThisParameters);
+    EstimateTimeStepUtility(ModelPart& rThisModelPart, Parameters ThisParameters);
 
     /// Destructor.
-    ~EstimateDtShallow(){}
+    ~EstimateTimeStepUtility(){}
 
     ///@}
     ///@name Operators
@@ -81,7 +89,7 @@ public:
     ///@name Operations
     ///@{
 
-    double EstimateDt() const;
+    double Execute() const;
 
     ///@}
     ///@name Access
@@ -114,43 +122,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -164,7 +135,6 @@ private:
     bool mEstimateDt;
     double mConstantDt;
     double mCourant;
-    bool mConsiderFroude;
     double mMinDt;
     double mMaxDt;
 
@@ -179,7 +149,7 @@ private:
 
     double EstimateTimeStep() const;
 
-    double NodalCharacteristicTime(const Node<3>& rNode, double gravity) const;
+    double ElementCharacteristicTime(const GeometryType& rElement, double Gravity) const;
 
     ///@}
     ///@name Private  Access
@@ -196,15 +166,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    EstimateDtShallow& operator=(EstimateDtShallow const& rOther);
+    EstimateTimeStepUtility& operator=(EstimateTimeStepUtility const& rOther);
 
     /// Copy constructor.
-    EstimateDtShallow(EstimateDtShallow const& rOther);
+    EstimateTimeStepUtility(EstimateTimeStepUtility const& rOther);
 
 
     ///@}
 
-}; // Class EstimateDtShallow
+}; // Class EstimateTimeStepUtility
 
 ///@}
 
@@ -219,11 +189,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                EstimateDtShallow& rThis);
+                EstimateTimeStepUtility& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const EstimateDtShallow& rThis)
+                const EstimateTimeStepUtility& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -237,4 +207,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ESTIMATE_DT_SHALLOW_H_INCLUDED  defined
+#endif // KRATOS_ESTIMATE_TIME_STEP_UTILITY_H_INCLUDED  defined

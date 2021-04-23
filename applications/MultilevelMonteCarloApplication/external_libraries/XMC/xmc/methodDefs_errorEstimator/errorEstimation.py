@@ -1,7 +1,7 @@
 import numpy as np
 from xmc.tools import normalInverseCDF
 
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 #TODO - think of potentially better name
 def errorEstimationStatError(cdfValue, globalEstimations):
@@ -17,7 +17,7 @@ def errorEstimationStatError(cdfValue, globalEstimations):
     # Ensure no NumPy type
     return float(error)
 
-@ExaquteTask(returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
+@task(keep=True, returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
 def errorEstimationStatError_Task(parameters, estimations):
     """
     Same as errorEstimationStatError but is a pycompss task
@@ -32,7 +32,7 @@ def errorEstimationTerr(cdfValue,globalEstimations):
     # Ensure no NumPy type
     return float(error)
 
-@ExaquteTask(returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
+@task(keep=True, returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
 def errorEstimationTerr_Task(parameters, estimations):
     """
     Same as errorEstimationTerr but is a pycompss task
@@ -48,7 +48,7 @@ def errorEstimationMSE(_, globalEstimations):
     # Ensure no NumPy type
     return float(error)
 
-@ExaquteTask(returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
+@task(keep=True, returns=1, estimations={Type: COLLECTION_IN, Depth: 1})
 def errorEstimationMSE_Task(parameters, estimations):
     """
     Same as errorEstimationMSE but is a PyCOMPSs task

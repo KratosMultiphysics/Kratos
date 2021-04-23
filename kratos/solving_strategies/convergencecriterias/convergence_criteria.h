@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "factories/factory.h"
 
 namespace Kratos
 {
@@ -499,6 +500,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
 
     ///@}
     ///@name Member Variables

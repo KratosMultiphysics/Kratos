@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 def plainFlag(values, criteria, valuesForCriterion, interpreter):
     """
@@ -13,7 +13,7 @@ def plainFlag(values, criteria, valuesForCriterion, interpreter):
     return interpreter(elementaryFlags)
 
 # TODO Providing depth of collection improves performance
-@ExaquteTask(returns = 1, values = COLLECTION_IN)
+@task(keep=True, returns = 1, values = COLLECTION_IN)
 def plainFlag_Task(values,*args):
     """
     This method is identical to plainFlag but for the task decorator.

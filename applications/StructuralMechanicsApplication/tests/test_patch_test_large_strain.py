@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 
 class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
@@ -26,12 +30,14 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             if (small_strain == True):
                 cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
             else:
-                cl = StructuralMechanicsApplication.HyperElasticPlaneStrain2DLaw()
+                self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+                cl = ConstitutiveLawsApplication.HyperElasticPlaneStrain2DLaw()
         else:
             if (small_strain == True):
                 cl = StructuralMechanicsApplication.LinearElastic3DLaw()
             else:
-                cl = StructuralMechanicsApplication.HyperElastic3DLaw()
+                self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+                cl = ConstitutiveLawsApplication.HyperElastic3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _set_buffer(self,mp):
@@ -120,33 +126,34 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def _create_strategy(self, mp, builder_type, linearize_on_previous_iteration):
         # Define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        if(builder_type == "elimination_builder"):
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        elif(builder_type == "block_builder"):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        else:
-            raise Exception("builder_type unknown")
-        # Define a minimal newton raphson solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
-        convergence_criterion.SetEchoLevel(0)
-
-        #max_iters = 1
-        max_iters = 20
-        compute_reactions = True
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                        scheme,
-                                                                        convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        max_iters,
-                                                                        compute_reactions,
-                                                                        reform_step_dofs,
-                                                                        move_mesh_flag)
-        strategy.SetEchoLevel(0)
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "newton_raphson_strategy",
+            "max_iteration"            : 20,
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : true,
+            "move_mesh_flag"           : true,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static_scheme"
+            },
+            "convergence_criteria_settings" : {
+                "name"                            : "displacement_criteria",
+                "displacement_absolute_tolerance" : 1.0e-20,
+                "displacement_relative_tolerance" : 1.0e-10,
+                "echo_level"                      : 0
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        if builder_type == "elimination_builder":
+            settings["builder_and_solver_settings"]["name"].SetString("elimination_builder_and_solver")
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.SetUseOldStiffnessInFirstIterationFlag(linearize_on_previous_iteration)
 
         return strategy

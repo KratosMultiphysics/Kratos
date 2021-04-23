@@ -107,18 +107,7 @@ public:
 
         if( this->mEntity == EntityType::NODES ){
 
-          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(this->mvariable_name) ) //case of component variable
-          {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(this->mvariable_name);
-
-            if( rModelPart.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
-            {
-              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << this->mvariable_name << std::endl;
-            }
-
-          }
-          else if( KratosComponents< Variable<double> >::Has( this->mvariable_name ) ) //case of double variable
+          if( KratosComponents< Variable<double> >::Has( this->mvariable_name ) ) //case of double variable
           {
             if( rModelPart.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( this->mvariable_name ) ) == false )
             {
@@ -191,13 +180,7 @@ public:
 
         if( this->mEntity == EntityType::NODES || this->mEntity == EntityType::CONDITIONS ){
 
-          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(this->mvariable_name) ) //case of component variable
-          {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(this->mvariable_name);
-            AssignValueToNodes<component_type>(var_component, rCurrentTime);
-          }
-          else if( KratosComponents< Variable<double> >::Has( this->mvariable_name ) ) //case of double variable
+          if( KratosComponents< Variable<double> >::Has( this->mvariable_name ) ) //case of double variable
           {
             AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(this->mvariable_name), rCurrentTime);
           }

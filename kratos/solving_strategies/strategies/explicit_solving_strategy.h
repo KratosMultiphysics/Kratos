@@ -25,6 +25,7 @@
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -97,7 +98,6 @@ public:
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
-        mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
     /**
@@ -182,9 +182,7 @@ public:
     virtual void Initialize()
     {
         // Initialize elements, conditions and constraints
-        InitializeContainer(GetModelPart().Elements());
-        InitializeContainer(GetModelPart().Conditions());
-        InitializeContainer(GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::InitializeAllEntities(GetModelPart());
 
         // Set the explicit DOFs rebuild level
         if (mRebuildLevel != 0) {
@@ -228,9 +226,7 @@ public:
     virtual void InitializeSolutionStep()
     {
         // InitializeSolutionStep elements, conditions and constraints
-        InitializeSolutionStepContainer(GetModelPart().Elements());
-        InitializeSolutionStepContainer(GetModelPart().Conditions());
-        InitializeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::InitializeSolutionStepAllEntities(GetModelPart());
 
         // Call the builder and solver initialize solution step
         mpExplicitBuilder->InitializeSolutionStep(*mpModelPart);
@@ -243,9 +239,7 @@ public:
     virtual void FinalizeSolutionStep()
     {
         // FinalizeSolutionStep elements, conditions and constraints
-        FinalizeSolutionStepContainer(GetModelPart().Elements());
-        FinalizeSolutionStepContainer(GetModelPart().Conditions());
-        FinalizeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(GetModelPart());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
         mpExplicitBuilder->FinalizeSolutionStep(*mpModelPart);
@@ -258,9 +252,7 @@ public:
     virtual bool SolveSolutionStep()
     {
         // Call the initialize non-linear iteration
-        InitializeNonLinearIterationContainer(GetModelPart().Elements());
-        InitializeNonLinearIterationContainer(GetModelPart().Conditions());
-        InitializeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(GetModelPart());
 
         // Apply constraints
         if(mpModelPart->MasterSlaveConstraints().size() != 0) {
@@ -276,9 +268,7 @@ public:
         }
 
         // Call the finalize non-linear iteration
-        FinalizeNonLinearIterationContainer(GetModelPart().Elements());
-        FinalizeNonLinearIterationContainer(GetModelPart().Conditions());
-        FinalizeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(GetModelPart());
 
         return true;
     }
@@ -576,6 +566,17 @@ protected:
         const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
         SetMoveMeshFlag(move_mesh_flag);
         SetRebuildLevel(rebuild_level);
+
+        // Setting up the default builder and solver
+        const std::string& r_name = ThisParameters.Has("explicit_builder_settings") ? ThisParameters["explicit_builder_settings"].Has("name") ? ThisParameters["explicit_builder_settings"]["name"].GetString() : "explicit_builder" : "explicit_builder";
+        if (KratosComponents<ExplicitBuilderType>::Has( r_name )) {
+            // Defining the builder and solver
+            mpExplicitBuilder = KratosComponents<ExplicitBuilderType>::Get(r_name).Create(ThisParameters["explicit_builder_settings"]);
+        } else {
+            KRATOS_ERROR << "Trying to construct explicit builder with name= " << r_name << std::endl <<
+                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                            KratosComponents<ExplicitBuilderType>() << std::endl;
+        }
     }
 
     ///@}
@@ -594,6 +595,8 @@ private:
     ///@}
     ///@name Static Member Variables
     ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
@@ -627,86 +630,6 @@ private:
                 auto &r_value = rDof.GetSolutionStepValue();
                 r_value = 0.0;
             }
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the Initialize()
-     * For a given container, this calls the Initialize() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void InitializeContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.Initialize(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the InitializeSolutionStep()
-     * For a given container, this calls the InitializeSolutionStep() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void InitializeSolutionStepContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.InitializeSolutionStep(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the InitializeNonLinearIteration()
-     * For a given container, this calls the InitializeNonLinearIteration() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void InitializeNonLinearIterationContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.InitializeNonLinearIteration(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the FinalizeNonLinearIteration()
-     * For a given container, this calls the FinalizeNonLinearIteration() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void FinalizeNonLinearIterationContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeNonLinearIteration(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the FinalizeSolutionStep()
-     * For a given container, this calls the FinalizeSolutionStep() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void FinalizeSolutionStepContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeSolutionStep(r_process_info);}
         );
     }
 

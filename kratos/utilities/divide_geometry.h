@@ -22,7 +22,7 @@
 #include "geometries/point.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/pointer_vector_set.h"
 
 namespace Kratos

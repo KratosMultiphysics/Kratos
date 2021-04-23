@@ -37,14 +37,14 @@ KRATOS_CLASS_POINTER_DEFINITION(EthierFlowField);
 
 EthierFlowField():VelocityField(), mA(0.25 * Globals::Pi), mD(0.5 * Globals::Pi)
 {
-    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 }
 
 EthierFlowField(const double a, const double b)
                  :VelocityField(), mA(a), mD(b)
 {
-    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+    unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 }
 

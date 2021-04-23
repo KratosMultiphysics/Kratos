@@ -89,23 +89,27 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
             #     POINT_LOAD_X,0,load_size_dir)
 
     def _solve_linear(self,mp):
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-
-        compute_reactions = True  #Now the rotation reactions (REACTION_MOMENT) is added, so it works
-        reform_step_dofs = True
-        calculate_norm_dx = False
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
-                                                                scheme,
-                                                                builder_and_solver,
-                                                                compute_reactions,
-                                                                reform_step_dofs,
-                                                                calculate_norm_dx,
-                                                                move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
+        # Define a minimal linear solver
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "name"                     : "linear_strategy",
+            "compute_reactions"        : true,
+            "reform_dofs_at_each_step" : true,
+            "move_mesh_flag"           : true,
+            "compute_norm_dx"          : false,
+            "echo_level"               : 0,
+            "linear_solver_settings" : {
+                "solver_type" : "skyline_lu_factorization"
+            },
+            "scheme_settings" : {
+                "name"          : "static_scheme"
+            },
+            "builder_and_solver_settings" : {
+                "name" : "block_builder_and_solver"
+            }
+        }
+        """)
+        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
 
@@ -251,7 +255,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,False)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,True)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -311,7 +315,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
         #create nodes
         dx = 1.00 / nr_elements
@@ -372,7 +376,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements
@@ -914,7 +918,7 @@ class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
+            mp.GetProperties()[0].SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX,False)
 
             #create nodes
             dx = 1.00 / nr_elements

@@ -171,13 +171,13 @@ class SolutionScheme:
 
                     integration_method = None
                     if( len(variables) == 4 ):
-                        component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
+                        component_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
                         integration_method = component_integration_method(variables[0],variables[1],variables[2],variables[3])
                     elif( len(variables) == 1 ):
                         if(integration_method_name.find("Step") != -1):
-                            component_integration_method = getattr(KratosSolid, 'StaticStepComponentIntegration')
+                            component_integration_method = getattr(KratosSolid, 'StaticStepScalarIntegration')
                         else:
-                            component_integration_method = getattr(KratosSolid, 'StaticComponentIntegration')
+                            component_integration_method = getattr(KratosSolid, 'StaticScalarIntegration')
                         integration_method = component_integration_method(variables[0])
                     else:
                         raise Exception('len(variables) = ' + str(len(variables)))

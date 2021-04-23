@@ -242,9 +242,8 @@ public:
         // Auxiliar fixed value
         bool fixed = false;
 
-        #pragma omp parallel for private(fixed)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
@@ -270,7 +269,7 @@ public:
 
                 counter++;
             }
-        }
+        });
 
         KRATOS_CATCH("ResidualBasedBDFCustomScheme.InitializeSolutionStep");
     }
@@ -306,9 +305,8 @@ public:
         // Getting first node iterator
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
@@ -324,7 +322,7 @@ public:
             // Updating time derivatives
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
-        }
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -344,15 +342,6 @@ public:
 
         const int err = BDFBaseType::Check(rModelPart);
         if(err!=0) return err;
-
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        for ( auto p_var : mDoubleVariable)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mFirstDoubleDerivatives)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mSecondDoubleDerivatives)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
 
         // Check that variables are correctly allocated
         for(auto& r_node : rModelPart.Nodes()) {
@@ -508,6 +497,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -588,7 +579,7 @@ private:
                 mDoubleVariable.push_back(&r_var);
                 mFirstDoubleDerivatives.push_back(&(r_var.GetTimeDerivative()));
                 mSecondDoubleDerivatives.push_back(&((r_var.GetTimeDerivative()).GetTimeDerivative()));
-            } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
                 // Components
                 const auto& r_var_x = KratosComponents<Variable<double>>::Get(variable_name+"_X");
                 const auto& r_var_y = KratosComponents<Variable<double>>::Get(variable_name+"_Y");
@@ -605,7 +596,8 @@ private:
                     mSecondDoubleDerivatives.push_back(&((r_var_z.GetTimeDerivative()).GetTimeDerivative()));
                 }
             } else {
-                KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
+                // Doing check to avoid error appearing when registering the class in the KratosComponents, when variables are not yet defined
+                KRATOS_ERROR_IF(KratosComponents<Variable<double>>::GetComponents().size() > 0) << "Only double and vector variables are allowed in the variables list. Variable: " << variable_name << std::endl;
             }
         }
     }

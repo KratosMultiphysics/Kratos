@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -23,9 +23,12 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
-//default builder and solver
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+/* Default builder and solver */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
+/* Factories */
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {
@@ -95,6 +98,11 @@ public:
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -227,40 +235,6 @@ public:
 
         // By default the matrices are rebuilt at each solution step
         BaseType::SetRebuildLevel(1);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Constructor specifying the builder and solver
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewBuilderAndSolver The builder and solver employed
-     * @param CalculateReactionFlag The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
-     * @param MoveMeshFlag The flag that allows to move the mesh
-     */
-    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
-    explicit ResidualBasedLinearStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        bool CalculateReactionFlag = false,
-        bool ReformDofSetAtEachStep = false,
-        bool CalculateNormDxFlag = false,
-        bool MoveMeshFlag = false
-        ) : ResidualBasedLinearStrategy(rModelPart, pScheme, pNewBuilderAndSolver, CalculateReactionFlag, ReformDofSetAtEachStep, CalculateNormDxFlag, MoveMeshFlag)
-    {
-        KRATOS_TRY
-
-        KRATOS_WARNING("ResidualBasedLinearStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
-
-        // We check if the linear solver considered for the builder and solver is consistent
-        auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
-        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -424,21 +398,20 @@ public:
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+
+        // Applying constraints if needed
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
         const int local_number_of_constraints = r_constraints_array.size();
         const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
         if(global_number_of_constraints != 0) {
-            const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
-
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_begin+i)->ResetSlaveDofs(rProcessInfo);
-
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_begin+i)->Apply(rProcessInfo);
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
 
             //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
@@ -873,12 +846,23 @@ protected:
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
         }
 
         // Setting up the default builder and solver
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
         }
     }
 
@@ -900,12 +884,13 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
+    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
 
     TSystemVectorPointerType mpDx; /// The incremement in the solution

@@ -14,17 +14,21 @@
 #define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
 
 // System includes
+#include <iostream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
+/* Factories */
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {
@@ -98,6 +102,15 @@ class ResidualBasedNewtonRaphsonStrategy
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Convergence criteria factory
+    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -375,7 +388,9 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
-
+        // Validate and assign defaults
+        Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
+        this->AssignSettings(Settings);
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
 
@@ -652,15 +667,12 @@ class ResidualBasedNewtonRaphsonStrategy
         if(global_number_of_constraints != 0) {
             const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            const auto it_const_begin = r_constraints_array.begin();
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_const_begin + i)->ResetSlaveDofs(r_process_info);
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_const_begin + i)->Apply(r_process_info);
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
 
             // The following is needed since we need to eventually compute time derivatives after applying
             // Master slave relations
@@ -1245,6 +1257,8 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -1344,6 +1358,16 @@ class ResidualBasedNewtonRaphsonStrategy
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rb);
+
+            std::stringstream matrix_market_dxname;
+            matrix_market_dxname << "dx_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_dxname.str()).c_str(), rDx);
+
+            std::stringstream dof_data_name;
+            unsigned int rank=BaseType::GetModelPart().GetCommunicator().MyPID();
+            dof_data_name << "dofdata_" << BaseType::GetModelPart().GetProcessInfo()[TIME]
+                << "_" << IterationNumber << "_rank_"<< rank << ".csv";
+            WriteDofInfo(dof_data_name.str(), rDx);
         }
     }
 
@@ -1372,18 +1396,43 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Saving the convergence criteria to be used
         if (ThisParameters["convergence_criteria_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
         }
 
         // Saving the scheme
         if (ThisParameters["scheme_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
         }
 
         // Setting up the default builder and solver
         if (ThisParameters["builder_and_solver_settings"].Has("name")) {
-            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
         }
+    }
+
+    void WriteDofInfo(std::string FileName, const TSystemVectorType& rDX)
+    {
+        std::ofstream out(FileName);
+
+        out.precision(15);
+        out << "EquationId,NodeId,VariableName,IsFixed,Value,coordx,coordy,coordz" << std::endl;
+        for(const auto& rdof : GetBuilderAndSolver()->GetDofSet()) {
+            const auto& coords = BaseType::GetModelPart().Nodes()[rdof.Id()].Coordinates();
+            out << rdof.EquationId() << "," << rdof.Id() << "," << rdof.GetVariable().Name() << "," << rdof.IsFixed() << ","
+                        << rdof.GetSolutionStepValue() << "," <<  "," << coords[0]  << "," << coords[1]  << "," << coords[2]<< "\n";
+        }
+        out.close();
     }
 
     ///@}
