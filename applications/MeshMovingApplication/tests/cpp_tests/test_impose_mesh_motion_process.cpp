@@ -60,6 +60,60 @@ void FillModelPart(ModelPart& rModelPart)
 }
 
 
+void CheckNodes(const ModelPart& rModelPart)
+{
+    Node<3> node;
+    const double tolerance = 1e-10;
+
+    KRATOS_CHECK(rModelPart.Nodes().size() == 9);
+
+    node = rModelPart.GetNode(1);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
+
+    node = rModelPart.GetNode(2);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
+
+    node = rModelPart.GetNode(3);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
+
+    node = rModelPart.GetNode(4);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
+
+    node = rModelPart.GetNode(5);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
+
+    node = rModelPart.GetNode(6);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
+
+    node = rModelPart.GetNode(7);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
+
+    node = rModelPart.GetNode(8);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
+
+    node = rModelPart.GetNode(9);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
+    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
+}
+
+
 KRATOS_TEST_CASE_IN_SUITE(ImposeMeshMotionProcessRotationAxis, MeshMovingApplicationFastSuite)
 {
     Model model;
@@ -79,53 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(ImposeMeshMotionProcessRotationAxis, MeshMovingApplica
     ImposeMeshMotionProcess impose_process(r_model_part, parameters);
     impose_process.ExecuteInitializeSolutionStep();
 
-    Node<3> node;
-    const double tolerance = 1e-10;
-
-    node = r_model_part.GetNode(1);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
-
-    node = r_model_part.GetNode(2);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
-
-    node = r_model_part.GetNode(3);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
-
-    node = r_model_part.GetNode(4);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
-
-    node = r_model_part.GetNode(5);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
-
-    node = r_model_part.GetNode(6);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
-
-    node = r_model_part.GetNode(7);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
-
-    node = r_model_part.GetNode(8);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
-
-    node = r_model_part.GetNode(9);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
+    CheckNodes(r_model_part);
 }
 
 
@@ -147,53 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(ImposeMeshMotionProcessEulerAngles, MeshMovingApplicat
     ImposeMeshMotionProcess impose_process(r_model_part, parameters);
     impose_process.ExecuteInitializeSolutionStep();
 
-    Node<3> node;
-    const double tolerance = 1e-10;
-
-    node = r_model_part.GetNode(1);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
-
-    node = r_model_part.GetNode(2);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
-
-    node = r_model_part.GetNode(3);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), 0.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 4.00, tolerance);
-
-    node = r_model_part.GetNode(4);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
-
-    node = r_model_part.GetNode(5);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
-
-    node = r_model_part.GetNode(6);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -1.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 5.00, tolerance);
-
-    node = r_model_part.GetNode(7);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
-
-    node = r_model_part.GetNode(8);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
-
-    node = r_model_part.GetNode(9);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_X), -2.0, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Y), 2.00, tolerance);
-    KRATOS_CHECK_NEAR(node.GetValue(MESH_DISPLACEMENT_Z), 6.00, tolerance);
+    CheckNodes(r_model_part);
 }
 
 
