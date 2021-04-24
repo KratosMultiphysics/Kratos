@@ -35,7 +35,7 @@ xmamieps(1.0e-5) */
 //, epsimin(1e-7)
 , epsimin(std::sqrt(nano + m) * 1e-9)
 , raa0(0.00001)
-, move(0.085)
+, move(0.0085)
 , albefa(0.1)
 , asyminit(0.5) // 0.2;
 , asymdec(0.7) // 0.65;
