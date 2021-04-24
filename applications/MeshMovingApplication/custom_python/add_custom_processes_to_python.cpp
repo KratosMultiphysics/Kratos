@@ -20,7 +20,7 @@ namespace Python
 
 void AddCustomProcessesToPython(pybind11::module& rModule)
 {
-    pybind11::class_<ImposeMeshMotionProcess,Process,ImposeMeshMotionProcess::Pointer>(rModule, "ImposeMeshMotionProcess")
+    pybind11::class_<ImposeMeshMotionProcess,ImposeMeshMotionProcess::Pointer,Process>(rModule, "ImposeMeshMotionProcess")
         .def(pybind11::init<ModelPart&, Parameters>())
         ;
 }
