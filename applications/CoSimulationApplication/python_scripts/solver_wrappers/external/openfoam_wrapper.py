@@ -28,27 +28,14 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
-        super().Initialize()
+        super(OpenFOAMWrapper, self).Initialize()
 
         """ImportCouplingInterface()= Imports coupling interface from an external solver
         External solver sends, CoSimulation receives = load values"""
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
-            for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
-                interface_config = {
-                    "model_part_name" : model_part_name,
-                    "comm_name" : data_name
-                    }
-                self.ImportCouplingInterface(interface_config)
-        print("Ashish 1.2")
-
-        """ for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
-            for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
-                interface_config = {
-                    "model_part_name" : model_part_name,
-                    "comm_name" : data_name
-                    }
-                self.ImportCouplingInterface(interface_config)
-        print("Ashish 1.3") """
+            interface_config = {"model_part_name" : model_part_name}
+            print(interface_config)
+            self.ImportCouplingInterface(interface_config)
 
     def AdvanceInTime(self, current_time):
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
