@@ -163,9 +163,7 @@ void ImposeMeshMotionProcess::LoadFromQuaternion(const Quaternion<double>& rQuat
 {
     KRATOS_TRY;
 
-    Matrix temporary_transformation(3, 3);
     mTransformationMatrix.resize(3, 3);
-
     mReferencePoint = rReferencePoint;
     mTranslationVector = rTranslationVector;
 
