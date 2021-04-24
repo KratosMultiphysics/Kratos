@@ -30,10 +30,25 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
     def Initialize(self):
         super().Initialize()
 
-        # Need to check after this. Connection is required to establish first
+        """ImportCouplingInterface()= Imports coupling interface from an external solver
+        External solver sends, CoSimulation receives = load values"""
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
-            interface_config = { "model_part_name" : model_part_name }
-            self.ImportCouplingInterface(interface_config)
+            for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+                interface_config = {
+                    "model_part_name" : model_part_name,
+                    "comm_name" : data_name
+                    }
+                self.ImportCouplingInterface(interface_config)
+        print("Ashish 1.2")
+
+        """ for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
+            for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+                interface_config = {
+                    "model_part_name" : model_part_name,
+                    "comm_name" : data_name
+                    }
+                self.ImportCouplingInterface(interface_config)
+        print("Ashish 1.3") """
 
     def AdvanceInTime(self, current_time):
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
