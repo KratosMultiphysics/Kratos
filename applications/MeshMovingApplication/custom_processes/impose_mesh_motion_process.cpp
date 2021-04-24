@@ -12,7 +12,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "includes/mesh_moving_variables.h"
 
@@ -168,21 +167,9 @@ void ImposeMeshMotionProcess::LoadFromQuaternion(const Quaternion<double>& rQuat
     mTransformationMatrix.resize(3, 3);
 
     mReferencePoint = rReferencePoint;
+    mTranslationVector = rTranslationVector;
 
     rQuaternion.ToRotationMatrix(mTransformationMatrix);
-
-    // Note: the current implementation of CalculateTranslationMatrix
-    // multiplies the magnitude with the bare translation direction,
-    // which is not necessarily of unit length. This property is used here
-    // and if CalculateTranslationMatrix is changed in the future to normalize the
-    // translation direction, this call must be modified accordingly.
-    GeometricalTransformationUtilities::CalculateTranslationMatrix(
-        1.0,
-        temporary_transformation,
-        rTranslationVector
-    );
-
-    mTransformationMatrix = prod(temporary_transformation, mTransformationMatrix);
 
     KRATOS_CATCH("");
 }
@@ -194,8 +181,7 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
 
     block_for_each(
         mrModelPart.Nodes(),
-        [this](Node<3>& rNode)
-        {
+        [this](Node<3>& rNode) {
             array_1d<double,3> transformed_point = rNode;
             this->Transform(transformed_point);
             rNode.SetValue(MESH_DISPLACEMENT, transformed_point - rNode);
@@ -208,15 +194,16 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
 
 const Parameters ImposeMeshMotionProcess::GetDefaultParameters() const
 {
-    return std::move(Parameters(R"({
+    return std::move(Parameters(R"(
+    {
         "model_part_name"       : "",
         "interval"              : [0.0, 1e30],
         "rotation_definition"   : "euler_angles",
         "euler_angles"          : [0.0, 0.0, 0.0],
         "rotation_axis"         : [0.0, 0.0, 1.0],
-        "reference_point"       : [0.0, 0.0, 0.0]
+        "reference_point"       : [0.0, 0.0, 0.0],
         "rotation_angle"        : 0,
-        "translation_vector"    : [0.0, 0.0, 0.0],
+        "translation_vector"    : [0.0, 0.0, 0.0]
     })"));
 }
 

@@ -106,10 +106,8 @@ private:
 
     void Transform(array_1d<double,3>& rPoint) const
     {
-        array_1d<double,3> offset = rPoint - mReferencePoint;
-        rPoint -= offset;
-        prod(mTransformationMatrix, rPoint);
-        rPoint += offset;
+        rPoint = prod(mTransformationMatrix, rPoint - mReferencePoint);
+        rPoint += mReferencePoint + mTranslationVector;
     }
 
     ///@}
@@ -121,6 +119,8 @@ private:
     Matrix mTransformationMatrix;
 
     array_1d<double,3> mReferencePoint;
+
+    array_1d<double,3> mTranslationVector;
 
     array_1d<double,2> mInterval;
 
