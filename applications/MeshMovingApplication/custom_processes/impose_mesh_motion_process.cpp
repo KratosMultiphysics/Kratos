@@ -26,7 +26,7 @@ ImposeMeshMotionProcess::ImposeMeshMotionProcess(ModelPart& rModelPart, Paramete
 {
     KRATOS_TRY;
 
-    this->LoadFromParameters(std::move(parameters));
+    this->LoadFromParameters(parameters);
 
     KRATOS_CATCH("");
 }
@@ -192,7 +192,7 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
 
 const Parameters ImposeMeshMotionProcess::GetDefaultParameters() const
 {
-    return std::move(Parameters(R"(
+    return Parameters(R"(
     {
         "model_part_name"       : "",
         "interval"              : [0.0, 1e30],
@@ -202,7 +202,7 @@ const Parameters ImposeMeshMotionProcess::GetDefaultParameters() const
         "reference_point"       : [0.0, 0.0, 0.0],
         "rotation_angle"        : 0,
         "translation_vector"    : [0.0, 0.0, 0.0]
-    })"));
+    })");
 }
 
 
