@@ -29,8 +29,8 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
-/* #include "MMASolver.cpp" */
-#include "mma_solver.h"
+
+#include "mma_solver.cpp"
 
 
 // Application includes
@@ -209,47 +209,135 @@ public:
 
 
 
-	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac, double greyscale , double OptItr , double qmax, char FilterType[], char FilterFunctionType[] )
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr )
 	{
 		KRATOS_TRY;
+		if ( strcmp( update_type , "MMA_algorithm" ) == 0 )
+		{
+			clock_t begin = clock();
+			std::cout << "  Method of Moving Asymthodes (MMA) chosen to solve the optimization problem" << std::endl;
 
-		// Create object of updating function
-		MMACalculateNewDensities MMASolve(FilterFunctionType);
-		double x = 0;
 
-				array_1d<double,3> center_coord = ZeroVector(3);
+			// Create object of updating function
+			int nn = mrModelPart.NumberOfElements();
+			int mm = 1; /// constraints
 
-				for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+
+			int iteration = 0; 
+
+			Vector xold;
+			xold.resize(mrModelPart.NumberOfElements());
+
+			double *x = new double[nn];
+			double *df = new double[nn];
+			double *g = new double[mm];
+			double *dg = new double[nn*mm];
+			double *xmin = new double[nn];
+			double *xmax = new double[nn];
+			double Vol_sum =0;
+			double vol_frac_iteration = 0;
+			
+
+
+			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
+			{	
+				
+			
+				double xval = element_i->GetValue(X_PHYS);
+			/* 	double gx = volfrac; */
+				double dfdx = element_i->GetValue(DCDX);
+				double dgdx = element_i->GetValue(DVDX);
+				double Xmin = 0;
+				double Xmax= 1;
+				Vol_sum += xval;
+
+				
+				x[iteration]= xval;
+				df[iteration]= dfdx;
+				dg[iteration] = dgdx;
+				xmax[iteration] = Xmax;
+				xmin[iteration] = Xmin; 
+				iteration ++;
+				
+
+				
+
+			}
+			g[0] = 0;
+			vol_frac_iteration = Vol_sum/nn;
+			std::cout << "  Updating of values performed " <<  vol_frac_iteration << std::endl;
+			g[0] = vol_frac_iteration  - volfrac ;
+			std::cout << "  						g0 " <<  g[0] << std::endl;
+			
+
+
+ 			// Initialize MMA
+			MMASolver *mma = new MMASolver(nn,mm);
+
+			double ch = 1;
+			int itr = 0;
+
+			while (ch > 0.002 && itr < 100)
+			{	
+				
+				itr ++;
+				double Xminn = 0;
+				double Xmaxx= 1;
+				double movlim = 0.1;
+				double vol_summ = 0;
+
+				for (int it = 0; it < nn; it++) 
 				{
-					double x_old = element_i->GetValue(X_PHYS_OLD);
-					int solid_void = element_i->GetValue(SOLID_VOID);
-					double dcdx  = element_i->GetValue(DCDX);
-					double dvdx  = element_i->GetValue(DVDX);
-					double x_old_2 = 0;
-					double dcdx_old = 0;
-					double xval = element_i->GetValue(X_PHYS);
-					double gx = 0.5;
-					double dfdx = element_i->GetValue(DCDX);
-					double dgdx = 0;
-					double xmin = 0;
-					double xmax = 1;
-					double xold1 = element_i->GetValue(DCDX_OLD);
-					double xold2 = element_i->GetValue(DCDX_OLD_2);
-
-
-					int i=0;
-					int j=0;
-					x = MMASolve.UpdateMMA(xval, dfdx,  gx,  dgdx,  xmin, xmax, xold1, xold2); 
-					double rest = 0;
-					rest = x -xval;
-					std::cout << "  Updating of values performed X="<< rest << std::endl;
-
-					
-
+				xmax[it] = std::min(Xmaxx, x[it] + movlim);
+				xmin[it] = std::max(Xminn, x[it] - movlim); 
 				}
 
+				mma->Update(x,df,g,dg,xmin,xmax);
 
 
+
+				
+				ch = 0.0;
+				g[0]= 0;
+				for (int itt=0;itt < nn;itt++) 
+				{
+				ch = std::max(ch,std::abs(x[itt]-xold[itt]));
+			 	vol_summ += x[itt]; 
+				xold[itt] = x[itt];
+				}
+				double vol_it_loop = vol_summ/nn;
+				g[0] = vol_it_loop - vol_frac_iteration; 
+			}
+
+
+
+
+			int jiter = 0;
+
+			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
+					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
+				elem_i->SetValue(X_PHYS, x[jiter++]);
+				
+
+
+
+			// Printing of results
+			clock_t end = clock();
+			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+
+ /* 			delete[] x;
+			delete[] df;
+			delete[] g;
+			delete[] dg;
+			delete[] xmin;
+			delete[] xmax;  */
+			delete mma; 
+		}
+		else 
+		{
+
+			KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
+		}
 
 		KRATOS_CATCH("");
 

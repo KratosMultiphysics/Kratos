@@ -32,6 +32,9 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "rotation_dofs"                      : false,
+        "compute_reactions"                  : true,
+        "reform_dofs_at_each_step"           : false,
+        "move_mesh_flag"                     : true,
         "linear_solver_settings"             :  {
             "solver_type"         : "amgcl",
             "max_iteration"       : 500,
@@ -61,7 +64,7 @@
            	    "mesh_id"         : 0,
            	    "model_part_name" : "Structure.PointLoad3D_load",
             	"variable_name"   : "POINT_LOAD",
-            	"modulus"         : "10",
+            	"modulus"         : "1",
             	"direction"       : [0.0,-1.0,0.0]
             }
     }],

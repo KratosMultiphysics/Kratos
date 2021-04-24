@@ -123,8 +123,8 @@ class SIMPMethod:
         if(self.config.optimization_algorithm == "oc_algorithm"):
            self.start_oc_algorithm()
 
-        if(self.config.optimization_algorithm == "MMA_alogrithm"):
-           self.start_oc_algorithm()
+        if(self.config.optimization_algorithm == "MMA_algorithm"):
+           self.start_mma_algorithm()
 
 
         else:
@@ -212,22 +212,16 @@ class SIMPMethod:
             print("\n::[Filter Sensitivities]::")
             self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
 
-            if (self.config.optimization_algorithm == "oc_algorithm"):
+
             # Update design variables ( densities )  --> new X by:
-                print("\n::[Update Densities with OC]::")
-                self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm,
+            print("\n::[Update Densities with OC]::")
+            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm,
                                                                    self.config.initial_volume_fraction,
                                                                    self.config.grey_scale_filter,
                                                                    opt_itr,
                                                                    self.config.q_max )
-            if (self.config.optimization_algorithm == "MMA_alogrithm"):
-                print("\n No valid Updating algorithm used!")
-                self.design_update_utils.UpdateDensitiesUsingMMAMethod( self.config.optimization_algorithm,
-                                                self.config.initial_volume_fraction,
-                                                self.config.grey_scale_filter,
-                                                opt_itr,
-                                                self.config.q_max,
-                                                self.config.filter_type , self.config.filter_kernel  )
+
+
 
             if (self.config.density_filter == "density"):
                 print("\n::[Filter Densities]::") 
@@ -312,6 +306,176 @@ class SIMPMethod:
             print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
 
 # ==============================================================================
+
+
+
+
+# --------------------------------------------------------------------------
+    def start_mma_algorithm(self):
+
+        # Get Id of objective & constraint
+        only_F_id = None
+        only_C_id = None
+        for F_id in self.objectives:
+            only_F_id = F_id
+            break
+        for C_id in self.constraints:
+            only_C_id = C_id
+            break
+
+        # Initialize variables for comparison purposes in Topology Optimization Tool
+        pmax                          = self.config.penalty   # Maximum penalty value used for continuation strategy
+        Obj_Function                  = None
+        Obj_Function_old              = None
+        Obj_Function_initial          = None
+        Obj_Function_relative_change  = None
+        Obj_Function_absolute_change  = None
+
+        # Print the Topology Optimization Settings that will be used in the program
+        print("\n::[Topology Optimization Settings]::")
+        print("  E_min:          ", self.config.E_min)
+        print("  Filter radius:  ", self.config.filter_radius)
+        print("  Penalty factor: ", self.config.penalty)
+        print("  Rel. Tolerance: ", self.config.relative_tolerance)
+        print("  Volume Fraction:", self.config.initial_volume_fraction)
+        print("  Max. number of iterations:", self.config.max_opt_iterations)
+
+        if (self.config.restart_write_frequency < self.config.max_opt_iterations):
+            if (self.config.restart_write_frequency == 1):
+                print("  Make a restart file every iteration")
+            elif (self.config.restart_write_frequency > 1):
+                print("  Make a restart file every", self.config.restart_write_frequency, "iterations")
+            else:
+                print("  No restart file will be done during the simulation")
+        else:
+            print("  No restart file will be done during the simulation")
+
+        # Start optimization loop
+        for opt_itr in range(1,self.config.max_opt_iterations+1):
+
+            # Some output
+            print("\n> ==============================================================================================")
+            print("> Starting optimization iteration ",opt_itr)
+            print("> ==============================================================================================\n")
+
+            # Start measuring time needed for current optimization step
+            start_time = time.time()
+
+            # Initialize response container
+            response = self.controller.create_response_container()
+
+            # Set controller to evaluate objective & constraint
+            self.controller.initialize_controls()
+            self.controller.get_controls()[only_F_id]["calc_func"] = 1
+            self.controller.get_controls()[only_C_id]["calc_func"] = 1
+
+            # Set to evaluate objective & constraint gradient if provided
+            if(self.objectives[only_F_id]["grad"]=="provided"):
+                self.controller.get_controls()[only_F_id]["calc_grad"] = 1
+            if(self.constraints[only_C_id]["grad"]=="provided"):
+                self.controller.get_controls()[only_C_id]["calc_grad"] = 1
+
+            # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
+            self.analyzer(self.controller.get_controls(), response, opt_itr)
+            
+            # Filter sensitivities
+            print("\n::[Filter Sensitivities]::")
+            self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
+
+
+            print("\n No valid Updating algorithm used!")
+            self.design_update_utils.UpdateDensitiesUsingMMAMethod( self.config.optimization_algorithm,
+                                                self.config.initial_volume_fraction,
+                                                opt_itr)
+
+            if (self.config.density_filter == "density"):
+                print("\n::[Filter Densities]::") 
+                self.filter_utils.ApplyFilterDensity(self.config.density_filter , self.config.filter_kernel )
+
+
+
+
+            
+            # Print of results
+            print("\n::[RESULTS]::")
+            Obj_Function = response[only_F_id]["func"]
+            C_Function = response[only_C_id]["func"]
+
+            print("  Obj. function value           = ", math.ceil(Obj_Function*1000000)/1000000 )
+            print("  Const. function value         = ", math.ceil(C_Function*1000000)/1000000 )
+
+            if opt_itr == 1:
+                Obj_Function_initial = Obj_Function
+
+            if opt_itr > 1:
+                Obj_Function_relative_change = (Obj_Function - Obj_Function_old) / Obj_Function_initial
+                print("  Relative Obj. Function change =", math.ceil((Obj_Function_relative_change*100)*10000)/10000, "%" )
+
+                Obj_Function_absolute_change = (Obj_Function - Obj_Function_initial) / Obj_Function_initial
+                print("  Absolute Obj. Function change =", math.ceil((Obj_Function_absolute_change*100)*10000)/10000, "%" )
+
+            Obj_Function_old = Obj_Function
+
+            # Write design in GiD format
+            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, self.config.gauss_points_results)
+
+            # Continuation Strategy
+            if(self.config.continuation_strategy == 1):
+                print("  Continuation Strategy for current iteration was ACTIVE")
+                if opt_itr < 20:
+                    for element_i in self.opt_model_part.Elements:
+                        element_i.SetValue(PENAL, 1)
+                else:
+                    for element_i in self.opt_model_part.Elements:
+                        element_i.SetValue(PENAL, min(pmax,1.02*element_i.GetValue(PENAL)))
+            else:
+                print("  Continuation Strategy for current iteration was UNACTIVE")
+
+            # Write restart file every selected number of iterations
+            restart_filename = self.config.restart_output_file.replace(".mdpa","_"+str(opt_itr)+".mdpa")
+            if (self.config.restart_write_frequency > 0):
+                if (opt_itr % self.config.restart_write_frequency == False):
+                    print("\n::[Restart File]::")
+                    print("  Saving file at iteration", opt_itr)
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+
+            # Check convergence
+            if opt_itr > 1:
+                # Check if maximum iterations were reached
+                if(opt_itr==self.config.max_opt_iterations):
+                    end_time = time.time()
+                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+                    print("\n  Maximal iterations of optimization problem reached!")
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    break
+
+                # Check for relative tolerance
+                if(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
+                    end_time = time.time()
+                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+                    print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    break
+
+            # Set X_PHYS_OLD, DCDX_OLD and DCDX_OLD_2  to update the value for the next simulation's "change percentage"
+            for element_i in self.opt_model_part.Elements:
+                element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
+                element_i.SetValue(DCDX_OLD_2, element_i.GetValue(DCDX_OLD))
+                element_i.SetValue(DCDX_OLD, element_i.GetValue(DCDX))
+
+            # Take time needed for current optimization step
+            end_time = time.time()
+            print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+            print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+
+# ==============================================================================
+
+
+
+
+
 class Controller:
 
     # --------------------------------------------------------------------------
