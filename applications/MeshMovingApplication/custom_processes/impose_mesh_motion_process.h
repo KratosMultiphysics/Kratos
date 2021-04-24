@@ -23,11 +23,11 @@ namespace Kratos
 
 
 /** Impose a rotation followed by translation on a ModelPart
- *  @details The transformation consists of the following operations in order:
- *  1) Translate to the reference point (offset the origin)
- *  2) Perform the specified rotation
- *  3) Translate back from the reference point (undo origin offset)
- *  4) Perform the specified translation
+ *  @details The transformation is equivalent to:
+ *  1) Translation to the reference frame (offset the origin)
+ *  2) Specified rotation
+ *  3) Reverse translation from the reference frame (undo origin offset)
+ *  4) Specified translation
  *  @note angles in radians
  */
 class ImposeMeshMotionProcess : public Process
@@ -56,6 +56,7 @@ public:
      *      "rotation_angle"        : 0,
      *      "translation_vector"    : [0.0, 0.0, 0.0],
      *  }
+     *  @note The euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
      */
     ImposeMeshMotionProcess(ModelPart& rModelPart, Parameters parameters);
 
