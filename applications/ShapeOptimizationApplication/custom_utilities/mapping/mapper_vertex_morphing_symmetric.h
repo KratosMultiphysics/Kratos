@@ -524,7 +524,7 @@ private:
         _vec[1] = 1.0;
         _vec[2] = 1.0;
 
-        std::vector<double> col_ids(number_of_neighbors);
+        std::vector<unsigned int> col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
@@ -533,14 +533,14 @@ private:
         std::sort (col_ids.begin(), col_ids.end());
 
         // initialize non-zeros row by row
-        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0); } // sorted access helps a lot
-        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0); }
-        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0); }
+        for (unsigned int i: col_ids) { mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0); } // sorted access helps a lot
+        for (unsigned int i: col_ids) { mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0); }
+        for (unsigned int i: col_ids) { mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0); }
 
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        for(unsigned int neighbor_itr = 0; neighbor_itr<number_of_neighbors; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+            const unsigned int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
             const array_3d vec = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec) : _vec;
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;

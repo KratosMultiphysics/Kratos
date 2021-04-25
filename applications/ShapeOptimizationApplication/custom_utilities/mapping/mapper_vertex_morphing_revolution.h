@@ -596,7 +596,7 @@ private:
     {
         const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 
-        std::vector<double> col_ids(number_of_neighbors);
+        std::vector<unsigned int> col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
@@ -605,31 +605,31 @@ private:
         std::sort (col_ids.begin(), col_ids.end());
 
         // initialize non-zeros row by row - sorted access helps a lot
-        for (int i: col_ids) {
+        for (unsigned int i: col_ids) {
             mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+0, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
         }
-        for (int i: col_ids) {
+        for (unsigned int i: col_ids) {
             mMappingMatrix.insert_element(row_id*3+1, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
         }
-        for (int i: col_ids) {
+        for (unsigned int i: col_ids) {
             mMappingMatrix.insert_element(row_id*3+2, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
         }
 
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        for(unsigned int neighbor_itr = 0; neighbor_itr<number_of_neighbors; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const int column_id = neighbor_node.GetValue(MAPPING_ID);
 
             const auto mat = (transform[neighbor_itr]) ? mpRevolution->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            for (int i=0; i<3; ++i){
-                for (int j=0; j<3; ++j) {
+            for (unsigned int i=0; i<3; ++i){
+                for (unsigned int j=0; j<3; ++j) {
                     mMappingMatrix(row_id*3+i, column_id*3+j) += weight*mat(i,j);
                 }
             }
