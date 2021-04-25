@@ -287,7 +287,6 @@ public:
         values_origin.clear();
         values_destination.clear();
 
-        #pragma omp parallel for
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -301,7 +300,6 @@ public:
         noalias(values_destination) = prod(mMappingMatrix,values_origin);
 
         // Assign results to nodal variable
-        #pragma omp parallel for
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -338,7 +336,6 @@ public:
         values_origin.clear();
         values_destination.clear();
 
-        #pragma omp parallel for
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -351,7 +348,6 @@ public:
         SparseSpaceType::TransposeMult(mMappingMatrix,values_destination,values_origin);
 
         // Assign results to nodal variable
-        #pragma omp parallel for
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
