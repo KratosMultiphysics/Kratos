@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/math_utils.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
 #include "filter_function.h"
@@ -73,7 +74,37 @@ public:
     RevolutionModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, array_3d Point,  array_3d Axis)
     : mrOriginModelPart(rOriginModelPart), mrDestinationModelPart(rDestinationModelPart), mPoint(Point), mAxis(Axis)
     {
+        mPlaneVector1 = ZeroVector(3);
+        int index = 0;
+        double max_value = 0;
+        for (int i=0; i<3; ++i){
+            if (std::abs(mAxis[i]) > max_value){
+                index = i;
+                max_value = std::abs(mAxis[i]);
+            }
+        }
+
+        const int index2 = (index == 2) ? 0 : index + 1;
+
+        mPlaneVector1[index2] = mAxis[index];
+        mPlaneVector1[index] = -mAxis[index2];
+
         // create transformed node vecs
+        mOriginNodes.resize(mrOriginModelPart.Nodes().size());
+        mTransformedOriginNodes.resize(mrOriginModelPart.Nodes().size());
+        for (auto& r_node_i : mrOriginModelPart.Nodes()){
+            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
+            mOriginNodes[mapping_id] = &r_node_i;
+            mTransformedOriginNodes[mapping_id] = GetTransformedNode(r_node_i);
+        }
+
+        mDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
+        mTransformedDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
+        for (auto& r_node_i : mrDestinationModelPart.Nodes()){
+            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
+            mDestinationNodes[mapping_id] = &r_node_i;
+            mTransformedDestinationNodes[mapping_id] = GetTransformedNode(r_node_i);
+        }
     }
 
     NodeVector& GetOriginSearchNodes(){
@@ -86,16 +117,80 @@ public:
         };
     }
 
-    array_3d TransformVector(const size_t DestinationMappingId, const size_t OriginMappingId, const array_3d& Input) const
+    BoundedMatrix<double, 3, 3> TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId) const
     {
-        // TODO rotate between origin and destination (or vice versa)
-        return Input;
+        const NodeType& r_origin_node = *mOriginNodes[OriginMappingId];
+        const NodeType& r_destination_node = *mDestinationNodes[DestinationMappingId];
+
+        // find angle between ortho
+        const array_3d origin_v1 = r_origin_node.Coordinates() - mPoint;
+        const array_3d origin_along_axis = inner_prod(mAxis, origin_v1) * mAxis;
+        array_3d origin_ortho = origin_v1 - origin_along_axis;
+
+        const double norm_origin = norm_2(origin_ortho);
+        if (norm_origin < std::numeric_limits<double>::epsilon()) {
+            BoundedMatrix<double, 3, 3 > r = ZeroMatrix(3,3);
+            r(0,0) = mAxis[0];
+            r(1,1) = mAxis[1];
+            r(2,2) = mAxis[2];
+            return r;
+        }
+        origin_ortho /= norm_origin;
+
+        const array_3d destination_v1 = r_destination_node.Coordinates() - mPoint;
+        const array_3d destination_along_axis = inner_prod(mAxis, destination_v1) * mAxis;
+        array_3d destination_ortho = destination_v1 - destination_along_axis;
+
+        const double norm_destination = norm_2(destination_ortho);
+        if (norm_destination < std::numeric_limits<double>::epsilon()) {
+            BoundedMatrix<double, 3, 3 > r = ZeroMatrix(3,3);
+            r(0,0) = mAxis[0];
+            r(1,1) = mAxis[1];
+            r(2,2) = mAxis[2];
+            return r;
+        }
+        destination_ortho /= norm_destination;
+
+        double dot_prod = inner_prod(origin_ortho, destination_ortho);
+        // result of inner_prod can be slightly larger (smaller) than 1 (-1). This results in NAN for acos!
+        if (dot_prod >= 1.0) dot_prod = 1.0;
+        else if (dot_prod <= -1.0) dot_prod = -1.0;
+
+        double angle = acos(dot_prod);
+        if (inner_prod(mAxis, MathUtils<double>::CrossProduct(origin_ortho, destination_ortho)) < 0) { // Or > 0
+            angle = -angle;
+        }
+
+        BoundedMatrix<double, 3, 3 > r;
+		const double c=cos(angle);
+		const double s=sin(angle);
+        const double t = 1-c;
+
+        r(0,0) = t*mAxis[0]*mAxis[0] + c;          r(0,1) = t*mAxis[0]*mAxis[1] - mAxis[2]*s; r(0,2) = t*mAxis[0]*mAxis[2] + mAxis[1]*s;
+        r(1,0) = t*mAxis[0]*mAxis[1] + mAxis[2]*s; r(1,1) = t*mAxis[1]*mAxis[1] + c;          r(1,2) = t*mAxis[1]*mAxis[2] - mAxis[0]*s;
+        r(2,0) = t*mAxis[0]*mAxis[2] - mAxis[1]*s; r(2,1) = t*mAxis[1]*mAxis[2] + mAxis[0]*s; r(2,2) = t*mAxis[2]*mAxis[2] + c;
+
+        return r;
+    }
+
+    NodeTypePointer GetTransformedNode(NodeType& rNode) {
+        NodeTypePointer p_new_node = Kratos::make_intrusive<NodeType>(rNode.Id(), rNode[0], rNode[1], rNode[2]);
+        p_new_node->SetValue(MAPPING_ID, rNode.GetValue(MAPPING_ID));
+
+        const array_3d v1 = p_new_node->Coordinates() - mPoint;
+        const array_3d along_axis = inner_prod(mAxis, v1) * mAxis;
+        const array_3d ortho = v1 - along_axis;
+
+        p_new_node->Coordinates() = mPoint + along_axis + mPlaneVector1 * norm_2(ortho);
+
+        return p_new_node;
     }
 
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     array_3d mPoint;
     array_3d mAxis;
+    array_3d mPlaneVector1; // vector in the plane orthogonal to the mAxis
 
     NodeVector mOriginNodes;
     NodeVector mDestinationNodes;
@@ -193,8 +288,8 @@ public:
 
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
+            const int i = node_i.GetValue(MAPPING_ID);
+            const array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
             values_origin[i*3+0] = r_nodal_variable[0];
             values_origin[i*3+1] = r_nodal_variable[1];
             values_origin[i*3+2] = r_nodal_variable[2];
@@ -206,7 +301,7 @@ public:
         // Assign results to nodal variable
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
+            const int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
             r_node_vector(0) = values_destination[i*3+0];
@@ -242,8 +337,8 @@ public:
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            const int i = node_i.GetValue(MAPPING_ID);
+            const array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
             values_destination[i*3+0] = r_nodal_variable[0];
             values_destination[i*3+1] = r_nodal_variable[1];
             values_destination[i*3+2] = r_nodal_variable[2];
@@ -254,7 +349,7 @@ public:
         // Assign results to nodal variable
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
+            const int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
             r_node_vector(0) = values_origin[i*3+0];
@@ -498,13 +593,7 @@ private:
                                         std::vector<bool>& transform,
                                         double& sum_of_weights )
     {
-
-
         unsigned int row_id = destination_node.GetValue(MAPPING_ID);
-        array_3d _vec(3);
-        _vec[0] = 1.0;
-        _vec[1] = 1.0;
-        _vec[2] = 1.0;
 
         std::vector<double> col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
@@ -515,21 +604,35 @@ private:
         }
         std::sort (col_ids.begin(), col_ids.end());
 
-        // initialize non-zeros row by row
-        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0); } // sorted access helps a lot
-        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0); }
-        for (int i: col_ids) { mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0); }
+        // initialize non-zeros row by row - sorted access helps a lot
+        for (int i: col_ids) {
+            mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0);
+            mMappingMatrix.insert_element(row_id*3+0, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
+        }
+        for (int i: col_ids) {
+            mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
+        }
+        for (int i: col_ids) {
+            mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
+            mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+3, i*3+2, 0.0);
+        }
 
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
-            array_3d vec = (transform[neighbor_itr]) ? mpRevolution->TransformVector(row_id, collumn_id, _vec) : _vec;
+            auto mat = (transform[neighbor_itr]) ? mpRevolution->TransformationMatrix(row_id, collumn_id) : IdentityMatrix(3);
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix(row_id*3+0, collumn_id*3+0) += weight*vec[0];
-            mMappingMatrix(row_id*3+1, collumn_id*3+1) += weight*vec[1];
-            mMappingMatrix(row_id*3+2, collumn_id*3+2) += weight*vec[2];
+            for (int i=0; i<3; ++i){
+                for (int j=0; j<3; ++j) {
+                    mMappingMatrix(row_id*3+i, collumn_id*3+j) += weight*mat(i,j);
+                }
+            }
         }
     }
 
