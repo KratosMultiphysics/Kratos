@@ -30,7 +30,7 @@ namespace Kratos
  *  4) Specified translation
  *  @note angles in radians
  */
-class ImposeMeshMotionProcess : public Process
+class KRATOS_API(MESH_MOVING_APPLICATION) ImposeMeshMotionProcess : public Process
 {
 public:
     ///@name Type Definitions
