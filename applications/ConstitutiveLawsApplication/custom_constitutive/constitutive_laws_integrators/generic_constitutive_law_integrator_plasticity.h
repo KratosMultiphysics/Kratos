@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS   ___                _   _ _         _   _             __                       _
+//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -20,7 +22,7 @@
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -553,18 +555,9 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
-
-        if ( characteristic_fracture_energy_compression >= minimum_characteristic_fracture_energy_exponential_softening){ // Exponential softening
-        //     KRATOS_WATCH("ahora")
-            rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-            rSlope = - initial_threshold;
-        } else { //Linear softening which is the one that requires minimum fracture energy
-            KRATOS_WATCH("here")
-            CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
-                PlasticDissipation, TensileIndicatorFactor,
-                CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope,
-                rValues);
-        }
+        KRATOS_ERROR_IF(characteristic_fracture_energy_compression < minimum_characteristic_fracture_energy_exponential_softening) << "The Fracture Energy is to low: " << characteristic_fracture_energy_compression << std::endl;
+        rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
+        rSlope = - initial_threshold;
     }
 
     /**

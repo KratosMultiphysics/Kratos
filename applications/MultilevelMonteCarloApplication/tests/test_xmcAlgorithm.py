@@ -6,11 +6,11 @@ To run the first scenario:
 python3 test_xmcAlgorithm.py
 To run with runcompss the second scenario:
 sh test_runcompss_xmcALgorithm.sh
-In this last case, the appropriate import has to be changed in xmc/distributedEnvironmentFramework.py.
+In this last case, the environment variable EXAQUTE_BACKEND has to be changed to pycompss; see the documentation related to the configuration of COMPSs for details.
 
 Dependencies
 ------------
-- KratosMultiphysics ≥ 9.0."Dev"-8d4dafd96f, and applications:
+- KratosMultiphysics ≥ 9.0."Dev"-96fb824069, and applications:
    - ConvectionDiffusionApplication,
    - LinearSolversApplication,
    - MeshingApplication and
@@ -26,11 +26,13 @@ import os
 
 # Import XMC, distributed environment
 import xmc
-from xmc.distributedEnvironmentFramework import get_value_from_remote
+from exaqute import get_value_from_remote
+
 
 def isKratosFound():
     try:
         from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+
         return CheckIfApplicationsAvailable(
             "ConvectionDiffusionApplication",
             "LinearSolversApplication",
@@ -40,19 +42,24 @@ def isKratosFound():
     except ImportError:
         return False
 
+
 def isMmgFound():
     try:
         import KratosMultiphysics
         import KratosMultiphysics.MeshingApplication
-        if hasattr(KratosMultiphysics.MeshingApplication,"MmgProcess2D"):
+
+        if hasattr(KratosMultiphysics.MeshingApplication, "MmgProcess2D"):
             return True
     except ImportError:
         return False
 
+
 class TestXMCAlgorithm(unittest.TestCase):
     def test_mc_Kratos(self):
         if not isKratosFound():
-            self.skipTest("Missing dependency: KratosMultiphysics or one of required applications. Check the test docstrings for details.")
+            self.skipTest(
+                "Missing dependency: KratosMultiphysics or one of required applications. Check the test docstrings for details."
+            )
 
         # read parameters
         parametersList = [
@@ -69,7 +76,9 @@ class TestXMCAlgorithm(unittest.TestCase):
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
             # SolverWrapper
-            parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
+            parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters[
+                "monteCarloIndexInputDictionary"
+            ]["qoiEstimator"]
             # SampleGenerator
             samplerInputDictionary = parameters["samplerInputDictionary"]
             samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
@@ -154,7 +163,9 @@ class TestXMCAlgorithm(unittest.TestCase):
         if not isKratosFound():
             self.skipTest("Missing dependency: KratosMultiphysics or one of its applications")
         if not isMmgFound():
-            self.skipTest("Missing dependency: KratosMultiphysics.MeshingApplication with MMG support")
+            self.skipTest(
+                "Missing dependency: KratosMultiphysics.MeshingApplication with MMG support"
+            )
 
         # read parameters
         parametersList = [
@@ -165,13 +176,15 @@ class TestXMCAlgorithm(unittest.TestCase):
             "poisson_square_2d/problem_settings/poisson_multi-moment_mlmc.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi_ensemble.json",
-            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_DAR.json"
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_DAR.json",
         ]
         for parametersPath in parametersList:
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
             # SolverWrapper
-            parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters["monteCarloIndexInputDictionary"]["qoiEstimator"]
+            parameters["solverWrapperInputDictionary"]["qoiEstimator"] = parameters[
+                "monteCarloIndexInputDictionary"
+            ]["qoiEstimator"]
             # SampleGenerator
             samplerInputDictionary = parameters["samplerInputDictionary"]
             samplerInputDictionary["randomGeneratorInputDictionary"] = parameters[
@@ -262,6 +275,7 @@ class TestXMCAlgorithm(unittest.TestCase):
             self.assertAlmostEqual(estimations[0], estimated_mean, delta=1.0)
             for level in algo.hierarchy():
                 self.assertEqual(level[1], 15)
+
 
 if __name__ == "__main__":
     unittest.main()
