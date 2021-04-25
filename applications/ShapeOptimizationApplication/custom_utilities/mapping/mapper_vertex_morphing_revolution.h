@@ -615,14 +615,14 @@ private:
             mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
         }
         for (int i: col_ids) {
-            mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+1, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
         }
         for (int i: col_ids) {
-            mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
+            mMappingMatrix.insert_element(row_id*3+2, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
-            mMappingMatrix.insert_element(row_id*3+3, i*3+2, 0.0);
+            mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
         }
 
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
