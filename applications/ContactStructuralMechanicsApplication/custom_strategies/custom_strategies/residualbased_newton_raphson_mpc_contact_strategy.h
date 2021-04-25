@@ -604,6 +604,40 @@ public:
         return is_converged;
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_mpc_contact_strategy",
+            "use_old_stiffness_in_first_iteration": false,
+            "max_iteration"                       : 10,
+            "reform_dofs_at_each_step"            : false,
+            "compute_reactions"                   : false,
+            "builder_and_solver_settings"         : {},
+            "convergence_criteria_settings"       : {},
+            "linear_solver_settings"              : {},
+            "scheme_settings"                     : {},
+            "inner_loop_iterations"               : 5,
+            "update_each_nl_iteration"            : false,
+            "enforce_ntn"                         : false
+        })" );
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_mpc_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -629,33 +663,31 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mThisParameters;                                   /// The configuration parameters
+    Parameters mThisParameters;                                      /// The configuration parameters
     typename TConvergenceCriteriaType::Pointer mpMPCContactCriteria; /// The contact criteria
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-    /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "inner_loop_iterations"    : 5,
-            "update_each_nl_iteration" : false,
-            "enforce_ntn"              : false
-        })" );
-
-        return default_parameters;
-    }
-
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        
+        // We create the contact criteria
+        mpMPCContactCriteria = Kratos::make_shared<TMPCContactCriteriaType>();
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
 
     ///@}
     ///@name Protected  Access
