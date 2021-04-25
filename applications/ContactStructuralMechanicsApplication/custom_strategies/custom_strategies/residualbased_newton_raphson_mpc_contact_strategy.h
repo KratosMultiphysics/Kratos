@@ -85,6 +85,8 @@ public:
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedNewtonRaphsonMPCContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
     typedef MPCContactCriteria<TSparseSpace, TDenseSpace>                 TMPCContactCriteriaType;
