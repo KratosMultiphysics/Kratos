@@ -34,10 +34,10 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         External solver sends, CoSimulation receives = load values"""
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
             interface_config = {"model_part_name" : model_part_name}
-            print(interface_config)
             self.ImportCouplingInterface(interface_config)
 
     def AdvanceInTime(self, current_time):
+        """What is the use of this method?"""
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
 
     def SolveSolutionStep(self):
