@@ -10,7 +10,7 @@ from collections import defaultdict
 from itertools import chain
 import warnings
 
-from xmc.distributedEnvironmentFramework import delete_object, get_value_from_remote
+from exaqute import delete_object, get_value_from_remote
 
 
 class MonteCarloSampler:
@@ -97,16 +97,19 @@ class MonteCarloSampler:
 
         # Run the corresponding estimation methods on this
         globalEstimations = []
+        to_delete = []
         # Iterate over couples (coord,estimation)
         for c, e in zip(assemblerCoordinates, estimations):
             ge = self.assemblers[c].assembleEstimation(hierarchy, e)
             globalEstimations.append(ge)
+            if not e in to_delete:
+                to_delete.append(e)
 
         # Delete COMPSs objects
         # Flatten list of depth 2 then unpack
         delete_object(
             *chain.from_iterable(hierarchy),
-            *chain.from_iterable(chain.from_iterable(estimations)),
+            *to_delete
         )
 
         return globalEstimations

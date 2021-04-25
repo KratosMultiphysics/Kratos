@@ -147,7 +147,13 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<FindGlobalNodalNeighboursProcess, FindGlobalNodalNeighboursProcess::Pointer, Process>
         (m,"FindGlobalNodalNeighboursProcess")
-            .def(py::init<const DataCommunicator&, ModelPart&>())
+    .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
+        KRATOS_WARNING("FindGlobalNodalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
+        return Kratos::make_shared<FindGlobalNodalNeighboursProcess>(rModelPart);
+    }))
+    .def(py::init([](ModelPart& rModelPart) {
+        return Kratos::make_shared<FindGlobalNodalNeighboursProcess>(rModelPart);
+    }))
     .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursProcess::GetNeighbourIds)
     ;
@@ -156,7 +162,11 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<FindGlobalNodalNeighboursForConditionsProcess, FindGlobalNodalNeighboursForConditionsProcess::Pointer, Process>
         (m,"FindGlobalNodalNeighboursForConditionsProcess")
     .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
-        return std::unique_ptr<FindGlobalNodalNeighboursForConditionsProcess>(new FindGlobalNodalNeighboursForConditionsProcess(rDataComm, rModelPart, NEIGHBOUR_CONDITION_NODES));
+        KRATOS_WARNING("FindGlobalNodalNeighboursForConditionsProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
+        return Kratos::make_shared<FindGlobalNodalNeighboursForConditionsProcess>(rModelPart, NEIGHBOUR_CONDITION_NODES);
+    }))
+    .def(py::init([](ModelPart& rModelPart) {
+        return Kratos::make_shared<FindGlobalNodalNeighboursForConditionsProcess>(rModelPart, NEIGHBOUR_CONDITION_NODES);
     }))
     .def("ClearNeighbours",&FindGlobalNodalNeighboursForConditionsProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalNeighboursForConditionsProcess::GetNeighbourIds)
@@ -164,7 +174,13 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<FindGlobalNodalElementalNeighboursProcess, FindGlobalNodalElementalNeighboursProcess::Pointer, Process>
         (m,"FindGlobalNodalElementalNeighboursProcess")
-            .def(py::init<const DataCommunicator&, ModelPart&>())
+    .def(py::init([](const DataCommunicator& rDataComm, ModelPart& rModelPart) {
+        KRATOS_WARNING("FindGlobalNodalElementalNeighboursProcess") << "Using deprecated constructor. Please use constructor without DataCommunicator.";
+        return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcess>(rModelPart);
+    }))
+    .def(py::init([](ModelPart& rModelPart) {
+        return Kratos::make_shared<FindGlobalNodalElementalNeighboursProcess>(rModelPart);
+    }))
     .def("ClearNeighbours",&FindGlobalNodalElementalNeighboursProcess::ClearNeighbours)
     .def("GetNeighbourIds",&FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds)
     ;
