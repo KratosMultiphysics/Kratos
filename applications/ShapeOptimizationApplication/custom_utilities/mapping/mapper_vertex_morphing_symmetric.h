@@ -211,10 +211,11 @@ public:
         values_origin.clear();
         values_destination.clear();
 
+        #pragma omp parallel for
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
+            const int i = node_i.GetValue(MAPPING_ID);
+            const array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
             values_origin[i*3+0] = r_nodal_variable[0];
             values_origin[i*3+1] = r_nodal_variable[1];
             values_origin[i*3+2] = r_nodal_variable[2];
@@ -224,9 +225,10 @@ public:
         noalias(values_destination) = prod(mMappingMatrix,values_origin);
 
         // Assign results to nodal variable
+        #pragma omp parallel for
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
+            const int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
             r_node_vector(0) = values_destination[i*3+0];
@@ -260,10 +262,11 @@ public:
         values_origin.clear();
         values_destination.clear();
 
+        #pragma omp parallel for
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            const int i = node_i.GetValue(MAPPING_ID);
+            const array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
             values_destination[i*3+0] = r_nodal_variable[0];
             values_destination[i*3+1] = r_nodal_variable[1];
             values_destination[i*3+2] = r_nodal_variable[2];
@@ -272,9 +275,10 @@ public:
         SparseSpaceType::TransposeMult(mMappingMatrix,values_destination,values_origin);
 
         // Assign results to nodal variable
+        #pragma omp parallel for
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
-            int i = node_i.GetValue(MAPPING_ID);
+            const int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
             r_node_vector(0) = values_origin[i*3+0];
@@ -419,8 +423,8 @@ private:
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        const std::string filter_type = mMapperSettings["filter_function_type"].GetString();
+        const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
         mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
     }
@@ -454,8 +458,8 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+        const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
@@ -470,7 +474,7 @@ private:
                 NodeType search_node(0, pair_i.first);
                 NodeVector neighbor_nodes( max_number_of_neighbors );
                 std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
+                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                                 filter_radius,
                                                                                 neighbor_nodes.begin(),
                                                                                 resulting_squared_distances.begin(),
@@ -502,8 +506,8 @@ private:
     {
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
+            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            const double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;
@@ -518,9 +522,7 @@ private:
                                         std::vector<bool>& transform,
                                         double& sum_of_weights )
     {
-
-
-        unsigned int row_id = destination_node.GetValue(MAPPING_ID);
+        const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
         array_3d _vec(3);
         _vec[0] = 1.0;
         _vec[1] = 1.0;
@@ -529,9 +531,8 @@ private:
         std::vector<double> col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
-            col_ids[neighbor_itr] = collumn_id;
+            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            col_ids[neighbor_itr] = neighbor_node.GetValue(MAPPING_ID);
         }
         std::sort (col_ids.begin(), col_ids.end());
 
@@ -542,10 +543,10 @@ private:
 
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
-            array_3d vec = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec) : _vec;
+            const array_3d vec = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec) : _vec;
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             mMappingMatrix(row_id*3+0, collumn_id*3+0) += weight*vec[0];
             mMappingMatrix(row_id*3+1, collumn_id*3+1) += weight*vec[1];

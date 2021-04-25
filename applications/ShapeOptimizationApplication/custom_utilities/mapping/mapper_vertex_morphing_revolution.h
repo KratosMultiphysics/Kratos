@@ -165,10 +165,11 @@ public:
 		const double c=cos(angle);
 		const double s=sin(angle);
         const double t = 1-c;
+        const array_3d& k = mAxis;
 
-        r(0,0) = t*mAxis[0]*mAxis[0] + c;          r(0,1) = t*mAxis[0]*mAxis[1] - mAxis[2]*s; r(0,2) = t*mAxis[0]*mAxis[2] + mAxis[1]*s;
-        r(1,0) = t*mAxis[0]*mAxis[1] + mAxis[2]*s; r(1,1) = t*mAxis[1]*mAxis[1] + c;          r(1,2) = t*mAxis[1]*mAxis[2] - mAxis[0]*s;
-        r(2,0) = t*mAxis[0]*mAxis[2] - mAxis[1]*s; r(2,1) = t*mAxis[1]*mAxis[2] + mAxis[0]*s; r(2,2) = t*mAxis[2]*mAxis[2] + c;
+        r(0,0) = t*k[0]*k[0] + c;         r(0,1) = t*k[0]*k[1] - k[2]*s;    r(0,2) = t*k[0]*k[2] + k[1]*s;
+        r(1,0) = t*k[0]*k[1] + k[2]*s;    r(1,1) = t*k[1]*k[1] + c;         r(1,2) = t*k[1]*k[2] - k[0]*s;
+        r(2,0) = t*k[0]*k[2] - k[1]*s;    r(2,1) = t*k[1]*k[2] + k[0]*s;    r(2,2) = t*k[2]*k[2] + c;
 
         return r;
     }
@@ -286,6 +287,7 @@ public:
         values_origin.clear();
         values_destination.clear();
 
+        #pragma omp parallel for
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -299,6 +301,7 @@ public:
         noalias(values_destination) = prod(mMappingMatrix,values_origin);
 
         // Assign results to nodal variable
+        #pragma omp parallel for
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -335,6 +338,7 @@ public:
         values_origin.clear();
         values_destination.clear();
 
+        #pragma omp parallel for
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -347,6 +351,7 @@ public:
         SparseSpaceType::TransposeMult(mMappingMatrix,values_destination,values_origin);
 
         // Assign results to nodal variable
+        #pragma omp parallel for
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             const int i = node_i.GetValue(MAPPING_ID);
@@ -494,8 +499,8 @@ private:
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        const std::string filter_type = mMapperSettings["filter_function_type"].GetString();
+        const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
         mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
     }
@@ -529,8 +534,8 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
-        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+        const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
@@ -545,7 +550,7 @@ private:
                 NodeType search_node(0, pair_i.first);
                 NodeVector neighbor_nodes( max_number_of_neighbors );
                 std::vector<double> resulting_squared_distances( max_number_of_neighbors );
-                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
+                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                                 filter_radius,
                                                                                 neighbor_nodes.begin(),
                                                                                 resulting_squared_distances.begin(),
@@ -577,8 +582,8 @@ private:
     {
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
+            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            const double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;
@@ -593,14 +598,13 @@ private:
                                         std::vector<bool>& transform,
                                         double& sum_of_weights )
     {
-        unsigned int row_id = destination_node.GetValue(MAPPING_ID);
+        const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 
         std::vector<double> col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
-            col_ids[neighbor_itr] = collumn_id;
+            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            col_ids[neighbor_itr] = neighbor_node.GetValue(MAPPING_ID);
         }
         std::sort (col_ids.begin(), col_ids.end());
 
@@ -623,14 +627,14 @@ private:
 
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
-            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            const int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            const int column_id = neighbor_node.GetValue(MAPPING_ID);
 
-            auto mat = (transform[neighbor_itr]) ? mpRevolution->TransformationMatrix(row_id, collumn_id) : IdentityMatrix(3);
+            const auto mat = (transform[neighbor_itr]) ? mpRevolution->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             for (int i=0; i<3; ++i){
                 for (int j=0; j<3; ++j) {
-                    mMappingMatrix(row_id*3+i, collumn_id*3+j) += weight*mat(i,j);
+                    mMappingMatrix(row_id*3+i, column_id*3+j) += weight*mat(i,j);
                 }
             }
         }
