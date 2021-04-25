@@ -35,18 +35,18 @@ def GenerateModelPart():
 
 class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
 
-    def CheckNodes(self, modelPart: KratosMultiphysics.ModelPart):
-        self.assertEqual(len(modelPart.Nodes), 9)
+    def CheckNodes(self, model_part: KratosMultiphysics.ModelPart):
+        self.assertEqual(len(model_part.Nodes), 9)
 
-        self.assertVectorAlmostEqual(modelPart.Nodes[0].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [0.0, 2.0, 4.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[1].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [0.0, 2.0, 4.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[2].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [0.0, 2.0, 4.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[3].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-1.0, 2.0, 4.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[4].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-1.0, 2.0, 4.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[5].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-1.0, 2.0, 4.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[6].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-2.0, 2.0, 6.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[7].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-2.0, 2.0, 6.0])
-        self.assertVectorAlmostEqual(modelPart.Nodes[8].GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-2.0, 2.0, 6.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(1).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [0.0, 2.0, 4.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(2).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [0.0, 2.0, 4.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(3).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [0.0, 2.0, 4.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(4).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-1.0, 2.0, 5.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(5).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-1.0, 2.0, 5.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(6).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-1.0, 2.0, 5.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(7).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-2.0, 2.0, 6.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(8).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-2.0, 2.0, 6.0])
+        self.assertVectorAlmostEqual(model_part.GetNode(9).GetValue(KratosMultiphysics.MESH_DISPLACEMENT), [-2.0, 2.0, 6.0])
 
     def test_axis_and_angle(self):
         model_part = GenerateModelPart()
@@ -62,7 +62,9 @@ class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
         MeshMovingApplication.ImposeMeshMotionProcess(
             model_part,
             parameters
-        ).Execute()
+        ).ExecuteInitializeSolutionStep()
+
+        self.CheckNodes(model_part)
 
     def test_euler_angles(self):
         model_part = GenerateModelPart()
@@ -77,7 +79,9 @@ class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
         MeshMovingApplication.ImposeMeshMotionProcess(
             model_part,
             parameters
-        ).Execute()
+        ).ExecuteInitializeSolutionStep()
+
+        self.CheckNodes(model_part)
 
 
 if __name__ == "__main__":
