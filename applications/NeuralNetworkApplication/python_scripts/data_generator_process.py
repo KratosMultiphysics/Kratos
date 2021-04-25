@@ -234,6 +234,6 @@ class DataGeneratorProcess(KM.Process):
                 if self.output_format == "ascii":
                     self.training_output_file.write(' '.join(str(v) for v in output_value) + '\n')
                 if self.output_format == "h5":
-                    self.hdf5_output_parameters["prefix"].SetString("/"+str(current_step)+"/InputData")
+                    self.hdf5_output_parameters["prefix"].SetString("/"+str(current_step)+"/OutputData")
                     nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(self.hdf5_output_parameters, self.hdf5_file_training_output)
                     nodal_io.WriteNodalResults(self.model_part,1)

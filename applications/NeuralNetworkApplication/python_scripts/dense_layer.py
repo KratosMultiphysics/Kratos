@@ -1,20 +1,21 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.NeuralNetworkApplication as NeuralNetwork
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_layer import NeuralNetworkLayerClass
 
 from tensorflow.keras import layers
+import tensorflow.keras as keras
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return DenseLayer(settings["Parameters"])
+    return DenseLayer(settings)
 
-class DenseLayer(NeuralNetwork.NeuralNetworkLayer):
+class DenseLayer(NeuralNetworkLayerClass):
     """This class generates a base class for a Dense layer
 
     Public member variables:
     settings -- Kratos parameters containing process settings.
     """
-    def __init__(self, settings)
+    def __init__(self, settings):
         """ The default constructor of the class
 
         Keyword arguments:
@@ -24,21 +25,22 @@ class DenseLayer(NeuralNetwork.NeuralNetworkLayer):
 
         default_settings = KM.Parameters("""{
             "layer_name"               : "",
-            "trainable"                : True,
+            "trainable"                : true,
             "dtype"                    : "",
-            "dynamic"                  : False
+            "dynamic"                  : false,
             "units"                    : 1,
             "activation"               : "",
-            "use_bias"                 : True,
-            "kernel_initializer"       : "glorot-uniform",
+            "use_bias"                 : true,
+            "kernel_initializer"       : "glorot_uniform",
             "bias_initializer"         : "zeros",
-            "kernel_regularizer"       : "",
-            "bias_regularizer"         : "",
-            "activity_regularizer"     : "",
-            "kernel_constraint"        : "",
-            "bias_constraint"          : ""
+            "kernel_regularizer_l1"       : 0.0,
+            "bias_regularizer_l1"         : 0.0,
+            "activity_regularizer_l1"     : 0.0,
+            "kernel_regularizer_l2"       : 0.0,
+            "bias_regularizer_l2"         : 0.0,
+            "activity_regularizer_l2"     : 0.0
         }""")
-
+    # Constraints are currently not supported. Every supported constrain in keras should be implemented individually
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.layer_name = settings["layer_name"].GetString()
@@ -46,18 +48,31 @@ class DenseLayer(NeuralNetwork.NeuralNetworkLayer):
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()
         self.units = settings["units"].GetInt()
-        self.activation = settings["activation"].GetString()
+        if not settings["activation"].GetString() == "":
+            self.activation = settings["activation"].GetString()
+        else:
+            self.activation = None
         self.use_bias = settings["use_bias"].GetBool()
         self.kernel_initializer = settings["kernel_initializer"].GetString()
-        self.kernel_regularizer = settings["kernel_regularizer"].GetString()
-        self.kernel_constraint = settings["kernel_constraint"].GetString()
+        self.kernel_regularizer_l1 = settings["kernel_regularizer_l1"].GetDouble()
+        self.kernel_regularizer_l2 = settings["kernel_regularizer_l2"].GetDouble()
+        self.kernel_regularizer = keras.regularizers.L1L2(l1=self.kernel_regularizer_l1,l2=self.kernel_regularizer_l2)
         self.bias_initializer = settings["bias_initializer"].GetString()
-        self.bias_regularizer = settings["bias_regularizer"].GetString()
-        self.bias_constraint = settings["bias_constraint"].GetString()
-        self.activity_regularizer = settings["activity_regularizer"].GetString()
+        self.bias_regularizer_l1 = settings["bias_regularizer_l1"].GetDouble()
+        self.bias_regularizer_l2 = settings["bias_regularizer_l2"].GetDouble()
+        self.bias_regularizer = keras.regularizers.L1L2(l1=self.bias_regularizer_l1,l2=self.bias_regularizer_l2)
+        self.activity_regularizer_l1 = settings["activity_regularizer_l1"].GetDouble()
+        self.activity_regularizer_l2 = settings["activity_regularizer_l2"].GetDouble()
+        self.activity_regularizer = keras.regularizers.L1L2(l1=self.activity_regularizer_l1,l2=self.activity_regularizer_l2)
 
         # When called by the add_layer_process, input the parameters in the keras function
 
+    def Build(self):
+        self.layer = layers.Dense(self.units, activation=self.activation,use_bias=self.use_bias,
+        kernel_initializer=self.kernel_initializer,bias_initializer=self.bias_initializer,kernel_regularizer=self.kernel_regularizer,
+        bias_regularizer=self.bias_regularizer,activity_regularizer=self.activity_regularizer,
+        trainable=self.trainable, dtype=self.dtype, name=self.layer_name, dynamic=self.dynamic)
+        return self.layer
 
 
 

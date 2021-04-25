@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 
 from tensorflow.keras import layers
 
-class NeuralNetworkLayer:
+class NeuralNetworkLayerClass:
     """This class generates a base class for a Neural Network layer
 
     Public member variables:
@@ -20,9 +20,9 @@ class NeuralNetworkLayer:
 
         default_settings = KM.Parameters("""{
             "layer_name"               : "",
-            "trainable"                : True,
+            "trainable"                : true,
             "dtype"                    : "",
-            "dynamic"                  : False
+            "dynamic"                  : false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)

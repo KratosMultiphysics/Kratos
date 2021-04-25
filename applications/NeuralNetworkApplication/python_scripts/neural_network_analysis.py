@@ -2,6 +2,8 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
 
+import tensorflow.keras as keras
+
 class NeuralNetworkAnalysis(AnalysisStage):
     """
     This class is the based on the AnalysisStage from Kratos but regarding the creation and training of the neural
@@ -12,6 +14,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.project_parameters = project_parameters
+        self.problem_type = self.project_parameters["problem_data"]["problem_type"]
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
 
     def Run(self):
@@ -24,6 +27,16 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
     def Initialize(self):
         self.__CreateListOfProcesses()
+        inputs = self._GetListOfProcesses()[0].Initialize()
+        outputs = inputs
+        for process in self._GetListOfProcesses()[1:]:
+            outputs = process.Add(outputs)
+
+        self.model = keras.Model(inputs = inputs, outputs = outputs)
+        self.model.summary()
+        for process in self._GetListOfProcesses():
+            process.Save(self.model)
+
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 

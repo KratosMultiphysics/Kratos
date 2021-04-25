@@ -1,16 +1,19 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.NeuralNetworkApplication as NeuralNetwork
+from  KratosMultiphysics.NeuralNetworkApplication.neural_network_training_process import NeuralNetworkTrainingProcess
 
+from importlib import import_module
 from tensorflow.keras import layers
 
-def Factory(settings, network):
+def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return InitiateNetworkProcess(network, settings["Parameters"])
+    return InitiateNetworkProcess(settings["parameters"])
 
 class InitiateNetworkProcess(KM.Process):
 
-    def __init__(self, network, settings):
+    def __init__(self, settings):
+        super().__init__()
         """ The default constructor of the class
 
         Keyword arguments:
@@ -20,22 +23,42 @@ class InitiateNetworkProcess(KM.Process):
         """
 
         default_settings = KM.Parameters("""{
-            "help"                     : "This process adds a layer to an initiatlized network.",
-            "network_name"             : "",
-            "network_type"             : "Sequential"
-            "initial_layer_type"       : "",
-            "initial_layer_parameters" : {}
+            "help"                     : "This process adds a layer to a network.",
+            "layer_type"               : "",
+            "layer_parameters"         : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.network_name = settings["network_name"].GetString()
-        self.network_type = settings["network_type"].GetString()
-        self.initial_layer_type = settings["initial_layer_type"].GetString()
-        self.initial_layer_parameters = settings["initial_layer_parameters"].GetParameters()
+        self.layer_type = settings["layer_type"].GetString()
+        self.layer_parameters = settings["layer_parameters"]
+        # Import layer classes
+        module_name = "KratosMultiphysics.NeuralNetworkApplication." + self.layer_type
+        class_module = import_module(module_name)
+        layer_class = class_module.Factory(self.layer_parameters)
 
-        # Create network in path
+        # Build layer
+        self.layer = layer_class.Build()
 
-        # Initiate the network with the given layer and type (Sequential or functional)
+    def Initialize(self):
+        return self.layer
 
-        # Save network
+    def Add(self,model):
+        return model
+    def Save(self,model):
+        pass
+    def ExecuteInitialize(self):
+        """ Processes to act on the initialization. """
+        pass
+
+    def ExecuteFinalize(self):
+        """ Processes to act on the finalization. """
+        pass
+
+    def ExecuteBeforeTraining(self):
+        """ Processes to act just before the training. """
+        pass
+    
+    def ExecuteTraining(self):
+        """ Processes to act directly during the training step. """
+        pass

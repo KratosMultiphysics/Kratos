@@ -28,4 +28,3 @@ class GenerateSimpleModelProcess(NeuralNetworkTrainingProcess):
         model = keras.Model(inputs, outputs)
         model.compile(optimizer="adam", loss="mean_squared_error")
         return model
-

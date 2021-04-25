@@ -20,4 +20,7 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
 
     def ExecuteTraining(self):
         self.reconstructed_model = keras.models.load_model(self.model_name)
-        self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs)
+        self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
+        self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=False)
+        self.reconstructed_model.save(self.model_name)
+
