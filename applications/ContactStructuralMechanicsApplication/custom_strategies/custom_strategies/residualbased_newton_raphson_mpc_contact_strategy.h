@@ -127,6 +127,26 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
