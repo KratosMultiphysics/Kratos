@@ -38,7 +38,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "revolution"             : false,
         "revolution_settings"    : {
             "point" : [0.0, 0.0, 0.0],
-            "normal": [1.0, 0.0, 0.0]
+            "normal": [0.0, 0.0, 1.0]
         }
     }""")
 
