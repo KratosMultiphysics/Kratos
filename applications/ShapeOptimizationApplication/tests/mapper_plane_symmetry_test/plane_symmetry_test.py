@@ -36,6 +36,8 @@ class PlaneSymmetryMapperTest(TestCase):
         }""")
         mapper = CreateMapper(model_part, model_part, settings)
 
+        mapper.Initialize()
+
         model_part.Nodes[1].SetSolutionStepValue(KSO.DF1DX, [1.0, 0.5, 0.5])
         mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
