@@ -152,6 +152,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Residual Based Newton Raphson MPC Contact Strategy
     py::class_< ResidualBasedNewtonRaphsonMPCContactStrategyType, typename ResidualBasedNewtonRaphsonMPCContactStrategyType::Pointer, BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonMPCContactStrategy")
+        .def(py::init < ModelPart&, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
