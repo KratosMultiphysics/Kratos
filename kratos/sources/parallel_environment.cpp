@@ -62,7 +62,7 @@ void ParallelEnvironment::RegisterFillCommunicatorFactory(std::function<FillComm
     env.RegisterFillCommunicatorFactoryDetail(FillCommunicatorFactory);
 }
 
-void ParallelEnvironment::RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> CommunicatorFactory)
+void ParallelEnvironment::RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory)
 {
     ParallelEnvironment& env = GetInstance();
     env.RegisterCommunicatorFactoryDetail(CommunicatorFactory);
@@ -76,10 +76,10 @@ FillCommunicator::Pointer ParallelEnvironment::CreateFillCommunicator(ModelPart&
 
 Communicator::UniquePointer ParallelEnvironment::CreateCommunicator(
     ModelPart& rModelPart,
-    DataCommunicator& rDataCommunicator)
+    const std::string& rDataCommunicatorName)
 {
     ParallelEnvironment& env = GetInstance();
-    return env.mCommunicatorFactory(rModelPart, rDataCommunicator);
+    return env.mCommunicatorFactory(rModelPart, rDataCommunicatorName);
 }
 
 void ParallelEnvironment::RegisterDataCommunicator(
@@ -144,7 +144,9 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 ParallelEnvironment::ParallelEnvironment()
 {
     RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
-    RegisterCommunicatorFactoryDetail([](ModelPart& rModelPart, DataCommunicator& rDataCommunicator)->Communicator::UniquePointer{return Communicator::UniquePointer(new Communicator());});
+    RegisterCommunicatorFactoryDetail([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
+        return Communicator::UniquePointer(new Communicator());
+    });
     RegisterFillCommunicatorFactoryDetail([&](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new FillCommunicator(rModelPart));});
 }
 
@@ -207,7 +209,7 @@ void ParallelEnvironment::RegisterFillCommunicatorFactoryDetail(std::function<Fi
     mFillCommunicatorFactory = FillCommunicatorFactory;
 }
 
-void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> CommunicatorFactory)
+void ParallelEnvironment::RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory)
 {
     mCommunicatorFactory = CommunicatorFactory;
 }
