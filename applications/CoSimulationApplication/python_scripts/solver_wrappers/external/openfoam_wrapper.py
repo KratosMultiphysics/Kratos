@@ -63,9 +63,9 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
     def Finalize(self):
         super().Finalize()
 
-        # DisConnect from OpenFOAM adapter
+        """ # DisConnect from OpenFOAM adapter
         disconnect_settings = CoSimIO.Info()
         disconnect_settings.SetString("connection_name", self.connection_name)
         info = CoSimIO.Disconnect(disconnect_settings)
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Disconnected:
-            raise Exception("Disconnecting failed!")
+            raise Exception("Disconnecting failed!") """
