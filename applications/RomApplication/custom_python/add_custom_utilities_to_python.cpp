@@ -55,6 +55,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetNonProjectedResidualsFromConditionList",&RomModelPartUtility::GetNonProjectedResidualsFromConditionList)
     .def("GetNonProjectedResidualsFromElementList",&RomModelPartUtility::GetNonProjectedResidualsFromElementList)
     .def("GetElementListFromNode",&RomModelPartUtility::GetElementListFromNode)
+    .def("GetNodeList",&RomModelPartUtility::GetNodeList)
+    .def("GetDofsFromElementList",&RomModelPartUtility::GetDofsFromElementList)
+
+    // .def("AssembleReactions",&RomModelPartUtility::AssembleReactions)
     // .def("GetDofArray",&RomModelPartUtility::GetDofArray)
     // .def("GetReactionsNew",&RomModelPartUtility::GetReactions_new)
     ;

@@ -96,6 +96,26 @@ class StructuralMechanicsAnalysisSavingData(StructuralMechanicsAnalysis):
         # self.HR_restricted_residual_conditions = np.array(self.ResidualUtilityObject_Restricted_Residuals.GetConditionsList())
         # self.HR_restricted_residual_conditions.tolist()
         self.restricted_residual_elements = self.ResidualUtilityObject_Restricted_Part.GetElementListFromNode(model_part)
+        restricted_residual_nodes = self.ResidualUtilityObject_Restricted_Part.GetNodeList()
+        aux_list_nodes = [[] for i in range(len(restricted_residual_nodes))]
+        aux_list_elem = [[] for i in range(len(self.restricted_residual_elements))]
+        counter=0
+        for i in self.restricted_residual_elements:
+            i_elem = model_part.GetElement(i)
+            for node in i_elem.GetNodes():
+                i_node = node.Id
+                aux_list_elem[counter].append(i_node)
+                for j in range(len(restricted_residual_nodes)):
+                    if i_node==restricted_residual_nodes[j]:
+                        aux_list_nodes[j].append(counter)
+            counter+=1
+        reaction_assembling={"List_Nodes":{},"List_Nodal_Elements":{},"List_Elemental_Nodes":{}}
+        reaction_assembling["List_Nodes"] = restricted_residual_nodes
+        reaction_assembling["List_Nodal_Elements"] = aux_list_nodes
+        reaction_assembling["List_Elemental_Nodes"] = aux_list_elem
+        
+        with open('Reaction_parameters.json', 'w') as f:
+            json.dump(reaction_assembling,f, indent=2)
 
 
     def EvaluateQuantityOfInterest(self):
@@ -190,7 +210,7 @@ if __name__ == "__main__":
         
         u,s,_ = rSVD(SnapshotMatrix,10,1,0)
         U,S,_ = rSVD(SnapshotMatrix_stresses,10,1,0)
-        U_residuals,S_residuals, _ = rSVD(SnapshotMatrix_restricted_residuals,5,1,0)
+        U_residuals,S_residuals, _ = rSVD(SnapshotMatrix_restricted_residuals,10,1,0)
 
         ### Plotting singular values  ###
         # plt.plot( range(0,len(s)), np.log(s), marker='o', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=4)

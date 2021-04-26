@@ -25,11 +25,16 @@
 /* Application includes */
 #include "rom_application_variables.h"
 
+
 namespace Kratos
 {
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
+    typedef ModelPart::DofType DofType;
+    typedef ModelPart::DofsArrayType DofsArrayType;
+    typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
+    typedef ModelPart::DofsVectorType DofsVectorType;
 
     // This utility returns the converged residuals projected onto the ROM basis Phi.
     class RomModelPartUtility
@@ -334,27 +339,30 @@ namespace Kratos
         return VectorConditionList;
         }
 
+        // This function returns the list of elements (within an input Model Part) that are connected to the nodes conteined in the Initializing Model Part of the utility.
         std::vector<IndexType> GetElementListFromNode(ModelPart& mrMainModelPart)
         {
-            const int nNodes = static_cast<int>(mpModelPart.NumberOfNodes());
+            const int nNodes = static_cast<int>(mpModelPart.NumberOfNodes()); // Total nodes of the Initializing Model Part
 
-            std::vector<IndexType> ElementList;
-            Vector NodeList(nNodes); 
+            std::vector<IndexType> ElementList; // Initialize the output Elements list
+            Vector NodeList(nNodes); // Initialize a Node list 
             int i = 0;
+            // Loop on Initializing Model Part Nodes to create list of nodes.
             for (auto& node : mpModelPart.Nodes()){
                 NodeList(i) = node.Id();
                 i+=1;
             }
+            // Loop on input Model Part Elements
             for (auto& r_elem : mrMainModelPart.Elements()) {
   	            bool salir = 0;
-                // auto& r_elem_Id = r_elem.Id();
-                const auto& geom = r_elem.GetGeometry();
+                const auto& geom = r_elem.GetGeometry(); // Get elemental nodes
+                // Loop on elemental nodes
                 for (auto& node : geom) {
-                    // auto& node_Id = node.Id();
+                    // Loop on Initializng Model Part Node list
                     for (int k = 0; k < nNodes; k++){
-                        if (NodeList(k)==node.Id()) {
-                            ElementList.push_back(r_elem.Id());
-                            salir = 1;
+                        if (NodeList(k)==node.Id()) { //Check if one node coincide
+                            ElementList.push_back(r_elem.Id()); // Add element Id to Element List if one node coincide
+                            salir = 1; // Flag to break out of Nodal's loop. (Jumps to the next Element whenever a node coincide)
                             break;
                         }
                     }
@@ -365,6 +373,105 @@ namespace Kratos
             } 
         return ElementList;
         }
+
+        std::vector<IndexType> GetNodeList()
+        {
+            std::vector<IndexType> NodeList; // Initialize the output Elements list
+            // Loop on Initializing Model Part Nodes to create list of nodes.
+            for (auto& node : mpModelPart.Nodes()){
+                NodeList.push_back(node.Id());
+            }
+        return NodeList;
+        }
+
+        Matrix GetDofsFromElementList(Vector ElementList)
+        {
+            // Getting the number of elements and conditions from the model
+            const int nelements = static_cast<int>(ElementList.size());
+
+            const auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
+
+            const auto elem_begin = mpModelPart.ElementsBegin();
+            int elem_node = elem_begin->GetGeometry().size();
+            
+            //vector containing the localization in the system of the different terms
+            int TotalDofs = mNodalDofs*elem_node;
+            Matrix dof_list(nelements, TotalDofs); // Matrix of reduced residuals.
+            #pragma omp parallel firstprivate(nelements)
+            {
+                #pragma omp for nowait
+                for (int i=0; i<nelements;i++) {
+                    
+                    //detect if the element is active or not. If the user did not make any choice the element is active by default
+                    //calculate elemental contribution
+                    int elem_Id = ElementList(i);
+                    Element::Pointer i_elem = mpModelPart.pGetElement(elem_Id);
+                    Element::DofsVectorType dofs;
+                    i_elem->GetDofList(dofs, CurrentProcessInfo);
+                    KRATOS_WATCH(dofs.size())
+                    int counter = 0;
+                    for (auto& p_dof : dofs){
+                        const IndexType dof_id = p_dof->GetId();
+                        KRATOS_WATCH(dof_id)
+                        dof_list(i,counter) = dof_id;
+                        counter += 1;
+                    }
+                }
+            }
+        return dof_list;
+        }
+
+
+        // DofsArrayType AssembleReactions(ModelPart& mrMainModelPart)
+        // {
+        //     const auto& r_process_info = mpModelPart.GetProcessInfo();
+
+        //     const auto &r_conditions_array = mpModelPart.Conditions();
+        //     const int n_conds = static_cast<int>(r_conditions_array.size());
+
+        //     KRATOS_WATCH(n_conds)
+
+        //     DofsVectorType dof_list;
+
+        //     // We cleate the temporal set and we reserve some space on them
+        //     DofSetType dofs_tmp_set;
+        //     dofs_tmp_set.reserve(20000);
+        //     DofSetType dof_global_set;
+        //     dof_global_set.reserve(n_conds*20);
+
+        //     // Gets the array of elements from the modeler
+        //     #pragma omp for schedule(guided, 512) nowait
+        //         for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
+        //             const auto it_cond = r_conditions_array.begin() + i_cond;
+        //             it_cond->GetDofList(dof_list, r_process_info);
+        //             KRATOS_WATCH(dof_list)
+        //             dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+        //         }
+
+        //     dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+
+        //     DofsArrayType mDofSet;
+            
+        //     mDofSet = DofsArrayType();
+
+        //     DofsArrayType temp_dof_set;
+        //     temp_dof_set.reserve(dof_global_set.size());
+        //     for (auto it_dof = dof_global_set.begin(); it_dof != dof_global_set.end(); ++it_dof) {
+        //         temp_dof_set.push_back(*it_dof);
+        //         KRATOS_WATCH(*it_dof)
+        //     }
+        //     temp_dof_set.Sort();
+        //     mDofSet = temp_dof_set;
+
+        //     int ndofs = static_cast<int>(mDofSet.size());
+
+        //     #pragma omp parallel for firstprivate(ndofs)
+        //     for (int i = 0; i < static_cast<int>(ndofs); i++){
+        //         typename DofsArrayType::iterator dof_iterator = mDofSet.begin() + i;
+        //     }
+            
+        // return mDofSet;
+        // }
 
 
 
