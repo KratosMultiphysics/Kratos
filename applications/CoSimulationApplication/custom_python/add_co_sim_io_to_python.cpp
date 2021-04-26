@@ -130,9 +130,12 @@ void ExportMesh(
             conn[i] = r_geom[i].Id();
         }
 
+        auto elem_type_it = elem_type_map.find(r_geom.GetGeometryType());
+        KRATOS_ERROR_IF(elem_type_it == elem_type_map.end()) << "No CoSimIO element type found for this Kratos element type (" << static_cast<int>(r_geom.GetGeometryType()) << ")!" << std::endl;
+
         co_sim_io_model_part.CreateNewElement(
             r_elem.Id(),
-            elem_type_map.at(r_geom.GetGeometryType()),
+            elem_type_it->second,
             conn
         );
     };
@@ -184,8 +187,18 @@ void ImportMesh(
             conn[i] = (*(nodes_begin+i))->Id();
         };
 
+        auto elem_name_it = elem_name_map.find((*elem_it)->Type());
+        if (elem_name_it == elem_name_map.end()) {
+            std::stringstream err;
+            err << "No Kratos element found for this element type (" << static_cast<int>((*elem_it)->Type()) << ")!\nOnly the following types are available:";
+            for (const auto& r_type_name_pair : elem_name_map) {
+                err << "\n\t" << r_type_name_pair.second;
+            }
+            KRATOS_ERROR << err.str();
+        }
+
         rModelPart.CreateNewElement(
-            elem_name_map.at((*elem_it)->Type()),
+            elem_name_it->second,
             (*elem_it)->Id(),
             conn,
             p_props
