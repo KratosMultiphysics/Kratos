@@ -37,14 +37,14 @@ class TotalVolume(ResponseFunctionInterface):
     def CalculateValue(self):
         start_time = timer.time()
 
-        self.value = KSO.GeometryUtilities().ComputeVolume(self.model_part)
+        self.value = KSO.GeometryUtilities(self.model_part).ComputeVolume()
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - start_time,2),"s")
 
     def CalculateGradient(self):
         start_time = timer.time()
 
-        KSO.GeometryUtilities().ComputeVolumeShapeDerivatives(self.model_part, self.variable)
+        KSO.GeometryUtilities(self.model_part).ComputeVolumeShapeDerivatives(self.variable)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the gradient = ",round(timer.time() - start_time,2),"s")
 
@@ -57,7 +57,7 @@ class TotalVolume(ResponseFunctionInterface):
 
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(self.variable)
+            gradient[node.Id] = node.GetValue(self.variable)
 
         return gradient
 

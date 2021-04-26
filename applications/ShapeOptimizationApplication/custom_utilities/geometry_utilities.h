@@ -273,31 +273,31 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeVolume(ModelPart& rModelPart)
+    double ComputeVolume()
     {
         KRATOS_TRY
 
         std::function<double(const GeometryType&)> volume_method;
 
-        const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         int number_of_nodes = -1;
-        if (rModelPart.NumberOfElements() > 0) {
-            number_of_nodes = rModelPart.Elements().front().GetGeometry().PointsNumber();
+        if (mrModelPart.NumberOfElements() > 0) {
+            number_of_nodes = mrModelPart.Elements().front().GetGeometry().PointsNumber();
 
-            block_for_each(rModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            block_for_each(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
                 KRATOS_ERROR_IF(static_cast<int>(rElement.GetGeometry().PointsNumber()) != number_of_nodes)
                     << "Mismatching geometries with different number of nodes "
                        "found in "
-                    << rModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
+                    << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
                     << number_of_nodes << ", current_element_id = " << rElement.Id()
                     << ", current element's geometry's number of nodes = "
                     << rElement.GetGeometry().PointsNumber() << " ].\n";
             });
         }
-        number_of_nodes = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
+        number_of_nodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
 
         KRATOS_ERROR_IF(number_of_nodes == -1)
-            << "No elements were found in " << rModelPart.Name()
+            << "No elements were found in " << mrModelPart.Name()
             << ". Please use a model part with elements.\n";
 
         if (domain_size == 2) {
@@ -346,45 +346,44 @@ public:
         }
 
         const double volume = block_for_each<SumReduction<double>>(
-            rModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
                 return volume_method(rElement.GetGeometry());
             });
 
-        return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(volume);
+        return mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(volume);
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
     void ComputeVolumeShapeDerivatives(
-        ModelPart& rModelPart,
         const Variable<array_3d>& rDerivativeVariable)
     {
         KRATOS_TRY
 
         using CUInt = const unsigned int;
 
-        VariableUtils().SetHistoricalVariableToZero(rDerivativeVariable, rModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
 
-        const int domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         int number_of_nodes = -1;
-        if (rModelPart.NumberOfElements() > 0) {
-            number_of_nodes = rModelPart.Elements().front().GetGeometry().PointsNumber();
+        if (mrModelPart.NumberOfElements() > 0) {
+            number_of_nodes = mrModelPart.Elements().front().GetGeometry().PointsNumber();
 
-            block_for_each(rModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            block_for_each(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
                 KRATOS_ERROR_IF(static_cast<int>(rElement.GetGeometry().PointsNumber()) != number_of_nodes)
                     << "Mismatching geometries with different number of nodes "
                        "found in "
-                    << rModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
+                    << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
                     << number_of_nodes << ", current_element_id = " << rElement.Id()
                     << ", current element's geometry's number of nodes = "
                     << rElement.GetGeometry().PointsNumber() << " ].\n";
             });
         }
-        number_of_nodes = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
+        number_of_nodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(number_of_nodes);
 
         KRATOS_ERROR_IF(number_of_nodes == -1)
-            << "No elements were found in " << rModelPart.Name()
+            << "No elements were found in " << mrModelPart.Name()
             << ". Please use a model part with elements.\n";
 
         std::function<double(CUInt, CUInt, const GeometryType&)> volume_derivative_method;
@@ -429,7 +428,7 @@ public:
                          << domain_size << " ].\n";
         }
 
-        block_for_each(rModelPart.Elements(), [&](ModelPart::ElementType& rElement){
+        block_for_each(mrModelPart.Elements(), [&](ModelPart::ElementType& rElement){
             auto& r_geometry = rElement.GetGeometry();
             for (int c = 0; c < static_cast<int>(r_geometry.PointsNumber()); ++c) {
                 auto& r_node = r_geometry[c];
@@ -438,14 +437,14 @@ public:
                     const double derivative_value = volume_derivative_method(c, k, r_geometry);
 
                     r_node.SetLock();
-                    auto& r_derivative_value = r_node.FastGetSolutionStepValue(rDerivativeVariable);
+                    auto& r_derivative_value = r_node.GetValue(rDerivativeVariable);
                     r_derivative_value[k] += derivative_value;
                     r_node.UnSetLock();
                 }
             }
         });
 
-        rModelPart.GetCommunicator().AssembleCurrentData(rDerivativeVariable);
+        mrModelPart.GetCommunicator().AssembleNonHistoricalData(rDerivativeVariable);
 
         KRATOS_CATCH("");
     }
