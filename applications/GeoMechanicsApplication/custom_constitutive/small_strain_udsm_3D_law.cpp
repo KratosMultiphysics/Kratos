@@ -273,6 +273,7 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
 
    // reset state variables
    int nStateVariables = GetNumberOfStateVariablesFromUDSM(rMaterialProperties);
+   nStateVariables = std::max(nStateVariables, 1);
    mStateVariables.resize(nStateVariables);
    noalias(mStateVariables) = ZeroVector(nStateVariables);
 
@@ -328,7 +329,55 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
    if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
    int IDTask = ATTRIBUTES;
-   CallUDSM(&IDTask, rMaterialProperties);
+
+   // process data
+   double deltaTime = 0.0;
+   double time      = 0.0;
+   int    iStep     = 0;
+   int    iteration = 0;
+
+   // number of the model in the shared libaray (DLL)
+   int modelNumber = rMaterialProperties[UDSM_NUMBER];
+
+   // not needed:
+   double bulkWater = 0.0;
+   double excessPorePressurePrevious = 0.0;
+   double excessPorePressureCurrent = 0.0;
+   double X(0.0), Y(0.0), Z(0.0);
+   int iElement = 0;
+   int integrationNumber = 0;
+   int iPlastic = 0;
+   int isUndr = 0;
+   int nStateVariables = 0;
+
+   // variable to check if an error happend in the model:
+   int iAbort = 0;
+   int nSizeProjectDirectory = mProjectDirectory.size();
+   std::vector<double> StateVariablesFinalized;
+   std::vector<double> StateVariables;
+
+   const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+   pUserMod(&IDTask, &modelNumber, &isUndr,
+            &iStep, &iteration, &iElement, &integrationNumber,
+            &X, &Y, &Z,
+            &time, &deltaTime,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            StateVariablesFinalized.data(),
+            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
+            &nStateVariables, 
+            &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+            &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+            mProjectDirectory.data(), &nSizeProjectDirectory, 
+            &iAbort);
+
+   if (iAbort != 0)
+   {
+      // KRATOS_INFO("GetNumberOfStateVariablesFromUDSM, iAbort !=0")<< std::endl;
+      KRATOS_THROW_ERROR(std::runtime_error, 
+                         "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(IDTask) + ". UDSM",
+                         rMaterialProperties[UDSM_NAME]);
+   }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetAttributes()") << std::endl;
 
@@ -368,6 +417,8 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
    // variable to check if an error happend in the model:
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
+   std::vector<double> StateVariablesFinalized;
+   std::vector<double> StateVariables;
 
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(&IDTask, &modelNumber, &isUndr,
@@ -375,9 +426,9 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
             &X, &Y, &Z,
             &time, &deltaTime,
             &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
-            &(mStateVariablesFinalized.data()[0]),
+            StateVariablesFinalized.data(),
             &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
-            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
             &nStateVariables, 
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -878,7 +929,7 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProp
    // variable to check if an error happend in the model:
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
-
+   
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(IDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,
