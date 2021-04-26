@@ -272,7 +272,7 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
 
    // reset state variables
    int nStateVariables = GetNumberOfStateVariablesFromUDSM(rMaterialProperties);
-   nStateVariables = max(nStateVariables, 1);
+   nStateVariables = std::max(nStateVariables, 1);
    mStateVariables.resize(nStateVariables);
    noalias(mStateVariables) = ZeroVector(nStateVariables);
 
