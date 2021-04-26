@@ -596,26 +596,27 @@ private:
     {
         const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 
-        std::vector<unsigned int> col_ids(number_of_neighbors);
+        std::vector<unsigned int> unique_col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            col_ids[neighbor_itr] = neighbor_node.GetValue(MAPPING_ID);
+            unique_col_ids[neighbor_itr] = neighbor_node.GetValue(MAPPING_ID);
         }
-        std::sort (col_ids.begin(), col_ids.end());
+        std::sort (unique_col_ids.begin(), unique_col_ids.end());
+        unique_col_ids.erase( unique( unique_col_ids.begin(), unique_col_ids.end() ), unique_col_ids.end() );
 
         // initialize non-zeros row by row - sorted access helps a lot
-        for (unsigned int i: col_ids) {
+        for (unsigned int i: unique_col_ids) {
             mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+0, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
         }
-        for (unsigned int i: col_ids) {
+        for (unsigned int i: unique_col_ids) {
             mMappingMatrix.insert_element(row_id*3+1, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
         }
-        for (unsigned int i: col_ids) {
+        for (unsigned int i: unique_col_ids) {
             mMappingMatrix.insert_element(row_id*3+2, i*3+0, 0.0);
             mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
             mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
