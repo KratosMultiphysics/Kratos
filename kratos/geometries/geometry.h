@@ -1620,7 +1620,7 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex, ThisMethod);
         const double norm_normal = norm_2(normal_vector);
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
@@ -3570,6 +3570,15 @@ public:
         ShapeFunctionsIntegrationPointsGradients(rResult,determinants_of_jacobian,ThisMethod);
         ShapeFunctionsIntegrationPointsValues = ShapeFunctionsValues(ThisMethod);
         return rResult;
+    }
+
+    virtual int Check() const
+    {
+        KRATOS_TRY
+
+        return 0;
+
+        KRATOS_CATCH("")
     }
 
     ///@}

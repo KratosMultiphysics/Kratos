@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS   ___                _   _ _         _   _             __                       _
+//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -20,7 +22,7 @@
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "generic_constitutive_law_integrator_plasticity.h"
 
 namespace Kratos
@@ -200,20 +202,16 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         while (is_converged == false && iteration <= max_iter) {
             threshold_indicator = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rDerivativePlasticPotential;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
-
             CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
                                             rPlasticStrainIncrement, rBackStressVector);
-
             noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
                                         rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
-
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
@@ -481,11 +479,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const double CompressionIndicatorFactor,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        ConstitutiveLaw::Parameters& rValues
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
         )
     {
         GenericConstitutiveLawIntegratorPlasticity<YieldSurfaceType>::CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
-            PlasticDissipation,TensileIndicatorFactor,CompressionIndicatorFactor,rEquivalentStressThreshold,rSlope,rValues);
+            PlasticDissipation,TensileIndicatorFactor,CompressionIndicatorFactor,rEquivalentStressThreshold,rSlope,rValues,CharacteristicLength);
     }
 
     /**

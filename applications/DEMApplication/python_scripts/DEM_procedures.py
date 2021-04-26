@@ -376,7 +376,7 @@ class Procedures(object):
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -395,7 +395,7 @@ class Procedures(object):
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -841,15 +841,14 @@ class Procedures(object):
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "**************************************************************************")
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KratosPrintWarning("The type expected was " +
-                             a + " but " + b + " was read.")
-            self.KratosPrintWarning(
+            KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
+            KratosPrintWarning(
                 "**************************************************************************")
             sys.exit()
 
@@ -1038,7 +1037,7 @@ class DEMFEMProcedures(object):
 
     @classmethod
     def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
-        self.KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
+        KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step

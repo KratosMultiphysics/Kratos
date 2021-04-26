@@ -163,8 +163,9 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
+class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper
+    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
     ///@name Type Definitions
@@ -173,7 +174,7 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
@@ -212,7 +213,7 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(
+        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);

@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS   ___                _   _ _         _   _             __                       _
+//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -12,6 +14,7 @@
 
 // Project includes
 #include "small_strain_isotropic_damage_3d.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
 
@@ -54,12 +57,12 @@ SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D()
 bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == STRAIN_ENERGY){
-        // explicitly returning "false", so we know we must call CalculateValue(...)
+        // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
-    }
-    if(rThisVariable == DAMAGE_VARIABLE){
-        // explicitly returning "false", so we know we must call CalculateValue(...)
+    } else if(rThisVariable == DAMAGE_VARIABLE){
+        // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
+
     }
 
     return false;
@@ -72,6 +75,9 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<Vector>& rThisVariable)
 {
     if(rThisVariable == INTERNAL_VARIABLES){
         return true;
+    } else if(rThisVariable == STRAIN){
+        // explicitly returning "false", so the element calls CalculateValue(...)
+        return false;
     }
 
     return false;
@@ -124,59 +130,49 @@ void SmallStrainIsotropicDamage3D::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void SmallStrainIsotropicDamage3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rParametersValues)
 {
     Vector internal_variables(1);
-    this->CalculateStressResponse(rValues, internal_variables);
+    this->CalculateStressResponse(rParametersValues, internal_variables);
     mStrainVariable = internal_variables[0];
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rParametersValues)
 {
     Vector internal_variables(1);
-    this->CalculateStressResponse(rValues, internal_variables);
+    CalculateStressResponse(rParametersValues, internal_variables);
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void SmallStrainIsotropicDamage3D::CalculateStressResponse(
-        Parameters &rValues,
-        Vector& rInternalVariables)
+    ConstitutiveLaw::Parameters& rParametersValues,
+    Vector& rInternalVariables)
 {
     double strain_variable = mStrainVariable;
-    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-    Flags & r_constitutive_law_options = rValues.GetOptions();
-    Vector& r_strain_vector = rValues.GetStrainVector();
-    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-        noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
-    }
-
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        //this->CalculateValue(rValues, STRAIN, r_strain_vector);
-    }
+    const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
+    Flags& r_constitutive_law_options = rParametersValues.GetOptions();
+    Vector& r_strain_vector = rParametersValues.GetStrainVector();
+    CalculateValue(rParametersValues, STRAIN, r_strain_vector);
 
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
-        Vector& r_stress_vector = rValues.GetStressVector();
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix(r_constitutive_matrix, rValues);
+        Vector& r_stress_vector = rParametersValues.GetStressVector();
+        Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
         noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
 
-        // Auxiliary stress vector to allow derived models (e.g. traction-only damage) to set
-        // a different value of r_stress_vector_pos with ComputePositiveStressVector function
-        // In the symmetric model, ComputePositiveStressVector does not do anything.
+        // Auxiliary stress vector to allow derived models (e.g. traction-only damage)
+        // to set the value of r_stress_vector_pos with the ComputePositiveStressVector
+        // function.
+        // In the symmetric model, ComputePositiveStressVector does nothing.
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
@@ -187,7 +183,7 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         {
             // ELASTIC
             strain_variable = mStrainVariable;
-            const double stress_variable = EvaluateHardeningLaw(strain_variable, rMaterialProperties);
+            const double stress_variable = EvaluateHardeningLaw(strain_variable, r_material_properties);
             const double damage_variable = 1. - stress_variable / strain_variable;
             r_constitutive_matrix *= (1 - damage_variable);
             r_stress_vector *= (1 - damage_variable);
@@ -196,9 +192,9 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         {
             // INELASTIC
             strain_variable = strain_norm;
-            const double stress_variable = EvaluateHardeningLaw(strain_variable, rMaterialProperties);
+            const double stress_variable = EvaluateHardeningLaw(strain_variable, r_material_properties);
             const double damage_variable = 1. - stress_variable / strain_variable;
-            const double hardening_modulus = EvaluateHardeningModulus(strain_variable, rMaterialProperties);
+            const double hardening_modulus = EvaluateHardeningModulus(strain_variable, r_material_properties);
             const double damage_rate = (stress_variable - hardening_modulus * strain_variable)
                                        / (strain_variable * strain_variable * strain_variable);
             r_constitutive_matrix *= (1. - damage_variable);
@@ -216,6 +212,7 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
 void SmallStrainIsotropicDamage3D::ComputePositiveStressVector(
             Vector& rStressVectorPos, Vector& rStressVector)
 {
+    // explicit pass for the symmetric model
 }
 
 //************************************************************************************
@@ -237,7 +234,7 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningModulus(
     const double q1 = inf_yield_stress / std::sqrt(young_modulus);  // stress_variable_inf
     const double r1 = r0 + (q1 - q0) / H0;
 
-     if (r < r0)
+    if (r < r0)
         return 0.;
     if (r >= r0 && r < r1)
         return H0;
@@ -249,8 +246,8 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningModulus(
 //************************************************************************************
 
 double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
-        double r,
-        const Properties &rMaterialProperties)
+    double r,
+    const Properties &rMaterialProperties)
 {
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
@@ -275,33 +272,52 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
 //************************************************************************************
 
 double& SmallStrainIsotropicDamage3D::CalculateValue(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rParametersValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
     if (rThisVariable == STRAIN_ENERGY){
-        Vector& r_strain_vector = rValues.GetStrainVector();
-        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-            noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
-        }
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        Vector& r_strain_vector = rParametersValues.GetStrainVector();
+        this->CalculateValue(rParametersValues, STRAIN, r_strain_vector);
+        const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
         Matrix constitutive_matrix;
-        CalculateElasticMatrix(constitutive_matrix, rValues);
-        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
+        CalculateElasticMatrix(constitutive_matrix, rParametersValues);
+        const double stress_like_variable = EvaluateHardeningLaw(
+                                                mStrainVariable,
+                                                r_material_properties);
         const double damage_variable = 1. - stress_like_variable / mStrainVariable;
 
         rValue = 0.5 * ((1. - damage_variable) * inner_prod(r_strain_vector,
-                                              prod(constitutive_matrix, r_strain_vector)));
-    }
+                                        prod(constitutive_matrix, r_strain_vector)));
 
-    if (rThisVariable == DAMAGE_VARIABLE){
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
+    } else if (rThisVariable == DAMAGE_VARIABLE){
+        const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
+        const double stress_like_variable = EvaluateHardeningLaw(
+                                                mStrainVariable,
+                                                r_material_properties);
 
         rValue = 1. - stress_like_variable / mStrainVariable;
+
+    } else {
+        ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+
     }
 
+    return(rValue);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Vector& SmallStrainIsotropicDamage3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParametersValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    )
+{
+    //Explicitly having STRAIN and INITAL_STRAIN_VECTOR calculated in base class
+    ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
     return(rValue);
 }
 
