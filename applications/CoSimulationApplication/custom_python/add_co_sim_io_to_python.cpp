@@ -105,6 +105,8 @@ void ExportMesh(
     CoSimIO::Info& rInfo,
     const ModelPart& rModelPart)
 {
+    KRATOS_TRY
+
     CoSimIO::ModelPart co_sim_io_model_part(rModelPart.Name());
 
     for (const auto& r_node : rModelPart.Nodes()) {
@@ -138,12 +140,16 @@ void ExportMesh(
     CoSimIO::ExportMesh(
         rInfo,
         co_sim_io_model_part);
+
+    KRATOS_CATCH("")
 }
 
 void ImportMesh(
     CoSimIO::Info& rInfo,
     ModelPart& rModelPart)
 {
+    KRATOS_TRY
+
     CoSimIO::ModelPart co_sim_io_model_part(rModelPart.Name());
 
     CoSimIO::ImportMesh(
@@ -185,6 +191,8 @@ void ImportMesh(
             p_props
         );
     };
+
+    KRATOS_CATCH("")
 }
 
 void ImportDataSizeCheck(const std::size_t ExpectedSize, const std::size_t ImportedSize)
@@ -272,6 +280,8 @@ void ExportData_RawValues(
 
 CoSimIO::Info InfoFromParameters(Parameters rSettings)
 {
+    KRATOS_TRY
+
     CoSimIO::Info info;
 
     for (auto it = rSettings.begin(); it != rSettings.end(); ++it) {
@@ -283,6 +293,8 @@ CoSimIO::Info InfoFromParameters(Parameters rSettings)
     }
 
     return info;
+
+    KRATOS_CATCH("")
 }
 
 } // CoSimIO_Wrappers namespace
