@@ -217,18 +217,47 @@ public:
         // Save the variables to be employed so that they can be restored after the solution
         const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-        const double levelset_delta_time = dt_factor * previous_delta_time;
+        double levelset_delta_time = previous_delta_time;
+        if (dt_factor != 1.0)
+        {
+            levelset_delta_time = std::abs(1.0 - dt_factor)*levelset_delta_time;
+        }
 
         // Save current level set value and current and previous step velocity values
-        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](int i_node){
-            const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
-            mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(*mpConvectVar,1) +
-                (1.0 - dt_factor)*it_node->FastGetSolutionStepValue(*mpConvectVar);
-            mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
-            }
-        );
+        if (dt_factor < 1.0)
+        {
+            IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+            [&](int i_node){
+                const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
+                mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(*mpConvectVar) +
+                    (1.0 - dt_factor)*it_node->FastGetSolutionStepValue(*mpConvectVar,1);
+                mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
+                }
+            );
+        }
+        else if (dt_factor > 1.0)
+        {
+            IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+            [&](int i_node){
+                const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
+                mVelocity[i_node] = (dt_factor - 1.0)*it_node->FastGetSolutionStepValue(*mpConvectVar) +
+                    (2.0 - dt_factor)*it_node->FastGetSolutionStepValue(*mpConvectVar,1);
+                mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
+                }
+            );
+        } else
+        {
+            IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
+            [&](int i_node){
+                const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+                mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
+                mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
+                mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
+                }
+            );
+        }
 
         const double dt = levelset_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);

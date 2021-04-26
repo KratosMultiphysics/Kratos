@@ -71,7 +71,12 @@ public:
             dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
         }
         KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "ERROR: DELTA_TIME_FACTOR should be larger than zero." <<std::endl;
-        const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
+
+        double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
+        if (dt_factor != 1.0)
+        {
+            dt = std::abs(1.0 - dt_factor)*dt;
+        }
 
         //do movement
         Vector N(TDim + 1);
@@ -86,12 +91,29 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
 
         // Allocate non-historical variables and update old velocity as per dt_factor
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-            rNode.SetValue(rVar, 0.0);
-            auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
-            rNode.SetValue(conv_var, r_old_velocity);
-            noalias(r_old_velocity) = dt_factor*r_old_velocity + (1.0 - dt_factor)*rNode.FastGetSolutionStepValue(conv_var);
-        });
+        if (dt_factor < 1.0)
+        {
+            block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+                rNode.SetValue(rVar, 0.0);
+                auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
+                rNode.SetValue(conv_var, r_old_velocity);
+                noalias(r_old_velocity) = (1.0 - dt_factor)*r_old_velocity + dt_factor*rNode.FastGetSolutionStepValue(conv_var);
+            });
+        }
+        else if (dt_factor > 1.0)
+        {
+            block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+                rNode.SetValue(rVar, 0.0);
+                auto &r_velocity = rNode.FastGetSolutionStepValue(conv_var);
+                rNode.SetValue(conv_var, r_velocity);
+                noalias(r_velocity) = (dt_factor - 1.0)*r_velocity + (2.0 - dt_factor)*rNode.FastGetSolutionStepValue(conv_var, 1);
+            });
+        } else
+        {
+            block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+                rNode.SetValue(rVar, 0.0);
+            });
+        }
 
         mLimiter.resize(nparticles);
         if (mActivateLimiter){
@@ -201,7 +223,14 @@ public:
 //             else
 //                 std::cout << "it should find it" << std::endl;
 
-            it_particle->FastGetSolutionStepValue(conv_var, 1) = it_particle->GetValue(conv_var); // Restoring the old velocity
+            if (dt_factor < 1.0)
+            {
+                it_particle->FastGetSolutionStepValue(conv_var, 1) = it_particle->GetValue(conv_var); // Restoring the old velocity
+            }
+            else if (dt_factor > 1.0)
+            {
+                it_particle->FastGetSolutionStepValue(conv_var) = it_particle->GetValue(conv_var); // Restoring the old velocity
+            }
         }
 
         KRATOS_CATCH("")
