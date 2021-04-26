@@ -15,9 +15,10 @@
 // External includes
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include <algorithm>
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-#include <windows.h>
+#include "windows.hpp"
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
