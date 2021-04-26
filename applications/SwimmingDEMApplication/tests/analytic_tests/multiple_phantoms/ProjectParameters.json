@@ -198,7 +198,7 @@
             "RemoveBallsInitiallyTouchingWalls" : false,
             "strategy"                          : "swimming_sphere_strategy",
             "material_import_settings"           : {
-                "materials_filename" : "multiple_phantoms/MaterialsDEM.json"
+                "materials_filename" : "analytic_tests/multiple_phantoms/MaterialsDEM.json"
             }
         },
         "VirtualMassCoefficient"         : 1.0,
