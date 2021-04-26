@@ -99,13 +99,11 @@ class RunHROM(StructuralMechanicsAnalysisROM):
                 aux_index_fin = aux_index_in + HR_dofs_per_element
                 self.HR_U_RESIDUAL[counter_in:counter_fin,:] = self.U_RESIDUAL[aux_index_in:aux_index_fin,:]
                 counter_in = counter_fin
-
-            self.tiempo = 0 #Borrar
         ###################
                 
         #### Stresses ####
         ###################
-
+        self.P = load_npz("shape.npz")
         with open('RomParameters_Stresses.json') as s:
             HR_data_stresses = json.load(s) # Load SVD of Stresses
             HR_dofs_size = HR_data_stresses["rom_settings"]["number_of_rom_dofs"] # To initialize left singular values of Stresses
@@ -133,6 +131,8 @@ class RunHROM(StructuralMechanicsAnalysisROM):
         self.restricted_residual_nodes = reaction_assembling["List_Nodes"]
         self.aux_list_nodes = reaction_assembling["List_Nodal_Elements"]
         self.aux_list_elem = reaction_assembling["List_Elemental_Nodes"]
+        self.dof_node = len(reaction_assembling["Nodal_Unknowns"])
+        self.dof_elem = int(reaction_assembling["Nodes_per_element"]*self.dof_node)
         ###################
 
 
@@ -140,7 +140,21 @@ class RunHROM(StructuralMechanicsAnalysisROM):
         
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        
+        #####Revisando#####
+        # extrapolation_parameters = KratosMultiphysics.Parameters("""
+        # {
+        #     "model_part_name"            : "",
+        #     "echo_level"                 : 0,
+        #     "average_variable"           : "NODAL_AREA",
+        #     "area_average"               : true,
+        #     "list_of_variables"          : ["VON_MISES_STRESS"],
+        #     "extrapolate_non_historical" : true
+        # }
+        # """)
+        # self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.IntegrationValuesExtrapolationToNodesProcess(self._GetSolver().GetComputingModelPart(), extrapolation_parameters)
+        # self.integration_values_extrapolation_to_nodes_process.Execute()
+        # ###################
+
         new_stress = []
         model_part = self._GetSolver().GetComputingModelPart()
         #### Stress #####
@@ -148,6 +162,17 @@ class RunHROM(StructuralMechanicsAnalysisROM):
         for elem in model_part.Elements:
             new_stress.append(elem.CalculateOnIntegrationPoints(KratosMultiphysics.StructuralMechanicsApplication.VON_MISES_STRESS,model_part.ProcessInfo)[0])
         self.HR_stresses.append(new_stress) 
+        q = np.linalg.pinv(self.HR_U_STRESS)@np.array(new_stress)
+        stress_comparisson = self.U_STRESS@q
+        stress = self.P@stress_comparisson
+        ###################
+
+        #### Stress Assembling ####
+        ###################
+        counter = 0
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.StructuralMechanicsApplication.VON_MISES_STRESS,stress[counter])
+            counter+=1
         ###################
 
         #### Residuals #####
@@ -161,8 +186,6 @@ class RunHROM(StructuralMechanicsAnalysisROM):
 
         #### Reaction Assembling ####
         ###################
-        with open('test_restricted_residuals.npy', 'rb') as f:
-            SnapshotMatrix_residuals = np.load(f) 
         for i in range(len(self.restricted_residual_nodes)):
             node = model_part.GetNode(self.restricted_residual_nodes[i])
             reaction_x = 0
@@ -172,16 +195,14 @@ class RunHROM(StructuralMechanicsAnalysisROM):
                 counter = 0
                 for k in self.aux_list_elem[j]:
                     if node.Id==k:
-                        reaction_x += residual_comparisson[(j*12)+(counter*3)]
-                        reaction_y += residual_comparisson[(j*12)+(counter*3)+1]
-                        reaction_z += residual_comparisson[(j*12)+(counter*3)+2]
+                        aux_index = int((j*self.dof_elem)+(counter*self.dof_node))
+                        reaction_x += residual_comparisson[aux_index]
+                        reaction_y += residual_comparisson[aux_index+1]
+                        reaction_z += residual_comparisson[aux_index+2]
                     counter+=1
             node.SetSolutionStepValue(KratosMultiphysics.REACTION_X,reaction_x)
             node.SetSolutionStepValue(KratosMultiphysics.REACTION_Y,reaction_y)
             node.SetSolutionStepValue(KratosMultiphysics.REACTION_Z,reaction_z)
-        self.tiempo += 1
-
- 
         ###################
 
         

@@ -109,7 +109,9 @@ class StructuralMechanicsAnalysisSavingData(StructuralMechanicsAnalysis):
                     if i_node==restricted_residual_nodes[j]:
                         aux_list_nodes[j].append(counter)
             counter+=1
-        reaction_assembling={"List_Nodes":{},"List_Nodal_Elements":{},"List_Elemental_Nodes":{}}
+        reaction_assembling={"Nodal_Unknowns":{},"Element_Dofs":{},"List_Nodes":{},"List_Nodal_Elements":{},"List_Elemental_Nodes":{}}
+        reaction_assembling["Nodal_Unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
+        reaction_assembling["Nodes_per_element"] = model_part.GetElement(1).GetGeometry().PointsNumber()
         reaction_assembling["List_Nodes"] = restricted_residual_nodes
         reaction_assembling["List_Nodal_Elements"] = aux_list_nodes
         reaction_assembling["List_Elemental_Nodes"] = aux_list_elem
