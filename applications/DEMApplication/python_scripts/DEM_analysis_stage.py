@@ -327,8 +327,6 @@ class DEMAnalysisStage(AnalysisStage):
         materials_setter.AssignPropertiesToEntities()
 
     def ReadMaterialsFile(self):
-        print(self.main_path)
-        print(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
         materials_file_abs_path = os.path.join(self.main_path, self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
         with open(materials_file_abs_path, 'r') as materials_file:
             self.DEM_material_parameters = Parameters(materials_file.read())
