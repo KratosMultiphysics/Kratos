@@ -1,6 +1,7 @@
 import time as timer
 import os
 import sys
+import pathlib
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -327,7 +328,8 @@ class DEMAnalysisStage(AnalysisStage):
         materials_setter.AssignPropertiesToEntities()
 
     def ReadMaterialsFile(self):
-        materials_file_abs_path = os.path.join(self.main_path, self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        adapted_to_current_os_relative_path = pathlib.Path(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        materials_file_abs_path = os.path.join(self.main_path, adapted_to_current_os_relative_path)
         with open(materials_file_abs_path, 'r') as materials_file:
             self.DEM_material_parameters = Parameters(materials_file.read())
 
