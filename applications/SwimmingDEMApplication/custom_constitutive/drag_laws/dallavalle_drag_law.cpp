@@ -62,7 +62,6 @@ namespace Kratos {
         }
 
         return 1.0 / particle_equivalent_diameter;
-
     }
 
     double DallavalleDragLaw::GetParticleMassFraction(SphericParticle* p_particle){
