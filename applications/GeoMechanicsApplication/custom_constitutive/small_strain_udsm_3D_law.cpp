@@ -24,7 +24,6 @@
 #include <dlfcn.h>
 #endif
 
-
 namespace Kratos
 {
 /*
@@ -273,7 +272,7 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
 
    // reset state variables
    int nStateVariables = GetNumberOfStateVariablesFromUDSM(rMaterialProperties);
-   nStateVariables = std::max(nStateVariables, 1);
+   nStateVariables = max(nStateVariables, 1);
    mStateVariables.resize(nStateVariables);
    noalias(mStateVariables) = ZeroVector(nStateVariables);
 
