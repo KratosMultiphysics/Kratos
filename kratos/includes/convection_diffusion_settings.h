@@ -228,11 +228,11 @@ public:
         mpGradientVar = &rvar;
         mis_defined_GradientVar=true;
     }
-    const Variable<array_1d<double,3> >& GetGradientVariable()
+    const Variable<array_1d<double,3> >& GetGradientVariable() const
     {
         return *mpGradientVar;
     }
-    bool IsDefinedGradientVariable()
+    bool IsDefinedGradientVariable() const
     {
         return mis_defined_GradientVar;
     }
