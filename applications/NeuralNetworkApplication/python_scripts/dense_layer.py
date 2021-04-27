@@ -65,9 +65,8 @@ class DenseLayer(NeuralNetworkLayerClass):
         self.activity_regularizer_l2 = settings["activity_regularizer_l2"].GetDouble()
         self.activity_regularizer = keras.regularizers.L1L2(l1=self.activity_regularizer_l1,l2=self.activity_regularizer_l2)
 
-        # When called by the add_layer_process, input the parameters in the keras function
-
     def Build(self):
+        """ This method builds the layer when called by a process."""
         self.layer = layers.Dense(self.units, activation=self.activation,use_bias=self.use_bias,
         kernel_initializer=self.kernel_initializer,bias_initializer=self.bias_initializer,kernel_regularizer=self.kernel_regularizer,
         bias_regularizer=self.bias_regularizer,activity_regularizer=self.activity_regularizer,

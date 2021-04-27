@@ -66,7 +66,15 @@ class DataGeneratorProcess(KM.Process):
         self.perturbate = settings["perturbate"].GetBool()
         input_dist_names = settings["random_distribution"]
         self.random_distribution = [ input_dist_names[i].GetString() for i in range( input_dist_names.size() ) ]
-        self.random_parameters = settings["random_parameters"].GetVector()
+
+        # getting the list of distribution parameters for each variable
+        random_parameters_matrix = settings["random_parameters"].GetMatrix()
+        self.random_parameters =[]
+        for distribution in range(random_parameters_matrix.Size1()):
+            distribution_parameters = []
+            for parameter in range(random_parameters_matrix.Size2()):
+                distribution_parameters.append(random_parameters_matrix[distribution,parameter])
+            self.random_parameters.append(distribution_parameters)
         self.interval = settings["interval"].GetVector()
         self.format = settings["print_format"].GetString()
         self.output_format = settings["output_format"].GetString()
@@ -195,7 +203,7 @@ class DataGeneratorProcess(KM.Process):
                 for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
                     if type(var) == KM.DoubleVariable:
                         if self.perturbate :
-                            factor = getattr(np.random, dist)(params)
+                            factor = getattr(np.random, dist)(*params)
                         else:
                             factor = 0.0
                         input_value = op.imul(condition.GetValue(var),(1.0+factor))
@@ -204,7 +212,7 @@ class DataGeneratorProcess(KM.Process):
                             input_value_list.append(input_value)
                     else:
                         if self.perturbate :
-                            factor = getattr(np.random, dist)(params)
+                            factor = getattr(np.random, dist)(*params)
                         else:
                             factor = 0.0
                         input_value = op.imul(condition.GetValue(var),(1.0+factor))

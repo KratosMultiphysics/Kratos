@@ -14,6 +14,12 @@ class GenerateSimpleModelProcess(NeuralNetworkTrainingProcess):
     based on the data provided for the trianing.
     """
     def __init__(self, parameters):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        settings -- Kratos parameters containing layer settings.
+        """
         super().__init__(parameters)
         self.model_name = parameters["model_name"].GetString() 
 

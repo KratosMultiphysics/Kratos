@@ -26,25 +26,48 @@ class NeuralNetworkAnalysis(AnalysisStage):
         self.Finalize()
 
     def Initialize(self):
+        # Create list of processes
         self.__CreateListOfProcesses()
+
+        # Initalize the network
         inputs = self._GetListOfProcesses()[0].Initialize()
         outputs = inputs
+
+        # Add layers to the network
         for process in self._GetListOfProcesses()[1:]:
             outputs = process.Add(outputs)
 
+        # Generate the model and save it
         self.model = keras.Model(inputs = inputs, outputs = outputs)
         self.model.summary()
         for process in self._GetListOfProcesses():
             process.Save(self.model)
 
+        # Compile the training parameters
+        self.loss_function = None
+        self.optimizer = None
+        for process in self._GetListOfProcesses():
+            compilation_settings = process.Compile(self.loss_function, self.optimizer)
+            if not compilation_settings == None:
+                self.loss_function = compilation_settings[0]
+                self.optimizer = compilation_settings[1]
+
+        # Compile the list of Callbacks
+        self.callbacks_list = []
+        for process in self._GetListOfProcesses():
+            callback = process.Callback()
+            if not callback == None:
+                self.callbacks_list.append(callback)
+
+        # Execute other processes that must run on the initialization
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
-
+        # Execute other processes that must run before the training
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeTraining()
 
-        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+        # If the echo level is high enough, print the complete list of settings used to run the simualtion
         if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
@@ -58,7 +81,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
     def RunTrainingLoop(self):
         for process in self._GetListOfProcesses():
-            process.ExecuteTraining()
+            process.ExecuteTraining(self.loss_function, self.optimizer, self.callbacks_list)
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
@@ -136,9 +159,3 @@ class NeuralNetworkAnalysis(AnalysisStage):
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
-
-    def _CreateSolver(self):
-        """Create the solver
-        """
-        pass
-

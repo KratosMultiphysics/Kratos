@@ -1,6 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.NeuralNetworkApplication as NeuralNetwork
-from KratosMultiphysics.NeuralNetworkApplication.neural_network_training_process import NeuralNetworkTrainingProcess
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_process import NeuralNetworkProcess
+
 
 from importlib import import_module
 from tensorflow.keras import layers
@@ -10,7 +11,7 @@ def Factory(settings):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AddLayerProcess(settings["parameters"])
 
-class AddLayerProcess(KM.Process):
+class AddLayerProcess(NeuralNetworkProcess):
 
     def __init__(self, settings):
         super().__init__()
@@ -41,23 +42,6 @@ class AddLayerProcess(KM.Process):
         self.layer = layer_class.Build()
 
     def Add(self,model):
+        """ Processes to add layers to a network. """
         return self.layer(model)
 
-    def Save(self,model):
-        """ Process for saving a network. """
-        pass
-    def ExecuteInitialize(self):
-        """ Processes to act on the initialization. """
-        pass
-
-    def ExecuteFinalize(self):
-        """ Processes to act on the finalization. """
-        pass
-
-    def ExecuteBeforeTraining(self):
-        """ Processes to act just before the training. """
-        pass
-    
-    def ExecuteTraining(self):
-        """ Processes to act directly during the training step. """
-        pass

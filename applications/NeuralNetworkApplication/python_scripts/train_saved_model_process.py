@@ -18,9 +18,12 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
         self.model_name = parameters["model"].GetString()
         self.epochs = parameters["epochs"].GetInt()
 
-    def ExecuteTraining(self):
+    def ExecuteTraining(self, loss_function, optimizer, callbacks_list):
+        """ Processes to act directly during the training step. """
         self.reconstructed_model = keras.models.load_model(self.model_name)
-        self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
-        self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=False)
+        # This has yet to be implemented, it should read the loss and optimizer from the json
+        # self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
+        self.reconstructed_model.compile(loss=loss_function, optimizer=optimizer)
+        self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=False, callbacks = callbacks_list) 
         self.reconstructed_model.save(self.model_name)
 

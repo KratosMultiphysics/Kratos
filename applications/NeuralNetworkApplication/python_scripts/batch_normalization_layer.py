@@ -10,7 +10,7 @@ def Factory(settings):
     return BatchNormalizationLayer(settings)
 
 class BatchNormalizationLayer(NeuralNetworkLayerClass):
-    """This class generates a base class for a Dense layer
+    """This class generates a base class for a Batch Normalization layer
 
     Public member variables:
     settings -- Kratos parameters containing process settings.
@@ -28,6 +28,7 @@ class BatchNormalizationLayer(NeuralNetworkLayerClass):
 
 
     def Build(self):
+        """ This method builds the layer when called by a process."""
         self.layer = layers.BatchNormalization()
         return self.layer
 

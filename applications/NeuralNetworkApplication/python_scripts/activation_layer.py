@@ -10,7 +10,7 @@ def Factory(settings):
     return ActivationLayer(settings)
 
 class ActivationLayer(NeuralNetworkLayerClass):
-    """This class generates a base class for a Dense layer
+    """This class generates a base class for an Activation layer.
 
     Public member variables:
     settings -- Kratos parameters containing process settings.
@@ -27,7 +27,6 @@ class ActivationLayer(NeuralNetworkLayerClass):
             "layer_name"               : "",
             "activation"               : ""
         }""")
-    # Constraints are currently not supported. Every supported constrain in keras should be implemented individually
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.layer_name = settings["layer_name"].GetString()
@@ -36,9 +35,8 @@ class ActivationLayer(NeuralNetworkLayerClass):
         else:
             raise Exception("No activation function specified.")
 
-        # When called by the add_layer_process, input the parameters in the keras function
-
     def Build(self):
+        """ This method builds the layer when called by a process."""
         self.layer = layers.Activation(self.activation, name=self.layer_name)
         return self.layer
 

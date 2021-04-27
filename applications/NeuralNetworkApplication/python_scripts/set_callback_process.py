@@ -2,17 +2,19 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.NeuralNetworkApplication as NeuralNetwork
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process import NeuralNetworkProcess
 
+
 from importlib import import_module
 from tensorflow.keras import layers
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return SaveModelProcess(settings["parameters"])
+    return SetCallbackProcess(settings["parameters"])
 
-class SaveModelProcess(NeuralNetworkProcess):
+class SetCallbackProcess(NeuralNetworkProcess):
 
     def __init__(self, settings):
+        super().__init__()
         """ The default constructor of the class
 
         Keyword arguments:
@@ -20,24 +22,25 @@ class SaveModelProcess(NeuralNetworkProcess):
         model -- the container of the different model parts.
         settings -- Kratos parameters containing process settings.
         """
-        super().__init__()
+
         default_settings = KM.Parameters("""{
-            "help"                     : "This process saves a network.",
-            "model_name"               : "",
-            "format"                   : ""
+            "help"                        : "This process adds a callback to a process.",
+            "callback_type"               : "",
+            "callback_parameters"         : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_name = settings["model_name"].GetString()
-        self.format = settings["format"].GetString()
+        self.callback_type = settings["callback_type"].GetString()
+        self.callback_parameters = settings["callback_parameters"]
+        # Import layer classes
+        module_name = "KratosMultiphysics.NeuralNetworkApplication." + self.callback_type
+        class_module = import_module(module_name)
+        callback_class = class_module.Factory(self.callback_parameters)
 
+        # Build layer
+        self.callback = callback_class.Build()
 
-    def Save(self,model):
-        """ Processes for saving a network. """
-        if self.format == "SavedModel":
-            model.save(self.model_name)
-        elif self.format == "h5":
-            model.save(self.model_name + ".h5")
-        else:
-            raise Exception("Saving format not recognized. Available formats are SavedModel and h5.")
+    def Callback(self):
+        """ Processes to set callbacks to a network. """
+        return self.callback

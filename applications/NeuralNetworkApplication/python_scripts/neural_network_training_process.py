@@ -1,5 +1,6 @@
 from importlib import import_module
 import KratosMultiphysics as KM
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_process import NeuralNetworkProcess
 import numpy as np
 import h5py
 
@@ -9,7 +10,7 @@ def Factory(settings):
     return NeuralNetworkTrainingProcess(settings["parameters"])
 
 
-class NeuralNetworkTrainingProcess(KM.Process):
+class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
     """
     This class is the parent for the classes that deal with the training of the neural network.
 
@@ -95,24 +96,3 @@ class NeuralNetworkTrainingProcess(KM.Process):
         else:
             raise Exception("Output data format not supported. Supported formats are .dat and .h5")
 
-    def ExecuteInitialize(self):
-        """ Processes to act on the initialization. """
-        pass
-
-    def ExecuteFinalize(self):
-        """ Processes to act on the finalization. """
-        pass
-
-    def ExecuteBeforeTraining(self):
-        """ Processes to act just before the training. """
-        pass
-    
-    def ExecuteTraining(self):
-        """ Processes to act directly during the training step. """
-        pass
-    def Add(self,model):
-        """ Process for adding layers to the network. """
-        return model
-    def Save(self,model):
-        """ Process for saving a network. """
-        pass
