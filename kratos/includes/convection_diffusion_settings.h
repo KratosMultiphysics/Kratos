@@ -438,6 +438,7 @@ private:
     const Variable<double>* mpSurfaceSourceVar = nullptr;
     const Variable<double>* mpProjectionVar = nullptr;
     const Variable<array_1d<double,3> >* mpConvectionVar = nullptr;
+    const Variable<array_1d<double,3> >* mpGradientVar = nullptr;
     const Variable<array_1d<double,3> >* mpMeshVelocityVar = nullptr;
     const Variable<double>* mpTransferCoefficientVar = nullptr;
     const Variable<array_1d<double,3> >* mpVelocityVar = nullptr;
@@ -450,6 +451,7 @@ private:
     bool mis_defined_SurfaceSourceVar = false;
     bool mis_defined_ProjectionVar = false;
     bool mis_defined_ConvectionVar = false;
+    bool mis_defined_GradientVar = false;
     bool mis_defined_MeshVelocityVar = false;
     bool mis_defined_TransferCoefficientVar = false;
     bool mis_defined_VelocityVar = false;
@@ -505,6 +507,9 @@ private:
         }
         if (mpConvectionVar != nullptr && mis_defined_ConvectionVar) {
             rSerializer.save("ConvectionVarName",mpConvectionVar);
+        }
+        if (mpGradientVar != nullptr && mis_defined_GradientVar) {
+            rSerializer.save("GradientVarName",mpGradientVar);
         }
         if (mpMeshVelocityVar != nullptr && mis_defined_MeshVelocityVar) {
             rSerializer.save("MeshVelocityVarName",mpMeshVelocityVar);
@@ -575,6 +580,11 @@ private:
             std::string convection_var_name;
             rSerializer.load("ConvectionVarName", convection_var_name);
             mpConvectionVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(convection_var_name));
+        }
+        if(mis_defined_GradientVar) {
+            std::string gradient_var_name;
+            rSerializer.load("GradientVarName", gradient_var_name);
+            mpGradientVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(gradient_var_name));
         }
         if(mis_defined_MeshVelocityVar) {
             std::string mesh_velocity_var;
