@@ -20,12 +20,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/variables.h"
-#include "includes/serializer.h"
-#include "includes/cfd_variables.h"
-#include "includes/convection_diffusion_settings.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "utilities/geometry_utilities.h"
 

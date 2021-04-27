@@ -118,14 +118,16 @@ namespace Kratos
             phi_mean += r_node.FastGetSolutionStepValue(r_unknown_var);
         }
 
-        phi_mean /= static_cast<double>(TNumNodes);
-        phi_mean_old /= static_cast<double>(TNumNodes);
+        const double aux_weight = 1.0/static_cast<double>(TNumNodes);
+
+        phi_mean /= aux_weight;
+        phi_mean_old /= aux_weight;
 
         array_1d<double,TDim> X_mean, grad_phi_mean;
         for(unsigned int k = 0; k < TDim; k++)
         {
-            grad_phi_mean[k] = grad_phi_mean_tmp[k]/static_cast<double>(TNumNodes);
-            X_mean[k] = X_mean_tmp[k]/static_cast<double>(TNumNodes);
+            grad_phi_mean[k] = grad_phi_mean_tmp[k]/aux_weight;
+            X_mean[k] = X_mean_tmp[k]/aux_weight;
         }
 
         array_1d<double,TDim> grad_phi_diff = prod(trans(DN_DX), phi_old) - grad_phi_mean;
@@ -152,7 +154,7 @@ namespace Kratos
         {
             noalias(N) = row(Ncontainer,igauss);
 
-            //obtain the velocity/coordinate at the gauss point
+            // Obtaining the velocity/coordinate at the gauss point
             vel_gauss = ZeroVector(TDim);
             X_gauss = ZeroVector(TDim);
             double phi_gauss = 0.0;
@@ -171,9 +173,11 @@ namespace Kratos
 
             v_dot_grad_N = prod(DN_DX, vel_gauss);
 
+            // Consistent and lumped mass matrices
             noalias(Mc_matrix) += outer_prod(N, N);
             noalias(K_matrix) += outer_prod(N, v_dot_grad_N);
 
+            // If the high-order terms are necessary
             if (limiter > 1.0e-15){
                 for (unsigned int i = 0; i < TNumNodes; ++i){
                     S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean, (X_gauss - X_mean) ) )*N[i];
@@ -181,7 +185,7 @@ namespace Kratos
             }
         }
 
-        const double aux_weight = 1.0/static_cast<double>(TNumNodes);
+        // Coefficient of the artificial viscosity
         noalias(S_matrix) = aux_weight*(Ml_matrix-Mc_matrix);
 
         double nu_e = 0.0;
@@ -195,6 +199,7 @@ namespace Kratos
             }
         }
 
+        // Determining the necessity to add higher-order terms
         if (limiter > 1.0e-15){
             noalias(M_matrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix);
             noalias(L_matrix) = K_matrix + (1.0-limiter)*nu_e*S_matrix;
@@ -206,7 +211,7 @@ namespace Kratos
         noalias(rLeftHandSideMatrix)  = M_matrix + theta*L_matrix;
         noalias(rRightHandSideVector) = prod( M_matrix - (1.0 - theta)*L_matrix , phi_old) - limiter*nu_e*S_vector;
 
-        //take out the dirichlet part to finish computing the residual
+        // Taking out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
         const double gauss_pt_weigth = Volume * aux_weight;
