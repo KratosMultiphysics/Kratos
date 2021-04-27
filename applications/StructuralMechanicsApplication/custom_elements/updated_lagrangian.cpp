@@ -144,13 +144,6 @@ void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessI
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
-        mConstitutiveLawVector[point_number]->FinalizeSolutionStep(
-        GetProperties(),
-        r_geometry,
-        row( r_geometry.ShapeFunctionsValues(  ), point_number ),
-        rCurrentProcessInfo
-        );
-
         // Update the element internal variables
         this->UpdateHistoricalDatabase(this_kinematic_variables, point_number);
     }
