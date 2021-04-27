@@ -145,7 +145,7 @@ ParallelEnvironment::ParallelEnvironment()
 {
     RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
     RegisterCommunicatorFactoryDetail([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
-        return Communicator::UniquePointer(new Communicator());
+        return Kratos::make_unique<Communicator>();
     });
     RegisterFillCommunicatorFactoryDetail([&](ModelPart& rModelPart)->FillCommunicator::Pointer{return FillCommunicator::Pointer(new FillCommunicator(rModelPart));});
 }
