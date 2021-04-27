@@ -21,7 +21,6 @@
 
 // Project includes
 #include "elements/levelset_convection_element_simplex.h"
-#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
