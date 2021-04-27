@@ -74,20 +74,21 @@ public:
 
     /// Default constructor.
     ConvectionDiffusionSettings()
-     {
-		mis_defined_DensityVar=false;
-		mis_defined_DiffusionVar=false;
+    {
+        mis_defined_DensityVar=false;
+        mis_defined_DiffusionVar=false;
 		mis_defined_UnknownVar=false;
 		mis_defined_VolumeSourceVar=false;
 		mis_defined_SurfaceSourceVar=false;
 		mis_defined_ProjectionVar=false;
 		mis_defined_ConvectionVar=false;
+		mis_defined_GradientVar = false;
 		mis_defined_MeshVelocityVar=false;
 		mis_defined_TransferCoefficientVar=false;
 		mis_defined_VelocityVar=false;
 		mis_defined_SpecificHeatVar=false;
         mis_defined_ReactionVar=false;
-	 };
+    };
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
         mpDiffusionVar(rOther.mpDiffusionVar),
@@ -96,6 +97,7 @@ public:
         mpSurfaceSourceVar(rOther.mpSurfaceSourceVar),
         mpProjectionVar(rOther. mpProjectionVar),
         mpConvectionVar(rOther.mpConvectionVar),
+        mpGradientVar(rOther.mpGradientVar),
         mpMeshVelocityVar(rOther.mpMeshVelocityVar),
         mpTransferCoefficientVar(rOther.mpTransferCoefficientVar),
         mpVelocityVar(rOther.mpVelocityVar),
@@ -108,6 +110,7 @@ public:
 		mis_defined_SurfaceSourceVar(rOther.mis_defined_SurfaceSourceVar),
 		mis_defined_ProjectionVar(rOther.mis_defined_ProjectionVar),
 		mis_defined_ConvectionVar(rOther.mis_defined_ConvectionVar),
+        mis_defined_GradientVar(rOther.mis_defined_GradientVar),
 		mis_defined_MeshVelocityVar(rOther.mis_defined_MeshVelocityVar),
 		mis_defined_TransferCoefficientVar(rOther.mis_defined_TransferCoefficientVar),
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
@@ -220,6 +223,20 @@ public:
 		return mis_defined_ConvectionVar;
 	}
 
+    void SetGradientVariable(const Variable<array_1d<double,3> >& rvar)
+    {
+        mpGradientVar = &rvar;
+        mis_defined_GradientVar=true;
+    }
+    const Variable<array_1d<double,3> >& GetGradientVariable()
+    {
+        return *mpGradientVar;
+    }
+    bool IsDefinedGradientVariable()
+    {
+        return mis_defined_GradientVar;
+    }
+
     void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpMeshVelocityVar = &rvar;
@@ -308,6 +325,7 @@ public:
         mpSurfaceSourceVar = rOther.mpSurfaceSourceVar;
         mpProjectionVar = rOther.mpProjectionVar;
         mpConvectionVar = rOther.mpConvectionVar;
+        mpGradientVar = rOther.mpGradientVar;
         mpMeshVelocityVar = rOther.mpMeshVelocityVar;
         mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         mpVelocityVar = rOther.mpVelocityVar;
@@ -320,7 +338,8 @@ public:
 		mis_defined_VolumeSourceVar = rOther.mis_defined_VolumeSourceVar;
 		mis_defined_SurfaceSourceVar = rOther.mis_defined_SurfaceSourceVar;
 		mis_defined_ProjectionVar = rOther.mis_defined_ProjectionVar;
-		mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
+        mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
+        mis_defined_GradientVar = rOther.mis_defined_GradientVar;
 		mis_defined_MeshVelocityVar = rOther.mis_defined_MeshVelocityVar;
 		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar;
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
@@ -375,7 +394,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
