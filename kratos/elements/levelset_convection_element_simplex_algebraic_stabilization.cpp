@@ -77,9 +77,9 @@ namespace Kratos
         const double theta = rCurrentProcessInfo.Has(TIME_INTEGRATION_THETA) ? rCurrentProcessInfo[TIME_INTEGRATION_THETA] : 0.5;
 
         auto p_conv_diff_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const auto& rUnknownVar = p_conv_diff_settings->GetUnknownVariable();
-        const auto& rConvVar = p_conv_diff_settings->GetConvectionVariable();
-        const auto& rGradVar = p_conv_diff_settings->GetGradientVariable();
+        const auto& r_unknown_var = p_conv_diff_settings->GetUnknownVariable();
+        const auto& r_conv_var = p_conv_diff_settings->GetConvectionVariable();
+        const auto& r_grad_var = p_conv_diff_settings->GetGradientVariable();
 
         //getting data for the given geometry
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
@@ -103,19 +103,19 @@ namespace Kratos
         {
             const auto& r_node = r_geom[i];
 
-            phi[i] = r_node.FastGetSolutionStepValue(rUnknownVar);
-            phi_old[i] = r_node.FastGetSolutionStepValue(rUnknownVar,1);
+            phi[i] = r_node.FastGetSolutionStepValue(r_unknown_var);
+            phi_old[i] = r_node.FastGetSolutionStepValue(r_unknown_var,1);
 
-            v[i] = r_node.FastGetSolutionStepValue(rConvVar);
-            vold[i] = r_node.FastGetSolutionStepValue(rConvVar,1);
+            v[i] = r_node.FastGetSolutionStepValue(r_conv_var);
+            vold[i] = r_node.FastGetSolutionStepValue(r_conv_var,1);
 
             X_mean_tmp += r_node.Coordinates();
             X_node[i] = r_node.Coordinates();
 
-            grad_phi_mean_tmp += r_node.GetValue(rGradVar);
+            grad_phi_mean_tmp += r_node.GetValue(r_grad_var);
 
-            phi_mean_old += r_node.FastGetSolutionStepValue(rUnknownVar,1);
-            phi_mean += r_node.FastGetSolutionStepValue(rUnknownVar);
+            phi_mean_old += r_node.FastGetSolutionStepValue(r_unknown_var,1);
+            phi_mean += r_node.FastGetSolutionStepValue(r_unknown_var);
         }
 
         phi_mean /= static_cast<double>(TNumNodes);
@@ -181,7 +181,8 @@ namespace Kratos
             }
         }
 
-        noalias(S_matrix) = (1.0/static_cast<double>(TNumNodes))*(Ml_matrix-Mc_matrix);
+        const double aux_weight = 1.0/static_cast<double>(TNumNodes);
+        noalias(S_matrix) = aux_weight*(Ml_matrix-Mc_matrix);
 
         double nu_e = 0.0;
         for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -208,8 +209,10 @@ namespace Kratos
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
-        rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
-        rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
+        const double gauss_pt_weigth = Volume * aux_weight;
+
+        rRightHandSideVector *= gauss_pt_weigth;
+        rLeftHandSideMatrix *= gauss_pt_weigth;
 
         KRATOS_CATCH("Error in Levelset Element")
     }
