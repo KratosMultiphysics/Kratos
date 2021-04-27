@@ -1,8 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS   ___                _   _ _         _   _             __                       _
+//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -95,6 +96,8 @@
 
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
+
+#include "custom_constitutive/associative_plastic_damage_model.h"
 
 namespace Kratos {
 
@@ -653,6 +656,10 @@ private:
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+
+    const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMisesVonMises;
+    const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager;
+    const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb;
 
     ///@}
     ///@name Private Operators
