@@ -169,7 +169,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         if (convection_variable != ""):
             convention_diffusion_settings.SetConvectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(convection_variable))
         gradient_variable = self.settings["convection_diffusion_variables"]["gradient_variable"].GetString()
-        if (gradient_variable != ""):
+        if gradient_variable != "":
             convention_diffusion_settings.SetGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable))
         mesh_velocity_variable = self.settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString()
         if (mesh_velocity_variable != ""):
