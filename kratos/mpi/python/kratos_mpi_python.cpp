@@ -35,8 +35,9 @@ void InitializeMPIParallelRun()
     ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
     // Register the MPICommunicator to be used as factory for the communicator.
     ParallelEnvironment::RegisterCommunicatorFactory([](ModelPart& rModelPart, const std::string& rDataCommunicatorName)->Communicator::UniquePointer{
-        KRATOS_ERROR_IF_NOT(ParallelEnvironment::HasDataCommunicator(rDataCommunicatorName)) << "Asking for an unregistered " << rDataCommunicatorName <<  " data communicator." << std::endl;
+        KRATOS_ERROR_IF_NOT(ParallelEnvironment::HasDataCommunicator(rDataCommunicatorName)) << "Asking for an unregistered \'" << rDataCommunicatorName <<  "\' data communicator." << std::endl;
         const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator(rDataCommunicatorName);
+        KRATOS_ERROR_IF_NOT(r_data_communicator.IsDistributed()) << "Trying to create an MPI communicator with the non-distributed \'" << rDataCommunicatorName << "\'." << std::endl;
         return Kratos::make_unique<MPICommunicator>(&(rModelPart.GetNodalSolutionStepVariablesList()), r_data_communicator);
     });
     // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
