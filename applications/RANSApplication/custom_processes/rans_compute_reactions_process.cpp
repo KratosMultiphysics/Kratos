@@ -183,7 +183,8 @@ const Parameters RansComputeReactionsProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME"
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level":0
         })");
 
     return default_parameters;
