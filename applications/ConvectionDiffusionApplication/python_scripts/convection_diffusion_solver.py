@@ -420,8 +420,8 @@ class ConvectionDiffusionSolver(PythonSolver):
         if (thermal_settings.IsDefinedConvectionVariable()):
             if (thermal_settings.GetConvectionVariable() == var):
                 return True
-        if (thermal_settings.IsDefinedGradientVariable()):
-            if (thermal_settings.GetGradientVariable() == var):
+        if thermal_settings.IsDefinedGradientVariable():
+            if thermal_settings.GetGradientVariable() == var:
                 return True
         if (thermal_settings.IsDefinedTransferCoefficientVariable()):
             if (thermal_settings.GetTransferCoefficientVariable() == var):
