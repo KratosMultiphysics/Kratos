@@ -2280,7 +2280,8 @@ public:
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints)
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo)
     {
         KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
             << " Please check the definition of derived class. "
@@ -2308,7 +2309,8 @@ public:
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
             NumberOfShapeFunctionDerivatives,
-            IntegrationPoints);
+            IntegrationPoints,
+            rIntegrationInfo);
     }
 
     ///@}
