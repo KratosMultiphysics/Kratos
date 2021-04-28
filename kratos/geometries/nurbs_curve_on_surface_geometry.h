@@ -368,7 +368,7 @@ public:
         std::vector<double> spans;
         Spans(spans);
 
-        mpNurbsCurve->CreateIntegrationPoints(
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
     }
 
