@@ -253,7 +253,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << " Integration info with local space dimension: " << mNumberOfIntegrationPointsPerSpanVector.size()
@@ -262,14 +262,14 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << " Integration info with local space dimension: " << mNumberOfIntegrationPointsPerSpanVector.size()
             << " and number of integration points per spans: " << mNumberOfIntegrationPointsPerSpanVector;
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << " Integration info with local space dimension: " << mNumberOfIntegrationPointsPerSpanVector.size()
             << " and number of integration points per spans: " << mNumberOfIntegrationPointsPerSpanVector;
