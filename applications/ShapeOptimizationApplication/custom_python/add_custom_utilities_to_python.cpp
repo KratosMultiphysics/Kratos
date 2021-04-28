@@ -29,7 +29,6 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
-#include "custom_utilities/mapping/mapper_vertex_morphing_revolution.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
