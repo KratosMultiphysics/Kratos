@@ -633,10 +633,7 @@ namespace Kratos {
         unsigned int current_neighbors_size = mNeighbourRigidFaces.size();
         unsigned int initial_neighbors_size = mFemIniNeighbourIds.size();
 
-        std::vector<DEMWall*> temp_neighbour_elements;
-        temp_neighbour_elements.resize(initial_neighbors_size);
-
-        for (unsigned int i = 0; i < initial_neighbors_size; i++) { temp_neighbour_elements[i] = NULL; }
+        std::vector<DEMWall*> temp_neighbour_elements(initial_neighbors_size, null_ptr);
 
         // Loop over current neighbors
         for (unsigned int i = 0; i < current_neighbors_size; i++) {
