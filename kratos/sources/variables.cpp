@@ -33,6 +33,8 @@ KRATOS_CREATE_VARIABLE(bool, COMPUTE_DYNAMIC_TANGENT)
 KRATOS_CREATE_VARIABLE(bool, COMPUTE_LUMPED_MASS_MATRIX)
 
 //for Structural application:
+//ints
+KRATOS_CREATE_VARIABLE(int, NUMBER_OF_CYCLES)
 
 //for Level Set application:
 
@@ -725,6 +727,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(RADIATION_SETTINGS)
 
     //--------------- STRUCTURAL Application -------------------//
+    KRATOS_REGISTER_VARIABLE(NUMBER_OF_CYCLES)
 
     //--------------- MULTISCALE Application -------------------//
 
