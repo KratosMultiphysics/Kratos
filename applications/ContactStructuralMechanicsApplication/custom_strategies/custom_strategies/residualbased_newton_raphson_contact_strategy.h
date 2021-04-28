@@ -80,6 +80,8 @@ public:
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
     typedef typename BaseType::TBuilderAndSolverType                        TBuilderAndSolverType;
@@ -113,6 +115,31 @@ public:
     typedef ProcessFactoryUtility::Pointer                                      ProcessesListType;
 
     typedef std::size_t                                                                 IndexType;
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart),
+          mpMyProcesses(nullptr),
+          mpPostProcesses(nullptr)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Auxiliar assign
+        mConvergenceCriteriaEchoLevel = BaseType::mpConvergenceCriteria->GetEchoLevel();
+    }
 
     /**
      * @brief Default constructor
