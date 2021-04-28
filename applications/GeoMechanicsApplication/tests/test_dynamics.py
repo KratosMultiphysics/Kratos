@@ -36,7 +36,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
 
         # get effective stress
         efective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        efective_stresses_yy = [integration_point[4] for element in efective_stresses for integration_point in element]
+        efective_stresses_yy = [integration_point[1,1] for element in efective_stresses for integration_point in element]
 
         # get coordinates of the gauss points
         gauss_coordinates = test_helper.get_gauss_coordinates(simulation)
