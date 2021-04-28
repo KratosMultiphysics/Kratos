@@ -28,6 +28,9 @@
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
 #include "filter_function.h"
+#include "symmetry_base.h"
+#include "symmetry_plane.h"
+#include "symmetry_revolution.h"
 
 // ==============================================================================
 
@@ -56,70 +59,6 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-
-
-class PlaneSymmetricModelPart
-{
-public:
-
-    KRATOS_CLASS_POINTER_DEFINITION(PlaneSymmetricModelPart);
-
-    typedef Node<3> NodeType;
-    typedef NodeType::Pointer NodeTypePointer;
-    typedef std::vector<NodeType::Pointer> NodeVector;
-    typedef array_1d<double,3> array_3d;
-
-
-    PlaneSymmetricModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, array_3d PlanePoint,  array_3d PlaneNormal)
-    : mrOriginModelPart(rOriginModelPart), mrDestinationModelPart(rDestinationModelPart), mPlanePoint(PlanePoint), mPlaneNormal(PlaneNormal)
-    {
-        mReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneNormal, mPlaneNormal));
-
-        mOriginNodes.resize(mrOriginModelPart.Nodes().size());
-        for (auto& r_node_i : mrOriginModelPart.Nodes()){
-            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
-            mOriginNodes[mapping_id] = &r_node_i;
-        }
-
-        mDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
-        for (auto& r_node_i : mrDestinationModelPart.Nodes()){
-            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
-            mDestinationNodes[mapping_id] = &r_node_i;
-        }
-    }
-
-    NodeVector& GetOriginSearchNodes(){
-        return mOriginNodes;
-    }
-
-    std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId){
-        return {
-            std::make_pair(mDestinationNodes[MappingId]->Coordinates(), false),
-            std::make_pair(ReflectPoint(mDestinationNodes[MappingId]->Coordinates()), true),
-        };
-    }
-
-    BoundedMatrix<double, 3, 3> TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId) const
-    {
-        return mReflectionMatrix;
-    }
-
-    array_3d ReflectPoint(const array_3d& Coords){
-        array_3d tmp = Coords - mPlanePoint;
-        tmp = prod(mReflectionMatrix, tmp);
-        return tmp + mPlanePoint;
-    }
-
-    ModelPart& mrOriginModelPart;
-    ModelPart& mrDestinationModelPart;
-    array_3d mPlanePoint;
-    array_3d mPlaneNormal;
-
-    NodeVector mOriginNodes;
-    NodeVector mDestinationNodes;
-    Matrix mReflectionMatrix;
-}; // Class PlaneSymmetricModelPart
-
 
 class MapperVertexMorphingSymmetric : public Mapper
 {
@@ -298,10 +237,13 @@ public:
         InitializeMappingVariables();
         AssignMappingIds();
 
-        const array_3d point = mMapperSettings["plane_symmetry_settings"]["point"].GetVector();
-        array_3d normal = mMapperSettings["plane_symmetry_settings"]["normal"].GetVector();
-        normal /= norm_2(normal);
-        mpPlaneSymmetry = Kratos::make_shared<PlaneSymmetricModelPart>(mrOriginModelPart, mrDestinationModelPart, point, normal);
+        if (mMapperSettings["plane_symmetry"].GetBool()) {
+            mpSymmetry = Kratos::make_shared<SymmetryPlane>(mrOriginModelPart, mrDestinationModelPart, mMapperSettings["plane_symmetry_settings"]);
+        } else if (mMapperSettings["revolution"].GetBool()) {
+            mpSymmetry = Kratos::make_shared<SymmetryRevolution>(mrOriginModelPart, mrDestinationModelPart, mMapperSettings["revolution_settings"]);
+        } else {
+            KRATOS_ERROR << "No symmetry type specified" << std::endl;
+        }
 
         InitializeComputationOfMappingMatrix();
         CreateSearchTreeWithAllNodesInOriginModelPart();
@@ -405,7 +347,7 @@ private:
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
 
-    PlaneSymmetricModelPart::Pointer mpPlaneSymmetry;
+    SymmetryBase::Pointer mpSymmetry;
 
     ///@}
     ///@name Private Operations
@@ -443,7 +385,7 @@ private:
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mpPlaneSymmetry->GetOriginSearchNodes().begin(), mpPlaneSymmetry->GetOriginSearchNodes().end(), mBucketSize));
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mpSymmetry->GetOriginSearchNodes().begin(), mpSymmetry->GetOriginSearchNodes().end(), mBucketSize));
     }
 
     // --------------------------------------------------------------------------
@@ -454,7 +396,7 @@ private:
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
-            auto search_nodes = mpPlaneSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
+            auto search_nodes = mpSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
             std::vector<bool> transform;
             unsigned int total_number_of_neighbors = 0;
             NodeVector total_neighbor_nodes;
@@ -546,7 +488,7 @@ private:
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const unsigned int column_id = neighbor_node.GetValue(MAPPING_ID);
 
-            const auto mat = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
+            const auto mat = (transform[neighbor_itr]) ? mpSymmetry->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             for (unsigned int i=0; i<3; ++i){
                 for (unsigned int j=0; j<3; ++j) {

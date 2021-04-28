@@ -151,15 +151,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingSymmetric>) // TODO
         .def("InverseMap", InverseMapVector<MapperVertexMorphingSymmetric>)
         ;
-    py::class_<MapperVertexMorphingRevolution >(m, "MapperVertexMorphingRevolution")
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingRevolution::Initialize)
-        .def("Update", &MapperVertexMorphingRevolution::Update)
-        .def("Map", MapScalar<MapperVertexMorphingRevolution>) // TODO
-        .def("Map", MapVector<MapperVertexMorphingRevolution>)
-        .def("InverseMap", InverseMapScalar<MapperVertexMorphingRevolution>) // TODO
-        .def("InverseMap", InverseMapVector<MapperVertexMorphingRevolution>)
-        ;
 
     // ================================================================
     // For a possible damping of nodal variables

@@ -62,7 +62,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         elif mapper_settings["plane_symmetry"].GetBool():
             return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
         elif mapper_settings["revolution"].GetBool():
-            return KSO.MapperVertexMorphingRevolution(origin_model_part, destination_model_part, mapper_settings)
+            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
         else:
             return KSO.MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
 
