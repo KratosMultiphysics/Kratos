@@ -27,7 +27,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 # add_app ${KRATOS_APP_DIR}/DEMApplication;
 # add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
-# add_app ${KRATOS_APP_DIR}/MetisApplication;
+add_app ${KRATOS_APP_DIR}/MetisApplication;
 # add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 # add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 # add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
@@ -68,4 +68,4 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DCMAKE_UNITY_BUILD=ON
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j1
