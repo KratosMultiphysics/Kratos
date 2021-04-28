@@ -372,22 +372,6 @@ public:
             rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
     }
 
-    /* Creates integration points according to the knot intersections
-     * of the underlying nurbs surface, within a given range.
-     * @param result integration points.
-     */
-    void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
-        double StartParameter, double EndParameter,
-        IntegrationInfo& rIntegrationInfo) const
-    {
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
-
-        IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
-    }
-
     ///@}
     ///@name Quadrature Point Geometries
     ///@{
