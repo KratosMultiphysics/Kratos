@@ -164,7 +164,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -203,7 +203,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
     )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
