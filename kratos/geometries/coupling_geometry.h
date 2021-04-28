@@ -401,7 +401,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         const double model_tolerance = 1e-3;
 
@@ -429,7 +430,7 @@ public:
         CoordinatesArrayType local_slave_coords = ZeroVector(3);
         CoordinatesArrayType global_slave_coords = ZeroVector(3);
 
-        if (!integration_info.Is(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE)) {
+        if (!rIntegrationInfo.Is(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE)) {
             if (this->Dimension() == 1) {
                 CurveTessellation<PointerVector<TPointType>> curve_tesselation;
                 curve_tesselation.Tessellate(*(mpGeometries[1].get()), 1e-2, mpGeometries[1]->PolynomialDegree(0));
