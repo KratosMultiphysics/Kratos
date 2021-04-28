@@ -28,7 +28,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'test_inclinded_phreatic_line'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         water_pressure = test_helper.get_water_pressure(simulation)
@@ -56,7 +56,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'test_inclinded_phreatic_line_smaller_line'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         # Get water pressure in all the nodes
@@ -97,7 +97,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         """
 
         test_name = 'interpolate_line_2'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         water_pressure = test_helper.get_water_pressure(simulation)
@@ -136,7 +136,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
     @KratosUnittest.skip("check if test is correct")
     def test_normal_load_triangle_3n_fic(self):
         test_name = 'test_normal_load_triangle_3n_fic'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         n_dim = 2
@@ -144,7 +144,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
     def test_normal_load_triangle_6n(self):
         test_name = 'test_normal_load_triangle_6n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         n_dim = 2
@@ -152,7 +152,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
     def test_normal_load_quad_8n(self):
         test_name = 'test_normal_load_quad_8n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         n_dim = 2
@@ -160,7 +160,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
     def test_normal_load_tetra_10n(self):
         test_name = 'test_normal_load_tetra_10n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         n_dim = 3
@@ -180,33 +180,32 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         """
         # get total stresses
         total_stresses = test_helper.get_total_stress_tensor(simulation)
-        total_stresses_xx = [integration_point[0] for element in total_stresses for integration_point in element]
+        total_stresses_xx = [integration_point[0,0] for element in total_stresses for integration_point in element]
+
         if n_dim >= 2:
-            total_stresses_yy = [integration_point[4] for element in total_stresses for integration_point in element]
+            total_stresses_yy = [integration_point[1,1] for element in total_stresses for integration_point in element]
         if n_dim >= 3:
-            total_stresses_zz = [integration_point[8] for element in total_stresses for integration_point in element]
+            total_stresses_zz = [integration_point[2,2] for element in total_stresses for integration_point in element]
 
         # get effective stresses
         efective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        efective_stresses_xx = [integration_point[0] for element in efective_stresses for integration_point in element]
+        efective_stresses_xx = [integration_point[0,0] for element in efective_stresses for integration_point in element]
         if n_dim >= 2:
-            efective_stresses_yy = [integration_point[4] for element in efective_stresses
+            efective_stresses_yy = [integration_point[1,1] for element in efective_stresses
                                     for integration_point in element]
         if n_dim >= 3:
-            efective_stresses_zz = [integration_point[8] for element in efective_stresses
+            efective_stresses_zz = [integration_point[2,2] for element in efective_stresses
                                     for integration_point in element]
 
         # get strains
         green_lagrange_strains = test_helper.get_green_lagrange_strain_tensor(simulation)
-        green_lagrange_strains_xx = [integration_point[0] for element in green_lagrange_strains for integration_point in
+        green_lagrange_strains_xx = [integration_point[0,0] for element in green_lagrange_strains for integration_point in
                                      element]
-        if n_dim == 2:
-            green_lagrange_strains_yy = [integration_point[3] for element in green_lagrange_strains
+        if n_dim >= 2:
+            green_lagrange_strains_yy = [integration_point[1,1] for element in green_lagrange_strains
                                          for integration_point in element]
-        elif n_dim == 3:
-            green_lagrange_strains_yy = [integration_point[4] for element in green_lagrange_strains
-                                         for integration_point in element]
-            green_lagrange_strains_zz = [integration_point[8] for element in green_lagrange_strains
+        if n_dim >= 3:
+            green_lagrange_strains_zz = [integration_point[2,2] for element in green_lagrange_strains
                                          for integration_point in element]
 
         # get displacements

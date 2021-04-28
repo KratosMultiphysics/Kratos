@@ -25,7 +25,7 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
     def test_base(self):
 
         test_name = 'base_test'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples','excavation_tests',test_name +'.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.','excavation_tests',test_name +'.gid'))
 
         simulation = test_helper.run_kratos(file_path)
 
@@ -51,7 +51,7 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'excavation_test'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples','excavation_tests',test_name +'.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.','excavation_tests',test_name +'.gid'))
 
         simulation = test_helper.run_kratos(file_path)
 
@@ -77,7 +77,7 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'excavation_test2'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples','excavation_tests',test_name +'.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.','excavation_tests',test_name +'.gid'))
 
         simulation = test_helper.run_kratos(file_path)
 
@@ -103,7 +103,7 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'excavation_test3'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples','excavation_tests',test_name +'.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.','excavation_tests',test_name +'.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         displacements = test_helper.get_displacement(simulation)

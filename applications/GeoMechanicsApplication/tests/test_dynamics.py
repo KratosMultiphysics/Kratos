@@ -30,7 +30,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'test_1d_wave_prop_drained_soil.gid'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         simulation = test_helper.run_kratos(file_path)
 
@@ -58,7 +58,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
     @KratosUnittest.skip("unit test skipped as it is not ready")
     def test_wave_through_undrained_linear_elastic_soil(self):
         test_name = 'test_1d_confined_undrained_wave.gid'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
         pass
 

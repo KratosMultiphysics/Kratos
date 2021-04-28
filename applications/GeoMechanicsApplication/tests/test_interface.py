@@ -35,7 +35,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'test_interface_side_cohesive'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples','test_interfaces', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.','test_interfaces', test_name + '.gid'))
 
         simulation = test_helper.run_kratos(file_path)
         local_stress_vector = test_helper.get_local_stress_vector(simulation)
@@ -62,7 +62,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
 
         # calculate reference case without interface
         test_name = 'test_beam'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples','test_interfaces', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.','test_interfaces', test_name + '.gid'))
 
         simulation = test_helper.run_kratos(file_path)
         base_displacement = test_helper.get_displacement(simulation)
@@ -76,7 +76,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         # calculate case with strong interface
         test_name = 'test_interface_on_beam'
         file_path = test_helper.get_file_path(
-            os.path.join('..', 'test_examples', 'test_interfaces', test_name + '.gid'))
+            os.path.join('.', 'test_interfaces', test_name + '.gid'))
 
         simulation = test_helper.run_kratos(file_path)
         interface_displacement = test_helper.get_displacement(simulation)
@@ -105,7 +105,7 @@ class KratosGeoMechanicsInterfaceTests(KratosUnittest.TestCase):
         # calculate case with strong interface
         test_name = 'test_weak_interface_on_beam'
         file_path = test_helper.get_file_path(
-            os.path.join('..', 'test_examples', 'test_interfaces', test_name + '.gid'))
+            os.path.join('.', 'test_interfaces', test_name + '.gid'))
 
         simulation = test_helper.run_kratos(file_path)
         model_part = simulation._list_of_output_processes[0].model_part

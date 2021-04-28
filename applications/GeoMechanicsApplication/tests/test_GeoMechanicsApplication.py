@@ -41,7 +41,8 @@ def AssambleTestSuites(is_team_city):
     # smallSuite will contain the following tests:
     # - testSmallExample
 
-    small_test_cases = [KratosGeoMechanicsGeneralTests,
+    small_test_cases = [
+        KratosGeoMechanicsGeneralTests,
         KratosGeoMechanicsExcavationTests,
         KratosGeoMechanicsInterfaceTests,
         KratosGeoMechanicsResetDisplacementTests,
@@ -49,7 +50,8 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsWaterPressureTests,
         KratosGeoMechanicsBenchmarkSet1,
         KratosGeoMechanicsBenchmarkSet2,
-        KratosGeoMechanicsElementTypeTests]
+        KratosGeoMechanicsElementTypeTests
+        ]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
