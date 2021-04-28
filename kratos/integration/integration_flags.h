@@ -35,7 +35,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(IntegrationFlags);
 
     /// Local Flags
-    KRATOS_DEFINE_LOCAL_FLAG(CREATE_TESSELLATION_ON_SLAVE);
+    KRATOS_DEFINE_LOCAL_FLAG(DO_NOT_CREATE_TESSELLATION_ON_SLAVE);
 
     ///@}
     ///@name Life Cycle
@@ -49,7 +49,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "IntegrationFlags" ;
@@ -57,13 +57,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "IntegrationFlags";
     }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
 
