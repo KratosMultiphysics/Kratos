@@ -20,6 +20,8 @@
 #include "geometries/geometry_data.h"
 #include "containers/data_value_container.h"
 
+#include "integration_flags.h"
+
 namespace Kratos
 {
 
@@ -30,7 +32,7 @@ namespace Kratos
 /* Within this class distinct information of integration can be
  * stored and processed.
  */
-class IntegrationInfo
+class IntegrationInfo : public IntegrationFlags
 {
 public:
     ///@name Type Definitions
