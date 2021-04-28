@@ -362,12 +362,9 @@ namespace Kratos {
 
         BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
 
-        const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
-
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
-            mListOfSphericContinuumParticles[i]->ReorderFEMneighbours();
-        }
+        IndexPartition<unsigned int>(mListOfSphericContinuumParticles.size()).for_each([&](unsigned int i){ 
+            mListOfSphericContinuumParticles[i]->ReorderFEMneighbours(); 
+        });        
 
         KRATOS_CATCH("")
     }
