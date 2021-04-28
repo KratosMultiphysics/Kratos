@@ -394,19 +394,31 @@ private:
         const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
+        // variable size, fixed capacity vecs
+        std::vector<bool> transform;
+        NodeVector total_neighbor_nodes;
+        std::vector<double> total_list_of_weights;
+        std::vector<double> list_of_weights;
+        transform.reserve(max_number_of_neighbors);
+        total_neighbor_nodes.reserve( max_number_of_neighbors );
+        total_list_of_weights.reserve( max_number_of_neighbors );
+        list_of_weights.reserve( max_number_of_neighbors );
+
+        // fixed size vecs
+        std::vector<double> resulting_squared_distances( max_number_of_neighbors );
+        NodeVector neighbor_nodes( max_number_of_neighbors );
+
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
+            transform.clear();
+            total_neighbor_nodes.clear();
+            total_list_of_weights.clear();
+
             auto search_nodes = mpSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
-            std::vector<bool> transform;
             unsigned int total_number_of_neighbors = 0;
-            NodeVector total_neighbor_nodes;
-            std::vector<double> total_list_of_weights;
             double total_sum_of_weights = 0;
             for (auto& pair_i : search_nodes) {
-                double sum_of_weights = 0.0;
                 NodeType search_node(0, pair_i.first);
-                NodeVector neighbor_nodes( max_number_of_neighbors );
-                std::vector<double> resulting_squared_distances( max_number_of_neighbors );
                 const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                                 filter_radius,
                                                                                 neighbor_nodes.begin(),
@@ -415,12 +427,12 @@ private:
                 total_number_of_neighbors += number_of_neighbors;
                 transform.resize(total_number_of_neighbors, pair_i.second);
 
-                std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
-                ComputeWeightForAllNeighbors( search_node, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+                list_of_weights.clear();
+                list_of_weights.resize( number_of_neighbors, 0.0 );
+                ComputeWeightForAllNeighbors( search_node, neighbor_nodes, number_of_neighbors, list_of_weights, total_sum_of_weights );
 
                 total_list_of_weights.insert(total_list_of_weights.end(), list_of_weights.begin(), list_of_weights.begin()+number_of_neighbors);
                 total_neighbor_nodes.insert(total_neighbor_nodes.end(), neighbor_nodes.begin(), neighbor_nodes.begin()+number_of_neighbors);
-                total_sum_of_weights += sum_of_weights;
             }
 
             if(total_number_of_neighbors >= max_number_of_neighbors)
