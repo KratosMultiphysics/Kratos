@@ -402,8 +402,8 @@ private:
             NodeVector total_neighbor_nodes;
             std::vector<double> total_list_of_weights;
             double total_sum_of_weights = 0;
-            double sum_of_weights = 0.0;
             for (auto& pair_i : search_nodes) {
+                double sum_of_weights = 0.0;
                 NodeType search_node(0, pair_i.first);
                 NodeVector neighbor_nodes( max_number_of_neighbors );
                 std::vector<double> resulting_squared_distances( max_number_of_neighbors );
