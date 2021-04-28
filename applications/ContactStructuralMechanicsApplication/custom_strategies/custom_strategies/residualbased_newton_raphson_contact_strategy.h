@@ -569,11 +569,26 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
+
     /**
      * @brief Solves the current step.
      * @details This function returns true if a solution has been found, false otherwise.
      */
-
     bool BaseSolveSolutionStep()
     {
         KRATOS_TRY;
@@ -877,7 +892,6 @@ protected:
      * @param b The RHS vector
      * @param MoveMesh The flag that tells if the mesh should be moved
      */
-
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -1045,10 +1059,6 @@ protected:
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     ///@}
     ///@name Protected  Access
