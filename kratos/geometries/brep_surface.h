@@ -25,6 +25,8 @@
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+// trimming integration
+#include "utilities/geometry_utilities/brep_trimming_utilities.h"
 
 namespace Kratos
 {
@@ -400,8 +402,25 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        mpNurbsSurface->CreateIntegrationPoints(
-            rIntegrationPoints);
+        if (!mIsTrimmed) {
+            mpNurbsSurface->CreateIntegrationPoints(
+                rIntegrationPoints, rIntegrationInfo);
+        }
+        else
+        {
+            std::vector<double> spans_u;
+            std::vector<double> spans_v;
+            mpNurbsSurface->Spans(spans_u, 0);
+            mpNurbsSurface->Spans(spans_v, 1);
+
+            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
+                rIntegrationPoints,
+                mOuterLoopArray, mInnerLoopArray,
+                spans_u, spans_v,
+                mpNurbsSurface->PolynomialDegree(0) + 1,
+                mpNurbsSurface->PolynomialDegree(1) + 1,
+                rIntegrationInfo);
+        }
     }
 
     ///@}
