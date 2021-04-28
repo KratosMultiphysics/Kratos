@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -42,7 +44,7 @@ namespace Kratos
 namespace
 {
 namespace test_solid_transient_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 struct PrimalTestSolver
 {
     std::function<ModelPart&()> ModelPartFactory;
@@ -159,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D8_SaintVenant_TransientSensitivity, K
 namespace // cpp internals
 {
 namespace test_solid_transient_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 typedef TUblasSparseSpace<double> SparseSpaceType;
 typedef TUblasDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;

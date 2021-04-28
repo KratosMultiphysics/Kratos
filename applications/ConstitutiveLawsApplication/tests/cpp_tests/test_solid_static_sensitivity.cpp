@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -40,7 +42,7 @@ namespace Kratos
 namespace
 {
 namespace test_solid_static_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 using SparseSpaceType = TUblasSparseSpace<double>;
 using LocalSpaceType = TUblasDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
@@ -245,7 +247,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensit
 namespace
 {
 namespace test_solid_static_sensitivity_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {
     Parameters params{R"({"traced_dof": "DISPLACEMENT", "direction": [0.0,1.0,0.0], "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
