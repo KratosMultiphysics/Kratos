@@ -408,7 +408,7 @@ typedef Node<3> NodeType;
 
         std::vector<double> spans;
 
-        curve_on_surface.Spans(spans);
+        curve_on_surface.SpansLocalSpace(spans);
 
         // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);
@@ -429,7 +429,7 @@ typedef Node<3> NodeType;
 
         std::vector<double> spans;
 
-        curve_on_surface.Spans(spans);
+        curve_on_surface.SpansLocalSpace(spans);
 
         // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);
