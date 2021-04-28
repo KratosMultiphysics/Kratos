@@ -495,6 +495,41 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_contact_strategy",
+            "use_old_stiffness_in_first_iteration": false,
+            "max_iteration"                       : 10,
+            "reform_dofs_at_each_step"            : false,
+            "compute_reactions"                   : false,
+            "builder_and_solver_settings"         : {},
+            "convergence_criteria_settings"       : {},
+            "linear_solver_settings"              : {},
+            "scheme_settings"                     : {},
+            "adaptative_strategy"                 : false,
+            "split_factor"                        : 10.0,
+            "max_number_splits"                   : 3,
+            "inner_loop_iterations"               : 5
+        })" );
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -948,24 +983,6 @@ protected:
         }
 
         KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "adaptative_strategy"              : false,
-            "split_factor"                     : 10.0,
-            "max_number_splits"                : 3,
-            "inner_loop_iterations"            : 5
-        })" );
-
-        return default_parameters;
     }
 
     /**
