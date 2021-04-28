@@ -71,6 +71,8 @@ public:
     {
     }
 
+    virtual ~SymmetryBase() {};
+
     virtual NodeVector& GetOriginSearchNodes() = 0;
 
     virtual std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) = 0;
