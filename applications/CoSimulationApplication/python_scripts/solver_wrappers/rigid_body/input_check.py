@@ -4,6 +4,7 @@ import KratosMultiphysics
 import json
 
 # TODO: Check this function
+# Check also that the input value is not higher than the buffer size
 def _CheckBufferId(buffer_idx, identifier):
     if identifier in ["VOLUME_WEIGHT", "ROOT_POINT_DISPLACEMENT","FORCE","MOMENT","RESULTANT"] and buffer_idx != 0:
         msg = 'The buffer_idx can only be 0 for the variable "' + identifier + '".'
