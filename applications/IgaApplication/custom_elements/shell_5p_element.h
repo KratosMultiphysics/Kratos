@@ -93,20 +93,24 @@ protected:
         }
     };
 
+    using Matrix3d = BoundedMatrix<double, 3, 3>;
+    using Matrix2d = BoundedMatrix<double, 2, 2>;
+    using Matrix32d = BoundedMatrix<double, 3, 2>;
+    using Matrix23d = BoundedMatrix<double, 2, 3>;
+
     /**
     * Internal variables used in the material and geometric stiffness
     */
     struct VariationVariables
     {
-        Matrix P;
-        Matrix Q1;
-        Matrix Q2;
-        Matrix S1;
-        Matrix S2;
-        Matrix Chi11;
-        Matrix Chi12;
-        Matrix Chi21;
-        Matrix Chi22;
+        Matrix3d P;
+        Matrix3d Q1;
+        Matrix3d Q2;
+        Matrix3d S1;
+        Matrix3d S2;
+        Matrix3d Chi11;
+        Matrix3d Chi12Chi21;
+        Matrix3d Chi22;
     };
 
 public:
@@ -425,9 +429,7 @@ private:
     );
 
 
-    using Matrix3d = BoundedMatrix<double, 3, 3>;
-    using Matrix32d = BoundedMatrix<double, 3, 2>;
-    using Matrix23d = BoundedMatrix<double, 2, 3>;
+
 
 
     /// Helper
