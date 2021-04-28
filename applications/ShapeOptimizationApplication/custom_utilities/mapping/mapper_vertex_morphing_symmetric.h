@@ -99,20 +99,15 @@ public:
         };
     }
 
+    BoundedMatrix<double, 3, 3> TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId) const
+    {
+        return mReflectionMatrix;
+    }
+
     array_3d ReflectPoint(const array_3d& Coords){
         array_3d tmp = Coords - mPlanePoint;
         tmp = prod(mReflectionMatrix, tmp);
         return tmp + mPlanePoint;
-    }
-
-    array_3d TransformVector(const size_t DestinationMappingId, const size_t OriginMappingId, const array_3d& Input) const
-    {
-        return prod(mReflectionMatrix, Input);
-    }
-
-    bool Reflect(NodeType& rNode)
-    {
-        return (inner_prod((rNode.Coordinates() - mPlanePoint), mPlaneNormal) > 0);
     }
 
     ModelPart& mrOriginModelPart;
@@ -519,10 +514,6 @@ private:
                                         double& sum_of_weights )
     {
         const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
-        array_3d _vec(3);
-        _vec[0] = 1.0;
-        _vec[1] = 1.0;
-        _vec[2] = 1.0;
 
         std::vector<unsigned int> unique_col_ids(number_of_neighbors);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
@@ -533,21 +524,35 @@ private:
         std::sort (unique_col_ids.begin(), unique_col_ids.end());
         unique_col_ids.erase( unique( unique_col_ids.begin(), unique_col_ids.end() ), unique_col_ids.end() );
 
-        // initialize non-zeros row by row
-        for (unsigned int i: unique_col_ids) { mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0); } // sorted access helps a lot
-        for (unsigned int i: unique_col_ids) { mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0); }
-        for (unsigned int i: unique_col_ids) { mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0); }
+        // initialize non-zeros row by row - sorted access helps a lot
+        for (unsigned int i: unique_col_ids) {
+            mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0);
+            mMappingMatrix.insert_element(row_id*3+0, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
+        }
+        for (unsigned int i: unique_col_ids) {
+            mMappingMatrix.insert_element(row_id*3+1, i*3+0, 0.0);
+            mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
+        }
+        for (unsigned int i: unique_col_ids) {
+            mMappingMatrix.insert_element(row_id*3+2, i*3+0, 0.0);
+            mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
+            mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
+        }
 
         for(unsigned int neighbor_itr = 0; neighbor_itr<number_of_neighbors; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            const unsigned int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+            const unsigned int column_id = neighbor_node.GetValue(MAPPING_ID);
 
-            const array_3d vec = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformVector(row_id, collumn_id, _vec) : _vec;
+            const auto mat = (transform[neighbor_itr]) ? mpPlaneSymmetry->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix(row_id*3+0, collumn_id*3+0) += weight*vec[0];
-            mMappingMatrix(row_id*3+1, collumn_id*3+1) += weight*vec[1];
-            mMappingMatrix(row_id*3+2, collumn_id*3+2) += weight*vec[2];
+            for (unsigned int i=0; i<3; ++i){
+                for (unsigned int j=0; j<3; ++j) {
+                    mMappingMatrix(row_id*3+i, column_id*3+j) += weight*mat(i,j);
+                }
+            }
         }
     }
 

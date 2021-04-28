@@ -625,7 +625,7 @@ private:
         for(unsigned int neighbor_itr = 0; neighbor_itr<number_of_neighbors; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            const int column_id = neighbor_node.GetValue(MAPPING_ID);
+            const unsigned int column_id = neighbor_node.GetValue(MAPPING_ID);
 
             const auto mat = (transform[neighbor_itr]) ? mpRevolution->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
