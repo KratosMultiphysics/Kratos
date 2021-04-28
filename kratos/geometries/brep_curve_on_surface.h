@@ -74,8 +74,8 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
-    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits<IndexType>::max() - 2;
 
     ///@}
     ///@name Life Cycle
@@ -440,14 +440,11 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = mpCurveOnSurface->PolynomialDegree(0) + 1;
-
         std::vector<double> spans;
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
-    }
+            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));    }
 
     ///@}
     ///@name Quadrature Point Geometries

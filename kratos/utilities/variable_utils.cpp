@@ -59,7 +59,7 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<Array3Reduction>(r_comm.LocalMesh().Nodes(),[&](NodeType& rNode){
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Nodes(),[&](NodeType& rNode){
         return rNode.GetValue(rVar);
     });
 
@@ -81,7 +81,7 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<Array3Reduction>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
         return rCond.GetValue(rVar);
     });
 
@@ -103,7 +103,7 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<Array3Reduction>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
         return rElem.GetValue(rVar);
     });
 

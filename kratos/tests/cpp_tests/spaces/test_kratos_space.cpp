@@ -47,9 +47,9 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
     SparseSpaceTestingInternals::SparseSpaceType::MatrixType mat(graph);
     mat.BeginAssemble();
     for (IndexType i=0; i<mat.size1(); ++i)	{
-        if (i>=1) mat.Assemble( -1.123, i, i-1);
-        mat.Assemble(4.5,i, i );
-        if (i+1<mat.size2()) {mat.Assemble( 2.336, i, i+1);}
+        if (i>=1) mat.AssembleEntry( -1.123, i, i-1);
+        mat.AssembleEntry(4.5,i, i );
+        if (i+1<mat.size2()) {mat.AssembleEntry( 2.336, i, i+1);}
     }
     mat.FinalizeAssemble();
     
