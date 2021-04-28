@@ -227,10 +227,11 @@ namespace TestCreationUtilityScordelisRoof
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
-        
-        GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
-                result_geometries, 3, integration_points);
-        
+
+        IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
+        surface..CreateQuadraturePointGeometries(
+                result_geometries, 3, integration_points, integration_info);
+
         return result_geometries(0);
     }
 
