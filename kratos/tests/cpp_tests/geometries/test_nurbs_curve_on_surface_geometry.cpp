@@ -475,7 +475,7 @@ typedef Node<3> NodeType;
         curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
-        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
+        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
         double length_parameter_space = 0;

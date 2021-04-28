@@ -436,7 +436,7 @@ namespace Testing {
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
-        surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
+        surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
         double area = 0;
