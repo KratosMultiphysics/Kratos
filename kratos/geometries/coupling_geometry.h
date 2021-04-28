@@ -309,7 +309,7 @@ public:
     ///@{
 
     /// Provides the default integration per geometry.
-    virtual IntegrationInfo GetDefaultIntegrationInfo() const override
+    IntegrationInfo GetDefaultIntegrationInfo() const override
     {
         const SizeType local_space_dimension = this->LocalSpaceDimension();
 
@@ -385,8 +385,12 @@ public:
     }
 
     /* @brief This method creates a list of quadrature point geometries
-     *        from a list of integration points. It creates the list of
-     *        integration points byitself.
+     *        from a list of integration points.
+     *        Initially, all integration points are transformed to
+     *        quadrature point geometries on the master. Then all points
+     *        are mapped to all slave geometries. Finally, coupling geometries,
+     *        containing quadrature point geometries per integration point on
+     *        master and all slaves are created.
      *
      * @param rResultGeometries list of quadrature point geometries.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
