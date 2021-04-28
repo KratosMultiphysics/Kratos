@@ -474,7 +474,7 @@ public:
         mpGeometries[1]->CreateQuadraturePointGeometries(
             slave_quadrature_points,
             NumberOfShapeFunctionDerivatives,
-            integration_points_slave
+            integration_points_slave,
             rIntegrationInfo);
 
         for (SizeType i = 0; i < num_integration_points; ++i) {
