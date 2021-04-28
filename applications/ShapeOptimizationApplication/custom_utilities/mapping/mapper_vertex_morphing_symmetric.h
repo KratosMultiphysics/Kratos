@@ -483,16 +483,21 @@ private:
             mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
         }
 
+        BoundedMatrix<double, 3, 3> transformation_matrix;
         for(unsigned int neighbor_itr = 0; neighbor_itr<number_of_neighbors; neighbor_itr++)
         {
             const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             const unsigned int column_id = neighbor_node.GetValue(MAPPING_ID);
 
-            const auto mat = (transform[neighbor_itr]) ? mpSymmetry->TransformationMatrix(row_id, column_id) : IdentityMatrix(3);
+            if (transform[neighbor_itr]) {
+                mpSymmetry->TransformationMatrix(row_id, column_id, transformation_matrix);
+            } else {
+                noalias(transformation_matrix) = IdentityMatrix(3);
+            }
             const double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             for (unsigned int i=0; i<3; ++i){
                 for (unsigned int j=0; j<3; ++j) {
-                    mMappingMatrix(row_id*3+i, column_id*3+j) += weight*mat(i,j);
+                    mMappingMatrix(row_id*3+i, column_id*3+j) += weight*transformation_matrix(i,j);
                 }
             }
         }

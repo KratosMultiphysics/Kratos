@@ -94,9 +94,10 @@ public:
         };
     }
 
-    BoundedMatrix<double, 3, 3> TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId) const override
+    void TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId, BoundedMatrix<double, 3, 3>& Matrix) const override
     {
-        return mReflectionMatrix;
+        noalias(Matrix) = mReflectionMatrix;
+        return;
     }
 
     array_3d ReflectPoint(const array_3d& Coords){

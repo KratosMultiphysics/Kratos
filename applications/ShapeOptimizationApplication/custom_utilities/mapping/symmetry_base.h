@@ -75,7 +75,7 @@ public:
 
     virtual std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) = 0;
 
-    virtual BoundedMatrix<double, 3, 3> TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId) const = 0;
+    virtual void TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId, BoundedMatrix<double, 3, 3>& Matrix) const = 0;
 
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;

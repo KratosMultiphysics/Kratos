@@ -111,7 +111,7 @@ public:
         };
     }
 
-    BoundedMatrix<double, 3, 3> TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId) const override
+    void TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId, BoundedMatrix<double, 3, 3>& Matrix) const override
     {
         const NodeType& r_origin_node = *mOriginNodes[OriginMappingId];
         const NodeType& r_destination_node = *mDestinationNodes[DestinationMappingId];
@@ -123,11 +123,11 @@ public:
 
         const double norm_origin = norm_2(origin_ortho);
         if (norm_origin < std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, 3, 3 > r = ZeroMatrix(3,3);
-            r(0,0) = mAxis[0];
-            r(1,1) = mAxis[1];
-            r(2,2) = mAxis[2];
-            return r;
+            noalias(Matrix) = ZeroMatrix(3,3);
+            Matrix(0,0) = mAxis[0];
+            Matrix(1,1) = mAxis[1];
+            Matrix(2,2) = mAxis[2];
+            return;
         }
         origin_ortho /= norm_origin;
 
@@ -137,11 +137,11 @@ public:
 
         const double norm_destination = norm_2(destination_ortho);
         if (norm_destination < std::numeric_limits<double>::epsilon()) {
-            BoundedMatrix<double, 3, 3 > r = ZeroMatrix(3,3);
-            r(0,0) = mAxis[0];
-            r(1,1) = mAxis[1];
-            r(2,2) = mAxis[2];
-            return r;
+            noalias(Matrix) = ZeroMatrix(3,3);
+            Matrix(0,0) = mAxis[0];
+            Matrix(1,1) = mAxis[1];
+            Matrix(2,2) = mAxis[2];
+            return;
         }
         destination_ortho /= norm_destination;
 
@@ -155,17 +155,16 @@ public:
             angle = -angle;
         }
 
-        BoundedMatrix<double, 3, 3 > r;
 		const double c=cos(angle);
 		const double s=sin(angle);
         const double t = 1-c;
         const array_3d& k = mAxis;
 
-        r(0,0) = t*k[0]*k[0] + c;         r(0,1) = t*k[0]*k[1] - k[2]*s;    r(0,2) = t*k[0]*k[2] + k[1]*s;
-        r(1,0) = t*k[0]*k[1] + k[2]*s;    r(1,1) = t*k[1]*k[1] + c;         r(1,2) = t*k[1]*k[2] - k[0]*s;
-        r(2,0) = t*k[0]*k[2] - k[1]*s;    r(2,1) = t*k[1]*k[2] + k[0]*s;    r(2,2) = t*k[2]*k[2] + c;
+        Matrix(0,0) = t*k[0]*k[0] + c;         Matrix(0,1) = t*k[0]*k[1] - k[2]*s;    Matrix(0,2) = t*k[0]*k[2] + k[1]*s;
+        Matrix(1,0) = t*k[0]*k[1] + k[2]*s;    Matrix(1,1) = t*k[1]*k[1] + c;         Matrix(1,2) = t*k[1]*k[2] - k[0]*s;
+        Matrix(2,0) = t*k[0]*k[2] - k[1]*s;    Matrix(2,1) = t*k[1]*k[2] + k[0]*s;    Matrix(2,2) = t*k[2]*k[2] + c;
 
-        return r;
+        return;
     }
 
     NodeTypePointer GetTransformedNode(NodeType& rNode) {
