@@ -417,7 +417,8 @@ public:
         mpGeometries[0]->CreateQuadraturePointGeometries(
             master_quadrature_points,
             NumberOfShapeFunctionDerivatives,
-            rIntegrationPoints);
+            rIntegrationPoints,
+            rIntegrationInfo);
 
         // Compute vector of location
         CoordinatesArrayVectorType integration_points_global_coords_vector(num_integration_points);
