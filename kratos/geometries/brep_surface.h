@@ -181,35 +181,6 @@ public:
     }
 
     ///@}
-    ///@name Point Access
-    ///@{
-
-    PointType& operator[](const SizeType& i) override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    PointType const& operator[](const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    typename PointType::Pointer& operator()(const SizeType& i) override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    const typename PointType::Pointer& operator()(const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    SizeType size() const override
-    {
-        return mpNurbsSurface->size();
-    }
-
-    ///@}
     ///@name Access to Geometry Parts
     ///@{
 
