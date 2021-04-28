@@ -20,6 +20,7 @@ import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
 import test_forces_and_moments
+import test_DEM_schemes
 
 def AssembleTestSuites():
 
@@ -61,6 +62,11 @@ def AssembleTestSuites():
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
+
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
