@@ -215,8 +215,8 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        export CC=/usr/bin/clang
-        export CXX=/usr/bin/clang++
+        export CC=/usr/lib/ccache/clang-10
+        export CXX=/usr/lib/ccache/clang++-10
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
