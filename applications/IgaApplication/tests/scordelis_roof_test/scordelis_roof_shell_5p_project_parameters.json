@@ -13,11 +13,11 @@
         "buffer_size": 2,
         "analysis_type": "linear",
         "model_import_settings": {
-		"input_type": "use_input_model_part"
+            "input_type": "use_input_model_part"
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_materials.json"
+            "materials_filename": "scordelis_roof_test/scordelis_roof_shell_5p_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -26,7 +26,6 @@
         "reform_dofs_at_each_step": false,
         "line_search": false,
         "compute_reactions": true,
-        "block_builder": true,
         "clear_storage": false,
         "move_mesh_flag": true,
         "convergence_criterion": "residual_criterion",
@@ -43,15 +42,15 @@
             "scaling": false,
             "verbosity": 1
         },
-        "auxiliary_variables_list": [],
-        "auxiliary_dofs_list": [],
-        "auxiliary_reaction_list": []
+        "auxiliary_variables_list": [ "DIRECTORINC", "MOMENTDIRECTORINC" ],
+        "auxiliary_dofs_list": [ "DIRECTORINC" ],
+        "auxiliary_reaction_list": [ "MOMENTDIRECTORINC" ]
     },
     "modelers": [{
                 "modeler_name": "CadIoModeler",
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
-                    "geometry_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_geometry.cad.json"
+                    "geometry_file_name": "scordelis_roof_test/scordelis_roof_geometry.cad.json"
                 }
             },
             {
@@ -59,7 +58,7 @@
                 "Parameters": {
                     "cad_model_part_name": "IgaModelPart",
                     "analysis_model_part_name": "IgaModelPart",
-                    "physics_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_physics.iga.json"
+                    "physics_file_name": "scordelis_roof_test/scordelis_roof_shell_5p_physics.iga.json"
                 }
             }
         ],
@@ -98,7 +97,19 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "additional_processes_list": [],
+        "additional_processes_list": [
+            {
+                "python_module": "set_directors_process",
+                "kratos_module": "KratosMultiphysics.IgaApplication",
+                "Parameters": {
+                    "model_part_name": "IgaModelPart.StructuralAnalysis",
+                    "brep_ids": [ 2 ],
+                    "linear_solver_settings": {
+                        "solver_type": "skyline_lu_factorization"
+                    }
+                }
+            }
+        ],
         "neumann_process_list": [{
             "python_module": "assign_vector_variable_to_conditions_process",
             "kratos_module": "KratosMultiphysics",
@@ -110,17 +121,19 @@
                 "interval": [0, "End"]
             }
         }],
-        "json_check_process": [{
-            "python_module": "from_json_check_result_process",
-            "kratos_module": "KratosMultiphysics",
-            "Parameters": {
-                "check_variables": ["DISPLACEMENT"],
-	            "gauss_points_check_variables" : [],
-                "input_file_name": "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p_result.json",
-                "model_part_name": "IgaModelPart.StructuralAnalysis",
-                "time_frequency": 0.0
+        "json_check_process": [
+            {
+                "python_module": "from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "check_variables": [ "DISPLACEMENT" ],
+                    "gauss_points_check_variables": [],
+                    "input_file_name": "scordelis_roof_test/scordelis_roof_shell_5p_result.json",
+                    "model_part_name": "IgaModelPart.StructuralAnalysis",
+                    "time_frequency": 0.0
+                }
             }
-        }]
+        ]
     }
 }
 
