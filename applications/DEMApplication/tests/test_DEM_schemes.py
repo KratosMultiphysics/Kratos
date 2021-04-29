@@ -153,7 +153,8 @@ class DEM3D_TaylorTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_st
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def CheckValues(self, x_vel, dem_pressure):
+    @staticmethod
+    def CheckValues(x_vel, dem_pressure):
         tol = 1.0000+1.0e-3
         #reference values
         x_vel_ref = 0.02036355217285354
@@ -246,7 +247,8 @@ class DEM3D_SymplecticTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def CheckValues(self, x_vel, dem_pressure):
+    @staticmethod
+    def CheckValues(x_vel, dem_pressure):
         tol = 1.0000+1.0e-3
         #reference values
         x_vel_ref = 0.020296313440
@@ -342,7 +344,9 @@ class DEM3D_VerletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_st
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def CheckValues(self, x_vel, dem_pressure):
+
+    @staticmethod
+    def CheckValues(x_vel, dem_pressure):
         tol = 1.0000+1.0e-3
         #reference values
         x_vel_ref = 0.020341990230218668
