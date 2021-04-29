@@ -228,8 +228,9 @@ public:
     // --------------------------------------------------------------------------
     void Update() override
     {
-        if (mIsMappingInitialized == false)
+        if (mIsMappingInitialized == false) {
             KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
+        }
 
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
