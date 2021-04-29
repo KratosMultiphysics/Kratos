@@ -173,8 +173,11 @@ namespace Kratos
         {
             array_1d<double, 2> p1, p2, p3, p4;
             int bestvertex;
-            double weight, minweight, d1, d2;
+            double weight = 0;
+            double d1, d2 = 0.0;
+            double minweight = std::numeric_limits<double>::max();
             Diagonal diagonal, newdiagonal;
+
             std::list<Diagonal> diagonals;
 
             IndexType n = polygon.size();
