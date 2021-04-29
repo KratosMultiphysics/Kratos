@@ -429,7 +429,8 @@ public:
                 mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
                 rIntegrationInfo);
-        }    }
+        }
+    }
 
     ///@}
     ///@name Quadrature Point Geometries
