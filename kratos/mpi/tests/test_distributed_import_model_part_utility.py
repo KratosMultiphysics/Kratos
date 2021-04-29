@@ -12,9 +12,13 @@ def GetFilePath(fileName):
 @KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
 class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
 
-    def __execute_test(self, in_memory, all_ranks):
-        self.addCleanup(DeleteDirectoryIfExisting, "test_mpi_communicator_partitioned")
+    def tearDown(self):
+        # Remove the Metis partitioning files
+        DeleteDirectoryIfExisting("test_mpi_communicator_partitioned")
+        # next test can only start after all the processes arrived here, otherwise race conditions with deleting the files can occur
+        KM.Testing.GetDefaultDataCommunicator().Barrier()
 
+    def __execute_test(self, in_memory, all_ranks):
         settings = KM.Parameters("""{
             "model_import_settings" : {
                 "input_type" : "mdpa"
