@@ -35,9 +35,9 @@ namespace Testing {
         PointerVector<NodeType> points(4);
 
         points(0) = Kratos::make_intrusive<NodeType>(1, 0, 0, 0);
-        points(1) = Kratos::make_intrusive<NodeType>(2, 10, 0, 0);
-        points(2) = Kratos::make_intrusive<NodeType>(3, 10, 5, 0);
-        points(3) = Kratos::make_intrusive<NodeType>(4, 0, 5, 0);
+        points(1) = Kratos::make_intrusive<NodeType>(2, 0, 5, 0);
+        points(2) = Kratos::make_intrusive<NodeType>(3, 10, 0, 0);
+        points(3) = Kratos::make_intrusive<NodeType>(4, 10, 5, 0);
 
         Vector knot_u = ZeroVector(2);
         knot_u[0] = 0.0;
@@ -131,11 +131,6 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(NurbsTrimmedBrepSurfaceIntegration, KratosCoreGeometriesFastSuite) {
         auto p_brep_surface = GenerateTrimmedBrepSurface();
 
-        //// Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(p_brep_surface->Dimension(), 2);
-        KRATOS_CHECK_EQUAL(p_brep_surface->WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(p_brep_surface->LocalSpaceDimension(), 2);
-
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = p_brep_surface->GetDefaultIntegrationInfo();
         p_brep_surface->CreateIntegrationPoints(integration_points, integration_info);
@@ -149,7 +144,7 @@ namespace Testing {
                 area += quadrature_points[i].IntegrationPoints()[j].Weight() * quadrature_points[i].DeterminantOfJacobian(0);
             }
         }
-        KRATOS_CHECK_NEAR(area, 50, TOLERANCE);
+        KRATOS_CHECK_NEAR(area, 25, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.
