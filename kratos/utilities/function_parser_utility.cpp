@@ -27,7 +27,6 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     : mFunctionBody(rFunctionBody)
 {
     // Correcting function from python style to tinyexpr
-    // NOTE: tinyexpr does not support capital letters
     std::unordered_map<std::string,std::string> aux_replace_letters({{"**","^"}});
     for (auto& r_pair : aux_replace_letters) {
         mFunctionBody = StringUtilities::ReplaceAllSubstrings(mFunctionBody, r_pair.first, r_pair.second);
