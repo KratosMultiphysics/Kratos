@@ -37,22 +37,6 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -76,7 +60,7 @@ public:
     typedef array_1d<double,3> array_3d;
 
     // Type definitions for linear algebra including sparse systems
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef TUblasSparseSpace<double> SparseSpaceType;
     typedef SparseSpaceType::MatrixType SparseMatrixType;
     typedef SparseSpaceType::VectorType VectorType;
 
@@ -103,11 +87,6 @@ public:
     virtual ~MapperVertexMorphingSymmetric()
     {
     }
-
-    ///@}
-    ///@name Operators
-    ///@{
-
 
     ///@}
     ///@name Operations
@@ -238,9 +217,9 @@ public:
         AssignMappingIds();
 
         if (mMapperSettings["plane_symmetry"].GetBool()) {
-            mpSymmetry = Kratos::make_shared<SymmetryPlane>(mrOriginModelPart, mrDestinationModelPart, mMapperSettings["plane_symmetry_settings"]);
+            mpSymmetry = Kratos::make_unique<SymmetryPlane>(mrOriginModelPart, mrDestinationModelPart, mMapperSettings["plane_symmetry_settings"]);
         } else if (mMapperSettings["revolution"].GetBool()) {
-            mpSymmetry = Kratos::make_shared<SymmetryRevolution>(mrOriginModelPart, mrDestinationModelPart, mMapperSettings["revolution_settings"]);
+            mpSymmetry = Kratos::make_unique<SymmetryRevolution>(mrOriginModelPart, mrDestinationModelPart, mMapperSettings["revolution_settings"]);
         } else {
             KRATOS_ERROR << "No symmetry type specified" << std::endl;
         }
@@ -253,16 +232,6 @@ public:
     }
 
     // --------------------------------------------------------------------------
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -287,18 +256,8 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
@@ -306,13 +265,8 @@ protected:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     Parameters mMapperSettings;
-    FilterFunction::Pointer mpFilterFunction;
+    Kratos::unique_ptr<FilterFunction> mpFilterFunction;
     bool mIsMappingInitialized = false;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -325,29 +279,19 @@ protected:
     }
 
     ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;
-    KDTree::Pointer mpSearchTree;
+    Kratos::unique_ptr<KDTree> mpSearchTree;
 
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
 
-    SymmetryBase::Pointer mpSymmetry;
+    Kratos::unique_ptr<SymmetryBase> mpSymmetry;
 
     ///@}
     ///@name Private Operations
@@ -359,7 +303,7 @@ private:
         const std::string filter_type = mMapperSettings["filter_function_type"].GetString();
         const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+        mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
     }
 
     // --------------------------------------------------------------------------
@@ -387,7 +331,7 @@ private:
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mpSymmetry->GetOriginSearchNodes().begin(), mpSymmetry->GetOriginSearchNodes().end(), mBucketSize));
+        mpSearchTree = Kratos::make_unique<KDTree>(mpSymmetry->GetOriginSearchNodes().begin(), mpSymmetry->GetOriginSearchNodes().end(), mBucketSize);
     }
 
     // --------------------------------------------------------------------------
@@ -503,11 +447,11 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& destination_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
+    virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& destination_node,
+                                                const NodeVector& neighbor_nodes,
+                                                const unsigned int number_of_neighbors,
+                                                std::vector<double>& list_of_weights,
+                                                double& sum_of_weights )
     {
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
@@ -520,12 +464,12 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        std::vector<bool>& transform,
-                                        double& sum_of_weights )
+    void FillMappingMatrixWithWeights(  const ModelPart::NodeType& destination_node,
+                                        const NodeVector& neighbor_nodes,
+                                        const unsigned int number_of_neighbors,
+                                        const std::vector<double>& list_of_weights,
+                                        const std::vector<bool>& transform,
+                                        const double& sum_of_weights )
     {
         const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 

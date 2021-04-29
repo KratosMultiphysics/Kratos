@@ -24,36 +24,12 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
-#include "spaces/ublas_space.h"
 #include "symmetry_base.h"
 
 // ==============================================================================
 
 namespace Kratos
 {
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-*/
 
 class SymmetryRevolution : public SymmetryBase
 {
@@ -167,7 +143,7 @@ public:
         return;
     }
 
-    NodeTypePointer GetTransformedNode(NodeType& rNode) {
+    NodeTypePointer GetTransformedNode(const NodeType& rNode) {
         NodeTypePointer p_new_node = Kratos::make_intrusive<NodeType>(rNode.Id(), rNode[0], rNode[1], rNode[2]);
         p_new_node->SetValue(MAPPING_ID, rNode.GetValue(MAPPING_ID));
 

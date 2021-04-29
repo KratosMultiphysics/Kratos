@@ -23,37 +23,12 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/math_utils.h"
-#include "spaces/ublas_space.h"
 #include "symmetry_base.h"
 
 // ==============================================================================
 
 namespace Kratos
 {
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-*/
 
 class SymmetryPlane : public SymmetryBase
 {
