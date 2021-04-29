@@ -41,7 +41,10 @@ void AdjointFiniteDifferenceCableElement<TPrimalElement>::CalculateStressDisplac
 
     if(rStressVariable == STRESS_ON_GP)
     {
-        const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+
+        BaseType::CalculateStressDisplacementDerivative(rStressVariable, rOutput, rCurrentProcessInfo);
+
+        /*const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
         const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
         if (l > l_0) {
@@ -56,7 +59,7 @@ void AdjointFiniteDifferenceCableElement<TPrimalElement>::CalculateStressDisplac
                 rOutput.resize(num_dofs, num_GP);
             }
             noalias(rOutput) = ZeroMatrix(num_dofs, num_GP);
-        }
+        }*/
     }
     else
         KRATOS_ERROR << "Stress displacement derivative only available for Gauss-points quantities!" << std::endl;
