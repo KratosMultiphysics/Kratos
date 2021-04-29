@@ -534,4 +534,4 @@ if __name__ == "__main__":
     # Define a loader to catch all and only MPI tests
     mpi_loader = unittest.TestLoader()
     mpi_loader.testMethodPrefix = "mpi_test_"
-    unittest.main(testLoader=mpi_loader)
+    unittest.main(testLoader=mpi_loader, verbosity=2)

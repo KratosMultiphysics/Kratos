@@ -30,6 +30,7 @@
 #include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
+#include "custom_conditions/support_lagrange_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -119,6 +120,7 @@ private:
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
+    const SupportLagrangeCondition mSupportLagrangeCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
