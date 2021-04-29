@@ -76,10 +76,10 @@
                 "folder_name"                        : "vtk_output_HROM",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION"],
-                "nodal_data_value_variables"         : [],
+                "nodal_data_value_variables"         : ["PK2_STRESS_VECTOR"],
                 "element_data_value_variables"       : [],
                 "condition_data_value_variables"     : [],
-                "gauss_point_variables_extrapolated_to_nodes"              : ["PK2_STRESS_VECTOR"]
+                "gauss_point_variables_extrapolated_to_nodes"              : []
             }
         }]
     }
