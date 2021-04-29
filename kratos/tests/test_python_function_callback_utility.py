@@ -76,6 +76,7 @@ class TestPythonGenericFunctionUtility(KratosUnittest.TestCase):
 
         model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KM.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
 
         model_part_io = KM.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
