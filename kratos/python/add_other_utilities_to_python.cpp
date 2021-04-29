@@ -597,8 +597,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
         .def(py::init<ModelPart& >() )
-        .def("Execute", [](FillCommunicator& self){self.Execute();})
-        .def("Execute", [](FillCommunicator& self, const DataCommunicator& rDataComm){self.Execute(rDataComm);})
+        .def(py::init<ModelPart&, const DataCommunicator& >() )
+        .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
     ;
 

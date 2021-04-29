@@ -66,6 +66,10 @@ public:
     /// Constructor.
     FillCommunicator(ModelPart& rModelPart);
 
+    FillCommunicator(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataComm);
+
     /// Copy constructor.
     FillCommunicator(FillCommunicator const& rOther) = delete;
 
@@ -89,14 +93,6 @@ public:
      * For the parallel implementation see ParallelFillCommunicator.
      */
     virtual void Execute();
-
-    /**
-     * @brief Execute the communicator fill
-     * This method is intended to perform the communicator filling In the current serial case it does nothing.
-     * For the parallel implementation see ParallelFillCommunicator.
-     * @param rModelPart DataCommunicator to be used for the partitioning
-     */
-    virtual void Execute(const DataCommunicator& rDataComm);
 
     /**
      * @brief Function to print DETAILED mesh information
@@ -150,6 +146,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    const DataCommunicator& mrDataComm;
 
     ///@}
     ///@name Protected Operators

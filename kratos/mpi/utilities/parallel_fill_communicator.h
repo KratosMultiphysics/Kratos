@@ -66,6 +66,10 @@ public:
     /// Constructor.
     ParallelFillCommunicator(ModelPart& rModelPart);
 
+    ParallelFillCommunicator(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataComm);
+
     /// Destructor.
     virtual ~ParallelFillCommunicator() = default;
 
@@ -79,8 +83,6 @@ public:
     ///@{
 
     void Execute() override;
-
-    void Execute(const DataCommunicator& rDataComm) override;
 
     void PrintModelPartDebugInfo(const ModelPart& rModelPart) override;
 
@@ -131,7 +133,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ComputeCommunicationPlan(ModelPart& rModelPart, const DataCommunicator& rDataComm);
+    void ComputeCommunicationPlan(ModelPart& rModelPart);
 
     /// Initialize the communicator's ghost, local and interface meshes for all communication pairs (colors).
     void InitializeParallelCommunicationMeshes(ModelPart& rModelPart,

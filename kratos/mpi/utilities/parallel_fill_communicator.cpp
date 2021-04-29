@@ -14,7 +14,6 @@
 #include "parallel_fill_communicator.h"
 
 #include "includes/model_part.h"
-#include "includes/parallel_environment.h"
 #include "processes/graph_coloring_process.h"
 #include "mpi/includes/mpi_communicator.h"
 
@@ -25,19 +24,18 @@ ParallelFillCommunicator::ParallelFillCommunicator(ModelPart& rModelPart)
     : FillCommunicator(rModelPart)
 {}
 
-void ParallelFillCommunicator::Execute()
-{
-    KRATOS_TRY
-    Execute(ParallelEnvironment::GetDataCommunicator("World"));
-    KRATOS_CATCH("");
-}
+ParallelFillCommunicator::ParallelFillCommunicator(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataComm)
+    : FillCommunicator(rModelPart, rDataComm)
+{}
 
-void ParallelFillCommunicator::Execute(const DataCommunicator& rDataComm)
+void ParallelFillCommunicator::Execute()
 {
     KRATOS_TRY
     mPartitionIndexCheckPerformed = false;
     auto& r_base_model_part = GetBaseModelPart();
-    ComputeCommunicationPlan(r_base_model_part, rDataComm);
+    ComputeCommunicationPlan(r_base_model_part);
     KRATOS_CATCH("");
 }
 
@@ -196,13 +194,13 @@ void ParallelFillCommunicator::PrintData(std::ostream& rOStream) const
 }
 
 
-void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart, const DataCommunicator& rDataComm)
+void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
     constexpr unsigned root_id = 0;
 
-    Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList(), rDataComm);
+    Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList(), mrDataComm);
     rModelPart.SetCommunicator(pnew_comm);
 
     // Check if the nodes have been assigned a partition index (i.e. some value different from 0). If not issue a warning
@@ -222,16 +220,16 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart, c
             }
         }
 
-        non_zero_partition_index_found = rDataComm.OrReduceAll(non_zero_partition_index_found);
+        non_zero_partition_index_found = mrDataComm.OrReduceAll(non_zero_partition_index_found);
 
-        KRATOS_WARNING_IF("ParallelFillCommunicator", rDataComm.Size() > 1 && !non_zero_partition_index_found) << "All nodes have a PARTITION_INDEX index of 0! This could mean that PARTITION_INDEX was not assigned" << std::endl;
+        KRATOS_WARNING_IF("ParallelFillCommunicator", mrDataComm.Size() > 1 && !non_zero_partition_index_found) << "All nodes have a PARTITION_INDEX index of 0! This could mean that PARTITION_INDEX was not assigned" << std::endl;
     }
 
     // Get rank of current processor.
-    const int my_rank = rDataComm.Rank();
+    const int my_rank = mrDataComm.Rank();
 
     // Get number of processors.
-    const int num_processors = rDataComm.Size();
+    const int num_processors = mrDataComm.Size();
     // Find all ghost nodes on this process and mark the corresponding neighbour process for communication.
     vector<bool> receive_from_neighbour(num_processors, false);
     for (const auto& rNode : rModelPart.Nodes())
@@ -261,7 +259,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart, c
     }
     {
         std::vector<std::size_t> send_buf{my_receive_neighbours.size()};
-        rDataComm.Gather(send_buf, number_of_receive_neighbours, root_id);
+        mrDataComm.Gather(send_buf, number_of_receive_neighbours, root_id);
     }
     if (my_rank == root_id)
     {
@@ -277,11 +275,11 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart, c
     {
         if (my_rank == root_id)
         {
-            rDataComm.Recv(receive_neighbours[p_id], p_id, p_id);
+            mrDataComm.Recv(receive_neighbours[p_id], p_id, p_id);
         }
         else if (my_rank == p_id)
         {
-            rDataComm.Send(my_receive_neighbours, root_id, p_id);
+            mrDataComm.Send(my_receive_neighbours, root_id, p_id);
         }
     }
 
@@ -313,7 +311,7 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart, c
     }
 
     // Broadcast max_color_found.
-    rDataComm.Broadcast(max_color_found, root_id);
+    mrDataComm.Broadcast(max_color_found, root_id);
 
     // Now send the colors of the communication to the processors.
     std::vector<int> colors(max_color_found);
@@ -332,11 +330,11 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart, c
             {
                 send_colors[j] = domains_colored_graph(p_id, j);
             }
-            rDataComm.Send(send_colors, p_id, p_id);
+            mrDataComm.Send(send_colors, p_id, p_id);
         }
         else if (my_rank == p_id)
         {
-            rDataComm.Recv(colors, root_id, p_id);
+            mrDataComm.Recv(colors, root_id, p_id);
         }
     }
 
@@ -418,7 +416,7 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     // Call the sub model part.
     for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())
     {
-        ComputeCommunicationPlan(r_sub_model_part, rModelPart.GetCommunicator().GetDataCommunicator());
+        ComputeCommunicationPlan(r_sub_model_part);
     }
 
     KRATOS_CATCH("");
