@@ -55,8 +55,6 @@ namespace Kratos
             const TBrepLoopType& rInnerLoops,
             const std::vector<double>& rSpansU,
             const std::vector<double>& rSpansV,
-            SizeType PointsInU,
-            SizeType PointsInV,
             IntegrationInfo& rIntegrationInfo)
         {
             ClipperLib::Paths outer_loops(rOuterLoops.size()), inner_loops(rInnerLoops.size()), solution;
@@ -111,7 +109,7 @@ namespace Kratos
                     }
                     else if (std::abs((std::abs(ClipperLib::Area(solution[0])) - std::abs(ClipperLib::Area(span[0]))) * (factor * factor)) < 1e-6) {
 
-                        const IndexType number_of_integration_points = PointsInU * PointsInV;
+                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
                         IndexType initial_integration_size = rIntegrationPoints.size();
 
@@ -124,16 +122,15 @@ namespace Kratos
 
                         IntegrationPointUtilities::IntegrationPoints2D(
                             integration_point_iterator,
-                            PointsInU, PointsInV,
+                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
                             rSpansU[i], rSpansU[i + 1],
                             rSpansV[j], rSpansV[j + 1]);
                     }
                     else {
-
                         std::vector<Matrix> triangles;
                         BrepTrimmingUtilities::Triangulate_OPT(solution[0], triangles, factor);
 
-                        const SizeType number_of_points = std::max(PointsInU, PointsInV);
+                        const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
 
                         const IndexType number_of_integration_points = triangles.size() * IntegrationPointUtilities::s_gauss_triangle[number_of_points].size();
 
