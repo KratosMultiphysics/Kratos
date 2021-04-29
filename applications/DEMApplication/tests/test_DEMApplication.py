@@ -64,9 +64,9 @@ def AssembleTestSuites():
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
 
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
-    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
-    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
-    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Taylor"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
