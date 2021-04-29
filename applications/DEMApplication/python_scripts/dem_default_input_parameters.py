@@ -172,6 +172,7 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
+            "PostDeltaDisplacement"            : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },

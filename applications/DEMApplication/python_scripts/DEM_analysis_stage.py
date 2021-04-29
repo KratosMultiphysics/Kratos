@@ -519,7 +519,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
         #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
+        #self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess()) #TODO
 
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
