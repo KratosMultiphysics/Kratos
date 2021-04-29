@@ -374,6 +374,8 @@ private:
     void AssignMappingIds()
     {
         unsigned int i = 0;
+
+        // Note: loop in the same order as in AllocateMatrix(), to avoid reallocations of the matrix.
         for(auto& node_i : mrOriginModelPart.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
 
@@ -391,8 +393,12 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
+        AllocateMatrix();
         const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+
+        #pragma omp parallel
+        {
 
         // variable size, fixed capacity vecs
         std::vector<bool> transform;
@@ -404,12 +410,12 @@ private:
         total_list_of_weights.reserve( max_number_of_neighbors );
         list_of_weights.reserve( max_number_of_neighbors );
 
-        // fixed size vecs
-        std::vector<double> resulting_squared_distances( max_number_of_neighbors );
+        // fixed size vec
         NodeVector neighbor_nodes( max_number_of_neighbors );
-
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        #pragma omp for
+        for (int i = 0; i < int(mrDestinationModelPart.NumberOfNodes()); ++i)
         {
+            auto& node_i = *(mrDestinationModelPart.NodesBegin() + i);
             transform.clear();
             total_neighbor_nodes.clear();
             total_list_of_weights.clear();
@@ -422,8 +428,8 @@ private:
                 const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                                 filter_radius,
                                                                                 neighbor_nodes.begin(),
-                                                                                resulting_squared_distances.begin(),
                                                                                 max_number_of_neighbors );
+
                 total_number_of_neighbors += number_of_neighbors;
                 transform.resize(total_number_of_neighbors, pair_i.second);
 
@@ -439,6 +445,60 @@ private:
                 KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
 
             FillMappingMatrixWithWeights( node_i, total_neighbor_nodes, total_number_of_neighbors, total_list_of_weights, transform, total_sum_of_weights );
+        } // omp for
+        } // omp parallel
+    }
+
+    void AllocateMatrix() {
+        const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+
+        // fixed size vecs
+        NodeVector neighbor_nodes( max_number_of_neighbors );
+        for(auto& node_i : mrDestinationModelPart.Nodes())
+        {
+            auto search_nodes = mpSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
+            unsigned int total_number_of_neighbors = 0;
+            for (auto& pair_i : search_nodes) {
+                NodeType search_node(0, pair_i.first);
+                const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
+                                                                                filter_radius,
+                                                                                neighbor_nodes.begin() + total_number_of_neighbors,
+                                                                                max_number_of_neighbors - total_number_of_neighbors);
+                total_number_of_neighbors += number_of_neighbors;
+            }
+
+            if(total_number_of_neighbors >= max_number_of_neighbors)
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
+            // allocate the mapping matrix row-by row, with sorted column entries
+            const unsigned int row_id = node_i.GetValue(MAPPING_ID);
+
+            std::vector<unsigned int> unique_col_ids(total_number_of_neighbors);
+            for(unsigned int neighbor_itr = 0 ; neighbor_itr<total_number_of_neighbors ; neighbor_itr++)
+            {
+                const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+                unique_col_ids[neighbor_itr] = neighbor_node.GetValue(MAPPING_ID);
+            }
+            std::sort (unique_col_ids.begin(), unique_col_ids.end());
+            unique_col_ids.erase( unique( unique_col_ids.begin(), unique_col_ids.end() ), unique_col_ids.end() );
+
+            // each node affects a 3x3 part of the mapping matrix
+            for (unsigned int i: unique_col_ids) {
+                mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0);
+                mMappingMatrix.insert_element(row_id*3+0, i*3+1, 0.0);
+                mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
+            }
+            for (unsigned int i: unique_col_ids) {
+                mMappingMatrix.insert_element(row_id*3+1, i*3+0, 0.0);
+                mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
+                mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
+            }
+            for (unsigned int i: unique_col_ids) {
+                mMappingMatrix.insert_element(row_id*3+2, i*3+0, 0.0);
+                mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
+                mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
+            }
         }
     }
 
@@ -468,32 +528,6 @@ private:
                                         double& sum_of_weights )
     {
         const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
-
-        std::vector<unsigned int> unique_col_ids(number_of_neighbors);
-        for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
-        {
-            const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            unique_col_ids[neighbor_itr] = neighbor_node.GetValue(MAPPING_ID);
-        }
-        std::sort (unique_col_ids.begin(), unique_col_ids.end());
-        unique_col_ids.erase( unique( unique_col_ids.begin(), unique_col_ids.end() ), unique_col_ids.end() );
-
-        // initialize non-zeros row by row - sorted access helps a lot
-        for (unsigned int i: unique_col_ids) {
-            mMappingMatrix.insert_element(row_id*3+0, i*3+0, 0.0);
-            mMappingMatrix.insert_element(row_id*3+0, i*3+1, 0.0);
-            mMappingMatrix.insert_element(row_id*3+0, i*3+2, 0.0);
-        }
-        for (unsigned int i: unique_col_ids) {
-            mMappingMatrix.insert_element(row_id*3+1, i*3+0, 0.0);
-            mMappingMatrix.insert_element(row_id*3+1, i*3+1, 0.0);
-            mMappingMatrix.insert_element(row_id*3+1, i*3+2, 0.0);
-        }
-        for (unsigned int i: unique_col_ids) {
-            mMappingMatrix.insert_element(row_id*3+2, i*3+0, 0.0);
-            mMappingMatrix.insert_element(row_id*3+2, i*3+1, 0.0);
-            mMappingMatrix.insert_element(row_id*3+2, i*3+2, 0.0);
-        }
 
         BoundedMatrix<double, 3, 3> transformation_matrix;
         for(unsigned int neighbor_itr = 0; neighbor_itr<number_of_neighbors; neighbor_itr++)
