@@ -16,7 +16,6 @@
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -30,56 +29,21 @@
 namespace Kratos
 {
 
-class SymmetryPlane : public SymmetryBase
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) SymmetryPlane : public SymmetryBase
 {
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(SymmetryPlane);
 
-    SymmetryPlane(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters Settings)
-    : SymmetryBase(rOriginModelPart, rDestinationModelPart, Settings)
-    {
-        mPlanePoint = mSettings["point"].GetVector();
-        mPlaneNormal = mSettings["normal"].GetVector();
-        mPlaneNormal /= norm_2(mPlaneNormal);
+    SymmetryPlane(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters Settings);
 
-        mReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneNormal, mPlaneNormal));
+    NodeVector& GetOriginSearchNodes() override;
 
-        mOriginNodes.resize(mrOriginModelPart.Nodes().size());
-        block_for_each(mrOriginModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
-            const int mapping_id = rNode.GetValue(MAPPING_ID);
-            mOriginNodes[mapping_id] = &rNode;
-        });
+    std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) override;
 
-        mDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
-        block_for_each(mrDestinationModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
-            const int mapping_id = rNode.GetValue(MAPPING_ID);
-            mDestinationNodes[mapping_id] = &rNode;
-        });
-    }
+    void TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId, BoundedMatrix<double, 3, 3>& Matrix) const override;
 
-    NodeVector& GetOriginSearchNodes() override {
-        return mOriginNodes;
-    }
-
-    std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) override {
-        return {
-            std::make_pair(mDestinationNodes[MappingId]->Coordinates(), false),
-            std::make_pair(ReflectPoint(mDestinationNodes[MappingId]->Coordinates()), true),
-        };
-    }
-
-    void TransformationMatrix(const size_t DestinationMappingId, const size_t OriginMappingId, BoundedMatrix<double, 3, 3>& Matrix) const override
-    {
-        noalias(Matrix) = mReflectionMatrix;
-        return;
-    }
-
-    array_3d ReflectPoint(const array_3d& Coords){
-        array_3d tmp = Coords - mPlanePoint;
-        tmp = prod(mReflectionMatrix, tmp);
-        return tmp + mPlanePoint;
-    }
+    array_3d ReflectPoint(const array_3d& Coords) const;
 
     array_3d mPlanePoint;
     array_3d mPlaneNormal;

@@ -40,7 +40,6 @@ public:
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef array_1d<double,3> array_3d;
 
-
     SymmetryBase(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters Settings)
     : mrOriginModelPart(rOriginModelPart), mrDestinationModelPart(rDestinationModelPart), mSettings(Settings)
     {
