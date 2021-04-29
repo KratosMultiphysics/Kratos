@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -59,7 +57,8 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def CheckValues(self, x_vel, dem_pressure):
+    @staticmethod
+    def CheckValues(x_vel, dem_pressure):
         tol = 1.0000+1.0e-3
         #reference values
         x_vel_ref = 0.02043790
@@ -454,10 +453,8 @@ class TestDEMSchemes(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_VerletTestSolution, model, parameters_file_name, 1)
 
-
-    def tearDown(self):
-        from glob import glob
-
+    @staticmethod
+    def tearDown():
         files_to_delete_list = []
         files_to_delete_list.append(os.path.join("TimesPartialRelease"))
         files_to_delete_list.append(os.path.join("test_schemes", "test_scheme.post.lst"))
@@ -467,7 +464,7 @@ class TestDEMSchemes(KratosUnittest.TestCase):
             for to_erase_file in files_to_delete_list:
                 os.remove(to_erase_file)
         except:
-            pass
+            print("Error while deleting file ", to_erase_file)
 
         #............Getting rid of unuseful folders
         folders_to_delete_list      = []
