@@ -6,7 +6,7 @@ from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import 
 from matplotlib import pyplot as plt
 import numpy as np
 import json
-from scipy.sparse import csr_matrix, save_npz
+from scipy.sparse import csr_matrix, save_npz, lil_matrix
 from MainKratos_HROM import Run_HROM_KRATOS
 from postprocessing import RunPostProcess
 
@@ -54,7 +54,11 @@ class StructuralMechanicsAnalysisSavingData(StructuralMechanicsAnalysis):
     def ModifyInitialGeometry(self):
         super().ModifyInitialGeometry()
         model_part = self._GetSolver().GetComputingModelPart()
-        P = np.zeros((model_part.NumberOfNodes(),model_part.NumberOfElements()))
+        # P = np.zeros((model_part.NumberOfNodes(),model_part.NumberOfElements()))
+
+        # Build a sparse extrapolation operator for stresses (from GP to nodes)
+        #############
+        P = lil_matrix((model_part.NumberOfNodes(),model_part.NumberOfElements()))
         num_of_nodes = P.shape[0]
         P_diag = np.zeros(num_of_nodes)
         for elem in model_part.Elements:
@@ -68,13 +72,16 @@ class StructuralMechanicsAnalysisSavingData(StructuralMechanicsAnalysis):
             for i in range(shape_functions_evaluated_in_gp.shape[0]):
                 for j in range(shape_functions_evaluated_in_gp.shape[1]):
                     P[nodes_in_element[j].Id-1,elem.Id-1] = shape_functions_evaluated_in_gp[i,j]*elem_area/sum_shape_functions_evaluated_in_gp[j]
-        P = csr_matrix(P)
+        # P = csr_matrix(P)
         P_diag = np.diag(1/P_diag)
         P_diag = csr_matrix(P_diag)
         P = P_diag@P
         P = csr_matrix(P)
         save_npz("shape.npz", P)
+        #############
+
         #### Reactions
+        #############
         restricted_residual_parameters = KratosMultiphysics.Parameters("""
         {
             "nodal_unknowns" : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
@@ -82,12 +89,11 @@ class StructuralMechanicsAnalysisSavingData(StructuralMechanicsAnalysis):
         }""" )
         self.ResidualUtilityObject_Restricted_Part = romapp.RomModelPartUtility(model_part.GetSubModelPart("GENERIC_Interface_frame_1"), restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
-        # self.HR_restricted_residual_conditions = np.array(self.ResidualUtilityObject_Restricted_Residuals.GetConditionsList())
-        # self.HR_restricted_residual_conditions.tolist()
         self.restricted_residual_elements = self.ResidualUtilityObject_Restricted_Part.GetElementListFromNode(model_part)
         restricted_residual_nodes = self.ResidualUtilityObject_Restricted_Part.GetNodeList()
-        aux_list_nodes = [[] for i in range(len(restricted_residual_nodes))]
-        aux_list_elem = [[] for i in range(len(self.restricted_residual_elements))]
+        # Build list of lists to assemble the residuals to restricted surface's nodes
+        aux_list_nodes = [[] for i in range(len(restricted_residual_nodes))] # List of lists which contains the neighbour elements per node
+        aux_list_elem = [[] for i in range(len(self.restricted_residual_elements))] # List of lists which contains the neighbour nodes per element
         counter=0
         for i in self.restricted_residual_elements:
             i_elem = model_part.GetElement(i)
@@ -107,6 +113,7 @@ class StructuralMechanicsAnalysisSavingData(StructuralMechanicsAnalysis):
         
         with open('Reaction_parameters.json', 'w') as f:
             json.dump(reaction_assembling,f, indent=2)
+        #############
 
 
     def EvaluateQuantityOfInterest(self):
@@ -177,13 +184,14 @@ if __name__ == "__main__":
         simulation.Run()
         SnapshotMatrix, SnapshotMatrix_stresses, SnapshotMatrix_stresses_nodes, SnapshotMatrix_restricted_residuals = simulation.EvaluateQuantityOfInterest()
         
-        # # Save as npy file to check the norm
+        # # Load npy file to avoid running the FOM again
         # with open('test.npy', 'rb') as f:
         #     SnapshotMatrix_stresses = np.load(f)
         # with open('test_disp.npy', 'rb') as f:
         #     SnapshotMatrix = np.load(f)
         # with open('test_restricted_residuals.npy', 'rb') as f:
         #     SnapshotMatrix_restricted_residuals = np.load(f)
+        # # Save as npy file to check the norm
         with open('test.npy', 'wb') as f:
             np.save(f, SnapshotMatrix_stresses)
         with open('test_disp.npy', 'wb') as f:

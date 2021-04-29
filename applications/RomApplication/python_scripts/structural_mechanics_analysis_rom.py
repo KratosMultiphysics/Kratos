@@ -69,16 +69,17 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 self.time_step_residual_matrix_container.append(NP_ResMat)
 
     def Finalize(self):
-        super().FinalizeSolutionStep()
+        super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
                 ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
                 ###### Sebastian #######
                 SnapshotMatrix_residuals = self.ArrangeSnapshotMatrix(self.time_step_residual_matrix_container)
-                with open('SnapshotMatrix_residuals.npy', 'wb') as f:
+                with open('SnapshotMatrix_residuals.npy', 'wb') as f: #Only for error check
                     np.save(f, SnapshotMatrix_residuals)
                 hola = True
+                # Load Residual parameters to force considering some restricted elements
                 if hola:
                     with open('RomParameters_Residuals.json') as s:
                         HR_data_residuals = json.load(s)

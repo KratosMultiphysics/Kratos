@@ -42,9 +42,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
     .def("GetResiduals",&RomResidualsUtility::Calculate)
-    // .def("GetReactions",&RomResidualsUtility::GetReactions) //
-    // .def("GetDofArray",&RomResidualsUtility::GetDofArray)
-    // .def("GetReactionsNew",&RomResidualsUtility::GetReactions_new)
     ;     
 
     class_<RomModelPartUtility, typename RomModelPartUtility::Pointer>(m, "RomModelPartUtility")
@@ -57,10 +54,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetElementListFromNode",&RomModelPartUtility::GetElementListFromNode)
     .def("GetNodeList",&RomModelPartUtility::GetNodeList)
     .def("GetDofsFromElementList",&RomModelPartUtility::GetDofsFromElementList)
-
-    // .def("AssembleReactions",&RomModelPartUtility::AssembleReactions)
-    // .def("GetDofArray",&RomModelPartUtility::GetDofArray)
-    // .def("GetReactionsNew",&RomModelPartUtility::GetReactions_new)
     ;
 
 }

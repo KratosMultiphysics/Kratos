@@ -259,8 +259,13 @@ class RunHROM(StructuralMechanicsAnalysisROM):
         self.relative_error_2 = np.divide(frobenius_norm,np.linalg.norm(SnapshotMatrix_stresses))
         print("HROM reconstruction error on all gauss points:" )
         print(self.relative_error_2)
+
+        ####Stress vtk visualization####
+        ##################
         stress_in_nodes = np.array(self.snapshotmatrixstress)
         RunPostProcess(60,stress_in_nodes)
+        ##################
+        
         # P = load_npz("shape.npz")
         # stress = P@stress_comparisson
         # with open('test_stress_nodes.npy', 'rb') as f:
