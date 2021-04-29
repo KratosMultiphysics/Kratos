@@ -102,16 +102,20 @@ def AssambleTestSuites(is_team_city):
 
 
 if __name__ == '__main__':
-    # from teamcity import is_running_under_teamcity
-    # from teamcity.unittestpy import TeamcityTestRunner
+    is_team_city = False
 
-        is_team_city = False
-    # is_team_city = is_running_under_teamcity()
+    try:
+        from teamcity import is_running_under_teamcity
+        from teamcity.unittestpy import TeamcityTestRunner
 
-    # if is_team_city:
-    #     import unittest
-    #     runner = TeamcityTestRunner()
-    #     runner.run(AssambleTestSuites(is_team_city))
-    # else:
+        is_team_city = is_running_under_teamcity()
+    except ImportError:
+        pass
+
+    if is_team_city:
+        import unittest
+        runner = TeamcityTestRunner()
+        runner.run(AssambleTestSuites(is_team_city))
+    else:
         KratosUnittest.runTests(AssambleTestSuites(is_team_city))
 
