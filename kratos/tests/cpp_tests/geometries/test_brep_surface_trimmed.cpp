@@ -17,6 +17,8 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/pointer_vector.h"
+
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/brep_curve_on_surface.h"
@@ -30,7 +32,7 @@ namespace Testing {
     typedef Node<3> NodeType;
 
     typename NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer GenerateNurbsSurface() {
-        Geometry<NodeType>::PointsArrayType points(4);
+        PointerVector<NodeType> points(4);
 
         points(0) = Kratos::make_intrusive<NodeType>(1, 0, 0, 0);
         points(1) = Kratos::make_intrusive<NodeType>(2, 10, 0, 10);
@@ -52,10 +54,10 @@ namespace Testing {
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateNurbsCurve1()
     {
-        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points(2);
+        PointerVector<Point> points(2);
 
-        points(0) = Kratos::make_intrusive<NodeType>(1, 0, 0, 0);
-        points(1) = Kratos::make_intrusive<NodeType>(2, 1, 0, 10);
+        points(0) = Kratos::make_shared<Point>(0, 0, 0);
+        points(1) = Kratos::make_shared<Point>(1, 0, 10);
 
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -68,10 +70,10 @@ namespace Testing {
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateNurbsCurve2()
     {
-        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points(2);
+        PointerVector<Point> points(2);
 
-        points(0) = Kratos::make_intrusive<NodeType>(1, 1, 0, 0);
-        points(1) = Kratos::make_intrusive<NodeType>(2, 1, 1, 10);
+        points(0) = Kratos::make_shared<Point>(1, 0, 0);
+        points(1) = Kratos::make_shared<Point>(1, 1, 10);
 
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -84,10 +86,10 @@ namespace Testing {
 
     typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateNurbsCurve3()
     {
-        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points(2);
+        PointerVector<Point> points(2);
 
-        points(0) = Kratos::make_intrusive<NodeType>(1, 1, 1, 0);
-        points(1) = Kratos::make_intrusive<NodeType>(2, 0, 0, 10);
+        points(0) = Kratos::make_shared<Point>(1, 1, 0);
+        points(1) = Kratos::make_shared<Point>(0, 0, 10);
 
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -135,11 +137,11 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(p_brep_surface->LocalSpaceDimension(), 2);
 
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        p_brep_surface->CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = p_brep_surface->GetDefaultIntegrationInfo();
+        p_brep_surface->CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
-        IntegrationInfo integration_info = p_brep_surface->GetDefaultIntegrationInfo();
-        p_brep_surface->CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
+        p_brep_surface->CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         double area = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
