@@ -594,8 +594,11 @@ namespace Kratos {
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
-        #pragma omp parallel for schedule(dynamic, 100)
+        //#pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
+            if (i==592) {
+                double a = 1.2;
+            }
             mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity);
         }
 
@@ -1775,7 +1778,8 @@ namespace Kratos {
                 std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
                 std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
 
-                size_t neigh_size = neighbour_rigid_faces.size();
+                //size_t neigh_size = neighbour_rigid_faces.size();
+                size_t neigh_size = potential_neighbour_rigid_faces.size();
 
                 std::vector<DEMWall*> temporal_neigh(0);
                 std::vector< array_1d<double, 4> > temporal_contact_weights;
