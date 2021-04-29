@@ -124,28 +124,25 @@ public:
         values_origin.clear();
         values_destination.clear();
 
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            const int i = node_i.GetValue(MAPPING_ID);
-            const array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
+        block_for_each(mrOriginModelPart.Nodes(), [&](const ModelPart::NodeType& rNode) {
+            const int i = rNode.GetValue(MAPPING_ID);
+            const array_3d& r_nodal_variable = rNode.FastGetSolutionStepValue(rOriginVariable);
             values_origin[i*3+0] = r_nodal_variable[0];
             values_origin[i*3+1] = r_nodal_variable[1];
             values_origin[i*3+2] = r_nodal_variable[2];
-        }
+        });
 
         // Perform mapping
         noalias(values_destination) = prod(mMappingMatrix,values_origin);
 
         // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            const int i = node_i.GetValue(MAPPING_ID);
-
-            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
+        block_for_each(mrDestinationModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const int i = rNode.GetValue(MAPPING_ID);
+            array_3d& r_node_vector = rNode.FastGetSolutionStepValue(rDestinationVariable);
             r_node_vector(0) = values_destination[i*3+0];
             r_node_vector(1) = values_destination[i*3+1];
             r_node_vector(2) = values_destination[i*3+2];
-        }
+        });
 
         KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -173,27 +170,24 @@ public:
         values_origin.clear();
         values_destination.clear();
 
-        for(auto& node_i : mrDestinationModelPart.Nodes())
-        {
-            const int i = node_i.GetValue(MAPPING_ID);
-            const array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
+        block_for_each(mrDestinationModelPart.Nodes(), [&](const ModelPart::NodeType& rNode) {
+            const int i = rNode.GetValue(MAPPING_ID);
+            const array_3d& r_nodal_variable = rNode.FastGetSolutionStepValue(rDestinationVariable);
             values_destination[i*3+0] = r_nodal_variable[0];
             values_destination[i*3+1] = r_nodal_variable[1];
             values_destination[i*3+2] = r_nodal_variable[2];
-        }
+        });
 
         SparseSpaceType::TransposeMult(mMappingMatrix,values_destination,values_origin);
 
         // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            const int i = node_i.GetValue(MAPPING_ID);
-
-            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
+        block_for_each(mrOriginModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const int i = rNode.GetValue(MAPPING_ID);
+            array_3d& r_node_vector = rNode.FastGetSolutionStepValue(rOriginVariable);
             r_node_vector(0) = values_origin[i*3+0];
             r_node_vector(1) = values_origin[i*3+1];
             r_node_vector(2) = values_origin[i*3+2];
-        }
+        });
 
         KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }

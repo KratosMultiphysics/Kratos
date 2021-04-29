@@ -46,16 +46,16 @@ public:
         mReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneNormal, mPlaneNormal));
 
         mOriginNodes.resize(mrOriginModelPart.Nodes().size());
-        for (auto& r_node_i : mrOriginModelPart.Nodes()){
-            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
-            mOriginNodes[mapping_id] = &r_node_i;
-        }
+        block_for_each(mrOriginModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const int mapping_id = rNode.GetValue(MAPPING_ID);
+            mOriginNodes[mapping_id] = &rNode;
+        });
 
         mDestinationNodes.resize(mrDestinationModelPart.Nodes().size());
-        for (auto& r_node_i : mrDestinationModelPart.Nodes()){
-            const int mapping_id = r_node_i.GetValue(MAPPING_ID);
-            mDestinationNodes[mapping_id] = &r_node_i;
-        }
+        block_for_each(mrDestinationModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const int mapping_id = rNode.GetValue(MAPPING_ID);
+            mDestinationNodes[mapping_id] = &rNode;
+        });
     }
 
     NodeVector& GetOriginSearchNodes() override {
