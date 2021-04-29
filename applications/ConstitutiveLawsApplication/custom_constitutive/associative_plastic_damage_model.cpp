@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -205,7 +205,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateAnalyticalTangen
         prod(Matrix(prod(r_C, aux_compliance_incr)), r_stress);
     const BoundedVectorType right_vector = prod(r_C, r_plastic_flow);
 
-    noalias(rPDParameters.TangentTensor) += -outer_prod(right_vector, left_vector) / denominator;
+    noalias(rPDParameters.TangentTensor) = r_C -outer_prod(right_vector, left_vector) / denominator;
 }
 
 /***********************************************************************************/

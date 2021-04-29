@@ -352,35 +352,13 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
         Spans(spans);
 
-        mpNurbsCurve->CreateIntegrationPoints(
-            rIntegrationPoints, spans, points_per_span);
-    }
-
-    /* Creates integration points according to the knot intersections
-     * of the underlying nurbs surface, within a given range.
-     * @param result integration points.
-     */
-    void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
-        double StartParameter, double EndParameter) const
-    {
-        mpNurbsSurface->PolynomialDegreeU();
-
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
-
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
-
-        mpNurbsCurve->CreateIntegrationPoints(
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
     }
 
