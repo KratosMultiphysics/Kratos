@@ -74,8 +74,8 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
-    static constexpr IndexType CURVE_ON_SURFACE_INDEX = -3;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
+    static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits<IndexType>::max() - 2;
 
     ///@}
     ///@name Life Cycle
@@ -325,7 +325,7 @@ public:
      */
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
     {
-        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+        mpCurveOnSurface->Spans(rSpans,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
@@ -428,8 +428,13 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        const SizeType points_per_span = mpCurveOnSurface->PolynomialDegree(0) + 1;
+
+        std::vector<double> spans;
+        Spans(spans);
+
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
+            rIntegrationPoints, spans, points_per_span);
     }
 
     ///@}

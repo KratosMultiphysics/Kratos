@@ -185,7 +185,7 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    /* 
+    /*
     * @brief Knot vector is defined to have a multiplicity of p
     *        at the beginning and end (NOT: p + 1).
     * @return knot vector.
@@ -393,31 +393,8 @@ public:
         std::vector<double> spans;
         Spans(spans);
 
-        this->CreateIntegrationPoints(
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
-    }
-
-    void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
-        const std::vector<double>& rSpanIntervals,
-        SizeType IntegrationPointsPerSpan) const
-    {
-        const SizeType num_spans = rSpanIntervals.size() - 1;
-        const SizeType number_of_integration_points =
-            num_spans * IntegrationPointsPerSpan;
-
-        if (rIntegrationPoints.size() != number_of_integration_points)
-            rIntegrationPoints.resize(number_of_integration_points);
-
-        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
-
-        for (IndexType i = 0; i < num_spans; ++i)
-        {
-            IntegrationPointUtilities::IntegrationPoints1D(
-                integration_point_iterator,
-                IntegrationPointsPerSpan,
-                rSpanIntervals[i], rSpanIntervals[i + 1]);
-        }
     }
 
     ///@}
@@ -473,11 +450,10 @@ public:
             for (IndexType j = 0; j < num_nonzero_cps; j++) {
                 nonzero_control_points(j) = pGetPoint(first_cp_index + j);
             }
+
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...
@@ -533,7 +509,7 @@ public:
         return rResult;
     }
 
-    /** 
+    /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
     * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
