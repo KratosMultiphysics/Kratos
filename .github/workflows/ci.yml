@@ -220,8 +220,17 @@ jobs:
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
+        export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
         export PYTHON_EXECUTABLE="/usr/bin/python3.8"
         export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
+        add_app () {
+            export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+        }
+
+        add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+        add_app ${KRATOS_APP_DIR}/MetisApplication;
+        add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 
         source /opt/intel/oneapi/setvars.sh
 
