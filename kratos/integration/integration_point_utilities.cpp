@@ -134,6 +134,30 @@ namespace Kratos
         }
     }
 
+    void IntegrationPointUtilities::IntegrationPointsTriangle2D(
+        typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
+        SizeType PointsIndex,
+        double U0, double U1, double U2, double V0, double V1, double V2)
+    {
+        KRATOS_DEBUG_ERROR_IF(PointsIndex < 1)
+            << "PointsIndex need to be bigger than 0, but is: " << PointsIndex << std::endl;
+
+        const double area = (U0 * (V1 - V2) + U1 * (V2 - V0) + U2 * (V0 - V1)) / 2;
+
+        const std::vector<std::array<double, 3>>& integration_point_list = IntegrationPointUtilities::s_gauss_triangle[PointsIndex];
+
+        for (SizeType i = 0; i < integration_point_list.size(); i++)
+        {
+            const double a = 1 - integration_point_list[i][0] - integration_point_list[i][1];
+
+            (*rIntegrationPointsBegin)[0] = U0 * a + U1 * integration_point_list[i][0] + U2 * integration_point_list[i][1];
+            (*rIntegrationPointsBegin)[1] = V0 * a + V1 * integration_point_list[i][0] + V2 * integration_point_list[i][1];
+            (*rIntegrationPointsBegin).Weight() = area * integration_point_list[i][2];
+
+            rIntegrationPointsBegin++;
+        }
+    }
+
     const std::vector<std::vector<std::array<double, 2>>> IntegrationPointUtilities::s_gauss_legendre = {
     {   // degree 1
         { 0.5000000000000000000, 1.0000000000000000000 }

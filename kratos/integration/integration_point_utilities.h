@@ -76,7 +76,7 @@ public:
     /// Triangular shape
     static void IntegrationPointsTriangle2D(
         typename IntegrationPointsArrayType::iterator & rIntegrationPointsBegin,
-        SizeType PointsInU,
+        SizeType PointsIndex,
         double U0, double U1, double U2, double V0, double V1, double V2);
 
     ///@}
