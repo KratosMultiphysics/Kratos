@@ -35,9 +35,9 @@ namespace Testing {
         PointerVector<NodeType> points(4);
 
         points(0) = Kratos::make_intrusive<NodeType>(1, 0, 0, 0);
-        points(1) = Kratos::make_intrusive<NodeType>(2, 10, 0, 10);
-        points(2) = Kratos::make_intrusive<NodeType>(3, 10, 5, 10);
-        points(3) = Kratos::make_intrusive<NodeType>(4, 0, 5, 10);
+        points(1) = Kratos::make_intrusive<NodeType>(2, 10, 0, 0);
+        points(2) = Kratos::make_intrusive<NodeType>(3, 10, 5, 0);
+        points(3) = Kratos::make_intrusive<NodeType>(4, 0, 5, 0);
 
         Vector knot_u = ZeroVector(2);
         knot_u[0] = 0.0;
@@ -57,7 +57,7 @@ namespace Testing {
         PointerVector<Point> points(2);
 
         points(0) = Kratos::make_shared<Point>(0, 0, 0);
-        points(1) = Kratos::make_shared<Point>(1, 0, 10);
+        points(1) = Kratos::make_shared<Point>(1, 0, 0);
 
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -73,7 +73,7 @@ namespace Testing {
         PointerVector<Point> points(2);
 
         points(0) = Kratos::make_shared<Point>(1, 0, 0);
-        points(1) = Kratos::make_shared<Point>(1, 1, 10);
+        points(1) = Kratos::make_shared<Point>(1, 1, 0);
 
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -89,7 +89,7 @@ namespace Testing {
         PointerVector<Point> points(2);
 
         points(0) = Kratos::make_shared<Point>(1, 1, 0);
-        points(1) = Kratos::make_shared<Point>(0, 0, 10);
+        points(1) = Kratos::make_shared<Point>(0, 0, 0);
 
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -146,7 +146,7 @@ namespace Testing {
         double area = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
-                area += quadrature_points[i].IntegrationPoints()[j].Weight();
+                area += quadrature_points[i].IntegrationPoints()[j].Weight() * quadrature_points[i].DeterminantOfJacobian(0);
             }
         }
         KRATOS_CHECK_NEAR(area, 50, TOLERANCE);
