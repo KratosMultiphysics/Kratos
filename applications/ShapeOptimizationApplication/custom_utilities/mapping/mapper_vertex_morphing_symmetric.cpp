@@ -99,8 +99,7 @@ void MapperVertexMorphingSymmetric::InverseMap( const Variable<array_3d> &rDesti
         Initialize();
 
     BuiltinTimer timer;
-    KRATOS_INFO("") << std::endl;
-    KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+    KRATOS_INFO("ShapeOpt") << "\nStarting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
     Vector values_origin(mrOriginModelPart.Nodes().size()*3);
     Vector values_destination(mrDestinationModelPart.Nodes().size()*3);
@@ -191,9 +190,9 @@ void MapperVertexMorphingSymmetric::AssignMappingIds()
         (mrOriginModelPart.NodesBegin() + Index)->SetValue(MAPPING_ID, Index);
     }
 
-    i = 0;
-    for(auto& node_i : mrDestinationModelPart.Nodes())
-        node_i.SetValue(MAPPING_ID,i++);
+    IndexPartition<int>(mrDestinationModelPart.NumberOfNodes()).for_each([&](const int Index) {
+        (mrDestinationModelPart.NodesBegin() + Index)->SetValue(MAPPING_ID, Index);
+    }
 }
 
 void MapperVertexMorphingSymmetric::CreateSearchTreeWithAllNodesInOriginModelPart()
