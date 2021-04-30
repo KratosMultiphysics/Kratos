@@ -810,84 +810,27 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CheckAndCorrectEdgeDistances() {
+    void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CheckAndCorrectEdgeDistances()
+    {
 
         KRATOS_TRY;
 
-        std::unordered_map<std::set<IndexType>, bool, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> >  edge_to_intersected_bool;
-
-        for (auto& r_elem : mrVolumePart.Elements()) {
-            if (r_elem.Is(TO_SPLIT)) {
-                auto elemental_distances = r_elem.GetValue(ELEMENTAL_DISTANCES);
-                const auto r_edges_container = r_elem.GetGeometry().GenerateEdges();
-                std::unordered_map<IndexType, IndexType> global_id_to_local;
-                for (IndexType i = 0; i < mNumNodes; ++i) {
-                    global_id_to_local[r_elem.GetGeometry()[i].Id()] = i;
-                }
-                for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
-                    IndexType edge_i_id = r_edges_container[i_edge][0].Id();
-                    IndexType edge_j_id = r_edges_container[i_edge][1].Id();
-                    double i_distance = elemental_distances[global_id_to_local[edge_i_id]];
-                    double j_distance = elemental_distances[global_id_to_local[edge_j_id]];
-                    bool is_edge_cut = (i_distance*j_distance) < 0.0;
-                    std::set<IndexType> edge_node_set;
-                    edge_node_set.insert(edge_i_id);
-                    edge_node_set.insert(edge_j_id);
-                    if (edge_to_intersected_bool.find(edge_node_set) == edge_to_intersected_bool.end()) {
-                        edge_to_intersected_bool[edge_node_set] = is_edge_cut;
-                    }
-                }
-            }
-        }
-
-        auto check_edge_against_distances = [&] (const Element::GeometryType::GeometriesArrayType& rEdgeContainer, Vector& rCuteEdgeVector) {
-            for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
-                // Edge initially cut with distances exactly 0
-                if (rCuteEdgeVector[i_edge] >= 0) {
-                    IndexType edge_i_id = rEdgeContainer[i_edge][0].Id();
-                    IndexType edge_j_id = rEdgeContainer[i_edge][1].Id();
-                    std::set<IndexType> edge_node_set;
-                    edge_node_set.insert(edge_i_id);
-                    edge_node_set.insert(edge_j_id);
-                    bool is_edge_cut = edge_to_intersected_bool[edge_node_set];
-                    // Correcting edge if not intersected after applying an epsilon
-                    if (!is_edge_cut) {
-                        rCuteEdgeVector[i_edge] = -1;
-                    }
-                }
-            }
-        };
-
-        for (auto &r_elem : mrVolumePart.Elements())
-        {
-            const auto r_edges_container = r_elem.GetGeometry().GenerateEdges();
-            auto &r_cut_edge_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES);
-            check_edge_against_distances(r_edges_container, r_cut_edge_vector);
-            if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED))
-            {
-                auto &r_cut_edge_extra_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
-                check_edge_against_distances(r_edges_container, r_cut_edge_extra_vector);
-            }
-        }
-
         CalculateElementalNeighbours();
 
-        auto elem_pointer_comm = CreatePointerCommunicator();
+        auto p_global_ptr_comm = CreatePointerCommunicator();
 
-        auto &r_comm = mrVolumePart.GetCommunicator().GetDataCommunicator();
+        // Proxy to retrieve cut edges from neighbours in other partitions. Works as a lambda in serial runs.
+        auto get_neighbour_cut_edges = p_global_ptr_comm->Apply([](GlobalPointer<Element> pElem) {
 
-        // Proxy to retrieve cut edges from neighbours in other partitions.
-        auto proxy_results = elem_pointer_comm->Apply([](GlobalPointer<Element> gp) {
-            auto elem_dist = gp->GetValue(ELEMENTAL_DISTANCES);
-            std::vector<std::vector<IndexType>> crossing;
-            const auto edges_container = gp->GetGeometry().GenerateEdges();
             std::unordered_map<IndexType, IndexType> global_id_to_local;
-            for (IndexType i = 0; i < mNumNodes; ++i)
-            {
-                global_id_to_local[gp->GetGeometry()[i].Id()] = i;
+            for (IndexType i = 0; i < mNumNodes; ++i) {
+                global_id_to_local[pElem->GetGeometry()[i].Id()] = i;
             }
-            for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge)
-            {
+
+            auto elem_dist = pElem->GetValue(ELEMENTAL_DISTANCES);
+            std::vector<std::vector<IndexType>> cut_edges_vector;
+            const auto edges_container = pElem->GetGeometry().GenerateEdges();
+            for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
                 IndexType edge_i_id = edges_container[i_edge][0].Id();
                 IndexType edge_j_id = edges_container[i_edge][1].Id();
                 double i_distance = elem_dist[global_id_to_local[edge_i_id]];
@@ -896,45 +839,60 @@ namespace Kratos
                 std::vector<IndexType> edge_vector;
                 edge_vector.push_back(std::min(edge_i_id, edge_j_id));
                 edge_vector.push_back(std::max(edge_i_id, edge_j_id));
-                if (is_edge_cut)
-                {
-                    crossing.push_back(edge_vector);
+                if (is_edge_cut) {
+                    cut_edges_vector.push_back(edge_vector);
                 }
             }
-            return crossing;
+            return cut_edges_vector;
         });
 
-        for (auto &elem : mrVolumePart.Elements()) {
-            const auto r_edges_container = elem.GetGeometry().GenerateEdges();
-            auto& edge_distances = elem.GetValue(ELEMENTAL_EDGE_DISTANCES);
-            for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge)
+        auto check_edge_against_distances = [&, get_neighbour_cut_edges] (const Element::GeometryType::GeometriesArrayType& rEdgeContainer, Vector& rCuteEdgeVector) {
+            for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge) {
+                // Edge initially cut with distances exactly 0
+                if (rCuteEdgeVector[i_edge] >= 0) {
+                    IndexType edge_i_id = std::min(rEdgeContainer[i_edge][0].Id(), rEdgeContainer[i_edge][1].Id());
+                    IndexType edge_j_id = std::max(rEdgeContainer[i_edge][0].Id(), rEdgeContainer[i_edge][1].Id());
+                    auto& neighbours_vector_0 = rEdgeContainer[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
+                    auto& neighbours_vector_1 = rEdgeContainer[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
+
+                    // Get neighbour elements in a single vector without repetitions.
+                    std::vector<Element::WeakPointer> all_neighbour_vector;
+                    all_neighbour_vector.reserve(neighbours_vector_0.size() + neighbours_vector_1.size());
+                    all_neighbour_vector.insert(all_neighbour_vector.end(), neighbours_vector_0.begin(), neighbours_vector_0.end());
+                    all_neighbour_vector.insert(all_neighbour_vector.end(), neighbours_vector_1.begin(), neighbours_vector_1.end());
+                    std::sort(all_neighbour_vector.begin(), all_neighbour_vector.end(), GlobalPointerCompare<Element>());
+                    auto new_end_it = std::unique(all_neighbour_vector.begin(), all_neighbour_vector.end(), GlobalPointerComparor<Element>());
+                    all_neighbour_vector.erase(new_end_it, all_neighbour_vector.end());
+
+                    bool is_edge_cut = false;
+                    for (auto& g_ptr_neigh : all_neighbour_vector) {
+                        if (!is_edge_cut) {
+                            auto cut_edges = get_neighbour_cut_edges.Get(g_ptr_neigh);
+                            for (auto cut_edge: cut_edges) {
+                                if (cut_edge[0]==edge_i_id && cut_edge[1]==edge_j_id) {
+                                    is_edge_cut = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Correcting edge if not intersected after applying an epsilon
+                    if (!is_edge_cut) {
+                        rCuteEdgeVector[i_edge] = -1;
+                    }
+                }
+            }
+        };
+
+        for (auto &r_elem : mrVolumePart.Elements())  {
+            const auto edges_container = r_elem.GetGeometry().GenerateEdges();
+            auto &r_cut_edge_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES);
+            check_edge_against_distances(edges_container, r_cut_edge_vector);
+            if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED))
             {
-                IndexType edge_i_id = std::min(r_edges_container[i_edge][0].Id(), r_edges_container[i_edge][1].Id());
-                IndexType edge_j_id = std::max(r_edges_container[i_edge][0].Id(), r_edges_container[i_edge][1].Id());
-                for (auto &gp_neigh : r_edges_container[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
-                    if (gp_neigh.GetRank() != r_comm.Rank())
-                    {
-                        auto result = proxy_results.Get(gp_neigh);
-                        for (auto& edge_vec: result) {
-                            if (edge_vec[0]==edge_i_id && edge_vec[1]==edge_j_id) {
-                                if (edge_distances[i_edge]  < 0)
-                                    edge_distances[i_edge] = 1;
-                            }
-                        }
-                    }
-                }
-                for (auto &gp_neigh : r_edges_container[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
-                    if (gp_neigh.GetRank() != r_comm.Rank())
-                    {
-                        auto result = proxy_results.Get(gp_neigh);
-                        for (auto& edge_vec: result) {
-                            if (edge_vec[0]==edge_i_id && edge_vec[1]==edge_j_id) {
-                                if (edge_distances[i_edge]  < 0)
-                                    edge_distances[i_edge] = 1;
-                            }
-                        }
-                    }
-                }
+                auto &r_cut_edge_extra_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+                check_edge_against_distances(edges_container, r_cut_edge_extra_vector);
             }
         }
 
@@ -953,8 +911,8 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    GlobalPointerCommunicator<Element>::Pointer CalculateDiscontinuousDistanceToSkinProcess<TDim>::CreatePointerCommunicator() {
-
+    GlobalPointerCommunicator<Element>::Pointer CalculateDiscontinuousDistanceToSkinProcess<TDim>::CreatePointerCommunicator()
+    {
         KRATOS_TRY;
 
 
@@ -962,29 +920,26 @@ namespace Kratos
 
         std::vector<int> elem_indices;
         elem_indices.reserve(mrVolumePart.NumberOfElements());
-        for (auto &elem : mrVolumePart.Elements())
-        {
-            elem_indices.push_back(elem.Id());
+        for (auto& r_elem : mrVolumePart.Elements()) {
+            elem_indices.push_back(r_elem.Id());
         }
 
-        auto gp_elem_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mrVolumePart.Elements(), elem_indices, r_comm);
+        auto g_ptr_elem_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mrVolumePart.Elements(), elem_indices, r_comm);
 
-        GlobalPointersVector<Element> gp_elem_list;
-        for(auto& item: gp_elem_map) {
-            gp_elem_list.push_back(item.second);
+        GlobalPointersVector<Element> g_ptr_elem_list;
+        for(auto& item: g_ptr_elem_map) {
+            g_ptr_elem_list.push_back(item.second);
         }
 
-        for (auto &node : mrVolumePart.Nodes())
-        {
-            for (auto &gp : node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer())
-            {
-                gp_elem_list.push_back(gp);
+        for (auto& r_node : mrVolumePart.Nodes()) {
+            for (auto& g_ptr : r_node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
+                g_ptr_elem_list.push_back(g_ptr);
             }
         }
 
-        gp_elem_list.Unique();
+        g_ptr_elem_list.Unique();
 
-        return Kratos::make_shared<GlobalPointerCommunicator<Element>>(r_comm, gp_elem_list);
+        return Kratos::make_shared<GlobalPointerCommunicator<Element>>(r_comm, g_ptr_elem_list);
 
         KRATOS_CATCH(" ");
     }
