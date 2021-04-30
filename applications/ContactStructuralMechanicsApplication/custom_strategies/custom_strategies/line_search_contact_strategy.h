@@ -142,7 +142,6 @@ public:
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
      */
-    
     LineSearchContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
@@ -154,15 +153,13 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
     )
-        : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY;
 
-        Parameters DefaultParameters = Parameters(R"(
-        {
-        })" );
+        Parameters default_parameters = this->GetDefaultParameters();
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
@@ -191,15 +188,13 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
     )
-        : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
     {
         KRATOS_TRY;
 
-        Parameters DefaultParameters = Parameters(R"(
-        {
-        })" );
+        Parameters default_parameters = this->GetDefaultParameters();
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
