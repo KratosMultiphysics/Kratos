@@ -1,7 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
-from KratosMultiphysics.mpi import *
-#import KratosMultiphysics.mpi
+﻿import KratosMultiphysics
 import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
@@ -21,7 +18,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             self._auxiliary_test_function(settings)
 
     def _auxiliary_test_function(self, settings, matrix_name="A.mm", absolute_norm=False):
-        comm = KratosMultiphysics.TrilinosApplication.CreateCommunicator()
+        comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
@@ -83,6 +80,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #destroy the preconditioner - this is needed since  the solver should be destroyed before the destructor of the system matrix is called
         del linear_solver
 
+
+class TestAmesosLinearSolvers(TestLinearSolvers):
     def test_amesos_superludist(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
             self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
@@ -157,7 +156,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-
     def test_amesos_klu_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
             self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
@@ -172,6 +170,130 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+class TestAmesos2LinearSolvers(TestLinearSolvers):
+    def setUp(self):
+        if not hasattr(KratosMultiphysics.TrilinosApplication, "Amesos2Solver"):
+            self.skipTest("Amesos2Solver is not available")
+        super().setUp()
+
+    def test_amesos2_superludist(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_superludist") ):
+            self.skipTest("amesos2_superludist is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amesos2",
+                        "amesos2_solver_type" : "amesos2_superludist"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_mumps(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_mumps") ):
+            self.skipTest("amesos2_mumps is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amesos2",
+                        "amesos2_solver_type" : "amesos2_mumps"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_klu(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_klu2") ):
+            self.skipTest("amesos2_klu2 is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amesos2",
+                        "amesos2_solver_type" : "amesos2_klu2"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_basker(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("basker") ):
+            self.skipTest("basker is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amesos2",
+                        "amesos2_solver_type" : "basker"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_superludist_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_superludist") ):
+            self.skipTest("amesos2_superludist is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "super_lu_dist2"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_mumps_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_mumps") ):
+            self.skipTest("amesos2_mumps is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "mumps2"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_klu_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_klu2") ):
+            self.skipTest("amesos2_klu2 is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "klu2"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos2_basker_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("basker") ):
+            self.skipTest("basker is not among the available Amesos2 Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "basker"
+                    }
+                ]
+            }
+            """)
+
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AztecSolver'), "AztecSolver was explicitly disabled.")
+class TestAztecLinearSolvers(TestLinearSolvers):
     def test_aztec_cg(self):
         self._RunParametrized("""
             {
@@ -254,6 +376,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
+class TestMLLinearSolvers(TestLinearSolvers):
     def test_ml_symmetric(self):
         self._RunParametrized("""
             {
@@ -334,6 +458,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+class TestAMGCLMPILinearSolvers(TestLinearSolvers):
     def test_amgcl_mpi_solver_cg(self):
         self._RunParametrized("""
             {

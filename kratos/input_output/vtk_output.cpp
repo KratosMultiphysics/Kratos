@@ -22,6 +22,7 @@
 #include "containers/model.h"
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -37,7 +38,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
-        "folder_name"                                 : "VTK_Output",
+        "output_path"                                 : "VTK_Output",
         "custom_name_prefix"                          : "",
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
@@ -228,14 +229,18 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     output_file_name += ".vtk";
 
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        const std::string folder_name = mOutputSettings["folder_name"].GetString();
+        const std::string output_path = mOutputSettings["output_path"].GetString();
 
-        // create folder if it doesn't exist before
-        if (!Kratos::filesystem::is_directory(folder_name)) {
-            Kratos::filesystem::create_directories(folder_name);
+        // Create folder if it doesn't exist before
+        if (!Kratos::filesystem::is_directory(output_path) && rModelPart.GetCommunicator().MyPID() == 0) {
+            Kratos::filesystem::create_directories(output_path);
         }
 
-        output_file_name = Kratos::FilesystemExtensions::JoinPaths({folder_name, output_file_name});
+        // All ranks must wait until the folder is created otherwise writing might fail
+        // if some ranks are faster and try to create files in a not-yet existing folder
+        rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+
+        output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }
 
     return output_file_name;
@@ -346,19 +351,11 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 /***********************************************************************************/
 
 template<typename TContainerType>
-unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
+std::size_t VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
 {
-    unsigned int vtk_cell_list_size_container = 0;
-
-    const auto container_begin = rContainer.begin();
-    const int num_entities = static_cast<int>(rContainer.size());
-    #pragma omp parallel for reduction(+:vtk_cell_list_size_container)
-    for (int i=0; i<num_entities; ++i) {
-        const auto entity_i = container_begin + i;
-        vtk_cell_list_size_container += entity_i->GetGeometry().PointsNumber() + 1;
-    }
-
-    return vtk_cell_list_size_container;
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[](const typename TContainerType::data_type& rEntity){
+        return rEntity.GetGeometry().PointsNumber() + 1;
+    });
 }
 
 /***********************************************************************************/
@@ -839,7 +836,6 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -937,7 +933,6 @@ void VtkOutput::WriteVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -962,7 +957,6 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 

@@ -372,7 +372,7 @@ class Procedures():
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -391,7 +391,7 @@ class Procedures():
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -425,6 +425,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
@@ -435,6 +436,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
@@ -453,7 +455,6 @@ class Procedures():
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(LOCAL_CONTACT_FORCE)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
@@ -474,6 +475,7 @@ class Procedures():
         if self.DEM_parameters["RotationOption"].GetBool():
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
+            model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
             if self.DEM_parameters["RollingFrictionOption"].GetBool():
@@ -515,7 +517,6 @@ class Procedures():
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
@@ -829,14 +830,14 @@ class Procedures():
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "**************************************************************************")
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
-            self.KratosPrintWarning(
+            KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
+            KratosPrintWarning(
                 "**************************************************************************")
             sys.exit()
 
@@ -975,6 +976,7 @@ class DEMFEMProcedures():
 
     @classmethod
     def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
+        KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
@@ -1442,6 +1444,7 @@ class DEMIo():
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
+        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_MOMENT, self.global_variables)
         if self.DEM_parameters["PostAngularVelocity"].GetBool():
@@ -1517,7 +1520,6 @@ class DEMIo():
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces, ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostPressure, DEM_PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress, SHEAR_STRESS, self.fem_boundary_variables)
@@ -1637,7 +1639,7 @@ class DEMIo():
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(all_model_parts.Get("RigidFacePart").GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(all_model_parts.Get("ClusterPart").GetCommunicator().LocalMesh())
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
@@ -1655,10 +1657,11 @@ class DEMIo():
             self.RemoveElementsAndNodes()
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(time)
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+
             if self.contact_mesh_option:
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9184

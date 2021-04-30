@@ -64,6 +64,7 @@
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
+#include "modeler/cad_tessellation_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -132,7 +133,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
     void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
-    void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
     void RegisterMappingVariables();              //TODO: move to application
@@ -461,6 +461,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
+    const CadTessellationModeler mCadTessellationModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;

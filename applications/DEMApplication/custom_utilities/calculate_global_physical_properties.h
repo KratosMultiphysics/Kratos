@@ -54,11 +54,11 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateTotalVolume(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
           double added_volume = 0.0;
 
           #pragma omp parallel for reduction(+ : added_volume)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if (it->GetGeometry()[0].Is(BLOCKED)) { // we exclude blocked elements from the volume calculation (e.g., inlet injectors)
@@ -79,102 +79,86 @@ class SphericElementGlobalPhysicsCalculator
       //***************************************************************************************************************
       // Returns the minimum value of a double variable in the model part.
 
-      double CalculateMaxNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable)
-      {
+    double CalculateMaxNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable) {
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        if (pElements.size() == 0){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
-          }
+        KRATOS_ERROR_IF(pElements.size() == 0) << "Cannot compute maximum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable " << r_variable << std::endl;
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
-          }
+        KRATOS_ERROR_IF_NOT(it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute maximum of the required nodal variable. Missing nodal variable " << r_variable << std::endl;
 
         std::vector<double> max_values;
         double max_val = - std::numeric_limits<double>::max();
-        max_values.resize(OpenMPUtils::GetNumThreads());
+        max_values.resize(ParallelUtilities::GetNumThreads());
 
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
             max_values[k] = max_val;
-          }
+        }
 
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), mElementsPartition);
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pElements.size(), mElementsPartition);
 
         unsigned int elem_counter;
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
             elem_counter = mElementsPartition[k];
 
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                 max_values[k] = std::max(max_values[k], (it)->GetGeometry()[0].FastGetSolutionStepValue(r_variable));
                 elem_counter++;
-
-              }
-
-          }
+            }
+        }
 
         // getting the maximum between threads:
-
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
             max_val = std::max(max_val, max_values[k]);
-          }
+        }
 
         return max_val;
-      }
+    }
 
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      double CalculateMinNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable)
-      {
+    double CalculateMinNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable) {
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        if (pElements.size() == 0){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
-          }
+        KRATOS_ERROR_IF(pElements.size() == 0) << "Cannot compute minimum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable " << r_variable << std::endl;
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
-            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", r_variable);
-          }
+        KRATOS_ERROR_IF_NOT(it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)) << "Cannot compute minimum of the required nodal variable. Missing variable " << r_variable << std::endl;
 
         std::vector<double> min_values;
         double min_val = std::numeric_limits<double>::max();
-        min_values.resize(OpenMPUtils::GetNumThreads());
+        min_values.resize(ParallelUtilities::GetNumThreads());
 
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
             min_values[k] = min_val;
-          }
+        }
 
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), mElementsPartition);
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pElements.size(), mElementsPartition);
 
         unsigned int elem_counter;
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
             elem_counter = mElementsPartition[k];
 
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                 min_values[k] = std::min(min_values[k], (it)->GetGeometry()[0].FastGetSolutionStepValue(r_variable));
                 elem_counter++;
-
-              }
-
-          }
+            }
+        }
 
         // getting the minimum between threads:
-
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
             min_val = std::min(min_val, min_values[k]);
-          }
+        }
 
         return min_val;
-      }
+    }
 
       //***************************************************************************************************************
       //***************************************************************************************************************
@@ -182,14 +166,14 @@ class SphericElementGlobalPhysicsCalculator
       double CalculateD50(ModelPart& r_model_part)
       {
           const unsigned int size = r_model_part.GetCommunicator().LocalMesh().Elements().size();
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), size, mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), size, mElementsPartition);
 
           std::vector<double> radii;
           radii.resize(size);
           unsigned int particle_counter = 0;
 
           #pragma omp parallel for private(particle_counter)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
               particle_counter = mElementsPartition[k];
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
@@ -217,12 +201,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateTotalMass(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double added_mass = 0.0;
 
           #pragma omp parallel for reduction(+ : added_mass)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -240,7 +224,7 @@ class SphericElementGlobalPhysicsCalculator
 
       array_1d<double, 3> CalculateCenterOfMass(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           const double total_mass_inv         = 1 / CalculateTotalMass(r_model_part);
           double cm_x = 0.0;
@@ -248,7 +232,7 @@ class SphericElementGlobalPhysicsCalculator
           double cm_z = 0.0;
 
           #pragma omp parallel for reduction(+ : cm_x, cm_y, cm_z)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -290,12 +274,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateTranslationalKinematicEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double kinematic_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : kinematic_energy)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -317,12 +301,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateRotationalKinematicEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double rotational_kinematic_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : rotational_kinematic_energy)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -344,12 +328,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateElasticEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double elastic_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : elastic_energy)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -371,12 +355,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateInelasticFrictionalEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double frictional_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : frictional_energy)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -395,12 +379,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateInelasticViscodampingEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double viscodamping_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : viscodamping_energy)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -422,14 +406,14 @@ class SphericElementGlobalPhysicsCalculator
 
       array_1d<double, 3> CalculateTotalMomentum(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double m_x = 0.0;
           double m_y = 0.0;
           double m_z = 0.0;
 
           #pragma omp parallel for reduction(+ : m_x, m_y, m_z)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -456,7 +440,7 @@ class SphericElementGlobalPhysicsCalculator
 
       array_1d<double, 3> CalulateTotalAngularMomentum(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           const array_1d<double, 3> center_of_mass   = CalculateCenterOfMass(r_model_part);
           double am_x = 0.0;
@@ -464,7 +448,7 @@ class SphericElementGlobalPhysicsCalculator
           double am_z = 0.0;
 
           #pragma omp parallel for reduction(+ : am_x, am_y, am_z)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+          for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
@@ -498,13 +482,13 @@ class SphericElementGlobalPhysicsCalculator
       // Check by how much Newton's Third Law is violated
       array_1d<double, 3> CalculateSumOfInternalForces(ModelPart& r_model_part)
       {
-            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
             double sum_of_contact_forces_x = 0.0;
             double sum_of_contact_forces_y = 0.0;
             double sum_of_contact_forces_z = 0.0;
 
             #pragma omp parallel for reduction(+ : sum_of_contact_forces_x, sum_of_contact_forces_y, sum_of_contact_forces_z)
-            for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+            for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
                 for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                     if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){

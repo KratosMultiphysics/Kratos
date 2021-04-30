@@ -21,7 +21,7 @@ namespace Kratos
  */
 template <>
 void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -45,7 +45,7 @@ void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -69,7 +69,7 @@ void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void VMS<2>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes(3),LocalSize(9);
     if (rElementalDofList.size() != LocalSize)
@@ -90,7 +90,7 @@ void VMS<2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void VMS<3>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes(4),LocalSize(16);
     if (rElementalDofList.size() != LocalSize)
@@ -111,7 +111,7 @@ void VMS<3>::GetDofList(DofsVectorType& rElementalDofList,
  * @see VMS::GetFirstDerivativesVector
  */
 template <>
-void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
+void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -121,7 +121,7 @@ void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
         Values[LocalIndex++] = rVelocity[0];
         Values[LocalIndex++] = rVelocity[1];
         Values[LocalIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE, Step);
@@ -132,7 +132,7 @@ void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
  * @see VMS::GetFirstDerivativesVector
  */
 template <>
-void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
+void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -142,7 +142,7 @@ void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
         Values[LocalIndex++] = rVelocity[0];
         Values[LocalIndex++] = rVelocity[1];
         Values[LocalIndex++] = rVelocity[2];
@@ -154,7 +154,7 @@ void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
  * @see VMS::GetSecondDerivativesVector
  */
 template <>
-void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
+void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
@@ -164,7 +164,7 @@ void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = 0.0; // Pressure Dof
@@ -175,7 +175,7 @@ void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
  * @see VMS::GetSecondDerivativesVector
  */
 template <>
-void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
+void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step) const
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
@@ -185,7 +185,7 @@ void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double,3>& rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION, Step);
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = rAcceleration[2];
@@ -217,12 +217,13 @@ double VMS<3,4>::ElementSize(const double Volume)
 
 
 /**
- * @see VMS::GetValueOnIntegrationPoints
+ * @see VMS::CalculateOnIntegrationPoints
  */
 template <>
-void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+void VMS<2>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3> >& rVariable,
+    std::vector<array_1d<double,3> >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int Dim(2),NumNodes(3);
     if (rVariable == VORTICITY)
@@ -297,12 +298,13 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 }
 
 /**
- * @see VMS::GetValueOnIntegrationPoints
+ * @see VMS::CalculateOnIntegrationPoints
  */
 template <>
-void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+void VMS<3>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3> >& rVariable,
+    std::vector<array_1d<double,3> >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int Dim(3),NumNodes(4);
     if (rVariable == VORTICITY)

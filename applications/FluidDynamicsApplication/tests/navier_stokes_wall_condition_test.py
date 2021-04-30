@@ -6,9 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_f
 
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class NavierStokesWallConditionTest(UnitTest.TestCase):
     def testNavierStokesWallCondition(self):
         self.setUp()

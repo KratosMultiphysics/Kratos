@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela, Ruben Zorrilla
+//  Main authors:    Jordi Cotela
+//                   Ruben Zorrilla
 //
 //
 
@@ -15,22 +16,19 @@
 #define	KRATOS_ESTIMATE_DT_UTILITIES_H
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
+
 
 // External includes
 
 
 // Project includes
 #include "includes/define.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "includes/serializer.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/geometry_utilities.h"
+
+// Application includes
+
 
 namespace Kratos
 {
@@ -42,27 +40,76 @@ namespace Kratos
 ///@{
 
 /// Estimate the time step in a fluid problem to obtain a given Courant number.
-template< unsigned int TDim >
-class EstimateDtUtility
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EstimateDtUtility
 {
 public:
 
-    ///@name Life Cycle
-    ///@{
+	///@name Type Definitions
+	///@{
 
-    /// Constructor
+	/// Pointer definition of EstimateDtUtility
+	KRATOS_CLASS_POINTER_DEFINITION(EstimateDtUtility);
+
+    /// Function type for the element size calculator function
+    typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
+
+	///@}
+	///@name Life Cycle
+	///@{
+
+    /// Constructor for CFD-based time step estimation
     /**
      * @param ModelPart The model part containing the problem mesh
      * @param CFL The user-defined Courant-Friedrichs-Lewy number
      * @param DtMin user-defined minimum time increment allowed
      * @param DtMax user-defined maximum time increment allowed
      */
-    EstimateDtUtility(ModelPart &ModelPart, const double CFL, const double DtMin, const double DtMax):
-      mrModelPart(ModelPart)
+    EstimateDtUtility(
+        ModelPart &ModelPart,
+        const double CFL,
+        const double DtMin,
+        const double DtMax)
+        : mrModelPart(ModelPart)
     {
         mCFL = CFL;
         mDtMin = DtMin;
         mDtMax = DtMax;
+        mViscousFourier = 0.0;
+        mThermalFourier = 0.0;
+        mConsiderArtificialDiffusion = false;
+
+        SetDtEstimationMagnitudesFlag();
+    }
+
+    /// Complete constructor
+    /**
+     * @param ModelPart The model part containing the problem mesh
+     * @param CFL The user-defined Courant-Friedrichs-Lewy number
+     * @param ViscousFourier The user-defined viscosity Peclet number
+     * @param ThermalFourier The user-defined thermal conductivity Peclet number
+     * @param DtMin user-defined minimum time increment allowed
+     * @param DtMax user-defined maximum time increment allowed
+     */
+    EstimateDtUtility(
+        ModelPart &ModelPart,
+        const double CFL,
+        const double ViscousFourier,
+        const double ThermalFourier,
+        const bool ConsiderArtificialDiffusion,
+        const bool NodalDensityFormulation,
+        const double DtMin,
+        const double DtMax)
+        : mrModelPart(ModelPart)
+    {
+        mCFL = CFL;
+        mDtMin = DtMin;
+        mDtMax = DtMax;
+        mViscousFourier = ViscousFourier;
+        mThermalFourier = ThermalFourier;
+        mConsiderArtificialDiffusion = ConsiderArtificialDiffusion;
+        mNodalDensityFormulation = NodalDensityFormulation;
+
+        SetDtEstimationMagnitudesFlag();
     }
 
     /// Constructor with Kratos parameters
@@ -70,21 +117,33 @@ public:
      * @param ModelPart The model part containing the problem mesh
      * @param rParameters Kratos parameters containing the CFL number and max time step
      */
-    EstimateDtUtility(ModelPart& ModelPart, Parameters& rParameters):
-      mrModelPart(ModelPart)
+    EstimateDtUtility(
+        ModelPart& ModelPart,
+        Parameters& rParameters)
+        : mrModelPart(ModelPart)
     {
         Parameters defaultParameters(R"({
-            "automatic_time_step"   : true,
-            "CFL_number"            : 1.0,
-            "minimum_delta_time"    : 1e-4,
-            "maximum_delta_time"    : 0.1
+            "automatic_time_step"           : true,
+            "CFL_number"                    : 1.0,
+            "Viscous_Fourier_number"        : 0.0,
+            "Thermal_Fourier_number"        : 0.0,
+            "consider_artificial_diffusion" : false,
+            "nodal_density_formulation"     : false,
+            "minimum_delta_time"            : 1e-4,
+            "maximum_delta_time"            : 0.1
         })");
 
         rParameters.ValidateAndAssignDefaults(defaultParameters);
 
         mCFL = rParameters["CFL_number"].GetDouble();
+        mViscousFourier = rParameters["Viscous_Fourier_number"].GetDouble();
+        mThermalFourier = rParameters["Thermal_Fourier_number"].GetDouble();
+        mConsiderArtificialDiffusion = rParameters["consider_artificial_diffusion"].GetBool();
+        mNodalDensityFormulation = rParameters["nodal_density_formulation"].GetBool();
         mDtMin = rParameters["minimum_delta_time"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
+
+        SetDtEstimationMagnitudesFlag();
     }
 
     /// Destructor
@@ -95,211 +154,139 @@ public:
     ///@name Operations
     ///@{
 
-    /// Set the CFL value.
     /**
-    * @param CFL the user-defined CFL number used in the automatic time step computation
-    */
-    void SetCFL(const double CFL)
-    {
-        mCFL = CFL;
-    }
-
-    /// Set the maximum time step allowed value.
-    /**
-    * @param CFL the user-defined CFL number used in the automatic time step computation
-    */
-    void SetDtMin(const double DtMin)
-    {
-        mDtMin = DtMin;
-    }
-
-    /// Set the maximum time step allowed value.
-    /**
-    * @param CFL the user-defined CFL number used in the automatic time step computation
-    */
-    void SetDtMax(const double DtMax)
-    {
-        mDtMax = DtMax;
-    }
-
-    /// Calculate the maximum time step that satisfies the Courant-Friedrichs-Lewy (CFL) condition.
-    /**
-     * @return A time step value that satisfies the CFL condition for the current mesh and velocity field
+     * @brief Set the maximum CFL value allowed
+     * This method allows setting the maximum user-defined CFL number
+     * @param CFL Tue user-defined maximum CFL number
      */
-    double EstimateDt()
-    {
-        KRATOS_TRY;
+    void SetCFL(const double CFL);
 
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
-
-        double CurrentDt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-
-        std::vector<double> MaxCFL(NumThreads,0.0);
-
-        #pragma omp parallel shared(MaxCFL)
-        {
-            int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
-
-            GeometryDataContainer GeometryInfo;
-
-            double MaxLocalCFL = 0.0;
-
-            for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                double ElementCFL = CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
-                if (ElementCFL > MaxLocalCFL)
-                {
-                   MaxLocalCFL = ElementCFL;
-                }
-            }
-
-            MaxCFL[k] = MaxLocalCFL;
-        }
-
-        // Reduce to maximum the thread results
-        // Note that MSVC14 does not support max reductions, which are part of OpenMP 3.1
-        double CurrentCFL = MaxCFL[0];
-        for (unsigned int k = 1; k < NumThreads; k++)
-        {
-            if (CurrentCFL > MaxCFL[k]) CurrentCFL = MaxCFL[k];
-        }
-
-        double NewDt = 0.0;
-
-        // Avoid division by 0 when the maximum CFL number is close to 0 (e.g. problem initialization)
-        if (CurrentCFL < 1e-10)
-        {
-            KRATOS_INFO("EstimateDtUtility") << "Setting minimum delta time " << mDtMin << " as current time step." << std::endl;
-            NewDt = mDtMin;
-        }
-        else
-        {
-            // Compute new Dt
-            NewDt = mCFL * CurrentDt / CurrentCFL;
-            // Limit max and min Dt
-            if (NewDt > mDtMax)
-            {
-                NewDt = mDtMax;
-            }
-            else if (NewDt < mDtMin)
-            {
-                NewDt = mDtMin;
-            }
-        }
-
-        // Perform MPI sync if needed
-        NewDt = mrModelPart.GetCommunicator().GetDataCommunicator().MinAll(NewDt);
-
-        return NewDt;
-
-        KRATOS_CATCH("")
-    }
-
-    /// Calculate each element's CFL for the current time step for the given ModelPart.
     /**
-     * The elemental CFL is stored in the CFL_NUMBER elemental variable.
-     * To view it in the post-process file, remember to print CFL_NUMBER as a Gauss Point result.
+     * @brief Set the maximum viscosity Peclet value allowed
+     * This method allows setting the maximum user-defined viscosity Peclet number
+     * @param ViscousFourier Tue user-defined maximum viscosity Peclet number
      */
-    static void CalculateLocalCFL(ModelPart& rModelPart)
-    {
-        KRATOS_TRY;
+    void SetViscousFourier(const double ViscousFourier);
 
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(),NumThreads,ElementPartition);
-
-        const double CurrentDt = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = rModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = rModelPart.ElementsBegin() + ElementPartition[k+1];
-
-            GeometryDataContainer GeometryInfo;
-
-            for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                double ElementCFL = EstimateDtUtility<TDim>::CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
-                itElem->SetValue(CFL_NUMBER,ElementCFL);
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /// Calculate each element's CFL for the current time step.
     /**
-     * The elemental CFL is stored in the CFL_NUMBER elemental variable.
-     * To view it in the post-process file, remember to print CFL_NUMBER as a Gauss Point result.
+     * @brief Set the maximum conductivity Peclet value allowed
+     * This method allows setting the maximum user-defined thermal conductivity Peclet number
+     * @param ThermalFourier Tue user-defined maximum conductivity Peclet number
      */
-    void CalculateLocalCFL()
-    {
-        EstimateDtUtility<TDim>::CalculateLocalCFL(mrModelPart);
-    }
+    void SetThermalFourier(const double ThermalFourier);
+
+    /**
+     * @brief Set the minimum time step value allowed
+     * This method allows setting the minimum user-defined time increment value
+     * @param DtMin The user-defined minimum delta time
+     */
+    void SetDtMin(const double DtMin);
+    
+    /**
+     * @brief Set the maximum time step value allowed
+     * This method allows setting the maximum user-defined time increment value
+     * @param DtMax The user-defined maximum delta time
+     */
+    void SetDtMax(const double DtMax);
+
+    /**
+     * @brief Calculate the maximum time step that satisfies the CFL user settings
+     * This method calculates the maximum time step that satisfies the Courant-Friedrichs-Lewy (CFL) condition
+     * according to the user-defined parameters (CFL and maximum/minimum delta time)
+     * @return double A time step value that satisfies the user CFL condition for the current mesh and velocit field
+     */
+    double EstimateDt() const;
 
     ///@} // Operators
 
 private:
 
-    ///@name Auxiliary Data types
+    ///@name Type definitions
     ///@{
 
-    struct GeometryDataContainer {
-        double Area;
-        array_1d<double, TDim+1> N;
-        BoundedMatrix<double, TDim+1, TDim> DN_DX;
-    };
+    /// Local flags to determine the magnitudes for the Dt estimation
+    KRATOS_DEFINE_LOCAL_FLAG(CFL_ESTIMATION);
+    KRATOS_DEFINE_LOCAL_FLAG(VISCOUS_FOURIER_ESTIMATION);
+    KRATOS_DEFINE_LOCAL_FLAG(THERMAL_FOURIER_ESTIMATION);
 
-    ///@}
+	///@}
     ///@name Member Variables
     ///@{
 
-    double    mCFL;         // User-defined CFL number
-    double    mDtMax;       // User-defined maximum time increment allowed
-    double    mDtMin;       // User-defined minimum time increment allowed
-    ModelPart &mrModelPart; // The problem's model part
+    double    mCFL;                         // User-defined CFL number
+    double    mViscousFourier;              // User-defined viscous Fourier number 
+    double    mThermalFourier;              // User-defined thermal Fourier number
+    bool      mConsiderArtificialDiffusion; // Speficies if the artificial diffusion values are considered in the Peclet numbers
+    bool      mNodalDensityFormulation;     // Specifies if the density is nodally stored (only required for the Peclet number)
+    double    mDtMax;                       // User-defined maximum time increment allowed
+    double    mDtMin;                       // User-defined minimum time increment allowed
+    Flags     mDtEstimationMagnitudesFlags; // Flags indicating the reference magnitudes used in the Dt estimation
+    ModelPart &mrModelPart;                 // The problem's model part
 
-    ///@} // Member variables
+	///@}
+	///@name Serialization
+	///@{
+
+
+    ///@}
     ///@name Private Operations
     ///@{
 
-    static double CalculateElementCFL(Element &rElement, GeometryDataContainer& rGeometryInfo, double Dt)
+    void SetDtEstimationMagnitudesFlag();
+
+    template<const bool ConsiderCFL, const bool ConsiderViscousFourier, const bool ConsiderThermalFourier>
+    double InternalEstimateDt() const;
+
+    /**
+     * @brief Calculate the new delta time
+     * For the provided set of pairs (obtained characteristic number and expected one) this method returns
+     * the minimum time increment that fulfils all of them. Note that the minimum delta time is set if the
+     * obtained characteristic number is close to zero to avoid the division by zero. Even though this is
+     * not the optimal value, it is the safer one.
+     * @tparam CharacteristicNumbersPairsType Variadic template argument to specify the obtained and sought characteristic numbers pairs
+     * @param CurrentDeltaTime Current delta time
+     * @param rCharacteristicNumbersPairs Pairs containing the obtained characteristic number (1st position) and the sought one (2nd position)
+     * @return double The minimum delta time among all the provided pairs
+     */
+    template <class... CharacteristicNumbersPairsType>
+    double CalculateNewDeltaTime(
+        const double CurrentDeltaTime,
+        const CharacteristicNumbersPairsType&... rCharacteristicNumbersPairs) const
     {
-        double Proj = 0.0;
+        KRATOS_TRY
 
-        // Get the element's geometric parameters
-        const auto& r_geometry = rElement.GetGeometry();
-        GeometryUtils::CalculateGeometryData(r_geometry, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
+        // Calculate the corresponding new time increments from the provided pairs
+        const double zero_tol = 1.0e-10;
+        double new_dt_list[sizeof...(CharacteristicNumbersPairsType)] = {(
+            (std::get<0>(rCharacteristicNumbersPairs) > zero_tol) ? CurrentDeltaTime * std::get<1>(rCharacteristicNumbersPairs) / std::get<0>(rCharacteristicNumbersPairs) : mDtMin
+        )...};
 
-        // Elemental Velocity
-        array_1d<double,3> ElementVel = rGeometryInfo.N[0]*r_geometry[0].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int i = 1; i < TDim+1; ++i)
-            ElementVel += rGeometryInfo.N[i]*r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        // Get the minimum one among all the obtained ones and check the user-defined bounds
+        double new_dt = *(std::min_element(new_dt_list, new_dt_list + sizeof...(CharacteristicNumbersPairsType)));
+        LimitNewDeltaTime(new_dt);
 
-        // Calculate u/h as the maximum projection of the velocity along element heights
-        for (unsigned int i = 0; i < TDim+1; ++i)
-        {
-            for (unsigned int d = 0; d < TDim; ++d)
-                Proj += ElementVel[d]*rGeometryInfo.DN_DX(i,d);
-            Proj = fabs(Proj);
-        }
+        // Perform MPI sync if needed
+        new_dt = mrModelPart.GetCommunicator().GetDataCommunicator().MinAll(new_dt);
 
-        return Proj*Dt;
+        return new_dt;
+
+        KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Limit the new delta time value
+     * This method checks if the provided time increment is within the user-defined minimum
+     * and maximum bounds. If not, it corrects the provided value accordingly.
+     * @param rNewDeltaTime Time increment to be checked
+     */
+    void LimitNewDeltaTime(double& rNewDeltaTime) const;
 
     ///@} // Private Operations
-
 };
 
 ///@} // Kratos classes
 
-///@}
+///@} // FluidDynamicsApplication group
 
 } // namespace Kratos.
 

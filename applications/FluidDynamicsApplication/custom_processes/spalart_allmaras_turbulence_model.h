@@ -535,7 +535,7 @@ private:
     {
         KRATOS_TRY;
 
-        ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
 
         //first of all set to zero the nodal variables to be updated nodally
         for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();

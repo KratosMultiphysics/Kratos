@@ -20,34 +20,29 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache \
  || IF "%ERRORLEVEL%"=="3010" EXIT 0 ; \
  	$ErrorActionPreference = 'Stop'
 
-#install 7zip
+#install chocolatey
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.7-zip.org/a/7z1900-x64.exe -OutFile c:\TEMP\7z.exe; \
-    c:\TEMP\7z.exe /S /D="C:\7zip\\"
+    iex ((New-Object System.Net.WebClient).DownloadString('http://chocolatey.org/install.ps1'))
 
 #install git
 RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/Git-2.21.0-64-bit.exe -OutFile c:\TEMP\git.exe; \
-    c:\TEMP\git.exe /SILENT
+    choco install -y 7zip.install
 
+#install git
+RUN powershell.exe -Command \
+    choco install -y git
 
 #install cmake
 RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://github.com/Kitware/CMake/releases/download/v3.14.1/cmake-3.14.1-win64-x64.zip -OutFile c:\TEMP\cmake.zip; \
-    mkdir c:\cmake; \
-    c:\7zip\7z.exe x c:\TEMP\cmake.zip -o"c:\cmake"
-
-
+    choco install -y cmake
 
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
-    c:\7zip\7z.exe x c:\TEMP\boost.zip -o"c:\boost"
+    7z x c:\TEMP\boost.zip -o"c:\boost"
 
 #Install python 3.5
 RUN powershell.exe -Command \
@@ -106,7 +101,7 @@ RUN powershell.exe -Command \
 ENV CMAKE c:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe
 ENV SEVEN_ZIP c:\\7zip\\7z.exe
 ENV VCVARS  \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"
-ENV BOOST c:\\boost\\boost_1_69_0
+ENV BOOST c:\\boost\\boost_1_71_0
 ENV BLAS c:\\libs\\libblas.lib
 ENV LAPACK c:\\libs\\liblapack.lib
 ENV PYTHONROOT c:\\python

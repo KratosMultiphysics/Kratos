@@ -33,7 +33,7 @@ namespace Kratos
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                                                              VectorType &rRightHandSideVector,
-                                                                             ProcessInfo &rCurrentProcessInfo)
+                                                                             const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -60,7 +60,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
+                                                                                        VectorType &rRightHandSideVector,
+                                                                                        const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -211,7 +213,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<bool> &rVariable,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
                                                                                     std::vector<bool> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
@@ -222,7 +224,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable,
                                                                                     std::vector<double> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
@@ -233,7 +235,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
+  void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
                                                                                     std::vector<Vector> &rOutput,
                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
@@ -346,7 +348,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 

@@ -41,11 +41,13 @@ public:
 
     explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom,
                                          const bool IsProjection,
-                                         const bool IsDualMortar
+                                         const bool IsDualMortar,
+                                         const bool IsDestinationIsSlave
                                          )
         : mpGeom(pGeom),
           mIsProjection(IsProjection),
-          mIsDualMortar(IsDualMortar)
+          mIsDualMortar(IsDualMortar),
+          mIsDestinationIsSlave(IsDestinationIsSlave)
         {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
@@ -62,7 +64,7 @@ public:
 
     MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
-        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar);
+        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar, mIsDestinationIsSlave);
     }
 
     /// Turn back information as a string.
@@ -73,8 +75,21 @@ private:
     bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
     bool mIsDualMortar = false;
+    bool mIsDestinationIsSlave = true;
 
 };
+
+// CouplingGeometryMapper
+//
+// The mapper always forward maps from the master to the slave.
+// Normally:
+//      master  =   interface origin
+//      slave   =   interface destination
+//
+// However, this can be reversed by setting 'destination_is_slave' = false.
+// This yields:
+//      master  =   interface destination
+//      slave   =   interface origin
 
 template<class TSparseSpace, class TDenseSpace>
 class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
@@ -122,33 +137,7 @@ public:
 
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
-                         Parameters JsonParameters)
-                        : mrModelPartOrigin(rModelPartOrigin),
-                          mrModelPartDestination(rModelPartDestination),
-                          mMapperSettings(JsonParameters)
-    {
-        mpModeler = (ModelerFactory::Create(
-            mMapperSettings["modeler_name"].GetString(),
-            rModelPartOrigin.GetModel(),
-            mMapperSettings["modeler_parameters"]));
-
-        // adds destination model part
-        mpModeler->GenerateNodes(rModelPartDestination);
-
-        mpModeler->SetupGeometryModel();
-        mpModeler->PrepareGeometryModel();
-
-        // here use whatever ModelPart(s) was created by the Modeler
-        mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
-        mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
-        mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
-
-        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
-        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
-
-        this->CreateLinearSolver();
-        this->InitializeInterface();
-    }
+                         Parameters JsonParameters);
 
     /// Destructor.
     ~CouplingGeometryMapper() override = default;
@@ -276,6 +265,19 @@ public:
         BaseType::PrintData(rOStream);
     }
 
+    // Get values
+    // Always returns the true origin/destination regardless of 'destination_is_slave'
+    ModelPart& GetInterfaceModelPartOrigin() override
+    {
+
+        return mpCouplingMP->GetSubModelPart("interface_origin");
+    }
+
+    ModelPart& GetInterfaceModelPartDestination() override
+    {
+        return mpCouplingMP->GetSubModelPart("interface_destination");
+    }
+
 private:
 
     ///@name Private Operations
@@ -285,8 +287,8 @@ private:
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
     ModelPart* mpCouplingMP = nullptr;
-    ModelPart* mpCouplingInterfaceOrigin = nullptr;
-    ModelPart* mpCouplingInterfaceDestination = nullptr;
+    ModelPart* mpCouplingInterfaceMaster = nullptr;
+    ModelPart* mpCouplingInterfaceSlave = nullptr;
 
     Parameters mMapperSettings;
 
@@ -301,8 +303,8 @@ private:
     MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
     MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
 
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerMaster;
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerSlave;
 
     LinearSolverSharedPointerType mpLinearSolver = nullptr;
 
@@ -311,8 +313,8 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceOrigin->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceSlave->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceMaster->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
@@ -342,9 +344,16 @@ private:
 
     Parameters GetMapperDefaultSettings() const
     {
-        // @tobiasteschemachen
-        return Parameters( R"({
-            "echo_level" : 0
+        return Parameters(R"({
+            "echo_level"                    : 0,
+            "dual_mortar"                   : false,
+            "precompute_mapping_matrix"     : false,
+            "modeler_name"                  : "UNSPECIFIED",
+            "modeler_parameters"            : {},
+            "consistency_scaling"           : true,
+            "row_sum_tolerance"             : 1e-12,
+            "destination_is_slave"          : true,
+            "linear_solver_settings"        : {}
         })");
     }
 
