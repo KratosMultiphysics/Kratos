@@ -23,3 +23,10 @@ from .classDefs_solverWrapper.singleLevelRNGSolverWrapper import SingleLevelRNGS
 from .classDefs_solverWrapper.multiLevelRNGSolverWrapper import MultiLevelRNGSolverWrapper
 from .statisticalEstimator import StatisticalEstimator
 from .xmcAlgorithm import XMCAlgorithm
+
+
+# Initialise ExaQUte API
+from exaqute import init as exaqute_init
+
+# Must not be called more than once
+exaqute_init()

@@ -298,6 +298,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, MAX_DT )
     KRATOS_DEFINE_VARIABLE( double, VEL_ART_VISC )
     KRATOS_DEFINE_VARIABLE( double, PR_ART_VISC )
+    KRATOS_DEFINE_VARIABLE( double, LIMITER_COEFFICIENT )
 
     //for Vulcan application
     KRATOS_DEFINE_VARIABLE( double, LATENT_HEAT )
