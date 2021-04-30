@@ -259,8 +259,13 @@ public:
     ~ResidualBasedNewtonRaphsonMPCContactStrategy() override
     = default;
 
-    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
-    //***********************************************************************************//
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * @brief Create method
