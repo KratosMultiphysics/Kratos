@@ -634,6 +634,8 @@ namespace Kratos {
         unsigned int initial_neighbors_size = mFemIniNeighbourIds.size();
 
         std::vector<DEMWall*> temp_neighbour_elements(initial_neighbors_size, nullptr);
+        std::vector<array_1d<double, 4> > temp_neighbours_weights(initial_neighbors_size, ZeroVector(4));
+        std::vector<int> temp_neighbours_contact_types(initial_neighbors_size, 0);
 
         // Loop over current neighbors
         for (unsigned int i = 0; i < current_neighbors_size; i++) {
@@ -643,15 +645,23 @@ namespace Kratos {
             for (unsigned int k = 0; k < initial_neighbors_size; k++) {
                 if (static_cast<int>(i_neighbour->Id()) == mFemIniNeighbourIds[k]) {
                     temp_neighbour_elements[k] = i_neighbour;
+                    temp_neighbours_weights[k] = mContactConditionWeights[i];
+                    temp_neighbours_contact_types[k] = mContactConditionContactTypes[i];
                     found = true;
                     break;
                 }
             }
 
-            if (!found) { temp_neighbour_elements.push_back(i_neighbour); }
+            if (!found) {
+                temp_neighbour_elements.push_back(i_neighbour);
+                temp_neighbours_weights.push_back(mContactConditionWeights[i]);
+                temp_neighbours_contact_types.push_back(mContactConditionContactTypes[i]);
+            }
         }
 
         mNeighbourRigidFaces.swap(temp_neighbour_elements);
+        mContactConditionWeights.swap(temp_neighbours_weights);
+        mContactConditionContactTypes.swap(temp_neighbours_contact_types);
 
         KRATOS_CATCH("")
     }

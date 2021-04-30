@@ -20,23 +20,49 @@ class DEM3D_ContinuumTestVsWallSolution(KratosMultiphysics.DEMApplication.DEM_an
     def __init__(self, model, project_parameters):
         super().__init__(model, project_parameters)
         self.step = 0
-    
-    def InitializeSolutionStep(self):
-        super().InitializeSolutionStep()
-        self.MoveParticle()
 
-    def MoveParticle(self):
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        self.SetParticlePosition()
+
+    def SetParticlePosition(self):
         for node in self.spheres_model_part.Nodes:
-            V_X = V_Y = V_Z = 0.0
-            if self.step == 1:
-                V_X = V_Y = 0.0; V_Z = 0.15
+            if self.step == 0:
+                node.X = 0.75
+                node.Y = 0.7
+                node.Z = 0.6
+            elif self.step == 1:
+                node.X = 0.75
+                node.Y = 0.7
+                node.Z = 0.8
             elif self.step == 2:
-                V_X = -0.5; V_Y = V_Z = 0.0
+                node.X = 0.4
+                node.Y = 0.7
+                node.Z = 0.8
             elif self.step == 3:
-                V_X = V_Y = 0.0; V_Z = -0.15
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, V_X)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, V_Y)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, V_Z)
+                node.X = 0.3
+                node.Y = 0.7
+                node.Z = 0.8
+            elif self.step == 4:
+                node.X = 0.3
+                node.Y = 0.7
+                node.Z = 0.6
+            elif self.step == 5:
+                node.X = 0.3
+                node.Y = 0.7
+                node.Z = 0.3
+            elif self.step == 6:
+                node.X = 0.5
+                node.Y = 0.7
+                node.Z = 0.3
+            elif self.step == 7:
+                node.X = 0.75
+                node.Y = 0.7
+                node.Z = 0.6
+
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
         self.step = self.step + 1
 
     @classmethod
