@@ -167,6 +167,19 @@ public:
     ///@{
 
     /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseBuilderAndSolverType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
+    }
+
+    /**
      * @brief It organises the dofset in order to speed up the building phase
      * @param rModelPart The model part to compute
      */
@@ -197,6 +210,32 @@ public:
             SetUpDofSetWithConstraints(pScheme, rModelPart);
         else
             BaseType::SetUpDofSet(pScheme, rModelPart);
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "contact_residual_elimination_builder_and_solver_with_constraints"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "contact_residual_elimination_builder_and_solver_with_constraints";
     }
 
     ///@}
@@ -365,6 +404,15 @@ protected:
         BaseType::SetUpDofSetWithConstraints(pScheme, rModelPart);
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
     }
 
     ///@}
