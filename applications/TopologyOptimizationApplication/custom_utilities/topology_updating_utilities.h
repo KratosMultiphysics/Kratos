@@ -131,7 +131,7 @@ public:
 
 			// Update Densities procedure
 			double l1     = 0.0;
-			double l2     = 1000000000.0;
+			double l2     = 10000000000.0; ///100000000000.0
 			double move   = 0.2;
 			double sum_X_Phys;
 			int nele;
@@ -206,10 +206,23 @@ public:
 		KRATOS_CATCH("");
 
 	}
+/* 	int InitializeMMA()
+	{
+		KRATOS_TRY;
+		int nnn = mrModelPart.NumberOfElements();
+		int mmm = 1; /// constraints
+
+		MMASolver *mma = new MMASolver(nnn,mmm);
+		return mma;
+		
+		KRATOS_CATCH("");
+
+
+	} */
 
 
 
-	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr )
+	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr)
 	{
 		KRATOS_TRY;
 		if ( strcmp( update_type , "MMA_algorithm" ) == 0 )
@@ -221,6 +234,8 @@ public:
 			// Create object of updating function
 			int nn = mrModelPart.NumberOfElements();
 			int mm = 1; /// constraints
+			std::cout << "  Hallo"<< nn << std::endl;
+
 
 
 			int iteration = 0; 
@@ -234,7 +249,7 @@ public:
 			double *dg = new double[nn*mm];
 			double *xmin = new double[nn];
 			double *xmax = new double[nn];
-			double Vol_sum =0;
+			double vol_summ = 0;
 			double vol_frac_iteration = 0;
 			
 
@@ -242,14 +257,12 @@ public:
 			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
 			{	
 				
-			
 				double xval = element_i->GetValue(X_PHYS);
-			/* 	double gx = volfrac; */
 				double dfdx = element_i->GetValue(DCDX);
-				double dgdx = element_i->GetValue(DVDX);
+				double dgdx = (element_i->GetValue(DVDX))/(nn*volfrac);   /// gilt nur für regelmäßige Vernetzung!!!
 				double Xmin = 0;
-				double Xmax= 1;
-				Vol_sum += xval;
+				double Xmax = 1;
+				vol_summ = vol_summ + xval;
 
 				
 				x[iteration]= xval;
@@ -257,67 +270,47 @@ public:
 				dg[iteration] = dgdx;
 				xmax[iteration] = Xmax;
 				xmin[iteration] = Xmin; 
-				iteration ++;
-				
-
-				
-
+				iteration = iteration + 1;
 			}
-			g[0] = 0;
-			vol_frac_iteration = Vol_sum/nn;
-			std::cout << "  Updating of values performed " <<  vol_frac_iteration << std::endl;
-			g[0] = vol_frac_iteration  - volfrac ;
-			std::cout << "  						g0 " <<  g[0] << std::endl;
+			
 			
 
 
  			// Initialize MMA
 			MMASolver *mma = new MMASolver(nn,mm);
+	
 
-			double ch = 1;
-			int itr = 0;
-
-			while (ch > 0.002 && itr < 100)
-			{	
-				
-				itr ++;
-				double Xminn = 0;
-				double Xmaxx= 1;
-				double movlim = 0.1;
-				double vol_summ = 0;
-
-				for (int it = 0; it < nn; it++) 
-				{
-				xmax[it] = std::min(Xmaxx, x[it] + movlim);
-				xmin[it] = std::max(Xminn, x[it] - movlim); 
-				}
-
-				mma->Update(x,df,g,dg,xmin,xmax);
+			g[0] = 0;
+			vol_frac_iteration = vol_summ/nn;
+			g[0] = vol_frac_iteration/volfrac - 1;
+			std::cout << "  vol_frac_limit "<< volfrac << std::endl;
+			std::cout << "  vol_frac_iteration"<< vol_frac_iteration << std::endl;
+			std::cout << "  constrain value "<< g[0] << std::endl;
 
 
+			double Xminn = 0;
+			double Xmaxx= 1;
+			double movlim = 0.2;
+	
 
-				
-				ch = 0.0;
-				g[0]= 0;
-				for (int itt=0;itt < nn;itt++) 
-				{
-				ch = std::max(ch,std::abs(x[itt]-xold[itt]));
-			 	vol_summ += x[itt]; 
-				xold[itt] = x[itt];
-				}
-				double vol_it_loop = vol_summ/nn;
-				g[0] = vol_it_loop - vol_frac_iteration; 
+			for (int iEl = 0; iEl < nn; iEl++) 
+			{
+				xmax[iEl] = std::min(Xmaxx, x[iEl] + movlim);
+				xmin[iEl] = std::max(Xminn, x[iEl] - movlim); 
 			}
 
-
+			
+			mma->Update(x,df,g,dg,xmin,xmax);
 
 
 			int jiter = 0;
 
 			for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
 					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-				elem_i->SetValue(X_PHYS, x[jiter++]);
-				
+				{	
+				elem_i->SetValue(X_PHYS, x[jiter]);
+				jiter= jiter +1;
+				}
 
 
 
@@ -325,13 +318,13 @@ public:
 			clock_t end = clock();
 			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
- /* 			delete[] x;
+ /* 		delete[] x;
 			delete[] df;
 			delete[] g;
 			delete[] dg;
 			delete[] xmin;
 			delete[] xmax;  */
-			delete mma; 
+		/* 	delete mma;  */
 		}
 		else 
 		{

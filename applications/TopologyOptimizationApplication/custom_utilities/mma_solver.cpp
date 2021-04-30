@@ -35,11 +35,11 @@ xmamieps(1.0e-5) */
 //, epsimin(1e-7)
 , epsimin(std::sqrt(nano + m) * 1e-9)
 , raa0(0.00001)
-, move(0.01)
+, move(0.5)
 , albefa(0.1)
 , asyminit(0.5) // 0.2;
-, asymdec(0.7) // 0.65;
-, asyminc(1.2) // 1.08;
+, asymdec(0.7) // 0.65   0.7;
+, asyminc(1.2) // 1.08    1.2;
 , a(m, ai)
 , c(m, ci)
 , d(m, di)
@@ -128,7 +128,6 @@ void MMASolver::SolveDIP(double *x)
             loop = 0;
             while (err > 0.9 * epsi && loop < 100) {
                 loop++;
-
                 // Set up Newton system
                 XYZofLAMBDA(x);
                 DualGrad(x);
@@ -484,7 +483,7 @@ void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx,
 
         // The constant for the constraints
         for (int j = 0; j < m; j++) {
-            b[j] = -gx[j];
+            b[j] = -gx[j]; 
             for (int i = 0; i < nano; i++) {
                 b[j] += pij[i * m + j] / (upp[i] - xval[i]) + qij[i * m + j] / (xval[i] - low[i]);
             }

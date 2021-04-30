@@ -376,7 +376,7 @@ public:
 				elem_i->SetValue(X_PHYS, x_phys_filtered[i++]);
 
 			clock_t end = clock();
-			std::cout << "  Filtered densities calculated          		[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+			std::cout << "  Filtered densities calculated          	[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 		}
 		else
 			KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;

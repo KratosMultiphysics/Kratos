@@ -73,6 +73,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 	.def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
 	.def("UpdateDensitiesUsingMMAMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingMMAMethod)
+/* 	.def("InitializeMMA", &TopologyUpdatingUtilities::InitializeMMA) */
 	;
 
 	py::class_<IOUtilities >(m, "IOUtilities" )
