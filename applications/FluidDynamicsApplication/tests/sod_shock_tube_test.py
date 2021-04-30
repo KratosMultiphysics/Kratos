@@ -36,8 +36,8 @@ class SodShockTubeTest(KratosUnittest.TestCase):
     def setUp(self):
         self.print_output = False
         self.print_reference_values = False
-        self.check_absolute_tolerance = 1.0e-8
-        self.check_relative_tolerance = 1.0e-10
+        self.check_absolute_tolerance = 1.0e-7
+        self.check_relative_tolerance = 1.0e-9
         self.work_folder = "sod_shock_tube_test"
         settings_filename = "ProjectParameters.json"
 
