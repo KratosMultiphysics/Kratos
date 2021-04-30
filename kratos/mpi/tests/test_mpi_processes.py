@@ -186,6 +186,37 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
         communicator = KratosMultiphysics.DataCommunicator.GetDefault()
         model = KratosMultiphysics.Model()
+        main_model_part = model.CreateModelPart('main')
+        main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_distance")
+        ReadModelPart(input_filename, main_model_part)
+        skin_model_part  = model.CreateModelPart('skin')
+        skin_model_part.CreateNewNode(1, -0.25, 0.0, 0.0)
+        skin_model_part.CreateNewNode(2,  0.4, 0.0, 0.0)
+        skin_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
+
+        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES
+        KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
+            main_model_part,
+            skin_model_part,
+            flags).Execute()
+
+        n_intersected, n_incised = _GetNumberIncisedAndIntersectedElements(main_model_part, 3)
+
+        n_intersected = communicator.SumAll(n_intersected)
+        n_incised = communicator.SumAll(n_incised)
+        print(n_intersected)
+        print(n_incised)
+        self.assertEqual(n_intersected, 1)
+        self.assertEqual(n_incised, 2)
+
+    def testDiscontinuousDistanceProcessCutThroughNode2D(self):
+
+        communicator = KratosMultiphysics.DataCommunicator.GetDefault()
+        model = KratosMultiphysics.Model()
         skin_model_part  = model.CreateModelPart('skin')
         skin_model_part.CreateNewNode(1, -0.4,  0.2, 0.0)
         skin_model_part.CreateNewNode(2,  0.4, -0.2, 0.0)
@@ -205,25 +236,28 @@ class TestMPIProcesses(KratosUnittest.TestCase):
             skin_model_part,
             flags).Execute()
 
-        n_edges = 3
-        n_intersected = 0
-        n_incised = 0
-        for elem in main_model_part.Elements:
-            n_cut_edges = 0
-            edge_dist = elem.GetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES)
-            for distance in edge_dist:
-                if distance >= 0.0:
-                    n_cut_edges += 1
-            if n_cut_edges>0:
-                if n_cut_edges>1:
-                    n_intersected += 1
-                else:
-                    n_incised += 1
+        n_intersected, n_incised = _GetNumberIncisedAndIntersectedElements(main_model_part, 3)
 
         n_intersected = communicator.SumAll(n_intersected)
         n_incised = communicator.SumAll(n_incised)
         self.assertEqual(n_intersected, 4)
         self.assertEqual(n_incised, 2)
+
+def _GetNumberIncisedAndIntersectedElements(main_model_part, n_edges):
+    n_intersected = 0
+    n_incised = 0
+    for elem in main_model_part.Elements:
+        n_cut_edges = 0
+        edge_dist = elem.GetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES)
+        for distance in edge_dist:
+            if distance >= 0.0:
+                n_cut_edges += 1
+        if n_cut_edges>0:
+            if n_cut_edges>1:
+                n_intersected += 1
+            else:
+                n_incised += 1
+    return n_intersected, n_incised
 
 if __name__ == '__main__':
     KratosUnittest.main()
