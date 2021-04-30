@@ -22,10 +22,20 @@ class TestParallelEnvironment(UnitTest.TestCase):
         self.assertTrue(default_comm.IsDistributed())
 
     @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
-    def testCommunicatorCreationWithParallelEnvironment(self):
+    def testCommunicatorCreationWithStringFromParallelEnvironment(self):
         model = Kratos.Model()
         model_part = model.CreateModelPart("MainModelPart")
-        communicator = Kratos.ParallelEnvironment.CreateCommunicator(model_part, "World")
+        communicator = Kratos.ParallelEnvironment.CreateCommunicatorFromGlobalParallelism(model_part, "World")
+
+        # if we imported mpi, default should be "MPICommunicator"
+        self.assertTrue(communicator.GetDataCommunicator().IsDistributed())
+
+    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
+    def testCommunicatorCreationWithPointerFromParallelEnvironment(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("MainModelPart")
+        default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
+        communicator = Kratos.ParallelEnvironment.CreateCommunicatorFromGlobalParallelism(model_part, default_comm)
 
         # if we imported mpi, default should be "MPICommunicator"
         self.assertTrue(communicator.GetDataCommunicator().IsDistributed())

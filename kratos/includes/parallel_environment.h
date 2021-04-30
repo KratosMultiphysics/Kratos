@@ -102,7 +102,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      * This method takes the provided fill communicator pointer factory and saves it to be used later on
      * @param CommunicatorFactory Factory function returning a pointer to a (parrallel or serial) communicator
      */
-    static void RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, const std::string& rDataCommunicatorName)> CommunicatorFactory);
+    template<class TDataCommunicatorInputType>
+    static void RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory);
 
     /**
      * @brief Create a fill communicator object
@@ -119,9 +120,20 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      * @param rDataCommunicatorName Name of the data communicator to be retrieved for the communicator construction
      * @return Communicator::UniquePointer Unique pointer to the new communicator
      */
-    static Communicator::UniquePointer CreateCommunicator(
+    static Communicator::UniquePointer CreateCommunicatorFromGlobalParallelism(
       ModelPart& rModelPart,
       const std::string& rDataCommunicatorName);
+
+    /**
+     * @brief Create a Communicator object
+     * This method uses the previously registered communicator factory for the creation of a new communicator pointer
+     * @param rModelPart Model part required to retrieve the variables list from it
+     * @param pDataCommunicator Pointer to the data communicator to be used for the communicator construction
+     * @return Communicator::UniquePointer Unique pointer to the new communicator
+     */
+    static Communicator::UniquePointer CreateCommunicatorFromGlobalParallelism(
+      ModelPart& rModelPart,
+      DataCommunicator& rDataCommunicator);
 
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
@@ -190,7 +202,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     void RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
 
-    void RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> CommunicatorFactory);
+    template<class TDataCommunicatorInputType>
+    void RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory);
 
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
@@ -246,7 +259,9 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     std::function<FillCommunicator::Pointer(ModelPart&)> mFillCommunicatorFactory;
 
-    std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> mCommunicatorFactory;
+    std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> mCommunicatorStringFactory;
+
+    std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> mCommunicatorReferenceFactory;
 
     int mDefaultRank;
     int mDefaultSize;
