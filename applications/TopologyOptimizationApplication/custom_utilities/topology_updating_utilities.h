@@ -259,7 +259,7 @@ public:
 				
 				double xval = element_i->GetValue(X_PHYS);
 				double dfdx = element_i->GetValue(DCDX);
-				double dgdx = (element_i->GetValue(DVDX))/(nn*volfrac);   /// gilt nur für regelmäßige Vernetzung!!!
+				double dgdx = (element_i->GetValue(DVDX));   /// gilt nur für regelmäßige Vernetzung!!!
 				double Xmin = 0;
 				double Xmax = 1;
 				vol_summ = vol_summ + xval;
@@ -281,8 +281,9 @@ public:
 	
 
 			g[0] = 0;
-			vol_frac_iteration = vol_summ/nn;
-			g[0] = vol_frac_iteration/volfrac - 1;
+			vol_frac_iteration = vol_summ;
+			g[0] = vol_frac_iteration - volfrac*nn;
+	
 			std::cout << "  vol_frac_limit "<< volfrac << std::endl;
 			std::cout << "  vol_frac_iteration"<< vol_frac_iteration << std::endl;
 			std::cout << "  constrain value "<< g[0] << std::endl;
