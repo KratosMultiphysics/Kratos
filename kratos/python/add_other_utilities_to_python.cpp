@@ -160,7 +160,7 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
 }
 
 template<class TEntityType, class TContainerType>
-void RegisterSubModelPartEntitiesBooleanOperation(pybind11::module &m, std::string Name)
+void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::string Name)
 {
     namespace py = pybind11;
     typedef SubModelPartEntitiesBooleanOperationUtility<TEntityType,TContainerType> UtilityType;
@@ -618,16 +618,16 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
 
-    RegisterSubModelPartEntitiesBooleanOperation<Node<3>,ModelPart::NodesContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
         m, "SubModelPartNodesBooleanOperationUtility");
 
-    RegisterSubModelPartEntitiesBooleanOperation<Element,ModelPart::ElementsContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(
         m, "SubModelPartElementsBooleanOperationUtility");
 
-    RegisterSubModelPartEntitiesBooleanOperation<Condition,ModelPart::ConditionsContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<Condition,ModelPart::ConditionsContainerType>(
         m, "SubModelPartConditionsBooleanOperationUtility");
 
-    RegisterSubModelPartEntitiesBooleanOperation<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
         m, "SubModelPartConstraintsBooleanOperationUtility");
 
 }
