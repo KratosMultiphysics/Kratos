@@ -8,7 +8,7 @@
 
 namespace Kratos
 {
-ModelPart& CreateStructuralMechanicsTestModelPart(Model* pModel,
+ModelPart& KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CreateStructuralMechanicsTestModelPart(Model* pModel,
                                                   const Element& rElementPrototype,
                                                   const ConstitutiveLaw& rCLPrototype,
                                                   std::function<void(ModelPart*)> CustomBC = {});
