@@ -1696,8 +1696,7 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
         KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
 
-        //Check extra edge distances - elem_3 is incised, elem_4 is detected as incised
-        // --> (TODO) solution: detect elem_4 as intersected in ComputeEdgeIntersection in CalculateDiscontinuousDistanceToSkinProcess?
+        //Check extra edge distances - elem_3 is incised, elem_4 is detected as intersected
         const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
         const auto &r_edge_dist_elem_4_extra = volume_part.GetElement(4).GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
         const std::vector<double> expected_values_elem_3_extra = {-1.0,0.5,-1.0};
