@@ -2,6 +2,7 @@
 import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+from KratosMultiphysics.mpi import DataCommunicatorFactory
 import os
 
 def GetFilePath(fileName):
@@ -9,6 +10,16 @@ def GetFilePath(fileName):
 
 
 class TestLinearSolvers(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        default_data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        cls.data_comm_name = "AllExceptFirst"
+        ranks_sub_comm = [i for i in range(1,default_data_comm.Size())]
+        cls.sub_comm = DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks_sub_comm, cls.data_comm_name)
+
+    @classmethod
+    def tearDownClass(cls):
+        KratosMultiphysics.ParallelEnvironment.UnregisterDataCommunicator(cls.data_comm_name)
 
     def _RunParametrized(self, my_params_string ):
         all_settings = KratosMultiphysics.Parameters( my_params_string )
@@ -20,9 +31,24 @@ class TestLinearSolvers(KratosUnittest.TestCase):
     def _RunParametrizedWithSubComm(self, my_params_string ):
         all_settings = KratosMultiphysics.Parameters( my_params_string )
 
+        # create a sub communicator, containing all ranks except rank 0
+        default_data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        size = default_data_comm.Size()
+        if size < 3:
+            self.skipTest("This test needs at least 3 mpi processes")
+
+        if default_data_comm.Rank() == 0:
+            self.assertFalse(self.sub_comm.IsDefinedOnThisRank())
+        else:
+            self.assertTrue(self.sub_comm.IsDefinedOnThisRank())
+
+        if not self.sub_comm.IsDefinedOnThisRank():
+            # this rank does not participate
+            return
+
         for i in range(all_settings["test_list"].size()):
             settings = all_settings["test_list"][i]
-            self._auxiliary_test_function(settings, KratosMultiphysics.Testing.GetDefaultDataCommunicator())
+            self._auxiliary_test_function(settings, self.sub_comm)
 
     def _auxiliary_test_function(self, settings, data_comm=KratosMultiphysics.Testing.GetDefaultDataCommunicator(), matrix_name="A.mm", absolute_norm=False):
         comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(data_comm)
@@ -603,6 +629,7 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_bicgstab(self):
@@ -624,6 +651,7 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_bicgstabl(self):
@@ -645,6 +673,7 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_gmres(self):
@@ -666,6 +695,7 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
             self._RunParametrized(params_string)
 
         with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
             self._RunParametrizedWithSubComm(params_string)
 
 
