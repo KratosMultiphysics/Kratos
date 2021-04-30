@@ -32,6 +32,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         {
             "name"                    : "penalized_projection",
             "max_correction_share"    : 0.75,
+            "initial_iteration"       : 1,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
             "line_search" : {
@@ -68,6 +69,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
 
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        self.initial_iteration = self.algorithm_settings["initial_iteration"].GetInt()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
@@ -103,7 +105,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        for self.optimization_iteration in range(1,self.max_iterations):
+        for self.optimization_iteration in range(self.initial_iteration,self.max_iterations):
             KM.Logger.Print("")
             KM.Logger.Print("===============================================================================")
             KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
@@ -290,7 +292,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
 
-        if self.optimization_iteration > 1 :
+        if self.optimization_iteration > self.initial_iteration :
 
             # Check if maximum iterations were reached
             if self.optimization_iteration == self.max_iterations:
