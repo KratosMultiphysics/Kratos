@@ -143,6 +143,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< LineSearchContactStrategyType,
         typename LineSearchContactStrategyType::Pointer,
         BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
+        .def(py::init < ModelPart&, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
