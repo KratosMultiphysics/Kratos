@@ -37,7 +37,7 @@ public:
 
     SymmetryRevolution(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters Settings);
 
-    NodeVector& GetOriginSearchNodes() override;
+    NodeVectorType& GetOriginSearchNodes() override;
 
     std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) override;
 
@@ -49,10 +49,10 @@ public:
     array_3d mAxis;
     array_3d mPlaneVector1; // vector in the plane orthogonal to the mAxis
 
-    NodeVector mOriginNodes;
-    NodeVector mDestinationNodes;
-    NodeVector mTransformedOriginNodes;
-    NodeVector mTransformedDestinationNodes;
+    NodeVectorType mOriginNodes;
+    NodeVectorType mDestinationNodes;
+    NodeVectorType mTransformedOriginNodes;
+    NodeVectorType mTransformedDestinationNodes;
 
 
 }; // Class SymmetryRevolution

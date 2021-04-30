@@ -66,7 +66,7 @@ SymmetryRevolution::SymmetryRevolution(ModelPart& rOriginModelPart, ModelPart& r
     });
 }
 
-SymmetryRevolution::NodeVector& SymmetryRevolution::GetOriginSearchNodes() {
+SymmetryRevolution::NodeVectorType& SymmetryRevolution::GetOriginSearchNodes() {
     return mTransformedOriginNodes;
 }
 

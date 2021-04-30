@@ -43,12 +43,11 @@ public:
     ///@{
 
     // Type definitions for better reading later
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
-    typedef std::vector<NodeType::Pointer> NodeVector;
-    typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
-    typedef std::vector<double>::iterator DoubleVectorIterator;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef Node<3> NodeType;
+    typedef NodeType::Pointer NodePointerType;
+    typedef std::vector<NodePointerType> NodeVectorType;
+    typedef std::vector<NodePointerType>::iterator NodeIteratorType;
+    typedef std::vector<double>::iterator DoubleVectorIteratorType;
     typedef array_1d<double,3> array_3d;
 
     // Type definitions for linear algebra including sparse systems
@@ -57,7 +56,7 @@ public:
     typedef SparseSpaceType::VectorType VectorType;
 
     // Type definitions for tree-search
-    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+    typedef Bucket< 3, NodeType, NodeVectorType, NodePointerType, NodeIteratorType, DoubleVectorIteratorType > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of MapperVertexMorphingSymmetric
@@ -169,13 +168,13 @@ private:
     void AllocateMatrix();
 
     virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& destination_node,
-                                                const NodeVector& neighbor_nodes,
+                                                const NodeVectorType& neighbor_nodes,
                                                 const unsigned int number_of_neighbors,
                                                 std::vector<double>& list_of_weights,
                                                 double& sum_of_weights );
 
     void FillMappingMatrixWithWeights(  const ModelPart::NodeType& destination_node,
-                                        const NodeVector& neighbor_nodes,
+                                        const NodeVectorType& neighbor_nodes,
                                         const unsigned int number_of_neighbors,
                                         const std::vector<double>& list_of_weights,
                                         const std::vector<bool>& transform,

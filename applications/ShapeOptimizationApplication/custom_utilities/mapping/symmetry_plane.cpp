@@ -51,7 +51,7 @@ SymmetryPlane::SymmetryPlane(ModelPart& rOriginModelPart, ModelPart& rDestinatio
     });
 }
 
-SymmetryPlane::NodeVector& SymmetryPlane::GetOriginSearchNodes() {
+SymmetryPlane::NodeVectorType& SymmetryPlane::GetOriginSearchNodes() {
     return mOriginNodes;
 }
 

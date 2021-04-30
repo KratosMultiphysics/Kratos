@@ -74,7 +74,7 @@ void MapperVertexMorphingSymmetric::Map( const Variable<array_3d> &rOriginVariab
     });
 
     // Perform mapping
-    noalias(values_destination) = prod(mMappingMatrix,values_origin);
+    SparseSpaceType::Mult(mMappingMatrix, values_origin, values_destination);
 
     // Assign results to nodal variable
     block_for_each(mrDestinationModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
@@ -188,11 +188,11 @@ void MapperVertexMorphingSymmetric::AssignMappingIds()
     // Note: loop in the same order as in AllocateMatrix(), to avoid reallocations of the matrix.
     IndexPartition<int>(mrOriginModelPart.NumberOfNodes()).for_each([&](const int Index) {
         (mrOriginModelPart.NodesBegin() + Index)->SetValue(MAPPING_ID, Index);
-    }
+    });
 
     IndexPartition<int>(mrDestinationModelPart.NumberOfNodes()).for_each([&](const int Index) {
         (mrDestinationModelPart.NodesBegin() + Index)->SetValue(MAPPING_ID, Index);
-    }
+    });
 }
 
 void MapperVertexMorphingSymmetric::CreateSearchTreeWithAllNodesInOriginModelPart()
@@ -211,7 +211,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
 
     // variable size, fixed capacity vecs
     std::vector<bool> transform;
-    NodeVector total_neighbor_nodes;
+    NodeVectorType total_neighbor_nodes;
     std::vector<double> total_list_of_weights;
     std::vector<double> list_of_weights;
     transform.reserve(max_number_of_neighbors);
@@ -220,7 +220,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
     list_of_weights.reserve( max_number_of_neighbors );
 
     // fixed size vec
-    NodeVector neighbor_nodes( max_number_of_neighbors );
+    NodeVectorType neighbor_nodes( max_number_of_neighbors );
     #pragma omp for
     for (int i = 0; i < int(mrDestinationModelPart.NumberOfNodes()); ++i)
     {
@@ -263,7 +263,7 @@ void MapperVertexMorphingSymmetric::AllocateMatrix() {
     const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
     // fixed size vecs
-    NodeVector neighbor_nodes( max_number_of_neighbors );
+    NodeVectorType neighbor_nodes( max_number_of_neighbors );
     for(auto& node_i : mrDestinationModelPart.Nodes())
     {
         auto search_nodes = mpSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
@@ -313,7 +313,7 @@ void MapperVertexMorphingSymmetric::AllocateMatrix() {
 
 void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
     const ModelPart::NodeType& destination_node,
-    const NodeVector& neighbor_nodes,
+    const NodeVectorType& neighbor_nodes,
     const unsigned int number_of_neighbors,
     std::vector<double>& list_of_weights,
     double& sum_of_weights )
@@ -330,7 +330,7 @@ void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
 
 void MapperVertexMorphingSymmetric::FillMappingMatrixWithWeights(
     const ModelPart::NodeType& destination_node,
-    const NodeVector& neighbor_nodes,
+    const NodeVectorType& neighbor_nodes,
     const unsigned int number_of_neighbors,
     const std::vector<double>& list_of_weights,
     const std::vector<bool>& transform,

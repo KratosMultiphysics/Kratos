@@ -37,7 +37,7 @@ public:
 
     SymmetryPlane(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters Settings);
 
-    NodeVector& GetOriginSearchNodes() override;
+    NodeVectorType& GetOriginSearchNodes() override;
 
     std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) override;
 
@@ -48,8 +48,8 @@ public:
     array_3d mPlanePoint;
     array_3d mPlaneNormal;
 
-    NodeVector mOriginNodes;
-    NodeVector mDestinationNodes;
+    NodeVectorType mOriginNodes;
+    NodeVectorType mDestinationNodes;
     Matrix mReflectionMatrix;
 }; // Class SymmetryPlane
 

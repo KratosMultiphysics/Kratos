@@ -37,7 +37,7 @@ public:
 
     typedef Node<3> NodeType;
     typedef NodeType::Pointer NodeTypePointer;
-    typedef std::vector<NodeType::Pointer> NodeVector;
+    typedef std::vector<NodeTypePointer> NodeVectorType;
     typedef array_1d<double,3> array_3d;
 
     SymmetryBase(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters Settings)
@@ -47,7 +47,7 @@ public:
 
     virtual ~SymmetryBase() {};
 
-    virtual NodeVector& GetOriginSearchNodes() = 0;
+    virtual NodeVectorType& GetOriginSearchNodes() = 0;
 
     virtual std::vector<std::pair<array_3d, bool>> GetDestinationSearchNodes(const size_t MappingId) = 0;
 
