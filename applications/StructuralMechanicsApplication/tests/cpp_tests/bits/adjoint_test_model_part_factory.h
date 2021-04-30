@@ -5,7 +5,7 @@
 
 namespace Kratos
 {
-ModelPart& KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CreateStructuralMechanicsAdjointTestModelPart(ModelPart* pPrimalModelPart);
+ModelPart& CreateStructuralMechanicsAdjointTestModelPart(ModelPart* pPrimalModelPart);
 }
 
 #endif
