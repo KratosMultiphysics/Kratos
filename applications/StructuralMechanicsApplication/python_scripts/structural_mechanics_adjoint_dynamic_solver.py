@@ -15,7 +15,7 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
 
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(StructuralMechanicsAdjointDynamicSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
@@ -24,11 +24,11 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
             "response_function_settings" : {},
             "sensitivity_settings" : {}
         }""")
-        this_defaults.AddMissingParameters(super(StructuralMechanicsAdjointDynamicSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
-        super(StructuralMechanicsAdjointDynamicSolver, self).AddVariables()
+        super().AddVariables()
         self._add_dynamic_variables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
@@ -46,7 +46,7 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
     def PrepareModelPart(self):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
             raise Exception("there are currently only 3D adjoint elements available")
-        super(StructuralMechanicsAdjointDynamicSolver, self).PrepareModelPart()
+        super().PrepareModelPart()
         # TODO Why does replacement need to happen after reading materials?
 
         process_info = self.main_model_part.ProcessInfo
@@ -141,17 +141,17 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
         self.sensitivity_builder.Initialize()
 
-        super(StructuralMechanicsAdjointDynamicSolver, self).Initialize()
+        super().Initialize()
         self.response_function.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
-        super(StructuralMechanicsAdjointDynamicSolver, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(StructuralMechanicsAdjointDynamicSolver, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
 
