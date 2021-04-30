@@ -186,11 +186,10 @@ void MapperVertexMorphingSymmetric::InitializeMappingVariables()
 
 void MapperVertexMorphingSymmetric::AssignMappingIds()
 {
-    unsigned int i = 0;
-
     // Note: loop in the same order as in AllocateMatrix(), to avoid reallocations of the matrix.
-    for(auto& node_i : mrOriginModelPart.Nodes())
-        node_i.SetValue(MAPPING_ID,i++);
+    IndexPartition<int>(mrOriginModelPart.NumberOfNodes()).for_each([&](const int Index) {
+        (mrOriginModelPart.NodesBegin() + Index)->SetValue(MAPPING_ID, Index);
+    }
 
     i = 0;
     for(auto& node_i : mrDestinationModelPart.Nodes())
