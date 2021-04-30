@@ -504,20 +504,15 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                                : "newton_raphson_contact_strategy",
-            "use_old_stiffness_in_first_iteration": false,
-            "max_iteration"                       : 10,
-            "reform_dofs_at_each_step"            : false,
-            "compute_reactions"                   : false,
-            "builder_and_solver_settings"         : {},
-            "convergence_criteria_settings"       : {},
-            "linear_solver_settings"              : {},
-            "scheme_settings"                     : {},
             "adaptative_strategy"                 : false,
             "split_factor"                        : 10.0,
             "max_number_splits"                   : 3,
             "inner_loop_iterations"               : 5
         })" );
 
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
     }
 
