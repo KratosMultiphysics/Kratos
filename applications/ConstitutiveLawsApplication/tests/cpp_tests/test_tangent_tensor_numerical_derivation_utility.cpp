@@ -70,8 +70,8 @@ void SettingBasicCase(
         rMaterialProperties.SetValue(FRICTION_ANGLE, 32.0);
         rMaterialProperties.SetValue(DILATANCY_ANGLE, 16.0);
         rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
-        rMaterialProperties.SetValue(FRACTURE_ENERGY, 100.0);
-        rMaterialProperties.SetValue(HARDENING_CURVE, 3);
+        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1000.0);
+        rMaterialProperties.SetValue(HARDENING_CURVE, 0);
 
         rStrainVector[1] = 1.0e-5;
     }
