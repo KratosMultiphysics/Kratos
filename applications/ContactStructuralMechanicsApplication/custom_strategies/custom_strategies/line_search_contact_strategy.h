@@ -206,6 +206,33 @@ public:
     ~LineSearchContactStrategy() override
     = default;
         
+
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "line_search_contact_strategy"
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "line_search_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
