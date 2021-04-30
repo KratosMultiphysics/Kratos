@@ -208,8 +208,6 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
         n_intersected = communicator.SumAll(n_intersected)
         n_incised = communicator.SumAll(n_incised)
-        print(n_intersected)
-        print(n_incised)
         self.assertEqual(n_intersected, 1)
         self.assertEqual(n_incised, 2)
 
