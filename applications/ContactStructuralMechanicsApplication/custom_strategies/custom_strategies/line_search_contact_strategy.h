@@ -124,7 +124,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit LineSearchContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart)
+        : BaseType(rModelPart, BaseType::GetDefaultParameters())
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
