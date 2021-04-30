@@ -71,7 +71,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, Parameters>());
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
-        .def(py::init<ModelPart &, Parameters>());
+        .def(py::init<ModelPart &, Parameters>())
+        .def("SetAngularVelocity", &RotateRegionProcess::SetAngularVelocity);
 }
 
 } // namespace Python.
