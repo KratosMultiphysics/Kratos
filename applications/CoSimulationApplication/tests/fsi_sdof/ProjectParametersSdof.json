@@ -1,8 +1,8 @@
 {
     "system_parameters":{
-        "mass": 6.48e-4,
-        "stiffness" : 0.80,
-        "damping": 0.0033
+        "mass": 4.36e-3,
+        "stiffness" : 10.0,
+        "damping": 0.0
     },
     "time_integration_parameters":{
         "alpha_m": -0.3,
@@ -26,7 +26,6 @@
          "buffer_size": 3
      },
      "output_parameters":{
-        "write_output_file": true,
-        "file_name" : "sdof_sdof/results_sdof_controller.dat"
+        "write_output_file": false
      }
 }

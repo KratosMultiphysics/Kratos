@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 5,
+        "end_time" : 1.2,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -29,14 +29,14 @@
         "coupling_sequence":
         [
         {
-            "name": "sdof_solver",
+            "name": "sdof",
             "input_data_list": [
                 {
                     "data"              : "load",
                     "from_solver"       : "fluid",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "transfer_forces",
-                    "data_transfer_operator_options" : ["swap_sign", "add_values"]
+                    "data_transfer_operator_options" : ["swap_sign"]
                 }
             ],
             "output_data_list": [
@@ -73,11 +73,11 @@
                     }
                 }
             },
-            "sdof_solver" :
+            "sdof" :
             {
                 "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "fsi_sdof/ProjectParametersSdof_structure"
+                    "input_file"  : "fsi_sdof/ProjectParametersSdof"
                 },
                 "data" : {
                     "disp" : {

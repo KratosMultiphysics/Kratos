@@ -21,11 +21,6 @@ scripts/*.bat
 build/*
 bin/*
 
-cmake_build_mpi_release/*
-install/*
-*.info
-*.sh
-
 # Times files
 *.time
 
