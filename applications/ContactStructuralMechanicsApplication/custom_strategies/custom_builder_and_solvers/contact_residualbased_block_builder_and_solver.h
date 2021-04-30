@@ -69,8 +69,14 @@ public:
     /// Pointer definition of ContactResidualBasedBlockBuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedBlockBuilderAndSolver);
 
+    /// Builder and solver base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+
     /// Definitions dependent of the base class
     typedef TBuilderAndSolver BaseType;
+
+    /// The definition of the current class
+    typedef ContactResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver, TBuilderAndSolver> ClassType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -85,6 +91,26 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ContactResidualBasedBlockBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ContactResidualBasedBlockBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /** Constructor.
      */
