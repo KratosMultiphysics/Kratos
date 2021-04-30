@@ -583,14 +583,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     strain_vector = ZeroVector(6);
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
-    strain_vector[2] = 8.0e-5;
+    strain_vector[2] = 8.0e-7;
     strain_vector[3] = 0.0;
     strain_vector[4] = 0.0;
     strain_vector[5] = 1.6941e-21;
     Matrix deformation_gradient = ZeroMatrix(3, 3);
     deformation_gradient(0,0) = 1.0;
     deformation_gradient(1,1) = 1.0;
-    deformation_gradient(2,2) = (1.0 + 8.0e-5);
+    deformation_gradient(2,2) = (1.0 + 8.0e-7);
     deformation_gradient(2,0) = 0.5 * 1.6941e-21;
     deformation_gradient(0,2) = 0.5 * 1.6941e-21;
 
@@ -601,7 +601,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
-    material_properties.SetValue(FRACTURE_ENERGY, 10.0);
+    material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
@@ -679,7 +679,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     VonMisesCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
 
-    // Drucker Pragger
+    // Drucker-Prager
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCLFS.CalculateMaterialResponsePK2(cl_parameters_DP);
     DruckerPragerCLFS.FinalizeMaterialResponsePK2(cl_parameters_DP);
@@ -920,7 +920,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
-    material_properties.SetValue(FRACTURE_ENERGY, 10.0);
+    material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:

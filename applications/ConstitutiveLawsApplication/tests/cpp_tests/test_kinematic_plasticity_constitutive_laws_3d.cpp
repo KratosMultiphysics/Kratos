@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
 
     // Create the CL
     VM VonMisesCL = VM();
-    std::vector<double> VMres = {-1.81882e+07,-1.81882e+07,-1.78117e+07,0,0,0};
+    std::vector<double> VMres = {-1.72469e+07,-1.72469e+07,-1.96943e+07,0,0,0};
 
     double plastic_dissipation;
     Vector TestVM(6);
@@ -235,7 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
     // Create the CL
     VM VonMisesCL = VM();
-    std::vector<double> VMres = {-1.80942e+07,-1.80942e+07,-1.80036e+07,0,0,0};
+    std::vector<double> VMres = {-1.72477e+07,-1.72477e+07,-1.96951e+07,0,0,0};
 
     double plastic_dissipation;
     Vector TestVM(6);
