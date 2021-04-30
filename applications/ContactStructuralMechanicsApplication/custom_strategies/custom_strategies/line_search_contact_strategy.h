@@ -478,10 +478,15 @@ protected:
                 Xmax = Xmin; // Should be zero, but otherwise it will stagnate
         }
     }
-    
-    ///@}
-    ///@name Protected Operations
-    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
 
     ///@}
     ///@name Protected  Access
