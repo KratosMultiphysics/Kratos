@@ -17,6 +17,13 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
 
+    def _RunParametrizedWithSubComm(self, my_params_string ):
+        all_settings = KratosMultiphysics.Parameters( my_params_string )
+
+        for i in range(all_settings["test_list"].size()):
+            settings = all_settings["test_list"][i]
+            self._auxiliary_test_function(settings, KratosMultiphysics.Testing.GetDefaultDataCommunicator())
+
     def _auxiliary_test_function(self, settings, data_comm=KratosMultiphysics.Testing.GetDefaultDataCommunicator(), matrix_name="A.mm", absolute_norm=False):
         comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(data_comm)
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
@@ -86,7 +93,7 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
             self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -95,13 +102,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_mumps(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
             self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -110,14 +123,20 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
 
     def test_amesos_klu(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
             self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -126,13 +145,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_superludist_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
             self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -140,13 +165,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_mumps_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
             self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -154,13 +185,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_klu_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
             self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -168,7 +205,13 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
 class TestAmesos2LinearSolvers(TestLinearSolvers):
     def setUp(self):
