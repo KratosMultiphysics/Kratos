@@ -464,11 +464,9 @@ class TestDEMSchemes(KratosUnittest.TestCase):
         files_to_delete_list.append(os.path.join("test_schemes", "test_scheme.post.lst"))
         files_to_delete_list.append(os.path.join("test_schemes", "flux_data_new.hdf5"))
 
-        try:
-            for to_erase_file in files_to_delete_list:
+        for to_erase_file in files_to_delete_list:
+            if os.path.exists(to_erase_file):
                 os.remove(to_erase_file)
-        except:
-            print("Error while deleting file ", to_erase_file)
 
         #............Getting rid of unuseful folders
         folders_to_delete_list      = []

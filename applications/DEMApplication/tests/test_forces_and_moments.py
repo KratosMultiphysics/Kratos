@@ -5,7 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -93,11 +92,29 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, 1)
 
-    def tearDown(self):
-        file_to_remove = os.path.join("forces_and_moments_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("forces_and_moments_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+    @staticmethod
+    def tearDown():
+        files_to_delete_list = []
+        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
+        files_to_delete_list.append(os.path.join("forces_and_moments_tests_files", "forces_and_moments_process.post.lst"))
+        files_to_delete_list.append(os.path.join("forces_and_moments_tests_files", "flux_data_new.hdf5"))
+
+        for to_erase_file in files_to_delete_list:
+            if os.path.exists(to_erase_file):
+                os.remove(to_erase_file)
+
+        #............Getting rid of unuseful folders
+        folders_to_delete_list      = []
+        folders_to_delete_list.append(os.path.join("forces_and_moments_tests_files", "forces_and_moments_process_Graphs"))
+        folders_to_delete_list.append(os.path.join("forces_and_moments_tests_files", "forces_and_moments_process_MPI_results"))
+        folders_to_delete_list.append(os.path.join("forces_and_moments_tests_files", "forces_and_moments_process_Post_Files"))
+        folders_to_delete_list.append(os.path.join("forces_and_moments_tests_files", "forces_and_moments_process_Results_and_Data"))
+
+
+        for to_erase_folder in folders_to_delete_list:
+            import shutil
+            shutil.rmtree(to_erase_folder)
+
         os.chdir(this_working_dir_backup)
 
 

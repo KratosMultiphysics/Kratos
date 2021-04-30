@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -55,6 +53,33 @@ class TestDEM2DInlet(KratosUnittest.TestCase):
         file_to_remove = os.path.join("DEM2D_inlet_tests_files", "flux_data_new.hdf5")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
+
+
+    @staticmethod
+    def tearDown():
+        files_to_delete_list = []
+        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
+        files_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet.post.lst"))
+        files_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "flux_data_new.hdf5"))
+
+        for to_erase_file in files_to_delete_list:
+            if os.path.exists(to_erase_file):
+                os.remove(to_erase_file)
+
+        #............Getting rid of unuseful folders
+        folders_to_delete_list      = []
+        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_Graphs"))
+        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_MPI_results"))
+        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_Post_Files"))
+        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_Results_and_Data"))
+
+
+        for to_erase_folder in folders_to_delete_list:
+            import shutil
+            shutil.rmtree(to_erase_folder)
+
+        os.chdir(this_working_dir_backup)
+
 
 
 if __name__ == "__main__":
