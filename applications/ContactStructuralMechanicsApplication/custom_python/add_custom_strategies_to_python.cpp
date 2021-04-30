@@ -345,15 +345,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Contact block builder and solver
     py::class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
-    .def(py::init< LinearSolverType::Pointer > ());
+    .def(py::init< LinearSolverType::Pointer > ())
+    .def(py::init< LinearSolverType::Pointer, Parameters > ())
+    ;
 
     // Contact elimination builder and solver
     py::class_< ContactResidualBasedEliminationBuilderAndSolverType, ContactResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolver")
-    .def(py::init< LinearSolverType::Pointer > ());
+    .def(py::init< LinearSolverType::Pointer > ())
+    .def(py::init< LinearSolverType::Pointer, Parameters > ())
+    ;
 
     // Contact elimination builder and sokver with constraints
     py::class_< ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType, ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolverWithConstraints")
-    .def(py::init< LinearSolverType::Pointer > ());
+    .def(py::init< LinearSolverType::Pointer > ())
+    .def(py::init< LinearSolverType::Pointer, Parameters > ())
+    ;
 }
 
 }  // namespace Python.
