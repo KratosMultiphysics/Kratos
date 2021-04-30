@@ -88,6 +88,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         del linear_solver
 
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AmesosSolver'), "AmesosSolver was explicitly disabled.")
 class TestAmesosLinearSolvers(TestLinearSolvers):
     def test_amesos_superludist(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
@@ -213,12 +214,8 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
         with self.subTest('SubComm'):
             self._RunParametrizedWithSubComm(params_string)
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'Amesos2Solver'), "Amesos2Solver is not included in the compilation.")
 class TestAmesos2LinearSolvers(TestLinearSolvers):
-    def setUp(self):
-        if not hasattr(KratosMultiphysics.TrilinosApplication, "Amesos2Solver"):
-            self.skipTest("Amesos2Solver is not available")
-        super().setUp()
-
     def test_amesos2_superludist(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_superludist") ):
             self.skipTest("amesos2_superludist is not among the available Amesos2 Solvers")
