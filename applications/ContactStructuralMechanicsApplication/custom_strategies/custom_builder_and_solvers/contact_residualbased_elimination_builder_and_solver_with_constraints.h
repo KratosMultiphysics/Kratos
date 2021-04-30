@@ -68,8 +68,14 @@ public:
     /// Pointer definition of ContactResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedEliminationBuilderAndSolverWithConstraints);
 
+    /// Builder and solver base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+
     /// Definitions dependent of the base class
     typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< TSparseSpace, TDenseSpace, TLinearSolver > BaseType;
+
+    /// The definition of the current class
+    typedef ContactResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     /// Base types definitions
     typedef typename BaseType::TSchemeType TSchemeType;
@@ -117,6 +123,26 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ContactResidualBasedEliminationBuilderAndSolverWithConstraints() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ContactResidualBasedEliminationBuilderAndSolverWithConstraints(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /** Constructor.
      */
