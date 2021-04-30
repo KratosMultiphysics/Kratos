@@ -1772,6 +1772,38 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 /***********************************************************************************/
 /***********************************************************************************/
 
+const Parameters BaseSolidElement::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["INTEGRATION_WEIGHT","STRAIN_ENERGY","ERROR_INTEGRATION_POINT","VON_MISES_STRESS","INSITU_STRESS","CAUCHY_STRESS_VECTOR","PK2_STRESS_VECTOR","GREEN_LAGRANGE_STRAIN_VECTOR","ALMANSI_STRAIN_VECTOR","CAUCHY_STRESS_TENSOR","PK2_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","ALMANSI_STRAIN_TENSOR","CONSTITUTIVE_MATRIX","DEFORMATION_GRADIENT","CONSTITUTIVE_LAW"],
+            "nodal_historical"       : ["DISPLACEMENT","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3", "Triangle2D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9","Tetrahedra3D4", "Prism3D6", "Prism3D15", "Hexahedra3D8", "Hexahedra3D20", "Hexahedra3D27", "Tetrahedra3D10"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["PlaneStrain","ThreeDimensional"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "This is a pure displacement element"
+    })");
+    return specifications;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
