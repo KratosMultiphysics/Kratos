@@ -66,7 +66,7 @@ void  AddTestingToPython(pybind11::module& m) {
     auto m_testing = m.def_submodule("Testing");
     m_testing.def("GetDefaultDataCommunicator", []() -> DataCommunicator& {
         return ParallelEnvironment::GetDefaultDataCommunicator();
-    });
+    }, py::return_value_policy::reference);
 }
 
 }  // namespace Python.
