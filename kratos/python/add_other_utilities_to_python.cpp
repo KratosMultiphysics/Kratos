@@ -58,10 +58,6 @@
 namespace Kratos {
 namespace Python {
 
-typedef ModelPart::NodesContainerType NodesContainerType;
-typedef ModelPart::ElementsContainerType ElementsContainerType;
-typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
  */
@@ -161,6 +157,18 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     std::string name;
     CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name);
     return name;
+}
+
+template<class TEntityType, class TContainerType>
+void RegisterSubModelPartEntitiesBooleanOperation(pybind11::module &m, std::string Name)
+{
+    namespace py = pybind11;
+    typedef SubModelPartEntitiesBooleanOperationUtility<TEntityType,TContainerType> UtilityType;
+    py::class_<UtilityType>(m, Name.c_str())
+        .def_static("Union", &UtilityType::Union)
+        .def_static("Intersection", &UtilityType::Intersection)
+        .def_static("Difference", &UtilityType::Difference)
+        ;
 }
 
 void AddOtherUtilitiesToPython(pybind11::module &m)
@@ -610,42 +618,17 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
 
-    typedef SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType> SubModelPartNodesBooleanOperation;
-    typedef SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType> SubModelPartElementsBooleanOperation;
-    typedef SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType> SubModelPartConditionsBooleanOperation;
-    typedef SubModelPartEntitiesBooleanOperationUtility<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType> SubModelPartConstraintsBooleanOperation;
-    py::class_<
-        SubModelPartNodesBooleanOperation,
-        SubModelPartNodesBooleanOperation::Pointer>
-        (m,"SubModelPartNodesBooleanOperationUtility")
-        .def_static("Union", &SubModelPartNodesBooleanOperation::Union)
-        .def_static("Intersection", &SubModelPartNodesBooleanOperation::Intersection)
-        .def_static("Difference", &SubModelPartNodesBooleanOperation::Difference)
-    ;
-    py::class_<
-        SubModelPartElementsBooleanOperation,
-        SubModelPartElementsBooleanOperation::Pointer>
-        (m,"SubModelPartElementsBooleanOperationUtility")
-        .def_static("Union", &SubModelPartElementsBooleanOperation::Union)
-        .def_static("Intersection", &SubModelPartElementsBooleanOperation::Intersection)
-        .def_static("Difference", &SubModelPartElementsBooleanOperation::Difference)
-    ;
-    py::class_<
-        SubModelPartConditionsBooleanOperation,
-        SubModelPartConditionsBooleanOperation::Pointer>
-        (m,"SubModelPartConditionsBooleanOperationUtility")
-        .def_static("Union", &SubModelPartConditionsBooleanOperation::Union)
-        .def_static("Intersection", &SubModelPartConditionsBooleanOperation::Intersection)
-        .def_static("Difference", &SubModelPartConditionsBooleanOperation::Difference)
-    ;
-    py::class_<
-        SubModelPartConstraintsBooleanOperation,
-        SubModelPartConstraintsBooleanOperation::Pointer>
-        (m,"SubModelPartConstraintsBooleanOperationUtility")
-        .def_static("Union", &SubModelPartConstraintsBooleanOperation::Union)
-        .def_static("Intersection", &SubModelPartConstraintsBooleanOperation::Intersection)
-        .def_static("Difference", &SubModelPartConstraintsBooleanOperation::Difference)
-    ;
+    RegisterSubModelPartEntitiesBooleanOperation<Node<3>,ModelPart::NodesContainerType>(
+        m, "SubModelPartNodesBooleanOperationUtility");
+
+    RegisterSubModelPartEntitiesBooleanOperation<Element,ModelPart::ElementsContainerType>(
+        m, "SubModelPartElementsBooleanOperationUtility");
+
+    RegisterSubModelPartEntitiesBooleanOperation<Condition,ModelPart::ConditionsContainerType>(
+        m, "SubModelPartConditionsBooleanOperationUtility");
+
+    RegisterSubModelPartEntitiesBooleanOperation<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
+        m, "SubModelPartConstraintsBooleanOperationUtility");
 
 }
 
