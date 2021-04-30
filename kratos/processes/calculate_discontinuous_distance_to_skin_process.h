@@ -28,6 +28,7 @@
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/variable_utils.h"
+#include "utilities/pointer_communicator.h"
 
 namespace Kratos
 {
@@ -552,6 +553,11 @@ private:
      */
     void CheckAndCorrectEdgeDistances();
 
+
+
+    void CalculateElementalNeighbours();
+
+    GlobalPointerCommunicator<Element>::Pointer CreatePointerCommunicator();
     ///@}
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
