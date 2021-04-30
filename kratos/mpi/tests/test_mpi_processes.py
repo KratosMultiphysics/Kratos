@@ -211,6 +211,13 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         self.assertEqual(n_intersected, 1)
         self.assertEqual(n_incised, 2)
 
+        for elem in main_model_part.Elements:
+            edge_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES)
+            if elem.Id == 2:
+                self.assertVectorAlmostEqual(edge_distances, [1.0, 0.0, -1.0])
+            if elem.Id == 5:
+                self.assertVectorAlmostEqual(edge_distances, [-1.0, 0.0, -1.0])
+
     def testDiscontinuousDistanceProcessCutThroughNode2D(self):
 
         communicator = KratosMultiphysics.DataCommunicator.GetDefault()
@@ -228,7 +235,8 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_distance")
         ReadModelPart(input_filename, main_model_part)
 
-        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES
+        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES | \
+            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
             main_model_part,
             skin_model_part,
@@ -240,6 +248,24 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         n_incised = communicator.SumAll(n_incised)
         self.assertEqual(n_intersected, 4)
         self.assertEqual(n_incised, 2)
+
+        for elem in main_model_part.Elements:
+            elem_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+            edge_distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES)
+            edge_distances_extrapolated = elem.GetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+            if elem.Id == 2:
+                self.assertVectorAlmostEqual(edge_distances, [1.0,0.0, -1.0])
+            if elem.Id == 3:
+                self.assertVectorAlmostEqual(edge_distances, [-1.0, -1.0, 1.0/3.0])
+                self.assertVectorAlmostEqual(edge_distances_extrapolated, [-1.0,0.5,-1.0])
+            if elem.Id == 4:
+                self.assertVectorAlmostEqual(elem_distances, [-0.22360679,0.0,0.447213595])
+                self.assertVectorAlmostEqual(edge_distances, [-1.0, 2.0 / 3.0 ,1.0])
+                self.assertVectorAlmostEqual(edge_distances_extrapolated, [-1.0, -1.0, -1.0])
+            if elem.Id == 6:
+                self.assertVectorAlmostEqual(elem_distances, [-0.447213595,-0.22360679,0.22360679])
+                self.assertVectorAlmostEqual(edge_distances, [-1.0, 1.0 / 3.0 , -1.0])
+                self.assertVectorAlmostEqual(edge_distances_extrapolated, [0.5, -1.0, -1.0])
 
 def _GetNumberIncisedAndIntersectedElements(main_model_part, n_edges):
     n_intersected = 0
