@@ -17,8 +17,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
 
-    def _auxiliary_test_function(self, settings, matrix_name="A.mm", absolute_norm=False):
-        comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.Testing.GetDefaultDataCommunicator())
+    def _auxiliary_test_function(self, settings, data_comm=KratosMultiphysics.Testing.GetDefaultDataCommunicator(), matrix_name="A.mm", absolute_norm=False):
+        comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(data_comm)
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
@@ -69,7 +69,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         if(settings.Has("tolerance")):
             tolerance = settings["tolerance"].GetDouble()
 
-        nproc = KratosMultiphysics.Testing.GetDefaultDataCommunicator().Size()
+        nproc = data_comm.Size()
         target_norm = tolerance*space.TwoNorm(pboriginal.GetReference())*nproc #multiplying by nproc the target tolerance to give some slack. Not really nice :-(
 
         if(achieved_norm > target_norm):
