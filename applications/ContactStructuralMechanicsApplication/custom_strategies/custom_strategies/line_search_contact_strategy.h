@@ -80,6 +80,8 @@ public:
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> NRBaseType;
     
     typedef LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
+
+    typedef LineSearchContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>           ClassType;
     
     typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
  
@@ -109,6 +111,26 @@ public:
     
     typedef std::size_t                                                                   IndexType;
     
+    /**
+     * @brief Default constructor
+     */
+    explicit LineSearchContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit LineSearchContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
     /**
      * Default constructor 
      * @param rModelPart: The model part of the problem
