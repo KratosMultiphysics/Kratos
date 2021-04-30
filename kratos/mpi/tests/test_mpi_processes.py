@@ -110,9 +110,6 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_serializer")
         ReadModelPart(input_filename, main_model_part)
 
-        ParallelFillCommunicator = KratosMultiphysics.mpi.ParallelFillCommunicator(main_model_part)
-        ParallelFillCommunicator.Execute()
-
         for node in main_model_part.Nodes:
             distance = node.X**2+node.Y**2+node.Z**2 - 1
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distance)
