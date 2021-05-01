@@ -2,7 +2,7 @@
     "materials":[{
         "material_name": "mat1",
         "material_id": 1,
-        "variables":{
+        "Variables":{
             "PARTICLE_DENSITY": 2500.0,
             "YOUNG_MODULUS": 1000000.0,
             "POISSON_RATIO": 0.20
@@ -10,7 +10,7 @@
     },{
         "material_name": "mat2",
         "material_id": 2,
-        "variables":{
+        "Variables":{
             "YOUNG_MODULUS": 1.0e20,
             "POISSON_RATIO": 0.25,
             "COMPUTE_WEAR": false
@@ -19,7 +19,7 @@
     "material_relations":[{
         "material_names_list":["mat1", "mat1"],
         "material_ids_list":[1, 1],
-        "variables":{
+        "Variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.2,
             "STATIC_FRICTION": 0.009138776996010534,
             "DYNAMIC_FRICTION": 0.009138776996010534,
@@ -31,7 +31,7 @@
     },{
         "material_names_list":["mat1", "mat2"],
         "material_ids_list":[1, 2],
-        "variables":{
+        "Variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.2,
             "STATIC_FRICTION": 0.293244523092818117,
             "DYNAMIC_FRICTION": 0.293244523092818117,

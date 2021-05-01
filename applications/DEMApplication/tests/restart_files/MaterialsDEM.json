@@ -2,7 +2,7 @@
     "materials":[{
         "material_name": "mat1",
         "material_id": 1,
-        "variables":{
+        "Variables":{
             "PARTICLE_DENSITY": 2500.0,
             "YOUNG_MODULUS": 100000.0,
             "POISSON_RATIO": 0.20
@@ -11,7 +11,7 @@
     "material_relations":[{
         "material_names_list":["mat1", "mat1"],
         "material_ids_list":[1, 1],
-        "variables":{
+        "Variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.2,
             "STATIC_FRICTION": 1.0,
             "DYNAMIC_FRICTION": 1.0,

@@ -2,7 +2,7 @@
     "materials":[{
         "material_name": "mat1",
         "material_id": 1,
-        "variables":{
+        "Variables":{
             "PARTICLE_DENSITY": 2575.0,
             "YOUNG_MODULUS": 7e9,
             "POISSON_RATIO": 0.20
@@ -10,7 +10,7 @@
     },{
         "material_name": "mat2",
         "material_id": 2,
-        "variables":{
+        "Variables":{
             "YOUNG_MODULUS": 7.0e11,
             "POISSON_RATIO": 0.16,
             "COMPUTE_WEAR": false
@@ -19,7 +19,7 @@
     "material_relations":[{
         "material_names_list":["mat1", "mat1"],
         "material_ids_list":[1, 1],
-        "variables":{
+        "Variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.01,
             "STATIC_FRICTION": 0.2,
             "DYNAMIC_FRICTION": 0.2,
@@ -27,20 +27,18 @@
             "ROLLING_FRICTION": 0.025,
             "ROLLING_FRICTION_WITH_WALLS": 0.0,
             "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb2D",
-            "continuum_contact_law_parameters":{
-                "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM_with_damage_parallel_bond_2D",
-                "CONTACT_INTERNAL_FRICC": 0.5,
-                "CONTACT_TAU_ZERO": 21.952e6,
-                "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
-                "SHEAR_ENERGY_COEF": 4.0,
-                "LOOSE_MATERIAL_YOUNG_MODULUS": 2.1e9,
-                "FRACTURE_ENERGY": 5.0
-            }
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM_with_damage_parallel_bond_2D",
+            "CONTACT_INTERNAL_FRICC": 0.5,
+            "CONTACT_TAU_ZERO": 21.952e6,
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
+            "SHEAR_ENERGY_COEF": 4.0,
+            "LOOSE_MATERIAL_YOUNG_MODULUS": 2.1e9,
+            "FRACTURE_ENERGY": 5.0
         }
     },{
         "material_names_list":["mat1", "mat2"],
         "material_ids_list":[1, 2],
-        "variables":{
+        "Variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.01,
             "STATIC_FRICTION": 0.2,
             "DYNAMIC_FRICTION": 0.2,
