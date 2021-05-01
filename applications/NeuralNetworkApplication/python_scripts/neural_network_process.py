@@ -47,7 +47,7 @@ class NeuralNetworkProcess(KM.Process):
         """ Process for saving a network. """
         pass
 
-    def Compile(self, loss_function, optimizer):
+    def Compile(self, loss_function, optimizer, hp = None):
         """ Process for compiling a network. """
         pass
 

@@ -13,6 +13,8 @@ class KerasLossFunctionCompilerProcess(NeuralNetworkProcess):
     """
     This class compiles the loss function among those available in the Keras API.
 
+    This process is not tunable. Use custom_loss_function_compiler instead for tuning.
+
     """
     def __init__(self, parameters):
         super().__init__()

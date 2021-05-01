@@ -77,7 +77,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.loss_function = None
                 self.optimizer = None
                 for process in self._GetListOfProcesses():
-                    compilation_settings = process.Compile(self.loss_function, self.optimizer)
+                    compilation_settings = process.Compile(self.loss_function, self.optimizer, hp)
                     if not compilation_settings == None:
                         self.loss_function = compilation_settings[0]
                         self.optimizer = compilation_settings[1]

@@ -13,6 +13,8 @@ class KerasOptimizerCompilerProcess(NeuralNetworkProcess):
     """
     This class compiles the optimizer among those available in the Keras API.
 
+    This process is not tunable. Use custom_optimizer_compiler instead for tuning.
+
     """
     def __init__(self, parameters):
         super().__init__()

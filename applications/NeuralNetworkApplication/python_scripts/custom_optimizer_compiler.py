@@ -1,5 +1,7 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process import NeuralNetworkProcess
+from KratosMultiphysics.NeuralNetworkApplication.load_tunable_parameters_utility import LoadTunableParametersUtility
+
 import numpy as np
 import tensorflow.keras.optimizers
 from importlib import import_module
@@ -23,14 +25,19 @@ class CustomOptimizerCompilerProcess(NeuralNetworkProcess):
             "help"                     : "This process compiles a custom optimizer.",
             "optimizer"                : "",
             "module"                   : "keras",
-            "learning_rate"            : 0.001
+            "learning_rate"            : 0.001,
+            "tunable"                  : false,
+            "tunable_variable"         : "",
+            "tuning_parameters"        : {}
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
 
+        self.tunable = parameters["tunable"].GetBool()
+
         if parameters.Has("optimizer"): 
             self.optimizer_name = parameters["optimizer"].GetString()
-        else:
+        elif not self.tunable:
             raise Exception("No optimizer specified")
         self.module = parameters["module"].GetString()
         self.learning_rate = parameters["learning_rate"].GetDouble()
@@ -38,9 +45,16 @@ class CustomOptimizerCompilerProcess(NeuralNetworkProcess):
         if self.module == "keras":
             self.optimizer = getattr(tensorflow.keras.optimizers,self.optimizer_name)(learning_rate = self.learning_rate)
         else:
-            self.optimizer = getattr(optimizer_module,optimizer)
-            
-    def Compile(self, loss_function, optimizer):
+            self.optimizer = getattr(optimizer_module,optimizer)(learning_rate = self.learning_rate)
+
+        # The tuner can only tune the LR or the optimizer model at a time
+        if self.tunable:
+            self.tunable_variable = parameters["tunable_variable"].GetString()
+            self.tuning_parameters = parameters["tuning_parameters"] 
+
+    def Compile(self, loss_function, optimizer, hp = None):
         """ Process for compiling a network. """
+        if self.tunable:
+            setattr(self,self.tunable_variable,LoadTunableParametersUtility(self.tuning_parameters).Load(hp))
         optimizer = self.optimizer
         return [loss_function, optimizer]

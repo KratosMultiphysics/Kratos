@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 import kerastuner as kt
+import numpy as np
 
 
 class LoadTunableParametersUtility:
@@ -29,7 +30,13 @@ class LoadTunableParametersUtility:
         self.name = settings["name"].GetString()
 
         if self.type_of_tuning == "Choice":
-            self.values = settings["values"].GetStringArray()
+            if settings["values"].IsVector():
+                self.values = []
+                values_vector = settings["values"].GetVector()
+                for i in range(values_vector.Size()):
+                    self.values.append(values_vector[i])
+            else:
+                self.values = settings["values"].GetStringArray()
 
         if self.type_of_tuning == "Int":
             self.min_value = settings["min_value"].GetInt()
@@ -58,7 +65,7 @@ class LoadTunableParametersUtility:
             return hp.Boolean(self.name)
 
         elif self.type_of_tuning == "Choice":
-            return hp.Choice(self.name, self.values)
+            return hp.Choice(self.name, values = self.values)
 
         elif self.type_of_tuning == "Int":
             return hp.Int(self.name, self.min_value, self.max_value, step = self.step, sampling = self.sampling)
