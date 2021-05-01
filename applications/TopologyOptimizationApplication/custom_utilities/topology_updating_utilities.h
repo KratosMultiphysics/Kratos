@@ -283,6 +283,14 @@ public:
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
 			g[0] = vol_frac_iteration - volfrac*nn;
+			if (OptItr==1)
+			{
+				g[0]=100000000000;
+			}
+			if (g[0] > 0)
+			{
+				g[0]=100000000000;
+			}
 	
 			std::cout << "  vol_frac_limit "<< volfrac << std::endl;
 			std::cout << "  vol_frac_iteration"<< vol_frac_iteration << std::endl;
