@@ -7,6 +7,7 @@ class MaterialsAssignationUtility:
         self.model = model
         self.spheres_model_part = spheres_model_part
         self.DEM_material_parameters = DEM_material_parameters
+        self.read_materials_utility = Kratos.ReadMaterialsUtility(model)
 
     def AssignMaterialParametersToProperties(self):
 
@@ -20,9 +21,10 @@ class MaterialsAssignationUtility:
                 self.spheres_model_part.AddProperties(Kratos.Properties(material_id))
 
             properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
-            properties = material["properties"]
+            properties = material["variables"]
             properties_of_model_part_with_this_id[Kratos.PARTICLE_MATERIAL] = material_id
-            self.SetInputMaterialPropertiesIntoModelPartProperties(properties, properties_of_model_part_with_this_id)
+            #self.SetInputMaterialPropertiesIntoModelPartProperties(properties, properties_of_model_part_with_this_id)
+            self.read_materials_utility.AssignMaterialToProperty(material, properties_of_model_part_with_this_id)
 
             for material_relation in list_of_material_relations:
                 subprops = None
@@ -35,7 +37,7 @@ class MaterialsAssignationUtility:
                     subprops = Kratos.Properties(index_of_the_other_material)
 
                 if subprops:
-                    contact_properties = material_relation["properties"]
+                    contact_properties = material_relation["variables"]
                     self.SetInputMaterialRelationPropertiesIntoModelPartSubProperties(contact_properties, subprops)
                     properties_of_model_part_with_this_id.AddSubProperties(subprops)
 

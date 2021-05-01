@@ -476,6 +476,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     .def(py::init<Model&>())
     .def(py::init<Parameters, Model&>())
     .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    .def("AssignMaterialToProperty",&ReadMaterialsUtility::AssignMaterialToProperty)
     ;
 
     //activation utilities

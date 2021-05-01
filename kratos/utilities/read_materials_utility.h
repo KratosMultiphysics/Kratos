@@ -119,6 +119,16 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     void ReadMaterials(Parameters MaterialData);
 
+    /**
+     * @brief This method assigns the material parameters to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignMaterialToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
     ///@}
     ///@name Access
     ///@{
@@ -169,16 +179,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /**
-     * @brief This method assigns the material parameters to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignMaterialToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
-    
-    /**
      * @brief This method assigns the constitutive law to a property from configuration parameters
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
@@ -187,7 +187,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         const Parameters MaterialData,
         Properties& rProperty
         );
-    
+
     /**
      * @brief This method assigns the variables to a property from configuration parameters
      * @param MaterialData The parameters containing all the configurations of the materials
@@ -197,7 +197,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         const Parameters MaterialData,
         Properties& rProperty
         );
-    
+
     /**
      * @brief This method assigns the tables to a property from configuration parameters
      * @param MaterialData The parameters containing all the configurations of the materials
@@ -207,7 +207,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         const Parameters MaterialData,
         Properties& rProperty
         );
-    
+
     /**
      * @brief This method creates an auxiliar Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
      * @param VariablesParameters The original variable parameters
@@ -218,7 +218,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         const Parameters VariablesParameters,
         const IndexType PropertyId = 0
         );
-        
+
     /**
      * @brief Trims out a component name, separating by '."
      * @details Trims out a component name, removing unnecessary module information.
@@ -228,7 +228,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param rLine Component name in materials json file
      */
     void TrimComponentName(std::string& rLine);
-    
+
     ///@}
     ///@name Protected  Access
     ///@{

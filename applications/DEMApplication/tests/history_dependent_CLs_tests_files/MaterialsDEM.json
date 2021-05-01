@@ -2,7 +2,7 @@
     "materials":[{
         "material_name": "mat_spheres1",
         "material_id": 1,
-        "properties":{
+        "variables":{
             "PARTICLE_DENSITY": 1000.0,
             "YOUNG_MODULUS": 1000000.0,
             "POISSON_RATIO": 0.20
@@ -10,7 +10,7 @@
     },{
         "material_name": "mat_spheres2",
         "material_id": 2,
-        "properties":{
+        "variables":{
             "PARTICLE_DENSITY": 1000.0,
             "YOUNG_MODULUS": 1000000.0,
             "POISSON_RATIO": 0.20
@@ -18,14 +18,14 @@
     },{
         "material_name": "mat_walls1",
         "material_id": 3,
-        "properties":{
+        "variables":{
             "YOUNG_MODULUS": 1000000.0,
             "POISSON_RATIO": 0.20
         }
     },{
         "material_name": "mat_walls2",
         "material_id": 4,
-        "properties":{
+        "variables":{
             "YOUNG_MODULUS": 1000000.0,
             "POISSON_RATIO": 0.20
         }
@@ -33,7 +33,7 @@
     "material_relations":[{
         "material_names_list":["mat_spheres1", "mat_spheres1"],
         "material_ids_list":[1, 1],
-        "properties":{
+        "variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.4,
             "STATIC_FRICTION": 0.55,
             "DYNAMIC_FRICTION": 0.55,
@@ -50,7 +50,7 @@
     },{
         "material_names_list":["mat_spheres2", "mat_spheres2"],
         "material_ids_list":[2, 2],
-        "properties":{
+        "variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.4,
             "STATIC_FRICTION": 0.55,
             "DYNAMIC_FRICTION": 0.55,
@@ -65,7 +65,7 @@
     },{
         "material_names_list":["mat_spheres1", "mat_walls1"],
         "material_ids_list":[1, 3],
-        "properties":{
+        "variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.4,
             "STATIC_FRICTION": 0.55,
             "DYNAMIC_FRICTION": 0.55,
@@ -82,7 +82,7 @@
     },{
         "material_names_list":["mat_spheres2", "mat_walls2"],
         "material_ids_list":[2, 4],
-        "properties":{
+        "variables":{
             "COEFFICIENT_OF_RESTITUTION": 0.4,
             "STATIC_FRICTION": 0.55,
             "DYNAMIC_FRICTION": 0.55,
