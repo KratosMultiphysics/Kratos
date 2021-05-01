@@ -37,7 +37,7 @@ class NeuralNetworkLayerClass:
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()
 
-    def Build(self):
+    def Build(self, hp = None):
         """ This method builds the layer
 
             Keyword arguments:

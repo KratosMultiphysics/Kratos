@@ -35,7 +35,7 @@ class ActivationLayer(NeuralNetworkLayerClass):
         else:
             raise Exception("No activation function specified.")
 
-    def Build(self):
+    def Build(self, hp = None):
         """ This method builds the layer when called by a process."""
         self.layer = layers.Activation(self.activation, name=self.layer_name)
         return self.layer

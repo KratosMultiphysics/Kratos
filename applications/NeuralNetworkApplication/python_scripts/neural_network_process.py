@@ -30,7 +30,16 @@ class NeuralNetworkProcess(KM.Process):
     def ExecuteTraining(self, loss_function, optimizer, callbacks_list):
         """ Processes to act directly during the training step. """
         pass
-    def Add(self,model):
+
+    def ExecuteTuning(self, hypermodel):
+        """ Process to act directly during the tuning step. """
+        pass
+
+    def Initialize(self):
+        """ Process to initialize a network. """
+        pass
+
+    def Add(self,model, hp = None):
         """ Process for adding layers to the network. """
         return model
 

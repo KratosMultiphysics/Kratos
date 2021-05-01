@@ -1,8 +1,10 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_layer import NeuralNetworkLayerClass
+from KratosMultiphysics.NeuralNetworkApplication.load_tunable_parameters_utility import LoadTunableParametersUtility
 
 from tensorflow.keras import layers
 import tensorflow.keras as keras
+import kerastuner as kt
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
@@ -38,7 +40,10 @@ class DenseLayer(NeuralNetworkLayerClass):
             "activity_regularizer_l1"     : 0.0,
             "kernel_regularizer_l2"       : 0.0,
             "bias_regularizer_l2"         : 0.0,
-            "activity_regularizer_l2"     : 0.0
+            "activity_regularizer_l2"     : 0.0,
+            "tunable"                     : false,
+            "tunable_variable"            : "",
+            "tuning_parameters"           : {}
         }""")
     # Constraints are currently not supported. Every supported constrain in keras should be implemented individually
         settings.ValidateAndAssignDefaults(default_settings)
@@ -65,8 +70,17 @@ class DenseLayer(NeuralNetworkLayerClass):
         self.activity_regularizer_l2 = settings["activity_regularizer_l2"].GetDouble()
         self.activity_regularizer = keras.regularizers.L1L2(l1=self.activity_regularizer_l1,l2=self.activity_regularizer_l2)
 
-    def Build(self):
+        self.tunable = settings["tunable"].GetBool()
+        
+        if self.tunable:
+            self.tunable_variable = settings["tunable_variable"].GetString()
+            self.tuning_parameters = settings["tuning_parameters"]
+
+    def Build(self, hp = None):
         """ This method builds the layer when called by a process."""
+        if self.tunable:
+            setattr(self,self.tunable_variable,LoadTunableParametersUtility(self.tuning_parameters).Load(hp))
+        
         self.layer = layers.Dense(self.units, activation=self.activation,use_bias=self.use_bias,
         kernel_initializer=self.kernel_initializer,bias_initializer=self.bias_initializer,kernel_regularizer=self.kernel_regularizer,
         bias_regularizer=self.bias_regularizer,activity_regularizer=self.activity_regularizer,

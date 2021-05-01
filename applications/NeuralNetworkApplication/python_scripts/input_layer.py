@@ -82,7 +82,7 @@ class InputLayer(NeuralNetworkLayerClass):
 
         # When called by the add_layer_process, input the parameters in the keras function
 
-    def Build(self):
+    def Build(self, hp = None):
         self.layer = layers.Input(shape = self.shape, batch_size = self.batch_size, sparse = self.sparse,ragged=self.ragged,name=self.layer_name)
         return self.layer
 

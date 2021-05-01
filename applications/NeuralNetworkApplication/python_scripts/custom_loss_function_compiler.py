@@ -13,7 +13,7 @@ def Factory(settings):
 
 class CustomLossFunctionCompilerProcess(NeuralNetworkProcess):
     """
-    This class compiles the loss function among those available in the Keras API.
+    This class compiles ta custom loss function.
 
     """
     def __init__(self, parameters):

@@ -36,12 +36,10 @@ class AddLayerProcess(NeuralNetworkProcess):
         # Import layer classes
         module_name = "KratosMultiphysics.NeuralNetworkApplication." + self.layer_type
         class_module = import_module(module_name)
-        layer_class = class_module.Factory(self.layer_parameters)
+        self.layer_class = class_module.Factory(self.layer_parameters)
 
-        # Build layer
-        self.layer = layer_class.Build()
-
-    def Add(self,model):
+    def Add(self, model, hp = None):
         """ Processes to add layers to a network. """
-        return self.layer(model)
+        layer = self.layer_class.Build(hp = hp)
+        return layer(model)
 

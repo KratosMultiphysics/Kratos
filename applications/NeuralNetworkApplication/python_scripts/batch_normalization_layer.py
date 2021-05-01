@@ -27,7 +27,7 @@ class BatchNormalizationLayer(NeuralNetworkLayerClass):
         }""")
 
 
-    def Build(self):
+    def Build(self, hp = None):
         """ This method builds the layer when called by a process."""
         self.layer = layers.BatchNormalization()
         return self.layer

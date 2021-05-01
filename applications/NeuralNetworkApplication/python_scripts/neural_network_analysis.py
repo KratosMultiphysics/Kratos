@@ -14,7 +14,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.project_parameters = project_parameters
-        self.problem_type = self.project_parameters["problem_data"]["problem_type"]
+        self.problem_type = self.project_parameters["problem_data"]["problem_type"].GetString()
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
 
     def Run(self):
@@ -28,36 +28,72 @@ class NeuralNetworkAnalysis(AnalysisStage):
     def Initialize(self):
         # Create list of processes
         self.__CreateListOfProcesses()
+        if self.problem_type == "train":
+            # Initalize the network
+            inputs = self._GetListOfProcesses()[0].Initialize()
+            outputs = inputs
 
-        # Initalize the network
-        inputs = self._GetListOfProcesses()[0].Initialize()
-        outputs = inputs
+            # Add layers to the network
+            for process in self._GetListOfProcesses()[1:]:
+                outputs = process.Add(outputs)
 
-        # Add layers to the network
-        for process in self._GetListOfProcesses()[1:]:
-            outputs = process.Add(outputs)
+            # Generate the model and save it
+            if not inputs == None:
+                self.model = keras.Model(inputs = inputs, outputs = outputs)
+                self.model.summary()
+                for process in self._GetListOfProcesses():
+                    process.Save(self.model)
+            else:
+                print("Warning: Model not defined.")
 
-        # Generate the model and save it
-        self.model = keras.Model(inputs = inputs, outputs = outputs)
-        self.model.summary()
-        for process in self._GetListOfProcesses():
-            process.Save(self.model)
+            # Compile the training parameters
+            self.loss_function = None
+            self.optimizer = None
+            for process in self._GetListOfProcesses():
+                compilation_settings = process.Compile(self.loss_function, self.optimizer)
+                if not compilation_settings == None:
+                    self.loss_function = compilation_settings[0]
+                    self.optimizer = compilation_settings[1]
 
-        # Compile the training parameters
-        self.loss_function = None
-        self.optimizer = None
-        for process in self._GetListOfProcesses():
-            compilation_settings = process.Compile(self.loss_function, self.optimizer)
-            if not compilation_settings == None:
-                self.loss_function = compilation_settings[0]
-                self.optimizer = compilation_settings[1]
+            # Compile the list of Callbacks
+            self.callbacks_list = []
+            for process in self._GetListOfProcesses():
+                callback = process.Callback()
+                if not callback == None:
+                    self.callbacks_list.append(callback)
 
-        # Compile the list of Callbacks
-        self.callbacks_list = []
-        for process in self._GetListOfProcesses():
-            callback = process.Callback()
-            if not callback == None:
-                self.callbacks_list.append(callback)
+        elif self.problem_type == "tuning":
+            def build_model(hp):
+                # Initalize the network
+                inputs = self._GetListOfProcesses()[0].Initialize()
+                outputs = inputs
+
+                # Add layers to the network
+                for process in self._GetListOfProcesses()[1:]:
+                    outputs = process.Add(outputs, hp = hp)
+
+                # Generate the model and save it
+                model = keras.Model(inputs = inputs, outputs = outputs)
+                self.loss_function = None
+                self.optimizer = None
+                for process in self._GetListOfProcesses():
+                    compilation_settings = process.Compile(self.loss_function, self.optimizer)
+                    if not compilation_settings == None:
+                        self.loss_function = compilation_settings[0]
+                        self.optimizer = compilation_settings[1]
+
+                # Compile the list of Callbacks
+                self.callbacks_list = []
+                for process in self._GetListOfProcesses():
+                    callback = process.Callback()
+                    if not callback == None:
+                        self.callbacks_list.append(callback)
+                
+                model.compile(optimizer = self.optimizer, loss = self.loss_function)
+
+                return model
+            self.hypermodel = build_model
+
 
         # Execute other processes that must run on the initialization
         for process in self._GetListOfProcesses():
@@ -80,8 +116,12 @@ class NeuralNetworkAnalysis(AnalysisStage):
             process.ExecuteFinalize()
 
     def RunTrainingLoop(self):
-        for process in self._GetListOfProcesses():
-            process.ExecuteTraining(self.loss_function, self.optimizer, self.callbacks_list)
+        if self.problem_type == "train":
+            for process in self._GetListOfProcesses():
+                process.ExecuteTraining(self.loss_function, self.optimizer, self.callbacks_list)
+        elif self.problem_type == "tuning":
+            for process in self._GetListOfProcesses():
+                process.ExecuteTuning(self.hypermodel)
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
