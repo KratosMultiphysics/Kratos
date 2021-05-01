@@ -360,7 +360,7 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
         KRATOS_TRY
 
-        block_for_each(mListOfSphericContinuumParticles, [](SphericContinuumParticle* particle){
+        block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
             particle->ReorderFEMneighbours();
         });
 
