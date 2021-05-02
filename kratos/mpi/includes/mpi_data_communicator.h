@@ -78,9 +78,12 @@ void SendImpl(const std::vector<type>& rSendValues,                             
     const int SendDestination, const int SendTag = 0) const override;                        \
 void RecvImpl(std::vector<type>& rRecvValues,                                                \
     const int RecvSource, const int RecvTag = 0) const override;                             \
-void IsendImpl(const std::vector<type>& rSendValues,                                          \
+void ExchangeDataAsyncImpl(const std::vector<std::vector<type>>& rSendBuffer,                \
+    std::vector<std::vector<type>>& rRecvBuffer, std::vector<int>& rSendCounts,              \
+    std::vector<int>& rRecvCounts) const override;                                           \
+void IsendImpl(const std::vector<type>& rSendValues,                                         \
     const int SendDestination, const int SendTag = 0) const override;                        \
-void IrecvImpl(std::vector<type>& rRecvValues,                                                \
+void IrecvImpl(std::vector<type>& rRecvValues,                                               \
     const int RecvSource, const int RecvTag = 0) const override;                             \
 
 #endif
@@ -393,6 +396,10 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     template<class TDataType> void RecvDetail(
         TDataType& rRecvValues, const int RecvSource, const int RecvTag) const;
+
+    template<typename TObject> void ExchangeDataAsyncDetail(
+        const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
+        std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const;
 
     template<class TDataType> void IsendDetail(
         const TDataType& rSendValues, const int SendDestination, const int SendTag) const;

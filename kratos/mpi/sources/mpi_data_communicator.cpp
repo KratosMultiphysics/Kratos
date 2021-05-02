@@ -133,14 +133,21 @@ void MPIDataCommunicator::RecvImpl(std::vector<type>& rRecvValues,              
     const int RecvSource, const int RecvTag) const {                                    \
     RecvDetail(rRecvValues, RecvSource, RecvTag);                                       \
 }                                                                                       \
-void MPIDataCommunicator::IsendImpl(const std::vector<type>& rSendValues,                \
-    const int SendDestination, const int SendTag) const {                               \
-    IsendDetail(rSendValues, SendDestination, SendTag);                                  \
+void MPIDataCommunicator::ExchangeDataAsyncImpl(                                        \
+    const std::vector<std::vector<type>>& rSendBuffer,                                  \
+    std::vector<std::vector<type>>& rRecvBuffer,                                        \
+    std::vector<int>& rSendCounts,                                                      \
+    std::vector<int>& rRecvCounts) const {                                              \
+    ExchangeDataAsyncDetail(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);        \
 }                                                                                       \
-void MPIDataCommunicator::IrecvImpl(std::vector<type>& rRecvValues,                      \
+void MPIDataCommunicator::IsendImpl(const std::vector<type>& rSendValues,               \
+    const int SendDestination, const int SendTag) const {                               \
+    IsendDetail(rSendValues, SendDestination, SendTag);                                 \
+}                                                                                       \
+void MPIDataCommunicator::IrecvImpl(std::vector<type>& rRecvValues,                     \
     const int RecvSource, const int RecvTag) const {                                    \
-    IrecvDetail(rRecvValues, RecvSource, RecvTag);                                       \
-}                                                                                        \
+    IrecvDetail(rRecvValues, RecvSource, RecvTag);                                      \
+}                                                                                       \
 
 #endif
 
@@ -721,6 +728,56 @@ template<class TDataType> void MPIDataCommunicator::RecvDetail(
     ierr = MPI_Recv(MPIBuffer(rRecvValues), recv_size, MPIDatatype(rRecvValues),
         RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Recv");
+}
+
+template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
+    const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
+    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
+{
+    // Exchange the buffer sizes
+    MPI_Alltoall(rSendCounts.data(), 1, MPI_INT, rRecvCounts.data(), 1, MPI_INT, mComm);
+
+    // Send Information to Candidate Partitions
+    int num_comm_events     = 0;
+    int num_comm_events_idx = 0;
+
+    for(int i=0; i<Size(); ++i) {
+        if(i != Rank() && rRecvCounts[i]) num_comm_events++;
+        if(i != Rank() && rSendCounts[i]) num_comm_events++;
+    }
+
+    // TODO make members?
+    std::vector<MPI_Request> reqs(num_comm_events);
+    std::vector<MPI_Status> stats(num_comm_events);
+
+    //const MPI_Datatype mpi_datatype(GetMPIDatatype(TObject()));
+    const MPI_Datatype mpi_datatype(MPIDatatype(TObject()));
+
+    // Exchange the data
+    for (int i=0; i<Size(); ++i)
+    {
+        if (i != Rank() && rRecvCounts[i])
+        {
+            if (rRecvBuffer[i].size() != static_cast<std::size_t>(rRecvCounts[i]))
+            {
+                rRecvBuffer[i].resize(rRecvCounts[i]);
+            }
+            MPI_Irecv(rRecvBuffer[i].data(), rRecvCounts[i],
+                      mpi_datatype, i, 0,
+                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
+        }
+        if (i != Rank() && rSendCounts[i])
+        {
+            MPI_Isend(rSendBuffer[i].data(), rSendCounts[i],
+                      mpi_datatype, i, 0,
+                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
+        }
+    }
+
+    //wait until all communications finish
+    const int ierr = MPI_Waitall(num_comm_events, reqs.data(), stats.data());
+
+    CheckMPIErrorCode(ierr, "ExchangeDataAsync");
 }
 
 template<class TDataType> void MPIDataCommunicator::IsendDetail(
