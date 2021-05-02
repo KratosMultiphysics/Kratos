@@ -159,12 +159,18 @@ virtual void SendImpl(                                                          
 virtual void RecvImpl(std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {      \
     KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \
 }                                                                                                               \
-virtual void IsendImpl(                                                                                          \
+virtual void ExchangeDataAsyncImpl(                                                                             \
+    const std::vector<std::vector<type>>& rSendBuffer, std::vector<std::vector<type>>& rRecvBuffer,             \
+    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const {                           \
+    KRATOS_ERROR << "Calling serial DataCommunicator::ExchangeDataAsync, which has no meaningful return." << std::endl;    \
+}                                                                                                               \
+virtual void IsendImpl(                                                                                         \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag = 0) const {             \
     KRATOS_ERROR_IF(Rank() != SendDestination)                                                                  \
     << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
 }                                                                                                               \
-virtual void IrecvImpl(std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {      \
+virtual void IrecvImpl(                                                                                         \
+    std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {                        \
     KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \
 }                                                                                                               \
 
@@ -598,6 +604,20 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     }
 
     /// Exchange data with other ranks Asynchronously.
+    /** Similar to MPI_Sendrecv in Async way
+     * @param[in] rSendBuffer Data Buffer of Objects to be send
+     * @param[in] rRecvBuffer Data Buffer to receive the sent Objects
+     * @param[in] rSendCounts Number of Elements to be send for all the Ranks
+     * @param[in] rRecvCounts Number of Elements to be send for all the Ranks
+     */
+    template<typename TObject>
+    void ExchangeDataAsync(const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
+                           std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts)
+    {
+        this->ExchangeDataAsyncImpl(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);
+    }
+
+    /// Exchange data with other ranks Asynchronously.
     /** This is a wrapper for MPI_Isend.
      *  @param[in] rSendValues Objects to send to rank SendDestination.
      *  @param[in] SendDestination Rank the data will be sent to.
@@ -1010,6 +1030,20 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
             KRATOS_ERROR_IF(Rank() != RecvSource)
             << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         }
+    }
+
+    /// Exchange data with other ranks Asynchronously (generic version)
+    /** Similar to MPI_Sendrecv in Async way
+     * @param[in] rSendBuffer Data Buffer of Objects to be send
+     * @param[in] rRecvBuffer Data Buffer to receive the sent Objects
+     * @param[in] rSendCounts Number of Elements to be send for all the Ranks
+     * @param[in] rRecvCounts Number of Elements to be send for all the Ranks
+     */
+    template<typename TObject>
+    void ExchangeDataAsyncImpl(const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
+                std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
+    {
+        KRATOS_ERROR << "Calling serial DataCommunicator::ExchangeDataAsyn, which has no meaningful return." << std::endl;
     }
 
     /// Send data to other ranks Asynchronously(string version).
