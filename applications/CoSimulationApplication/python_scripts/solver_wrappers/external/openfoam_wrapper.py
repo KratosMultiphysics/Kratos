@@ -30,6 +30,9 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
     def Initialize(self):
         super(OpenFOAMWrapper, self).Initialize()
 
+        for data in self.data_dict.values():
+            data.GetModelPart().SetBufferSize(2)
+
         """ImportCouplingInterface()= Imports coupling interface from an external solver
         External solver sends, CoSimulation receives = load values"""
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
