@@ -41,6 +41,7 @@ Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Au
         RADIUS 0.5
         PROBABILITY_DISTRIBUTION normal
         STANDARD_DEVIATION 0.0
+        DENSE_INLET 0
     End SubModelPartData
     Begin SubModelPartNodes
        163
