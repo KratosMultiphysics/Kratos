@@ -411,6 +411,38 @@ namespace Kratos
             }
         return dof_list;
         }
+
+        void AssembleReactions(Vector ResidualReconstruction, Vector RestrictedResidualNodes, std::vector<std::vector<IndexType>> ListNodes, std::vector<std::vector<IndexType>> ListElements, int DofElem, int DofNode)
+        {
+            int nnodes = RestrictedResidualNodes.size();
+            #pragma omp parallel firstprivate(nnodes)
+            {
+                #pragma omp for nowait
+                for (int i=0;i<nnodes;i++){
+                    auto& node = mpModelPart.GetNode(RestrictedResidualNodes(i));
+                    double reaction_x = 0;
+                    double reaction_y = 0;
+                    double reaction_z = 0;
+                    std::vector<IndexType> current_node_list = ListNodes[i];
+                    for (IndexType j : current_node_list){
+                        int counter = 0;
+                        std::vector<IndexType> current_element_list = ListElements[j];
+                        for (IndexType k : current_element_list){
+                            if (node.Id()==k){
+                                int aux_index = (j*DofElem)+(counter*DofNode);
+                                reaction_x += ResidualReconstruction(aux_index);
+                                reaction_y += ResidualReconstruction(aux_index+1);
+                                reaction_z += ResidualReconstruction(aux_index+2);
+                            }
+                            counter+=1;
+                        }
+                    }
+                    node.FastGetSolutionStepValue(REACTION_X) = reaction_x;
+                    node.FastGetSolutionStepValue(REACTION_Y) = reaction_y;
+                    node.FastGetSolutionStepValue(REACTION_Z) = reaction_z;
+                }
+            }
+        }
         
 
         protected:
