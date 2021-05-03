@@ -1618,7 +1618,6 @@ namespace Testing {
             }
         }
 
-        // for embedded geometry on fluid element edges no cuts are detected
         KRATOS_CHECK_EQUAL(n_incised, 2);
         KRATOS_CHECK_EQUAL(n_intersected, 1);
     }
@@ -1681,7 +1680,6 @@ namespace Testing {
             }
         }
 
-        // cuts directly through a node are not considered
         KRATOS_CHECK_EQUAL(n_intersected, 4);
         KRATOS_CHECK_EQUAL(n_incised, 2);
 
