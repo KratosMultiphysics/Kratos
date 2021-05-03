@@ -1230,20 +1230,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 rElement.GetGeometry()[0].Set(TO_ERASE);
         });
 
-        // #pragma omp parallel for
-        // for (int k = 0; k < (int)rElements.size(); k++) {
-        //     Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-
-        //     array_1d<double, 3 > & i_var = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
-        //     double i_value = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
-        //     bool include = true; //  = (erase_flag < 0.5);
-
-        //     include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
-
-        //     if (include)
-        //         (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
-        // }
-
         KRATOS_CATCH("")
 
     }

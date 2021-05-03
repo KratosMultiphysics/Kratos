@@ -275,18 +275,6 @@ namespace Kratos {
             }
         });
 
-        // #pragma omp parallel for
-        // for (int k = 0; k < (int)pElements.size(); k++) {
-        //     ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-        //     Element* p_element = &(*it);
-        //     SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
-
-        //     if (p_sphere->mNeighbourRigidFaces.size()) {
-        //         p_sphere->Set(TO_ERASE);
-        //         p_sphere->GetGeometry()[0].Set(TO_ERASE);
-        //     }
-        // }
-
         KRATOS_CATCH("")
     }
 
