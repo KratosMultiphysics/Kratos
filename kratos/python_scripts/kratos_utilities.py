@@ -46,23 +46,23 @@ def GetListOfAvailableApplications():
 
     return apps
 
-def GetListOfImportedApplications():
-    """Returns the list of applications that are or were imported at
-    call time, including the main KratosMultiphysics module.
+def GetListOfImportedApplications(module_name="KratosMultiphysics"):
+    """Returns the list of moldules that are or were imported at
+    call time, including the main module_name module.
     """
     loaded_modules = [mod for mod in sys.modules.keys() if '__file__' in dir(sys.modules[mod]) and sys.modules[mod].__file__]
-    kratos_modules = [mod for mod in loaded_modules if "KratosMultiphysics" in sys.modules[mod].__file__]
+    kratos_modules = [mod for mod in loaded_modules if module_name in sys.modules[mod].__file__]
 
     kratos_apps = [mod for mod in kratos_modules if os.path.basename(sys.modules[mod].__file__) == "__init__.py"]
 
     return kratos_apps
 
-def GetMapOfImportedApplications():
-    """Returns the tree of application modules that are or were imported at
-    call time, including the main KratosMultiphysics module.
+def GetMapOfImportedApplications(module_name="KratosMultiphysics"):
+    """Returns the tree of modules that are or were imported at
+    call time, including the main "module_name" module.
     """
     import_map = {}
-    imported_apps = GetListOfImportedApplications()
+    imported_apps = GetListOfImportedApplications(module_name)
 
     for app in imported_apps:
         names = app.split(".")
