@@ -55,7 +55,6 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 {
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
-    const int kutta = r_this.GetValue(KUTTA);
 
     BoundedVector<double,NumNodes> distances;
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
@@ -63,7 +62,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     }
     const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
-    if (is_embedded && wake == 0 && kutta == 0) {
+    if (is_embedded && wake == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
         if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
             AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
@@ -278,7 +277,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddKuttaConditio
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        if (this->GetGeometry()[i].GetValue(WING_TIP))
+        if (this->GetGeometry()[i].GetValue(KUTTA))
         {
             if (wake==0)  {
                 for (unsigned int j = 0; j < NumNodes; ++j)

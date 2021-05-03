@@ -73,7 +73,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 auto& r_geometry = it_elem->GetGeometry();
                 for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
-                    r_geometry[i].SetValue(WING_TIP, true);
+                    r_geometry[i].SetValue(KUTTA, true);
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].UnSetLock();
                 }
@@ -96,7 +96,7 @@ ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
     for (auto& r_node : mrModelPart.Nodes()) {
         bool is_positive = r_node.GetValue(WAKE_DISTANCE) > 0.0;
         bool is_wake = r_node.GetValue(WAKE);
-        bool is_kutta = r_node.GetValue(WING_TIP);
+        bool is_kutta = r_node.GetValue(KUTTA);
         if (is_positive && is_wake && is_kutta) {
             return &r_node;
         }
