@@ -15,8 +15,11 @@
         },
         "formulation": {
             "element_type":"embedded_incompressible",
+            "penalty_coefficient": 10.0,
             "stabilization_factor": 1.0
          },
+        "relative_tolerance"     : 1e-7,
+        "absolute_tolerance"     : 1e-7,
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -45,6 +48,7 @@
                 "Parameters"    : {
                     "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
                     "skin_model_part_name": "circle_05_test",
+                    "initial_angle_of_attack": 5.0,
                     "remeshing_flag": false
                 }
             },{
@@ -89,6 +93,17 @@
                 "output_time_settings" :{
                     "step_frequency": 1
                 }
+            }
+        },{
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables" : ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"],
+                "output_file_name" : "embedded_circle_penalty_velocity_potential_test_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "time_frequency"   : -2
             }
         },{
             "python_module"   : "from_json_check_result_process",
