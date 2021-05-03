@@ -132,7 +132,8 @@ namespace Kratos
 
             mRomDofs = mRomDofsVector.at(current_cluster);
 
-            KRATOS_WATCH(mRomDofs);
+            // KRATOS_WATCH(current_cluster);
+            // KRATOS_WATCH(mRomDofs);
 
 
             //vector containing the localization in the system of the different terms

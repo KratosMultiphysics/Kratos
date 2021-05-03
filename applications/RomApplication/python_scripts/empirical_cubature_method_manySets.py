@@ -27,7 +27,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
-    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 0, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
+    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.SVD_tolerance = SVD_tolerance
@@ -44,10 +44,11 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
             ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
     """
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
+    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName, ClusterNumber):
         super().SetUp()
         self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
+        self.ClusterNumber = ClusterNumber
         u , s  = self._ObtainBasis(ResidualSnapshots)
 
         self.W = np.ones(np.shape(u)[0])
@@ -256,10 +257,10 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 else:
                     ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
 
-        with open('ElementsAndWeights.json', 'w') as f:
+        with open(f'ElementsAndWeights{self.ClusterNumber}.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
         print('\n\n Elements and conditions selected have been saved in a json file\n\n')
-        self._CreateHyperReducedModelPart()
+        #self._CreateHyperReducedModelPart()
 
 
 
