@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "Rubber_beam_with_reactions_and_pk2",
+        "problem_name"  : "Rubber_beam_reconstruction_process",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -57,7 +57,21 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "list_other_processes"     : []
+        "list_other_processes"     : [ {
+            "python_module" : "reaction_reconstruction_process",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "Parameters"    : {
+                "variable_to_reconstruct" : "REACTION",
+                "restricted_model_part" : "GENERIC_Interface_frame_1"
+            }
+        }, {
+            "python_module" : "stress_reconstruction_process",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "Parameters"    : {
+                "variable_to_reconstruct" : "PK2_STRESS_VECTOR"
+            }
+        }
+        ]
     },
     "output_processes" : {
         "gid_output" : [],

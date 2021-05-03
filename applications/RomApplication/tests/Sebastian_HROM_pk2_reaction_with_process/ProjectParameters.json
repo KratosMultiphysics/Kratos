@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "Rubber_beam_with_reactions_and_pk2",
+        "problem_name"  : "Rubber_beam_reconstruction_process",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -14,7 +14,7 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Rubber_beam_with_reactions_and_pk2"
+            "input_filename" : "Rubber_beam_reconstruction_process"
         },
         "material_import_settings"           : {
             "materials_filename" : "StructuralMaterials.json"
@@ -55,7 +55,18 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "list_other_processes"     : []
+        "list_other_processes"     : [{
+            "python_module" : "rom_basis_process",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "Parameters"    : {
+                "variables_to_create_basis"     : ["DISPLACEMENT","REACTION","PK2_STRESS_VECTOR"],
+                "displacement_basis_tolerance" : 1e-9,
+                "stress_basis_tolerance" : 1e-6,
+                "reaction_basis_tolerance" : 1e-9,
+                "restricted_model_part" : "GENERIC_Interface_frame_1"
+            }
+        }
+        ]
     },
     "output_processes" : {
         "gid_output" : [],

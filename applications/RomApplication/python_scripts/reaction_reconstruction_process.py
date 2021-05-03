@@ -20,7 +20,8 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""{
-            "variable_to_reconstruct"     : "REACTION"
+            "variable_to_reconstruct"     : "REACTION",
+            "restricted_model_part" : "Name_of_restricted_model_part"
         }""")
 
         # Add missing settings that the user did not provide but that
@@ -28,10 +29,11 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         parameters.ValidateAndAssignDefaults(default_settings)
         # Alternative:
         # settings.RecursivelyValidateAndAssignDefaults(default_settings)
-        if (default_settings["variable_to_reconstruct"].GetString())!="REACTION":
+        if (parameters["variable_to_reconstruct"].GetString())!="REACTION":
             raise Exception("Variable to reconstruct not yet implemented")
         
         self.model_part = Model.GetModelPart("Structure")
+        self.restricted_model_part_name = parameters["restricted_model_part"].GetString()
         
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -40,6 +42,10 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         computing_model_part = self.model_part
+        try:
+            restricted_model_part = computing_model_part.GetSubModelPart("COMPUTE_HROM").GetSubModelPart(self.restricted_model_part_name)
+        except:
+            restricted_model_part = computing_model_part.GetSubModelPart(self.restricted_model_part_name)
                 
         #### Residuals ####
         ###################
@@ -48,7 +54,7 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
             "nodal_unknowns" : ["REACTION_X","REACTION_Y","REACTION_Z"],
             "number_of_dofs" : 1
         }""" )
-        self.ResidualUtilityObject_Restricted_Residuals = romapp.RomModelPartUtility(computing_model_part.GetSubModelPart("COMPUTE_HROM").GetSubModelPart("GENERIC_Interface_frame_1"), restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+        self.ResidualUtilityObject_Restricted_Residuals = romapp.RomModelPartUtility(restricted_model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(computing_model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.hr_restricted_residual_elements = self.ResidualUtilityObject_Restricted_Residuals.GetElementListFromNode(computing_model_part)
         with open('RomParameters_Residuals.json') as s:
@@ -94,7 +100,6 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        model_part = self.model_part
         #### Residuals #####
         ###################
         hr_restricted_residual = self.ResidualUtilityObject_Main_Part.GetNonProjectedResidualsFromElementList(self.hr_restricted_residual_elements) 

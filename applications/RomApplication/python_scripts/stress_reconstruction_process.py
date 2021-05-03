@@ -29,7 +29,7 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
         parameters.ValidateAndAssignDefaults(default_settings)
         # Alternative:
         # settings.RecursivelyValidateAndAssignDefaults(default_settings)
-        if (default_settings["variable_to_reconstruct"].GetString())!="PK2_STRESS_VECTOR":
+        if (parameters["variable_to_reconstruct"].GetString())!="PK2_STRESS_VECTOR":
             raise Exception("Variable to reconstruct not yet implemented")
         
         self.model_part = Model.GetModelPart("Structure")
@@ -40,7 +40,6 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        computing_model_part = self.model_part
         self.hr_elements = []
         self.hr_conditions = []
         self.hr_residuals = []
@@ -77,7 +76,6 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
                 gauss_point_fin = gauss_point_in + pk2_dimension
                 self.hr_u_stress[counter_in:counter_fin,:]=(self.u_stress[gauss_point_in:gauss_point_fin,:])
                 counter_in = counter_fin
-            self.hr_stresses = [] # Initialize vector of stresses
         ###################
 
     def ExecuteFinalizeSolutionStep(self):
@@ -92,9 +90,8 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
         new_stress = []
         for elem in model_part.Elements:
             pk2_stress = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,self.model_part.ProcessInfo)
-            for i in range(pk2_stress[0].Size()):
+            for i in range(pk2_stress[0].Size()):## Linear elements only have 1 Gauss-point
                 new_stress.append(pk2_stress[0][i])
-        self.hr_stresses.append(new_stress)
         q = np.linalg.pinv(self.hr_u_stress)@np.array(new_stress)
         stress = self.u_stress@q
         stress = self.ExtrapolateStressToNodes(stress)
@@ -105,14 +102,6 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
         for node in model_part.GetSubModelPart("VISUALIZE_HROM").Nodes:
             node.SetValue(KratosMultiphysics.PK2_STRESS_VECTOR,KratosMultiphysics.Vector(stress[node.Id-1,:].tolist()))
         ##################
-
-    def ExecuteFinalize(self):
-        """ This method is executed after the computations, at the end of the solution-loop
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
 
     def ExtrapolateStressToNodes(self,Vector):
         aux_shape_1 = int(np.shape(self.P)[1])
