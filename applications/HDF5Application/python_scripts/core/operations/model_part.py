@@ -79,7 +79,7 @@ class VariableIO:
             prefix = Prefix(self.prefix, model_part, self.time_format)
         else:
             prefix = Prefix(self.prefix, model_part)
-        settings['prefix'] = prefix
+        settings['prefix'] = prefix.replace('<step>', str(model_part.ProcessInfo[KratosMultiphysics.STEP]))
         settings['list_of_variables'] = self.list_of_variables
         return settings
 
