@@ -136,19 +136,21 @@ File::File(Parameters Settings)
         m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
     else
     {
-        /* Save old error handler */
+        // Save old error handler
         herr_t (*old_func)(hid_t, void*);
         void *old_client_data;
 
         H5Eget_auto(H5E_DEFAULT, &old_func, &old_client_data);
 
-        /* Turn off error handling */
+        // Turn off error handling
         H5Eset_auto(H5E_DEFAULT, NULL, NULL);
 
-        /* Probe. Likely to fail, but that’s okay */
+        // follwoing will fail if the hdf5 file is not found, and will print a failure msg to the output.
+        // if "file_access_mode" is "read_write", then it is ok to fail the following call because,
+        // if it is failed then the file will be created in the subsequent section.
         htri_t is_hdf5 = H5Fis_hdf5(m_file_name.c_str());
 
-        /* Restore previous error handler */
+        // Restore previous error handler
         H5Eset_auto(H5E_DEFAULT, old_func, old_client_data);
 
         if (file_access_mode == "read_only")
@@ -158,8 +160,10 @@ File::File(Parameters Settings)
         }
         else if (file_access_mode == "read_write") {
             if (is_hdf5 <= 0) {
+                // creates the hdf5 file if the file is not found
                 m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
             } else {
+                // open the existing hdf5 file if file is found
                 m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDWR, fapl_id);
             }
         }
