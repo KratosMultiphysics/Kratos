@@ -79,6 +79,8 @@ class VariableIO:
             prefix = Prefix(self.prefix, model_part, self.time_format)
         else:
             prefix = Prefix(self.prefix, model_part)
+        if '<step>' in prefix and not model_part.ProcessInfo.Has(KratosMultiphysics.STEP):
+            raise RuntimeError("STEP is not defined in {:s} process info, but is used in 'prefix'. Please defined it in process info".format(model_part.Name))
         settings['prefix'] = prefix.replace('<step>', str(model_part.ProcessInfo[KratosMultiphysics.STEP]))
         settings['list_of_variables'] = self.list_of_variables
         return settings
