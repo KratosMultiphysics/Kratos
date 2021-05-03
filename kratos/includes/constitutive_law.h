@@ -396,11 +396,11 @@ public:
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
-      void SetDeformationGradientF         (const Matrix& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
+      void SetDeformationGradientF         (const DeformationGradientMatrixType& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
 
-      void SetStrainVector                 (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
-      void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};
-      void SetConstitutiveMatrix           (Matrix& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
+      void SetStrainVector                 (StrainVectorType& rStrainVector)                       {mpStrainVector=&rStrainVector;};
+      void SetStressVector                 (StressVectorType& rStressVector)                       {mpStressVector=&rStressVector;};
+      void SetConstitutiveMatrix           (VoigtSizeMatrixType& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
 
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
@@ -426,24 +426,24 @@ public:
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetShapeFunctionsDerivatives()) << "ShapeFunctionsDerivatives is not set!" << std::endl;
           return *mpShapeFunctionsDerivatives;
       }
-      const Matrix& GetDeformationGradientF()
+      const DeformationGradientMatrixType& GetDeformationGradientF()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetDeformationGradientF()) << "DeformationGradientF is not set!" << std::endl;
           return *mpDeformationGradientF;
       }
 
-      Vector& GetStrainVector()
+      StrainVectorType& GetStrainVector()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetStrainVector()) << "StrainVector is not set!" << std::endl;
           return *mpStrainVector;
       }
-      Vector& GetStressVector()
+      StressVectorType& GetStressVector()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetStressVector()) << "StressVector is not set!" << std::endl;
           return *mpStressVector;
       }
 
-      Matrix& GetConstitutiveMatrix()
+      VoigtSizeMatrixType& GetConstitutiveMatrix()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetConstitutiveMatrix()) << "ConstitutiveMatrix is not set!" << std::endl;
           return *mpConstitutiveMatrix;
@@ -469,11 +469,11 @@ public:
        * Returns the reference to the value of a specified variable with not constant access
        */
 
-      double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
-      Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
-      Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
-      Vector& GetStressVector                  (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
-      Matrix& GetConstitutiveMatrix            (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
+      double& GetDeterminantF                                (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
+      StrainVectorType& GetStrainVector                      (StrainVectorType & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
+      DeformationGradientMatrixType& GetDeformationGradientF (DeformationGradientMatrixType & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
+      StressVectorType& GetStressVector                      (StressVectorType & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
+      VoigtSizeMatrixType& GetConstitutiveMatrix             (VoigtSizeMatrixType & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
 
       /**
        * Returns if the different components has been set

@@ -73,14 +73,14 @@ Flags GetLawOptions(ConstitutiveLaw::Parameters& rThisParameters){ return rThisP
 
 double GetDeterminantF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeterminantF();}
 
-Vector& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
-Vector& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, Vector& strain){ return rThisParameters.GetStrainVector(strain);}
-Vector& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
-Vector& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, Vector& stress){ return rThisParameters.GetStressVector(stress);}
-Matrix& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetConstitutiveMatrix();}
-Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& C){ return rThisParameters.GetConstitutiveMatrix(C);}
-const Matrix& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
-Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& F){ return rThisParameters.GetDeformationGradientF(F);}
+StrainVectorType& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
+StrainVectorType& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, StrainVectorType& strain){ return rThisParameters.GetStrainVector(strain);}
+StressVectorType& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
+StressVectorType& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, StressVectorType& stress){ return rThisParameters.GetStressVector(stress);}
+VoigtSizeMatrixType& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetConstitutiveMatrix();}
+VoigtSizeMatrixType& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, VoigtSizeMatrixType& C){ return rThisParameters.GetConstitutiveMatrix(C);}
+const DeformationGradientMatrixType& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
+DeformationGradientMatrixType& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, DeformationGradientMatrixType& F){ return rThisParameters.GetDeformationGradientF(F);}
 
 ConstitutiveLaw::Pointer CreateWithoutProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters){ return rThisConstitutiveLaw.Create(NewParameters);}
 ConstitutiveLaw::Pointer CreateWithProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters, const Properties& rProperties){ return rThisConstitutiveLaw.Create(NewParameters, rProperties);}
