@@ -173,13 +173,17 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         // Auxiliary stress vector to allow derived models (e.g. traction-only damage)
         // to set the value of r_stress_vector_pos with the ComputePositiveStressVector
         // function.
-	// In this symmetric model, ComputePositiveStressVector function does nothing.
+	    // In this symmetric model, ComputePositiveStressVector function does nothing.
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
+        double energy = inner_prod(r_stress_pos, r_strain);
         // energy may be a small negative due to machine precision error, forcing zero
-        const double product = inner_prod(r_stress_vector_pos, r_strain_vector);
-        const double strain_norm = (product >=0 ) ? std::sqrt(product) : 0;
+        if (energy < 0) {
+            energy = 0;
+        }
+        const double strain_norm = std::sqrt(energy);
+
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
@@ -340,7 +344,7 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
 
         if (r < r0)
             return q0;
-        
+
         switch(rMaterialProperties[HARDENING_PARAMETERS].size())
         {
             case 1:  // linear
