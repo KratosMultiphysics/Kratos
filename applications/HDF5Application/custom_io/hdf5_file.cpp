@@ -136,15 +136,33 @@ File::File(Parameters Settings)
         m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
     else
     {
-        if (file_driver != "core")
-            KRATOS_ERROR_IF(H5Fis_hdf5(m_file_name.c_str()) <= 0)
-                << "Invalid HDF5 file: " << m_file_name << std::endl;
+        /* Save old error handler */
+        herr_t (*old_func)(hid_t, void*);
+        void *old_client_data;
+
+        H5Eget_auto(H5E_DEFAULT, &old_func, &old_client_data);
+
+        /* Turn off error handling */
+        H5Eset_auto(H5E_DEFAULT, NULL, NULL);
+
+        /* Probe. Likely to fail, but that’s okay */
+        htri_t is_hdf5 = H5Fis_hdf5(m_file_name.c_str());
+
+        /* Restore previous error handler */
+        H5Eset_auto(H5E_DEFAULT, old_func, old_client_data);
+
         if (file_access_mode == "read_only")
         {
+            KRATOS_ERROR_IF(is_hdf5 <= 0 && file_driver != "core") << "Invalid HDF5 file: " << m_file_name << std::endl;
             m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDONLY, fapl_id);
         }
-        else if (file_access_mode == "read_write")
-            m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDWR, fapl_id);
+        else if (file_access_mode == "read_write") {
+            if (is_hdf5 <= 0) {
+                m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
+            } else {
+                m_file_id = H5Fopen(m_file_name.c_str(), H5F_ACC_RDWR, fapl_id);
+            }
+        }
         else
             KRATOS_ERROR << "Invalid \"file_access_mode\": " << file_access_mode
                          << std::endl;
