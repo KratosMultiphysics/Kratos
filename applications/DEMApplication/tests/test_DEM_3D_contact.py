@@ -52,7 +52,11 @@ class TestDEM3DContact(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_contact_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ContactTestSolution, model, parameters_file_name, 1)
+
+        # Test parallel computation.
+        with open(parameters_file_name,'r') as parameter_file:
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        DEM3D_ContactTestSolution(model, project_parameters).Run()
 
 
 if __name__ == "__main__":

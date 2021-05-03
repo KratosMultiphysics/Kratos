@@ -5,6 +5,7 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import auxiliary_functions_for_tests
 
@@ -36,7 +37,7 @@ class DEM3D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
                     self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
 
     def Finalize(self):
-        #self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
 
@@ -51,6 +52,12 @@ class TestDEM3DInlet(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_InletTestSolution, model, parameters_file_name, 1)
+
+    @staticmethod
+    def tearDown():
+        file_to_remove = os.path.join("DEM3D_inlet_tests_files", "flux_data_new.hdf5")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":

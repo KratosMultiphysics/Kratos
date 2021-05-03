@@ -145,6 +145,11 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, 1)
 
+    @staticmethod
+    def tearDown():
+        file_to_remove = os.path.join("kinematic_constraints_tests_files", "flux_data_new.hdf5")
+        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+        os.chdir(this_working_dir_backup)
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
