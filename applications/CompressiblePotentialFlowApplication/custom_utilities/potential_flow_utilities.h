@@ -185,6 +185,8 @@ void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCand
 template<int Dim>
 Vector ComputeKuttaNormal(const double angle);
 
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer);
 } // namespace PotentialFlow
 } // namespace Kratos
 

@@ -971,6 +971,16 @@ Vector ComputeKuttaNormal<3>(const double angle)
     kutta_normal[2]=cos(angle);
     return kutta_normal;
 }
+
+template <class TContainerType>
+double CalculateArea(TContainerType& rContainer)
+{
+    double area = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+        return rEntity.GetGeometry().Area();
+    });
+
+    return area;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -1070,5 +1080,7 @@ template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& r
 template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 template Vector ComputeKuttaNormal<2>(const double angle);
 template Vector ComputeKuttaNormal<3>(const double angle);
+template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
+template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 } // namespace PotentialFlow
 } // namespace Kratos
