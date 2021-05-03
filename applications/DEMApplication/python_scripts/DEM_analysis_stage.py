@@ -451,7 +451,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
-        if is_time_to_print:
+        if is_time_to_print and self.FaceAnalyzerClass.ghost_smp_detected:
             self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
 
     def IsTimeToPrintPostProcess(self):
@@ -539,20 +539,6 @@ class DEMAnalysisStage(AnalysisStage):
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
-
-    def AfterSolveOperations(self):
-        message = 'Warning!'
-        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 10/31/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
-                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
-
-        #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
 
     def BreakSolutionStepsLoop(self):

@@ -4,7 +4,6 @@ from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import auxiliary_functions_for_tests
 
@@ -97,11 +96,6 @@ class TestExternalForcesAndMoments(KratosUnittest.TestCase):
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ForcesAndMomentsTestSolution, model, parameters_file_name, 1)
 
-    @staticmethod
-    def tearDown():
-        file_to_remove = os.path.join("forces_and_moments_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

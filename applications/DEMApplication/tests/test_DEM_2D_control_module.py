@@ -5,7 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import auxiliary_functions_for_tests
 
@@ -21,6 +20,7 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
 
     def Initialize(self):
         super().Initialize()
@@ -76,13 +76,6 @@ class TestDEM2DControlModule(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, 1)
-
-    @staticmethod
-    def tearDown():
-        file_to_remove = os.path.join("DEM2D_control_module_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

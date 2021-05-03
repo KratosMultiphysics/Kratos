@@ -86,9 +86,11 @@ class FaceAnalyzerClass:
         self.name_n_particles = 'n_accum'
         self.name_mass = 'm_accum'
         self.name_avg_vel_nr = 'mass_avg_normal_vel'
+        self.ghost_smp_detected = False
 
         for sub_part in self.model_part:
             if sub_part[IS_GHOST] == True:
+                self.ghost_smp_detected = True
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
                 self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name])
 
