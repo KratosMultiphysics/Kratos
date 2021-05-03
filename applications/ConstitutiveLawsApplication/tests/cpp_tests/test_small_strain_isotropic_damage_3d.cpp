@@ -25,7 +25,7 @@
 #include "constitutive_laws_application_variables.h"
 
 // Constitutive law
-#include "custom_advanced_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -37,7 +37,7 @@ namespace Testing
 typedef Node<3> NodeType;
 
 // Check the correct calculation of the integrated stress with the CL's in small strain
-KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
