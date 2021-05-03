@@ -503,7 +503,7 @@ protected:
 
         // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
         if(!r_process_info.Has(CONVECTION_DIFFUSION_SETTINGS)){
-            ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
+            auto p_conv_diff_settings = Kratos::make_shared<ConvectionDiffusionSettings>();
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
