@@ -177,7 +177,7 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
-        double energy = inner_prod(r_stress_pos, r_strain);
+        double energy = inner_prod(r_stress_vector_pos, r_strain_vector);
         // energy may be a small negative due to machine precision error, forcing zero
         if (energy < 0) {
             energy = 0;
