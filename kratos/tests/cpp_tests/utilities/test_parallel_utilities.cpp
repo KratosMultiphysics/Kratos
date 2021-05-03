@@ -278,15 +278,14 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelUtilsContinue, KratosCoreFastSuite)
 
     IndexPartition<unsigned int>(data_vector.size()).for_each(
         [&](unsigned int i){
-            if (i>500) return; // this is the equivalent of "continue" in a regular loop
+            if (i%4 == 0) return; // this is the equivalent of "continue" in a regular loop
 
             output[i] = 2.0*data_vector[i];
             }
         );
 
     for(unsigned int i=0; i<output.size(); ++i) {
-        std::cout << "i=" << i << " ; " << output[i] << std::endl;
-        if (i>500) {
+        if (i%4 == 0) {
             KRATOS_CHECK_DOUBLE_EQUAL(output[i], 3.3);
         } else {
             KRATOS_CHECK_DOUBLE_EQUAL(output[i], -2.0);
