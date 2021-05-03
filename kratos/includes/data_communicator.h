@@ -161,8 +161,9 @@ virtual void RecvImpl(std::vector<type>& rRecvValues, const int RecvSource, cons
 }                                                                                                               \
 virtual void ExchangeDataAsyncImpl(                                                                             \
     const std::vector<std::vector<type>>& rSendBuffer, std::vector<std::vector<type>>& rRecvBuffer,             \
-    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const {                           \
-    KRATOS_ERROR << "Calling serial DataCommunicator::ExchangeDataAsync, which has no meaningful return." << std::endl;    \
+    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const {                                       \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendBuffer.size(), rRecvBuffer.size(), "ExchangeDataAsync");     \
+    rRecvBuffer = ExchangeDataAsyncImpl(rSendBuffer, rSendCounts, rRecvCounts);                                 \
 }                                                                                                               \
 virtual void IsendImpl(                                                                                         \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag = 0) const {             \
@@ -614,7 +615,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     void ExchangeDataAsync(const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
                            std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts)
     {
-        this->ExchangeDataAsyncImpl(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);
+        this->ExchangeDataAsyncImpl(rSendBuffer, rSendCounts, rRecvCounts);
     }
 
     /// Exchange data with other ranks Asynchronously.
@@ -1032,7 +1033,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         }
     }
 
-    /// Exchange data with other ranks Asynchronously (generic version)
+    /// Exchange data with other ranks Asynchronously (generic version). Later overwrite in MPI_Data_Communicator
     /** Similar to MPI_Sendrecv in Async way
      * @param[in] rSendBuffer Data Buffer of Objects to be send
      * @param[in] rRecvBuffer Data Buffer to receive the sent Objects
@@ -1043,7 +1044,40 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     void ExchangeDataAsyncImpl(const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
                 std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
     {
-        KRATOS_ERROR << "Calling serial DataCommunicator::ExchangeDataAsyn, which has no meaningful return." << std::endl;
+        this->ExchangeDataAsync(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);
+    }
+
+    virtual std::string ExchangeDataAsyncImpl(
+        const std::string& rSendBuffer, const int SendDestination = 0, const int RecvSource = 0) const
+    {
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendBuffer;
+    }
+
+    template<class TObject>
+    TObject ExchangeDataAsyncImpl(const TObject& rSendBuffer, std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
+    {
+        CheckSerializationForSimpleType(rSendBuffer, TypeFromBool<serialization_is_required<TObject>::value>());
+        if(this->IsDistributed())
+        {
+            MpiSerializer send_serializer;
+            send_serializer.save("data", rSendBuffer);
+            std::string send_message = send_serializer.GetStringRepresentation();
+            std::string recv_message = this->ExchangeDataAsyncImpl(send_message, 0 ,0);
+            MpiSerializer recv_serializer(recv_message);
+            TObject rRecvBuffer;
+            recv_serializer.load("data", rRecvBuffer);
+            return rRecvBuffer;
+
+        }
+        else
+        {
+            KRATOS_ERROR_IF( (Rank() != 0) || (Rank() != 0))
+            << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+            return rSendBuffer;
+        }
     }
 
     /// Send data to other ranks Asynchronously(string version).
