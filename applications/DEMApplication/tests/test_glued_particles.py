@@ -40,6 +40,11 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnit
                     self.assertAlmostEqual(node.Y, 0.6362810292697275, delta=tolerance)
                     self.assertAlmostEqual(node.Z, -0.16645873461885752, delta=tolerance)
 
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 class TestGluedParticles(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -51,36 +56,6 @@ class TestGluedParticles(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(GluedParticlesTestSolution, model, parameters_file_name, 1)
-
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("glued_particles_tests_files", "sticky_wall_test.post.lst"))
-        files_to_delete_list.append(os.path.join("glued_particles_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("glued_particles_tests_files", "sticky_wall_test_Graphs"))
-        folders_to_delete_list.append(os.path.join("glued_particles_tests_files", "sticky_wall_test_MPI_results"))
-        folders_to_delete_list.append(os.path.join("glued_particles_tests_files", "sticky_wall_test_Post_Files"))
-        folders_to_delete_list.append(os.path.join("glued_particles_tests_files", "sticky_wall_test_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
-
-
-
-
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

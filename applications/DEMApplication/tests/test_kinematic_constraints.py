@@ -129,6 +129,10 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
     def CheckValueOfAngularVelocity(self, angular_velocity, component, expected_value, tolerance):
         self.assertAlmostEqual(angular_velocity[component], expected_value, delta=tolerance)
 
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 class TestKinematicConstraints(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -140,13 +144,6 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("kinematic_constraints_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("kinematic_constraints_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":

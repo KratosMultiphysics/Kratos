@@ -40,6 +40,11 @@ class FrictionDecayTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnitt
                 if node.Id == 6:
                     self.assertAlmostEqual(total_force[0], -4.406849, delta=tolerance)
 
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 class TestFrictionDecay(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -51,31 +56,6 @@ class TestFrictionDecay(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(FrictionDecayTestSolution, model, parameters_file_name, 1)
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("friction_decay_tests_files", "friction_decay_test.post.lst"))
-        files_to_delete_list.append(os.path.join("friction_decay_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("friction_decay_tests_files", "friction_decay_test_Graphs"))
-        folders_to_delete_list.append(os.path.join("friction_decay_tests_files", "friction_decay_test_MPI_results"))
-        folders_to_delete_list.append(os.path.join("friction_decay_tests_files", "friction_decay_test_Post_Files"))
-        folders_to_delete_list.append(os.path.join("friction_decay_tests_files", "friction_decay_test_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":

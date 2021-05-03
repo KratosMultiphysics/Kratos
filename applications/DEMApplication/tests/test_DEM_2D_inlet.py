@@ -35,6 +35,11 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
                     self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
                     self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
 
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
+
 class TestDEM2DInlet(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -46,40 +51,6 @@ class TestDEM2DInlet(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_InletTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("DEM2D_inlet_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("DEM2D_inlet_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet.post.lst"))
-        files_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_Graphs"))
-        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_MPI_results"))
-        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_Post_Files"))
-        folders_to_delete_list.append(os.path.join("DEM2D_inlet_tests_files", "DEM2D_inlet_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
-
 
 
 if __name__ == "__main__":

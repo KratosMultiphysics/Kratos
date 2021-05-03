@@ -43,32 +43,6 @@ class TestPostProcess(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(TestPostProcessClass1, model, parameters_file_name, 1)
 
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("kinematic_constraints_tests_files", "processes.post.lst"))
-        files_to_delete_list.append(os.path.join("kinematic_constraints_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("kinematic_constraints_tests_files", "processes_Graphs"))
-        folders_to_delete_list.append(os.path.join("kinematic_constraints_tests_files", "processes_MPI_results"))
-        folders_to_delete_list.append(os.path.join("kinematic_constraints_tests_files", "processes_Post_Files"))
-        folders_to_delete_list.append(os.path.join("kinematic_constraints_tests_files", "processes_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
-
-
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
     KratosUnittest.main()

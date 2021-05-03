@@ -41,6 +41,11 @@ class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
                     expected_value = -13698
                     self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
 
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
+
 
 class TestDEM2DContact(KratosUnittest.TestCase):
 
@@ -53,31 +58,6 @@ class TestDEM2DContact(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ContactTestSolution, model, parameters_file_name, 1)
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("DEM2D_contact_tests_files", "DEM2D_contact.post.lst"))
-        files_to_delete_list.append(os.path.join("DEM2D_contact_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("DEM2D_contact_tests_files", "DEM2D_contact_Graphs"))
-        folders_to_delete_list.append(os.path.join("DEM2D_contact_tests_files", "DEM2D_contact_MPI_results"))
-        folders_to_delete_list.append(os.path.join("DEM2D_contact_tests_files", "DEM2D_contact_Post_Files"))
-        folders_to_delete_list.append(os.path.join("DEM2D_contact_tests_files", "DEM2D_contact_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

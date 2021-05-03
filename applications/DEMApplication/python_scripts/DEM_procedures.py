@@ -760,6 +760,12 @@ class Procedures():
         except OSError:
             pass
 
+        try:
+            file_to_remove = os.path.join(main_path, 'flux_data_new.hdf5')
+            os.remove(file_to_remove)
+        except OSError:
+            pass
+
 
     @classmethod
     def CreateDirectories(self, main_path, problem_name, run_code='', do_print_results=True):

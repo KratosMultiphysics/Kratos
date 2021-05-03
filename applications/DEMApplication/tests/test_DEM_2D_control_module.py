@@ -61,8 +61,9 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
                 node_force_y = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
                 expected_value = 150.1
                 self.assertAlmostEqual(node_force_y, expected_value, delta=tolerance)
-
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
+
 
 class TestDEM2DControlModule(KratosUnittest.TestCase):
 
@@ -74,31 +75,6 @@ class TestDEM2DControlModule(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, 1)
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("DEM2D_control_module_tests_files", "DEM2D_control_module.post.lst"))
-        files_to_delete_list.append(os.path.join("DEM2D_control_module_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("DEM2D_control_module_tests_files", "DEM2D_control_module_Graphs"))
-        folders_to_delete_list.append(os.path.join("DEM2D_control_module_tests_files", "DEM2D_control_module_MPI_results"))
-        folders_to_delete_list.append(os.path.join("DEM2D_control_module_tests_files", "DEM2D_control_module_Post_Files"))
-        folders_to_delete_list.append(os.path.join("DEM2D_control_module_tests_files", "DEM2D_control_module_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":

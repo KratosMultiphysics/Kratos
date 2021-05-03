@@ -81,7 +81,9 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
                 x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
+
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
@@ -178,32 +180,6 @@ class TestDEM3DContinuum(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ContinuumTestSolution, model, parameters_file_name, 1)
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("test_DEM_3D_continuum", "test_DEM_3D_continuum.post.lst"))
-        files_to_delete_list.append(os.path.join("test_DEM_3D_continuum", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("test_DEM_3D_continuum", "test_DEM_3D_continuum_Graphs"))
-        folders_to_delete_list.append(os.path.join("test_DEM_3D_continuum", "test_DEM_3D_continuum_MPI_results"))
-        folders_to_delete_list.append(os.path.join("test_DEM_3D_continuum", "test_DEM_3D_continuum_Post_Files"))
-        folders_to_delete_list.append(os.path.join("test_DEM_3D_continuum", "test_DEM_3D_continuum_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
-        os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
