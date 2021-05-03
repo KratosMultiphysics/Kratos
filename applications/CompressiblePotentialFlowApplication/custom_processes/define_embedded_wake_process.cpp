@@ -98,6 +98,7 @@ ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
         bool is_wake = r_node.GetValue(WAKE);
         bool is_kutta = r_node.GetValue(KUTTA);
         if (is_positive && is_wake && is_kutta) {
+            r_node.SetValue(TRAILING_EDGE, true);
             return &r_node;
         }
     }
