@@ -82,6 +82,11 @@ public:
     typedef std::size_t SizeType;
     typedef Geometry<Node < 3 > > GeometryType;
 
+    typedef array_1d<double, 6> StrainVectorType;
+    typedef array_1d<double, 6> StressVectorType;
+    typedef BoundedMatrix<double, 6, 6> VoigtSizeMatrixType;     // Constitutive Matrix
+    typedef BoundedMatrix<double, 3, 3> DimensionSizeMatrixType; // Def. gradient tensor
+
     /**
      * Counted pointer of ConstitutiveLaw
      */
