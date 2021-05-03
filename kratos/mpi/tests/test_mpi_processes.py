@@ -178,7 +178,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
     def testDiscontinuousDistanceProcessCutOnEdge2D(self):
 
-        communicator = KratosMultiphysics.DataCommunicator.GetDefault()
+        communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         model = KratosMultiphysics.Model()
         main_model_part = model.CreateModelPart('main')
         main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
@@ -214,7 +214,7 @@ class TestMPIProcesses(KratosUnittest.TestCase):
 
     def testDiscontinuousDistanceProcessCutThroughNode2D(self):
 
-        communicator = KratosMultiphysics.DataCommunicator.GetDefault()
+        communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         model = KratosMultiphysics.Model()
         skin_model_part  = model.CreateModelPart('skin')
         skin_model_part.CreateNewNode(1, -0.4,  0.2, 0.0)
