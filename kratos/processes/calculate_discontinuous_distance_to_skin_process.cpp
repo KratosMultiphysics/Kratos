@@ -14,6 +14,7 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -852,20 +853,19 @@ namespace Kratos
                 if (rCuteEdgeVector[i_edge] >= 0) {
                     IndexType edge_i_id = std::min(rEdgeContainer[i_edge][0].Id(), rEdgeContainer[i_edge][1].Id());
                     IndexType edge_j_id = std::max(rEdgeContainer[i_edge][0].Id(), rEdgeContainer[i_edge][1].Id());
-                    auto& neighbours_vector_0 = rEdgeContainer[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
-                    auto& neighbours_vector_1 = rEdgeContainer[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
 
                     // Get neighbour elements in a single vector without repetitions.
-                    std::vector<Element::WeakPointer> all_neighbour_vector;
-                    all_neighbour_vector.reserve(neighbours_vector_0.size() + neighbours_vector_1.size());
-                    all_neighbour_vector.insert(all_neighbour_vector.end(), neighbours_vector_0.begin(), neighbours_vector_0.end());
-                    all_neighbour_vector.insert(all_neighbour_vector.end(), neighbours_vector_1.begin(), neighbours_vector_1.end());
-                    std::sort(all_neighbour_vector.begin(), all_neighbour_vector.end(), GlobalPointerCompare<Element>());
-                    auto new_end_it = std::unique(all_neighbour_vector.begin(), all_neighbour_vector.end(), GlobalPointerComparor<Element>());
-                    all_neighbour_vector.erase(new_end_it, all_neighbour_vector.end());
+                    std::unordered_set<Element::WeakPointer, SharedPointerHasher<Element::WeakPointer>, SharedPointerComparator<Element::WeakPointer>> all_neighbour_set;
+                    for(auto& neigh : rEdgeContainer[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
+                        all_neighbour_set.insert(neigh);
+                    }
+
+                    for(auto& neigh : rEdgeContainer[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
+                        all_neighbour_set.insert(neigh);
+                    }
 
                     bool is_edge_cut = false;
-                    for (auto& g_ptr_neigh : all_neighbour_vector) {
+                    for (auto& g_ptr_neigh : all_neighbour_set) {
                         if (!is_edge_cut) {
                             auto cut_edges = get_neighbour_cut_edges.Get(g_ptr_neigh);
                             for (auto cut_edge: cut_edges) {
