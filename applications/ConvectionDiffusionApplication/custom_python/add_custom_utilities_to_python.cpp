@@ -23,6 +23,7 @@
 #include "custom_utilities/pure_convection_tools.h"
 #include "custom_utilities/pure_convection_CrankN_tools.h"
 #include "custom_utilities/bfecc_convection.h"
+#include "custom_utilities/bfecc_convection_rk.h"
 #include "custom_utilities/bfecc_convection_rk4.h"
 #include "custom_utilities/move_particle_utility.h"
 // #include "custom_utilities/bfecc_elemental_convection.h"
@@ -110,6 +111,25 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
+    ;
+
+
+    py::class_<BFECCConvectionRK<2> > (m,"BFECCConvectionRK2D")
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool >())
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool, const bool >())
+    .def("BFECCconvect", &BFECCConvectionRK<2>::BFECCconvect)
+    .def("ResetBoundaryConditions", &BFECCConvectionRK<2>::ResetBoundaryConditions)
+    .def("CopyScalarVarToPreviousTimeStep", &BFECCConvectionRK<2>::CopyScalarVarToPreviousTimeStep)
+    ;
+
+    py::class_<BFECCConvectionRK<3> > (m,"BFECCConvectionRK3D")
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool >())
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool, const bool >())
+    .def("BFECCconvect", &BFECCConvectionRK<3>::BFECCconvect)
+    .def("ResetBoundaryConditions", &BFECCConvectionRK<3>::ResetBoundaryConditions)
+    .def("CopyScalarVarToPreviousTimeStep", &BFECCConvectionRK<3>::CopyScalarVarToPreviousTimeStep)
     ;
 
     py::class_<BFECCConvectionRK4<2> > (m,"BFECCConvectionRK42D").def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
