@@ -37,6 +37,34 @@ void DefineEmbeddedWakeProcess::Execute()
     MarkWakeElements();
     ComputeTrailingEdgeNode();
 
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
+        auto& r_geometry = it_elem->GetGeometry();
+
+
+        BoundedVector<double,3> geometry_distances;
+        for(unsigned int i_node = 0; i_node<3; i_node++){
+            geometry_distances[i_node] = r_geometry[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
+        }
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
+        bool is_touching_marker = false;
+        if (is_embedded){
+            for (auto& r_node : r_geometry) {
+                if (r_node.GetValue(KUTTA) == 1) {
+                    // std::cout << "Found embedded elem " << it_elem->Id() << " touching marker" << std::endl;
+                    is_touching_marker = true;
+                    break;
+                }
+            }
+        }
+
+        if (is_touching_marker) {
+            for (auto& r_node : r_geometry) {
+                r_node.SetValue(KUTTA, true);
+            }
+        }
+    }
+
     KRATOS_CATCH("");
 }
 
