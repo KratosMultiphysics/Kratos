@@ -45,6 +45,10 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
                     expected_value = 16.29633
                     self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
 
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
@@ -70,6 +74,10 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('1/n_accum')
             self.assertEqual(n_accum_h5[-1], -4)
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
@@ -98,6 +106,11 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('2/n_accum')
             self.assertEqual(n_accum_h5[-1], -4)
+
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestAnalytics(KratosUnittest.TestCase):
 
@@ -128,30 +141,6 @@ class TestAnalytics(KratosUnittest.TestCase):
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
     #     model = Kratos.Model()
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
-
-    @staticmethod
-    def tearDown():
-        files_to_delete_list = []
-        files_to_delete_list.append(os.path.join("TimesPartialRelease"))
-        files_to_delete_list.append(os.path.join("analytics_tests_files", "analytics_test_1.post.lst"))
-        files_to_delete_list.append(os.path.join("analytics_tests_files", "flux_data_new.hdf5"))
-
-        for to_erase_file in files_to_delete_list:
-            if os.path.exists(to_erase_file):
-                os.remove(to_erase_file)
-
-        #............Getting rid of unuseful folders
-        folders_to_delete_list      = []
-        folders_to_delete_list.append(os.path.join("analytics_tests_files", "analytics_test_1_Graphs"))
-        folders_to_delete_list.append(os.path.join("analytics_tests_files", "analytics_test_1_MPI_results"))
-        folders_to_delete_list.append(os.path.join("analytics_tests_files", "analytics_test_1_Post_Files"))
-        folders_to_delete_list.append(os.path.join("analytics_tests_files", "analytics_test_1_Results_and_Data"))
-
-
-        for to_erase_folder in folders_to_delete_list:
-            import shutil
-            shutil.rmtree(to_erase_folder)
-
 
 
 if __name__ == "__main__":
