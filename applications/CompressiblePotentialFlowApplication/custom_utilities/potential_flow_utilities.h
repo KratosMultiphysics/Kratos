@@ -188,9 +188,10 @@ Vector ComputeKuttaNormal(const double angle);
 template <class TContainerType>
 double CalculateArea(TContainerType& rContainer);
 
+template <int Dim, int NumNodes>
 void AddKuttaConditionPenaltyTerm(const Element& rElement,
-                              MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
 // void AddPotentialGradientStabilizationTerm(const Element& rElement,

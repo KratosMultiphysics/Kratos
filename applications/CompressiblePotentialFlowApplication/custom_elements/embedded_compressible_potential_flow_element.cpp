@@ -78,7 +78,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSyst
     }
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
-        AddKuttaConditionPenaltyTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTerm<Dim,NumNodes>(r_this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     }
 
 }
@@ -211,58 +211,6 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWake
     split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     noalias(rRightHandSideVector) = -prod(laplacian_matrix, split_element_values);
 }
-
-template <int Dim, int NumNodes>
-void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::AddKuttaConditionPenaltyTerm(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    const EmbeddedCompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
-
-    Vector vector_distances=ZeroVector(NumNodes);
-
-    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
-
-    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
-
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
-    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
-    BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
-    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
-    noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
-
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
-        if (this->GetGeometry()[i].GetValue(KUTTA))
-        {
-            if (wake==0)  {
-                for (unsigned int j = 0; j < NumNodes; ++j)
-                {
-                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
-                    rRightHandSideVector(i) += -lhs_kutta(i, j)*data.potentials(j);
-                }
-            } else {
-                data.distances = this->GetValue(WAKE_ELEMENTAL_DISTANCES);
-                BoundedVector<double, 2*NumNodes> split_element_values;
-                split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
-                for (unsigned int j = 0; j < NumNodes; ++j)
-                {
-                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
-                    rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_kutta(i, j);
-                    rRightHandSideVector(i) += -lhs_kutta(i, j)*split_element_values(j);
-                    rRightHandSideVector(i+NumNodes) += -lhs_kutta(i, j)*split_element_values(j+NumNodes);
-                }
-            }
-        }
-    }
-}
-
 
 template <int Dim, int NumNodes>
 void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGradientStabilizationTerm(

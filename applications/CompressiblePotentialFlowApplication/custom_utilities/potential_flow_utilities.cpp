@@ -989,14 +989,13 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
         Vector& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    const EmbeddedCompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
+    const int wake = rElement.GetValue(WAKE);
 
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     Vector vector_distances=ZeroVector(NumNodes);
 
@@ -1012,7 +1011,7 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        if (this->GetGeometry()[i].GetValue(KUTTA))
+        if (rElement.GetGeometry()[i].GetValue(KUTTA))
         {
             if (wake==0)  {
                 for (unsigned int j = 0; j < NumNodes; ++j)
@@ -1021,9 +1020,9 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
                     rRightHandSideVector(i) += -lhs_kutta(i, j)*data.potentials(j);
                 }
             } else {
-                data.distances = this->GetValue(WAKE_ELEMENTAL_DISTANCES);
+                data.distances =  PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(rElement);
                 BoundedVector<double, 2*NumNodes> split_element_values;
-                split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
+                split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(rElement, data.distances);
                 for (unsigned int j = 0; j < NumNodes; ++j)
                 {
                     rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
