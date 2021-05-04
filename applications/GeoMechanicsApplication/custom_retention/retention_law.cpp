@@ -304,6 +304,30 @@ double& RetentionLaw::CalculateValue(Parameters &rParameters,
 }
 
 //-------------------------------------------------------------------------------------------------
+double& RetentionLaw::CalculateDerivative(Parameters &rParameters,
+                                     const Variable<double> &rThisVariable,
+                                     double &rValue)
+{
+    KRATOS_TRY
+
+    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateDerivative<double> function from base class ... illegal operation!!", "" )
+
+    KRATOS_CATCH( "" )
+}
+
+//-------------------------------------------------------------------------------------------------
+double& RetentionLaw::CalculateSecondDerivative(Parameters &rParameters,
+                                     const Variable<double> &rThisVariable,
+                                     double &rValue)
+{
+    KRATOS_TRY
+
+    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateSecondDerivative<double> function from base class ... illegal operation!!", "" )
+
+    KRATOS_CATCH( "" )
+}
+
+//-------------------------------------------------------------------------------------------------
 Vector& RetentionLaw::CalculateValue(Parameters &rParameters,
                                      const Variable<Vector> &rThisVariable,
                                      Vector &rValue)

@@ -84,6 +84,7 @@ public:
          * no "new" or "malloc" can be used for this Parameters ***/
 
         double mFluidPressure;
+        double mAirPressure;
         double mMeanStress;
         double mTemperature;
         double mVolumetricStrain;
@@ -100,6 +101,7 @@ public:
         {
             //Initialize pointers to NULL
             mFluidPressure = 0;
+            mAirPressure = 0;
             mMeanStress = 0;
             mTemperature = 0;
             mVolumetricStrain = 0;
@@ -118,6 +120,7 @@ public:
                                                            , mpElementGeometry(&rElementGeometry)
         {
             mFluidPressure = 0;
+            mAirPressure = 0;
             mMeanStress = 0;
             mTemperature = 0;
             mVolumetricStrain = 0;
@@ -127,6 +130,7 @@ public:
          * Copy Constructor.
          */
         Parameters(const Parameters &rNewParameters) : mFluidPressure(rNewParameters.mFluidPressure)
+                                                     , mAirPressure(rNewParameters.mAirPressure)
                                                      , mMeanStress(rNewParameters.mMeanStress)
                                                      , mTemperature(rNewParameters.mTemperature)
                                                      , mVolumetricStrain(rNewParameters.mVolumetricStrain)
@@ -149,10 +153,11 @@ public:
          * sets the variable or the pointer of a specified variable: assigns the direction of the pointer for the mpvariables, only non const values can be modified
          */
 
-        void SetVolumetricStrain(const double rVolumetricStrain) { mVolumetricStrain = rVolumetricStrain; };
-        void SetMeanStress      (const double rMeanStress)       { mMeanStress = rMeanStress; };
-        void SetFluidPressure   (const double rFluidPressure)    { mFluidPressure = rFluidPressure; };
-        void SetTemperature     (const double rTemperature)      { mTemperature = rTemperature; };
+        void SetVolumetricStrain(const double& rVolumetricStrain) { mVolumetricStrain = rVolumetricStrain; };
+        void SetMeanStress      (const double& rMeanStress)       { mMeanStress = rMeanStress; };
+        void SetFluidPressure   (const double& rFluidPressure)    { mFluidPressure = rFluidPressure; };
+        void SetAirPressure     (const double& rAirPressure)      { mAirPressure = rAirPressure; };
+        void SetTemperature     (const double& rTemperature)      { mTemperature = rTemperature; };
 
         void SetProcessInfo(const ProcessInfo &rProcessInfo) { mpCurrentProcessInfo = &rProcessInfo; };
         void SetMaterialProperties(const Properties &rMaterialProperties) { mpMaterialProperties = &rMaterialProperties; };
@@ -162,22 +167,23 @@ public:
          * Returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
          */
 
-        const double &GetVolumetricStrain() { return mVolumetricStrain; }
-        const double &GetMeanStress()       { return mMeanStress;       }
-        const double &GetFluidPressure()    { return mFluidPressure;    }
-        const double &GetTemperature()      { return mTemperature;      }
+        const double &GetVolumetricStrain() const { return mVolumetricStrain; }
+        const double &GetMeanStress()       const { return mMeanStress;       }
+        const double &GetFluidPressure()    const { return mFluidPressure;    }
+        const double &GetAirPressure()      const { return mAirPressure;    }
+        const double &GetTemperature()      const { return mTemperature;      }
 
-        const ProcessInfo &GetProcessInfo()
+        const ProcessInfo &GetProcessInfo() const
         {
             KRATOS_DEBUG_ERROR_IF_NOT(IsSetProcessInfo()) << "ProcessInfo is not set!" << std::endl;
             return *mpCurrentProcessInfo;
         }
-        const Properties &GetMaterialProperties()
+        const Properties &GetMaterialProperties() const
         {
             KRATOS_DEBUG_ERROR_IF_NOT(IsSetMaterialProperties()) << "MaterialProperties is not set!" << std::endl;
             return *mpMaterialProperties;
         }
-        const GeometryType &GetElementGeometry()
+        const GeometryType &GetElementGeometry() const
         {
             KRATOS_DEBUG_ERROR_IF_NOT(IsSetElementGeometry()) << "ElementGeometry is not set!" << std::endl;
             return *mpElementGeometry;
@@ -187,22 +193,32 @@ public:
          * Returns the reference to the value of a specified variable with not constant access
          */
 
-        double &GetVolumetricStrain(double &rVolumetricStrain)
+        double &GetVolumetricStrain(double &rVolumetricStrain) const
         {
             rVolumetricStrain = mVolumetricStrain;
             return rVolumetricStrain;
         }
-        double &GetMeanStress(double &rMeanStress)
+        double &GetMeanStress(double &rMeanStress) const
         {
             rMeanStress = mMeanStress;
             return rMeanStress;
         }
-        double &GetFluidPressure(double &rFluidPressure)
+        double &GetFluidPressure(double &rFluidPressure) const
         {
             rFluidPressure = mFluidPressure;
             return rFluidPressure;
         }
-        double &GetTemperature(double &rTemperature)
+        double &GetAirPressure(double &rAirPressure) const
+        {
+            rAirPressure = mAirPressure;
+            return rAirPressure;
+        }
+        double &GetCapillaryPressure(double &rCapillaryPressure) const
+        {
+            rCapillaryPressure = mAirPressure - mFluidPressure;
+            return rCapillaryPressure;
+        }
+        double &GetTemperature(double &rTemperature) const
         {
             rTemperature = mTemperature;
             return rTemperature;
@@ -211,9 +227,9 @@ public:
         /**
          * Returns if the different components has been set
          */
-        bool IsSetProcessInfo()        { return (mpCurrentProcessInfo != NULL); };
-        bool IsSetMaterialProperties() { return (mpMaterialProperties != NULL); };
-        bool IsSetElementGeometry()    { return (mpElementGeometry != NULL); };
+        bool IsSetProcessInfo()        const { return (mpCurrentProcessInfo != NULL); };
+        bool IsSetMaterialProperties() const { return (mpMaterialProperties != NULL); };
+        bool IsSetElementGeometry()    const { return (mpElementGeometry != NULL); };
 
     }; // class Parameters end
 
@@ -444,6 +460,28 @@ public:
      * @param rValue output: the value of the specified variable
      */
     virtual double &CalculateValue(Parameters &rParameters,
+                                   const Variable<double> &rThisVariable,
+                                   double &rValue);
+
+    /**
+     * @brief Calculates the derivative of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual double &CalculateDerivative(Parameters &rParameters,
+                                   const Variable<double> &rThisVariable,
+                                   double &rValue);
+
+    /**
+     * @brief Calculates the second derivative of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual double &CalculateSecondDerivative(Parameters &rParameters,
                                    const Variable<double> &rThisVariable,
                                    double &rValue);
 
