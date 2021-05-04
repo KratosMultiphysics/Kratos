@@ -3684,6 +3684,15 @@ public:
         return rResult;
     }
 
+    virtual int Check() const
+    {
+        KRATOS_TRY
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{

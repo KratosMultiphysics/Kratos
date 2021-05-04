@@ -33,6 +33,8 @@ KRATOS_CREATE_VARIABLE(bool, COMPUTE_DYNAMIC_TANGENT)
 KRATOS_CREATE_VARIABLE(bool, COMPUTE_LUMPED_MASS_MATRIX)
 
 //for Structural application:
+//ints
+KRATOS_CREATE_VARIABLE(int, NUMBER_OF_CYCLES)
 
 //for Level Set application:
 
@@ -286,6 +288,7 @@ KRATOS_CREATE_VARIABLE(double, MIN_DT)
 KRATOS_CREATE_VARIABLE(double, MAX_DT)
 KRATOS_CREATE_VARIABLE(double, VEL_ART_VISC)
 KRATOS_CREATE_VARIABLE(double, PR_ART_VISC)
+KRATOS_CREATE_VARIABLE(double, LIMITER_COEFFICIENT)
 
 //for Vulcan application
 KRATOS_CREATE_VARIABLE(double, LATENT_HEAT)
@@ -725,6 +728,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(RADIATION_SETTINGS)
 
     //--------------- STRUCTURAL Application -------------------//
+    KRATOS_REGISTER_VARIABLE(NUMBER_OF_CYCLES)
 
     //--------------- MULTISCALE Application -------------------//
 
@@ -893,6 +897,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(MAX_DT)
     KRATOS_REGISTER_VARIABLE(VEL_ART_VISC)
     KRATOS_REGISTER_VARIABLE(PR_ART_VISC)
+    KRATOS_REGISTER_VARIABLE(LIMITER_COEFFICIENT)
 
     //--------------- Level Set Application -------------------//
 

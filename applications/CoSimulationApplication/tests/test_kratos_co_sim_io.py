@@ -54,8 +54,6 @@ class TestKratosCoSimIO(KratosUnittest.TestCase):
         }""")
         interface_data_pres = CouplingInterfaceData(settings_pres, model, "data_exchange_1")
         interface_data_temp = CouplingInterfaceData(settings_temp, model, "data_exchange_2")
-        interface_data_pres.Initialize()
-        interface_data_temp.Initialize()
 
         data_configuration_export = {"type" : "coupling_interface_data", "interface_data" : interface_data_pres}
         kratos_co_sim_io.ExportData(data_configuration_export)
