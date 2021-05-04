@@ -179,6 +179,7 @@ public:
     * @brief Quering for mesh conformity
     * returns 1 if all the nodes are conform and 0 otherwise
     */
+    KRATOS_DEPRECATED_MESSAGE("AreMeshesConforming is deprecated and will be removed soon")
     virtual int AreMeshesConforming() const
     {
         KRATOS_ERROR << "This mapper doesn't implement \"AreMeshesConforming\"!" << std::endl;
