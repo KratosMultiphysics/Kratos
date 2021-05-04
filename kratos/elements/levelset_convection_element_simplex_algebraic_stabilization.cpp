@@ -120,14 +120,14 @@ namespace Kratos
 
         const double aux_weight = 1.0/static_cast<double>(TNumNodes);
 
-        phi_mean /= aux_weight;
-        phi_mean_old /= aux_weight;
+        phi_mean *= aux_weight;
+        phi_mean_old *= aux_weight;
 
         array_1d<double,TDim> X_mean, grad_phi_mean;
         for(unsigned int k = 0; k < TDim; k++)
         {
-            grad_phi_mean[k] = grad_phi_mean_tmp[k]/aux_weight;
-            X_mean[k] = X_mean_tmp[k]/aux_weight;
+            grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
+            X_mean[k] = aux_weight*X_mean_tmp[k];
         }
 
         array_1d<double,TDim> grad_phi_diff = prod(trans(DN_DX), phi_old) - grad_phi_mean;
@@ -215,7 +215,7 @@ namespace Kratos
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
         const double gauss_pt_weigth = Volume * aux_weight;
-
+        
         rRightHandSideVector *= gauss_pt_weigth;
         rLeftHandSideMatrix *= gauss_pt_weigth;
 
