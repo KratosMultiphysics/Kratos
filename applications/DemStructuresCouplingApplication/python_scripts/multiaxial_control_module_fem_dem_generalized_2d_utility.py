@@ -80,7 +80,7 @@ class MultiaxialControlModuleFEMDEMGeneralized2DUtility(MultiaxialControlModuleG
             return
 
         import matplotlib
-+       matplotlib.use('agg')
+        matplotlib.use('agg')
         import matplotlib.pyplot as plt
 
         f = plt.figure()
