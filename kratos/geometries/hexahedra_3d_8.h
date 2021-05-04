@@ -488,33 +488,46 @@ public:
     }
 
     /**
-     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
-     * local point for the given global point
-     * @param rPoint The point to be checked if is inside o note in global coordinates
-     * @param rResult The local coordinates of the point
-     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
-     */
-    bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        this->PointLocalCoordinates( rResult, rPoint );
+        int flag[3];
 
-        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
+        for (int i = 0; i < 3; ++i)
         {
-            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) )
-            {
-                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) )
-                {
-                    return true;
-                }
-            }
+            if ( rPointLocalCoordinates[0] < (-1.0 - Tolerance ) ) flag[i] = 0;
+            else if ( rPointLocalCoordinates[0] < (-1.0 + Tolerance ) ) flag[i] = 2;
+            else if ( rPointLocalCoordinates[0] < (1.0 - Tolerance ) ) flag[i] = 1;
+            else if ( rPointLocalCoordinates[0] < (1.0 + Tolerance ) ) flag[i] = 2;
+            else flag[i] = 0;
         }
 
-        return false;
+        if (flag[0]*flag[1]*flag[2] == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            if (flag[0] + flag[1] + flag[2] > 3)
+                return 2;
+            else
+                return 1;
+        }
+
+        return -1; // should not come here; just to silence the compiler
     }
 
 
@@ -660,7 +673,7 @@ public:
 
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
-        if(IsInside(rLowPoint,local_coordinates))
+        if(this->IsInside(rLowPoint,local_coordinates))
             return true;
 
         return false;
