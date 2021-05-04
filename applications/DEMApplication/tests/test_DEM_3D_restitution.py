@@ -149,14 +149,14 @@ class TestDEM3DRestitution(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
     def test_DEM3D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution_2, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution_2, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 

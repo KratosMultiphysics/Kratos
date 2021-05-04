@@ -42,10 +42,9 @@ class TestPostProcess(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "post_process_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(TestPostProcessClass1, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(TestPostProcessClass1, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @staticmethod
-    def tearDown():
+    def tearDown(self):
         file_to_remove = os.path.join("post_process_tests_files", "ringcluster3D.clu")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)

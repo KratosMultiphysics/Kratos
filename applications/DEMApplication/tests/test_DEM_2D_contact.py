@@ -57,7 +57,7 @@ class TestDEM2DContact(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_contact_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ContactTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ContactTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

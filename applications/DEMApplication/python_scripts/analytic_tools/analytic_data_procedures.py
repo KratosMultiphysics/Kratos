@@ -101,9 +101,12 @@ class FaceAnalyzerClass:
             face_watcher.MakeMeasurements()
 
     def MakeAnalyticsPipeLine(self, time):
-        self.CreateNewFile()
-        self.UpdateDataBases(time)
-        self.RemoveOldFile()
+        if self.ghost_smp_detected:
+            self.CreateNewFile()
+            self.UpdateDataBases(time)
+            self.RemoveOldFile()
+        else:
+            pass
 
     def CreateNewFile(self):
         import h5py

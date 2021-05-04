@@ -55,7 +55,7 @@ class TestFrictionDecay(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "friction_decay_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(FrictionDecayTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(FrictionDecayTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 if __name__ == "__main__":

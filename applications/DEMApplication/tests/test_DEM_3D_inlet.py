@@ -50,7 +50,7 @@ class TestDEM3DInlet(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_inlet_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_InletTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_InletTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 if __name__ == "__main__":

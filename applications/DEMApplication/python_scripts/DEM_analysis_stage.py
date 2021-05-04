@@ -451,7 +451,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
-        if is_time_to_print and self.FaceAnalyzerClass.ghost_smp_detected:
+        if is_time_to_print:
             self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
 
     def IsTimeToPrintPostProcess(self):
