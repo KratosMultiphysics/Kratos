@@ -46,6 +46,8 @@ public:
         Execute();
     }
 
+    void ExecuteInitialize() override;
+
     void Execute() override;
 
     /// Turn back information as a string.

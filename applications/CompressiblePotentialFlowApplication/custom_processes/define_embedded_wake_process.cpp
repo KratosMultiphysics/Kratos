@@ -33,6 +33,7 @@ void DefineEmbeddedWakeProcess::Execute()
 
     KRATOS_ERROR_IF(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]>2) << "DOMAIN_SIZE is greater than 2. DefineEmbeddedWakeProcess is only implemented for 2D cases!" << std::endl;
 
+    ExecuteInitialize();
     ComputeDistanceToWake();
     MarkWakeElements();
     ComputeTrailingEdgeNode();
@@ -40,6 +41,21 @@ void DefineEmbeddedWakeProcess::Execute()
     KRATOS_CATCH("");
 }
 
+void DefineEmbeddedWakeProcess::ExecuteInitialize() {
+
+    KRATOS_TRY;
+
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem) {
+        rElem.SetValue(WAKE, false);
+    });
+    block_for_each(mrModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        rNode.SetValue(WAKE_DISTANCE, 0.0);
+        rNode.SetValue(WAKE, false);
+        rNode.SetValue(KUTTA, false);
+    });
+
+    KRATOS_CATCH("");
+}
 
 void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
@@ -57,6 +73,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
     block_for_each(mrModelPart.Elements(), [&](Element& rElem)
     {
+        auto& r_geometry = rElem.GetGeometry();
         BoundedVector<double, 3> nodal_distances_to_wake = rElem.GetValue(ELEMENTAL_DISTANCES);
         rElem.SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
@@ -64,8 +81,8 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
 
         BoundedVector<double,3> geometry_distances;
-        for(unsigned int i_node = 0; i_node<3; i_node++){
-            geometry_distances[i_node] = rElem.GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        for(unsigned int i_node = 0; i_node< r_geometry.size(); i_node++){
+            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
 
@@ -74,8 +91,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
             rElem.SetValue(WAKE, true);
             if (is_embedded){
                 rElem.Set(STRUCTURE, true);
-                auto& r_geometry = rElem.GetGeometry();
-                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
+                for (unsigned int i = 0; i < r_geometry.size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(KUTTA, true);
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
@@ -83,8 +99,7 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
             else{
-                auto& r_geometry = rElem.GetGeometry();
-                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
+                for (unsigned int i = 0; i < r_geometry.size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].SetValue(WAKE, true);
@@ -113,7 +128,6 @@ ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
     return nullptr;
 
 }
-
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
