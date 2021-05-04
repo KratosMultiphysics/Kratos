@@ -48,7 +48,6 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
         for index, variable_dir in enumerate(["_X", "_Y", "_Z"]):
             variable_component_name = variable_name + variable_dir
             flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + variable_component_name
-            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
             if not settings["value"][index].IsNull():
                 component_params = KratosMultiphysics.Parameters("{}")
                 component_params.AddValue("model_part_name", settings["model_part_name"])
