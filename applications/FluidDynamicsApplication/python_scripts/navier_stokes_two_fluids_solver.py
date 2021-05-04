@@ -104,6 +104,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if custom_settings.Has("levelset_convection_settings"):
             if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
                 custom_settings["levelset_convection_settings"].RemoveValue("levelset_splitting")
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "\'levelset_splitting\' has been temporarily deactivated. Using the standard levelset convection with no splitting.")
 
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
