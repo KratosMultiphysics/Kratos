@@ -68,7 +68,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -106,7 +106,7 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
-                                                                                                 ProcessInfo &rCurrentProcessInfo)
+                                                                                                 const ProcessInfo &rCurrentProcessInfo)
   {
     // double theta = this->GetThetaContinuity();
     double theta = 1.0;
@@ -135,7 +135,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
     const GeometryType &rGeom = this->GetGeometry();
@@ -151,7 +151,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 
@@ -243,10 +243,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalMomentumEquations(
-      MatrixType &rLeftHandSideMatrix,
-      VectorType &rRightHandSideVector,
-      ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
+                                                                                                              VectorType &rRightHandSideVector,
+                                                                                                              const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -323,7 +322,6 @@ namespace Kratos
 
     KRATOS_CATCH("");
   }
-
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::CalcElasticPlasticCauchySplitted(

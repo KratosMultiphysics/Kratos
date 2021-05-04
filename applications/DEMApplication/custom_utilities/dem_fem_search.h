@@ -142,7 +142,7 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       GeometricalObjectType::ContainerType BinsConditionPointerToGeometricalObjecPointerTemporalVector;
       RadiusArrayType Radius_out;
 
-      int num_of_threads = OpenMPUtils::GetNumThreads();
+      int num_of_threads = ParallelUtilities::GetNumThreads();
       std::vector<unsigned int> total_dem_partition_index;
       std::vector<unsigned int> total_fem_partition_index;
 

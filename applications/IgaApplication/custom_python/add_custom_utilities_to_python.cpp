@@ -19,6 +19,9 @@
 
 #include "iga_application_variables.h"
 
+#include "spaces/ublas_space.h"
+#include "custom_utilities/director_utilities.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -26,7 +29,11 @@ namespace Python {
 void AddCustomUtilitiesToPython(
     pybind11::module& m)
 {
-
+    pybind11::class_< DirectorUtilities >(m, "DirectorUtilities")
+        .def(pybind11::init<ModelPart&, Parameters>())
+        .def("ComputeDirectors",
+            &DirectorUtilities::ComputeDirectors)
+        ;
 }
 
 } // namespace Python

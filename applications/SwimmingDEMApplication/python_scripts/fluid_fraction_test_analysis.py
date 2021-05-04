@@ -23,12 +23,15 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         """
         from KratosMultiphysics.SwimmingDEMApplication import hdf5_script
         self.projector_post_process = hdf5_script.ErrorProjectionPostProcessTool(iteration)
-        super(FluidFractionTestAnalysis, self).__init__(model, varying_parameters)
+        super().__init__(model, varying_parameters)
         self.project_parameters = varying_parameters
 
+    def InitializeVariablesWithNonZeroValues(self):
+        pass
+
     def Initialize(self):
-        super(FluidFractionTestAnalysis, self).Initialize()
-        self._GetSolver().ConstructL2ErrorProjector()
+        super().Initialize()
+        self._GetSolver().ConstructL2ErrorCalculator()
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = 1)
@@ -54,21 +57,9 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
             self.dem_volume_tool.UpdateDataAndPrint(
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
-        if self._GetSolver().CannotIgnoreFluidNow():
-            self._GetFluidAnalysis().FinalizeSolutionStep()
+        super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
-        self._GetDEMAnalysis().FinalizeSolutionStep()
-
-        # coupling checks (debugging)
-        if self.debug_info_counter.Tick():
-            self.dem_volume_tool.UpdateDataAndPrint(
-                self.project_parameters["fluid_domain_volume"].GetDouble())
-
-        self._GetSolver().FinalizeSolutionStep()
-
-        for process in self._GetListOfProcesses():
-            process.ExecuteFinalizeSolutionStep()
-        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().ProjectL2Error()
+        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self._GetSolver().CalculateL2Error()
         self.projector_post_process.WriteData(self.error_model_part, self.velocity_error_projected, self.pressure_error_projected)
 
     def TransferBodyForceFromDisperseToFluid(self):

@@ -226,8 +226,8 @@ private:
     const EulerianConvectionDiffusionElement<2,4>  mEulerianConvDiff2D4N;
     const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D;
     const EulerianConvectionDiffusionElement<3,8>  mEulerianConvDiff3D8N;
-    const EulerianDiffusionElement<2,3>  mEulerianDiffusion2D;
-    const EulerianDiffusionElement<3,4>  mEulerianDiffusion3D;
+    const EulerianDiffusionElement<2,3>  mEulerianDiffusion2D3N;
+    const EulerianDiffusionElement<3,4>  mEulerianDiffusion3D4N;
 
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;

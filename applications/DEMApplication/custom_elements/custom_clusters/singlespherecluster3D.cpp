@@ -65,7 +65,7 @@ namespace Kratos {
         std::string excentricity_distribution_type = GetProperties()[EXCENTRICITY_PROBABILITY_DISTRIBUTION];
         if (excentricity_distribution_type == "normal") excentricity = ParticleCreatorDestructor::rand_normal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
         else if (excentricity_distribution_type == "lognormal") excentricity = ParticleCreatorDestructor::rand_lognormal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
-        else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
+        else KRATOS_ERROR << "Unknown probability distribution." << std::endl;
 
         mListOfCoordinates[0][0] = excentricity;
         mListOfCoordinates[0][1] = 0.0;
@@ -109,7 +109,7 @@ namespace Kratos {
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
 
-    void SingleSphereCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
+    void SingleSphereCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& r_process_info) {}
 
     double SingleSphereCluster3D::SlowGetDensity()                                      { return GetProperties()[PARTICLE_DENSITY];}
     int SingleSphereCluster3D::SlowGetParticleMaterial()                                { return GetProperties()[PARTICLE_MATERIAL];}

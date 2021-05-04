@@ -29,6 +29,12 @@ pybind11_add_module(KratosMeshMovingApplication MODULE THIN_LTO ${KRATOS_MESH_MO
 target_link_libraries(KratosMeshMovingApplication PRIVATE KratosMeshMovingCore)
 set_target_properties(KratosMeshMovingApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosMeshMovingCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosMeshMovingApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosMeshMovingApplication PROPERTIES SUFFIX .pyd)
@@ -38,12 +44,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshMovingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosMeshMovingCore)
-  cotire(KratosMeshMovingApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MeshMovingApplication.py KratosMultiphysics/MeshMovingApplication/__init__.py )
@@ -67,3 +67,9 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMeshMovingCore DESTINATION libs )
 install(TARGETS KratosMeshMovingApplication DESTINATION libs )
+
+## If trilinos is avaliable, switch on the Fluid trilinos extension
+if(${USE_MPI})
+  message("Enabling trilinos extension for KratosMeshMovingApplication")
+  add_subdirectory(trilinos_extension)
+endif(${USE_MPI})

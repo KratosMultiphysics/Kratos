@@ -12,7 +12,7 @@
 //
 
 // System includes
-#include<unordered_set>
+#include <unordered_set>
 
 // External includes
 
@@ -22,6 +22,10 @@
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+
+// this needs to be included last to avoid redefinition problems in win
+#include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
+namespace fs = ghc::filesystem;
 
 namespace Kratos
 {
@@ -513,6 +517,8 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
 
 void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 {
+    KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
+
     Timer::Start("Writing Output");
 
     // Setting the buffer size
@@ -610,6 +616,210 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     return num_nodes;
 }
 
+std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
+    ConnectivitiesContainerType& rAuxConnectivities,
+    std::unordered_set<SizeType> &rElementsIds,
+    std::unordered_set<SizeType> &rConditionsIds)
+{
+    KRATOS_TRY
+
+    //Fill the auxiliary vector by reading elemental and conditional connectivities
+    ResetInput();
+    std::string word;
+    while(true)
+    {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if (word == "Nodes") {
+            // This call does nothing useful for ModelPartIO itself
+            // but, if a derived class reorders nodes, it gives
+            // a chance to the derived class to process and renumber
+            // the nodes before reading elements/conditions.
+            ScanNodeBlock();
+        }
+        else if (word == "Elements") {
+            FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
+        }
+        else if (word == "Conditions") {
+            FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
+        }
+        else {
+            SkipBlock(word);
+        }
+    }
+
+    // Checking the connectivities
+    // SizeType n=0;
+    // for (const auto& r_conn : rAuxConnectivities) {
+    //     n++;
+    //     KRATOS_ERROR_IF(r_conn.size() == 0) << "Node #" << n << " caused an error during the construction of the nodal graph. Possible reasons are:\n"
+    //         << "The node is a hanging node, not connected to any element or condition\n"
+    //         << "The nodes are not consecutively numbered. This can be avoided by using the \"ReorderConsecutiveModelPartIO\"" << std::endl;
+    // }
+
+    // Sort each entry in the auxiliary connectivities vector, remove duplicates
+    SizeType num_entries = 0;
+    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
+    {
+        std::sort(it->begin(),it->end());
+        std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
+        it->resize(unique_end - it->begin());
+        num_entries += it->size();
+    }
+    SizeType num_nodes = rAuxConnectivities.size();
+
+    return num_nodes;
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
+    ConnectivitiesContainerType &rNodalConnectivities,
+    std::unordered_set<SizeType> &rElementsIds)
+{
+    KRATOS_TRY;
+
+    SizeType id;
+    SizeType node_id;
+    SizeType position;
+    SizeType used_size = rNodalConnectivities.size();
+    SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
+
+    std::string word;
+    std::string element_name;
+
+    ReadWord(element_name);
+    if(!KratosComponents<Element>::Has(element_name))
+    {
+        std::stringstream buffer;
+        buffer << "Element " << element_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the element name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
+    SizeType n_nodes_in_elem = r_clone_element.GetGeometry().size();
+    ConnectivitiesContainerType::value_type temp_element_nodes;
+
+    while(!mpStream->eof())
+    {
+        ReadWord(word); // Reading the element id or End
+        if(CheckEndBlock("Elements", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_element_nodes.clear();
+        for(SizeType i = 0 ; i < n_nodes_in_elem ; i++)
+        {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_element_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        if (rElementsIds.find(ReorderedElementId(id)) != rElementsIds.end()) {
+            for (SizeType i = 0; i < n_nodes_in_elem; i++)
+            {
+                position = temp_element_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size)
+                {
+                    used_size = position+1;
+                    if (position >= reserved_size)
+                    {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
+                for (SizeType j = 0; j < i; j++)
+                    rNodalConnectivities[position].push_back(temp_element_nodes[j]);
+                for (SizeType j = i+1; j < n_nodes_in_elem; j++)
+                    rNodalConnectivities[position].push_back(temp_element_nodes[j]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+
+}
+
+void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType> &rConditionsIds)
+{
+    KRATOS_TRY;
+
+    SizeType id;
+    SizeType node_id;
+    SizeType position;
+    SizeType used_size = rNodalConnectivities.size();
+    SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
+
+    std::string word;
+    std::string condition_name;
+
+    ReadWord(condition_name);
+    if(!KratosComponents<Condition>::Has(condition_name))
+    {
+        std::stringstream buffer;
+        buffer << "Condition " << condition_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the condition name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;;
+    }
+
+    Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_name);
+    SizeType n_nodes_in_cond = r_clone_condition.GetGeometry().size();
+    ConnectivitiesContainerType::value_type temp_condition_nodes;
+
+    while(!mpStream->eof())
+    {
+        ReadWord(word); // Reading the condition id or End
+        if(CheckEndBlock("Conditions", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_condition_nodes.clear();
+        for(SizeType i = 0 ; i < n_nodes_in_cond ; i++)
+        {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_condition_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        if (rConditionsIds.find(ReorderedConditionId(id)) != rConditionsIds.end()) {
+
+            for (SizeType i = 0; i < n_nodes_in_cond; i++)
+            {
+                position = temp_condition_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size)
+                {
+                    used_size = position+1;
+                    if (position >= reserved_size)
+                    {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
+                for (SizeType j = 0; j < i; j++)
+                    rNodalConnectivities[position].push_back(temp_condition_nodes[j]);
+                for (SizeType j = i+1; j < n_nodes_in_cond; j++)
+                    rNodalConnectivities[position].push_back(temp_condition_nodes[j]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+
+}
+
+
 void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                         PartitionIndicesType const& NodesPartitions,
                                         PartitionIndicesType const& ElementsPartitions,
@@ -623,12 +833,20 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     std::string word;
     OutputFilesContainerType output_files;
 
+    // create folder for partitioned files
+    const fs::path base_path(mBaseFilename);
+
+    const fs::path raw_file_name = base_path.stem();
+    const fs::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
+
+    fs::remove_all(folder_name); // to remove leftovers
+    fs::create_directory(folder_name);
+
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
-        std::stringstream buffer;
-        buffer << mBaseFilename << "_" << i << ".mdpa";
-        std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
-        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << buffer.str() << std::endl;
+        const fs::path full_file_name = folder_name / raw_file_name += "_"+std::to_string(i)+".mdpa";
+        std::ofstream* p_ofstream = new std::ofstream(full_file_name);
+        KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << full_file_name << std::endl;
 
         output_files.push_back(p_ofstream);
     }
@@ -1193,7 +1411,7 @@ NodeType temp_node;
 
     //make this to construct the nodes "in parallel" - the idea is that first touch is being done in parallel but the reading is actually sequential
     const int nnodes = read_coordinates.size();
-    const int nthreads = OpenMPUtils::GetNumThreads();
+    const int nthreads = ParallelUtilities::GetNumThreads();
     std::vector<int> partition;
     OpenMPUtils::DivideInPartitions(nnodes, nthreads, partition);
 
@@ -2283,7 +2501,6 @@ ModelPartIO::SizeType ModelPartIO::ReadElementsConnectivitiesBlock(Connectivitie
         }
         number_of_connectivities++;
     }
-
     return number_of_connectivities;
 
     KRATOS_CATCH("")
@@ -3497,15 +3714,19 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData");
+    }
+    else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+    {
+        DivideVectorialVariableData<Vector>(OutputFiles, NodesAllPartitions, "NodalData" );
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
+        DivideVectorialVariableData<Matrix>(OutputFiles, NodesAllPartitions, "NodalData" );
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {
@@ -3579,6 +3800,7 @@ void ModelPartIO::DivideDofVariableData(OutputFilesContainerType& OutputFiles,
     KRATOS_CATCH("")
 }
 
+template<class TValueType>
 void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                     PartitionIndicesContainerType const& EntitiesPartitions,
                                     std::string BlockName)
@@ -3601,16 +3823,27 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
 
         ExtractValue(word, id);
 
-        if(ReorderedNodeId(id) > EntitiesPartitions.size())
+        SizeType index = 0;
+        if (BlockName == "NodalData"){
+            index = ReorderedNodeId(id);
+        } else if (BlockName == "ElementalData"){
+            index = ReorderedElementId(id);
+        } else if (BlockName == "ConditionalData"){
+            index = ReorderedConditionId(id);
+        } else{
+            KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
+        }
+
+        if(index > EntitiesPartitions.size())
         {
             std::stringstream buffer;
-            buffer << "Invalid node id : " << id;
+            buffer << "Invalid id : " << id;
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
         }
 
         std::stringstream entity_data;
-        entity_data << ReorderedNodeId(id) << '\t'; // id
+        entity_data << index << '\t'; // id
 
         if(BlockName == "NodalData")
         {
@@ -3627,21 +3860,21 @@ void ModelPartIO::DivideVectorialVariableData(OutputFilesContainerType& OutputFi
             entity_data << is_fixed << "\t"; // is_fixed
         }
 
-        Vector temp_vector;
-        ReadVectorialValue(temp_vector);
+        TValueType temp;
+        ReadVectorialValue(temp);
 
-        for(SizeType i = 0 ; i < EntitiesPartitions[ReorderedNodeId(id)-1].size() ; i++)
+        for(SizeType i = 0 ; i < EntitiesPartitions[index-1].size() ; i++)
         {
-            SizeType partition_id = EntitiesPartitions[ReorderedNodeId(id)-1][i];
+            SizeType partition_id = EntitiesPartitions[index-1][i];
             if(partition_id > OutputFiles.size())
             {
                 std::stringstream buffer;
                 buffer << "Invalid prtition id : " << partition_id;
-                buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+                buffer << " for entity " << id << " [Line " << mNumberOfLines << " ]";
                 KRATOS_ERROR << buffer.str() << std::endl;;
             }
 
-            *(OutputFiles[partition_id]) << entity_data.str() << temp_vector << std::endl;
+            *(OutputFiles[partition_id]) << entity_data.str() << temp << std::endl;
         }
     }
 
@@ -3685,19 +3918,19 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        DivideVectorialVariableData<Matrix>(OutputFiles, ElementsAllPartitions, "ElementalData");
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {
@@ -3812,15 +4045,19 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Vector>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+    }
+    else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+    {
+        DivideVectorialVariableData<Vector>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        DivideVectorialVariableData<Matrix>(OutputFiles, ConditionsAllPartitions, "ConditionalData");
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {
@@ -4696,6 +4933,50 @@ void ModelPartIO::ScanNodeBlock()
         ReadWord(word); // skip Y
         ReadWord(word); // skip Z
     }
+}
+
+void ModelPartIO::ReadSubModelPartElementsAndConditionsIds(
+    std::string const& rModelPartName,
+    std::unordered_set<SizeType> &rElementsIds,
+    std::unordered_set<SizeType> &rConditionsIds)
+{
+    KRATOS_TRY
+    ResetInput();
+    std::string word;
+    bool read_entities = false;
+    while(true)
+    {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        if (word == "SubModelPartElements" && read_entities){
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the element id or End
+                if(CheckEndBlock("SubModelPartElements", word))
+                    break;
+                SizeType element_id;
+                ExtractValue(word,element_id);
+                rElementsIds.insert(ReorderedElementId(element_id));
+            }
+        }
+        else if (word == "SubModelPartConditions"  && read_entities) {
+            while(!mpStream->eof()) {
+                ReadWord(word); // Reading the condition id or End
+                if(CheckEndBlock("SubModelPartConditions", word))
+                    break;
+                SizeType condition_id;
+                ExtractValue(word,condition_id);
+                rConditionsIds.insert(ReorderedConditionId(condition_id));
+            }
+            read_entities = false;
+        }
+        else if (word == rModelPartName) {
+            read_entities = true;
+        }
+    }
+
+    KRATOS_CATCH("")
+
 }
 
 /// Unaccessible assignment operator.

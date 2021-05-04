@@ -38,11 +38,11 @@
             "time_step"           : 0.1
         },
         "formulation"                 : {
-            "element_type": "embedded_symbolic_navier_stokes_discontinuous",
+            "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
             "is_slip" : true,
             "dynamic_tau": 1.0,
             "slip_length" : 1.0e-6,
-            "penalty_coefficient": 1.0e-2
+            "penalty_coefficient": 1.0e2
         }
     },
     "processes"        : {

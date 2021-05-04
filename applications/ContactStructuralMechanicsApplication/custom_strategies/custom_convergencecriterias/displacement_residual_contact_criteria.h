@@ -328,8 +328,13 @@ public:
      */
     void Initialize( ModelPart& rModelPart) override
     {
+        // Initialize
         BaseType::mConvergenceCriteriaIsInitialized = true;
 
+        // Check rotation dof
+        mOptions.Set(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, ContactUtilities::CheckModelPartHasRotationDoF(rModelPart));
+
+        // Initialize header
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && mOptions.IsNot(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
@@ -338,7 +343,7 @@ public:
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
             r_table.AddColumn("EXP. ABS", 10);
-            if (mOptions.IsNot(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+            if (mOptions.Is(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
                 r_table.AddColumn("RT RATIO", 10);
                 r_table.AddColumn("EXP. RAT", 10);
                 r_table.AddColumn("ABS", 10);
@@ -347,9 +352,6 @@ public:
             r_table.AddColumn("CONVERGENCE", 15);
             mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, true);
         }
-
-        // Check rotation dof
-        mOptions.Set(DisplacementResidualContactCriteria::ROTATION_DOF_IS_CONSIDERED, ContactUtilities::CheckModelPartHasRotationDoF(rModelPart));
     }
 
     /**

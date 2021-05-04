@@ -8,7 +8,12 @@
             },
             "Variables"        : {
                 "DENSITY"           : 1.225,
-                "DYNAMIC_VISCOSITY" : 1.846e-5
+                "DYNAMIC_VISCOSITY" : 1.846e-5,
+                "PERMEABILITY"      : [
+                    [1e+30,0.0,0.0],
+                    [0.0,1e+30,0.0],
+                    [0.0,0.0,1e+30]
+            ]
             },
             "Tables"           : {}
         }

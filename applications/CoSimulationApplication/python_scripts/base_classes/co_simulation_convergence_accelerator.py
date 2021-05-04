@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-class CoSimulationConvergenceAccelerator(object):
+class CoSimulationConvergenceAccelerator:
     """Baseclass for the convergence acceleratos used for CoSimulation
     Relaxes the solution to increase the speed of convergence in a (strongly) coupled simulation
 

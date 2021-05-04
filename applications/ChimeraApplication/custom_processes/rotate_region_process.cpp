@@ -37,15 +37,12 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
                 "calculate_torque":false,
                 "moment_of_inertia":0.0,
                 "rotational_damping":0.0,
-                "angular_velocity_radians":0.0,
+                "angular_velocity_radians":"0.0",
                 "axis_of_rotation":[],
                 "is_ale" : false
             }  )");
 
   mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-  mAngularVelocityRadians =
-      mParameters["angular_velocity_radians"].GetDouble();
   mCenterOfRotation = mParameters["center_of_rotation"].GetVector();
   auto axis_of_rotation_raw = mParameters["axis_of_rotation"].GetVector();
   double norm = norm_2(axis_of_rotation_raw);
@@ -53,12 +50,6 @@ RotateRegionProcess::RotateRegionProcess(ModelPart &rModelPart, Parameters rPara
   mAxisOfRotationVector = axis_of_rotation_raw / norm;
   mTheta = 0.0;
   mToCalculateTorque = mParameters["calculate_torque"].GetBool();
-  KRATOS_ERROR_IF(mToCalculateTorque && mAngularVelocityRadians != 0.0)
-      << "RotateRegionProcess: both \"calculate_torque\" and "
-         "\"angular_velocity_radians\" cannot be specified. Please check the "
-         "input."
-      << std::endl;
-
   KRATOS_WARNING_IF("RotateRegionProcess",
                     mToCalculateTorque && mParameters["moment_of_inertia"].GetDouble() == 0.0)
       << "No moment_of_inertia specified. So no rotation possible"
@@ -160,7 +151,7 @@ void RotateRegionProcess::PrintInfo(std::ostream &rOStream) const
   rOStream << "RotateRegionProcess";
 }
 
-void RotateRegionProcess::PrintData() {}
+void RotateRegionProcess::PrintData(std::ostream& rOStream) const {}
 
 RotateRegionProcess::RotationSystem::RotationSystem(const double MomentOfInertia,
                                                     const double DampingCoefficient)

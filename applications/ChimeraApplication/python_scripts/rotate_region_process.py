@@ -42,8 +42,24 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
+        if (settings.Has("angular_velocity_radians")):
+            if (settings["angular_velocity_radians"].IsString()):
+                default_settings["angular_velocity_radians"].SetString("0.0")
+            if (settings["angular_velocity_radians"].IsDouble()):
+                value = settings["angular_velocity_radians"].GetDouble()
+                default_settings["angular_velocity_radians"].SetString(str(value))
+                settings["angular_velocity_radians"].SetString(str(value))
+
+
         # compare against the appropriate default settings
         settings.ValidateAndAssignDefaults(default_settings)
+        local_axis = default_settings = KratosMultiphysics.Parameters("""{}""")
+
+        self.function_string = settings["angular_velocity_radians"].GetString()
+        self.angular_vel_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, local_axis)
+        if self.angular_vel_function.DependsOnSpace():
+            raise Exception("ApplyRotateRegionProcess: Angular velocity cannot depend on space !")
+
         # checking for empty model part name
         if (settings["model_part_name"].GetString() == ""):
             raise Exception("ApplyRotateRegionProcess: A value (string) for the entry 'model_part_name' must be given in the parameters of the process.")
@@ -55,7 +71,10 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
             if ( axis_of_rotation[0] == 0.0 and axis_of_rotation[1] == 0.0 and axis_of_rotation[2] == 0.0):
                 raise Exception("The values (vector) of the entry 'axis_of_rotation' are all zero. This is not admissible.")
 
-        if (settings["calculate_torque"].GetBool() and settings["angular_velocity_radians"].GetDouble()!=0.0):
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        angular_velocity = self.angular_vel_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
+
+        if (settings["calculate_torque"].GetBool() and angular_velocity!=0.0):
             raise Exception("'calculate_torque' is set to true and 'angular_velocity_radians' is not zero. This is not admissible.")
 
         if(settings["calculate_torque"].GetBool() and settings["moment_of_inertia"].GetDouble() == 0.0):
@@ -78,7 +97,8 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-
+        angular_velocity = self.angular_vel_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
+        self.rotate_region_process.SetAngularVelocity(angular_velocity)
         if self.interval.IsInInterval(current_time):
             self.rotate_region_process.ExecuteInitializeSolutionStep()
 
