@@ -142,7 +142,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFu
         this->ComputeFaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
-                                              mpTriangleSplitter->mPositiveInterfaces,
+                                              mpTriangleSplitter->GetPositiveInterfaces(),
                                               mpTriangleSplitter->GetPositiveSubdivisions(),
                                               mpTriangleSplitter->mPositiveInterfacesParentIds,
                                               p_matrix_pos_side,
@@ -171,7 +171,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFu
         this->ComputeFaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
-                                              mpTriangleSplitter->mNegativeInterfaces,
+                                              mpTriangleSplitter->GetNegativeInterfaces(),
                                               mpTriangleSplitter->GetNegativeSubdivisions(),
                                               mpTriangleSplitter->mNegativeInterfacesParentIds,
                                               p_matrix_neg_side,
@@ -273,7 +273,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNor
     if (this->IsSplit()) {
         // Compute the positive side interface outwars area normal values
         this->ComputeFaceNormalOnOneSide(rPositiveSideInterfaceAreaNormal,
-                                              mpTriangleSplitter->mPositiveInterfaces,
+                                              mpTriangleSplitter->GetPositiveInterfaces(),
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputePositiveSideInterfaceAreaNormals method for a non divided geometry.";
@@ -288,7 +288,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNor
     if (this->IsSplit()) {
         // Compute the positive side interface outwars area normal values
         this->ComputeFaceNormalOnOneSide(rNegativeSideInterfaceAreaNormal,
-                                              mpTriangleSplitter->mNegativeInterfaces,
+                                              mpTriangleSplitter->GetNegativeInterfaces(),
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";

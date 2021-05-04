@@ -131,11 +131,11 @@ namespace Kratos
         p_split_utility->GenerateIntersectionsSkin();
 
         // Get the interface geometries from the splitting pattern (consider only the positive side)
-        const unsigned int n_interface_geom = (p_split_utility->mPositiveInterfaces).size();
+        const unsigned int n_interface_geom = (p_split_utility->GetPositiveInterfaces()).size();
 
         std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
         split_interface_geometries.reserve(n_interface_geom);
-        split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mPositiveInterfaces).begin(), (p_split_utility->mPositiveInterfaces).end());
+        split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->GetPositiveInterfaces()).begin(), (p_split_utility->GetPositiveInterfaces()).end());
 
         // Create the split interface geometries in the skin model part
         for (unsigned int i_int_geom = 0; i_int_geom < n_interface_geom; ++i_int_geom){

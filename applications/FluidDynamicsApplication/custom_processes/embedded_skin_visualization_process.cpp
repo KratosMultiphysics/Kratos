@@ -729,13 +729,13 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             }
 
             // Get the interface geometries from the splitting pattern
-            const unsigned int n_pos_interface_geom = (p_split_utility->mPositiveInterfaces).size();
-            const unsigned int n_neg_interface_geom = (p_split_utility->mNegativeInterfaces).size();
+            const unsigned int n_pos_interface_geom = (p_split_utility->GetPositiveInterfaces()).size();
+            const unsigned int n_neg_interface_geom = (p_split_utility->GetNegativeInterfaces()).size();
 
             std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
             split_interface_geometries.reserve(n_pos_interface_geom + n_neg_interface_geom);
-            split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mPositiveInterfaces).begin(), (p_split_utility->mPositiveInterfaces).end());
-            split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->mNegativeInterfaces).begin(), (p_split_utility->mNegativeInterfaces).end());
+            split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->GetPositiveInterfaces()).begin(), (p_split_utility->GetPositiveInterfaces()).end());
+            split_interface_geometries.insert(split_interface_geometries.end(), (p_split_utility->GetNegativeInterfaces()).begin(), (p_split_utility->GetNegativeInterfaces()).end());
 
             // Create the split interface geometries in the visualization model part
             for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){

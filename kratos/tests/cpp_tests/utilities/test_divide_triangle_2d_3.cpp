@@ -120,15 +120,17 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(r_negative_subdivision_1[2].Y(), 0.0, tolerance);
 
 			// Check interfaces
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[0].X(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[0].Y(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[1].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[1].Y(), 0.5, tolerance);
+			const auto &r_positive_interface_0 = *(triangle_splitter.GetPositiveInterfaces()[0]);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[1].Y(), 0.5, tolerance);
 
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[0].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[0].Y(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[1].X(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[1].Y(), 0.5, tolerance);
+			const auto &r_negative_interface_0 = *(triangle_splitter.GetNegativeInterfaces()[0]);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[1].Y(), 0.5, tolerance);
 
 			KRATOS_CHECK_EQUAL(triangle_splitter.mPositiveInterfacesParentIds[0], 0);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mNegativeInterfacesParentIds[0], 0);
@@ -268,14 +270,16 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(r_negative_subdivision_1[2].Y(), 0.0, tolerance);
 
 			// Check interfaces
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[0].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[0].Y(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[1].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mPositiveInterfaces[0])[1].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[0].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[0].Y(), 0.0, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[1].X(), 0.5, tolerance);
-			KRATOS_CHECK_NEAR((*triangle_splitter.mNegativeInterfaces[0])[1].Y(), 0.5, tolerance);
+			const auto &r_positive_interface_0 = *(triangle_splitter.GetPositiveInterfaces()[0]);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_positive_interface_0[1].Y(), 0.0, tolerance);
+			const auto &r_negative_interface_0 = *(triangle_splitter.GetNegativeInterfaces()[0]);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR(r_negative_interface_0[1].Y(), 0.5, tolerance);
 
 			KRATOS_CHECK_EQUAL(triangle_splitter.mPositiveInterfacesParentIds[0], 0);
 			KRATOS_CHECK_EQUAL(triangle_splitter.mNegativeInterfacesParentIds[0], 0);

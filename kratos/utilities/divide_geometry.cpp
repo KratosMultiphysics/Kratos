@@ -118,22 +118,22 @@ namespace Kratos
         }
     };
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveSubdivisions()
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveSubdivisions() const
     {
         return mPositiveSubdivisions;
     }
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeSubdivisions()
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeSubdivisions() const
     {
         return mNegativeSubdivisions;
     }
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveInterfaces()
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveInterfaces() const
     {
         return mPositiveInterfaces;
     }
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeInterfaces()
+    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeInterfaces() const
     {
         return mNegativeInterfaces;
     }

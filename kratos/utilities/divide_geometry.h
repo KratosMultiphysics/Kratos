@@ -186,10 +186,6 @@ public:
     int mDivisionsNumber;   // Number of generated subdivisions.
 
     IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.
-    std::vector < IndexedPointGeometryPointerType > mPositiveSubdivisions;  // Array to store the generated positive subdivisions geometries.
-    std::vector < IndexedPointGeometryPointerType > mNegativeSubdivisions;  // Array to store the generated negative subdivisions geometries.
-    std::vector < IndexedPointGeometryPointerType > mPositiveInterfaces;    // Array to store the generated positive interfaces geometries.
-    std::vector < IndexedPointGeometryPointerType > mNegativeInterfaces;    // Array to store the generated negative interfaces geometries.
     std::vector < unsigned int > mPositiveInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated positive interfaces.
     std::vector < unsigned int > mNegativeInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated negative interfaces.
 
@@ -207,14 +203,33 @@ public:
     ///@name Access
     ///@{
 
-    std::vector<IndexedPointGeometryPointerType> GetPositiveSubdivisions();
+    /**
+     * @brief Get the Positive Subdivisions object
+     * This method returns the container with the positive side subgeometries
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the positive side subgeometries
+     */
+    std::vector<IndexedPointGeometryPointerType> GetPositiveSubdivisions() const;
 
-    std::vector<IndexedPointGeometryPointerType> GetNegativeSubdivisions();
+    /**
+     * @brief Get the Negative Subdivisions object
+     * This method returns the container with the negative side subgeometries
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the negative side subgeometries
+     */
+    std::vector<IndexedPointGeometryPointerType> GetNegativeSubdivisions() const;
 
-    std::vector<IndexedPointGeometryPointerType> GetPositiveInterfaces();
+    /**
+     * @brief Get the Positive Interfaces object
+     * This method returns the container with the positive side interfaces
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the positive side subinterfaces
+     */
+    std::vector<IndexedPointGeometryPointerType> GetPositiveInterfaces() const;
 
-    std::vector<IndexedPointGeometryPointerType> GetNegativeInterfaces();
-
+    /**
+     * @brief Get the Negaitive Interfaces object
+     * This method returns the container with the negative side interfaces
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the negative side subinterfaces
+     */
+    std::vector<IndexedPointGeometryPointerType> GetNegativeInterfaces() const;
 
     ///@}
     ///@name Inquiry
@@ -310,6 +325,11 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    std::vector<IndexedPointGeometryPointerType> mPositiveSubdivisions; // Array to store the generated positive subdivisions geometries.
+    std::vector<IndexedPointGeometryPointerType> mNegativeSubdivisions; // Array to store the generated negative subdivisions geometries.
+    std::vector<IndexedPointGeometryPointerType> mPositiveInterfaces;   // Array to store the generated positive interfaces geometries.
+    std::vector<IndexedPointGeometryPointerType> mNegativeInterfaces;   // Array to store the generated negative interfaces geometries.
 
     ///@}
     ///@name Protected Operators

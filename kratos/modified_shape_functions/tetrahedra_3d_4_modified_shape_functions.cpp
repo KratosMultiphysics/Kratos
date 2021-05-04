@@ -142,7 +142,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunct
         this->ComputeFaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
-                                              mpTetrahedraSplitter->mPositiveInterfaces,
+                                              mpTetrahedraSplitter->GetPositiveInterfaces(),
                                               mpTetrahedraSplitter->GetPositiveSubdivisions(),
                                               mpTetrahedraSplitter->mPositiveInterfacesParentIds,
                                               p_matrix,
@@ -171,7 +171,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
         this->ComputeFaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
-                                              mpTetrahedraSplitter->mNegativeInterfaces,
+                                              mpTetrahedraSplitter->GetNegativeInterfaces(),
                                               mpTetrahedraSplitter->GetNegativeSubdivisions(),
                                               mpTetrahedraSplitter->mNegativeInterfacesParentIds,
                                               p_matrix,
@@ -273,7 +273,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormal
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
         this->ComputeFaceNormalOnOneSide(rPositiveSideInterfaceAreaNormals,
-                                              mpTetrahedraSplitter->mPositiveInterfaces,
+                                              mpTetrahedraSplitter->GetPositiveInterfaces(),
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputePositiveSideInterfaceAreaNormals method for a non divided geometry.";
@@ -288,7 +288,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormal
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
         this->ComputeFaceNormalOnOneSide(rNegativeSideInterfaceAreaNormals,
-                                              mpTetrahedraSplitter->mNegativeInterfaces,
+                                              mpTetrahedraSplitter->GetNegativeInterfaces(),
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";
