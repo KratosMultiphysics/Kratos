@@ -155,8 +155,6 @@ void MapperVertexMorphingSymmetric::Update()
         KRATOS_ERROR << "No symmetry type specified" << std::endl;
     }
 
-    InitializeComputationOfMappingMatrix();
-    CreateSearchTreeWithAllNodesInOriginModelPart();
     ComputeMappingMatrix();
 
     KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -202,6 +200,8 @@ void MapperVertexMorphingSymmetric::CreateSearchTreeWithAllNodesInOriginModelPar
 
 void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
 {
+    InitializeComputationOfMappingMatrix();
+    CreateSearchTreeWithAllNodesInOriginModelPart();
     AllocateMatrix();
     const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
     const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
