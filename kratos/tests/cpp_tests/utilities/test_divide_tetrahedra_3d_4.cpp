@@ -153,8 +153,8 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(r_negative_interface_0[2].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(r_negative_interface_0[2].Z(), 0.5, tolerance);
 
-			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[0], 0);
-			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[0], 2);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.GetPositiveInterfacesParentIds()[0], 0);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.GetNegativeInterfacesParentIds()[0], 2);
 
 			// Check exterior faces
 			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 3);
@@ -347,10 +347,10 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(r_negative_interface_1[2].Y(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(r_negative_interface_1[2].Z(), 0.5, tolerance);
 
-			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[0], 0);
-			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[1], 2);
-			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[0], 0);
-			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[1], 1);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.GetPositiveInterfacesParentIds()[0], 0);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.GetPositiveInterfacesParentIds()[1], 2);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.GetNegativeInterfacesParentIds()[0], 0);
+			KRATOS_CHECK_EQUAL(tetrahedra_splitter.GetNegativeInterfacesParentIds()[1], 1);
 
 			// Check exterior faces
 			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 6);

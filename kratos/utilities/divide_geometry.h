@@ -186,8 +186,6 @@ public:
     int mDivisionsNumber;   // Number of generated subdivisions.
 
     IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.
-    std::vector < unsigned int > mPositiveInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated positive interfaces.
-    std::vector < unsigned int > mNegativeInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated negative interfaces.
 
     ///@}
     ///@name Life Cycle
@@ -230,6 +228,20 @@ public:
      * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the negative side subinterfaces
      */
     std::vector<IndexedPointGeometryPointerType> GetNegativeInterfaces() const;
+
+    /**
+     * @brief Get the Positive Interfaces Parent Ids object
+     * This method returns the container with the positive side interfaces parent ids
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids of the positive side interfaces parents
+     */
+    std::vector<unsigned int> GetPositiveInterfacesParentIds() const;
+
+    /**
+     * @brief Get the Negative Interfaces Parent Ids object
+     * This method returns the container with the negative side interfaces parent ids
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids of the negative side interfaces parents
+     */
+    std::vector<unsigned int> GetNegativeInterfacesParentIds() const;
 
     ///@}
     ///@name Inquiry
@@ -330,6 +342,8 @@ protected:
     std::vector<IndexedPointGeometryPointerType> mNegativeSubdivisions; // Array to store the generated negative subdivisions geometries.
     std::vector<IndexedPointGeometryPointerType> mPositiveInterfaces;   // Array to store the generated positive interfaces geometries.
     std::vector<IndexedPointGeometryPointerType> mNegativeInterfaces;   // Array to store the generated negative interfaces geometries.
+    std::vector<unsigned int> mPositiveInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated positive interfaces.
+    std::vector<unsigned int> mNegativeInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated negative interfaces.
 
     ///@}
     ///@name Protected Operators

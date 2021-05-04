@@ -144,7 +144,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctio
                                               rInterfacePositiveSideWeightsValues,
                                               mpTriangleSplitter->GetPositiveInterfaces(),
                                               mpTriangleSplitter->GetPositiveSubdivisions(),
-                                              mpTriangleSplitter->mPositiveInterfacesParentIds,
+                                              mpTriangleSplitter->GetPositiveInterfacesParentIds(),
                                               p_matrix,
                                               IntegrationMethod);
     } else {
@@ -173,7 +173,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctio
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTriangleSplitter->GetNegativeInterfaces(),
                                               mpTriangleSplitter->GetNegativeSubdivisions(),
-                                              mpTriangleSplitter->mNegativeInterfacesParentIds,
+                                              mpTriangleSplitter->GetNegativeInterfacesParentIds(),
                                               p_matrix,
                                               IntegrationMethod);
     } else {

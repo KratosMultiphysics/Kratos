@@ -132,8 +132,8 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(r_negative_interface_0[1].X(), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(r_negative_interface_0[1].Y(), 0.5, tolerance);
 
-			KRATOS_CHECK_EQUAL(triangle_splitter.mPositiveInterfacesParentIds[0], 0);
-			KRATOS_CHECK_EQUAL(triangle_splitter.mNegativeInterfacesParentIds[0], 0);
+			KRATOS_CHECK_EQUAL(triangle_splitter.GetPositiveInterfacesParentIds()[0], 0);
+			KRATOS_CHECK_EQUAL(triangle_splitter.GetNegativeInterfacesParentIds()[0], 0);
 
 			// Check exterior faces
 			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);
@@ -281,8 +281,8 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(r_negative_interface_0[1].X(), 0.5, tolerance);
 			KRATOS_CHECK_NEAR(r_negative_interface_0[1].Y(), 0.5, tolerance);
 
-			KRATOS_CHECK_EQUAL(triangle_splitter.mPositiveInterfacesParentIds[0], 0);
-			KRATOS_CHECK_EQUAL(triangle_splitter.mNegativeInterfacesParentIds[0], 0);
+			KRATOS_CHECK_EQUAL(triangle_splitter.GetPositiveInterfacesParentIds()[0], 0);
+			KRATOS_CHECK_EQUAL(triangle_splitter.GetNegativeInterfacesParentIds()[0], 0);
 
 			// Check exterior faces
 			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 2);

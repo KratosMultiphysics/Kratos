@@ -144,7 +144,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunct
                                               rInterfacePositiveSideWeightsValues,
                                               mpTetrahedraSplitter->GetPositiveInterfaces(),
                                               mpTetrahedraSplitter->GetPositiveSubdivisions(),
-                                              mpTetrahedraSplitter->mPositiveInterfacesParentIds,
+                                              mpTetrahedraSplitter->GetPositiveInterfacesParentIds(),
                                               p_matrix,
                                               IntegrationMethod);
     } else {
@@ -173,7 +173,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunct
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTetrahedraSplitter->GetNegativeInterfaces(),
                                               mpTetrahedraSplitter->GetNegativeSubdivisions(),
-                                              mpTetrahedraSplitter->mNegativeInterfacesParentIds,
+                                              mpTetrahedraSplitter->GetNegativeInterfacesParentIds(),
                                               p_matrix,
                                               IntegrationMethod);
     } else {

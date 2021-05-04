@@ -137,4 +137,14 @@ namespace Kratos
     {
         return mNegativeInterfaces;
     }
+
+    std::vector<unsigned int> DivideGeometry::GetPositiveInterfacesParentIds() const
+    {
+        return mPositiveInterfacesParentIds;
+    }
+
+    std::vector<unsigned int> DivideGeometry::GetNegativeInterfacesParentIds() const
+    {
+        return mNegativeInterfacesParentIds;
+    }
 };
