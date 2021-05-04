@@ -121,6 +121,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
         settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
+        settings_comp_penalty_file_name = "embedded_compressible_circle_penalty_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
@@ -133,6 +134,10 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.3633078423325475, 0.0, 1e-6)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4773633559717062, 0.0, 1e-6)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4378221710071558, 0.0, 1e-6)
+            self._runTest(settings_comp_penalty_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.2822496130014952, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.383928586844835, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.3588608523566507, 0.0, 1e-6)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):
