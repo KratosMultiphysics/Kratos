@@ -43,7 +43,7 @@ from face_angle_response_test.test_face_angle_response import FaceAngleTest
 from mapper_plane_symmetry_test.plane_symmetry_test import PlaneSymmetryMapperTest
 from mapper_revolution_test.revolution_test import RevolutionMapperTest
 
-# Niglty tests
+# Nightly tests
 
 # Validation tests
 
