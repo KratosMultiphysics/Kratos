@@ -100,6 +100,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def __init__(self, model, custom_settings):
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
+
+        if custom_settings.Has("levelset_convection_settings"):
+            if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
+                custom_settings["levelset_convection_settings"].RemoveValue("levelset_splitting")
+
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
