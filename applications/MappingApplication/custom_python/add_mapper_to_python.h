@@ -133,6 +133,7 @@ inline void InverseMapWithOptionsVector(Mapper<TSparseSpace, TDenseSpace>& dummy
 template<class TSparseSpace, class TDenseSpace>
 void ExposeMapperToPython(pybind11::module& m)
 {
+    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
     namespace py = pybind11;
     // Exposing the base class of the Mappers to Python, but without constructor
     const std::string mapper_name = TSparseSpace::IsDistributed() ? "MPIMapper" : "Mapper";
@@ -158,12 +159,11 @@ void ExposeMapperToPython(pybind11::module& m)
             .def("GetInterfaceModelPartOrigin", &MapperType::GetInterfaceModelPartOrigin, py::return_value_policy::reference_internal)
             .def("GetInterfaceModelPartDestination", &MapperType::GetInterfaceModelPartDestination, py::return_value_policy::reference_internal)
 
-            KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
             .def("AreMeshesConforming", &MapperType::AreMeshesConforming)
-            KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 
             .def("__str__",             PrintObject<MapperType>)
             ;
+    KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 
     // Adding the flags that can be used for mapping
     mapper.attr("SWAP_SIGN")           = MapperFlags::SWAP_SIGN;
