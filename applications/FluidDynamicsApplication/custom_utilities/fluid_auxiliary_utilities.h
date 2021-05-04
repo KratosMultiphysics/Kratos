@@ -53,13 +53,26 @@ public:
     ///@name Static Operations
     ///@{
 
+    /**
+     * @brief Calculate the fluid volume
+     * For the given model part, this function iterates its elements to calculate the total volume (or area in 2D)
+     * @param rModelPart The model part to calculate the volume of
+     * @return double Fluid volume
+     */
     static double CalculateFluidVolume(ModelPart& rModelPart);
+
+
+    static double CalculateFluidPositiveVolume(ModelPart& rModelPart);
+
+    static double CalculateFluidNegativeVolume(ModelPart& rModelPart);
 
     ///@}
 private:
     ///@name Private Operations
     ///@{
 
+    // template<bool IsPositiveSide>
+    // static double
 
     ///@}
 };
