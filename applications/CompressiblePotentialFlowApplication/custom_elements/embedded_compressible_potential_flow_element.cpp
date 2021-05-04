@@ -78,7 +78,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSyst
     }
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
-        PotentialFlowUtilities::AddKuttaConditionPenaltyTerm<Dim,NumNodes>(*this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTerm<Dim,NumNodes>(r_this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     }
 
 }

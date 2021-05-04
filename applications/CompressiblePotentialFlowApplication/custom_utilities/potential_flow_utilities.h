@@ -189,7 +189,7 @@ template <class TContainerType>
 double CalculateArea(TContainerType& rContainer);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyTerm(Element& rElement,
+void AddKuttaConditionPenaltyTerm(const Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
