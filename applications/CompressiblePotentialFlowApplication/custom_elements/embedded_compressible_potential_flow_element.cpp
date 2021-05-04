@@ -72,7 +72,8 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSyst
         if (this->Is(STRUCTURE)) {
             CalculateKuttaWakeLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
         } else {
-            BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+            BaseType::CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+            BaseType::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
         }
     }
 
@@ -80,6 +81,22 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSyst
         AddKuttaConditionPenaltyTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     }
 
+}
+
+template <int Dim, int NumNodes>
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    MatrixType tmp;
+    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType tmp;
+    CalculateLocalSystem(rLeftHandSideMatrix, tmp, rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
