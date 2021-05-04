@@ -146,10 +146,6 @@ private:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
-    void AddPotentialGradientStabilizationTerm(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo);
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

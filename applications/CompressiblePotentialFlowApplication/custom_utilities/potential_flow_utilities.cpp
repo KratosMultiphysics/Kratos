@@ -984,7 +984,7 @@ double CalculateArea(TContainerType& rContainer)
 
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyTerm(const Element& rElement,
+void AddKuttaConditionPenaltyTerm(Element& rElement,
         Matrix& rLeftHandSideMatrix,
         Vector& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
@@ -1033,6 +1033,97 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
             }
         }
     }
+}
+
+template <int Dim, int NumNodes>
+void AddPotentialGradientStabilizationTerm(
+        Element& rElement,
+        Matrix& rLeftHandSideMatrix,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    array_1d<double, NumNodes> potential;
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(rElement);
+
+    std::vector<array_1d<double, Dim>> nodal_gradient_vector(NumNodes);
+    for(std::size_t i_node=0; i_node<NumNodes; ++i_node) {
+        auto& nodal_gradient = nodal_gradient_vector[i_node];
+        nodal_gradient.clear();
+        if (rElement.GetGeometry()[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE) > 0.0) {
+            double neighbour_elements_total_area = 0.0;
+            auto& neighbour_elem_list = rElement.GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+            for (const auto& r_elem : neighbour_elem_list){
+
+                BoundedVector<double,NumNodes> neighbour_distances;
+                for(unsigned int i = 0; i<NumNodes; i++){
+                    neighbour_distances[i] = r_elem.GetGeometry()[i].GetSolutionStepValue(GEOMETRY_DISTANCE);
+                }
+                if(r_elem.Is(ACTIVE)) {
+                    auto& r_geometry = r_elem.GetGeometry();
+                    const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
+                    const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+                    Vector detJ0;
+                    PotentialFlowUtilities::ElementalData<NumNodes,Dim> neighbour_data;
+
+                    GeometryUtils::CalculateGeometryData(r_geometry, neighbour_data.DN_DX, neighbour_data.N, neighbour_data.vol);
+                    neighbour_data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(r_elem);
+                    r_geometry.DeterminantOfJacobian(detJ0, r_integration_method);
+
+                    const int is_neighbour_wake = r_elem.GetValue(WAKE);
+                    Vector neighbour_elemental_gradient;
+                    if (is_neighbour_wake == 0) {
+                        neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(r_elem);
+                    }
+                    else {
+                        neighbour_elemental_gradient = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(r_elem);
+                    }
+
+                    for (IndexType i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss){
+                        const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
+                        IndexType neighbour_node_id = -1;
+                        for(std::size_t j=0; j<NumNodes; ++j) {
+                            if (rElement.GetGeometry()[i_node].Id() == r_elem.GetGeometry()[j].Id()){
+                                neighbour_node_id = j;
+                                break;
+                            }
+                        }
+
+                        KRATOS_ERROR_IF(neighbour_node_id<0)<<"No neighbour node was found for neighbour element " << r_elem.Id() << " and element " << rElement. Id() <<std::endl;
+
+                        for(std::size_t k=0; k<Dim; ++k) {
+                            nodal_gradient[k] += neighbour_data.N[neighbour_node_id] * gauss_point_volume * neighbour_elemental_gradient[k];
+                        }
+                        neighbour_elements_total_area += neighbour_data.N[neighbour_node_id] * gauss_point_volume;
+                    }
+                }
+            }
+            if (neighbour_elements_total_area > std::numeric_limits<double>::epsilon()) {
+                nodal_gradient = nodal_gradient/neighbour_elements_total_area;
+            }
+        }
+    }
+
+    array_1d<double,Dim> averaged_nodal_gradient;
+    averaged_nodal_gradient.clear();
+    int number_of_positive_nodes = 0;
+
+    for (IndexType i_node=0; i_node<NumNodes; i_node++){
+        if (rElement.GetGeometry()[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE)>0.0){
+            number_of_positive_nodes += 1;
+            averaged_nodal_gradient += nodal_gradient_vector[i_node];
+        }
+    }
+    averaged_nodal_gradient = averaged_nodal_gradient/number_of_positive_nodes;
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
+    auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
+    auto stabilization_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
+
+    noalias(rLeftHandSideMatrix) +=  stabilization_factor*stabilization_term_potential;
+    noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1136,7 +1227,9 @@ template Vector ComputeKuttaNormal<2>(const double angle);
 template Vector ComputeKuttaNormal<3>(const double angle);
 template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
 template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
-template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 } // namespace PotentialFlow
 } // namespace Kratos

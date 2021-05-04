@@ -189,15 +189,16 @@ template <class TContainerType>
 double CalculateArea(TContainerType& rContainer);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyTerm(const Element& rElement,
+void AddKuttaConditionPenaltyTerm(Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
-// void AddPotentialGradientStabilizationTerm(const Element& rElement,
-//                               MatrixType& rLeftHandSideMatrix,
-//                               VectorType& rRightHandSideVector,
-//                               const ProcessInfo& rCurrentProcessInfo);
+template <int Dim, int NumNodes>
+void AddPotentialGradientStabilizationTerm(Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
 
 } // namespace PotentialFlow
 } // namespace Kratos
