@@ -158,7 +158,9 @@ void ExposeMapperToPython(pybind11::module& m)
             .def("GetInterfaceModelPartOrigin", &MapperType::GetInterfaceModelPartOrigin, py::return_value_policy::reference_internal)
             .def("GetInterfaceModelPartDestination", &MapperType::GetInterfaceModelPartDestination, py::return_value_policy::reference_internal)
 
+            KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
             .def("AreMeshesConforming", &MapperType::AreMeshesConforming)
+            KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 
             .def("__str__",             PrintObject<MapperType>)
             ;
