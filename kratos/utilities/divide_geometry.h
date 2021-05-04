@@ -207,6 +207,15 @@ public:
     ///@name Access
     ///@{
 
+    std::vector<IndexedPointGeometryPointerType> GetPositiveSubdivisions();
+
+    std::vector<IndexedPointGeometryPointerType> GetNegativeSubdivisions();
+
+    std::vector<IndexedPointGeometryPointerType> GetPositiveInterfaces();
+
+    std::vector<IndexedPointGeometryPointerType> GetNegativeInterfaces();
+
+
     ///@}
     ///@name Inquiry
     ///@{

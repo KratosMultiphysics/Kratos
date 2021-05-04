@@ -117,7 +117,11 @@ public:
     /**
     * Returns a reference to the nodal distances vector member variable.
     */
-    const Vector& GetNodalDistances() const ;
+    const Vector& GetNodalDistances() const;
+
+    double ComputePositiveSideVolume() const;
+
+    double ComputeNegativeSideVolume() const;
 
     /**
     * Returns the shape function values in the positive split element side for a given quadrature.
@@ -389,6 +393,8 @@ protected:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double ComputeVolumeOnOneSide(const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector) const;
 
     ///@}
     ///@name Private  Access

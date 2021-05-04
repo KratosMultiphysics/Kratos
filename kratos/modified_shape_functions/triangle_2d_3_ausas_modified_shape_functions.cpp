@@ -88,7 +88,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAn
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
                                      rPositiveSideShapeFunctionsGradientsValues,
                                      rPositiveSideWeightsValues,
-                                     mpTriangleSplitter->mPositiveSubdivisions,
+                                     mpTriangleSplitter->GetPositiveSubdivisions(),
                                      p_matrix_pos_side,
                                      IntegrationMethod);
     } else {
@@ -115,7 +115,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAn
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
                                      rNegativeSideShapeFunctionsGradientsValues,
                                      rNegativeSideWeightsValues,
-                                     mpTriangleSplitter->mNegativeSubdivisions,
+                                     mpTriangleSplitter->GetNegativeSubdivisions(),
                                      p_matrix_neg_side,
                                      IntegrationMethod);
     } else {
@@ -143,7 +143,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFu
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTriangleSplitter->mPositiveInterfaces,
-                                              mpTriangleSplitter->mPositiveSubdivisions,
+                                              mpTriangleSplitter->GetPositiveSubdivisions(),
                                               mpTriangleSplitter->mPositiveInterfacesParentIds,
                                               p_matrix_pos_side,
                                               IntegrationMethod);
@@ -172,7 +172,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFu
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTriangleSplitter->mNegativeInterfaces,
-                                              mpTriangleSplitter->mNegativeSubdivisions,
+                                              mpTriangleSplitter->GetNegativeSubdivisions(),
                                               mpTriangleSplitter->mNegativeInterfacesParentIds,
                                               p_matrix_neg_side,
                                               IntegrationMethod);
@@ -204,7 +204,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFun
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mPositiveSubdivisions,
+            mpTriangleSplitter->GetPositiveSubdivisions(),
             FaceId);
 
         // Compute the positive side external face values
@@ -213,7 +213,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFun
             rPositiveExteriorFaceShapeFunctionsGradientsValues,
             rPositiveExteriorFaceWeightsValues,
             exterior_faces_vector,
-            mpTriangleSplitter->mPositiveSubdivisions,
+            mpTriangleSplitter->GetPositiveSubdivisions(),
             exterior_faces_parent_ids_vector,
             p_matrix_pos_side,
             IntegrationMethod);
@@ -246,7 +246,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFun
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mNegativeSubdivisions,
+            mpTriangleSplitter->GetNegativeSubdivisions(),
             FaceId);
 
         // Compute the positive side external face values
@@ -255,7 +255,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFun
             rNegativeExteriorFaceShapeFunctionsGradientsValues,
             rNegativeExteriorFaceWeightsValues,
             exterior_faces_vector,
-            mpTriangleSplitter->mNegativeSubdivisions,
+            mpTriangleSplitter->GetNegativeSubdivisions(),
             exterior_faces_parent_ids_vector,
             p_matrix_neg_side,
             IntegrationMethod);
@@ -310,7 +310,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNorm
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mPositiveSubdivisions,
+            mpTriangleSplitter->GetPositiveSubdivisions(),
             FaceId);
 
         // Compute the positive side interface outwars area normal values
@@ -339,7 +339,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNorm
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mNegativeSubdivisions,
+            mpTriangleSplitter->GetNegativeSubdivisions(),
             FaceId);
 
         // Compute the positive side interface outwars area normal values

@@ -69,6 +69,20 @@ namespace Kratos
         return mNodalDistances;
     };
 
+    double ModifiedShapeFunctions::ComputePositiveSideVolume() const
+    {
+        auto p_splitting_util = this->pGetSplittingUtil();
+        // KRATOS_ERROR_IF_NOT(p_splitting_util->IsSplit()) << "Calling \'ComputePositiveSideVolume\' with a non-intersected geometry." << std::endl;
+        return ComputeVolumeOnOneSide(p_splitting_util->GetPositiveSubdivisions());
+    };
+
+    double ModifiedShapeFunctions::ComputeNegativeSideVolume() const
+    {
+        auto p_splitting_util = this->pGetSplittingUtil();
+        // KRATOS_ERROR_IF_NOT(p_splitting_util->IsSplit()) << "Calling \'ComputeNegativeSideVolume\' with a non-intersected geometry." << std::endl;
+        return ComputeVolumeOnOneSide(p_splitting_util->GetNegativeSubdivisions());
+    };
+
     // Sets the condensation matrix to transform the subdivision values to entire element ones.
     void ModifiedShapeFunctions::SetCondensationMatrix(
         Matrix& rIntPointCondMatrix,
@@ -362,5 +376,14 @@ namespace Kratos
             }
         }
     };
+
+    double ModifiedShapeFunctions::ComputeVolumeOnOneSide(const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector) const
+    {
+        double volume = 0.0;
+        for (auto& r_subdivision_geom : rSubdivisionsVector) {
+            volume += r_subdivision_geom->DomainSize();
+        }
+        return volume;
+    }
 
 }; // namespace Kratos
