@@ -70,7 +70,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     #### Private functions ####
 
     def _create_epetra_communicator(self):
-        return TrilinosApplication.CreateCommunicator()
+        return TrilinosApplication.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
 
     def _create_convergence_criterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())

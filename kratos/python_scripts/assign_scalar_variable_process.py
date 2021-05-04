@@ -70,7 +70,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.value = settings["value"].GetDouble()
         else:
             self.function_string = settings["value"].GetString()
-            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+            self.aux_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
             if self.aux_function.DependsOnSpace():
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )

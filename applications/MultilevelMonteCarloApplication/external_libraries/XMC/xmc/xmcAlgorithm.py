@@ -4,7 +4,9 @@ import pathlib as pl
 # XMC imports
 from xmc.tools import dynamicImport, splitOneListIntoTwo
 from xmc.methodDefs_xmcAlgorithm import checkInitialisation, updateTolerance
-from xmc.distributedEnvironmentFramework import get_value_from_remote
+
+# Import ExaQUte API
+from exaqute import get_value_from_remote
 
 
 class XMCAlgorithm:

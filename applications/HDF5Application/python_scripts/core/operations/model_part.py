@@ -16,6 +16,8 @@ def Prefix(pattern, model_part, time_format=''):
     if hasattr(model_part, 'ProcessInfo'):
         time = model_part.ProcessInfo[KratosMultiphysics.TIME]
         prefix = format(time, time_format).join(pattern.split('<time>'))
+        if KratosMultiphysics.STEP in model_part.ProcessInfo:
+            prefix = prefix.replace('<step>', str(model_part.ProcessInfo[KratosMultiphysics.STEP]))
     else:
         prefix = pattern
     if hasattr(model_part, 'Name'):
@@ -128,6 +130,16 @@ class ElementFlagValueInput(VariableIO):
             self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements,
                                                                             model_part.GetCommunicator())
 
+class ElementGaussPointOutput(VariableIO):
+    '''Write element integration point values to a file.'''
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementGaussPointOutput(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteElementGaussPointValues(
+                model_part.Elements,
+                model_part.GetCommunicator().GetDataCommunicator(),
+                model_part.ProcessInfo)
+
 class ConditionDataValueOutput(VariableIO):
     '''Writes non-historical element data values to a file.'''
 
@@ -171,6 +183,16 @@ class ConditionFlagValueInput(VariableIO):
         KratosHDF5.HDF5ConditionFlagValueIO(
             self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions,
                                                                               model_part.GetCommunicator())
+
+class ConditionGaussPointOutput(VariableIO):
+    '''Write condition integration point values to a file.'''
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionGaussPointOutput(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionGaussPointValues(
+                model_part.Conditions,
+                model_part.GetCommunicator().GetDataCommunicator(),
+                model_part.ProcessInfo)
 
 
 class NodalSolutionStepDataOutput(VariableIO):
@@ -316,6 +338,8 @@ def Create(settings):
         return ElementDataValueInput(settings)
     elif operation_type == 'element_flag_value_input':
         return ElementFlagValueInput(settings)
+    elif operation_type == 'element_integration_point_output':
+        return ElementGaussPointOutput(settings)
     elif operation_type == 'condition_data_value_output':
         return ConditionDataValueOutput(settings)
     elif operation_type == 'condition_flag_value_output':
@@ -324,6 +348,8 @@ def Create(settings):
         return ConditionDataValueInput(settings)
     elif operation_type == 'condition_flag_value_input':
         return ConditionFlagValueInput(settings)
+    elif operation_type == 'condition_integration_point_output':
+        return ConditionGaussPointOutput(settings)
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':
