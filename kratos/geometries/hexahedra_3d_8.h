@@ -508,10 +508,10 @@ public:
 
         for (int i = 0; i < 3; ++i)
         {
-            if ( rPointLocalCoordinates[0] < (-1.0 - Tolerance ) ) flag[i] = 0;
-            else if ( rPointLocalCoordinates[0] < (-1.0 + Tolerance ) ) flag[i] = 2;
-            else if ( rPointLocalCoordinates[0] < (1.0 - Tolerance ) ) flag[i] = 1;
-            else if ( rPointLocalCoordinates[0] < (1.0 + Tolerance ) ) flag[i] = 2;
+            if ( rPointLocalCoordinates[i] < (-1.0 - Tolerance ) ) flag[i] = 0;
+            else if ( rPointLocalCoordinates[i] < (-1.0 + Tolerance ) ) flag[i] = 2;
+            else if ( rPointLocalCoordinates[i] < (1.0 - Tolerance ) ) flag[i] = 1;
+            else if ( rPointLocalCoordinates[i] < (1.0 + Tolerance ) ) flag[i] = 2;
             else flag[i] = 0;
         }
 
