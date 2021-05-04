@@ -18,7 +18,7 @@ class MaterialsAssignationUtility:
         for material in list_of_materials:
             material_id = material["material_id"].GetInt()
             if  not self.spheres_model_part.HasProperties(material_id):
-                self.spheres_model_part.AddProperties(Kratos.Properties(material_id))
+                self.spheres_model_part.CreateNewProperties(material_id)
 
             properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
             properties = material["Variables"]
