@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -13,8 +13,8 @@
 //
 //
 
-#if !defined (KRATOS_UNIFIED_FATIGUE_LAW_H_INCLUDED)
-#define  KRATOS_UNIFIED_FATIGUE_LAW_H_INCLUDED
+#if !defined (KRATOS_ASSOCIATIVE_PLASTIC_MODEL_LAW_H_INCLUDED)
+#define  KRATOS_ASSOCIATIVE_PLASTIC_MODEL_LAW_H_INCLUDED
 
 // System includes
 
@@ -24,6 +24,7 @@
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
