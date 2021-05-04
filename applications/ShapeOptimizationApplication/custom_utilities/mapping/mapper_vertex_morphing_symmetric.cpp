@@ -224,7 +224,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
     #pragma omp for
     for (int i = 0; i < int(mrDestinationModelPart.NumberOfNodes()); ++i)
     {
-        auto& node_i = *(mrDestinationModelPart.NodesBegin() + i);
+        const auto& node_i = *(mrDestinationModelPart.NodesBegin() + i);
         transform.clear();
         total_neighbor_nodes.clear();
         total_list_of_weights.clear();
@@ -233,7 +233,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
         unsigned int total_number_of_neighbors = 0;
         double total_sum_of_weights = 0;
         for (auto& pair_i : search_nodes) {
-            NodeType search_node(0, pair_i.first);
+            const NodeType search_node(0, pair_i.first);
             const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                             filter_radius,
                                                                             neighbor_nodes.begin(),
