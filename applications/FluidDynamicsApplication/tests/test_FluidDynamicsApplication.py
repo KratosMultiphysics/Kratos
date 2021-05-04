@@ -103,10 +103,6 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
@@ -120,6 +116,11 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipNormCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
+    #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
 
 
     # Create a test suite that contains all the tests:
