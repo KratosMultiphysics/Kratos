@@ -11,7 +11,11 @@
 //                   Suneth Warnakulasuriya
 //
 
+// System includes
+
+
 // External includes
+
 
 // Project includes
 #include "utilities/parallel_utilities.h"
@@ -27,8 +31,7 @@ double FluidAuxiliaryUtilities::CalculateFluidVolume(ModelPart& rModelPart)
     KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
 
     double fluid_volume = 0.0;
-
-    block_for_each.
+    // block_for_each(rModelPart.Elements(), [](){});
 
     rModelPart.GetCommunicator().GetDataCommunicator().SumAll(fluid_volume);
 

@@ -14,7 +14,7 @@
 #if !defined(KRATOS_FLUID_AUXILIARY_UTILITIES_H)
 #define KRATOS_FLUID_AUXILIARY_UTILITIES_H
 
-// system includes
+// System includes
 #include <tuple>
 #include <type_traits>
 
@@ -23,7 +23,11 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "includes/node.h"
+#include "includes/model_part.h"
 #include "includes/ublas_interface.h"
+
+// Application includes
+
 
 namespace Kratos
 {
