@@ -24,12 +24,6 @@ namespace Kratos {
             rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
         });
 
-        //const int number_of_particles = (int) rCustomListOfSphericParticles.size();
-        // #pragma omp parallel for
-        // for (int i = 0; i < number_of_particles; i++) {
-        //     rCustomListOfSphericParticles[i]->SetFastProperties(vector_of_properties_proxies);
-        // }
-
         return;
         KRATOS_CATCH("")
     }
@@ -228,12 +222,6 @@ namespace Kratos {
 
             ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
 
-            // #pragma omp parallel for
-            // for (int k = 0; k < (int) rConditions.size(); k++) {
-            //     ConditionsArrayType::iterator it = rConditions.ptr_begin() + k;
-            //     (it)->Set(DEMFlags::STICKY, true);
-            // }
-
             block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition){
             rCondition.Set(DEMFlags::STICKY, true);
         });
@@ -320,13 +308,6 @@ namespace Kratos {
         //          Check_MPI(has_mpi);
 
         std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
-
-        // const int number_of_particles = (int) mListOfSphericParticles.size();
-        // #pragma omp parallel for
-        // for (int i = 0; i < number_of_particles; i++) {
-        //     double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
-        //     if (max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
-        // }
 
         IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
             double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
@@ -977,47 +958,6 @@ namespace Kratos {
             }
         });
 
-        //remove old implementation when the new one is fully approved
-
-        // #pragma omp parallel for private (rhs_cond, rhs_cond_elas)
-        // for (int k = 0; k < (int) pConditions.size(); k++) {
-
-        //     ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
-
-        //     Condition::GeometryType& geom = it->GetGeometry();
-        //     it->CalculateRightHandSide(rhs_cond, r_const_process_info);
-        //     DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
-        //     p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
-        //     array_1d<double, 3> Normal_to_Element = ZeroVector(3);
-        //     const unsigned int& dim = geom.WorkingSpaceDimension();
-        //     if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
-
-        //     for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
-        //         //we are studying a certain condition here
-        //         unsigned int index = i * dim; //*2;
-
-        //         array_1d<double, 3>& node_rhs = geom[i].FastGetSolutionStepValue(CONTACT_FORCES);
-        //         array_1d<double, 3>& node_rhs_elas = geom[i].FastGetSolutionStepValue(ELASTIC_FORCES);
-        //         array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-        //         double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
-        //         array_1d<double, 3> rhs_cond_comp;
-        //         noalias(rhs_cond_comp) = ZeroVector(3);
-
-        //         geom[i].SetLock();
-
-        //         for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them
-        //             node_rhs[j] += rhs_cond[index + j];
-        //             node_rhs_elas[j] += rhs_cond_elas[index + j];
-        //             rhs_cond_comp[j] = rhs_cond[index + j];
-        //         }
-        //         //node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes.
-        //         //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
-        //         node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
-        //         noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
-
-        //         geom[i].UnSetLock();
-        //     }
-        // }
         KRATOS_CATCH("")
     }
 
