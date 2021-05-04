@@ -997,8 +997,6 @@ void AddKuttaConditionPenaltyTerm(Element& rElement,
     GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
-    Vector vector_distances=ZeroVector(NumNodes);
-
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
 
     BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
