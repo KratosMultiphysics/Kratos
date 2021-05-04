@@ -187,6 +187,17 @@ Vector ComputeKuttaNormal(const double angle);
 
 template <class TContainerType>
 double CalculateArea(TContainerType& rContainer);
+
+void AddKuttaConditionPenaltyTerm(const Element& rElement,
+                              MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+// void AddPotentialGradientStabilizationTerm(const Element& rElement,
+//                               MatrixType& rLeftHandSideMatrix,
+//                               VectorType& rRightHandSideVector,
+//                               const ProcessInfo& rCurrentProcessInfo);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 
