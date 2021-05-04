@@ -88,7 +88,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGrad
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
                                      rPositiveSideShapeFunctionsGradientsValues,
                                      rPositiveSideWeightsValues,
-                                     mpTriangleSplitter->mPositiveSubdivisions,
+                                     mpTriangleSplitter->GetPositiveSubdivisions(),
                                      p_matrix,
                                      IntegrationMethod);
     } else {
@@ -115,7 +115,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGrad
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
                                      rNegativeSideShapeFunctionsGradientsValues,
                                      rNegativeSideWeightsValues,
-                                     mpTriangleSplitter->mNegativeSubdivisions,
+                                     mpTriangleSplitter->GetNegativeSubdivisions(),
                                      p_matrix,
                                      IntegrationMethod);
     } else {
@@ -143,7 +143,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctio
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTriangleSplitter->mPositiveInterfaces,
-                                              mpTriangleSplitter->mPositiveSubdivisions,
+                                              mpTriangleSplitter->GetPositiveSubdivisions(),
                                               mpTriangleSplitter->mPositiveInterfacesParentIds,
                                               p_matrix,
                                               IntegrationMethod);
@@ -172,7 +172,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctio
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTriangleSplitter->mNegativeInterfaces,
-                                              mpTriangleSplitter->mNegativeSubdivisions,
+                                              mpTriangleSplitter->GetNegativeSubdivisions(),
                                               mpTriangleSplitter->mNegativeInterfacesParentIds,
                                               p_matrix,
                                               IntegrationMethod);
@@ -204,16 +204,16 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunction
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mPositiveSubdivisions,
+            mpTriangleSplitter->GetPositiveSubdivisions(),
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
             rPositiveExteriorFaceShapeFunctionsGradientsValues,
             rPositiveExteriorFaceWeightsValues,
             exterior_faces_vector,
-            mpTriangleSplitter->mPositiveSubdivisions,
+            mpTriangleSplitter->GetPositiveSubdivisions(),
             exterior_faces_parent_ids_vector,
             p_matrix,
             IntegrationMethod);
@@ -246,16 +246,16 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunction
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mNegativeSubdivisions,
+            mpTriangleSplitter->GetNegativeSubdivisions(),
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,
             rNegativeExteriorFaceShapeFunctionsGradientsValues,
             rNegativeExteriorFaceWeightsValues,
             exterior_faces_vector,
-            mpTriangleSplitter->mNegativeSubdivisions,
+            mpTriangleSplitter->GetNegativeSubdivisions(),
             exterior_faces_parent_ids_vector,
             p_matrix,
             IntegrationMethod);
@@ -308,9 +308,9 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mPositiveSubdivisions,
+            mpTriangleSplitter->GetPositiveSubdivisions(),
             FaceId);
-        
+
         // Compute the positive side interface outwars area normal values
         this->ComputeFaceNormalOnOneSide(rPositiveExteriorFaceAreaNormal,
                                               exterior_faces_vector,
@@ -333,7 +333,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
         mpTriangleSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->mNegativeSubdivisions,
+            mpTriangleSplitter->GetNegativeSubdivisions(),
             FaceId);
 
         // Compute the positive side interface outwars area normal values
@@ -371,7 +371,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeInter
 // Computes the negative side shape function values in the edges intersections
 void Triangle2D3ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
     Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
-    
+
     if (this->IsSplit()) {
         // Note that positive and negative sides values are equal for standard shape functions
         this->ComputeShapeFunctionsOnPositiveEdgeIntersections(

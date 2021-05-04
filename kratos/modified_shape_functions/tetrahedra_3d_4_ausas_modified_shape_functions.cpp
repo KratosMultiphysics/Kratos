@@ -89,7 +89,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctions
         this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
                                      rPositiveSideShapeFunctionsGradientsValues,
                                      rPositiveSideWeightsValues,
-                                     mpTetrahedraSplitter->mPositiveSubdivisions,
+                                     mpTetrahedraSplitter->GetPositiveSubdivisions(),
                                      p_matrix_pos_side,
                                      IntegrationMethod);
     } else {
@@ -116,7 +116,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctions
         this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
                                      rNegativeSideShapeFunctionsGradientsValues,
                                      rNegativeSideWeightsValues,
-                                     mpTetrahedraSplitter->mNegativeSubdivisions,
+                                     mpTetrahedraSplitter->GetNegativeSubdivisions(),
                                      p_matrix_neg_side,
                                      IntegrationMethod);
     } else {
@@ -144,7 +144,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShape
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTetrahedraSplitter->mPositiveInterfaces,
-                                              mpTetrahedraSplitter->mPositiveSubdivisions,
+                                              mpTetrahedraSplitter->GetPositiveSubdivisions(),
                                               mpTetrahedraSplitter->mPositiveInterfacesParentIds,
                                               p_matrix_pos_side,
                                               IntegrationMethod);
@@ -173,7 +173,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShape
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
-                                              mpTetrahedraSplitter->mNegativeSubdivisions,
+                                              mpTetrahedraSplitter->GetNegativeSubdivisions(),
                                               mpTetrahedraSplitter->mNegativeInterfacesParentIds,
                                               p_matrix_neg_side,
                                               IntegrationMethod);
@@ -198,23 +198,23 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeF
             mpTetrahedraSplitter->mEdgeNodeI,
             mpTetrahedraSplitter->mEdgeNodeJ,
             mpTetrahedraSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
         mpTetrahedraSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTetrahedraSplitter->mPositiveSubdivisions,
+            mpTetrahedraSplitter->GetPositiveSubdivisions(),
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
             rPositiveExteriorFaceShapeFunctionsGradientsValues,
             rPositiveExteriorFaceWeightsValues,
             exterior_faces_vector,
-            mpTetrahedraSplitter->mPositiveSubdivisions,
+            mpTetrahedraSplitter->GetPositiveSubdivisions(),
             exterior_faces_parent_ids_vector,
             p_matrix_pos_side,
             IntegrationMethod);
@@ -240,23 +240,23 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeF
             mpTetrahedraSplitter->mEdgeNodeI,
             mpTetrahedraSplitter->mEdgeNodeJ,
             mpTetrahedraSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
         mpTetrahedraSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTetrahedraSplitter->mNegativeSubdivisions,
+            mpTetrahedraSplitter->GetNegativeSubdivisions(),
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,
             rNegativeExteriorFaceShapeFunctionsGradientsValues,
             rNegativeExteriorFaceWeightsValues,
             exterior_faces_vector,
-            mpTetrahedraSplitter->mNegativeSubdivisions,
+            mpTetrahedraSplitter->GetNegativeSubdivisions(),
             exterior_faces_parent_ids_vector,
             p_matrix_neg_side,
             IntegrationMethod);
@@ -311,7 +311,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNo
         mpTetrahedraSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTetrahedraSplitter->mPositiveSubdivisions,
+            mpTetrahedraSplitter->GetPositiveSubdivisions(),
             FaceId);
 
         // Compute the positive side interface outwars area normal values
@@ -340,7 +340,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNo
         mpTetrahedraSplitter->GenerateExteriorFaces(
             exterior_faces_vector,
             exterior_faces_parent_ids_vector,
-            mpTetrahedraSplitter->mNegativeSubdivisions,
+            mpTetrahedraSplitter->GetNegativeSubdivisions(),
             FaceId);
 
         // Compute the positive side interface outwars area normal values

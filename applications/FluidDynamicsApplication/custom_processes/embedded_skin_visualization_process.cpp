@@ -647,12 +647,12 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
             std::unordered_map<std::pair<unsigned int,bool>, unsigned int, Hash, KeyEqual> new_nodes_map;
 
             // Get the split geometries from the splitting pattern
-            const unsigned int n_pos_split_geom = (p_split_utility->mPositiveSubdivisions).size();
-            const unsigned int n_neg_split_geom = (p_split_utility->mNegativeSubdivisions).size();
+            const unsigned int n_pos_split_geom = (p_split_utility->GetPositiveSubdivisions()).size();
+            const unsigned int n_neg_split_geom = (p_split_utility->GetNegativeSubdivisions()).size();
             std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_geometries;
             split_geometries.reserve(n_pos_split_geom + n_neg_split_geom);
-            split_geometries.insert(split_geometries.end(), (p_split_utility->mPositiveSubdivisions).begin(), (p_split_utility->mPositiveSubdivisions).end());
-            split_geometries.insert(split_geometries.end(), (p_split_utility->mNegativeSubdivisions).begin(), (p_split_utility->mNegativeSubdivisions).end());
+            split_geometries.insert(split_geometries.end(), (p_split_utility->GetPositiveSubdivisions()).begin(), (p_split_utility->GetPositiveSubdivisions()).end());
+            split_geometries.insert(split_geometries.end(), (p_split_utility->GetNegativeSubdivisions()).begin(), (p_split_utility->GetNegativeSubdivisions()).end());
 
             // Create the split geometries in the visualization model part
             for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
