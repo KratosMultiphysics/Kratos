@@ -463,9 +463,9 @@ public:
             Dmat(i, 2) = d;
         }
         array_1d<double,3> point_in_new(3+d,1.0/3.0+d);
-        array_1d<double,3> point_out(3+d,5.0+d);
-        if( !VerifyIsInsideWithDeltaPosition( geom, point_in, Dmat, true, error_msg) ) succesful=false;
-        if( !VerifyIsInsideWithDeltaPosition( geom, point_out, Dmat, false, error_msg) ) succesful=false;
+        array_1d<double,3> point_out_new(3+d,5.0+d);
+        if( !VerifyIsInsideWithDeltaPosition( geom, point_in_new, Dmat, true, error_msg) ) succesful=false;
+        if( !VerifyIsInsideWithDeltaPosition( geom, point_out_new, Dmat, false, error_msg) ) succesful=false;
 
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
