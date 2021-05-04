@@ -45,7 +45,7 @@ class CustomOptimizerCompilerProcess(NeuralNetworkProcess):
         if self.module == "keras":
             self.optimizer = getattr(tensorflow.keras.optimizers,self.optimizer_name)(learning_rate = self.learning_rate)
         else:
-            self.optimizer = getattr(optimizer_module,optimizer)(learning_rate = self.learning_rate)
+            self.optimizer = getattr(optimizer_module,self.optimizer_name)(learning_rate = self.learning_rate)
 
         # The tuner can only tune the LR or the optimizer model at a time
         if self.tunable:

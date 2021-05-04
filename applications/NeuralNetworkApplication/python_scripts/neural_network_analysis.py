@@ -61,6 +61,13 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 callback = process.Callback()
                 if not callback == None:
                     self.callbacks_list.append(callback)
+            
+            # Compile the list of metrics
+            self.metrics_list = []
+            for process in self._GetListOfProcesses():
+                metric = process.CompileMetric()
+                if not metric == None:
+                    self.metrics_list.append(metric)
 
         elif self.problem_type == "tuning":
             def build_model(hp):
@@ -89,7 +96,14 @@ class NeuralNetworkAnalysis(AnalysisStage):
                     if not callback == None:
                         self.callbacks_list.append(callback)
                 
-                model.compile(optimizer = self.optimizer, loss = self.loss_function)
+                # Compile the list of metrics
+                self.metrics_list = []
+                for process in self._GetListOfProcesses():
+                    metric = process.CompileMetric()
+                    if not metric == None:
+                        self.metrics_list.append(metric)
+                
+                model.compile(optimizer = self.optimizer, loss = self.loss_function, metrics = self.metrics_list)
 
                 return model
             self.hypermodel = build_model
@@ -118,7 +132,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
     def RunTrainingLoop(self):
         if self.problem_type == "train":
             for process in self._GetListOfProcesses():
-                process.ExecuteTraining(self.loss_function, self.optimizer, self.callbacks_list)
+                process.ExecuteTraining(self.loss_function, self.optimizer, self.callbacks_list, self.metrics_list)
         elif self.problem_type == "tuning":
             for process in self._GetListOfProcesses():
                 process.ExecuteTuning(self.hypermodel)

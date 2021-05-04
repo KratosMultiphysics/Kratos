@@ -14,7 +14,7 @@ def Factory(settings):
 
 class CustomLossFunctionCompilerProcess(NeuralNetworkProcess):
     """
-    This class compiles ta custom loss function.
+    This class compiles a custom loss function.
 
     """
     def __init__(self, parameters):
@@ -43,7 +43,7 @@ class CustomLossFunctionCompilerProcess(NeuralNetworkProcess):
         if self.module == "keras":
             self.loss_function = getattr(tensorflow.keras.losses,self.loss_function_name)(reduction = self.reduction)
         else:
-            self.loss_function = getattr(loss_module,loss_function)
+            self.loss_function = getattr(loss_module,self.loss_function_name)
 
         if self.tunable:
             self.tunable_variable = parameters["tunable_variable"].GetString()

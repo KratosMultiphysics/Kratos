@@ -27,7 +27,7 @@ class NeuralNetworkProcess(KM.Process):
         """ Processes to act just before the training. """
         pass
     
-    def ExecuteTraining(self, loss_function, optimizer, callbacks_list):
+    def ExecuteTraining(self, loss_function, optimizer, callbacks_list, metrics_list):
         """ Processes to act directly during the training step. """
         pass
 
@@ -53,4 +53,8 @@ class NeuralNetworkProcess(KM.Process):
 
     def Callback(self):
         """ Process for setting up a callback. """
+        pass
+
+    def CompileMetric(self):
+        """ Process for compiling a metric. """
         pass

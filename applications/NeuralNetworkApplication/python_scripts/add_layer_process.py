@@ -5,6 +5,7 @@ from KratosMultiphysics.NeuralNetworkApplication.neural_network_process import N
 
 from importlib import import_module
 from tensorflow.keras import layers
+import tensorflow.keras as keras
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
@@ -41,5 +42,9 @@ class AddLayerProcess(NeuralNetworkProcess):
     def Add(self, model, hp = None):
         """ Processes to add layers to a network. """
         layer = self.layer_class.Build(hp = hp)
-        return layer(model)
+        if isinstance(model, keras.Sequential):
+            model.add(layer)
+            return model
+        else:
+            return layer(model)
 

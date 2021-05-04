@@ -35,6 +35,6 @@ class EarlyStoppingCallback(CallbackClass):
         else:
             self.baseline = None
 
-    def Build(self):
+    def Build(self, hp = None):
         return callbacks.EarlyStopping(monitor = self.monitor, min_delta = self.min_delta, patience = self.patience,
         verbose = self.verbose, mode = self.mode, baseline = self.baseline, restore_best_weights = self.restore_best_weights)

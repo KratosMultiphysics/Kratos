@@ -21,19 +21,24 @@ class TunerFromBuiltModel(NeuralNetworkTrainingProcess):
         self.tuner = parameters["tuner"].GetString()
         self.epochs = parameters["epochs"].GetInt()
         self.num_models = parameters["num_models"].GetInt()
+        self.objective = parameters["objective"].GetString()
+        self.max_trials = parameters["max_trials"].GetInt()
+        self.executions_per_trial = parameters["executions_per_trial"].GetInt()
+        self.directory = parameters["directory"].GetString()
+        self.project_name = parameters["project_name"].GetString()
 
     def ExecuteTuning(self, hypermodel):
         """ Processes to act directly during the training step. """
-        self.tuner = getattr(tuners, self.tuner)(hypermodel, objective = "loss",
-                                    max_trials=5, executions_per_trial = 3,
-                                    directory = "my_dir", project_name = "tuner")
+        self.tuner = getattr(tuners, self.tuner)(hypermodel, objective = self.objective,
+                                    max_trials=self.max_trials, executions_per_trial = self.executions_per_trial,
+                                    directory = self.directory, project_name = self.project_name)
         self.tuner.search_space_summary()
         self.tuner.search(self.test_input,self.test_output,epochs=self.epochs)
         
     
     def ExecuteFinalize(self):
         
-        models = self.tuner.get_best_models(num_models=2)
+        models = self.tuner.get_best_models(num_models=self.num_models)
         self.tuner.results_summary()
         for i in range(self.num_models):
             models[i].save(self.model_name + "_best_"+str(i))
