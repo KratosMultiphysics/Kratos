@@ -1,5 +1,6 @@
 import numpy as np
 import h5py
+import ast
 
 
 def ImportH5(external_file,category):
@@ -38,3 +39,11 @@ def ImportAscii(external_file):
         raw_splits.append(raw_splits_line)
     raw_splits = np.array(raw_splits)
     return raw_splits
+
+def ImportDictionaryFromText(external_file):
+    "Import the data from a text file to a dictionary"
+    
+    with open(external_file, 'r') as file:
+        data = file.read()
+
+    return ast.literal_eval(data)

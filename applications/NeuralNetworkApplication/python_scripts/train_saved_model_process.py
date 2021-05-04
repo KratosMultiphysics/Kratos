@@ -17,6 +17,9 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
         super().__init__(parameters)
         self.model_name = parameters["model"].GetString()
         self.epochs = parameters["epochs"].GetInt()
+        self.training_log = parameters["training_log"].GetBool()
+        if self.training_log:
+            self.training_log_file = parameters["training_log_file"].GetString()
 
     def ExecuteTraining(self, loss_function, optimizer, callbacks_list, metrics_list):
         """ Processes to act directly during the training step. """
@@ -24,6 +27,9 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
         # This has yet to be implemented, it should read the loss and optimizer from the json
         # self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
         self.reconstructed_model.compile(loss=loss_function, optimizer=optimizer, metrics = metrics_list)
-        self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=False, callbacks = callbacks_list) 
+        history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=False, callbacks = callbacks_list) 
         self.reconstructed_model.save(self.model_name)
+        if self.training_log:
+            with open(self.training_log_file,'w') as f:
+                print(history.history, file = f)
 

@@ -12,10 +12,16 @@ class NeuralNetworkProcessFactory(object):
 
     def ConstructListOfProcesses( self, process_list ):
         constructed_processes = []
-        for i in range(0,process_list.size()):
-            item = process_list[i]
+        if process_list.IsArray():
+            processes = process_list
+            size = processes.size()
+        else:
+            processes = [process_list]
+            size = len(processes)
+        for i in range(0,size):
+            item = processes[i]
             if not item.Has("python_module"):
-                KM.Logger.PrintWarning("Your list of processes: ", process_list)
+                KM.Logger.PrintWarning("Your list of processes: ", processes)
                 raise NameError('"python_module" must be defined in your parameters. Check all your processes')
 
             # python-script that contains the process
