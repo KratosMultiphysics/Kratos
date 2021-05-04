@@ -37,69 +37,45 @@ void DefineEmbeddedWakeProcess::Execute()
     MarkWakeElements();
     ComputeTrailingEdgeNode();
 
-    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
-        auto& r_geometry = it_elem->GetGeometry();
-
-
-        BoundedVector<double,3> geometry_distances;
-        for(unsigned int i_node = 0; i_node<3; i_node++){
-            geometry_distances[i_node] = r_geometry[i_node].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
-        }
-        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
-        bool is_touching_marker = false;
-        if (is_embedded){
-            for (auto& r_node : r_geometry) {
-                if (r_node.GetValue(KUTTA) == 1) {
-                    // std::cout << "Found embedded elem " << it_elem->Id() << " touching marker" << std::endl;
-                    is_touching_marker = true;
-                    break;
-                }
-            }
-        }
-
-        if (is_touching_marker) {
-            for (auto& r_node : r_geometry) {
-                r_node.SetValue(KUTTA, true);
-            }
-        }
-    }
-
     KRATOS_CATCH("");
 }
 
 
 void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
+    KRATOS_TRY;
+
     CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
+
+    KRATOS_CATCH("");
 }
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
+    KRATOS_TRY;
 
-        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
-        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem)
+    {
+        BoundedVector<double, 3> nodal_distances_to_wake = rElem.GetValue(ELEMENTAL_DISTANCES);
+        rElem.SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
         const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
 
         BoundedVector<double,3> geometry_distances;
         for(unsigned int i_node = 0; i_node<3; i_node++){
-            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+            geometry_distances[i_node] = rElem.GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
 
         // Mark wake element and save their nodal distances to the wake
-        if (is_wake_element && it_elem->Is(ACTIVE)) {
-            it_elem->SetValue(WAKE, true);
+        if (is_wake_element && rElem.Is(ACTIVE)) {
+            rElem.SetValue(WAKE, true);
             if (is_embedded){
-                it_elem->Set(STRUCTURE, true);
-                auto& r_geometry = it_elem->GetGeometry();
-                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                rElem.Set(STRUCTURE, true);
+                auto& r_geometry = rElem.GetGeometry();
+                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(KUTTA, true);
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
@@ -107,8 +83,8 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
             else{
-                auto& r_geometry = it_elem->GetGeometry();
-                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                auto& r_geometry = rElem.GetGeometry();
+                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].SetValue(WAKE, true);
@@ -116,7 +92,10 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
         }
-    }
+    });
+
+    KRATOS_CATCH("");
+
 }
 
 ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
@@ -138,6 +117,8 @@ ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
+    KRATOS_TRY;
+
     auto p_node = pGetTrailingEdgeNode();
 
     std::vector<std::size_t> trailing_edge_node_list;
@@ -152,5 +133,6 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
               trailing_edge_node_list.end());
     mrModelPart.GetSubModelPart("trailing_edge_sub_model_part").AddNodes(trailing_edge_node_list);
 
+    KRATOS_CATCH("");
 }
 }
