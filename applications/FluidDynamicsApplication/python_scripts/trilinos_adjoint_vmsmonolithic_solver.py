@@ -3,6 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosCFD
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
@@ -41,18 +42,17 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = TrilinosApplication.CreateCommunicator()
+            self._epetra_communicator = TrilinosApplication.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
         return self._epetra_communicator
 
     def _CreateScheme(self):
         response_function = self.GetResponseFunction()
         scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if scheme_type == "bossak":
-            scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(
-                self.settings["scheme_settings"],
-                response_function)
+            scheme = KratosCFD.TrilinosVelocityBossakAdjointScheme(self.settings["scheme_settings"], response_function, domain_size, domain_size + 1)
         elif scheme_type == "steady":
-            scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(response_function)
+            scheme = KratosCFD.TrilinosSimpleSteadyAdjointScheme(response_function, domain_size, domain_size + 1)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
         return scheme

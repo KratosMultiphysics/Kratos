@@ -181,7 +181,7 @@ public:
     typedef Kratos::intrusive_ptr<PrimalElement> Pointer;
     typedef Kratos::unique_ptr<PrimalElement> UniquePointer;
 
-    static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -285,7 +285,7 @@ public:
     typedef Kratos::intrusive_ptr<PrimalCondition> Pointer;
     typedef Kratos::unique_ptr<PrimalCondition> UniquePointer;
 
-    static Pointer Create(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -445,7 +445,7 @@ public:
     typedef Kratos::unique_ptr<AdjointElement> UniquePointer;
 
 
-    static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -626,7 +626,7 @@ public:
     typedef Kratos::unique_ptr<AdjointCondition> UniquePointer;
 
 
-    static Pointer Create(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node<3>::Pointer pNode1)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
@@ -947,12 +947,12 @@ void InitializePrimalModelPart(ModelPart& rModelPart, const bool IsWithCondition
         r_node.AddDof(DISPLACEMENT_X, REACTION_X);
     }
     auto p_element =
-        PrimalElement::Create(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
+        PrimalElement::CreateEntity(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
     rModelPart.AddElement(p_element);
     auto& node1 = rModelPart.GetNode(1);
     auto& node2 = rModelPart.GetNode(2);
     if (IsWithConditions) {
-        auto p_condition = PrimalCondition::Create(rModelPart.pGetNode(2));
+        auto p_condition = PrimalCondition::CreateEntity(rModelPart.pGetNode(2));
         rModelPart.AddCondition(p_condition);
     }
     node2.FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
@@ -980,11 +980,11 @@ void InitializeAdjointModelPart(ModelPart& rModelPart, const bool IsWithConditio
         r_node.AddDof(ADJOINT_VECTOR_1_X);
     }
     auto p_adjoint_element =
-        AdjointElement::Create(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
+        AdjointElement::CreateEntity(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
     rModelPart.AddElement(p_adjoint_element);
 
     if (IsWithConditions) {
-        auto p_adjoint_condition = AdjointCondition::Create(rModelPart.pGetNode(2));
+        auto p_adjoint_condition = AdjointCondition::CreateEntity(rModelPart.pGetNode(2));
         rModelPart.AddCondition(p_adjoint_condition);
     }
 }

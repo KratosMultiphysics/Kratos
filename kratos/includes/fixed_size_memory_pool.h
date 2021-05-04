@@ -86,27 +86,29 @@ namespace Kratos
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  mThreadsPool[OpenMPUtils::ThisThread()].SetLock();
+		  mThreadsPool[OpenMPUtils::ThisThread()].lock();
 		  void* p_result = mThreadsPool[OpenMPUtils::ThisThread()].Allocate();
-		  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
+		  mThreadsPool[OpenMPUtils::ThisThread()].unlock();
 		  return p_result;
 	  }
 
 	  void Deallocate(void* pPointrerToRelease) {
 
-		  mThreadsPool[OpenMPUtils::ThisThread()].SetLock();
+		  mThreadsPool[OpenMPUtils::ThisThread()].lock();
 		  if (mThreadsPool[OpenMPUtils::ThisThread()].Deallocate(pPointrerToRelease))
 		  {
-			  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
+			  mThreadsPool[OpenMPUtils::ThisThread()].unlock();
 			  return;
 		  }
 
 		  for (int i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 			  if (i_thread != OpenMPUtils::ThisThread())
 				  if (mThreadsPool[i_thread].Deallocate(pPointrerToRelease)) {
-					  mThreadsPool[i_thread].UnSetLock();
+					  mThreadsPool[i_thread].unlock();
 					  return;
 				  }
+
+		  mThreadsPool[OpenMPUtils::ThisThread()].UnSetLock();
 
 		  KRATOS_ERROR << "The Pointer with address " << pPointrerToRelease << " was not found in this pool" << std::endl;
 	  }

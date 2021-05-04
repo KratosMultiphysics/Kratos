@@ -229,13 +229,16 @@ namespace MPMSearchElementUtility
                 array_1d<double, 3> local_coordinates;
                 bool is_found = false;
 
-                GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry(),
+                GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry().GetGeometryParent(0),
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
                     rMPMModelPart.GetProcessInfo(), is_found);
 
                 if (is_found)
                 {
-                    condition_itr->GetGeometry() = r_found_geom;
+                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        condition_itr->pGetGeometry(), local_coordinates,
+                        condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
+                        
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom[j].Set(ACTIVE);
                 }
@@ -368,7 +371,13 @@ namespace MPMSearchElementUtility
                     bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                     if (is_found == true) {
-                        condition_itr->GetGeometry() = pelem->GetGeometry();
+                        auto p_quadrature_point_geometry = condition_itr->pGetGeometry();
+                        array_1d<double, 3> local_coordinates;
+                        p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            p_quadrature_point_geometry, local_coordinates,
+                            p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                        
                         auto& r_geometry = condition_itr->GetGeometry();
 
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)

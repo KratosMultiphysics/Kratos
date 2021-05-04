@@ -495,6 +495,12 @@ typedef Node<3> NodeType;
         curve_on_surface.GlobalCoordinates(global_coords, local_coords);
 
         KRATOS_CHECK_VECTOR_NEAR(quadrature_points[2].Center(), global_coords, TOLERANCE);
+
+        // Check local tangent access
+        array_1d<double, 3> local_tangent;
+        std::vector<double> local_reference = {0.162409, -0.487862, 0.0};
+        quadrature_points[2].Calculate(LOCAL_TANGENT, local_tangent);
+        KRATOS_CHECK_VECTOR_NEAR(local_tangent, local_reference, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.

@@ -265,6 +265,31 @@ def XdmfElementFlags(h5_results):
         results.append(r)
     return results
 
+def XdmfElementGaussPointValues(h5_results):
+    """Return a list of XDMF Attribute objects for element integration point values in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the results
+
+    Checks for results stored by variable name in:
+    - h5_results["ElementGaussPointValues/<variable>"]
+
+    If no results are found, returns an empty list.
+
+    See:
+    - core.operations.ElementGaussPointOutput.
+    """
+    results_path = "ElementGaussPointValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
 def XdmfConditionResults(h5_results):
     """Return a list of XDMF Attribute objects for element results in an HDF5 file.
 
@@ -315,6 +340,31 @@ def XdmfConditionFlags(h5_results):
         results.append(r)
     return results
 
+def XdmfConditionGaussPointValues(h5_results):
+    """Return a list of XDMF Attribute objects for element integration point values in an HDF5 file.
+
+    Keyword arguments:
+    h5_results -- the HDF5 group containing the results
+
+    Checks for results stored by variable name in:
+    - h5_results["ConditionGaussPointValues/<variable>"]
+
+    If no results are found, returns an empty list.
+
+    See:
+    - core.operations.ConditionGaussPointOutput.
+    """
+    results_path = "ConditionGaussPointValues"
+    results = []
+    try:
+        grp = h5_results[results_path]
+    except KeyError:
+        return results
+    for variable, data in filter(Has_dtype, grp.items()):
+        r = ElementData(variable, HDF5UniformDataItem(data))
+        results.append(r)
+    return results
+
 
 def XdmfResults(h5_results):
     """Return a list of XDMF Attribute objects for results in an HDF5 file.
@@ -328,8 +378,10 @@ def XdmfResults(h5_results):
             XdmfNodalFlags(h5_results),
             XdmfElementResults(h5_results),
             XdmfElementFlags(h5_results),
+            XdmfElementGaussPointValues(h5_results),
             XdmfConditionResults(h5_results),
             XdmfConditionFlags(h5_results),
+            XdmfConditionGaussPointValues(h5_results)
         )
     )
 

@@ -299,7 +299,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
         ;
 
-    py::class_<SpaceTimeSet> (m, "SpaceTimeSet")
+    py::class_<SpaceTimeSet, SpaceTimeSet::Pointer> (m, "SpaceTimeSet")
         .def(py::init<>())
         .def("AddAndRule", &SpaceTimeSet::AddAndRule)
         .def("AddOrRule", &SpaceTimeSet::AddOrRule)
@@ -334,7 +334,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
     ImposeFieldOnNodes ImposeField = &FieldUtility::ImposeFieldOnNodes;
 
-    py::class_<FieldUtility> (m, "FieldUtility")
+
+    py::class_<FieldUtility, FieldUtility::Pointer> (m, "FieldUtility")
         .def(py::init<SpaceTimeSet::Pointer, VectorField<3>::Pointer >())
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
@@ -344,10 +345,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("ImposeFieldOnNodes", ImposeField)
         ;
 
-    // and the same for 'FluidFieldUtility' ...
-    py::class_<FluidFieldUtility> (m, "FluidFieldUtility")
+    py::class_<FluidFieldUtility, FluidFieldUtility::Pointer, FieldUtility> (m, "FluidFieldUtility")
         .def(py::init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
         ;
+
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const Variable<double>&, const Variable<double>&);
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesVector)(ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&);
@@ -515,7 +516,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     py::class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
-        .def(py::init<ModelPart&, array_1d<double, 3> >())
+        .def(py::init<ModelPart&, array_1d<double, 3>, const int >())
+        .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
     py::class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")

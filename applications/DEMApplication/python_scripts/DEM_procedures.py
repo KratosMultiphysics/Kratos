@@ -372,7 +372,7 @@ class Procedures():
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -391,7 +391,7 @@ class Procedures():
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -425,6 +425,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
@@ -454,7 +455,6 @@ class Procedures():
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(LOCAL_CONTACT_FORCE)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
@@ -517,7 +517,6 @@ class Procedures():
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
@@ -831,14 +830,14 @@ class Procedures():
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "**************************************************************************")
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
-            self.KratosPrintWarning(
+            KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
+            KratosPrintWarning(
                 "**************************************************************************")
             sys.exit()
 
@@ -977,6 +976,7 @@ class DEMFEMProcedures():
 
     @classmethod
     def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
+        KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
