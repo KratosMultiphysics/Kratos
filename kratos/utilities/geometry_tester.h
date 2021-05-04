@@ -448,10 +448,12 @@ public:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
+        const double Tolerance = 1.0e-10;
+
         array_1d<double,3> point_in(3,1.0/3.0);
         array_1d<double,3> point_out(3,5.0);
-        if( !VerifyIsInside( geom, point_in, true, error_msg) ) succesful=false;
-        if( !VerifyIsInside( geom, point_out, false, error_msg) ) succesful=false;
+        if( !VerifyIsInside( geom, point_in, true, Tolerance, error_msg) ) succesful=false;
+        if( !VerifyIsInside( geom, point_out, false, Tolerance, error_msg) ) succesful=false;
         if( !VerfiyShapeFunctionsValues(geom,point_in,error_msg) ) succesful = false;
 
         const double d = 0.1;
@@ -462,10 +464,10 @@ public:
             Dmat(i, 1) = d;
             Dmat(i, 2) = d;
         }
-        array_1d<double,3> point_in_new(3+d,1.0/3.0+d);
-        array_1d<double,3> point_out_new(3+d,5.0+d);
-        if( !VerifyIsInsideWithDeltaPosition( geom, point_in_new, Dmat, true, error_msg) ) succesful=false;
-        if( !VerifyIsInsideWithDeltaPosition( geom, point_out_new, Dmat, false, error_msg) ) succesful=false;
+        array_1d<double,3> point_in_new(3,1.0/3.0+d);
+        array_1d<double,3> point_out_new(3,5.0+d);
+        if( !VerifyIsInsideWithDeltaPosition( geom, point_in_new, Dmat, true, Tolerance, error_msg) ) succesful=false;
+        if( !VerifyIsInsideWithDeltaPosition( geom, point_out_new, Dmat, false, Tolerance, error_msg) ) succesful=false;
 
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
@@ -1076,10 +1078,11 @@ private:
         Geometry< Node<3> >& geom,
         Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
         bool expected_result,
+        double Tolerance,
         std::stringstream& error_msg)
     {
       Geometry< Node<3> >::CoordinatesArrayType local_coordinates;
-      if( geom.IsInside(global_coordinates,local_coordinates) == expected_result )
+      if( geom.IsInside(global_coordinates,local_coordinates,Tolerance) == expected_result )
         return true;
       else
       {
@@ -1095,10 +1098,11 @@ private:
         Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
         const Matrix& rDeltaPosition,
         bool expected_result,
+        double Tolerance,
         std::stringstream& error_msg)
     {
       Geometry< Node<3> >::CoordinatesArrayType local_coordinates;
-      if( geom.IsInside(global_coordinates,local_coordinates,rDeltaPosition) == expected_result )
+      if( geom.IsInside(global_coordinates,local_coordinates,rDeltaPosition,Tolerance) == expected_result )
         return true;
       else
       {
