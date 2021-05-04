@@ -1,8 +1,8 @@
 //
 //   Project Name:        Kratos GeoMechanics
-//   Last Modified by:    $Author: hbui $
-//   Date:                $Date: 25 Jan 2017 $
-//   Revision:            $Revision: 1.6 $
+//   Author:              Hoang-Giang Bui, Felix Nagel
+//   Date:                31 Mar 2020
+//   Revision:            1.1
 //
 //
 
@@ -25,7 +25,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "custom_phase_laws/univariate_phase_law.h"
+#include "custom_retention/retention_law.h"
 
 
 namespace Kratos
@@ -196,11 +196,11 @@ protected:
     //************************************************************************************
     //************************************************************************************
 
-    virtual double GetSaturation( const double& capillaryPressure ) const;
+    virtual double GetSaturation( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters ) const;
 
-    virtual double GetDerivativeDSaturationDpc( const double& capillaryPressure ) const;
+    virtual double GetDerivativeDSaturationDpc( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters ) const;
 
-    virtual double GetSecondDerivativeD2SaturationDpc2( const double& capillaryPressure ) const;
+    virtual double GetSecondDerivativeD2SaturationDpc2( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters ) const;
 
     //************************************************************************************
     //************************************************************************************
@@ -258,26 +258,23 @@ protected:
 
     virtual void GetWaterValuesOnIntegrationPoints( const std::size_t& ipoint, double& permeability_water, double& density_water ) const;
 
-    Vector GetFlowWater( const Vector& grad_water,
-            const double& saturation, const double& permeability_water, const double& density_water ) const;
+    Vector GetFlowWater( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const Vector& grad_water, const double& permeability_water, const double& density_water ) const;
 
-    Vector GetDerivativeDWaterFlowDpw( const Vector& flow_water,
-            const double& saturation, const double& DS_Dpc ) const;
+    Vector GetDerivativeDWaterFlowDpw( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const Vector& flow_water, const double& DS_Dpc ) const;
 
-    Vector GetDerivativeDWaterFlowDpa( const Vector& flow_water,
-            const double& saturation, const double& DS_Dpc ) const;
+    Vector GetDerivativeDWaterFlowDpa( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const Vector& flow_water, const double& DS_Dpc ) const;
 
-    double GetDerivativeDWaterFlowDGradpw( const double& saturation, const double& permeability_water, const double& density_water ) const;
+    double GetDerivativeDWaterFlowDGradpw( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const double& permeability_water, const double& density_water ) const;
 
     void GetAirValuesOnIntegrationPoints( const std::size_t& ipoint, double& permeability_air ) const;
 
-    Vector GetFlowAir( const Vector& grad_air, const double& saturation, const double& permeability_air, const double& density_air ) const;
+    Vector GetFlowAir( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const Vector& grad_air, const double& permeability_air, const double& density_air ) const;
 
-    Vector GetDerivativeDAirFlowDpa( const Vector& flow_air, const double& saturation, const double& DS_Dpc, const double& permeability_air, const double& density_air, const double& bulk_air ) const;
+    Vector GetDerivativeDAirFlowDpa( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const Vector& flow_air, const double& DS_Dpc, const double& permeability_air, const double& density_air, const double& bulk_air ) const;
 
-    Vector GetDerivativeDAirFlowDpw( const Vector& flow_air, const double& saturation, const double& DS_Dpc ) const;
+    Vector GetDerivativeDAirFlowDpw( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const Vector& flow_air, const double& DS_Dpc ) const;
 
-    double GetDerivativeDAirFlowDGradpa( const double& saturation, const double& permeability_air, const double& density_air ) const;
+    double GetDerivativeDAirFlowDGradpa( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters, const double& permeability_air, const double& density_air ) const;
 
     //************************************************************************************
     //************************************************************************************
@@ -287,8 +284,6 @@ protected:
 
     double GetAveragedDensity( const double& saturation, const double& porosity,
         const double& density_soil, const double& density_water, const double& density_air ) const;
-
-    double GetDensityAir( const double& airPressure ) const;
 
     ///@}
     ///@name Protected  Access
@@ -317,14 +312,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    UnivariatePhaseLaw::Pointer mpSWCCLaw;
-    UnivariatePhaseLaw::Pointer mpRelativePermeabilityWaterLaw;
-    UnivariatePhaseLaw::Pointer mpRelativePermeabilityAirLaw;
-    UnivariatePhaseLaw::Pointer mpGasLaw;
-
     GeometryType::Pointer mpSubGeometry;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
 
     IntegrationMethod mThisIntegrationMethod;
 

@@ -1,13 +1,10 @@
-/*
-LICENSE: see soil_mechanics_application/LICENSE.txt
-*/
-/* *********************************************************
-*
-*   Last Modified by:    $Author: hbui $
-*   Date:                $Date: 25 Jan 2017 $
-*   Revision:            $Revision: 1.6 $
-*
-* ***********************************************************/
+//
+//   Project Name:        Kratos GeoMechanics
+//   Author:              Hoang-Giang Bui, Felix Nagel
+//   Date:                31 Mar 2020
+//   Revision:            1.1
+//
+//
 
 // System includes
 #include <typeinfo>
@@ -17,10 +14,8 @@ LICENSE: see soil_mechanics_application/LICENSE.txt
 
 
 // Project includes
+#include "custom_retention/retention_law_factory.h"
 #include "custom_elements/U_Pa_Pw_small_strain_element.h"
-#include "custom_phase_laws/van_genuchten_swcc.h"
-#include "custom_phase_laws/simple_relative_permeability_law.h"
-#include "custom_phase_laws/ideal_gas_law.h"
 #include "geo_mechanics_application_variables.h"
 
 //#define ENABLE_DEBUG_CONSTITUTIVE_LAW
@@ -133,6 +128,7 @@ void UPaPwSmallStrainElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         // constitutive Law initialization
         mConstitutiveLawVector.resize( integration_points.size() );
+        mRetentionLawVector.resize( integration_points.size() );
         mReferencePressures.resize( integration_points.size() );
         this->InitializeMaterial(rCurrentProcessInfo);
 
@@ -181,96 +177,6 @@ void UPaPwSmallStrainElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             for ( unsigned int i = 0; i < 3; ++i )
                 mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
-    }
-
-    if ( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
-    {
-        if (Has(SWCC_LAW))
-        {
-            mpSWCCLaw = GetValue(SWCC_LAW);
-        }
-        else
-        {
-            mpSWCCLaw = UnivariatePhaseLaw::Pointer(new VanGenuchtenSWCC());
-            mpSWCCLaw->SetValue(FIRST_SATURATION_PARAM, GetValue(FIRST_SATURATION_PARAM), rCurrentProcessInfo);
-            mpSWCCLaw->SetValue(SECOND_SATURATION_PARAM, GetValue(SECOND_SATURATION_PARAM), rCurrentProcessInfo);
-            mpSWCCLaw->SetValue(AIR_ENTRY_VALUE, GetValue(AIR_ENTRY_VALUE), rCurrentProcessInfo);
-        }
-        // KRATOS_WATCH(*mpSWCCLaw)
-
-        if (Has(RELATIVE_PERMEABILITY_WATER_LAW))
-        {
-            mpRelativePermeabilityWaterLaw = GetValue(RELATIVE_PERMEABILITY_WATER_LAW);
-        }
-        else
-        {
-            mpRelativePermeabilityWaterLaw = UnivariatePhaseLaw::Pointer(new SimpleRelativePermeabilityLaw());
-        }
-        // KRATOS_WATCH(*mpRelativePermeabilityWaterLaw)
-
-        if (Has(RELATIVE_PERMEABILITY_AIR_LAW))
-        {
-            mpRelativePermeabilityAirLaw = GetValue(RELATIVE_PERMEABILITY_AIR_LAW);
-        }
-        else
-        {
-            mpRelativePermeabilityAirLaw = UnivariatePhaseLaw::Pointer(new SimpleRelativePermeabilityLaw());
-        }
-        // KRATOS_WATCH(*mpRelativePermeabilityAirLaw)
-
-        if (Has(GAS_LAW))
-        {
-            mpGasLaw = GetValue(GAS_LAW);
-        }
-        else
-        {
-            mpGasLaw = UnivariatePhaseLaw::Pointer(new IdealGasLaw());
-            mpGasLaw->SetValue(DENSITY_AIR, GetValue(DENSITY_AIR), rCurrentProcessInfo);
-            mpGasLaw->SetValue(BULK_AIR, GetValue(BULK_AIR), rCurrentProcessInfo);
-        }
-    }
-    else
-    {
-        if (GetProperties().Has(SWCC_LAW))
-        {
-            mpSWCCLaw = GetProperties()[SWCC_LAW]->Clone();
-        }
-        else
-        {
-            mpSWCCLaw = UnivariatePhaseLaw::Pointer(new VanGenuchtenSWCC());
-            mpSWCCLaw->SetValue(FIRST_SATURATION_PARAM, GetProperties()[FIRST_SATURATION_PARAM], rCurrentProcessInfo);
-            mpSWCCLaw->SetValue(SECOND_SATURATION_PARAM, GetProperties()[SECOND_SATURATION_PARAM], rCurrentProcessInfo);
-            mpSWCCLaw->SetValue(AIR_ENTRY_VALUE, GetProperties()[AIR_ENTRY_VALUE], rCurrentProcessInfo);
-        }
-
-        if (GetProperties().Has(RELATIVE_PERMEABILITY_WATER_LAW))
-        {
-            mpRelativePermeabilityWaterLaw = GetProperties()[RELATIVE_PERMEABILITY_WATER_LAW]->Clone();
-        }
-        else
-        {
-            mpRelativePermeabilityWaterLaw = UnivariatePhaseLaw::Pointer(new SimpleRelativePermeabilityLaw());
-        }
-
-        if (GetProperties().Has(RELATIVE_PERMEABILITY_AIR_LAW))
-        {
-            mpRelativePermeabilityAirLaw = GetProperties()[RELATIVE_PERMEABILITY_AIR_LAW]->Clone();
-        }
-        else
-        {
-            mpRelativePermeabilityAirLaw = UnivariatePhaseLaw::Pointer(new SimpleRelativePermeabilityLaw());
-        }
-
-        if (GetProperties().Has(GAS_LAW))
-        {
-            mpGasLaw = GetProperties()[GAS_LAW]->Clone();
-        }
-        else
-        {
-            mpGasLaw = UnivariatePhaseLaw::Pointer(new IdealGasLaw());
-            mpGasLaw->SetValue(DENSITY_AIR, GetProperties()[DENSITY_AIR], rCurrentProcessInfo);
-            mpGasLaw->SetValue(BULK_AIR, GetProperties()[BULK_AIR], rCurrentProcessInfo);
-        }
     }
 
     this->InitializeSubGeometry();
@@ -381,6 +287,11 @@ void UPaPwSmallStrainElement::InitializeMaterial(const ProcessInfo& rCurrentProc
         mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
     }
 
+    for ( unsigned int i = 0; i < mRetentionLawVector.size(); i++ )
+    {
+        mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
+    }
+
     // int need_shape_function = 0, tmp;
     // for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
     // {
@@ -401,6 +312,11 @@ void UPaPwSmallStrainElement::InitializeMaterial(const ProcessInfo& rCurrentProc
         {
             mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
             mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo);
+        }
+
+        for ( unsigned int i = 0; i < mRetentionLawVector.size(); ++i )
+        {
+            mRetentionLawVector[i]-> InitializeMaterial(  GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
         }
 
         #ifdef ENABLE_BEZIER_GEOMETRY
@@ -786,6 +702,9 @@ void UPaPwSmallStrainElement::CalculateAll( MatrixType& rLeftHandSideMatrix, Vec
         density_soil = GetProperties()[DENSITY];
     }
 
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
     /////////////////////////////////////////////////////////////////////////
     //// Integration in space sum_(beta=0)^(number of quadrature points)
     /////////////////////////////////////////////////////////////////////////
@@ -817,7 +736,9 @@ void UPaPwSmallStrainElement::CalculateAll( MatrixType& rLeftHandSideMatrix, Vec
 
         airPressure = GetAirPressure( N_PRESS );
 
-        capillaryPressure = airPressure - waterPressure;
+        RetentionParameters.SetFluidPressure( waterPressure );
+
+        RetentionParameters.SetAirPressure( airPressure );
 
         waterPressure_Dt = GetDerivativeDWaterPressureDt( N_PRESS );
 
@@ -825,11 +746,11 @@ void UPaPwSmallStrainElement::CalculateAll( MatrixType& rLeftHandSideMatrix, Vec
 
         Dpc_Dt = airPressure_Dt - waterPressure_Dt;
 
-        saturation = GetSaturation( capillaryPressure );
+        saturation = GetSaturation( PointNumber, RetentionParameters );
 
-        DS_Dpc = GetDerivativeDSaturationDpc( capillaryPressure );
+        DS_Dpc = GetDerivativeDSaturationDpc( PointNumber, RetentionParameters );
 
-        D2S_Dpc2 = GetSecondDerivativeD2SaturationDpc2( capillaryPressure );
+        D2S_Dpc2 = GetSecondDerivativeD2SaturationDpc2( PointNumber, RetentionParameters );
 
         porosity = GetPorosity( DN_DX_DISP );
 
@@ -841,17 +762,17 @@ void UPaPwSmallStrainElement::CalculateAll( MatrixType& rLeftHandSideMatrix, Vec
 
         noalias( grad_water ) = GetGradientWater( DN_DX_PRESS );
 
-        noalias( flow_water ) = GetFlowWater( grad_water, saturation, permeability_water, density_water );
+        noalias( flow_water ) = GetFlowWater( PointNumber, RetentionParameters, grad_water, permeability_water, density_water );
 
         this->GetAirValuesOnIntegrationPoints(PointNumber, permeability_air);
 
-        density_air = GetDensityAir( airPressure );
+        mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, DENSITY_AIR, density_air );
 
-        bulk_air = mpGasLaw->GetDerivative( airPressure );
+        mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, DENSITY_AIR, bulk_air );
 
         noalias( grad_air ) = GetGradientAir( DN_DX_PRESS );
 
-        noalias( flow_air ) = GetFlowAir( grad_air, saturation, permeability_air, density_air );
+        noalias( flow_air ) = GetFlowAir( PointNumber, RetentionParameters, grad_air, permeability_air, density_air );
 
         density = GetAveragedDensity( saturation, porosity, density_soil, density_water, density_air );
 
@@ -861,17 +782,17 @@ void UPaPwSmallStrainElement::CalculateAll( MatrixType& rLeftHandSideMatrix, Vec
 
         Drho_Dpa = porosity * (( -density_air + density_water ) * DS_Dpc + ( 1.0 - saturation ) * bulk_air );
 
-        noalias( DflowWater_Dpw ) = GetDerivativeDWaterFlowDpw( flow_water, saturation, DS_Dpc );
+        noalias( DflowWater_Dpw ) = GetDerivativeDWaterFlowDpw( PointNumber, RetentionParameters, flow_water, DS_Dpc );
 
-        DflowWater_Dgradpw = GetDerivativeDWaterFlowDGradpw( saturation, permeability_water, density_water );
+        DflowWater_Dgradpw = GetDerivativeDWaterFlowDGradpw( PointNumber, RetentionParameters, permeability_water, density_water );
 
-        noalias( DflowWater_Dpa ) = GetDerivativeDWaterFlowDpa( flow_water, saturation, DS_Dpc );
+        noalias( DflowWater_Dpa ) = GetDerivativeDWaterFlowDpa( PointNumber, RetentionParameters, flow_water, DS_Dpc );
 
-        noalias( DflowAir_Dpw ) = GetDerivativeDAirFlowDpw( flow_air, saturation, DS_Dpc );
+        noalias( DflowAir_Dpw ) = GetDerivativeDAirFlowDpw( PointNumber, RetentionParameters, flow_air, DS_Dpc );
 
-        DflowAir_Dgradpa = GetDerivativeDAirFlowDGradpa( saturation, permeability_air, density_air );
+        DflowAir_Dgradpa = GetDerivativeDAirFlowDGradpa( PointNumber, RetentionParameters, permeability_air, density_air );
 
-        noalias( DflowAir_Dpa ) = GetDerivativeDAirFlowDpa( flow_air, saturation, DS_Dpc, permeability_air, density_air, bulk_air );
+        noalias( DflowAir_Dpa ) = GetDerivativeDAirFlowDpa( PointNumber, RetentionParameters, flow_air, DS_Dpc, permeability_air, density_air, bulk_air );
 
         // KRATOS_WATCH(Dpc_Dt)
         // KRATOS_WATCH(flow_air)
@@ -1143,8 +1064,6 @@ void UPaPwSmallStrainElement::CalculateDampingMatrix(MatrixType& rDampMatrix, co
 
     const Matrix& Ncontainer_Pressure = mpSubGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
 
-    double capillaryPressure;
-
     double waterPressure;
 
     double airPressure;
@@ -1215,6 +1134,10 @@ void UPaPwSmallStrainElement::CalculateDampingMatrix(MatrixType& rDampMatrix, co
     //     N_PRESS_averaged /= TotalDomainInitialSize;
     // }
 
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
     /////////////////////////////////////////////////////////////////////////
     //// Integration in space sum_(beta=0)^(number of quadrature points)
     /////////////////////////////////////////////////////////////////////////
@@ -1234,17 +1157,19 @@ void UPaPwSmallStrainElement::CalculateDampingMatrix(MatrixType& rDampMatrix, co
 
         airPressure = GetAirPressure( N_PRESS );
 
-        capillaryPressure = airPressure - waterPressure;
+        RetentionParameters.SetFluidPressure( waterPressure );
 
-        saturation = GetSaturation( capillaryPressure );
+        RetentionParameters.SetAirPressure( airPressure );
+
+        saturation = GetSaturation( PointNumber, RetentionParameters );
 
         porosity = GetPorosity( DN_DX_DISP );
 
-        DS_Dpc = GetDerivativeDSaturationDpc( capillaryPressure );
+        DS_Dpc = GetDerivativeDSaturationDpc( PointNumber, RetentionParameters );
 
-        density_air = GetDensityAir( airPressure );
+        mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, DENSITY_AIR, density_air );
 
-        bulk_air = mpGasLaw->GetDerivative( airPressure );
+        mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, DENSITY_AIR, bulk_air );
 
         // Calculation of spatial Stiffnes and Mass Matrix
         noalias( Help_D_WU ) = ZeroMatrix( MatSizeW, MatSizeU );
@@ -1361,11 +1286,6 @@ double UPaPwSmallStrainElement::GetAveragedDensity( const double& saturation,
     result = ( 1.0 - porosity ) * density_soil + porosity * ( saturation * density_water + ( 1.0 - saturation ) * density_air );
 
     return result;
-}
-
-double UPaPwSmallStrainElement::GetDensityAir( const double& airPressure ) const
-{
-    return mpGasLaw->GetValue( airPressure );
 }
 
 Vector UPaPwSmallStrainElement::GetGradientWater( const Matrix& DN_DX_PRESS ) const
@@ -1585,31 +1505,42 @@ double UPaPwSmallStrainElement::GetDerivativeDDivUDt( const Matrix& DN_DX_DISP )
 /// Soil-Water Characteristic curve
 //************************************************************************************
 //************************************************************************************
-double UPaPwSmallStrainElement::GetSaturation( const double& capillaryPressure ) const
+double UPaPwSmallStrainElement::GetSaturation( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters ) const
 {
+    double capillaryPressure;
+    RetentionParameters.GetCapillaryPressure(capillaryPressure);
     if (capillaryPressure < 0.0) // no matric suction
         return 1.0;
 
     // // KRATOS_WATCH(capillaryPressure)
-    double saturation = mpSWCCLaw->GetValue( capillaryPressure );
+    double saturation;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, SATURATION, saturation );
     // // KRATOS_WATCH(saturation)
     return saturation;
 }
 
-double UPaPwSmallStrainElement::GetDerivativeDSaturationDpc( const double& capillaryPressure ) const
+double UPaPwSmallStrainElement::GetDerivativeDSaturationDpc( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters ) const
 {
+    double capillaryPressure;
+    RetentionParameters.GetCapillaryPressure(capillaryPressure);
     if (capillaryPressure < 0.0) // no matric suction
         return 0.0;
 
-    return mpSWCCLaw->GetDerivative( capillaryPressure );
+    double DS_Dpc;
+    mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, SATURATION, DS_Dpc );
+    return DS_Dpc;
 }
 
-double UPaPwSmallStrainElement::GetSecondDerivativeD2SaturationDpc2( const double& capillaryPressure ) const
+double UPaPwSmallStrainElement::GetSecondDerivativeD2SaturationDpc2( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters ) const
 {
+    double capillaryPressure;
+    RetentionParameters.GetCapillaryPressure(capillaryPressure);
     if (capillaryPressure < 0.0) // no matric suction
         return 0.0;
 
-    return mpSWCCLaw->GetSecondDerivative( capillaryPressure );
+    double D2S_Dpc2;
+    mRetentionLawVector[PointNumber]->CalculateSecondDerivative( RetentionParameters, SATURATION, D2S_Dpc2 );
+    return D2S_Dpc2;
 }
 
 void UPaPwSmallStrainElement::GetWaterValuesOnIntegrationPoints( const std::size_t& ipoint,
@@ -1627,12 +1558,13 @@ void UPaPwSmallStrainElement::GetWaterValuesOnIntegrationPoints( const std::size
     }
 }
 
-Vector UPaPwSmallStrainElement::GetFlowWater( const Vector& grad_water,
-        const double& saturation, const double& permeability_water, const double& density_water ) const
+Vector UPaPwSmallStrainElement::GetFlowWater( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const Vector& grad_water, const double& permeability_water, const double& density_water ) const
 {
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    double relPerm = mpRelativePermeabilityWaterLaw->GetValue( saturation );
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_WATER, relPerm );
 
     const array_1d<double, 3>& gravity = GetProperties()[GRAVITY];
 
@@ -1655,34 +1587,43 @@ Vector UPaPwSmallStrainElement::GetFlowWater( const Vector& grad_water,
     return result;
 }
 
-Vector UPaPwSmallStrainElement::GetDerivativeDWaterFlowDpw( const Vector& flow_water,
-        const double& saturation, const double& DS_Dpc ) const
+Vector UPaPwSmallStrainElement::GetDerivativeDWaterFlowDpw( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const Vector& flow_water, const double& DS_Dpc ) const
 {
-    double relPerm = mpRelativePermeabilityWaterLaw->GetValue( saturation );
-    double relPerm_pw = mpRelativePermeabilityWaterLaw->GetDerivative( saturation ) * DS_Dpc * (-1.0);
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_WATER, relPerm );
+
+    double relPerm_pw;
+    mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, PERMEABILITY_WATER, relPerm_pw );
+    relPerm_pw *= DS_Dpc * (-1.0);
 
     Vector result = relPerm_pw/relPerm * flow_water;
 
     return result;
 }
 
-Vector UPaPwSmallStrainElement::GetDerivativeDWaterFlowDpa( const Vector& flow_water,
-        const double& saturation, const double& DS_Dpc ) const
+Vector UPaPwSmallStrainElement::GetDerivativeDWaterFlowDpa( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const Vector& flow_water, const double& DS_Dpc ) const
 {
-    double relPerm = mpRelativePermeabilityWaterLaw->GetValue( saturation );
-    double relPerm_pa = mpRelativePermeabilityWaterLaw->GetDerivative( saturation ) * DS_Dpc;
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_WATER, relPerm );
+
+    double relPerm_pa;
+    mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, PERMEABILITY_WATER, relPerm_pa );
+    relPerm_pa *= DS_Dpc;
 
     Vector result = relPerm_pa/relPerm * flow_water;
 
     return result;
 }
 
-double UPaPwSmallStrainElement::GetDerivativeDWaterFlowDGradpw( const double& saturation,
+double UPaPwSmallStrainElement::GetDerivativeDWaterFlowDGradpw( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
         const double& permeability_water, const double& density_water ) const
 {
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    double relPerm = mpRelativePermeabilityWaterLaw->GetValue( saturation );
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_WATER, relPerm );
 
     const double& g_constant = GetProperties()[G_CONSTANT];
 
@@ -1706,12 +1647,13 @@ void UPaPwSmallStrainElement::GetAirValuesOnIntegrationPoints( const std::size_t
     }
 }
 
-Vector UPaPwSmallStrainElement::GetFlowAir( const Vector& grad_air,
-        const double& saturation, const double& permeability_air, const double& density_air ) const
+Vector UPaPwSmallStrainElement::GetFlowAir( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const Vector& grad_air, const double& permeability_air, const double& density_air ) const
 {
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    double relPerm = mpRelativePermeabilityAirLaw->GetValue(1.0 - saturation);
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_AIR, relPerm );
 
     const array_1d<double, 3>& gravity = GetProperties()[GRAVITY];
 
@@ -1729,14 +1671,17 @@ Vector UPaPwSmallStrainElement::GetFlowAir( const Vector& grad_air,
     return result;
 }
 
-Vector UPaPwSmallStrainElement::GetDerivativeDAirFlowDpa( const Vector& flow_air,
-        const double& saturation, const double& DS_Dpc, const double& permeability_air, const double& density_air, const double& bulk_air ) const
+Vector UPaPwSmallStrainElement::GetDerivativeDAirFlowDpa( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const Vector& flow_air, const double& DS_Dpc, const double& permeability_air, const double& density_air, const double& bulk_air ) const
 {
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    double relPerm_pa = mpRelativePermeabilityAirLaw->GetDerivative(1.0 - saturation)*(-DS_Dpc);
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_AIR, relPerm );
 
-    double relPerm = mpRelativePermeabilityAirLaw->GetValue(1.0 - saturation);
+    double relPerm_pa;
+    mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, PERMEABILITY_AIR, relPerm_pa );
+    relPerm_pa *= (-DS_Dpc);
 
     const array_1d<double, 3>& gravity = GetProperties()[GRAVITY];
 
@@ -1753,21 +1698,26 @@ Vector UPaPwSmallStrainElement::GetDerivativeDAirFlowDpa( const Vector& flow_air
     return result;
 }
 
-Vector UPaPwSmallStrainElement::GetDerivativeDAirFlowDpw( const Vector& flow_air,
-        const double& saturation, const double& DS_Dpc ) const
+Vector UPaPwSmallStrainElement::GetDerivativeDAirFlowDpw( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const Vector& flow_air, const double& DS_Dpc ) const
 {
-    double relPerm = mpRelativePermeabilityAirLaw->GetValue(1.0 - saturation);
-    double relPerm_pw = mpRelativePermeabilityAirLaw->GetDerivative(1.0 - saturation)*DS_Dpc;
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_AIR, relPerm );
+
+    double relPerm_pw;
+    mRetentionLawVector[PointNumber]->CalculateDerivative( RetentionParameters, PERMEABILITY_AIR, relPerm_pw );
+    relPerm_pw *= DS_Dpc;
 
     Vector result = relPerm_pw/relPerm * flow_air;
 
     return result;
 }
 
-double UPaPwSmallStrainElement::GetDerivativeDAirFlowDGradpa(
-        const double& saturation, const double& permeability_air, const double& density_air ) const
+double UPaPwSmallStrainElement::GetDerivativeDAirFlowDGradpa( const std::size_t& PointNumber, RetentionLaw::Parameters& RetentionParameters,
+        const double& permeability_air, const double& density_air ) const
 {
-    double relPerm = mpRelativePermeabilityAirLaw->GetValue(1.0 - saturation);
+    double relPerm;
+    mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, PERMEABILITY_AIR, relPerm );
 
     const double& g_constant = GetProperties()[G_CONSTANT];
 
@@ -2491,6 +2441,9 @@ void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<doubl
 
         double saturation;
 
+        // create general parametes of retention law
+        RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
         /////////////////////////////////////////////////////////////////////////
         //// Integration in space sum_(beta=0)^(number of quadrature points)
         /////////////////////////////////////////////////////////////////////////
@@ -2506,7 +2459,11 @@ void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<doubl
 
             airPressure = GetAirPressure( N_PRESS );
 
-            rValues[PointNumber] = GetDensityAir( airPressure );
+            RetentionParameters.SetFluidPressure( waterPressure );
+
+            RetentionParameters.SetAirPressure( airPressure );
+
+            mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, DENSITY_AIR, rValues[PointNumber] );
         }
 
         return;
@@ -2580,6 +2537,9 @@ void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<array
 
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
 
+        // create general parametes of retention law
+        RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
         {
             // Shape Functions on current spatial quadrature point
@@ -2594,9 +2554,9 @@ void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<array
 
             airPressure = GetAirPressure( N_PRESS );
 
-            capillaryPressure = airPressure - waterPressure;
+            RetentionParameters.SetFluidPressure( waterPressure );
 
-            saturation = GetSaturation( capillaryPressure );
+            RetentionParameters.SetAirPressure( airPressure );
 
             noalias( DN_DX_PRESS ) = prod( DN_De_Pressure[PointNumber], InvJ );
 
@@ -2608,17 +2568,17 @@ void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<array
 
                 noalias( grad_flow ) = GetGradientWater( DN_DX_PRESS );
 
-                noalias( fluid_flow ) = GetFlowWater( grad_flow, saturation, permeability_water, density_water );
+                noalias( fluid_flow ) = GetFlowWater( PointNumber, RetentionParameters, grad_flow, permeability_water, density_water );
             }
             else if( rVariable == AIR_FLOW )
             {
                 this->GetAirValuesOnIntegrationPoints(PointNumber, permeability_air);
 
-                density_air = GetDensityAir( airPressure );
+                mRetentionLawVector[PointNumber]->CalculateValue( RetentionParameters, DENSITY_AIR, density_air );
 
                 noalias( grad_flow ) = GetGradientAir( DN_DX_PRESS );
 
-                noalias( fluid_flow ) = GetFlowAir( grad_flow, saturation, permeability_air, density_air );
+                noalias( fluid_flow ) = GetFlowAir( PointNumber, RetentionParameters, grad_flow, permeability_air, density_air );
             }
 
             rValues[PointNumber][0] = fluid_flow( 0 );
