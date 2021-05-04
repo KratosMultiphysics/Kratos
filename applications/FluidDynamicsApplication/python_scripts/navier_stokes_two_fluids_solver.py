@@ -77,7 +77,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
-                "levelset_splitting" : false,
                 "eulerian_error_compensation" : false,
                 "cross_wind_stabilization_factor" : 0.7,
                 "algebraic_stabilization" : false,
@@ -221,22 +220,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-            if (self._levelset_splitting):
+            ####if (self._levelset_splitting):
             ####    self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, self._levelset_dt_factor)
 
-                for node in self.main_model_part.Nodes:
-                    old_velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                    node.SetValue(KratosMultiphysics.VELOCITY, velocity)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,
-                        (old_velocity + velocity)/2)
+            ####    for node in self.main_model_part.Nodes:
+            ####        old_velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+            ####        velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            ####        node.SetValue(KratosMultiphysics.VELOCITY, velocity)
+            ####        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,
+            ####            (old_velocity + velocity)/2)
 
             self.__PerformLevelSetConvection()
 
-            if (self._levelset_splitting):
-                for node in self.main_model_part.Nodes:
-                    velocity = node.GetValue(KratosMultiphysics.VELOCITY)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
+            ####if (self._levelset_splitting):
+            ####    for node in self.main_model_part.Nodes:
+            ####        velocity = node.GetValue(KratosMultiphysics.VELOCITY)
+            ####        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -271,27 +270,27 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             # If convection splitting, perform the level-set convection to complete the solution step
-            if self._levelset_splitting:
+            ####if self._levelset_splitting:
                 #### self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, (1.0 - self._levelset_dt_factor))
 
-                for node in self.main_model_part.Nodes:
-                    old_velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-                    node.SetValue(KratosMultiphysics.VELOCITY, old_velocity)
-                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1,
-                        (old_velocity + velocity)/2)
+            ####    for node in self.main_model_part.Nodes:
+            ####        old_velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+            ####        node.SetValue(KratosMultiphysics.VELOCITY, old_velocity)
+            ####        velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            ####        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1,
+            ####            (old_velocity + velocity)/2)
 
-                if self._bfecc_convection:
-                    self._GetLevelSetConvectionProcess().CopyScalarVarToPreviousTimeStep(
-                        self.main_model_part,
-                        self._levelset_variable)
+            ####    if self._bfecc_convection:
+            ####        self._GetLevelSetConvectionProcess().CopyScalarVarToPreviousTimeStep(
+            ####            self.main_model_part,
+            ####            self._levelset_variable)
 
-                self.__PerformLevelSetConvection()
+            ####    self.__PerformLevelSetConvection()
 
-                for node in self.main_model_part.Nodes:
-                    old_velocity = node.GetValue(KratosMultiphysics.VELOCITY)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1,
-                        old_velocity)
+            ####    for node in self.main_model_part.Nodes:
+            ####        old_velocity = node.GetValue(KratosMultiphysics.VELOCITY)
+            ####        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1,
+            ####            old_velocity)
 
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):
@@ -490,11 +489,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 if domain_size == 2:
                     locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part)
                     locator.UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator, self._levelset_splitting, True)
+                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator, True)
                 else:
                     locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part)
                     locator.UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator, self._levelset_splitting, True)
+                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator, True)
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
