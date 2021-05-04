@@ -31,6 +31,7 @@ SymmetryRevolution::SymmetryRevolution(ModelPart& rOriginModelPart, ModelPart& r
 {
     mPoint = mSettings["point"].GetVector();
     mAxis = mSettings["axis"].GetVector();
+    KRATOS_ERROR_IF(norm_2(mAxis) < std::numeric_limits<double>::epsilon()) << "SymmetryRevolution: 'axis' vector norm is 0!" << std::endl;
     mAxis /= norm_2(mAxis);
 
     mPlaneVector1 = ZeroVector(3);

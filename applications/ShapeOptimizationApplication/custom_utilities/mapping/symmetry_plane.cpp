@@ -34,6 +34,7 @@ SymmetryPlane::SymmetryPlane(ModelPart& rOriginModelPart, ModelPart& rDestinatio
 {
     mPlanePoint = mSettings["point"].GetVector();
     mPlaneNormal = mSettings["normal"].GetVector();
+	KRATOS_ERROR_IF(norm_2(mPlaneNormal) < std::numeric_limits<double>::epsilon()) << "SymmetryPlane: 'normal' vector norm is 0!" << std::endl;
     mPlaneNormal /= norm_2(mPlaneNormal);
 
     mReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneNormal, mPlaneNormal));
