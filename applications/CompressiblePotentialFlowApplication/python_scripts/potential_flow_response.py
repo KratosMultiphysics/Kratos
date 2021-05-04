@@ -59,7 +59,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
 
-        # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
 
         self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
@@ -70,7 +69,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
     def InitializeSolutionStep(self):
         # Run the primal analysis.
-        # TODO if primal_analysis.status==solved: return
         Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
         Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
@@ -78,15 +76,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             self.primal_analysis.end_time += 1
         self.primal_analysis.RunSolutionLoop()
         Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
-        # Solving Adjoint
-        # synchronize the modelparts
-        self._SynchronizeAdjointFromPrimal()
-        startTime = timer.time()
-        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
-        if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
-            self.adjoint_analysis.end_time += 1
-        self.adjoint_analysis.RunSolutionLoop()
-        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+
 
     def CalculateValue(self):
         startTime = timer.time()
@@ -97,20 +87,25 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self._value = value
 
     def CalculateGradient(self):
-        # Computed in InitializeSolutionStep()
-        pass
+        # Solving Adjoint
+        # synchronize the modelparts
+        self._SynchronizeAdjointFromPrimal()
+        startTime = timer.time()
+        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+        if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
+            self.adjoint_analysis.end_time += 1
+        self.adjoint_analysis.RunSolutionLoop()
+        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
-        #switching to negative to minimize the negative of lift
-        return -self._value
+        return self._value
 
     def GetNodalGradient(self, variable):
         if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.adjoint_model_part.Nodes:
-            #switching to negative to minimize the negative of lift
-            gradient[node.Id] = -1*node.GetSolutionStepValue(variable)
+            gradient[node.Id] = node.GetSolutionStepValue(variable)
 
         return gradient
 
@@ -166,6 +161,13 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             wrn_msg = 'This solver requires the setting reform the dofs at each step in optimization.'
             wrn_msg += 'The solver setting has been set to True'
             Logger.PrintWarning(self._GetLabel(), wrn_msg)
+        for subproc_keys, subproc_values in parameters["processes"].items():
+            for process  in subproc_values:
+                if "wake" in process["python_module"].GetString():
+                    if not process["Parameters"].Has("compute_wake_at_each_step") or not process["Parameters"]["compute_wake_at_each_step"].GetBool():
+                        if not process["Parameters"].Has("compute_wake_at_each_step"):
+                            process["Parameters"].AddEmptyValue("compute_wake_at_each_step")
+                    process["Parameters"]["compute_wake_at_each_step"].SetBool(True)
         return parameters
 
 
@@ -319,4 +321,3 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
             gradient[node.Id] = shape_gradient
 
         return gradient
-
