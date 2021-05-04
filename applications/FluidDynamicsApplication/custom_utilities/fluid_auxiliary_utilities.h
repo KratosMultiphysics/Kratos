@@ -14,7 +14,7 @@
 #if !defined(KRATOS_FLUID_AUXILIARY_UTILITIES_H)
 #define KRATOS_FLUID_AUXILIARY_UTILITIES_H
 
-// system includes
+// System includes
 #include <tuple>
 #include <type_traits>
 
@@ -23,7 +23,11 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "includes/node.h"
+#include "includes/model_part.h"
 #include "includes/ublas_interface.h"
+
+// Application includes
+
 
 namespace Kratos
 {
@@ -49,13 +53,26 @@ public:
     ///@name Static Operations
     ///@{
 
+    /**
+     * @brief Calculate the fluid volume
+     * For the given model part, this function iterates its elements to calculate the total volume (or area in 2D)
+     * @param rModelPart The model part to calculate the volume of
+     * @return double Fluid volume
+     */
     static double CalculateFluidVolume(ModelPart& rModelPart);
+
+
+    static double CalculateFluidPositiveVolume(ModelPart& rModelPart);
+
+    static double CalculateFluidNegativeVolume(ModelPart& rModelPart);
 
     ///@}
 private:
     ///@name Private Operations
     ///@{
 
+    // template<bool IsPositiveSide>
+    // static double
 
     ///@}
 };

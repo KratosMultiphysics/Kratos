@@ -196,10 +196,7 @@ class PotentialFlowSolver(FluidSolver):
 
     def _ComputeNodalElementalNeighbours(self):
         # Find nodal neigbours util call
-        data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
-            data_communicator,
-            self.GetComputingModelPart()).Execute()
+        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.GetComputingModelPart()).Execute()
 
     def _GetStrategyType(self):
         element_type = self.settings["formulation"]["element_type"].GetString()
