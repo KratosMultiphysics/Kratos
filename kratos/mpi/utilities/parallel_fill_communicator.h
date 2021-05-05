@@ -66,6 +66,10 @@ public:
     /// Constructor.
     ParallelFillCommunicator(ModelPart& rModelPart);
 
+    ParallelFillCommunicator(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataComm);
+
     /// Destructor.
     virtual ~ParallelFillCommunicator() = default;
 
