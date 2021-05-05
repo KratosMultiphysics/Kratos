@@ -1665,9 +1665,13 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "DamageDPlusDMinusPlaneStressMasonry2DLaw").def(py::init<>())
     ;
 
-	py::class_< DamageDPlusDMinusMasonry3DLaw, typename DamageDPlusDMinusMasonry3DLaw::Pointer, ConstitutiveLaw >
-	(m, "DamageDPlusDMinusMasonry3DLaw").def(py::init<>())
-	;
+    py::class_< DamageDPlusDMinusMasonry3DLaw, typename DamageDPlusDMinusMasonry3DLaw::Pointer, ConstitutiveLaw >
+    (m, "DamageDPlusDMinusMasonry3DLaw").def(py::init<>())
+    ;
+
+    py::class_< MasonryOrthotropicDamagePlaneStress2DLaw, typename MasonryOrthotropicDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+        (m, "MasonryOrthotropicDamagePlaneStress2DLaw").def(py::init<>())
+        ;
 
     py::class_<GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
