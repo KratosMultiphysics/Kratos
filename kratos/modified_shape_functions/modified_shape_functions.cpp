@@ -434,6 +434,11 @@ namespace Kratos
         }
     };
 
+    bool ModifiedShapeFunctions::IsSplit() const
+    {
+        return pGetSplittingUtil()->mIsSplit;
+    }
+
     // Sets the condensation matrix to transform the subdivision values to entire element ones.
     void ModifiedShapeFunctions::SetCondensationMatrix(
         Matrix& rIntPointCondMatrix,

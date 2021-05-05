@@ -284,7 +284,7 @@ public:
     /**
     * Returns true if the element is split and false otherwise.
     */
-    virtual bool IsSplit() const = 0;
+    bool IsSplit() const;
 
     ///@}
 

@@ -64,12 +64,6 @@ const DivideGeometry::Pointer Triangle2D3AusasModifiedShapeFunctions::pGetSplitt
     return mpTriangleSplitter;
 };
 
-// Returns true if the element is splitting
-bool Triangle2D3AusasModifiedShapeFunctions::IsSplit() const
-{
-    return mpTriangleSplitter->mIsSplit;
-};
-
 void Triangle2D3AusasModifiedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix)
 {
     AusasModifiedShapeFunctions::SetPositiveSideCondensationMatrix(

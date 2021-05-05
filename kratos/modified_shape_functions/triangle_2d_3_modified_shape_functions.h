@@ -106,11 +106,6 @@ public:
     */
     const DivideGeometry::Pointer pGetSplittingUtil() const override;
 
-    /**
-    * Returns true if the element is split and false otherwise.
-    */
-    bool IsSplit() const override;
-
     ///@}
 
 protected:

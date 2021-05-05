@@ -64,12 +64,6 @@ const DivideGeometry::Pointer Triangle2D3ModifiedShapeFunctions::pGetSplittingUt
     return mpTriangleSplitter;
 };
 
-// Returns true if the element is splitting
-bool Triangle2D3ModifiedShapeFunctions::IsSplit() const
-{
-    return mpTriangleSplitter->mIsSplit;
-};
-
 void Triangle2D3ModifiedShapeFunctions::SetCondensationMatrix(Matrix& rIntPointCondMatrix)
 {
     ModifiedShapeFunctions::SetCondensationMatrix(

@@ -64,12 +64,6 @@ const DivideGeometry::Pointer Tetrahedra3D4ModifiedShapeFunctions::pGetSplitting
     return mpTetrahedraSplitter;
 };
 
-// Returns true if the element is splitting
-bool Tetrahedra3D4ModifiedShapeFunctions::IsSplit() const
-{
-    return mpTetrahedraSplitter->mIsSplit;
-};
-
 void Tetrahedra3D4ModifiedShapeFunctions::SetCondensationMatrix(Matrix& rIntPointCondMatrix)
 {
     ModifiedShapeFunctions::SetCondensationMatrix(
