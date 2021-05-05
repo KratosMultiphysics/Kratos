@@ -179,6 +179,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    DivideTriangle2D3::Pointer mpTriangleSplitter;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -212,8 +214,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    DivideTriangle2D3::Pointer mpTriangleSplitter;
 
     ///@}
     ///@name Serialization

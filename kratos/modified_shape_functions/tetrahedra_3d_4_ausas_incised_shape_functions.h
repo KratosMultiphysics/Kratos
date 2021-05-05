@@ -120,6 +120,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
+
     /**
     * Returns the intersection points and extrapolated intersection points condensation matrix for
     * positive side Ausas shape functions for incised elements.

@@ -179,6 +179,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    DivideTetrahedra3D4::Pointer mpTetrahedraSplitter;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -212,8 +214,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    DivideTetrahedra3D4::Pointer mpTetrahedraSplitter;
 
     ///@}
     ///@name Serialization
