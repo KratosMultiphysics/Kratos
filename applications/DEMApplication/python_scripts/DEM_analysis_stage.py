@@ -243,25 +243,11 @@ class DEMAnalysisStage(AnalysisStage):
         #analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
-    def AdjustOutsideSpheres(self):
-
-        Y_bottom = 0.000049459
-        Y_top = 0.0081385
-        diam = 0.00015
-        for node in self.spheres_model_part.Nodes:
-            
-            if node.Y0 < Y_bottom:
-                node.Y0 = Y_bottom + 0.1 * diam
-            if node.Y0 > Y_top:
-                node.Y0 = Y_top - 0.1 * diam
-
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
 
         self.ReadModelParts()
-
-        #self.AdjustOutsideSpheres()
 
         self.SetAnalyticFaceWatcher()
 

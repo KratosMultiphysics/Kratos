@@ -291,7 +291,7 @@ namespace Kratos {
             minimum_bonds_to_check_if_a_particle_is_skin = 4;
         } else {
             minimum_bonds_to_check_if_a_particle_is_skin = 5;
-        }//return; // {]TODO: IMPLEMENT THIS ALSO IN 3D
+        } //TODO: CHECK THIS 3D IMPLEMENTATION
 
         #pragma omp parallel for
         for (int k = 0; k < (int)pElements.size(); k++) {

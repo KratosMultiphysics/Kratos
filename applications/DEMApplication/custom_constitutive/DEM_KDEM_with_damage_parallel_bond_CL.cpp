@@ -12,10 +12,10 @@
 #endif
 
 std::string GetCurrentWorkingDir( void ) {
-  char buff[FILENAME_MAX];
-  GetCurrentDir( buff, FILENAME_MAX );
-  std::string current_working_dir(buff);
-  return current_working_dir;
+    char buff[FILENAME_MAX];
+    GetCurrentDir( buff, FILENAME_MAX );
+    std::string current_working_dir(buff);
+    return current_working_dir;
 }
 
 // Project includes
@@ -62,9 +62,6 @@ namespace Kratos {
             if (!pProp->Has(DEBUG_PRINTING_ID_1) || !pProp->Has(DEBUG_PRINTING_ID_2)) {
                 KRATOS_WARNING("DEM") << "\nWARNING: We are currently in DEBUG PRINTING mode, so the ids of the two particles involved must be given.\n\n";
             }
-            
-            //if (std::ifstream("nl.txt")) std::remove("nl.txt");
-            //if (std::ifstream("tg.txt")) std::remove("tg.txt");
         }
     }
 
