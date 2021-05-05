@@ -283,7 +283,6 @@ namespace Kratos {
                     current_tangential_force_module = returned_by_mapping_force; // computed only for printing purposes
 
                     mDamageTangential = 1.0 - (returned_by_mapping_force / delta_acummulated) / kt_el;
-                    if (element1->Id() == sphere_id) {}
 
                     if (mDamageTangential > mDamageThresholdTolerance) {
                         failure_type = 2; // failure by shear
