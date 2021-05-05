@@ -200,7 +200,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWake
         for (unsigned int j = 0; j < NumNodes; ++j)
         {
             rLeftHandSideMatrix(i, j) = lhs_total_upper(i, j);
-            rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total_upper(i, j);
+            rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total_lower(i, j);
 
             laplacian_matrix(i, j) = laplacian_total(i, j);
             laplacian_matrix(i + NumNodes, j + NumNodes) = laplacian_total(i, j);
