@@ -716,7 +716,7 @@ template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
     const std::vector<int>& rSendCounts) const
 {
     std::vector<int> rRecvCounts;
-    rRecvCounts.resize(rSendCounts.size());
+    rRecvCounts.resize(Size()); //Total number of Ranks in mComm or equal to rSendCounts.size()
 
     // Exchange the buffer sizes
     MPI_Alltoall(rSendCounts.data(), 1, MPI_INT, rRecvCounts.data(), 1, MPI_INT, mComm);
@@ -734,28 +734,18 @@ template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
     std::vector<MPI_Request> reqs(num_comm_events);
     std::vector<MPI_Status> stats(num_comm_events);
 
-    //const MPI_Datatype mpi_datatype(GetMPIDatatype(TObject()));
-    //const MPI_Datatype mpi_datatype(MPIDatatype(TObject()));
-
     // Exchange the data
     for (int i=0; i<Size(); ++i)
     {
-        if (i != Rank() && rRecvCounts[i])
+        if(MPIMessageSize(rRecvBuffer[i]) != static_cast<std::size_t>(rRecvCounts[i]))
         {
-            /* if (rRecvBuffer[i].size() != static_cast<std::size_t>(rRecvCounts[i]))
-            {
-                rRecvBuffer[i].resize(rRecvCounts[i]);
-            } */
-            MPI_Irecv(MPIBuffer(rRecvBuffer[i]), rRecvCounts[i],
-                      MPIDatatype(TObject()), i, 0,
-                      mComm, &reqs[num_comm_events_idx++]);
+            rRecvBuffer[i].resize(rRecvCounts[i]);
         }
-        if (i != Rank() && rSendCounts[i])
-        {
-            MPI_Isend(MPIBuffer(rSendBuffer[i]), rSendCounts[i],
-                      MPIDatatype(TObject()), i, 0,
-                      mComm, &reqs[num_comm_events_idx++]);
-        }
+        MPI_Irecv(MPIBuffer(rRecvBuffer[i]), rRecvCounts[i], MPIDatatype(TObject()), i, 0,
+                    mComm, &reqs[num_comm_events_idx++]);
+
+        MPI_Isend(MPIBuffer(rSendBuffer[i]), rSendCounts[i], MPIDatatype(TObject()), i, 0,
+                    mComm, &reqs[num_comm_events_idx++]);
     }
 
     //wait until all communications finish
@@ -763,56 +753,6 @@ template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
 
     CheckMPIErrorCode(ierr, "ExchangeDataAsync");
 }
-/*
-template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
-    const TObject& rSendBuffer, TObject& rRecvBuffer,
-    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
-{
-    // Exchange the buffer sizes
-    MPI_Alltoall(rSendCounts.data(), 1, MPI_INT, rRecvCounts.data(), 1, MPI_INT, mComm);
-
-    // Send Information to Candidate Partitions
-    int num_comm_events     = 0;
-    int num_comm_events_idx = 0;
-
-    for(int i=0; i<Size(); ++i) {
-        if(i != Rank() && rRecvCounts[i]) num_comm_events++;
-        if(i != Rank() && rSendCounts[i]) num_comm_events++;
-    }
-
-    // TODO make members?
-    std::vector<MPI_Request> reqs(num_comm_events);
-    std::vector<MPI_Status> stats(num_comm_events);
-
-    //const MPI_Datatype mpi_datatype(GetMPIDatatype(TObject()));
-    const MPI_Datatype mpi_datatype(MPIDatatype(TObject()));
-
-    // Exchange the data
-    for (int i=0; i<Size(); ++i)
-    {
-        if (i != Rank() && rRecvCounts[i])
-        {
-            if (rRecvBuffer[i].size() != static_cast<std::size_t>(rRecvCounts[i]))
-            {
-                rRecvBuffer[i].resize(rRecvCounts[i]);
-            }
-            MPI_Irecv(rRecvBuffer[i].data(), rRecvCounts[i],
-                      mpi_datatype, i, 0,
-                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
-        }
-        if (i != Rank() && rSendCounts[i])
-        {
-            MPI_Isend(rSendBuffer[i].data(), rSendCounts[i],
-                      mpi_datatype, i, 0,
-                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
-        }
-    }
-
-    //wait until all communications finish
-    const int ierr = MPI_Waitall(num_comm_events, reqs.data(), stats.data());
-
-    CheckMPIErrorCode(ierr, "ExchangeDataAsync");
-} */
 
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const
