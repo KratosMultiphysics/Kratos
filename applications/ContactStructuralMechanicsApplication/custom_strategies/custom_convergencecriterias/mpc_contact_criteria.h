@@ -134,7 +134,7 @@ public:
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // We initailize the contact force
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
@@ -219,7 +219,7 @@ public:
             const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
 
             // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
-            NodesArrayType& r_nodes_array = r_contact_model_part.Nodes();
+            auto& r_nodes_array = r_contact_model_part.Nodes();
             const auto it_node_begin = r_nodes_array.begin();
 
             // If frictionaless or mesh tying
@@ -309,7 +309,7 @@ public:
             }
 
             // We set the constraints active and inactive in function of the active set
-            ConditionsArrayType& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+            auto& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
             auto it_cond_begin = r_conditions_array.begin();
 
             #pragma omp parallel for
@@ -440,7 +440,7 @@ private:
      */
     void ComputeWeightedGap(ModelPart& rModelPart)
     {
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         // Set to zero the weighted gap
         if (rModelPart.Is(SLIP)) {
             // Reset
