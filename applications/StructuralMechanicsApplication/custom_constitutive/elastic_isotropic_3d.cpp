@@ -224,7 +224,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
-        noalias(rValue) = static_cast<Vector>(rParameterValues.GetStrainVector());
+        noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
@@ -246,7 +246,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
-        noalias(rValue) = static_cast<Vector>(rParameterValues.GetStressVector());
+        noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
@@ -374,7 +374,7 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
 
 void ElasticIsotropic3D::CalculatePK2Stress(
     const Vector& rStrainVector,
-    Vector& rStressVector,
+    StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -400,7 +400,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
+    StrainVectorType& rStrainVector
     )
 {
     const SizeType space_dimension = this->WorkingSpaceDimension();

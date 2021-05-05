@@ -281,6 +281,32 @@ public:
         Vector& rValue
         ) override;
 
+    // /**
+    //  * @brief It calculates the value of a specified variable (StrainVectorType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // StrainVectorType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StrainVectorType>& rThisVariable,
+    //     StrainVectorType& rValue
+    //     ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (StressVectorType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // StressVectorType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StressVectorType>& rThisVariable,
+    //     StressVectorType& rValue
+    //     ) override;
+
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -293,6 +319,32 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (VoigtSizeMatrixType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // VoigtSizeMatrixType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<VoigtSizeMatrixType>& rThisVariable,
+    //     VoigtSizeMatrixType& rValue
+    //     ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (DeformationGradientMatrixType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // DeformationGradientMatrixType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<DeformationGradientMatrixType>& rThisVariable,
+    //     DeformationGradientMatrixType& rValue
+    //     ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -329,7 +381,7 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);
+    void CheckClearElasticMatrix(VoigtSizeMatrixType& rConstitutiveMatrix);
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
