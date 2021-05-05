@@ -18,9 +18,12 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "includes/model_part.h"
 
 // Application includes
 #include "constitutive_laws_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
 
 namespace Kratos
 {

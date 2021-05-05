@@ -16,8 +16,6 @@
 // Project includes
 //#include "utilities/math_utils.h"
 #include "masonry_orthotropic_damage_plane_stress_2d.h"
-#include "includes/model_part.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 
 #include <cmath>
 
@@ -852,34 +850,29 @@ namespace Kratos
         const array_1d<double, 3>& rPredictiveStressVector,
         CalculationData& data)
     {
-        // prepare constitutive matrix
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        if (constitutive_matrix.size1() != VoigtSize || constitutive_matrix.size2() != VoigtSize)
-            constitutive_matrix.resize(VoigtSize, VoigtSize);
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        // perturbation parameter
-        const double perturbation_factor = 1.0E-8;
+        const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD)
+            ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD]
+            : true;
+        const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION)
+            ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION])
+            : TangentOperatorEstimation::SecondOrderPerturbation;
 
-        // perturbed vectors
-        Vector perturbated_strain_vector(VoigtSize);
-        Vector perturbated_stress_vector(VoigtSize);
-
-        // apply perturbation to each strain component...
-        for (size_t j = 0; j < VoigtSize; j++)
-        {
-            noalias(perturbated_strain_vector) = rStrainVector;
-
-            perturbated_strain_vector(j) = rStrainVector(j) + perturbation_factor;
-
-            noalias(perturbated_stress_vector) = prod(rElasticityMatrix, perturbated_strain_vector);
-
-            this->CalculateMaterialResponseInternal(
-                perturbated_stress_vector,
-                data);
-
-            for (size_t i = 0; i < VoigtSize; i++)
-                constitutive_matrix(i, j) = (perturbated_stress_vector(i) - rPredictiveStressVector(i)) /
-                perturbation_factor;
+        if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+            // Already stored in rValues.GetConstitutiveMatrix()...
+        }
+        else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+            // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+            TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+        }
+        else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+            // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+            TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+        }
+        else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
+            // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+            TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
         }
     }
     /***********************************************************************************/
