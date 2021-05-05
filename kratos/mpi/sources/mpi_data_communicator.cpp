@@ -140,14 +140,6 @@ void MPIDataCommunicator::ExchangeDataAsyncImpl(                                
     std::vector<int>& rRecvCounts) const {                                              \
     ExchangeDataAsyncDetail(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);        \
 }                                                                                       \
-void MPIDataCommunicator::IsendImpl(const std::vector<type>& rSendValues,               \
-    const int SendDestination, const int SendTag) const {                               \
-    IsendDetail(rSendValues, SendDestination, SendTag);                                 \
-}                                                                                       \
-void MPIDataCommunicator::IrecvImpl(std::vector<type>& rRecvValues,                     \
-    const int RecvSource, const int RecvTag) const {                                    \
-    IrecvDetail(rRecvValues, RecvSource, RecvTag);                                      \
-}                                                                                       \
 
 #endif
 
@@ -530,16 +522,6 @@ void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSourc
     RecvDetail(rRecvValues, RecvSource, RecvTag);
 }
 
-void MPIDataCommunicator::IsendImpl(const std::string& rSendValues, const int SendDestination, const int SendTag) const
-{
-    IsendDetail(rSendValues, SendDestination, SendTag);
-}
-
-void MPIDataCommunicator::IrecvImpl(std::string& rRecvValues, const int RecvSource, const int RecvTag) const
-{
-    IrecvDetail(rRecvValues, RecvSource, RecvTag);
-}
-
 // Implementation details of MPI calls
 
 template<class TDataType> void MPIDataCommunicator::ReduceDetail(
@@ -829,30 +811,6 @@ template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
 
     CheckMPIErrorCode(ierr, "ExchangeDataAsync");
 } */
-
-
-template<class TDataType> void MPIDataCommunicator::IsendDetail(
-    const TDataType& rSendValues, const int SendDestination, const int SendTag) const
-{
-    MPI_Request request;
-    int ierr = MPI_Isend(MPIBuffer(rSendValues), MPIMessageSize(rSendValues),
-                        MPIDatatype(rSendValues), SendDestination, SendTag, mComm, &request);
-    //MPI_Wait(&request, MPI_STATUS_IGNORE); //This should be in the main code to check whether MPI_Isend is complete or not
-    CheckMPIErrorCode(ierr, "MPI_Isend");
-}
-
-template<class TDataType> void MPIDataCommunicator::IrecvDetail(
-    TDataType& rRecvValues, const int RecvSource, const int RecvTag) const
-{
-    MPI_Request request;
-    //No need of MPI_Probe, to check whether Irecv is completed or not. Because in Async way,
-    //there is chance that operration is not complete and hence MPI_Probe may give wrong intimations about MPI_Irecv
-
-    int ierr= MPI_Irecv(MPIBuffer(rRecvValues), rRecvValues.size() , MPIDatatype(rRecvValues),
-                        RecvSource, RecvTag, mComm, &request);
-    //MPI_Wait(&request, MPI_STATUS_IGNORE); //This should be in the main code to check whether MPI_Isend is complete or not
-    CheckMPIErrorCode(ierr, "MPI_Irecv");
-}
 
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const

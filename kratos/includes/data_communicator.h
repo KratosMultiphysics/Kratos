@@ -165,15 +165,6 @@ virtual void ExchangeDataAsyncImpl(                                             
     KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendBuffer.size(), rRecvBuffer.size(), "ExchangeDataAsync");     \
     rRecvBuffer = ExchangeDataAsyncImpl(rSendBuffer, rSendCounts, rRecvCounts);                                 \
 }                                                                                                               \
-virtual void IsendImpl(                                                                                         \
-    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag = 0) const {             \
-    KRATOS_ERROR_IF(Rank() != SendDestination)                                                                  \
-    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
-}                                                                                                               \
-virtual void IrecvImpl(                                                                                         \
-    std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {                        \
-    KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \
-}                                                                                                               \
 
 
 #endif
@@ -618,34 +609,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         this->ExchangeDataAsyncImpl(rSendBuffer, rSendCounts, rRecvCounts);
     }
 
-    /// Exchange data with other ranks Asynchronously.
-    /** This is a wrapper for MPI_Isend.
-     *  @param[in] rSendValues Objects to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the data will be sent to.
-     *  @param[in] SendTag Message tag for sent values.
-     *  This function will transfer basic types (or std::vectors of basic types) directly.
-     *  For complex classes, serialization will be used to package the object(s) before communication.
-     */
-    template<typename TObject>
-    void Isend(const TObject& rSendValues, const int SendDestination, const int SendTag = 0) const
-    {
-        this->IsendImpl(rSendValues, SendDestination, SendTag);
-    }
-
-    /// Exchange data with other ranks Asynchronously.
-    /** This is a wrapper for MPI_Irecv.
-     *  @param[out] rRecvObject Objects to receive from rank RecvSource.
-     *  @param[in] RecvSource Rank the data will be received from.
-     *  @param[in] RecvTag Message tag for received values.
-     *  This function will transfer basic types (or std::vectors of basic types) directly.
-     *  For complex classes, serialization will be used to package the object(s) before communication.
-     */
-    template<typename TObject>
-    void Irecv(TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
-    {
-        this->IrecvImpl(rRecvObject, RecvSource, RecvTag);
-    }
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -1077,82 +1040,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
             << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
 
             return rSendBuffer;
-        }
-    }
-
-    /// Send data to other ranks Asynchronously(string version).
-    /** This is a wrapper for MPI_Isend.
-     *  @param[in] rSendValues String to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the string will be sent to.
-     *  @param[in] SendTag Message tag for sent values.
-     */
-    virtual void IsendImpl(const std::string& rSendValues, const int SendDestination, const int SendTag) const
-    {
-        KRATOS_ERROR_IF(Rank() != SendDestination)
-        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-    }
-
-    /// Exchange data with other ranks Asynchronously(generic version).
-    /** This is a wrapper for MPI_Isend that uses serialization to tranfer arbitrary objects.
-     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
-     *  @param[in] rSendValues Objects to send to rank SendDestination.
-     *  @param[in] SendDestination Rank the data will be sent to.
-     *  @param[in] SendTag Message tag for sent values.
-     */
-    template<class TObject> void IsendImpl(
-        const TObject& rSendObject, const int SendDestination, const int SendTag) const
-    {
-        CheckSerializationForSimpleType(rSendObject, TypeFromBool<serialization_is_required<TObject>::value>());
-        if (this->IsDistributed())
-        {
-            MpiSerializer send_serializer;
-            send_serializer.save("data", rSendObject);
-            std::string send_message = send_serializer.GetStringRepresentation();
-
-            this->IsendImpl(send_message, SendDestination, SendTag);
-        }
-        else
-        {
-            KRATOS_ERROR_IF(Rank() != SendDestination)
-            << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
-        }
-    }
-
-    /// Receive data from other ranks Asynchronously(string version).
-    /** This is a wrapper for MPI_Irecv.
-     *  @param[out] rRecvValues Received string from rank RecvSource.
-     *  @param[in] RecvSource Rank the string is expected from.
-     *  @param[in] RecvTag Message tag for received values.
-     */
-    virtual void IrecvImpl(std::string& rRecvValues, const int RecvSource, const int RecvTag = 0) const
-    {
-        KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;
-    }
-
-    /// Exchange data with other ranks Asynchronously(generic version).
-    /** This is a wrapper for MPI_Irecv that uses serialization to tranfer arbitrary objects.
-     *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
-     *  @param[out] rRecvObject Objects to receive from rank RecvSource.
-     *  @param[in] RecvSource Rank the data will be received from.
-     *  @param[in] RecvTag Message tag for received values.
-     */
-    template<class TObject> void IrecvImpl(
-        TObject& rRecvObject, const int RecvSource, const int RecvTag = 0) const
-    {
-        CheckSerializationForSimpleType(rRecvObject, TypeFromBool<serialization_is_required<TObject>::value>());
-        if (this->IsDistributed())
-        {
-            std::string recv_message;
-
-            this->IrecvImpl(recv_message, RecvSource, RecvTag);
-
-            MpiSerializer recv_serializer(recv_message);
-            recv_serializer.load("data", rRecvObject);
-        }
-        else
-        {
-            KRATOS_ERROR_IF(Rank() != RecvSource)
-            << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         }
     }
 
