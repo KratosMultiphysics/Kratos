@@ -251,7 +251,7 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (GetDiscretization() != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Condition. Null reference-pointer returned. Rank " <<
-                DataCommunicator::GetDefault().Rank() << " Id: " << CondId << " Ref: " << Ref<< std::endl;
+                rModelPart.GetCommunicator().MyPID() << " Id: " << CondId << " Ref: " << Ref<< std::endl;
 
             return p_condition;
         } else {
@@ -945,26 +945,26 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
 
     /* Nodes */
-    // #pragma omp parallel for firstprivate(nodes_colors)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
-        SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], mGlobalToLocalNodePreMap[it_node->Id()]);
-    }
+    block_for_each(r_nodes_array, nodes_colors,
+        [this,&Framework](NodeType& rNode, ColorsMapType& nodes_colors) {
+
+        const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? rNode.GetInitialPosition() : rNode.Coordinates();
+        SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[rNode.Id()], mGlobalToLocalNodePreMap[rNode.Id()]);
+    });
 
     /* Conditions */
-    // #pragma omp parallel for firstprivate(cond_colors)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
-        auto it_cond = it_cond_begin + i;
-        SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], mGlobalToLocalCondPreMap[it_cond->Id()]);
-    }
+    block_for_each(r_conditions_array, cond_colors,
+        [this](Condition& rCondition, ColorsMapType& cond_colors) {
+
+        SetConditions(rCondition.GetGeometry(), cond_colors[rCondition.Id()], mGlobalToLocalCondPreMap[rCondition.Id()]);
+    });
 
     /* Elements */
-    // #pragma omp parallel for firstprivate(elem_colors)
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = it_elem_begin + i;
-        SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], mGlobalToLocalElemPreMap[it_elem->Id()]);
-    }
+    block_for_each(r_elements_array, elem_colors,
+        [this](Element& rElement, ColorsMapType& elem_colors) {
+
+        SetElements(rElement.GetGeometry(), elem_colors[rElement.Id()], mGlobalToLocalElemPreMap[rElement.Id()]);
+    });
 
     // Create auxiliar colors maps
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
@@ -1324,7 +1324,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
         std::unordered_map<IndexType, std::vector<IndexType>> pi_to_vector_node;
         //get nodes we need from other ranks
-        IndexType rank =  DataCommunicator::GetDefault().Rank();
         for(int i_node = 0; i_node < static_cast<int>(r_sub_model_part.Nodes().size()); ++i_node ){
             auto it_node = r_sub_model_part.NodesBegin() + i_node;
             IndexType partition_index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);

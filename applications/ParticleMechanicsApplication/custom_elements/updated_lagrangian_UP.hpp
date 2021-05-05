@@ -196,7 +196,7 @@ public:
 
     void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -286,9 +286,9 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             GeneralVariables& rVariables,
-                             const double& rIntegrationWeight);
+    void CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
+                               GeneralVariables& rVariables,
+                               const double& rIntegrationWeight);
 
     /**
      * Calculation of the Kup matrix
@@ -386,6 +386,7 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      */
+    using UpdatedLagrangian::CalculateDeformationMatrix;
     void CalculateDeformationMatrix(Matrix& rB,
                                     Matrix& rF,
                                     Matrix& rDN_DX);

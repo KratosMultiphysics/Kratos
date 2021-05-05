@@ -38,6 +38,12 @@ namespace Kratos {
                 pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
             }
         }
+        if(!pProp->Has(FRICTION_DECAY)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMBeamConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION_DECAY) = 500.0;
+        }
         if(!pProp->Has(YOUNG_MODULUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMBeamConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
@@ -224,6 +230,7 @@ namespace Kratos {
         CalculateTangentialForces(OldLocalElasticContactForce,
                                   LocalElasticContactForce,
                                   LocalDeltDisp,
+                                  LocalRelVel,
                                   kt_el_0,
                                   kt_el_1);
 
@@ -259,6 +266,7 @@ namespace Kratos {
     void DEMBeamConstitutiveLaw::CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                            double LocalElasticContactForce[3],
                                                            double LocalDeltDisp[3],
+                                                           double LocalRelVel[3],
                                                            const double kt_el_0,
                                                            const double kt_el_1) {
 

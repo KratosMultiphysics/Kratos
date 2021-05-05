@@ -1,5 +1,5 @@
 {
-    "momentEstimatorInpuctDict": {
+    "momentEstimatorInputDict": {
         "indexSetDimension": 0,
         "order": 5,
         "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder10Dimension0",

@@ -17,80 +17,14 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
-    @classmethod
-    def GetDefaultParameters(cls):
-
-        default_settings = KratosMultiphysics.Parameters("""{
-            "solver_type": "Embedded",
-            "model_part_name": "",
-            "domain_size": -1,
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "distance_reading_settings"    : {
-                "import_mode"         : "from_GID_file",
-                "distance_file_name"  : "distance_file"
-            },
-            "distance_modification_settings": {
-            },
-            "maximum_iterations": 7,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "time_order": 2,
-            "time_scheme": "bdf2",
-            "compute_reactions": false,
-            "analysis_type": "non_linear",
-            "reform_dofs_at_each_step": false,
-            "relative_velocity_tolerance": 1e-3,
-            "absolute_velocity_tolerance": 1e-5,
-            "relative_pressure_tolerance": 1e-3,
-            "absolute_pressure_tolerance": 1e-5,
-            "linear_solver_settings": {
-                "solver_type": "amgcl"
-            },
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "no_skin_parts":[""],
-            "time_stepping": {
-                "automatic_time_step" : true,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
-            },
-            "move_mesh_flag": false,
-            "formulation": {
-                "element_type": "embedded_element_from_defaults",
-                "dynamic_tau": 1.0
-            },
-            "fm_ale_settings": {
-                "fm_ale_step_frequency": 0,
-                "structure_model_part_name": "",
-                "search_radius" : 1.0
-            }
-        }""")
-
-        default_settings.AddMissingParameters(super(NavierStokesMPIEmbeddedMonolithicSolver, cls).GetDefaultParameters())
-        return default_settings
-
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass=True # To be removed eventually
-        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        # TODO: ONCE THE FM-ALE WORKS IN MPI, IT WOULD BE POSSIBLE TO ONLY CALL THE BASE CLASS CONSTRUCTOR
-        super(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver, self).__init__(model,custom_settings)
+        # Call the serial base class constructor
+        super().__init__(model,custom_settings)
 
-        self.min_buffer_size = 3
-        self.embedded_formulation = navier_stokes_embedded_solver.EmbeddedFormulation(self.settings["formulation"])
-        self.element_name = self.embedded_formulation.element_name
-        self.condition_name = self.embedded_formulation.condition_name
-        self.level_set_type = self.embedded_formulation.level_set_type
-        self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list 
-        self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
+        #TODO: Remove this once the FM-ALE is fully MPI compatible
+        if self._FmAleIsActive():
+            err_msg = "FM-ALE algorithm implementation is not fully MPI compatible yet. Deactivate it setting \'fm_ale_step_frequency\' to 0."
+            raise Exception(err_msg)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
@@ -116,7 +50,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
-            self._epetra_communicator = KratosTrilinos.CreateCommunicator()
+            self._epetra_communicator = KratosTrilinos.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
         return self._epetra_communicator
 
     def _CreateScheme(self):

@@ -8,6 +8,17 @@ def RunParametricTestCase(
     parameters_dict,
     print_output = False):
 
+    shortened_keys_map = {
+        "<STABILIZATION_METHOD>" : {
+            "residual_based_flux_corrected" : "rfc",
+            "algebraic_flux_corrected" : "afc"
+        },
+        "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>" : {
+            "velocity_based" : "u",
+            "turbulent_kinetic_energy_based" : "k"
+        }
+    }
+
     with UnitTest.WorkFolderScope(work_folder, __file__):
         model = km.Model()
         with open(settings_file_name, 'r') as settings_file:
@@ -15,6 +26,8 @@ def RunParametricTestCase(
 
         for key, value in parameters_dict.items():
             file_data = file_data.replace(key, value)
+            if (key in shortened_keys_map.keys()):
+                file_data = file_data.replace("<SHORT_" + key[1:], shortened_keys_map[key][value])
 
         settings = km.Parameters(file_data)
 

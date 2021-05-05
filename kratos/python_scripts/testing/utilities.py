@@ -50,7 +50,8 @@ def ReadSerialModelPart(mdpa_file_name, model_part):
     Kratos.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
 
-def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
+@KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
+def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings=None):
     """Reads mdpa file
 
     This method reads mdpa file and fills given model_part accordingly using MPI
@@ -59,7 +60,6 @@ def ReadDistributedModelPart(mdpa_file_name, model_part, importer_settings):
         mdpa_file_name (str): Name of the mdpa file (without ".mdpa" extension)
         model_part (Kratos.ModelPart): ModelPart to be filled
     """
-    KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
 
     from KratosMultiphysics.mpi import distributed_import_model_part_utility
     model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
@@ -106,23 +106,18 @@ class Commander:
 
     def RunMPITestSuit(self, application, path, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
-        if not level.startswith("mpi_"):
-            raise Exception("Trying to run a serial suite!")
-
         self.exitCode = 0
 
         test_script = path / Path("tests") / Path("test_{}.py".format(application))
 
         if Path.is_file(test_script):
-            full_command = "{} {} {} {} {} {} --using-mpi".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script)
+            full_command = "{} {} {} {} {} {} --using-mpi -v{} -l{}".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script, verbose, level)
             try:
                 self.process = subprocess.Popen([
-                    full_command,
-                    '-l'+level,
-                    '-v'+str(verbose)
+                    full_command
                 ], shell=True,
                    stdout=subprocess.PIPE,
-                   cwd=os.path.dirname(os.path.abspath(test_script)))
+                   cwd=os.path.dirname(os.path.abspath(str(test_script))))
             except:
                 print('[Error]: Unable to execute "{}"'.format(full_command), file=sys.stderr)
                 self.exitCode = 1

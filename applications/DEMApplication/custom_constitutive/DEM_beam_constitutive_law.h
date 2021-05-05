@@ -95,6 +95,7 @@ namespace Kratos {
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                double LocalElasticContactForce[3],
                                                double LocalDeltDisp[3],
+                                               double LocalRelVel[3],
                                                const double kt_el_0,
                                                const double kt_el_1);
 

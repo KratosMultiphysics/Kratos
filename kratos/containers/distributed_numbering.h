@@ -78,7 +78,7 @@ public:
 
         std::vector<IndexType> send_vect{LocalSize};
         std::vector<IndexType> local_sizes = rComm.AllGather(send_vect);
-        
+
         mCpuBounds[0] = 0;
         for(unsigned int i=1; i<mCpuBounds.size(); ++i)
             mCpuBounds[i] = mCpuBounds[i-1] + local_sizes[i-1];
@@ -103,7 +103,7 @@ public:
         for (int i=1; i<Nranks; i++) {
             mCpuBounds[i] = mCpuBounds[i-1] + local_size;
         }
-    }    
+    }
 
     DistributedNumbering(
         const DataCommunicator& rComm,
@@ -180,10 +180,6 @@ public:
                 " is not owned by any processor " << std::endl;
 
         IndexType owner_rank = (it-mCpuBounds.begin()-1);
-
-        KRATOS_DEBUG_ERROR_IF(owner_rank < 0) <<
-                                              "row RowIndex " << RowIndex <<
-                                              " is not owned by any processor " << std::endl;
 
         return owner_rank;
 
