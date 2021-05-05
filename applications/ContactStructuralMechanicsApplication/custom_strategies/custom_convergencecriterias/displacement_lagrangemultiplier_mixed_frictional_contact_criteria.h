@@ -691,26 +691,26 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
-    TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
-    TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+    double mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
+    double mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
+    double mDispInitialResidualNorm; /// The reference norm of the displacement residual
+    double mDispCurrentResidualNorm; /// The current norm of the displacement residual
 
-    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
-    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
-    TDataType mRotInitialResidualNorm; /// The reference norm of the rotation residual
-    TDataType mRotCurrentResidualNorm; /// The current norm of the rotation residual
+    double mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
+    double mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
+    double mRotInitialResidualNorm; /// The reference norm of the rotation residual
+    double mRotCurrentResidualNorm; /// The current norm of the rotation residual
 
-    TDataType mLMNormalRatioTolerance;  /// The ratio threshold for the norm of the LM (normal)
-    TDataType mLMNormalAbsTolerance;    /// The absolute value threshold for the norm of the LM (normal)
+    double mLMNormalRatioTolerance;  /// The ratio threshold for the norm of the LM (normal)
+    double mLMNormalAbsTolerance;    /// The absolute value threshold for the norm of the LM (normal)
 
-    TDataType mLMTangentStickRatioTolerance; /// The ratio threshold for the norm of the LM (tangent-stick)
-    TDataType mLMTangentStickAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent-stick)
+    double mLMTangentStickRatioTolerance; /// The ratio threshold for the norm of the LM (tangent-stick)
+    double mLMTangentStickAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent-stick)
 
-    TDataType mLMTangentSlipRatioTolerance;  /// The ratio threshold for the norm of the LM (tangent-slip)
-    TDataType mLMTangentSlipAbsTolerance;    /// The absolute value threshold for the norm of the LM (tangent-slip)
+    double mLMTangentSlipRatioTolerance;  /// The ratio threshold for the norm of the LM (tangent-slip)
+    double mLMTangentSlipAbsTolerance;    /// The absolute value threshold for the norm of the LM (tangent-slip)
 
-    TDataType mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
+    double mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
 
     std::vector<int> mActiveDofs;       /// This vector contains the dofs that are active
 
