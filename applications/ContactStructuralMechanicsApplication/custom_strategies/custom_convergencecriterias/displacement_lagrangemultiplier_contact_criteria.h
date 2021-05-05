@@ -105,6 +105,26 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor.
+     */
+    explicit DisplacementLagrangeMultiplierContactCriteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementLagrangeMultiplierContactCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
      * @brief Default Constructor.
      * @param DispRatioTolerance Relative tolerance for displacement error
      * @param DispAbsTolerance Absolute tolerance for displacement error
@@ -147,18 +167,6 @@ public:
         mLMAbsTolerance = LMAbsTolerance;
     }
 
-    /**
-     * @brief Default constructor (parameters)
-     * @param ThisParameters The configuration parameters
-     */
-    explicit DisplacementLagrangeMultiplierContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
-        : BaseType()
-    {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
-    }
-
     // Copy constructor.
     DisplacementLagrangeMultiplierContactCriteria( DisplacementLagrangeMultiplierContactCriteria const& rOther )
       :BaseType(rOther)
@@ -178,6 +186,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Compute relative and absolute error.
