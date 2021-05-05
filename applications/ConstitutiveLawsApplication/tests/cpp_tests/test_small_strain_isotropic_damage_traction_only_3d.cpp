@@ -27,6 +27,7 @@
 
 // Constitutive law
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
