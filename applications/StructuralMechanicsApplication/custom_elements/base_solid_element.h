@@ -108,9 +108,9 @@ protected:
      */
     struct ConstitutiveVariables
     {
-        StrainVectorType StrainVector;
-        StressVectorType StressVector;
-        VoigtSizeMatrixType D;
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
 
         /**
          * The default constructor
