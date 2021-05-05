@@ -65,205 +65,28 @@ const DivideGeometry::Pointer Triangle2D3AusasModifiedShapeFunctions::pGetSplitt
 };
 
 // Returns true if the element is splitting
-bool Triangle2D3AusasModifiedShapeFunctions::IsSplit() {
+bool Triangle2D3AusasModifiedShapeFunctions::IsSplit() const
+{
     return mpTriangleSplitter->mIsSplit;
 };
 
-// Internally computes the splitting pattern and returns all the shape function values for the positive side.
-void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
-    Matrix &rPositiveSideShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
-    Vector &rPositiveSideWeightsValues,
-    const IntegrationMethodType IntegrationMethod) {
+void Triangle2D3AusasModifiedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix)
+{
+    AusasModifiedShapeFunctions::SetPositiveSideCondensationMatrix(
+        rPosSideCondMatrix,
+        mpTriangleSplitter->mEdgeNodeI,
+        mpTriangleSplitter->mEdgeNodeJ,
+        mpTriangleSplitter->mSplitEdges);
+}
 
-    if (this->IsSplit()) {
-        // Get the intersection points condensation matrix
-        Matrix p_matrix_pos_side;
-        this->SetPositiveSideCondensationMatrix(p_matrix_pos_side,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
-
-        // Compute the positive side values
-        this->ComputeValuesOnOneSide(rPositiveSideShapeFunctionsValues,
-                                     rPositiveSideShapeFunctionsGradientsValues,
-                                     rPositiveSideWeightsValues,
-                                     mpTriangleSplitter->GetPositiveSubdivisions(),
-                                     p_matrix_pos_side,
-                                     IntegrationMethod);
-    } else {
-        KRATOS_ERROR << "Using the ComputePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
-    }
-};
-
-// Internally computes the splitting pattern and returns all the shape function values for the negative side.
-void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGradientsValues(
-    Matrix &rNegativeSideShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
-    Vector &rNegativeSideWeightsValues,
-    const IntegrationMethodType IntegrationMethod) {
-
-    if (this->IsSplit()) {
-        // Get the intersection points condensation matrix
-        Matrix p_matrix_neg_side;
-        this->SetNegativeSideCondensationMatrix(p_matrix_neg_side,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
-
-        // Compute the negative side values
-        this->ComputeValuesOnOneSide(rNegativeSideShapeFunctionsValues,
-                                     rNegativeSideShapeFunctionsGradientsValues,
-                                     rNegativeSideWeightsValues,
-                                     mpTriangleSplitter->GetNegativeSubdivisions(),
-                                     p_matrix_neg_side,
-                                     IntegrationMethod);
-    } else {
-        KRATOS_ERROR << "Using the ComputeNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
-    }
-};
-
-// Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
-void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-    Matrix &rInterfacePositiveSideShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
-    Vector &rInterfacePositiveSideWeightsValues,
-    const IntegrationMethodType IntegrationMethod) {
-
-    if (this->IsSplit()) {
-        // Get the interface condensation matrix
-        Matrix p_matrix_pos_side;
-        this->SetPositiveSideCondensationMatrix(p_matrix_pos_side,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
-
-        // Compute the positive side interface values
-        this->ComputeFaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
-                                              rInterfacePositiveSideShapeFunctionsGradientsValues,
-                                              rInterfacePositiveSideWeightsValues,
-                                              mpTriangleSplitter->GetPositiveInterfaces(),
-                                              mpTriangleSplitter->GetPositiveSubdivisions(),
-                                              mpTriangleSplitter->GetPositiveInterfacesParentIds(),
-                                              p_matrix_pos_side,
-                                              IntegrationMethod);
-    } else {
-        KRATOS_ERROR << "Using the ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
-    }
-};
-
-// Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
-void Triangle2D3AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-    Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
-    Vector &rInterfaceNegativeSideWeightsValues,
-    const IntegrationMethodType IntegrationMethod) {
-
-    if (this->IsSplit()) {
-        // Get the intersection points condensation matrix
-        Matrix p_matrix_neg_side;
-        this->SetNegativeSideCondensationMatrix(p_matrix_neg_side,
-                                                mpTriangleSplitter->mEdgeNodeI,
-                                                mpTriangleSplitter->mEdgeNodeJ,
-                                                mpTriangleSplitter->mSplitEdges);
-
-        // Compute the positive side interface values
-        this->ComputeFaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
-                                              rInterfaceNegativeSideShapeFunctionsGradientsValues,
-                                              rInterfaceNegativeSideWeightsValues,
-                                              mpTriangleSplitter->GetNegativeInterfaces(),
-                                              mpTriangleSplitter->GetNegativeSubdivisions(),
-                                              mpTriangleSplitter->GetNegativeInterfacesParentIds(),
-                                              p_matrix_neg_side,
-                                              IntegrationMethod);
-    } else {
-        KRATOS_ERROR << "Using the ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues method for a non divided geometry.";
-    }
-};
-
-// Given a face id, computes the positive side subdivision shape function values in that face.
-void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
-    Matrix &rPositiveExteriorFaceShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
-    Vector &rPositiveExteriorFaceWeightsValues,
-    const unsigned int FaceId,
-    const IntegrationMethodType IntegrationMethod
-) {
-    if (this->IsSplit()) {
-        // Get the condensation matrix
-        Matrix p_matrix_pos_side;
-        this->SetPositiveSideCondensationMatrix(
-            p_matrix_pos_side,
-            mpTriangleSplitter->mEdgeNodeI,
-            mpTriangleSplitter->mEdgeNodeJ,
-            mpTriangleSplitter->mSplitEdges);
-
-        // Get the external faces
-        std::vector < unsigned int > exterior_faces_parent_ids_vector;
-        std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
-        mpTriangleSplitter->GenerateExteriorFaces(
-            exterior_faces_vector,
-            exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->GetPositiveSubdivisions(),
-            FaceId);
-
-        // Compute the positive side external face values
-        this->ComputeFaceValuesOnOneSide(
-            rPositiveExteriorFaceShapeFunctionsValues,
-            rPositiveExteriorFaceShapeFunctionsGradientsValues,
-            rPositiveExteriorFaceWeightsValues,
-            exterior_faces_vector,
-            mpTriangleSplitter->GetPositiveSubdivisions(),
-            exterior_faces_parent_ids_vector,
-            p_matrix_pos_side,
-            IntegrationMethod);
-
-    } else {
-        KRATOS_ERROR << "Using the ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues method for a non divided geometry.";
-    }
-};
-
-// Given a face id, computes the positive side subdivision shape function values in that face.
-void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
-    Matrix &rNegativeExteriorFaceShapeFunctionsValues,
-    ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
-    Vector &rNegativeExteriorFaceWeightsValues,
-    const unsigned int FaceId,
-    const IntegrationMethodType IntegrationMethod
-) {
-    if (this->IsSplit()) {
-        // Get the condensation matrix
-        Matrix p_matrix_neg_side;
-        this->SetNegativeSideCondensationMatrix(
-            p_matrix_neg_side,
-            mpTriangleSplitter->mEdgeNodeI,
-            mpTriangleSplitter->mEdgeNodeJ,
-            mpTriangleSplitter->mSplitEdges);
-
-        // Get the external faces
-        std::vector < unsigned int > exterior_faces_parent_ids_vector;
-        std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
-        mpTriangleSplitter->GenerateExteriorFaces(
-            exterior_faces_vector,
-            exterior_faces_parent_ids_vector,
-            mpTriangleSplitter->GetNegativeSubdivisions(),
-            FaceId);
-
-        // Compute the positive side external face values
-        this->ComputeFaceValuesOnOneSide(
-            rNegativeExteriorFaceShapeFunctionsValues,
-            rNegativeExteriorFaceShapeFunctionsGradientsValues,
-            rNegativeExteriorFaceWeightsValues,
-            exterior_faces_vector,
-            mpTriangleSplitter->GetNegativeSubdivisions(),
-            exterior_faces_parent_ids_vector,
-            p_matrix_neg_side,
-            IntegrationMethod);
-
-    } else {
-        KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues method for a non divided geometry.";
-    }
-};
+void Triangle2D3AusasModifiedShapeFunctions::SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix)
+{
+    AusasModifiedShapeFunctions::SetNegativeSideCondensationMatrix(
+        rNegSideCondMatrix,
+        mpTriangleSplitter->mEdgeNodeI,
+        mpTriangleSplitter->mEdgeNodeJ,
+        mpTriangleSplitter->mSplitEdges);
+}
 
 // Compute the positive side interface outwards area normal vector values.
 void Triangle2D3AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
@@ -360,11 +183,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdge
     if (this->IsSplit()) {
         // Get the positive side condensation matrix
          Matrix p_matrix_pos_side;
-        this->SetPositiveSideCondensationMatrix(
-            p_matrix_pos_side,
-            mpTriangleSplitter->mEdgeNodeI,
-            mpTriangleSplitter->mEdgeNodeJ,
-            mpTriangleSplitter->mSplitEdges);
+        this->SetPositiveSideCondensationMatrix(p_matrix_pos_side);
 
         // Compute the edge intersections shape function values
         this->ComputeEdgeIntersectionValuesOnOneSide(
@@ -383,11 +202,7 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdge
     if (this->IsSplit()) {
         // Get the positive side condensation matrix
         Matrix p_matrix_neg_side;
-        this->SetNegativeSideCondensationMatrix(
-            p_matrix_neg_side,
-            mpTriangleSplitter->mEdgeNodeI,
-            mpTriangleSplitter->mEdgeNodeJ,
-            mpTriangleSplitter->mSplitEdges);
+        this->SetNegativeSideCondensationMatrix(p_matrix_neg_side);
 
         // Compute the edge intersections shape function values
         this->ComputeEdgeIntersectionValuesOnOneSide(

@@ -312,7 +312,10 @@ public:
     virtual void GenerateExteriorFaces(
         std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
-        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) = 0;
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer)
+    {
+        KRATOS_ERROR << "Accessing base class \'GenerateExteriorFaces\' method."<< std::endl;
+    };
 
     /**
      * Given a father face id, generates a list containing the exterior (boundary)
@@ -326,7 +329,10 @@ public:
         std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
-        const unsigned int FatherFaceId) = 0;
+        const unsigned int FatherFaceId)
+    {
+        KRATOS_ERROR << "Accessing base class \'GenerateExteriorFaces\' method."<< std::endl;
+    };
 
     ///@}
 

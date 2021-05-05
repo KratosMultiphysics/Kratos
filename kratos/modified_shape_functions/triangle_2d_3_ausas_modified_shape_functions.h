@@ -107,88 +107,6 @@ public:
     const DivideGeometry::Pointer pGetSplittingUtil() const override;
 
     /**
-    * Returns the shape function values in the positive split element side for a given quadrature.
-    * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
-    * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
-    * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputePositiveSideShapeFunctionsAndGradientsValues(
-        Matrix &rPositiveSideShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
-        Vector &rPositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the shape function values in the negative split element side for a given quadrature.
-    * @return rNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
-    * @return rNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
-    * @return rNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        Matrix &rNegativeSideShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
-        Vector &rNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the shape function values in the positive split element interface side for a given quadrature.
-    * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
-    * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
-    * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        Matrix &rInterfacePositiveSideShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
-        Vector &rInterfacePositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the shape function values in the negative split element interface side for a given quadrature.
-    * @return rInterfaceNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
-    * @return rInterfaceNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
-    * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-        Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
-        Vector &rInterfaceNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
-    * @return rInterfacePositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
-    * @return rInterfacePositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
-    * @return rInterfacePositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
-    * @param FaceId Face local id. in where the values are to be computed.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
-        Matrix &rPositiveExteriorFaceShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
-        Vector &rPositiveExteriorFaceWeightsValues,
-        const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Given a face id, returns the shape function values in the negative split element exterior face side for a given quadrature.
-    * @return rInterfaceNegativeSideShapeFunctionValues: Matrix containing the negative side computed shape function values.
-    * @return rInterfaceNegativeSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the negative side.
-    * @return rInterfaceNegativeSideWeightsValues: Vector containing the Gauss pts. negative side weights (already multiplied by the Jacobian).
-    * @param FaceId Face local id. in where the values are to be computed.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
-        Matrix &rNegativeExteriorFaceShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
-        Vector &rNegativeExteriorFaceWeightsValues,
-        const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
     * @return rPositiveSideInterfaceAreaNormal: Outwards area normal vector list.
     * @param IntegrationMethod Desired integration quadrature.
@@ -230,7 +148,7 @@ public:
 
     /**
     * Returns the positive side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
     * containing the positive side edge intersection shape function values. For non-split edges,
     * the corresponding row is plenty of zeros.
     */
@@ -239,7 +157,7 @@ public:
 
     /**
     * Returns the negative side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
     * containing the negative side edge intersection shape function values. For non-split edges,
     * the corresponding row is plenty of zeros.
     */
@@ -249,7 +167,7 @@ public:
     /**
     * Returns true if the element is split and false otherwise.
     */
-    bool IsSplit() override;
+    bool IsSplit() const override;
 
     ///@}
 
@@ -268,6 +186,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
 
     ///@}
     ///@name Protected  Access

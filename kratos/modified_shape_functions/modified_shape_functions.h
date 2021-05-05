@@ -119,9 +119,29 @@ public:
     */
     const Vector& GetNodalDistances() const;
 
-    double ComputePositiveSideVolume() const;
+    /**
+     * @brief Compute the positive domain size
+     * For the given input geometry, this method calculates the positive side volume (or area in 2D)
+     * @return double The positive side domain size
+     */
+    double ComputePositiveSideDomainSize() const;
 
-    double ComputeNegativeSideVolume() const;
+    /**
+     * @brief Compute the negative domain size
+     * For the given input geometry, this method calculates the negative side volume (or area in 2D)
+     * @return double The negative side domain size
+     */
+    double ComputeNegativeSideDomainSize() const;
+
+    void ComputePositiveSideShapeFunctionsAndWeights(
+        Matrix &rPositiveSideShapeFunctionsValues,
+        Vector &rPositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
+
+    void ComputeNegativeSideShapeFunctionsAndWeights(
+        Matrix &rNegativeSideShapeFunctionsValues,
+        Vector &rNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the positive split element side for a given quadrature.
@@ -134,7 +154,7 @@ public:
         Matrix &rPositiveSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
         Vector &rPositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
@@ -147,7 +167,7 @@ public:
         Matrix &rNegativeSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the positive split element interface side for a given quadrature.
@@ -160,7 +180,7 @@ public:
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
         Vector &rInterfacePositiveSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the shape function values in the negative split element side for a given quadrature.
@@ -173,7 +193,7 @@ public:
         Matrix &rInterfaceNegativeSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
         Vector &rInterfaceNegativeSideWeightsValues,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Given a face id, returns the shape function values in the positive split element exterior face side for a given quadrature.
@@ -188,7 +208,7 @@ public:
         ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
         Vector &rPositiveExteriorFaceWeightsValues,
         const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Given a face id, returns the shape function values in the negative split element exterior face side for a given quadrature.
@@ -203,7 +223,7 @@ public:
         ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
         Vector &rNegativeExteriorFaceWeightsValues,
         const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
@@ -212,7 +232,7 @@ public:
     */
     virtual void ComputePositiveSideInterfaceAreaNormals(
         std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
@@ -221,7 +241,7 @@ public:
     */
     virtual void ComputeNegativeSideInterfaceAreaNormals(
         std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
@@ -232,7 +252,7 @@ public:
     virtual void ComputePositiveExteriorFaceAreaNormals(
         std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
         const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
@@ -243,7 +263,7 @@ public:
     virtual void ComputeNegativeExteriorFaceAreaNormals(
         std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
         const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) = 0;
+        const IntegrationMethodType IntegrationMethod);
 
     /**
     * Returns the positive side edge intersections shape function values.
@@ -251,7 +271,7 @@ public:
     * containing the positive side edge intersection shape function values.
     */
     virtual void ComputeShapeFunctionsOnPositiveEdgeIntersections(
-        Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues) = 0;
+        Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues);
 
     /**
     * Returns the negative side edge intersections shape function values.
@@ -259,12 +279,12 @@ public:
     * containing the negative side edge intersection shape function values.
     */
     virtual void ComputeShapeFunctionsOnNegativeEdgeIntersections(
-        Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues) = 0;
+        Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues);
 
     /**
     * Returns true if the element is split and false otherwise.
     */
-    virtual bool IsSplit() = 0;
+    virtual bool IsSplit() const = 0;
 
     ///@}
 
@@ -283,6 +303,14 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+    * Returns the intersection points condensation matrix.
+    * This matrix is used to extrapolate the subdivisions shape funtion values to the
+    * original geometry ones. It has size (nnodes+nedges)x(nnodes).
+    * @return rIntPointCondMatrix: Reference to the intersection points condensation matrix.
+    */
+    virtual void SetCondensationMatrix(Matrix& rIntPointCondMatrix) = 0;
 
     /**
     * Returns the intersection points condensation matrix.
@@ -394,7 +422,29 @@ protected:
     ///@name Private Operations
     ///@{
 
-    double ComputeVolumeOnOneSide(const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector) const;
+    /**
+     * @brief Calculate the domain size in one element side
+     * For the given subdivisions vector, this method calculates the sum of their domain sizes (area in 2D and volume in 3D)
+     * @param rSubdivisionsVector The side of interest subdivisions vectors
+     * @return double The domain size of the side of interest
+     */
+    double ComputeDomainSizeOnOneSide(const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector) const;
+
+    /**
+     * @brief Calculate shape function values and weights in one element side
+    * Returns the shape function values and weights in either the positive or negative element subdivision for a given quadrature.
+    * @return rShapeFunctionsValues Matrix containing the computed shape function values.
+    * @return rWeightsValues Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
+    * @param rSubdivisionsVector std::vector of subdivisions point based geometries where the values are to be computed.
+    * @param rPmatrix Reference to the condensation matrix.
+    * @param IntegrationMethod Desired integration quadrature.
+    */
+    void ComputeValuesOnOneSide(
+        Matrix &rShapeFunctionsValues,
+        Vector &rWeightsValues,
+        const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
+        const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod);
 
     ///@}
     ///@name Private  Access
