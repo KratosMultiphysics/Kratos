@@ -102,10 +102,10 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -173,9 +173,9 @@ public:
     {
         if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_solution_norm = 0.0, disp_increase_norm = 0.0;
+            double disp_solution_norm = 0.0, disp_increase_norm = 0.0;
             IndexType disp_dof_num(0);
-            TDataType rot_solution_norm = 0.0, rot_increase_norm = 0.0;
+            double rot_solution_norm = 0.0, rot_increase_norm = 0.0;
             IndexType rot_dof_num(0);
 
             // First iterator
@@ -183,7 +183,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType dof_value = 0.0, dof_incr = 0.0;
+            double dof_value = 0.0, dof_incr = 0.0;
 
             // Auxiliar displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
@@ -221,13 +221,13 @@ public:
             if(rot_increase_norm == 0.0) rot_increase_norm = 1.0;
             if(rot_solution_norm == 0.0) rot_solution_norm = 1.0;
 
-            const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
+            const double disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
 
-            const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
+            const double disp_abs = std::sqrt(disp_increase_norm)/ static_cast<double>(disp_dof_num);
 
-            const TDataType rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
+            const double rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
 
-            const TDataType rot_abs = std::sqrt(rot_increase_norm)/ static_cast<TDataType>(rot_dof_num);
+            const double rot_abs = std::sqrt(rot_increase_norm)/ static_cast<double>(rot_dof_num);
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -447,11 +447,11 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
-    TDataType mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
+    double mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
+    double mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
 
-    TDataType mRotRatioTolerance; /// The ratio threshold for the norm of the rotation
-    TDataType mRotAbsTolerance;   /// The absolute value threshold for the norm of the rotation
+    double mRotRatioTolerance; /// The ratio threshold for the norm of the rotation
+    double mRotAbsTolerance;   /// The absolute value threshold for the norm of the rotation
 
     ///@}
     ///@name Private Operators
