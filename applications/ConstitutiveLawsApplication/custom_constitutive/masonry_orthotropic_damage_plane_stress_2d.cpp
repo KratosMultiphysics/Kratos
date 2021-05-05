@@ -858,7 +858,7 @@ namespace Kratos
             constitutive_matrix.resize(VoigtSize, VoigtSize);
 
         // perturbation parameter
-        double perturbation_factor = 1.0E-8;
+        const double perturbation_factor = 1.0E-8;
 
         // perturbed vectors
         Vector perturbated_strain_vector(VoigtSize);
