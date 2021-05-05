@@ -328,7 +328,7 @@ int ElasticIsotropic3D::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticIsotropic3D::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix)
+void ElasticIsotropic3D::CheckClearElasticMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix)
 {
     const SizeType size_system = this->GetStrainSize();
     if (rConstitutiveMatrix.size1() != size_system || rConstitutiveMatrix.size2() != size_system)
@@ -340,12 +340,12 @@ void ElasticIsotropic3D::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix)
 /***********************************************************************************/
 
 void ElasticIsotropic3D::CalculateElasticMatrix(
-    Matrix& rConstitutiveMatrix,
+    ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
+    const double E  = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(rConstitutiveMatrix);
@@ -406,11 +406,11 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     const SizeType space_dimension = this->WorkingSpaceDimension();
 
     //1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
     KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
         << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
-    Matrix E_tensor = prod(trans(F),F);
+    ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
     for(unsigned int i=0; i<space_dimension; ++i)
       E_tensor(i,i) -= 1.0;
     E_tensor *= 0.5;

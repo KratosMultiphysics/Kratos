@@ -267,7 +267,7 @@ void UserProvidedLinearElasticLaw<TDim>::CalculateGreenLagrangeStrainVector(
     KRATOS_DEBUG_ERROR_IF(rF.size1()!= dim || rF.size2() != dim) << "expected size of F " << dim << "x" << dim << ", got " << rF.size1() << "x" << rF.size2() << std::endl;
 
     // Calculate the Cauchy - Green strain tensor
-    Matrix left_cauchy_green = prod(trans(rF), rF);
+    ConstitutiveLaw::DeformationGradientMatrixType left_cauchy_green = prod(trans(rF), rF);
 
     // Calculate Green - Lagrange strain tensor
     ConstitutiveLawUtilities<StrainSize>::CalculateGreenLagrangianStrain(left_cauchy_green, rStrainVector);
