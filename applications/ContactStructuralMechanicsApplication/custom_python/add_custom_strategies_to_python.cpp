@@ -176,6 +176,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
         ConvergenceCriteriaType >
         (m, "MortarAndConvergenceCriteria")
+        .def(py::init<Parameters>())
         .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
         .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
         .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool, ConditionNumberUtilityPointerType>())
@@ -186,6 +187,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "MeshTyingMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless case)
@@ -193,6 +195,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "ALMFrictionlessMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
@@ -203,6 +206,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "PenaltyFrictionlessMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
@@ -213,6 +217,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
@@ -332,11 +337,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Error mesh Convergence Criterion
     py::class_< ContactErrorMeshCriteriaType, typename ContactErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ContactErrorMeshCriteria")
         .def(py::init<Parameters>())
+        .def(py::init<Parameters>())
         ;
 
     // Contact convergence criteria
     py::class_< MPCContactCriteriaType, typename MPCContactCriteriaType::Pointer, ConvergenceCriteriaType > (m, "MPCContactCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         ;
 
     //********************************************************************
