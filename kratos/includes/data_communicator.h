@@ -1001,18 +1001,18 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      * @param[in] rRecvBuffer Data Buffer to receive the sent Objects
      * @param[in] rSendCounts Number of Elements to be send for all the Ranks
      */
-    template<typename TObject>
+/*     template<typename TObject>
     void ExchangeDataAsyncImpl(const std::vector<TObject>& rSendBuffer, std::vector<TObject>& rRecvBuffer,
                 const std::vector<int>& rSendCounts) const
     {
         this->ExchangeDataAsync(rSendBuffer, rRecvBuffer, rSendCounts);// Call goes up to 605 and again comes to line 1021
-    }
+    } */
 
     // Required for Serial Communcation. Does nothing. Returning SendBuffer
     virtual std::string ExchangeDataAsyncImpl(
-        const std::string& rSendBuffer, const int SendDestination = 0, const int RecvSource = 0) const
+        const std::string& rSendBuffer, const int SendDestination, const int RecvSource) const
     {
-        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        KRATOS_ERROR_IF( (0 != SendDestination) || (0 != RecvSource))
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         return rSendBuffer;
     }
