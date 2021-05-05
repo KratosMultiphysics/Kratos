@@ -75,21 +75,23 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( IO_DEBUG );
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
-    typedef typename BaseType::TDataType                    TDataType;
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >            BaseType;
 
-    /// The sparse space used
-    typedef TSparseSpace                              SparseSpaceType;
+    /// The definition of the current class
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
 
-    /// The components containers
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                       DofsArrayType;
 
-    typedef GidIO<> GidIOBaseType;
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType               TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType               TSystemVectorType;
+
+    /// The GidIO type
+    typedef GidIO<>                                                GidIOBaseType;
 
     ///@}
     ///@name Life Cycle
@@ -101,7 +103,7 @@ public:
         const bool IODebug = false,
         const bool PureSlip = false
         )
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+        : BaseType(),
           mpIO(nullptr)
     {
         // Set local flags
@@ -112,6 +114,18 @@ public:
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
         }
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit BaseMortarConvergenceCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -367,9 +381,34 @@ public:
         r_process_info.SetValue(ACTIVE_SET_COMPUTED, false);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                   : "base_mortar_criteria",
+            "compute_dynamic_factor" : false,
+            "gidio_debug"            : false,
+            "pure_slip"              : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "base_mortar_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -378,6 +417,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "BaseMortarConvergenceCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -401,6 +462,24 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Set local flags
+        mOptions.Set(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR, ThisParameters["compute_dynamic_factor"].GetBool());
+        mOptions.Set(BaseMortarConvergenceCriteria::IO_DEBUG, ThisParameters["gidio_debug"].GetBool());
+        mOptions.Set(BaseMortarConvergenceCriteria::PURE_SLIP, ThisParameters["pure_slip"].GetBool());
+
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
+            mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+        }
+    }
 
     /**
      * @brief This method resets the weighted gap in the nodes of the problem
