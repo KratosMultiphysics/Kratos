@@ -1,14 +1,12 @@
-// KRATOS ___                _   _ _         _   _             __                       _
-//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
-//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
-//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
-//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
-//                                                                                         |_|   |_|
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors:    Michael Andre, https://github.com/msandre
 //
 
 
@@ -32,7 +30,6 @@
 // Application includes
 #include "custom_elements/total_lagrangian.h"
 #include "custom_constitutive/linear_plane_strain.h"
-#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 
 namespace Kratos
 {
@@ -135,10 +132,15 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
         r_node.AddDof(DISPLACEMENT_Y);
         r_node.AddDof(DISPLACEMENT_Z);
     }
-    if (r_process_info[DOMAIN_SIZE] == 2)
+    if (r_process_info[DOMAIN_SIZE] == 2) {
         (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
-    else
-        (*p_prop)[CONSTITUTIVE_LAW] = HyperElasticIsotropicKirchhoff3D::Pointer(new HyperElasticIsotropicKirchhoff3D());
+    } else {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        if (!KratosComponents<ConstitutiveLaw>::Has("HyperElasticIsotropicKirchhoff3D")) {
+            return;
+        }
+        (*p_prop)[CONSTITUTIVE_LAW] = KratosComponents<ConstitutiveLaw>::Get("KirchhoffSaintVenantPlaneStrain2DLaw").Clone();
+    }
     (*p_prop)[DENSITY] = 1000.0;
     (*p_prop)[YOUNG_MODULUS] = 1400000.0;
     (*p_prop)[POISSON_RATIO] = 0.4;
@@ -222,6 +224,10 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructu
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D4N", test_model_part);
     AssignNodalData4(test_model_part);
     auto p_elem = test_model_part.pGetElement(1);
+    if (!p_elem->GetProperties().Has(CONSTITUTIVE_LAW)) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
     Vector rhs(12), rhs_ref(12);
     rhs_ref(0) = 973.552300837932876;
     rhs_ref(1) = 121.952314606513113;
@@ -513,6 +519,10 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     }
     // Calculate strain energy.
     auto p_elem = test_model_part.pGetElement(1);
+    if (!p_elem->GetProperties().Has(CONSTITUTIVE_LAW)) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
     std::vector<double> weights;
     std::vector<double> strain_energies;
     const auto& r_process_info = test_model_part.GetProcessInfo();
@@ -553,6 +563,10 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
     AssignRandomNodalData(ACCELERATION, test_model_part, -10.0, 10.0);
     AssignRandomNodalData(VOLUME_ACCELERATION, test_model_part, -10.0, 10.0);
     auto p_elem = test_model_part.pGetElement(1);
+    if (!p_elem->GetProperties().Has(CONSTITUTIVE_LAW)) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
     Matrix sensitivity_matrix, semi_analytic_sensitivity_matrix;
 
     const auto& r_process_info = test_model_part.GetProcessInfo();

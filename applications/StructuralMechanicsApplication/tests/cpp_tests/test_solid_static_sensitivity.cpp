@@ -1,14 +1,12 @@
-// KRATOS ___                _   _ _         _   _             __                       _
-//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
-//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
-//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
-//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
-//                                                                                         |_|   |_|
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:
+//  Main authors:    Michael Andre, https://github.com/msandre
 //
 
 // System includes
@@ -87,6 +85,11 @@ namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenantPlaneStrain2DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -124,6 +127,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensit
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenantPlaneStress2DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -163,6 +171,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensit
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenant3DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
@@ -204,6 +217,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, Krat
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    if (!KratosComponents<ConstitutiveLaw>::Has("KirchhoffSaintVenantPlaneStress2DLaw")) {
+        // this test can only be run if the ConstitutiveLawsApp is imported
+        return;
+    }
+
     using test_solid_static_sensitivity_cpp::AdjointTestSolver;
     using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
