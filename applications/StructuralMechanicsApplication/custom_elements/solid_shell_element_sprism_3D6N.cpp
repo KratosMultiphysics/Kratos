@@ -371,47 +371,6 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::CalculateRightHandSide(
-    std::vector< VectorType >& rRightHandSideVectors,
-    const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    /* Create local system components */
-    LocalSystemComponents local_system;
-
-    /* Calculation flags */
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR);
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType left_hand_side_matrix = Matrix();
-
-    /* Initialize sizes for the system components: */
-    if( rRHSVariables.size() != rRightHandSideVectors.size() ) {
-        rRightHandSideVectors.resize(rRHSVariables.size());
-    }
-
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
-        this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
-    }
-
-    /* Set general_variables to Local system components */
-    local_system.SetLeftHandSideMatrix(left_hand_side_matrix);
-    local_system.SetRightHandSideVectors(rRightHandSideVectors);
-
-    local_system.SetRightHandSideVariables(rRHSVariables);
-
-    /* Calculate elemental system */
-    CalculateElementalSystem( local_system, rCurrentProcessInfo );
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SolidShellElementSprism3D6N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
@@ -1298,7 +1257,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1310,7 +1269,7 @@ void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1322,7 +1281,7 @@ void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1334,7 +1293,7 @@ void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
 
 void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -3794,7 +3753,7 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
         // Jacobian Determinant for the isoparametric and numerical integration
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(GetGeometry(), rIntegrationPoints[rPointNumber], J0);
-        rVariables.detJ = MathUtils<double>::DetMat(J0);
+        rVariables.detJ = MathUtils<double>::Det(J0);
     } else {
         // Cauchy stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;

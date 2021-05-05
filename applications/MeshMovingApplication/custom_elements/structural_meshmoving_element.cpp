@@ -369,9 +369,6 @@ int StructuralMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo) c
 
     Element::Check(rCurrentProcessInfo);
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(MESH_DISPLACEMENT)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( const auto& r_node : GetGeometry() ) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_DISPLACEMENT,r_node)

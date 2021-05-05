@@ -48,13 +48,19 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<ModelPartCommunicatorUtilities>(m,"ModelPartCommunicatorUtilities")
-    .def_static("SetMPICommunicator",&ModelPartCommunicatorUtilities::SetMPICommunicator)
+    .def_static("SetMPICommunicator", [](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator){
+        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, rDataCommunicator);
+    })
+    .def_static("SetMPICommunicator", [](ModelPart& rModelPart){
+        KRATOS_WARNING("ModelPartCommunicatorUtilities") << "This function is deprecated, please use the one that accepts a DataCommunicator" << std::endl;
+        // passing the default data comm as a temp solution until this function is removed to avoid the deprecation warning in the interface
+        ModelPartCommunicatorUtilities::SetMPICommunicator(rModelPart, DataCommunicator::GetDefault());
+    })
     ;
 
-    py::class_<ParallelFillCommunicator >(m,"ParallelFillCommunicator")
+    py::class_<ParallelFillCommunicator, ParallelFillCommunicator::Pointer, FillCommunicator>(m,"ParallelFillCommunicator")
     .def(py::init<ModelPart& >() )
-    .def("Execute", &ParallelFillCommunicator::Execute )
-    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
+    .def(py::init<ModelPart&, const DataCommunicator& >() )
     ;
 
     m.def_submodule("DataCommunicatorFactory")

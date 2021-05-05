@@ -19,7 +19,7 @@ namespace Kratos {
         public:
 
         /// Pointer definition of BeamParticle
-        KRATOS_CLASS_POINTER_DEFINITION(BeamParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BeamParticle);
 
         typedef SphericContinuumParticle BaseType;
         typedef BaseType::ParticleDataBuffer BaseBufferType;

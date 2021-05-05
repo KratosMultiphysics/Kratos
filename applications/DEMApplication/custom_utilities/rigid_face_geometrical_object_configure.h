@@ -266,9 +266,10 @@ public:
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObj_2);
         const double Radius = p_particle->GetSearchRadius();
 
-        int facet_size = FE_Geom.WorkingSpaceDimension();
+        const int facet_size = FE_Geom.size();
 
-        if (facet_size==2) {
+        if (facet_size==1) return GeometryFunctions::FastVertexCheck(FE_Geom[0].Coordinates(),DE_Geom[0].Coordinates(), Radius);
+        else if (facet_size==2) {
            return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
         }
         else {
@@ -281,9 +282,10 @@ public:
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
-      int facet_size = FE_Geom.WorkingSpaceDimension();
+      const int facet_size = FE_Geom.size();
 
-      if (facet_size==2) {
+      if (facet_size==1) return GeometryFunctions::FastVertexCheck(FE_Geom[0].Coordinates(),DE_Geom[0].Coordinates(), Radius);
+      else if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
       }
       else {
@@ -294,9 +296,10 @@ public:
     //Copy of the Intersection function accessible with geometry
     static inline bool FastIntersection(const GeometryType& DE_Geom, const GeometryType& FE_Geom,  const double& Radius) { //rObj_1 is sphere, rObj_2 is FE
 
-      int facet_size = FE_Geom.WorkingSpaceDimension();
+      int facet_size = FE_Geom.size();
 
-      if (facet_size==2) {
+      if (facet_size==1) return GeometryFunctions::FastVertexCheck(FE_Geom[0].Coordinates(),DE_Geom[0].Coordinates(), Radius);
+      else if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
       }
       else {
@@ -354,11 +357,11 @@ public:
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
 
-           if (New_projected_distance - Old_dist > -1.0e-15 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
+           if (New_projected_distance - Old_dist > -1.0e-6 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
              return false;
            }
 
-           if (Old_projected_distance - New_Dist > -1.0e-15 * std::abs(New_Dist)) { //new has hierarchy over old
+           if (Old_projected_distance - New_Dist > -1.0e-6 * std::abs(New_Dist)) { //new has hierarchy over old
 
              int old_ID = Id_Array[i_old_neigh];
              if (new_ID == old_ID) {//SUBSTITUTE
@@ -415,7 +418,10 @@ public:
         const GeometryType& FE_Geom = rObj_2->GetGeometry();
         unsigned int FE_size = FE_Geom.size();
 
-        if(FE_size==2) {
+        if (FE_size==1) {
+          DoubleHierarchyMethod1D(rObj_1,rObj_2, Distance_Array, Normal_Array,Weight_Array, Id_Array,ContactType_Array);
+        }
+        else if (FE_size==2) {
           DoubleHierarchyMethod2D(rObj_1,rObj_2, Distance_Array, Normal_Array,Weight_Array, Id_Array,ContactType_Array);
         }
         else {
@@ -571,6 +577,46 @@ public:
       return;
     }//DoubleHierarchyMethod2D
 
+    static inline void DoubleHierarchyMethod1D(SphericParticle* rObj_1,
+                                               DEMWall* rObj_2,
+                                               std::vector< double > & Distance_Array,
+                                               std::vector< array_1d<double,3> >& Normal_Array,
+                                               std::vector< array_1d<double,4> >& Weight_Array,
+                                               std::vector< int > & Id_Array,
+                                               std::vector< int > & ContactType_Array
+                                              )
+      {
+      //rObj_1 is particle,  and rObj_2 is condition
+      int ContactType          = -1;
+      //-1: No contact;
+      // 3: Vertex.
+
+      bool ContactExists = false;
+
+      const GeometryType& DE_Geom = rObj_1->GetGeometry();
+
+      double Radius = rObj_1->GetInteractionRadius();
+
+      const GeometryType& FE_Geom = rObj_2->GetGeometry();
+
+      double local_coord_system[3][3]  = { {0.0},{0.0},{0.0} };
+      std::vector<double> Weight(4,0.0);
+
+      double distance_point_to_vertex = 0.0;
+      ContactExists = GeometryFunctions::VertexCheck(FE_Geom[0].Coordinates(),
+                  DE_Geom[0].Coordinates(), Radius, local_coord_system,
+                  distance_point_to_vertex);
+
+      if (ContactExists) {
+        ContactType = 3;
+        Weight[0] = 1.0; //the rest weights stay 0.0;
+        ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system,
+                    distance_point_to_vertex, Weight, ContactType, Distance_Array,
+                    Normal_Array, Weight_Array, Id_Array, ContactType_Array);
+        return;
+      }
+      return;
+    }//DoubleHierarchyMethod2D
 
 
 

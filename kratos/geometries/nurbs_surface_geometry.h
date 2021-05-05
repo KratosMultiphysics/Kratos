@@ -26,6 +26,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 #include "utilities/quadrature_points_utility.h"
 
 #include "integration/integration_point_utilities.h"
@@ -135,17 +136,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -157,17 +148,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// @brief Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType>
     NurbsSurfaceGeometry& operator=(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -229,16 +210,32 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            const CoordinatesArrayType local_coordinates = rOutput;
+            CalculateEstimatedKnotLengthness(rOutput, local_coordinates);
+        }
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeU() const
     {
         return mPolynomialDegreeU;
     }
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeV() const
     {
         return mPolynomialDegreeV;
@@ -260,30 +257,28 @@ public:
         return mKnotsV;
     }
 
-    /* @return Gives the size of the knot vector in u-direction.
-    */
+    /// @return Gives the size of the knot vector in u-direction.
     SizeType NumberOfKnotsU() const
     {
         return mKnotsU.size();
     }
 
-    /* @return Gives the size of the knot vector in v-direction.
-    */
+    /// @return Gives the size of the knot vector in v-direction.
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
     }
 
     /* Checks if shape functions are rational or not.
-    @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
+     * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
         return mWeights.size() != 0;
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
-    @return weights vector.
-    */
+     * @return weights vector.
+     */
     const Vector& Weights() const
     {
         return mWeights;
@@ -359,8 +354,8 @@ public:
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+     * @return domain interval.
+     */
     NurbsInterval DomainIntervalU() const
     {
         return NurbsInterval(
@@ -369,8 +364,8 @@ public:
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+     * @return domain interval.
+     */
     NurbsInterval DomainIntervalV() const
     {
         return NurbsInterval(
@@ -379,8 +374,8 @@ public:
     }
 
     /* Provides all knot span intervals of the surface in u-direction.
-    @return vector of knot span intervals.
-    */
+     * @return vector of knot span intervals.
+     */
     std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
@@ -401,8 +396,8 @@ public:
     }
 
     /* Provides all knot span intervals of the surface in u-direction.
-    @return vector of knot span intervals.
-    */
+     * @return vector of knot span intervals.
+     */
     std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
@@ -420,6 +415,41 @@ public:
         }
 
         return result;
+    }
+
+    void CalculateEstimatedKnotLengthness(
+        CoordinatesArrayType& rKnotLengthness,
+        const CoordinatesArrayType& rLocalCoordinates) const
+    {
+        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), KnotsU(), rLocalCoordinates[0]);
+        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), KnotsV(), rLocalCoordinates[1]);
+
+        CoordinatesArrayType p1, p2, p3, p4;
+        CoordinatesArrayType gp1, gp2, gp3, gp4;
+        p1[0] = mKnotsU[SpanU];
+        p1[1] = mKnotsV[SpanV];
+        p1[2] = 0;
+
+        p2[0] = mKnotsU[SpanU + 1];
+        p2[1] = mKnotsV[SpanV];
+        p2[2] = 0;
+
+        p3[0] = mKnotsU[SpanU + 1];
+        p3[1] = mKnotsV[SpanV + 1];
+        p3[2] = 0;
+
+        p4[0] = mKnotsU[SpanU];
+        p4[1] = mKnotsV[SpanV + 1];
+        p4[2] = 0;
+
+        GlobalCoordinates(gp1, p1);
+        GlobalCoordinates(gp2, p2);
+        GlobalCoordinates(gp3, p3);
+        GlobalCoordinates(gp4, p4);
+
+        rKnotLengthness[0] = (norm_2(gp1 - gp2) + norm_2(gp3 - gp4)) / 2;
+        rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
+        rKnotLengthness[2] = 0;
     }
 
     ///@}
@@ -528,10 +558,8 @@ public:
                 nonzero_control_points(j) = pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...
@@ -552,13 +580,53 @@ public:
                 N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points);
+                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
         }
     }
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return (int) ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface(rProjectedPointLocalCoordinates,
+            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, (*this));
+    }
 
     /** This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space

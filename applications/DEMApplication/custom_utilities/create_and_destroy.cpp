@@ -45,7 +45,7 @@ namespace Kratos {
     int ParticleCreatorDestructor::FindMaxNodeIdInModelPart(ModelPart& r_modelpart) {
         KRATOS_TRY
         int max_Id = 1; //GID accepts Id's >= 1
-        std::vector<int> thread_maximums(OpenMPUtils::GetNumThreads(),1);
+        std::vector<int> thread_maximums(ParallelUtilities::GetNumThreads(),1);
 
         //#pragma omp parallel for
         for(int i=0; i<(int)r_modelpart.GetCommunicator().LocalMesh().Nodes().size(); i++){
@@ -53,7 +53,7 @@ namespace Kratos {
             if ((int) (node_it->Id()) > thread_maximums[OpenMPUtils::ThisThread()]) thread_maximums[OpenMPUtils::ThisThread()] = node_it->Id();
         }
 
-        for(int i=0; i<OpenMPUtils::GetNumThreads(); i++){
+        for(int i=0; i<ParallelUtilities::GetNumThreads(); i++){
             if(thread_maximums[i] > max_Id) max_Id = thread_maximums[i];
         }
 

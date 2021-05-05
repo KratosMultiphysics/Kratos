@@ -120,15 +120,14 @@ public:
 
         const DataType zero = DataType();
 
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(rA.size1()) ; ++i)
-        {
-            double diag_Aii = rA(i,i);
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            double diag_Aii = rA(Index,Index);
             if(diag_Aii != zero)
-                mDiagonal[i] = 1.00 / sqrt(fabs(diag_Aii));
+                mDiagonal[Index] = 1.00 / std::sqrt(std::abs(diag_Aii));
             else
                 KRATOS_THROW_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
-        }
+        });
+
     }
 
     void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
@@ -138,36 +137,38 @@ public:
 
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            mTemp[i] = rX[i] * mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            mTemp[Index] = rX[Index] * mDiagonal[Index];
+        });
+
         TSparseSpaceType::Mult(rA,mTemp, rY);
         ApplyLeft(rY);
     }
 
     void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            mTemp[i] = rX[i] * mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            mTemp[Index] = rX[Index] * mDiagonal[Index];
+        });
+
         TSparseSpaceType::TransposeMult(rA,mTemp, rY);
         ApplyRight(rY);
     }
 
     VectorType& ApplyLeft(VectorType& rX) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& ApplyRight(VectorType& rX) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
@@ -180,36 +181,36 @@ public:
     */
     VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& ApplyTransposeRight(VectorType& rX) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& ApplyInverseRight(VectorType& rX) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] /= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] /= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& Finalize(VectorType& rX) override
     {
-        #pragma omp parallel for
-        for(int i = 0 ; i < static_cast<int>(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }

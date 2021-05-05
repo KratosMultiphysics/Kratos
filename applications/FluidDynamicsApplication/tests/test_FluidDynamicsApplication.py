@@ -33,6 +33,7 @@ from test_statistics_process import IntegrationPointStatisticsTest
 from cfl_output_process_test import CFLOutputProcessTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
+from adjoint_conditions import TestAdjointMonolithicWallCondition
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -63,6 +64,7 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -89,19 +91,18 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
+    nightSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipSteady'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipBossak'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTest(ConsistentLevelsetNodalGradientTest('testConsistentGradientSquare2D'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
-    nightSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
@@ -112,7 +113,14 @@ def AssembleTestSuites():
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
+    validationSuite.addTest(AdjointVMSSensitivity2D('testSlipNormCylinder'))
+    validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
+    #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
+    validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
 
 
     # Create a test suite that contains all the tests:
@@ -122,12 +130,4 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
-    KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

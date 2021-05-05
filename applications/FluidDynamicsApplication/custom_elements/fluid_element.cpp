@@ -428,7 +428,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -447,7 +447,7 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -480,21 +480,21 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -554,6 +554,20 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
 }
 
 template <class TElementData>
+BoundedMatrix<double, TElementData::Dim, TElementData::Dim> FluidElement<TElementData>::GetAtCoordinate(
+    const typename TElementData::NodalTensorData &rValues,
+    const typename TElementData::ShapeFunctionsType &rN) const
+{
+    BoundedMatrix<double,Dim,Dim> result = ZeroMatrix(Dim,Dim);
+
+    for (size_t i = 0; i < NumNodes; i++) {
+        noalias(result) += rN[i] * rValues[i];
+    }
+
+    return result;
+}
+
+template <class TElementData>
 double FluidElement<TElementData>::GetAtCoordinate(
     const double Value,
     const typename TElementData::ShapeFunctionsType& rN) const
@@ -581,8 +595,10 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
 
     auto& Values = rData.ConstitutiveLawValues;
 
-    const Vector shape_functions_vector(rData.N);
+    const Vector& shape_functions_vector = rData.N;
+    const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
     Values.SetShapeFunctionsValues(shape_functions_vector);
+    Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     //this is ok under the hypothesis that no history dependent behavior is employed

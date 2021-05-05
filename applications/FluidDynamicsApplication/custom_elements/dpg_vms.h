@@ -967,11 +967,14 @@ public:
     }
 
 /**
- * @see DPGVMS::GetValueOnIntegrationPoints
+ * @see DPGVMS::CalculateOnIntegrationPoints
  */
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override
-      {
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
 
 	  if (rVariable == PRESSUREAUX)
 	  {

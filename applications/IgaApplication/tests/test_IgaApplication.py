@@ -8,7 +8,19 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+# Membrane tests
+from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
+from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
+from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as MembraneSinglePatchFourPointSailImplicitDynamic
+# 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
+from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
+# 5p Shell Hierarchic
+from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
+from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
+from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
+# 5p Shell Hierarchic
+from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -29,14 +41,30 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # Import test
         SinglePatchTest,
+        # Membrane tests
+        MembraneSinglePatchFourPointSailLinearStatic,
+        MembraneSinglePatchFourPointSailNonLinearStatic,
+        # 3p Shell KL
         ScordelisRoofShell3pTest,
+        LinearBeamShell3pTest,
+        # 5p Shell Director
+        #ScordelisRoofShell5pTest,
         TTestModelers,
         TTestNurbsVolumeElements
         ]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # Membrane tests
+        MembraneSinglePatchFourPointSailImplicitDynamic,
+        # 5p Shell Hierarchic
+        TShell5pHierarchicLinearThickBeamTest,
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
+        ]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)

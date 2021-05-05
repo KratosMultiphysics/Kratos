@@ -856,7 +856,7 @@ protected:
             it_elem->CalculateOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
 
             for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
-                const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
+                const double det_f = MathUtils<double>::Det(deformation_gradient_matrices[i_gp]);
                 if (det_f < 0.0) {
                     if (mConvergenceCriteriaEchoLevel > 0) {
                         KRATOS_WATCH(it_elem->Id())
@@ -928,7 +928,7 @@ protected:
      * @return Returns the default parameters
      */
 
-    Parameters GetDefaultParameters()
+    Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
         {

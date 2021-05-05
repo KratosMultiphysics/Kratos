@@ -280,7 +280,7 @@ void SolidElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 //************************************************************************************
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
     for ( SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -293,7 +293,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariab
 //************************************************************************************
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -309,7 +309,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariab
 
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
+        const std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -325,7 +325,7 @@ void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariab
 //************************************************************************************
 
 void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
   if(rVariable == CONSTITUTIVE_LAW)  //returns a vector of pointers, it do not clones the constitutives laws (it is not a copy)
@@ -2222,29 +2222,6 @@ int  SolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(VON_MISES_STRESS);
-    KRATOS_CHECK_VARIABLE_KEY(NORM_ISOCHORIC_STRESS);
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_TENSOR);
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_TENSOR);
-    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_TENSOR);
-    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_TENSOR);
-    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_MATRIX);
-    KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT);
-    KRATOS_CHECK_VARIABLE_KEY(STRAIN_ENERGY);
-
 
     // Check that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )

@@ -21,7 +21,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         DisplayThreadInfo();
 
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
@@ -171,18 +171,6 @@ namespace Kratos {
         return 0.0;
 
     }//SolveSolutionStep()
-
-    void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        const int time_step = r_process_info[TIME_STEPS];
-        const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-
-        if (is_time_to_search_neighbours) {
-            SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
-            SearchRigidFaceNeighbours();
-            ComputeNewRigidFaceNeighboursHistoricalData();
-        }
-    }
 
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
 
@@ -357,6 +345,19 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void ContinuumExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
+        KRATOS_TRY
+
+        block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
+            particle->ReorderFEMneighbours();
+        });
+
+
+        BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+
+        KRATOS_CATCH("")
+    }
+
     void ContinuumExplicitSolverStrategy::CreateContactElements() {
         KRATOS_TRY
 
@@ -509,7 +510,7 @@ namespace Kratos {
                 }
 
                 std::vector<double> total_error;
-                mNumberOfThreads = OpenMPUtils::GetNumThreads();
+                mNumberOfThreads = ParallelUtilities::GetNumThreads();
                 total_error.resize(mNumberOfThreads);
 
                 #pragma omp parallel for
@@ -611,7 +612,7 @@ namespace Kratos {
         double total_sum = 0.0;
         int total_non_skin_particles = 0;
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         neighbour_counter.resize(mNumberOfThreads);
         sum.resize(mNumberOfThreads);
         number_of_non_skin_particles.resize(mNumberOfThreads);
@@ -697,7 +698,7 @@ namespace Kratos {
         bool has_mpi = false;
         Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(), 0.0);
+        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
         const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
         #pragma omp parallel for
@@ -708,7 +709,7 @@ namespace Kratos {
         }
 
         double maximum_across_threads = 0.0;
-        for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++) {
+        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
             if (thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
         }
 

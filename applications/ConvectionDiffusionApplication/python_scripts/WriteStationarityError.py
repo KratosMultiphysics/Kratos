@@ -26,22 +26,22 @@ class WriteStationarityErrorToHdf5:
         coordinate_array = [0]*num_nodes
         velocity_array = [0]*num_nodes
         temperature_array = [0]*num_nodes
-        vectorial_error_array = [0]*num_nodes
-        scalar_error_array = [0]*num_nodes
+        # vectorial_error_array = [0]*num_nodes
+        # scalar_error_array = [0]*num_nodes
         for node_i, node in enumerate(self.model_part_fluid.Nodes):
             node_id_array[node_i] = node.Id
             velocity_array[node_i] = node.GetSolutionStepValue(Kratos.VELOCITY)
             temperature_array[node_i] = node.GetSolutionStepValue(Kratos.TEMPERATURE)
             coordinate_array[node_i] = node
-            vectorial_error_array[node_i] = node.GetSolutionStepValue(CD.VECTORIAL_STAT_ERROR)
-            scalar_error_array[node_i] = node.GetSolutionStepValue(CD.SCALAR_STAT_ERROR)
+            # vectorial_error_array[node_i] = node.GetSolutionStepValue(CD.VECTORIAL_STAT_ERROR)
+            # scalar_error_array[node_i] = node.GetSolutionStepValue(CD.SCALAR_STAT_ERROR)
         
         self.node_id = node_id_array
         self.velocities = velocity_array
         self.temperatures = temperature_array
         self.coordinates = coordinate_array
-        self.vectorial_error = vectorial_error_array
-        self.scalar_error = scalar_error_array
+        # self.vectorial_error = vectorial_error_array
+        # self.scalar_error = scalar_error_array
         
 
         for Element in self.model_part_fluid.Elements:
@@ -51,8 +51,8 @@ class WriteStationarityErrorToHdf5:
 
         with h5py.File(self.file_name, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID','VELOCITY_NODAL_STAT_ERROR', 'CONCENTRATION_NODAL_STAT_ERROR', 'VELOCITY_STAT_ERROR', 'CONCENTRATION_STAT_ERROR'],
-                            data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.vectorial_error, self.scalar_error, self.velocity_error, self.concentration_error])
+                            names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID', 'VELOCITY_STAT_ERROR', 'CONCENTRATION_STAT_ERROR'],
+                            data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.velocity_error, self.concentration_error])
 
     def WriteDataToFile(self, file_or_group, names, data):
         if self.group_name in file_or_group:

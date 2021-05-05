@@ -1,11 +1,11 @@
-from KratosMultiphysics import Logger, DataCommunicator
+from KratosMultiphysics import DataCommunicator
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
 from unittest.util import safe_repr
 from contextlib import contextmanager
 
-import getopt
+import argparse
 import sys
 import os
 from time import time
@@ -143,21 +143,6 @@ def SupressAllConsole():
             sys.stderr = old_stderr
             sys.stdout = old_stdout
 
-def Usage():
-    ''' Prints the usage of the script '''
-
-    lines = [
-        'Usage:',
-        '\t python kratos_run_tests [-l level] [-v verbosity]',
-        'Options',
-        '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t --using-mpi: If running in MPI and executing the MPI-tests'
-    ]
-    for l in lines:
-        Logger.PrintInfo(l) # using the logger to only print once in MPI
-
 def main():
     # this deliberately overiddes the function "unittest.main",
     # because it cannot parse extra command line arguments
@@ -167,65 +152,25 @@ def main():
     unittest.main()
 
 def runTests(tests):
-    verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation']
+    # parse command line options
+    parser = argparse.ArgumentParser()
 
-    verbosity = 1
-    level = 'all'
-    print_timings = False
-    is_mpi = False
+    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
+    parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2])
+    parser.add_argument('--timing', action='store_true')
+    parser.add_argument('--using-mpi', action='store_true')
 
-    # Parse Commandline
-    try:
-        opts, args = getopt.getopt(
-            sys.argv[1:],
-            'hv:l:t', [
-                'help',
-                'verbose=',
-                'level=',
-                'timing',
-                'using-mpi'
-            ])
-    except getopt.GetoptError as err:
-        print(str(err))
-        Usage()
-        sys.exit(2)
+    args = parser.parse_args()
 
-    for o, a in opts:
-        if o in ('-v', '--verbose'):
-            if int(a) in verbose_values:
-                verbosity = int(a)
-            else:
-                print('Error: {} is not a valid verbose level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('-h', '--help'):
-            Usage()
-            sys.exit()
-        elif o in ('-l', '--level'):
-            if a in level_values:
-                level = a
-            else:
-                print('Error: {} is not a valid level.'.format(a))
-                Usage()
-                sys.exit()
-        elif o in ('--using-mpi'):
-            is_mpi = True
-        elif o in ('-t', '--timing'):
-            print_timings = True
-        else:
-            assert False, 'unhandled option'
-
-    if is_mpi:
+    level = args.level
+    if args.using_mpi:
         level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
-        print(
-            '[Warning]: "{}" test suite is empty'.format(level),
-            file=sys.stderr)
+        print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)
     else:
-        result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
-        if DataCommunicator.GetDefault().Rank() == 0 and print_timings:
+        result = not TextTestRunner(verbosity=args.verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        if DataCommunicator.GetDefault().Rank() == 0 and args.timing:
             print("Test Execution Times:")
             for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
                 print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
@@ -280,4 +225,4 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
         if self.add_to_path:
-            sys.path = self.currentPythonpath
+            sys.path.remove(self.scope)
