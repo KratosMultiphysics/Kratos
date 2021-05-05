@@ -15,13 +15,12 @@
 // System includes
 
 // External includes
-#include "custom_conditions/penalty_coupling_condition.h"
 
 // Project includes
+#include "custom_conditions/penalty_coupling_condition.h"
 
 namespace Kratos
 {
-
     void PenaltyCouplingCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,

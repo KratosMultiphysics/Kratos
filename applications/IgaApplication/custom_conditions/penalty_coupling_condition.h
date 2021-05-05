@@ -183,14 +183,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
-    /**
-    * This functions calculates both the RHS and the LHS
-    * @param rLeftHandSideMatrix: The LHS
-    * @param rRightHandSideVector: The RHS
-    * @param rCurrentProcessInfo: The current process info instance
-    * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-    * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
-    */
+    /// Calculates left (K) and right (u) hand sides, according to the flags
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
