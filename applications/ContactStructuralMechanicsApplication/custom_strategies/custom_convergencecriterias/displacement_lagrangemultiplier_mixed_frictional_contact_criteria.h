@@ -77,24 +77,29 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
-    typedef typename BaseType::TDataType                    TDataType;
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                                           BaseType;
+
+    /// The definition of the current class
+    typedef DisplacementLagrangeMultiplierMixedFrictionalContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                                                      DofsArrayType;
+
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                                              TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                                              TSystemVectorType;
 
     /// The sparse space used
-    typedef TSparseSpace                              SparseSpaceType;
+    typedef TSparseSpace                                                                        SparseSpaceType;
 
-    /// The r_table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer                                                 TablePrinterPointerType;
 
     /// The index type definition
-    typedef std::size_t                                     IndexType;
-
-    /// The key type definition
-    typedef std::size_t                                       KeyType;
+    typedef std::size_t                                                                               IndexType;
 
     /// The epsilon tolerance definition
     static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
@@ -102,6 +107,26 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor.
+     */
+    explicit DisplacementLagrangeMultiplierMixedFrictionalContactCriteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /**
      * @brief Default constructor.
@@ -117,17 +142,17 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
-        const TDataType LMNormalRatioTolerance,
-        const TDataType LMNormalAbsTolerance,
-        const TDataType LMTangentStickRatioTolerance,
-        const TDataType LMTangentStickAbsTolerance,
-        const TDataType LMTangentSlipRatioTolerance,
-        const TDataType LMTangentSlipAbsTolerance,
-        const TDataType NormalTangentRatio,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
+        const double LMNormalRatioTolerance,
+        const double LMNormalAbsTolerance,
+        const double LMTangentStickRatioTolerance,
+        const double LMTangentStickAbsTolerance,
+        const double LMTangentSlipRatioTolerance,
+        const double LMTangentSlipAbsTolerance,
+        const double NormalTangentRatio,
         const bool EnsureContact = false,
         const bool PureSlip = false,
         const bool PrintingOutput = false
@@ -162,18 +187,6 @@ public:
 
         // We get the  ratio between the normal and tangent that will accepted as converged
         mNormalTangentRatio = NormalTangentRatio;
-    }
-
-    /**
-     * @brief Default constructor (parameters)
-     * @param ThisParameters The configuration parameters
-     */
-    explicit DisplacementLagrangeMultiplierMixedFrictionalContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
-        : BaseType()
-    {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
     }
 
     //* Copy constructor.
@@ -228,7 +241,7 @@ public:
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0,normal_lm_solution_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
+            double disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0,normal_lm_solution_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
             IndexType disp_dof_num(0),rot_dof_num(0),lm_dof_num(0),lm_stick_dof_num(0),lm_slip_dof_num(0);
 
             // The nodes array
@@ -239,7 +252,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
+            double residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
 
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
@@ -275,8 +288,8 @@ public:
                                 normal_lm_increase_norm += std::pow(dof_incr, 2);
                             } else {
                                 const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
-                                const TDataType normal_dof_value = dof_value * normal;
-                                const TDataType normal_dof_incr = dof_incr * normal;
+                                const double normal_dof_value = dof_value * normal;
+                                const double normal_dof_incr = dof_incr * normal;
 
                                 normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                                 normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
@@ -313,18 +326,18 @@ public:
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mRotCurrentResidualNorm = rot_residual_solution_norm;
 
-            const TDataType normal_lm_ratio = std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm);
-            const TDataType tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
-            const TDataType tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
+            const double normal_lm_ratio = std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm);
+            const double tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
+            const double tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
 
-            const TDataType normal_lm_abs = std::sqrt(normal_lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
-            const TDataType tangent_lm_stick_abs = lm_stick_dof_num > 0 ?  std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<TDataType>(lm_stick_dof_num) : 0.0;
-            const TDataType tangent_lm_slip_abs = lm_slip_dof_num > 0 ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<TDataType>(lm_slip_dof_num) : 0.0;
+            const double normal_lm_abs = std::sqrt(normal_lm_increase_norm)/static_cast<double>(lm_dof_num);
+            const double tangent_lm_stick_abs = lm_stick_dof_num > 0 ?  std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<double>(lm_stick_dof_num) : 0.0;
+            const double tangent_lm_slip_abs = lm_slip_dof_num > 0 ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<double>(lm_slip_dof_num) : 0.0;
 
-            const TDataType normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
-            const TDataType normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
+            const double normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
+            const double normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
 
-            TDataType residual_disp_ratio, residual_rot_ratio;
+            double residual_disp_ratio, residual_rot_ratio;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
@@ -344,8 +357,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
