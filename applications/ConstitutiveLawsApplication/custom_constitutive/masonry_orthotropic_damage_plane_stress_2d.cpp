@@ -857,14 +857,6 @@ namespace Kratos
         if (constitutive_matrix.size1() != VoigtSize || constitutive_matrix.size2() != VoigtSize)
             constitutive_matrix.resize(VoigtSize, VoigtSize);
 
-        // save internal variables
-        double save_threshold_tension = mThresholdTension;
-        double save_threshold_compression = mThresholdCompression;
-        double save_damage_tension = mDamageTension;
-        double save_damage_compression = mDamageCompression;
-        double save_uniaxial_stress_tension = mUniaxialStressTension;
-        double save_uniaxial_stress_compression = mUniaxialStressCompression;
-
         // perturbation parameter
         double perturbation_factor = 1.0E-8;
 
@@ -881,24 +873,14 @@ namespace Kratos
 
             noalias(perturbated_stress_vector) = prod(rElasticityMatrix, perturbated_strain_vector);
 
-            int integration_implex = IntegrationImplex;
             this->CalculateMaterialResponseInternal(
                 perturbated_stress_vector,
-                data,
-                integration_implex);
+                data);
 
             for (size_t i = 0; i < VoigtSize; i++)
                 constitutive_matrix(i, j) = (perturbated_stress_vector(i) - rPredictiveStressVector(i)) /
                 perturbation_factor;
         }
-
-        // restore internal variables
-        mThresholdTension = save_threshold_tension;
-        mThresholdCompression = save_threshold_compression;
-        mDamageTension = save_damage_tension;
-        mDamageCompression = save_damage_compression;
-        mUniaxialStressTension = save_uniaxial_stress_tension;
-        mUniaxialStressCompression = save_uniaxial_stress_compression;
     }
     /***********************************************************************************/
     /***********************************************************************************/
