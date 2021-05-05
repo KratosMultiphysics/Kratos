@@ -84,6 +84,12 @@ public:
         const double Beta,
         const double YPlusLimit);
 
+    static void CopyAdjointSolutionToNonHistorical(ModelPart& rModelPart);
+
+    static void RescaleAdjointSolution(ModelPart& rModelPart);
+
+    static void RescaleShapeSensitivity(ModelPart& rModelPart);
+
     ///@}
     ///@name Classes
     ///@{

@@ -19,6 +19,9 @@
 #include "geometries/geometry_data.h"
 #include "includes/model_part.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "utilities/parallel_utilities.h"
+#include "fluid_dynamics_application_variables.h"
+#include "rans_application_variables.h"
 
 // Include base h
 #include "rans_adjoint_utilities.h"
@@ -185,6 +188,179 @@ double RansAdjointUtilities::GeometricalDerivatives<3, 3>::DomainSizeDerivative(
     value_derivative *= 0.5 / value;
 
     return value_derivative;
+}
+
+void RansAdjointUtilities::CopyAdjointSolutionToNonHistorical(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    block_for_each(rModelPart.Nodes(), [](ModelPart::NodeType& rNode) {
+        rNode.SetValue(ADJOINT_FLUID_VECTOR_1, rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1));
+        rNode.SetValue(ADJOINT_FLUID_VECTOR_2, rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2));
+        rNode.SetValue(ADJOINT_FLUID_VECTOR_3, rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3));
+        rNode.SetValue(AUX_ADJOINT_FLUID_VECTOR_1, rNode.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1));
+        rNode.SetValue(ADJOINT_FLUID_SCALAR_1, rNode.FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1));
+        rNode.SetValue(RANS_SCALAR_1_ADJOINT_1, rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_1));
+        rNode.SetValue(RANS_SCALAR_1_ADJOINT_2, rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_2));
+        rNode.SetValue(RANS_SCALAR_1_ADJOINT_3, rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_3));
+        rNode.SetValue(RANS_AUX_ADJOINT_SCALAR_1, rNode.FastGetSolutionStepValue(RANS_AUX_ADJOINT_SCALAR_1));
+        rNode.SetValue(RANS_SCALAR_2_ADJOINT_1, rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_1));
+        rNode.SetValue(RANS_SCALAR_2_ADJOINT_2, rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_2));
+        rNode.SetValue(RANS_SCALAR_2_ADJOINT_3, rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_3));
+        rNode.SetValue(RANS_AUX_ADJOINT_SCALAR_2, rNode.FastGetSolutionStepValue(RANS_AUX_ADJOINT_SCALAR_2));
+        rNode.SetValue(SHAPE_SENSITIVITY, rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY));
+    });
+
+    KRATOS_CATCH("");
+}
+
+void RansAdjointUtilities::RescaleAdjointSolution(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    using MultipleReduction =
+        CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>,
+                          SumReduction<double>, SumReduction<double>, SumReduction<double>,
+                          SumReduction<double>, SumReduction<double>, SumReduction<double>,
+                          SumReduction<double>, SumReduction<double>, SumReduction<double>,
+                          SumReduction<double>, SumReduction<double>>;
+
+    // now calculate adjoint energy of each adjoint variable
+    double adjoint_stable_fluid_vector_1_energy, adjoint_stable_fluid_vector_2_energy,
+        adjoint_stable_fluid_vector_3_energy, aux_adjoint_stable_fluid_vector_1_energy,
+        adjoint_stable_fluid_scalar_1_energy, rans_scalar_1_adjoint_stable_1_energy,
+        rans_scalar_1_adjoint_stable_2_energy, rans_scalar_1_adjoint_stable_3_energy,
+        rans_aux_adjoint_stable_scalar_1_energy, rans_scalar_2_adjoint_stable_1_energy,
+        rans_scalar_2_adjoint_stable_2_energy, rans_scalar_2_adjoint_stable_3_energy,
+        rans_aux_adjoint_stable_scalar_2_energy, shape_sensitivity_stable_energy;
+
+    std::tie(adjoint_stable_fluid_vector_1_energy, adjoint_stable_fluid_vector_2_energy,
+             adjoint_stable_fluid_vector_3_energy, aux_adjoint_stable_fluid_vector_1_energy,
+             adjoint_stable_fluid_scalar_1_energy, rans_scalar_1_adjoint_stable_1_energy,
+             rans_scalar_1_adjoint_stable_2_energy, rans_scalar_1_adjoint_stable_3_energy,
+             rans_aux_adjoint_stable_scalar_1_energy, rans_scalar_2_adjoint_stable_1_energy,
+             rans_scalar_2_adjoint_stable_2_energy, rans_scalar_2_adjoint_stable_3_energy,
+             rans_aux_adjoint_stable_scalar_2_energy, shape_sensitivity_stable_energy) =
+        block_for_each<MultipleReduction>(rModelPart.Nodes(), [](const ModelPart::NodeType& rNode) {
+            return std::make_tuple(
+                std::pow(norm_2(rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1)), 2),
+                std::pow(norm_2(rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2)), 2),
+                std::pow(norm_2(rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3)), 2),
+                std::pow(norm_2(rNode.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1)), 2),
+                std::pow(rNode.FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_1), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_2), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_3), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_AUX_ADJOINT_SCALAR_1), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_1), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_2), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_3), 2),
+                std::pow(rNode.FastGetSolutionStepValue(RANS_AUX_ADJOINT_SCALAR_2), 2),
+                std::pow(norm_2(rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY)), 2));
+        });
+
+    // here do sum all to support MPI
+    // TODO:
+
+    // now calculate adjoint energy of each adjoint variable
+    double adjoint_refined_fluid_vector_1_energy, adjoint_refined_fluid_vector_2_energy,
+        adjoint_refined_fluid_vector_3_energy, aux_adjoint_refined_fluid_vector_1_energy,
+        adjoint_refined_fluid_scalar_1_energy, rans_scalar_1_adjoint_refined_1_energy,
+        rans_scalar_1_adjoint_refined_2_energy, rans_scalar_1_adjoint_refined_3_energy,
+        rans_aux_adjoint_refined_scalar_1_energy, rans_scalar_2_adjoint_refined_1_energy,
+        rans_scalar_2_adjoint_refined_2_energy, rans_scalar_2_adjoint_refined_3_energy,
+        rans_aux_adjoint_refined_scalar_2_energy, shape_sensitivity_refined_energy;
+
+    std::tie(adjoint_refined_fluid_vector_1_energy, adjoint_refined_fluid_vector_2_energy,
+             adjoint_refined_fluid_vector_3_energy, aux_adjoint_refined_fluid_vector_1_energy,
+             adjoint_refined_fluid_scalar_1_energy, rans_scalar_1_adjoint_refined_1_energy,
+             rans_scalar_1_adjoint_refined_2_energy, rans_scalar_1_adjoint_refined_3_energy,
+             rans_aux_adjoint_refined_scalar_1_energy, rans_scalar_2_adjoint_refined_1_energy,
+             rans_scalar_2_adjoint_refined_2_energy, rans_scalar_2_adjoint_refined_3_energy,
+             rans_aux_adjoint_refined_scalar_2_energy, shape_sensitivity_refined_energy) =
+        block_for_each<MultipleReduction>(rModelPart.Nodes(), [](const ModelPart::NodeType& rNode) {
+            return std::make_tuple(
+                std::pow(norm_2(rNode.GetValue(ADJOINT_FLUID_VECTOR_1)), 2),
+                std::pow(norm_2(rNode.GetValue(ADJOINT_FLUID_VECTOR_2)), 2),
+                std::pow(norm_2(rNode.GetValue(ADJOINT_FLUID_VECTOR_3)), 2),
+                std::pow(norm_2(rNode.GetValue(AUX_ADJOINT_FLUID_VECTOR_1)), 2),
+                std::pow(rNode.GetValue(ADJOINT_FLUID_SCALAR_1), 2),
+                std::pow(rNode.GetValue(RANS_SCALAR_1_ADJOINT_1), 2),
+                std::pow(rNode.GetValue(RANS_SCALAR_1_ADJOINT_2), 2),
+                std::pow(rNode.GetValue(RANS_SCALAR_1_ADJOINT_3), 2),
+                std::pow(rNode.GetValue(RANS_AUX_ADJOINT_SCALAR_1), 2),
+                std::pow(rNode.GetValue(RANS_SCALAR_2_ADJOINT_1), 2),
+                std::pow(rNode.GetValue(RANS_SCALAR_2_ADJOINT_2), 2),
+                std::pow(rNode.GetValue(RANS_SCALAR_2_ADJOINT_3), 2),
+                std::pow(rNode.GetValue(RANS_AUX_ADJOINT_SCALAR_2), 2),
+                std::pow(norm_2(rNode.GetValue(SHAPE_SENSITIVITY)), 2));
+        });
+
+    // here do sum all to support MPI
+    // TODO:
+
+    // now calculate the ratios
+    const double ratio_adjoint_refined_fluid_vector_1_energy = adjoint_refined_fluid_vector_1_energy / adjoint_stable_fluid_vector_1_energy;
+    const double ratio_adjoint_refined_fluid_vector_2_energy = adjoint_refined_fluid_vector_2_energy / adjoint_stable_fluid_vector_2_energy;
+    const double ratio_adjoint_refined_fluid_vector_3_energy = adjoint_refined_fluid_vector_3_energy / adjoint_stable_fluid_vector_3_energy;
+    const double ratio_aux_adjoint_refined_fluid_vector_1_energy = aux_adjoint_refined_fluid_vector_1_energy / aux_adjoint_stable_fluid_vector_1_energy;
+    const double ratio_adjoint_refined_fluid_scalar_1_energy = adjoint_refined_fluid_scalar_1_energy / adjoint_stable_fluid_scalar_1_energy;
+    const double ratio_rans_scalar_1_adjoint_refined_1_energy = rans_scalar_1_adjoint_refined_1_energy / rans_scalar_1_adjoint_stable_1_energy;
+    const double ratio_rans_scalar_1_adjoint_refined_2_energy = rans_scalar_1_adjoint_refined_2_energy / rans_scalar_1_adjoint_stable_2_energy;
+    const double ratio_rans_scalar_1_adjoint_refined_3_energy = rans_scalar_1_adjoint_refined_3_energy / rans_scalar_1_adjoint_stable_3_energy;
+    const double ratio_rans_aux_adjoint_refined_scalar_1_energy = rans_aux_adjoint_refined_scalar_1_energy / rans_aux_adjoint_stable_scalar_1_energy;
+    const double ratio_rans_scalar_2_adjoint_refined_1_energy = rans_scalar_2_adjoint_refined_1_energy / rans_scalar_2_adjoint_stable_1_energy;
+    const double ratio_rans_scalar_2_adjoint_refined_2_energy = rans_scalar_2_adjoint_refined_2_energy / rans_scalar_2_adjoint_stable_2_energy;
+    const double ratio_rans_scalar_2_adjoint_refined_3_energy = rans_scalar_2_adjoint_refined_3_energy / rans_scalar_2_adjoint_stable_3_energy;
+    const double ratio_rans_aux_adjoint_refined_scalar_2_energy = rans_aux_adjoint_refined_scalar_2_energy / rans_aux_adjoint_stable_scalar_2_energy;
+    const double ratio_shape_sensitivity_refined_energy = shape_sensitivity_refined_energy / shape_sensitivity_stable_energy;
+
+    // now rescale the adjoint solution
+    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1) = rNode.GetValue(ADJOINT_FLUID_VECTOR_1) / ratio_adjoint_refined_fluid_vector_1_energy;
+        rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2) = rNode.GetValue(ADJOINT_FLUID_VECTOR_2) / ratio_adjoint_refined_fluid_vector_2_energy;
+        rNode.FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_3) = rNode.GetValue(ADJOINT_FLUID_VECTOR_3) / ratio_adjoint_refined_fluid_vector_3_energy;
+        rNode.FastGetSolutionStepValue(AUX_ADJOINT_FLUID_VECTOR_1) = rNode.GetValue(AUX_ADJOINT_FLUID_VECTOR_1) / ratio_aux_adjoint_refined_fluid_vector_1_energy;
+        rNode.FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1) = rNode.GetValue(ADJOINT_FLUID_SCALAR_1) / ratio_adjoint_refined_fluid_scalar_1_energy;
+
+        rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_1) = rNode.GetValue(RANS_SCALAR_1_ADJOINT_1) / ratio_rans_scalar_1_adjoint_refined_1_energy;
+        rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_2) = rNode.GetValue(RANS_SCALAR_1_ADJOINT_2) / ratio_rans_scalar_1_adjoint_refined_2_energy;
+        rNode.FastGetSolutionStepValue(RANS_SCALAR_1_ADJOINT_3) = rNode.GetValue(RANS_SCALAR_1_ADJOINT_3) / ratio_rans_scalar_1_adjoint_refined_3_energy;
+        rNode.FastGetSolutionStepValue(RANS_AUX_ADJOINT_SCALAR_1) = rNode.GetValue(RANS_AUX_ADJOINT_SCALAR_1) / ratio_rans_aux_adjoint_refined_scalar_1_energy;
+
+        rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_1) = rNode.GetValue(RANS_SCALAR_2_ADJOINT_1) / ratio_rans_scalar_2_adjoint_refined_1_energy;
+        rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_2) = rNode.GetValue(RANS_SCALAR_2_ADJOINT_2) / ratio_rans_scalar_2_adjoint_refined_2_energy;
+        rNode.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_3) = rNode.GetValue(RANS_SCALAR_2_ADJOINT_3) / ratio_rans_scalar_2_adjoint_refined_3_energy;
+        rNode.FastGetSolutionStepValue(RANS_AUX_ADJOINT_SCALAR_2) = rNode.GetValue(RANS_AUX_ADJOINT_SCALAR_2) / ratio_rans_aux_adjoint_refined_scalar_2_energy;
+
+        rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY) = rNode.GetValue(SHAPE_SENSITIVITY);
+    });
+
+    KRATOS_CATCH("");
+}
+
+void RansAdjointUtilities::RescaleShapeSensitivity(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    const double stable_solution_max_norm = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [](const ModelPart::NodeType& rNode){
+        return norm_2(rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY));
+    });
+
+    const double refined_solution_max_norm = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [](const ModelPart::NodeType& rNode){
+        return norm_2(rNode.GetValue(SHAPE_SENSITIVITY));
+    });
+
+    const auto& max_list = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(std::vector<double>{stable_solution_max_norm, refined_solution_max_norm});
+
+    const double rescale_ratio = max_list[0] / max_list[1];
+
+    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode){
+        rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY) = rNode.GetValue(SHAPE_SENSITIVITY) * rescale_ratio;
+    });
+
+
+    KRATOS_CATCH("");
 }
 
 } // namespace Kratos

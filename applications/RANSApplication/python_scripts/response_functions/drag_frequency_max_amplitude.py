@@ -10,6 +10,7 @@ from KratosMultiphysics.response_functions.response_function_interface import Re
 
 from KratosMultiphysics.RANSApplication.response_functions.utilities import SolvePrimalProblem
 from KratosMultiphysics.RANSApplication.response_functions.utilities import SolveAdjointProblem
+from KratosMultiphysics.RANSApplication.response_functions.utilities import CalculateDragFrequencyDistribution
 from KratosMultiphysics.RANSApplication.response_functions.utilities import GetDragValues
 from KratosMultiphysics.RANSApplication.response_functions.utilities import RecursiveCopy
 
@@ -24,8 +25,14 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
             "frequency_range"            : [1e-12, 10.0],
             "problem_setup_folder"       : "PLEASE_SPECIFY_PROBLEM_SETUP_FOLDER",
             "problem_setup_files"        : {
-                "primal_project_parameters_file" : "PLEASE_SPECIFY_PRIMAL_PROJECT_PARAMETERS_FILE",
-                "adjoint_project_parameters_file": "PLEASE_SPECIFY_ADJOINT_PROJECT_PARAMETERS_FILE"
+                "stable_solution_parameter_files": {
+                    "primal_project_parameters_file" : "PLEASE_SPECIFY_STABLE_PRIMAL_PROJECT_PARAMETERS_FILE",
+                    "adjoint_project_parameters_file": "PLEASE_SPECIFY_STABLE_ADJOINT_PROJECT_PARAMETERS_FILE"
+                },
+                "refined_solution_parameter_files": {
+                    "primal_project_parameters_file" : "PLEASE_SPECIFY_REFINED_PRIMAL_PROJECT_PARAMETERS_FILE",
+                    "adjoint_project_parameters_file": "PLEASE_SPECIFY_REFINED_ADJOINT_PROJECT_PARAMETERS_FILE"
+                }
             }
         }
         """)
@@ -39,7 +46,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         self.problem_setup_file_settings = self.response_settings["problem_setup_files"]
 
         # checks for adjoint response settings
-        adjoint_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["adjoint_project_parameters_file"].GetString()
+        adjoint_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["refined_solution_parameter_files"]["adjoint_project_parameters_file"].GetString()
         with open(adjoint_project_parameters_file, "r") as file_input:
             input_adjoint_project_parameters_lines = file_input.read()
 
@@ -52,20 +59,21 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         self.max_frequency_bin_index = -1
 
         # check for model part name settings
-        primal_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
+        primal_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["refined_solution_parameter_files"]["primal_project_parameters_file"].GetString()
         with open(primal_project_parameters_file, "r") as file_input:
             primal_settings = Kratos.Parameters(file_input.read())
 
         self.mdpa_name = primal_settings["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-        self.main_model_part = primal_settings["solver_settings"]["model_part_name"].GetString()
+        self.main_model_part_name = primal_settings["solver_settings"]["model_part_name"].GetString()
         # assumes always simulations start with start time 0.0
-        self.total_length = primal_settings["problem_data"]["end_time"]
+        self.total_length = primal_settings["problem_data"]["end_time"].GetDouble()
 
         self.windowing_length = dummy_adjoint_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["window_time_length"].GetDouble()
         if (self.total_length < self.windowing_length):
             raise RuntimeError("Total duration of the simulation should be greater than or equal to windowing length. [ Total simulation duration = {:f}s, windowing length = {:f}s ]".format(self.total_length, self.windowing_length))
 
         self.drag_model_part_name = self.main_model_part_name + "." + dummy_adjoint_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["structure_model_part_name"].GetString()
+        self.drag_direction = dummy_adjoint_parameters["solver_settings"]["response_function_settings"]["custom_settings"]["drag_direction"].GetVector()
 
         frequency_range = self.response_settings["frequency_range"].GetVector()
         if (frequency_range.Size() != 2):
@@ -95,33 +103,21 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
     def CalculateValue(self):
         startTime = timer.time()
 
+        # here we run the refined primal solution.
+
         # open primal settings
-        primal_settings_file_name = self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
-        primal_parameters = SolvePrimalProblem(primal_settings_file_name)
+        primal_settings_file_name = self.problem_setup_file_settings["refined_solution_parameter_files"]["primal_project_parameters_file"].GetString()
+        primal_parameters = SolvePrimalProblem(primal_settings_file_name, "primal_evaluation_refined.log")
 
         # read time step reaction values
         time_steps, reactions = GetDragValues(primal_parameters, self.drag_model_part_name)
+        frequency_list, self.frequency_real_components, self.frequency_imag_components, self.frequency_amplitudes = CalculateDragFrequencyDistribution(time_steps, reactions, self.drag_direction, self.windowing_length)
         delta_time = time_steps[1] - time_steps[0]
 
         number_of_steps = len(reactions)
         number_of_frequencies = number_of_steps // 2
         windowing_steps = int(self.windowing_length / delta_time)
-
-        self.frequency_real_components = [0.0] * number_of_frequencies
-        self.frequency_imag_components = [0.0] * number_of_frequencies
-        self.frequency_amplitudes = [0.0] * number_of_frequencies
-        frequency_list = [0.0] * number_of_frequencies
-
-        for index, drag in enumerate(reactions[number_of_steps - windowing_steps:]):
-            time_step_index = index + number_of_steps - windowing_steps
-            window_value = 0.5 * (1.0 - math.cos(2.0 * math.pi * index / windowing_steps))
-            for k in range(number_of_frequencies):
-                time_step_value = 2.0 * math.pi * time_step_index * k / number_of_steps
-                self.frequency_real_components[k] += window_value * drag * math.cos(time_step_value)
-                self.frequency_imag_components[k] += window_value * drag * math.sin(time_step_value)
-
-        for k in range(number_of_frequencies):
-            self.frequency_amplitudes[k] = math.sqrt(self.frequency_real_components[k] ** 2 + self.frequency_imag_components[k] ** 2) * 2 / windowing_steps
+        frequency_resolution = 1.0 / (delta_time * number_of_steps)
 
         # now get the maximum amplitude frequency from the chosen range
         self.max_frequency_bin_index = -1
@@ -136,14 +132,13 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         if (self.max_frequency_bin_index == -1):
             raise RuntimeError("No frequencies were found in the given range. Please try reducing time step to have more resolution in frequency domain.")
 
-        frequency_resolution = 1.0 / (delta_time * number_of_steps)
         max_frequency_bin_value = self.max_frequency_bin_index * frequency_resolution
 
         header = ""
         header += "Primal evaluation summary:\n"
         header += "   delta_time                        : {:f} s\n".format(delta_time)
         header += "   Total time length                 : {:f} s\n".format(time_steps[-1])
-        header += "   Total time steps                  : {:d}\n".format(time_steps[-1] / delta_time)
+        header += "   Total time steps                  : {:d}\n".format(int(time_steps[-1] / delta_time))
         header += "   Reaction steps                    : {:d}\n".format(number_of_steps)
         header += "   Windowing length                  : {:f} s\n".format(self.windowing_length)
         header += "   Windowing steps                   : {:d}\n".format(windowing_steps)
@@ -171,14 +166,26 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         # solve adjoint frequency bin problems
         start_time = timer.time()
 
+        # primal_settings_file_name = self.problem_setup_file_settings["stable_solution_parameter_files"]["primal_project_parameters_file"].GetString()
+        # _ = SolvePrimalProblem(primal_settings_file_name, "primal_evaluation_stable.log")
+
         # reset gradients
         self.gradients = {}
 
-        # running the real component of DFT
-        self._RunAdjointProblem("real", self.frequency_real_components)
+        # # run adjoints for stable solution components of DFT
+        # _ = self._RunAdjointProblem("real", self.problem_setup_file_settings["stable_solution_parameter_files"], False)
+        # _ = self._RunAdjointProblem("imag", self.problem_setup_file_settings["stable_solution_parameter_files"], False)
 
-        # running the imaginary component of DFT
-        self._RunAdjointProblem("imag", self.frequency_imag_components)
+        # run adjoints for refined solution components of DFT
+        model = self._RunAdjointProblem("real", self.problem_setup_file_settings["refined_solution_parameter_files"], False)
+
+        adjoint_model_part = model[self.main_model_part_name]
+        for node in adjoint_model_part.Nodes:
+            self.gradients[node.Id] = Kratos.Array3(0.0)
+
+        self._CalculateSensitivities(model, self.frequency_real_components)
+        model = self._RunAdjointProblem("imag", self.problem_setup_file_settings["refined_solution_parameter_files"], False)
+        self._CalculateSensitivities(model, self.frequency_imag_components)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the total adjoint analysis = ", round(timer.time() - start_time,2),"s")
 
@@ -197,10 +204,10 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
     def IsEvaluatedInFolder(self):
         return True
 
-    def _RunAdjointProblem(self, component_type, components_list):
+    def _RunAdjointProblem(self, component_type, settings, skip_if_already_run):
         start_adjoint_simulation = timer.time()
 
-        adjoint_project_parameters_file = self.problem_setup_file_settings["adjoint_project_parameters_file"].GetString()
+        adjoint_project_parameters_file = settings["adjoint_project_parameters_file"].GetString()
         adjoint_base_name = adjoint_project_parameters_file[:-5]
         with open(adjoint_project_parameters_file, "r") as file_input:
             input_adjoint_project_parameters_lines = file_input.read()
@@ -223,9 +230,14 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         DragFrequencyMaxAmplitude._WriteKratosParameters(adjoint_filled_project_parameters_file_name, adjoint_parameters)
 
         model = Kratos.Model()
-        _ = SolveAdjointProblem(model, adjoint_filled_project_parameters_file_name, adjoint_log_file_name)
+        _ = SolveAdjointProblem(model, adjoint_filled_project_parameters_file_name, adjoint_log_file_name, skip_if_already_run)
 
-        adjoint_model_part = model[self.main_model_part]
+        Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint for frequency bin {:d} {:s} component = {:f} s using {:s}".format(self.max_frequency_bin_index, component_type, round(timer.time() - start_adjoint_simulation,2), adjoint_project_parameters_file))
+
+        return model
+
+    def _CalculateSensitivities(self, model, components_list):
+        adjoint_model_part = model[self.main_model_part_name]
         delta_time = -1.0 * adjoint_model_part.ProcessInfo[Kratos.DELTA_TIME]
         windowing_steps = int(self.windowing_length / delta_time)
 
@@ -233,8 +245,6 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
 
         for node in adjoint_model_part.Nodes:
             self.gradients[node.Id] += node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY) * coeff
-
-        Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint for frequency bin {:d} {:s} component = {:f} s".format(self.max_frequency_bin_index, component_type, round(timer.time() - start_adjoint_simulation,2)))
 
     @staticmethod
     def _GetLabel():

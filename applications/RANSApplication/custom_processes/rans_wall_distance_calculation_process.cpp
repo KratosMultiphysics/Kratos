@@ -50,9 +50,8 @@ void CalculateAndUpdateNodalMinimumWallDistance(
     const array_1d<double, 3>& rUnitNormal,
     const Variable<double>& rDistanceVariable)
 {
-    // rUnitNormal is assumed to be outward pointing, hence wall_distance will be always positive.
     const double wall_distance =
-        inner_prod(rWallLocation - rNode.Coordinates(), rUnitNormal);
+        std::abs(inner_prod(rWallLocation - rNode.Coordinates(), rUnitNormal));
 
     rNode.SetLock();
     double& current_distance = rNode.FastGetSolutionStepValue(rDistanceVariable);

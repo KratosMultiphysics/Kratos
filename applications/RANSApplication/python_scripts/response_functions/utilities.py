@@ -5,8 +5,9 @@ from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANS
 
 from pathlib import Path
 from shutil import copy
+import math
 
-def SolvePrimalProblem(kratos_primal_parameters_file_name):
+def SolvePrimalProblem(kratos_primal_parameters_file_name, log_file_name = "primal_evaluation.log"):
     primal_filled_settings_file = Path(kratos_primal_parameters_file_name[:kratos_primal_parameters_file_name.rfind(".")] + "_final.json")
 
     if (not primal_filled_settings_file.is_file()):
@@ -14,7 +15,7 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name):
             primal_parameters = Kratos.Parameters(file_input.read())
 
         # set the loggers
-        file_logger = Kratos.FileLoggerOutput("primal_evaluation.log")
+        file_logger = Kratos.FileLoggerOutput(log_file_name)
         default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
         Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
         Kratos.Logger.AddOutput(file_logger)
@@ -43,7 +44,16 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name):
 
     return primal_parameters
 
-def SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name):
+def SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name, skip_if_already_run = False):
+    if (skip_if_already_run):
+        if Path(log_file_name).is_file():
+            with open(log_file_name, "r") as log_file_input:
+                last_line = log_file_input.readlines()[-1][:-1].strip()
+
+            if (last_line == "AdjointRANSAnalysis: Analysis -END-"):
+                Kratos.Logger.PrintInfo("SolveAdjointProblem", "Found existing completed adjoint evaluation at {}.".format(adjoint_parameters_file_name))
+                return
+
     with open(adjoint_parameters_file_name, "r") as file_input:
         adjoint_parameters = Kratos.Parameters(file_input.read())
 
@@ -78,7 +88,7 @@ def GetDragValues(kratos_parameters, model_part_name):
     output_process = _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name)
     if (output_process is not None):
         output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
-        time_steps, reactions = _ReadDrag(output_file_name)
+        time_steps, reactions = ReadDrag(output_file_name)
         return time_steps, reactions
     else:
         raise RuntimeError("No \"compute_body_fitted_drag_process\" found in auxiliar_process_list.")
@@ -95,19 +105,38 @@ def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction):
         total_drag *= delta_time
     return total_drag
 
-def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
-    auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
-    for process_settings in auxiliar_process_list:
-        if (
-            process_settings.Has("python_module") and process_settings["python_module"].GetString() == "compute_body_fitted_drag_process" and
-            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication" and
-            process_settings["Parameters"].Has("model_part_name") and process_settings["Parameters"]["model_part_name"].GetString() == model_part_name
-            ):
-            return process_settings
+def CalculateDragFrequencyDistribution(time_steps, reactions, drag_direction, windowing_length):
+    delta_time = time_steps[1] - time_steps[0]
 
-    return None
+    number_of_steps = len(reactions)
+    number_of_frequencies = number_of_steps // 2
+    windowing_steps = int(windowing_length / delta_time)
 
-def _ReadDrag(file_name):
+    drag_values = [0.0] * number_of_steps
+    for index, reaction in enumerate(reactions):
+        drag_values[index] = reaction[0] * drag_direction[0] + reaction[1] * drag_direction[1] + reaction[2] * drag_direction[2]
+
+    frequency_real_components = [0.0] * number_of_frequencies
+    frequency_imag_components = [0.0] * number_of_frequencies
+    frequency_amplitudes = [0.0] * number_of_frequencies
+    frequency_list = [0.0] * number_of_frequencies
+
+    for index, drag in enumerate(drag_values[number_of_steps - windowing_steps:]):
+        time_step_index = index + number_of_steps - windowing_steps
+        window_value = 0.5 * (1.0 - math.cos(2.0 * math.pi * index / windowing_steps))
+        for k in range(number_of_frequencies):
+            time_step_value = 2.0 * math.pi * time_step_index * k / number_of_steps
+            frequency_real_components[k] += window_value * drag * math.cos(time_step_value)
+            frequency_imag_components[k] += window_value * drag * math.sin(time_step_value)
+
+    frequency_resolution = 1.0 / (delta_time * number_of_steps)
+    for k in range(number_of_frequencies):
+        frequency_list[k] = k * frequency_resolution
+        frequency_amplitudes[k] = math.sqrt(frequency_real_components[k] ** 2 + frequency_imag_components[k] ** 2) * 2 / windowing_steps
+
+    return frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes
+
+def ReadDrag(file_name):
     with open(file_name, "r") as file_input:
         lines = file_input.readlines()
     time_steps = []
@@ -121,3 +150,17 @@ def _ReadDrag(file_name):
         time_steps.append(time)
         reaction.append([fx, fy, fz])
     return time_steps, reaction
+
+def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
+    auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
+    for process_settings in auxiliar_process_list:
+        if (
+            process_settings.Has("python_module") and process_settings["python_module"].GetString() == "compute_body_fitted_drag_process" and
+            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication" and
+            process_settings["Parameters"].Has("model_part_name") and process_settings["Parameters"]["model_part_name"].GetString() == model_part_name
+            ):
+            return process_settings
+
+    return None
+
+

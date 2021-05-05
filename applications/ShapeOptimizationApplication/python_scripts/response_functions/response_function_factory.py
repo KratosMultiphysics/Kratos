@@ -11,6 +11,7 @@
 from . import plane_based_packaging
 from . import mesh_based_packaging
 from . import surface_normal_shape_change
+from . import face_angle
 from . import geometric_centroid_deviation
 from . import total_volume
 
@@ -24,6 +25,8 @@ def CreateResponseFunction(response_id, response_settings, model):
         return mesh_based_packaging.MeshBasedPackaging(response_id, response_settings, model)
     elif response_type == "surface_normal_shape_change":
         return surface_normal_shape_change.SurfaceNormalShapeChange(response_id, response_settings, model)
+    elif response_type == "face_angle":
+        return face_angle.FaceAngleResponseFunction(response_id, response_settings, model)
     elif response_type == "geometric_centroid_deviation":
         return geometric_centroid_deviation.GeometricCentroidDeviation(response_id, response_settings, model)
     elif response_type == "total_volume":
