@@ -68,27 +68,25 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
 
     /// The base convergence criteria class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >  ConvergenceCriteriaBaseType;
 
-    /// The base class definition (and it subclasses)
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
-    typedef typename BaseType::TDataType                                       TDataType;
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+    /// The base class definition
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >           BaseType;
 
-    /// The sparse space used
-    typedef TSparseSpace                                                 SparseSpaceType;
+    /// The definition of the current class
+    typedef ALMFrictionalMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
 
-    /// The components containers
-    typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                                DofsArrayType;
 
-    /// The r_table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                        TSystemMatrixType;
 
-    /// The index type definition
-    typedef std::size_t                                                        IndexType;
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                        TSystemVectorType;
+
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer                           TablePrinterPointerType;
 
     /// The epsilon tolerance definition
     static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
@@ -108,6 +106,18 @@ public:
         // Set local flags
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ALMFrictionalMortarConvergenceCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -263,9 +273,39 @@ public:
         }
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        /**
+         * error_mesh_tolerance: The tolerance in the convergence criteria of the error
+         * error_mesh_constant: The constant considered in the remeshing process
+         * penalty_normal: The penalty used in the normal direction (for the contact patch)
+         * penalty_tangential: The penalty used in the tangent direction (for the contact patch)
+         * echo_level: The verbosity
+         */
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "alm_frictional_mortar_criteria",
+            "print_convergence_criterion" : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "alm_frictional_mortar_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -274,6 +314,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ALMFrictionalMortarConvergenceCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -295,6 +357,19 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Set local flags
+        BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+    }
 
     /**
      * @brief This method resets the weighted gap in the nodes of the problem
