@@ -454,7 +454,7 @@ namespace Testing {
         // Check element sizes / knot span size
         array_1d<double, 3> characteristic_length;
         quadrature_points(2)->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length);
-        KRATOS_CHECK_NEAR(characteristic_length[0], 10, TOLERANCE);
+        KRATOS_CHECK_NEAR(characteristic_length[0], 10.7703296, TOLERANCE);
         KRATOS_CHECK_NEAR(characteristic_length[1], 5, TOLERANCE);
 
         // Check shape functions
