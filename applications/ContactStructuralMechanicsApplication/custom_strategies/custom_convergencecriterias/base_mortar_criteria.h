@@ -228,7 +228,7 @@ public:
         ) override
     {
         // We save the current WEIGHTED_GAP in the buffer
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
         #pragma omp parallel for
@@ -487,7 +487,7 @@ protected:
      */
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
 
@@ -534,7 +534,7 @@ private:
 
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-        ConditionsArrayType& r_conditions_array = r_computing_contact_model_part.Conditions();
+        auto& r_conditions_array = r_computing_contact_model_part.Conditions();
         const auto it_cond_begin = r_conditions_array.begin();
 
         #pragma omp parallel for
