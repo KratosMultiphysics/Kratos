@@ -493,8 +493,8 @@ def AssembleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # Already contains the smallSuite
-    validationSuite.addTests(allSuite) # Validation contains all
+    validationSuite.addTests(nightSuite) # Validation contains all the tests
+    allSuite.addTests(validationSuite)
 
     return suites
 
