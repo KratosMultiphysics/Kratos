@@ -120,17 +120,17 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
-        const TDataType LMNormalRatioTolerance,
-        const TDataType LMNormalAbsTolerance,
-        const TDataType LMTangentStickRatioTolerance,
-        const TDataType LMTangentStickAbsTolerance,
-        const TDataType LMTangentSlipRatioTolerance,
-        const TDataType LMTangentSlipAbsTolerance,
-        const TDataType NormalTangentRatio,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
+        const double LMNormalRatioTolerance,
+        const double LMNormalAbsTolerance,
+        const double LMTangentStickRatioTolerance,
+        const double LMTangentStickAbsTolerance,
+        const double LMTangentSlipRatioTolerance,
+        const double LMTangentSlipAbsTolerance,
+        const double NormalTangentRatio,
         const bool EnsureContact = false,
         const bool PureSlip = false,
         const bool PrintingOutput = false
@@ -239,7 +239,7 @@ public:
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0,normal_lm_residual_solution_norm = 0.0, tangent_lm_stick_residual_solution_norm = 0.0, tangent_lm_slip_residual_solution_norm = 0.0;
+            double disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0,normal_lm_residual_solution_norm = 0.0, tangent_lm_stick_residual_solution_norm = 0.0, tangent_lm_slip_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0), rot_dof_num(0), lm_dof_num(0), lm_stick_dof_num(0), lm_slip_dof_num(0);
 
             // The nodes array
@@ -250,7 +250,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType residual_dof_value = 0.0;
+            double residual_dof_value = 0.0;
 
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
@@ -286,7 +286,7 @@ public:
                             } else {
                                 const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
 
-                                const TDataType normal_comp_residual = residual_dof_value * normal;
+                                const double normal_comp_residual = residual_dof_value * normal;
                                 normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
                                 if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
                                     tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
@@ -339,11 +339,11 @@ public:
             mLMTangentStickCurrentResidualNorm = tangent_lm_stick_residual_solution_norm;
             mLMTangentSlipCurrentResidualNorm = tangent_lm_slip_residual_solution_norm;
 
-            TDataType residual_disp_ratio = 1.0;
-            TDataType residual_rot_ratio = 1.0;
-            TDataType residual_normal_lm_ratio = 1.0;
-            TDataType residual_tangent_lm_stick_ratio = 1.0;
-            TDataType residual_tangent_lm_slip_ratio = 1.0;
+            double residual_disp_ratio = 1.0;
+            double residual_rot_ratio = 1.0;
+            double residual_normal_lm_ratio = 1.0;
+            double residual_tangent_lm_stick_ratio = 1.0;
+            double residual_tangent_lm_slip_ratio = 1.0;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
@@ -397,15 +397,15 @@ public:
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT) && residual_normal_lm_ratio < ZeroTolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             // We calculate the absolute norms
-            const TDataType residual_disp_abs = mDispCurrentResidualNorm/static_cast<TDataType>(disp_dof_num);
-            const TDataType residual_rot_abs = mRotCurrentResidualNorm/static_cast<TDataType>(rot_dof_num);
-            const TDataType residual_normal_lm_abs = mLMNormalCurrentResidualNorm/static_cast<TDataType>(lm_dof_num);
-            const TDataType residual_tangent_lm_stick_abs = lm_stick_dof_num > 0 ? mLMTangentStickCurrentResidualNorm/static_cast<TDataType>(lm_dof_num) : 0.0;
-//             const TDataType residual_tangent_lm_stick_abs = lm_stick_dof_num > 0 ? mLMTangentStickCurrentResidualNorm/static_cast<TDataType>(lm_stick_dof_num) : 0.0;
-            const TDataType residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<TDataType>(lm_dof_num) : 0.0;
-//             const TDataType residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<TDataType>(lm_slip_dof_num) : 0.0;
-            const TDataType normal_tangent_stick_ratio = residual_tangent_lm_stick_abs/residual_normal_lm_abs;
-            const TDataType normal_tangent_slip_ratio = residual_tangent_lm_slip_abs/residual_normal_lm_abs;
+            const double residual_disp_abs = mDispCurrentResidualNorm/static_cast<double>(disp_dof_num);
+            const double residual_rot_abs = mRotCurrentResidualNorm/static_cast<double>(rot_dof_num);
+            const double residual_normal_lm_abs = mLMNormalCurrentResidualNorm/static_cast<double>(lm_dof_num);
+            const double residual_tangent_lm_stick_abs = lm_stick_dof_num > 0 ? mLMTangentStickCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
+//             const double residual_tangent_lm_stick_abs = lm_stick_dof_num > 0 ? mLMTangentStickCurrentResidualNorm/static_cast<double>(lm_stick_dof_num) : 0.0;
+            const double residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<double>(lm_dof_num) : 0.0;
+//             const double residual_tangent_lm_slip_abs = lm_slip_dof_num > 0 ? mLMTangentSlipCurrentResidualNorm/static_cast<double>(lm_slip_dof_num) : 0.0;
+            const double normal_tangent_stick_ratio = residual_tangent_lm_stick_abs/residual_normal_lm_abs;
+            const double normal_tangent_slip_ratio = residual_tangent_lm_slip_abs/residual_normal_lm_abs;
 
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -731,34 +731,34 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;                /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;                  /// The absolute value threshold for the norm of the displacement residual
-    TDataType mDispInitialResidualNorm;           /// The reference norm of the displacement residual
-    TDataType mDispCurrentResidualNorm;           /// The current norm of the displacement residual
+    double mDispRatioTolerance;                /// The ratio threshold for the norm of the displacement residual
+    double mDispAbsTolerance;                  /// The absolute value threshold for the norm of the displacement residual
+    double mDispInitialResidualNorm;           /// The reference norm of the displacement residual
+    double mDispCurrentResidualNorm;           /// The current norm of the displacement residual
 
-    TDataType mRotRatioTolerance;                /// The ratio threshold for the norm of the rotation residual
-    TDataType mRotAbsTolerance;                  /// The absolute value threshold for the norm of the rotation residual
-    TDataType mRotInitialResidualNorm;           /// The reference norm of the rotation residual
-    TDataType mRotCurrentResidualNorm;           /// The current norm of the rotation residual
+    double mRotRatioTolerance;                /// The ratio threshold for the norm of the rotation residual
+    double mRotAbsTolerance;                  /// The absolute value threshold for the norm of the rotation residual
+    double mRotInitialResidualNorm;           /// The reference norm of the rotation residual
+    double mRotCurrentResidualNorm;           /// The current norm of the rotation residual
 
-    TDataType mLMNormalRatioTolerance;            /// The ratio threshold for the norm of the normal LM residual
-    TDataType mLMNormalAbsTolerance;              /// The absolute value threshold for the norm of the normal LM  residual
-    TDataType mLMNormalInitialResidualNorm;       /// The reference norm of the normal LM residual
-    TDataType mLMNormalCurrentResidualNorm;       /// The current norm of the normal LM residual
+    double mLMNormalRatioTolerance;            /// The ratio threshold for the norm of the normal LM residual
+    double mLMNormalAbsTolerance;              /// The absolute value threshold for the norm of the normal LM  residual
+    double mLMNormalInitialResidualNorm;       /// The reference norm of the normal LM residual
+    double mLMNormalCurrentResidualNorm;       /// The current norm of the normal LM residual
 
-    TDataType mLMTangentStickRatioTolerance;      /// The ratio threshold for the norm of the tangent LM residual (stick)
-    TDataType mLMTangentStickAbsTolerance;        /// The absolute value threshold for the norm of the tangent LM  residual (stick)
-    TDataType mLMTangentSlipRatioTolerance;       /// The ratio threshold for the norm of the tangent LM residual (slip)
-    TDataType mLMTangentSlipAbsTolerance;         /// The absolute value threshold for the norm of the tangent LM  residual (slip)
-    TDataType mLMTangentStickInitialResidualNorm; /// The reference norm of the tangent LM residual (stick)
-    TDataType mLMTangentStickCurrentResidualNorm; /// The current norm of the tangent LM residual (stick)
-    TDataType mLMTangentSlipInitialResidualNorm;  /// The reference norm of the tangent LM residual (slip)
-    TDataType mLMTangentSlipCurrentResidualNorm;  /// The current norm of the tangent LM residual (slip)
+    double mLMTangentStickRatioTolerance;      /// The ratio threshold for the norm of the tangent LM residual (stick)
+    double mLMTangentStickAbsTolerance;        /// The absolute value threshold for the norm of the tangent LM  residual (stick)
+    double mLMTangentSlipRatioTolerance;       /// The ratio threshold for the norm of the tangent LM residual (slip)
+    double mLMTangentSlipAbsTolerance;         /// The absolute value threshold for the norm of the tangent LM  residual (slip)
+    double mLMTangentStickInitialResidualNorm; /// The reference norm of the tangent LM residual (stick)
+    double mLMTangentStickCurrentResidualNorm; /// The current norm of the tangent LM residual (stick)
+    double mLMTangentSlipInitialResidualNorm;  /// The reference norm of the tangent LM residual (slip)
+    double mLMTangentSlipCurrentResidualNorm;  /// The current norm of the tangent LM residual (slip)
 
     std::size_t mStickCounter = 0;                /// This is an auxiliar counter for stick dofs
     std::size_t mSlipCounter = 0;                 /// This is an auxiliar counter for slip dofs
 
-    TDataType mNormalTangentRatio;                /// The ratio to accept a non converged tangent component in case
+    double mNormalTangentRatio;                /// The ratio to accept a non converged tangent component in case
 
     std::vector<int> mActiveDofs;                 /// This vector contains the dofs that are active
 
