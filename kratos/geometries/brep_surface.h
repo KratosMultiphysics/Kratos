@@ -460,29 +460,6 @@ public:
         }
     }
 
-    /* @brief calls function of undelying nurbs surface,
-     *        which itself is not implented and thus is calling the
-     *        geometry base class and updates the parent to itself.
-     *
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param NumberOfShapeFunctionDerivatives the number of evaluated
-     *        derivatives of shape functions at the quadrature point geometries.
-     *
-     * @see quadrature_point_geometry.h
-     */
-    void CreateQuadraturePointGeometries(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives,
-        IntegrationInfo& rIntegrationInfo) override
-    {
-        mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
-
-        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
-            rResultGeometries(i)->SetGeometryParent(this);
-        }
-    }
-
     ///@}
     ///@name Shape Function
     ///@{
