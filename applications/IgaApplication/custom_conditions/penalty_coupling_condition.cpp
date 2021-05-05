@@ -68,7 +68,7 @@ namespace Kratos
 
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes_master; i++)
+            for (IndexType i = 0; i < number_of_nodes_master; ++i)
             {
                 IndexType index = 3 * i;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
@@ -79,7 +79,7 @@ namespace Kratos
                     H(2, index + 2) = N_master(point_number, i);
             }
 
-            for (IndexType i = 0; i < number_of_nodes_slave; i++)
+            for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
                 IndexType index = 3 * (i + number_of_nodes_master);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
@@ -100,7 +100,7 @@ namespace Kratos
             if (CalculateResidualVectorFlag) {
 
                 Vector u(mat_size);
-                for (IndexType i = 0; i < number_of_nodes_master; i++)
+                for (IndexType i = 0; i < number_of_nodes_master; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
                     IndexType index = 3 * i;
@@ -108,7 +108,7 @@ namespace Kratos
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
-                for (IndexType i = 0; i < number_of_nodes_slave; i++)
+                for (IndexType i = 0; i < number_of_nodes_slave; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
                     IndexType index = 3 * (i + number_of_nodes_master);
