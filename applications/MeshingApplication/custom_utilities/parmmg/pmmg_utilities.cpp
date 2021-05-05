@@ -251,7 +251,7 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (GetDiscretization() != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING_IF("ParMmgUtilities", GetEchoLevel() > 1) << "Condition. Null reference-pointer returned. Rank " <<
-                DataCommunicator::GetDefault().Rank() << " Id: " << CondId << " Ref: " << Ref<< std::endl;
+                rModelPart.GetCommunicator().MyPID() << " Id: " << CondId << " Ref: " << Ref<< std::endl;
 
             return p_condition;
         } else {
@@ -1324,7 +1324,6 @@ void ParMmgUtilities<TPMMGLibrary>::WriteMeshDataToModelPart(
 
         std::unordered_map<IndexType, std::vector<IndexType>> pi_to_vector_node;
         //get nodes we need from other ranks
-        IndexType rank =  DataCommunicator::GetDefault().Rank();
         for(int i_node = 0; i_node < static_cast<int>(r_sub_model_part.Nodes().size()); ++i_node ){
             auto it_node = r_sub_model_part.NodesBegin() + i_node;
             IndexType partition_index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);

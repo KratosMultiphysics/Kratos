@@ -22,7 +22,7 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         self.dimension = 3
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.dimension
 
-        self.my_pid = KM.DataCommunicator.GetDefault().Rank()
+        self.my_pid = KM.Testing.GetDefaultDataCommunicator().Rank()
         self.num_nodes = self.my_pid % 5 + 3 # num_nodes in range (3 ... 7)
         if self.my_pid == 4:
             self.num_nodes = 0 # in order to emulate one partition not having local nodes
@@ -41,7 +41,6 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
             "variable_name"   : "PRESSURE"
         }""")
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
-        self.interface_data.Initialize()
 
         self.dummy_solver_wrapper = DummySolverWrapper({"data_4_testing" : self.interface_data})
 
@@ -55,7 +54,7 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         exp_inp = self.interface_data.GetData()
         update_solution_return_value = [uniform(-10, 50) for _ in range(self.num_nodes)]
 
-        global_update_solution_return_value = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(update_solution_return_value, 0)))
+        global_update_solution_return_value = np.array(np.concatenate(KM.Testing.GetDefaultDataCommunicator().GathervDoubles(update_solution_return_value, 0)))
 
         conv_acc_mock = Mock()
 
@@ -83,8 +82,8 @@ class TestConvergenceAcceleratorWrapper(KratosUnittest.TestCase):
         conv_acc_wrapper.ComputeAndApplyUpdate()
 
         self.assertEqual(conv_acc_mock.UpdateSolution.call_count, int(self.my_pid == 0)) # only one rank calls "UpdateSolution"
-        global_exp_res = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(exp_res, 0)))
-        global_exp_inp = np.array(np.concatenate(KM.DataCommunicator.GetDefault().GathervDoubles(exp_inp, 0)))
+        global_exp_res = np.array(np.concatenate(KM.Testing.GetDefaultDataCommunicator().GathervDoubles(exp_res, 0)))
+        global_exp_inp = np.array(np.concatenate(KM.Testing.GetDefaultDataCommunicator().GathervDoubles(exp_inp, 0)))
         if self.my_pid == 0:
             # numpy arrays cannot be compared using the mock-functions, hence using the numpy functions
             np.testing.assert_array_equal(global_exp_res, conv_acc_mock.UpdateSolution.call_args[0][0])

@@ -18,41 +18,43 @@ class TestCookMembrane(KratosUnittest.TestCase):
         self.print_results = False
 
     def test_cook_membrane_2d(self):
-        results_filename = "cook_membrane_test/cook_membrane_results.json"
-        parameters_filename = "cook_membrane_test/cook_membrane_parameters.json"
-        with open(parameters_filename,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            results_filename = "cook_membrane_test/cook_membrane_results.json"
+            parameters_filename = "cook_membrane_test/cook_membrane_parameters.json"
+            with open(parameters_filename,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        model = KratosMultiphysics.Model()
-        simulation = StructuralMechanicsAnalysis(model, parameters)
-        simulation.Run()
+            model = KratosMultiphysics.Model()
+            simulation = StructuralMechanicsAnalysis(model, parameters)
+            simulation.Run()
 
-        # self._check_results(model_part, A, b)
-        if self.print_results:
-            self.__print_results(model, results_filename)
-        if self.print_output:
-            self.__post_process(model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString()))
-        self.__check_results(model, results_filename)
+            # self._check_results(model_part, A, b)
+            if self.print_results:
+                self.__print_results(model, results_filename)
+            if self.print_output:
+                self.__post_process(model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString()))
+            self.__check_results(model, results_filename)
 
     def test_cook_membrane_incompressible_2d(self):
-        results_filename = "cook_membrane_test/cook_membrane_incompressible_results.json"
-        parameters_filename = "cook_membrane_test/cook_membrane_parameters.json"
-        with open(parameters_filename,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString("cook_membrane_test/cook_membrane_incompressible_materials.json")
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            results_filename = "cook_membrane_test/cook_membrane_incompressible_results.json"
+            parameters_filename = "cook_membrane_test/cook_membrane_parameters.json"
+            with open(parameters_filename,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString("cook_membrane_test/cook_membrane_incompressible_materials.json")
 
-        model = KratosMultiphysics.Model()
-        simulation = StructuralMechanicsAnalysis(model, parameters)
-        simulation.Run()
+            model = KratosMultiphysics.Model()
+            simulation = StructuralMechanicsAnalysis(model, parameters)
+            simulation.Run()
 
-        # self._check_results(model_part, A, b)
-        if self.print_results:
-            self.__print_results(model, results_filename)
-        if self.print_output:
-            self.__post_process(model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString()))
-        self.__check_results(model, results_filename)
+            # self._check_results(model_part, A, b)
+            if self.print_results:
+                self.__print_results(model, results_filename)
+            if self.print_output:
+                self.__post_process(model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString()))
+            self.__check_results(model, results_filename)
 
-    def __print_results(self, model, results_filename):
+    def     __print_results(self, model, results_filename):
         json_output_settings = KratosMultiphysics.Parameters(r"""
         {
             "output_variables": ["DISPLACEMENT_X","DISPLACEMENT_Y","VOLUMETRIC_STRAIN"],

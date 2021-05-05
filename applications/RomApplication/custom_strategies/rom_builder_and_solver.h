@@ -321,7 +321,7 @@ public:
             const Matrix *pcurrent_rom_nodal_basis = nullptr;
             unsigned int old_dof_id;
             #pragma omp for nowait
-            for (unsigned int k = 0; k<dofs_number; k++){
+            for (int k = 0; k < static_cast<int>(dofs_number); k++){
                 auto dof = dofs_begin + k;
                 if(pcurrent_rom_nodal_basis == nullptr){
                     pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
@@ -343,7 +343,7 @@ public:
     {
         const Matrix *pcurrent_rom_nodal_basis = nullptr;
         int counter = 0;
-        for(unsigned int k = 0; k < dofs.size(); ++k){
+        for(int k = 0; k < static_cast<int>(dofs.size()); ++k){
             auto variable_key = dofs[k]->GetVariable().Key();
             if(k==0)
                 pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
@@ -427,7 +427,7 @@ public:
             Matrix aux;
 
             #pragma omp for nowait
-            for (int k = 0; k < nelements; k++)
+            for (int k = 0; k < static_cast<int>(nelements); k++)
             {
                 auto it_el = el_begin + k;
                 //detect if the element is active or not. If the user did not make any choice the element
@@ -455,7 +455,7 @@ public:
             }
 
             #pragma omp for nowait
-            for (int k = 0; k < nconditions; k++){
+            for (int k = 0; k < static_cast<int>(nconditions); k++){
                 auto it = cond_begin + k;
 
                 //detect if the element is active or not. If the user did not make any choice the condition

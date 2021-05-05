@@ -72,7 +72,7 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
 
     ///@}
     ///@name Life Cycle
@@ -148,17 +148,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -169,17 +159,7 @@ public:
         return *this;
     }
 
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -314,6 +294,21 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            mpNurbsSurface->Calculate(rVariable, rOutput);
+        }
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 
@@ -345,6 +340,12 @@ public:
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
 
     /**
     * @brief Calls projection of its nurbs surface.
@@ -487,6 +488,16 @@ public:
         mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
+    }
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::Kratos_Brep;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::Kratos_Brep_Surface;
     }
 
     ///@}
