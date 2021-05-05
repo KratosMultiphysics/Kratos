@@ -116,17 +116,17 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementLagrangeMultiplierFrictionalContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
-        const TDataType LMNormalRatioTolerance,
-        const TDataType LMNormalAbsTolerance,
-        const TDataType LMTangentStickRatioTolerance,
-        const TDataType LMTangentStickAbsTolerance,
-        const TDataType LMTangentSlipRatioTolerance,
-        const TDataType LMTangentSlipAbsTolerance,
-        const TDataType NormalTangentRatio,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
+        const double LMNormalRatioTolerance,
+        const double LMNormalAbsTolerance,
+        const double LMTangentStickRatioTolerance,
+        const double LMTangentStickAbsTolerance,
+        const double LMTangentSlipRatioTolerance,
+        const double LMTangentSlipAbsTolerance,
+        const double NormalTangentRatio,
         const bool EnsureContact = false,
         const bool PureSlip = false,
         const bool PrintingOutput = false
@@ -222,7 +222,7 @@ public:
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
             // Initialize
-            TDataType disp_solution_norm = 0.0, rot_solution_norm = 0.0, normal_lm_solution_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, disp_increase_norm = 0.0, rot_increase_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
+            double disp_solution_norm = 0.0, rot_solution_norm = 0.0, normal_lm_solution_norm = 0.0, tangent_lm_stick_solution_norm = 0.0, tangent_lm_slip_solution_norm = 0.0, disp_increase_norm = 0.0, rot_increase_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_stick_increase_norm = 0.0, tangent_lm_slip_increase_norm = 0.0;
             IndexType disp_dof_num(0), rot_dof_num(0), lm_dof_num(0), lm_stick_dof_num(0), lm_slip_dof_num(0);
 
             // First iterator
@@ -233,7 +233,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType dof_value = 0.0, dof_incr = 0.0;
+            double dof_value = 0.0, dof_incr = 0.0;
 
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
@@ -269,8 +269,8 @@ public:
                                 normal_lm_increase_norm += std::pow(dof_incr, 2);
                             } else {
                                 const double normal = it_node->FastGetSolutionStepValue(NORMAL)[r_curr_var.GetComponentIndex()];
-                                const TDataType normal_dof_value = dof_value * normal;
-                                const TDataType normal_dof_incr = dof_incr * normal;
+                                const double normal_dof_value = dof_value * normal;
+                                const double normal_dof_incr = dof_incr * normal;
 
                                 normal_lm_solution_norm += std::pow(normal_dof_value, 2);
                                 normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
@@ -309,20 +309,20 @@ public:
 
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm < Tolerance) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
-            const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
-            const TDataType rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
-            const TDataType normal_lm_ratio = normal_lm_solution_norm > Tolerance ? std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm) : 0.0;
-            const TDataType tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
-            const TDataType tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
+            const double disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
+            const double rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
+            const double normal_lm_ratio = normal_lm_solution_norm > Tolerance ? std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm) : 0.0;
+            const double tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
+            const double tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
 
-            const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
-            const TDataType rot_abs = std::sqrt(rot_increase_norm)/ static_cast<TDataType>(rot_dof_num);
-            const TDataType normal_lm_abs = std::sqrt(normal_lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
-            const TDataType tangent_lm_stick_abs = lm_stick_dof_num > 0 ?  std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<TDataType>(lm_stick_dof_num) : 0.0;
-            const TDataType tangent_lm_slip_abs = lm_slip_dof_num > 0 ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<TDataType>(lm_slip_dof_num) : 0.0;
+            const double disp_abs = std::sqrt(disp_increase_norm)/ static_cast<double>(disp_dof_num);
+            const double rot_abs = std::sqrt(rot_increase_norm)/ static_cast<double>(rot_dof_num);
+            const double normal_lm_abs = std::sqrt(normal_lm_increase_norm)/ static_cast<double>(lm_dof_num);
+            const double tangent_lm_stick_abs = lm_stick_dof_num > 0 ?  std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<double>(lm_stick_dof_num) : 0.0;
+            const double tangent_lm_slip_abs = lm_slip_dof_num > 0 ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<double>(lm_slip_dof_num) : 0.0;
 
-            const TDataType normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
-            const TDataType normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
+            const double normal_tangent_stick_ratio = tangent_lm_stick_abs/normal_lm_abs;
+            const double normal_tangent_slip_ratio = tangent_lm_slip_abs/normal_lm_abs;
 
             // We print the results  // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -627,21 +627,21 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement
+    double mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement
+    double mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement
 
-    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation
-    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation
+    double mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation
+    double mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation
 
-    TDataType mLMNormalRatioTolerance;  /// The ratio threshold for the norm of the LM (normal)
-    TDataType mLMNormalAbsTolerance;    /// The absolute value threshold for the norm of the LM (normal)
+    double mLMNormalRatioTolerance;  /// The ratio threshold for the norm of the LM (normal)
+    double mLMNormalAbsTolerance;    /// The absolute value threshold for the norm of the LM (normal)
 
-    TDataType mLMTangentStickRatioTolerance; /// The ratio threshold for the norm of the LM (tangent-stick)
-    TDataType mLMTangentStickAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent-stick)
-    TDataType mLMTangentSlipRatioTolerance;  /// The ratio threshold for the norm of the LM (tangent-slip)
-    TDataType mLMTangentSlipAbsTolerance;    /// The absolute value threshold for the norm of the LM (tangent-slip)
+    double mLMTangentStickRatioTolerance; /// The ratio threshold for the norm of the LM (tangent-stick)
+    double mLMTangentStickAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent-stick)
+    double mLMTangentSlipRatioTolerance;  /// The ratio threshold for the norm of the LM (tangent-slip)
+    double mLMTangentSlipAbsTolerance;    /// The absolute value threshold for the norm of the LM (tangent-slip)
 
-    TDataType mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
+    double mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
 
     std::vector<int> mActiveDofs;       /// This vector contains the dofs that are active
 
