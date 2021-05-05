@@ -199,6 +199,10 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+    void DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian);
+
     ///@}
     ///@name Input and output
     ///@{
