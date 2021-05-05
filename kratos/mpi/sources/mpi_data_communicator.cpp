@@ -134,11 +134,10 @@ void MPIDataCommunicator::RecvImpl(std::vector<type>& rRecvValues,              
     RecvDetail(rRecvValues, RecvSource, RecvTag);                                       \
 }                                                                                       \
 void MPIDataCommunicator::ExchangeDataAsyncImpl(                                        \
-    const std::vector<std::vector<type>>& rSendBuffer,                                  \
-    std::vector<std::vector<type>>& rRecvBuffer,                                        \
-    std::vector<int>& rSendCounts,                                                      \
-    std::vector<int>& rRecvCounts) const {                                              \
-    ExchangeDataAsyncDetail(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);        \
+    const std::vector<type>& rSendBuffer,                                               \
+    std::vector<type>& rRecvBuffer,                                                     \
+    const std::vector<int>& rSendCounts) const {                                        \
+    ExchangeDataAsyncDetail(rSendBuffer, rRecvBuffer, rSendCounts);                     \
 }                                                                                       \
 
 #endif
@@ -713,9 +712,12 @@ template<class TDataType> void MPIDataCommunicator::RecvDetail(
 }
 
 template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
-    const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
-    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
+    const std::vector<TObject>& rSendBuffer, std::vector<TObject>& rRecvBuffer,
+    const std::vector<int>& rSendCounts) const
 {
+    std::vector<int> rRecvCounts;
+    rRecvCounts.resize(rSendCounts.size());
+
     // Exchange the buffer sizes
     MPI_Alltoall(rSendCounts.data(), 1, MPI_INT, rRecvCounts.data(), 1, MPI_INT, mComm);
 
@@ -733,26 +735,26 @@ template<typename TObject> void MPIDataCommunicator::ExchangeDataAsyncDetail(
     std::vector<MPI_Status> stats(num_comm_events);
 
     //const MPI_Datatype mpi_datatype(GetMPIDatatype(TObject()));
-    const MPI_Datatype mpi_datatype(MPIDatatype(TObject()));
+    //const MPI_Datatype mpi_datatype(MPIDatatype(TObject()));
 
     // Exchange the data
     for (int i=0; i<Size(); ++i)
     {
         if (i != Rank() && rRecvCounts[i])
         {
-            if (rRecvBuffer[i].size() != static_cast<std::size_t>(rRecvCounts[i]))
+            /* if (rRecvBuffer[i].size() != static_cast<std::size_t>(rRecvCounts[i]))
             {
                 rRecvBuffer[i].resize(rRecvCounts[i]);
-            }
-            MPI_Irecv(rRecvBuffer[i].data(), rRecvCounts[i],
-                      mpi_datatype, i, 0,
-                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
+            } */
+            MPI_Irecv(MPIBuffer(rRecvBuffer[i]), rRecvCounts[i],
+                      MPIDatatype(TObject()), i, 0,
+                      mComm, &reqs[num_comm_events_idx++]);
         }
         if (i != Rank() && rSendCounts[i])
         {
-            MPI_Isend(rSendBuffer[i].data(), rSendCounts[i],
-                      mpi_datatype, i, 0,
-                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
+            MPI_Isend(MPIBuffer(rSendBuffer[i]), rSendCounts[i],
+                      MPIDatatype(TObject()), i, 0,
+                      mComm, &reqs[num_comm_events_idx++]);
         }
     }
 

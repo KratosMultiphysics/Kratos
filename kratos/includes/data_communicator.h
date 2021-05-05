@@ -160,10 +160,10 @@ virtual void RecvImpl(std::vector<type>& rRecvValues, const int RecvSource, cons
     KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \
 }                                                                                                               \
 virtual void ExchangeDataAsyncImpl(                                                                             \
-    const std::vector<std::vector<type>>& rSendBuffer, std::vector<std::vector<type>>& rRecvBuffer,             \
-    std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const {                                       \
+    const std::vector<type>& rSendBuffer, std::vector<type>& rRecvBuffer,                                       \
+    const std::vector<int>& rSendCounts) const {                                                                \
     KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendBuffer.size(), rRecvBuffer.size(), "ExchangeDataAsync");     \
-    rRecvBuffer = ExchangeDataAsyncImpl(rSendBuffer, rSendCounts, rRecvCounts);                                 \
+    rRecvBuffer = ExchangeDataAsyncImpl(rSendBuffer, rSendCounts);                                              \
 }                                                                                                               \
 
 
@@ -600,13 +600,12 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      * @param[in] rSendBuffer Data Buffer of Objects to be send
      * @param[in] rRecvBuffer Data Buffer to receive the sent Objects
      * @param[in] rSendCounts Number of Elements to be send for all the Ranks
-     * @param[in] rRecvCounts Number of Elements to be send for all the Ranks
      */
     template<typename TObject>
-    void ExchangeDataAsync(const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
-                           std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts)
+    void ExchangeDataAsync(const std::vector<TObject>& rSendBuffer, std::vector<TObject>& rRecvBuffer,
+                           const std::vector<int>& rSendCounts)
     {
-        this->ExchangeDataAsyncImpl(rSendBuffer, rSendCounts, rRecvCounts);
+        this->ExchangeDataAsyncImpl(rSendBuffer, rSendCounts);
     }
 
     ///@}
@@ -1001,15 +1000,15 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      * @param[in] rSendBuffer Data Buffer of Objects to be send
      * @param[in] rRecvBuffer Data Buffer to receive the sent Objects
      * @param[in] rSendCounts Number of Elements to be send for all the Ranks
-     * @param[in] rRecvCounts Number of Elements to be send for all the Ranks
      */
     template<typename TObject>
-    void ExchangeDataAsyncImpl(const std::vector<std::vector<TObject>>& rSendBuffer, std::vector<std::vector<TObject>>& rRecvBuffer,
-                std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
+    void ExchangeDataAsyncImpl(const std::vector<TObject>& rSendBuffer, std::vector<TObject>& rRecvBuffer,
+                const std::vector<int>& rSendCounts) const
     {
-        this->ExchangeDataAsync(rSendBuffer, rRecvBuffer, rSendCounts, rRecvCounts);
+        this->ExchangeDataAsync(rSendBuffer, rRecvBuffer, rSendCounts);// Call goes up to 605 and again comes to line 1021
     }
 
+    // Required for Serial Communcation. Does nothing. Returning SendBuffer
     virtual std::string ExchangeDataAsyncImpl(
         const std::string& rSendBuffer, const int SendDestination = 0, const int RecvSource = 0) const
     {
@@ -1018,8 +1017,8 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rSendBuffer;
     }
 
-    template<class TObject>
-    TObject ExchangeDataAsyncImpl(const TObject& rSendBuffer, std::vector<int>& rSendCounts, std::vector<int>& rRecvCounts) const
+    template<typename TObject>
+    TObject ExchangeDataAsyncImpl(const TObject& rSendBuffer, const std::vector<int>& rSendCounts) const
     {
         CheckSerializationForSimpleType(rSendBuffer, TypeFromBool<serialization_is_required<TObject>::value>());
         if(this->IsDistributed())
@@ -1027,7 +1026,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
             MpiSerializer send_serializer;
             send_serializer.save("data", rSendBuffer);
             std::string send_message = send_serializer.GetStringRepresentation();
-            std::string recv_message = this->ExchangeDataAsyncImpl(send_message, 0 ,0);
+            std::string recv_message = this->ExchangeDataAsyncImpl(send_message, 0 ,0); // call to line 1011
             MpiSerializer recv_serializer(recv_message);
             TObject rRecvBuffer;
             recv_serializer.load("data", rRecvBuffer);
