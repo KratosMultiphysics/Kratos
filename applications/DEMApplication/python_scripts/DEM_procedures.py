@@ -1334,6 +1334,10 @@ class DEMIo():
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.PostControlModule = GetBoolParameterIfItExists(self.DEM_parameters, "PostControlModule")
         self.VelTrapGraphExportFreq = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
+        if not "PostDeltaDisplacement" in self.DEM_parameters.keys():
+            self.PostDeltaDisplacement = False
+        else:
+            self.PostDeltaDisplacement = self.DEM_parameters["PostDeltaDisplacement"].GetBool()
         if not "PostCharacteristicLength" in self.DEM_parameters.keys():
             self.PostCharacteristicLength = 0
         else:
@@ -1451,6 +1455,7 @@ class DEMIo():
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
+        self.PushPrintVar(self.PostDeltaDisplacement, DELTA_DISPLACEMENT, self.global_variables)
 
     def AddGlobalNonHistoricalNodalVariables(self):
         self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_nonhistorical_nodal_variables)
