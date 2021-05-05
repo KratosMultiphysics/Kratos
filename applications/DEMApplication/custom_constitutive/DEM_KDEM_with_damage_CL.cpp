@@ -210,9 +210,6 @@ namespace Kratos {
         const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
         double k_unload = 0.0;
         double tau_strength = 0.0;
-        static bool first_time_entered = true;
-        int damage_process = 0;
-        double maximum_frictional_shear_force = 0.0;
 
         if (damage_energy_coeff) {
             k_unload = kt_el / damage_energy_coeff;
@@ -228,7 +225,6 @@ namespace Kratos {
             LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
             LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
         }
-        double total_delta_displ_module = sqrt(LocalDeltDisp[0] * LocalDeltDisp[0] + LocalDeltDisp[1] * LocalDeltDisp[1]);
 
         double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                                     + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
@@ -255,8 +251,6 @@ namespace Kratos {
             }
 
             if (contact_tau > tau_strength) { // damage
-
-                damage_process = 1;
 
                 if (!damage_energy_coeff) { // there is no damage energy left
                     failure_type = 2; // failure by shear

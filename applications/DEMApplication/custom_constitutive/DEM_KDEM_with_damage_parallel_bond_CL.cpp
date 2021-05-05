@@ -326,8 +326,8 @@ namespace Kratos {
 
         if (mDebugPrintingOption) {
 
-            const int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
-            const int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
+            long unsigned int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
+            long unsigned int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
 
             if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
                 std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
@@ -580,8 +580,8 @@ namespace Kratos {
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
         if (mDebugPrintingOption) {
-            const int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
-            const int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
+            long unsigned int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
+            long unsigned int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
             double quotient = local_elastic_force_modulus / calculation_area;
             double quotient_bonded_only = local_elastic_force_modulus_bonded_only / calculation_area;
             double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
