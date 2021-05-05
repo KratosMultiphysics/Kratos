@@ -445,6 +445,7 @@ def AssembleTestSuites():
     ### Adding Validation Tests
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
     validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
@@ -493,7 +494,6 @@ def AssembleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    validationSuite.addTests(nightSuite) # Validation contains all the tests
     allSuite.addTests(validationSuite)
 
     return suites
