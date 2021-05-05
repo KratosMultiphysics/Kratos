@@ -113,12 +113,12 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementLagrangeMultiplierMixedContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
-        const TDataType LMRatioTolerance,
-        const TDataType LMAbsTolerance,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
+        const double LMRatioTolerance,
+        const double LMAbsTolerance,
         const bool EnsureContact = false,
         const bool PrintingOutput = false
         )
@@ -199,7 +199,7 @@ public:
     {
         if (SparseSpaceType::Size(rb) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
+            double disp_residual_solution_norm = 0.0, rot_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
             IndexType disp_dof_num(0),rot_dof_num(0),lm_dof_num(0);
 
             // First iterator
@@ -207,7 +207,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
+            double residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
 
             // The number of active dofs
             const std::size_t number_active_dofs = rb.size();
@@ -255,10 +255,10 @@ public:
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mRotCurrentResidualNorm = rot_residual_solution_norm;
-            const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
-            const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
+            const double lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
+            const double lm_abs = std::sqrt(lm_increase_norm)/static_cast<double>(lm_dof_num);
 
-            TDataType residual_disp_ratio, residual_rot_ratio;
+            double residual_disp_ratio, residual_rot_ratio;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
@@ -278,8 +278,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -540,18 +540,18 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
-    TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
-    TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+    double mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
+    double mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
+    double mDispInitialResidualNorm; /// The reference norm of the displacement residual
+    double mDispCurrentResidualNorm; /// The current norm of the displacement residual
 
-    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
-    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
-    TDataType mRotInitialResidualNorm; /// The reference norm of the rotation residual
-    TDataType mRotCurrentResidualNorm; /// The current norm of the rotation residual
+    double mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
+    double mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
+    double mRotInitialResidualNorm; /// The reference norm of the rotation residual
+    double mRotCurrentResidualNorm; /// The current norm of the rotation residual
 
-    TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
-    TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
+    double mLMRatioTolerance; /// The ratio threshold for the norm of the LM
+    double mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
 
     std::vector<int> mActiveDofs;  /// This vector contains the dofs that are active
 
