@@ -1372,45 +1372,36 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorExchangeDataAsyncDouble
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
-    //const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
-    //const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<std::vector<double>> send_buffer;
-    std::vector<std::vector<double>> recv_buffer;
+    std::vector<std::vector<double>> send_buffer(world_size);
+    std::vector<std::vector<double>> recv_buffer(world_size); //Column Size will be specified later
     std::vector<int> send_count;
-    std::vector<int> recv_count;
+
     int local_send_size = world_rank * 4 + world_rank  + 2; //rank->sendCounts; 0->2 ; 1->7; 2->12; 3->17
-
-    send_buffer.resize(local_send_size);
-    recv_buffer.resize(local_send_size);
-
-    std::vector<std::vector<double>> expected_recv_buffer;
-    expected_recv_buffer.resize(local_send_size);
-    //expected_recv_buffer = send_buffer;//make sense right??
 
     for(int i=0; i< world_size; i++)
     {
+        send_buffer[i] = std::vector<double>(local_send_size);
+
         //Fill the send Vectors
         for(int j=0; j < local_send_size ; j++)
         {
-            send_buffer[i][j] = (world_rank) % 2 + j * 3.5;
-            expected_recv_buffer[i][j] = send_buffer[i][j];
+            send_buffer[i][j] = ((world_rank) % 2) + (j * 3.5) + i;
         }
         send_count.push_back(local_send_size);
-        recv_count.push_back(local_send_size);
     }
+
 
     if (world_size > 1)
     {
         // two-buffer version
-        mpi_world_communicator.ExchangeDataAsync(send_buffer, recv_buffer, send_count, recv_count);
+        mpi_world_communicator.ExchangeDataAsync(send_buffer, recv_buffer, send_count);
 
-        KRATOS_CHECK_EQUAL(recv_buffer.size(), world_size);
         for (int i = 0; i < world_size ; i++)
         {
             for(int j=0; j < recv_buffer[i].size() ; j++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[i][j], expected_recv_buffer[i][j]);
+                KRATOS_CHECK_EQUAL(recv_buffer[i][j], send_buffer[i][j]);
             }
         }
     }
