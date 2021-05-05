@@ -60,13 +60,12 @@ class RomBasisProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        self.BuildExtrapolationOperator() # Build a sparse extrapolation operator for stresses (from GP to nodes)
+        if  self.stress_flag:
+            self.BuildExtrapolationOperator() # Build a sparse extrapolation operator for stresses (from GP to nodes)
         
         if self.reaction_flag:
             restricted_model_part_name = self.parameters["restricted_model_part"].GetString()
             #### Reactions
-            #############
             restricted_residual_parameters = KratosMultiphysics.Parameters("""
             {
                 "nodal_unknowns" : ["REACTION_X","REACTION_Y","REACTION_Z"],
@@ -75,18 +74,7 @@ class RomBasisProcess(KratosMultiphysics.Process):
             self.ResidualUtilityObject_Restricted_Part = romapp.RomModelPartUtility(self.model_part.GetSubModelPart(restricted_model_part_name), restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
             self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(self.model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
             self.restricted_residual_elements = self.ResidualUtilityObject_Restricted_Part.GetElementListFromNode(self.model_part)
-            restricted_residual_nodes = self.ResidualUtilityObject_Restricted_Part.GetNodeList()
-            aux_list_nodes, aux_list_elem = self.CreateAuxiliarListForReactions(restricted_residual_nodes) # Builds list of lists to assemble the residuals to restricted surface's nodes
-            reaction_assembling={"Nodal_Unknowns":{},"Element_Dofs":{},"List_Nodes":{},"List_Nodal_Elements":{},"List_Elemental_Nodes":{}}
-            reaction_assembling["Nodal_Unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
-            reaction_assembling["Nodes_per_element"] = self.model_part.GetElement(1).GetGeometry().PointsNumber()
-            reaction_assembling["List_Nodes"] = restricted_residual_nodes
-            reaction_assembling["List_Nodal_Elements"] = aux_list_nodes
-            reaction_assembling["List_Elemental_Nodes"] = aux_list_elem
             
-            with open('Reaction_parameters.json', 'w') as f:
-                json.dump(reaction_assembling,f, indent=2)
-            #############
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -125,7 +113,7 @@ class RomBasisProcess(KratosMultiphysics.Process):
         displacement_tolerance = self.parameters["displacement_basis_tolerance"].GetDouble()
         u,_,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix,displacement_tolerance)
 
-        ### Saving the nodal basis ###  (Need to make this more robust, hard coded here)
+        ### Saving the nodal basis ###  
         basis_POD={"rom_settings":{},"nodal_modes":{}}
         basis_POD["rom_settings"]["nodal_unknowns"] = ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"]
         basis_POD["rom_settings"]["number_of_rom_dofs"] = np.shape(u)[1]
@@ -137,56 +125,55 @@ class RomBasisProcess(KratosMultiphysics.Process):
         for j in range (0,N_nodes):
             basis_POD["nodal_modes"][int(node_Id[j])] = (u[i:i+Dimensions].tolist())
             i=i+Dimensions
-
-        with open('RomParameters.json', 'w') as f:
-            json.dump(basis_POD,f, indent=2)
-
-        print('\n\nDisplacement basis printed in json format\n\n')
-
         
         # Create rom parameters for stresses
         if self.stress_flag:
             SnapshotMatrix_stresses = self.EvaluateQuantityOfInterest(self.time_step_solution_container_stresses)
             stress_tolerance = self.parameters["stress_basis_tolerance"].GetDouble()
             U,_,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix_stresses,stress_tolerance)# Taking the SVD ###
-            basis_POD_stresses={"rom_settings":{},"gauss_points_modes":{}}
-            basis_POD_stresses["rom_settings"]["gauss_points_unknowns"] = ["PK2_STRESS_VECTOR"]
-            basis_POD_stresses["rom_settings"]["number_of_rom_modes"] = np.shape(U)[1]
+            basis_POD["stress_parameters"]={"rom_settings":{},"gauss_points_modes":{}}
+            basis_POD["stress_parameters"]["rom_settings"]["gauss_points_unknowns"] = ["PK2_STRESS_VECTOR"]
+            basis_POD["stress_parameters"]["rom_settings"]["number_of_rom_modes"] = np.shape(U)[1]
             Dimensions = 6
             N_elem=np.shape(U)[0]/Dimensions
             N_elem = int(N_elem)
             elem_Id=np.linspace(1,N_elem,N_elem)
             i = 0
             for j in range (0,N_elem):
-                basis_POD_stresses["gauss_points_modes"][int(elem_Id[j])] = (U[i:i+Dimensions].tolist())
+                basis_POD["stress_parameters"]["gauss_points_modes"][int(elem_Id[j])] = (U[i:i+Dimensions].tolist())
                 i=i+Dimensions
 
-            with open('RomParameters_Stresses.json', 'w') as w:
-                json.dump(basis_POD_stresses,w, indent=2)
-
-            print('\n\nStress basis printed in json format\n\n')
-
-        # Create rom parameters for restricted residuals
+        # Create rom parameters for restricted residuals and reactions
         if self.reaction_flag:
             SnapshotMatrix_restricted_residuals = self.EvaluateQuantityOfInterest(self.time_step_solution_container_restricted_residuals)
             residual_tolerance = self.parameters["reaction_basis_tolerance"].GetDouble()
             U_residuals,_,_,_= RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix_restricted_residuals,residual_tolerance)# Taking the SVD ###
-            basis_POD={"rom_settings":{},"elemental_modes":{}}
-            basis_POD["rom_settings"]["nodal_unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
-            basis_POD["rom_settings"]["number_of_rom_dofs"] = np.shape(U_residuals)[1]
-            basis_POD["rom_settings"]["restricted_elements"] = self.restricted_residual_elements
+            basis_POD["residual_parameters"]={"rom_settings":{},"elemental_modes":{}}
+            basis_POD["residual_parameters"]["rom_settings"]["nodal_unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
+            basis_POD["residual_parameters"]["rom_settings"]["number_of_rom_dofs"] = np.shape(U_residuals)[1]
+            basis_POD["residual_parameters"]["rom_settings"]["restricted_elements"] = self.restricted_residual_elements
             N_cond= len(self.restricted_residual_elements)
             Dimensions = int(np.shape(U_residuals)[0]/N_cond)
-            basis_POD["rom_settings"]["number_of_dofs_per_element"] = Dimensions
+            basis_POD["residual_parameters"]["rom_settings"]["number_of_dofs_per_element"] = Dimensions
             i = 0
             for j in self.restricted_residual_elements:
-                basis_POD["elemental_modes"][int(j)] = (U_residuals[i:i+Dimensions].tolist())
+                basis_POD["residual_parameters"]["elemental_modes"][int(j)] = (U_residuals[i:i+Dimensions].tolist())
                 i=i+Dimensions
 
-            with open('RomParameters_Residuals.json', 'w') as f:
-                json.dump(basis_POD,f, indent=2)
+            # Reaction Assembling paraameters
+            restricted_residual_nodes = self.ResidualUtilityObject_Restricted_Part.GetNodeList()
+            aux_list_nodes, aux_list_elem = self.CreateAuxiliarListForReactions(restricted_residual_nodes) # Builds list of lists to assemble the residuals to restricted surface's nodes
+            basis_POD["reaction_parameters"]={"Nodal_Unknowns":{},"Element_Dofs":{},"List_Nodes":{},"List_Nodal_Elements":{},"List_Elemental_Nodes":{}}
+            basis_POD["reaction_parameters"]["Nodal_Unknowns"] = ["REACTION_X","REACTION_Y","REACTION_Z"]
+            basis_POD["reaction_parameters"]["Nodes_per_element"] = self.model_part.GetElement(1).GetGeometry().PointsNumber()
+            basis_POD["reaction_parameters"]["List_Nodes"] = restricted_residual_nodes
+            basis_POD["reaction_parameters"]["List_Nodal_Elements"] = aux_list_nodes
+            basis_POD["reaction_parameters"]["List_Elemental_Nodes"] = aux_list_elem
 
-            print('\n\nReaction basis printed in json format\n\n')
+        with open('RomParameters.json', 'w') as f:
+            json.dump(basis_POD,f, indent=2)
+
+        print('\n\nROM basis printed in json format\n\n')
 
     def CreateAuxiliarListForReactions(self, restricted_residual_nodes):
         # Builds list of lists to assemble the residuals to restricted surface's nodes

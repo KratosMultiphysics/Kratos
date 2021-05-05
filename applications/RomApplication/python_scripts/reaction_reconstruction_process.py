@@ -56,42 +56,40 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         }""" )
         self.ResidualUtilityObject_Restricted_Residuals = romapp.RomModelPartUtility(restricted_model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(computing_model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
-        self.hr_restricted_residual_elements = self.ResidualUtilityObject_Restricted_Residuals.GetElementListFromNode(computing_model_part)
-        with open('RomParameters_Residuals.json') as s:
-            hr_data_residuals = json.load(s) # Load SVD of Residuals
-            hr_modes_size = hr_data_residuals["rom_settings"]["number_of_rom_dofs"]
-            hr_dofs_per_element = hr_data_residuals["rom_settings"]["number_of_dofs_per_element"]
-            hr_elements_size = len(hr_data_residuals["elemental_modes"])
-            total_restricted_dofs = int(hr_dofs_per_element*hr_elements_size)
-            self.u_residual = np.zeros((total_restricted_dofs,hr_modes_size))
+        self.rom_restricted_residual_elements = self.ResidualUtilityObject_Restricted_Residuals.GetElementListFromNode(computing_model_part)
+        with open('RomParameters.json') as s:
+            rom_data = json.load(s) # Load SVD of Residuals
+            rom_modes_size = rom_data["residual_parameters"]["rom_settings"]["number_of_rom_dofs"]
+            rom_dofs_per_element = rom_data["residual_parameters"]["rom_settings"]["number_of_dofs_per_element"]
+            rom_elements_size = len(rom_data["residual_parameters"]["elemental_modes"])
+            total_restricted_dofs = int(rom_dofs_per_element*rom_elements_size)
+            self.u_residual = np.zeros((total_restricted_dofs,rom_modes_size))
             restricted_residual_elements = []
             counter_in = 0
-            for key in hr_data_residuals["elemental_modes"].keys():
-                counter_fin = counter_in+hr_dofs_per_element
-                self.u_residual[counter_in:counter_fin,:] = np.array(hr_data_residuals["elemental_modes"][key])
+            for key in rom_data["residual_parameters"]["elemental_modes"].keys():
+                counter_fin = counter_in+rom_dofs_per_element
+                self.u_residual[counter_in:counter_fin,:] = np.array(rom_data["residual_parameters"]["elemental_modes"][key])
                 restricted_residual_elements.append(int(key))
                 counter_in = counter_fin
-            restricted_residual_elements_index = self.FindDuplicateIndex(restricted_residual_elements) #No need to be saved "self"
-            hr_total_restricted_dofs = int(hr_dofs_per_element*len(self.hr_restricted_residual_elements))
-            self.hr_u_residual = np.zeros((hr_total_restricted_dofs,hr_modes_size))
+            restricted_residual_elements_index = self.FindDuplicateIndex(restricted_residual_elements) # Finds the restricted elements of the hyper reduced model part
+            rom_total_restricted_dofs = int(rom_dofs_per_element*len(self.rom_restricted_residual_elements))
+            self.hr_u_residual = np.zeros((rom_total_restricted_dofs,rom_modes_size))
             counter_in = 0
             for i in restricted_residual_elements_index:
-                counter_fin = counter_in+hr_dofs_per_element
-                aux_index_in = int(i*hr_dofs_per_element)
-                aux_index_fin = aux_index_in + hr_dofs_per_element
+                counter_fin = counter_in+rom_dofs_per_element
+                aux_index_in = int(i*rom_dofs_per_element)
+                aux_index_fin = aux_index_in + rom_dofs_per_element
                 self.hr_u_residual[counter_in:counter_fin,:] = self.u_residual[aux_index_in:aux_index_fin,:]
                 counter_in = counter_fin
         ###################
 
         #### Reaction Assembling ####
         ###################
-        with open('Reaction_parameters.json') as s:
-            reaction_assembling = json.load(s)
-        self.restricted_residual_nodes = reaction_assembling["List_Nodes"]
-        self.aux_list_nodes = reaction_assembling["List_Nodal_Elements"]
-        self.aux_list_elem = reaction_assembling["List_Elemental_Nodes"]
-        self.dof_node = len(reaction_assembling["Nodal_Unknowns"])
-        self.dof_elem = int(reaction_assembling["Nodes_per_element"]*self.dof_node)
+        self.restricted_residual_nodes = rom_data["reaction_parameters"]["List_Nodes"]
+        self.aux_list_nodes = rom_data["reaction_parameters"]["List_Nodal_Elements"]
+        self.aux_list_elem = rom_data["reaction_parameters"]["List_Elemental_Nodes"]
+        self.dof_node = len(rom_data["reaction_parameters"]["Nodal_Unknowns"])
+        self.dof_elem = int(rom_data["reaction_parameters"]["Nodes_per_element"]*self.dof_node)
         ###################
 
     def ExecuteFinalizeSolutionStep(self):
@@ -102,7 +100,7 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         """
         #### Residuals #####
         ###################
-        hr_restricted_residual = self.ResidualUtilityObject_Main_Part.GetNonProjectedResidualsFromElementList(self.hr_restricted_residual_elements) 
+        hr_restricted_residual = self.ResidualUtilityObject_Main_Part.GetNonProjectedResidualsFromElementList(self.rom_restricted_residual_elements) 
         hr_residuals = np.array(hr_restricted_residual).T
         B = np.linalg.pinv(self.hr_u_residual)@hr_residuals
         residual_reconstruction = self.u_residual@B
@@ -114,7 +112,7 @@ class ReactionReconstructionProcess(KratosMultiphysics.Process):
         ###################
 
     def FindDuplicateIndex(self,List_1):
-        List_2 = self.hr_restricted_residual_elements
+        List_2 = self.rom_restricted_residual_elements
         Index_list = []
         for i in range(len(List_1)):
             for j in range(len(List_2)):

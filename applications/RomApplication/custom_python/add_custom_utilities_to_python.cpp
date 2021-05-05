@@ -55,6 +55,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetNodeList",&RomModelPartUtility::GetNodeList)
     .def("GetDofsFromElementList",&RomModelPartUtility::GetDofsFromElementList)
     .def("AssembleReactions",&RomModelPartUtility::AssembleReactions)
+    .def("AssembleStresses",&RomModelPartUtility::AssembleStresses)
     ;
 
 }

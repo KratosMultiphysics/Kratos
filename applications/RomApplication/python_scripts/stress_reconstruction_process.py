@@ -8,6 +8,7 @@ from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import 
 import numpy as np
 import json
 from scipy.sparse import csr_matrix, load_npz
+import time
 
 def Factory(parameters, model):
     if not isinstance(parameters, KratosMultiphysics.Parameters):
@@ -42,7 +43,6 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
         """
         self.hr_elements = []
         self.hr_conditions = []
-        self.hr_residuals = []
         ## Adding the weights to the corresponding elements
         with open('ElementsAndWeights.json') as f:
             hr_data = json.load(f)
@@ -55,17 +55,23 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
                 
         #### Stresses ####
         ###################
+        restricted_residual_parameters = KratosMultiphysics.Parameters("""
+        {
+            "nodal_unknowns" : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+            "number_of_dofs" : 1
+        }""" )
+        self.ResidualUtilityObject_Main_Part = romapp.RomModelPartUtility(self.model_part, restricted_residual_parameters, KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
         self.P = load_npz("shape.npz")
-        with open('RomParameters_Stresses.json') as s:
-            pk2_dimension = 6 # Gauss points per element may differ
-            hr_data_stresses = json.load(s) # Load SVD of Stresses
-            hr_modes_size = hr_data_stresses["rom_settings"]["number_of_rom_modes"] # To initialize left singular values of Stresses
-            FOM_gauss_point_size  = int(len(hr_data_stresses["gauss_points_modes"])*pk2_dimension) # To initialize left singular values of Stresses
+        with open('RomParameters.json') as s:
+            rom_data = json.load(s) # Load SVD of Stresses
+            pk2_dimension = 6 
+            hr_modes_size = rom_data["stress_parameters"]["rom_settings"]["number_of_rom_modes"] # To initialize left singular values of Stresses
+            FOM_gauss_point_size  = int(len(rom_data["stress_parameters"]["gauss_points_modes"])*pk2_dimension) # To initialize left singular values of Stresses
             self.u_stress = np.zeros((FOM_gauss_point_size ,hr_modes_size)) # Initialize left singular values of Stresses
             counter_in = 0
-            for key in hr_data_stresses["gauss_points_modes"].keys(): 
+            for key in rom_data["stress_parameters"]["gauss_points_modes"].keys(): 
                 counter_fin = counter_in + pk2_dimension
-                self.u_stress[counter_in:counter_fin,:] = np.array(hr_data_stresses["gauss_points_modes"][key]) # Create numpy array of left singular values
+                self.u_stress[counter_in:counter_fin,:] = np.array(rom_data["stress_parameters"]["gauss_points_modes"][key]) # Create numpy array of left singular values
                 counter_in = counter_fin
             hr_gauss_points = int(len(self.hr_elements)*pk2_dimension) 
             self.hr_u_stress = np.zeros((hr_gauss_points,hr_modes_size))
@@ -99,9 +105,8 @@ class StressReconstructionProcess(KratosMultiphysics.Process):
 
         #### Stress Assembling ####
         ###################
-        for node in model_part.GetSubModelPart("VISUALIZE_HROM").Nodes:
-            node.SetValue(KratosMultiphysics.PK2_STRESS_VECTOR,KratosMultiphysics.Vector(stress[node.Id-1,:].tolist()))
-        ##################
+        self.ResidualUtilityObject_Main_Part.AssembleStresses(KratosMultiphysics.Matrix(stress))
+        ###################
 
     def ExtrapolateStressToNodes(self,Vector):
         aux_shape_1 = int(np.shape(self.P)[1])

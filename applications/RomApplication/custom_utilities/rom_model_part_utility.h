@@ -20,6 +20,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "spaces/ublas_space.h"
 #include "utilities/math_utils.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/svd_utils.h"
 
 /* Application includes */
@@ -286,7 +287,7 @@ namespace Kratos
 
             Element::EquationIdVectorType EquationId;
             Vector VectorResiduals((nelements)*TotalDofs); // Vector of residuals.
-            #pragma omp parallel firstprivate( nelements, LHS_Contribution, RHS_Contribution, EquationId)
+            #pragma omp parallel firstprivate( ElementList, nelements, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo)
             {
                 #pragma omp for nowait
                 for (int i=0; i<nelements;i++) {
@@ -412,20 +413,26 @@ namespace Kratos
         return dof_list;
         }
 
+        // This function assembles the reactions in the restricted model part with by assembling the residual obtained in the process reconstruction of reactions.
         void AssembleReactions(Vector ResidualReconstruction, Vector RestrictedResidualNodes, std::vector<std::vector<IndexType>> ListNodes, std::vector<std::vector<IndexType>> ListElements, int DofElem, int DofNode)
         {
             int nnodes = RestrictedResidualNodes.size();
             #pragma omp parallel firstprivate(nnodes)
             {
                 #pragma omp for nowait
+                // Loop in nodes
                 for (int i=0;i<nnodes;i++){
                     auto& node = mpModelPart.GetNode(RestrictedResidualNodes(i));
                     double reaction_x = 0;
                     double reaction_y = 0;
                     double reaction_z = 0;
+                    // List of Nodes is a list of lists of the neighbouring elements of each node
+                    // Get the elements list from the node
                     std::vector<IndexType> current_node_list = ListNodes[i];
                     for (IndexType j : current_node_list){
                         int counter = 0;
+                        // List of Nodes is a list of lists of the neighbouring nodes of each element.
+                        // Loop in all nodes inside each neighboring element to check the corresponding index of contribution and its value.
                         std::vector<IndexType> current_element_list = ListElements[j];
                         for (IndexType k : current_element_list){
                             if (node.Id()==k){
@@ -437,12 +444,73 @@ namespace Kratos
                             counter+=1;
                         }
                     }
-                    node.FastGetSolutionStepValue(REACTION_X) = reaction_x;
-                    node.FastGetSolutionStepValue(REACTION_Y) = reaction_y;
-                    node.FastGetSolutionStepValue(REACTION_Z) = reaction_z;
+                    auto& v = node.FastGetSolutionStepValue(REACTION);
+                    v[0] = reaction_x;
+                    v[1] = reaction_y;
+                    v[2] = reaction_z;
                 }
             }
         }
+
+        void AssembleStresses(Matrix StressMatrix){
+            ModelPart& hrom_model_part = mpModelPart.GetSubModelPart("VISUALIZE_HROM");
+            const int nnodes = static_cast<int>(hrom_model_part.NumberOfNodes());
+            #pragma omp parallel for
+                for (int i_node = 0; i_node < nnodes; ++i_node)
+                {
+                    auto it_node = hrom_model_part.NodesBegin() + i_node;
+                    it_node->SetValue(PK2_STRESS_VECTOR,row(StressMatrix,it_node->Id()-1));
+                // node.SetValue(PK2_STRESS_VECTOR,row(StressMatrix,node.Id()-1));
+                }     
+        }
+
+        // SparseSpaceType::MatrixType BuildExtrapolationOperator(){
+        //     // Build a sparse extrapolation operator for stresses (from GP to nodes)
+        //     const int nnodes = static_cast<int>(mpModelPart.NumberOfNodes());
+        //     const int nelements = static_cast<int>(mpModelPart.NumberOfElements());
+        //     const auto elem_begin = mpModelPart.ElementsBegin();
+
+        //     SparseSpaceType::MatrixType P;
+        //     P.resize(nnodes,nelements,false);
+        //     SparseSpaceType::SetToZero(P);
+        //     Vector P_diag (nnodes);
+        //     #pragma omp parallel firstprivate(nelements)
+        //     {
+        //         #pragma omp for nowait
+        //         for (int k=0; k<nelements;k++) {
+        //             Element::Pointer i_elem = mpModelPart.pGetElement(k);
+        //             const auto& elem_geom = i_elem->pGetGeometry();
+        //             const Matrix shape_functions_evaluated_in_gp = elem_geom->ShapeFunctionsValues();
+        //             double elem_area = elem_geom.Area();
+        //             Vector sum_shape_functions_evaluated_in_gp = LumpMatrix(shape_functions_evaluated_in_gp);
+        //             for (auto& node : elem_geom){
+        //                 P_diag(node.Id()-1) += elem_area;
+        //             }
+        //             for (int i ; i< shape_functions_evaluated_in_gp.size1(),i++){
+        //                 for (int j; j < shape_functions_evaluated_in_gp.size2(),j++){
+        //                     P((j).Id()-1,elem.Id-1] = shape_functions_evaluated_in_gp[i,j]*elem_area/sum_shape_functions_evaluated_in_gp[j]
+        //                 } 
+        //             }
+                        
+        //         P_diag = np.diag(1/P_diag)
+        //         P_diag = lil_matrix(P_diag)
+        //         P = P_diag@P
+        //         save_npz("shape.npz", P)
+        //         }
+        // }
+
+        // Vector LumpMatrix(Matrix MatrixToBeLumped){
+        //     const auto size_1 = MatrixToBeLumped.size1();
+        //     const auto size_2 = MatrixToBeLumped.size2();
+        //     Vector LumpedMatrixToVector(size_1,0);
+        //     #pragma omp parallel for
+        //         for (int i = 0; i < size_1; i++){
+        //             for (int j = 0; j < size_2; j++){
+        //                 LumpedMatrixToVector(i)+=MatrixToBeLumped(i,j);
+        //             }
+        //         }
+        // return LumpedMatrixToVector;
+        // }
         
 
         protected:
@@ -457,7 +525,7 @@ namespace Kratos
 
 
 } // namespace Kratos
-
+;
 
 
 #endif // ROM_MODEL_PART_UTILITY_H_INCLUDED  defined
