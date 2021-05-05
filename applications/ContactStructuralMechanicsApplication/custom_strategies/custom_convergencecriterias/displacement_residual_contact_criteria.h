@@ -70,28 +70,53 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ROTATION_DOF_IS_CONSIDERED );
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
-    typedef typename BaseType::TDataType                    TDataType;
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                  BaseType;
+
+    /// The definition of the current class
+    typedef DisplacementResidualContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                             DofsArrayType;
+
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                     TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                     TSystemVectorType;
 
     /// The sparse space used
-    typedef TSparseSpace                              SparseSpaceType;
+    typedef TSparseSpace                                               SparseSpaceType;
 
-    /// The r_table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer                        TablePrinterPointerType;
 
     /// The index type definition
-    typedef std::size_t                                     IndexType;
-
-    /// The key type definition
-    typedef std::size_t                                       KeyType;
+    typedef std::size_t                                                      IndexType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor.
+     */
+    explicit DisplacementResidualContactCriteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementResidualContactCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /**
      * @brief Default constructor
@@ -126,18 +151,6 @@ public:
         mRotAbsTolerance = RotAbsTolerance;
     }
 
-    /**
-     * @brief Default constructor (parameters)
-     * @param ThisParameters The configuration parameters
-     */
-    explicit DisplacementResidualContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
-        : BaseType()
-    {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
-    }
-
     //* Copy constructor.
     DisplacementResidualContactCriteria( DisplacementResidualContactCriteria const& rOther )
       :BaseType(rOther)
@@ -159,6 +172,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Compute relative and absolute error.
