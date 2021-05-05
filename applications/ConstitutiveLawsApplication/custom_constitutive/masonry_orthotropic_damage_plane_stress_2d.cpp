@@ -148,8 +148,7 @@ namespace Kratos
 
         this->CalculateMaterialResponseInternal(
             r_stress_vector,
-            data,
-            r_properties[INTEGRATION_IMPLEX]);
+            data);
 
         bool is_damaging_tension = false;
         bool is_damaging_compression = false;
@@ -158,16 +157,12 @@ namespace Kratos
         // Computation of the Constitutive Tensor
         if (rParameters.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) {
-                //this->CalculateTangentTensor(
-                //    rParameters,
-                //    ElasticityMatrix,
-                //    r_strain_vector,
-                //    //strain_mapped_isotropic,
-                //    r_stress_vector,
-                //    //r_predictive_stress_vector,
-                //    data,
-                //    r_properties[INTEGRATION_IMPLEX]);
-                this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
+                this->CalculateTangentTensor(
+                    rParameters,
+                    ElasticityMatrix,
+                    r_strain_vector,
+                    r_stress_vector,
+                    data);
             }
             else {
                 this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
@@ -774,8 +769,7 @@ namespace Kratos
     /***********************************************************************************/
     void MasonryOrthotropicDamagePlaneStress2DLaw::CalculateMaterialResponseInternal(
         Vector& rPredictiveStressVector,
-        CalculationData& data,
-        int IntegrationImplex)
+        CalculationData& data)
     {
         ConstitutiveLawUtilities<3>::SpectralDecomposition(
             data.EffectiveStressVector, data.EffectiveTensionStressVector, data.EffectiveCompressionStressVector);
@@ -856,8 +850,7 @@ namespace Kratos
         const Matrix& rElasticityMatrix,
         const array_1d<double, 3>& rStrainVector,
         const array_1d<double, 3>& rPredictiveStressVector,
-        CalculationData& data,
-        int IntegrationImplex)
+        CalculationData& data)
     {
         // prepare constitutive matrix
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();

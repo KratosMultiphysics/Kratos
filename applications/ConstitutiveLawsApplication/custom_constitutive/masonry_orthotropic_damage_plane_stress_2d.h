@@ -531,8 +531,7 @@ namespace Kratos
         */
         void CalculateMaterialResponseInternal(
             Vector& rPredictiveStressVector,
-            CalculationData& data,
-            int IntegrationImplex);
+            CalculationData& data);
 
         /**
          * @brief This method checks whether we are in loading/unloading/damage state
@@ -556,8 +555,7 @@ namespace Kratos
             const Matrix& rElasticityMatrix,
             const array_1d<double, 3>& rStrainVector,
             const array_1d<double, 3>& PredictiveStressVector,
-            CalculationData& data,
-            int IntegrationImplex);
+            CalculationData& data);
 
         /**
          * @brief This method computes the secant tensor
