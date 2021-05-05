@@ -204,6 +204,13 @@ public:
         Vector& rDeterminantOfJacobian);
 
     ///@}
+    ///@name Check
+    ///@{
+
+    /// Performs check if Penalty factor is provided.
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 

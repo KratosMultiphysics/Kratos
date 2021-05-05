@@ -164,6 +164,13 @@ namespace Kratos
         }
     }
 
+    int PenaltyCouplingCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
+            << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
+        return 0;
+    }
+
     void PenaltyCouplingCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
