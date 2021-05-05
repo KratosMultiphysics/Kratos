@@ -60,7 +60,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     KRATOS_TRY;
 
     Flags & r_constitutive_law_options = rValues.GetOptions();
-    StrainVectorType& r_strain_vector = rValues.GetStrainVector();
+    ConstitutiveLaw::StrainVectorType& r_strain_vector = rValues.GetStrainVector();
 
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         //Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
@@ -69,13 +69,13 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
-        StressVectorType& r_stress_vector = rValues.GetStressVector();
+        ConstitutiveLaw::StressVectorType& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
         AddInitialStressVectorContribution<StressVectorType>(r_stress_vector);
     }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
-        VoigtSizeMatrixType& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        ConstitutiveLaw::VoigtSizeMatrixType& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(r_constitutive_matrix, rValues);
     }
 
@@ -184,8 +184,8 @@ void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Para
 double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
     Flags & r_constitutive_law_options = rParameterValues.GetOptions();
-    StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
-    StressVectorType& r_stress_vector = rParameterValues.GetStressVector();
+    ConstitutiveLaw::StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
+    ConstitutiveLaw::StressVectorType& r_stress_vector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
 
@@ -374,7 +374,7 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
 
 void ElasticIsotropic3D::CalculatePK2Stress(
     const Vector& rStrainVector,
-    StressVectorType& rStressVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -400,7 +400,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
-    StrainVectorType& rStrainVector
+    ConstitutiveLaw::StrainVectorType& rStrainVector
     )
 {
     const SizeType space_dimension = this->WorkingSpaceDimension();

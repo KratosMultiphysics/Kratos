@@ -288,10 +288,10 @@ public:
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // StrainVectorType& CalculateValue(
+    // ConstitutiveLaw::StrainVectorType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
     //     const Variable<StrainVectorType>& rThisVariable,
-    //     StrainVectorType& rValue
+    //     ConstitutiveLaw::StrainVectorType& rValue
     //     ) override;
 
     // /**
@@ -301,10 +301,10 @@ public:
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // StressVectorType& CalculateValue(
+    // ConstitutiveLaw::StressVectorType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
     //     const Variable<StressVectorType>& rThisVariable,
-    //     StressVectorType& rValue
+    //     ConstitutiveLaw::StressVectorType& rValue
     //     ) override;
 
     /**
@@ -327,10 +327,10 @@ public:
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // VoigtSizeMatrixType& CalculateValue(
+    // ConstitutiveLaw::VoigtSizeMatrixType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
     //     const Variable<VoigtSizeMatrixType>& rThisVariable,
-    //     VoigtSizeMatrixType& rValue
+    //     ConstitutiveLaw::VoigtSizeMatrixType& rValue
     //     ) override;
 
     // /**
@@ -340,10 +340,10 @@ public:
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // DeformationGradientMatrixType& CalculateValue(
+    // ConstitutiveLaw::DeformationGradientMatrixType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
     //     const Variable<DeformationGradientMatrixType>& rThisVariable,
-    //     DeformationGradientMatrixType& rValue
+    //     ConstitutiveLaw::DeformationGradientMatrixType& rValue
     //     ) override;
 
     /**
@@ -389,7 +389,7 @@ protected:
     * @param rValues Parameters of the constitutive law
     */
     virtual void CalculateElasticMatrix(
-        VoigtSizeMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -400,8 +400,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     virtual void CalculatePK2Stress(
-        const StrainVectorType& rStrainVector,
-        StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -412,7 +412,7 @@ protected:
      */
     virtual void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        StrainVectorType& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
         );
 
     ///@}
