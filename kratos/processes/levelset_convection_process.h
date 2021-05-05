@@ -148,7 +148,6 @@ public:
         , mIsBfecc(false)
         , mIsAlgebraicStabilization(false)
         , mIsHighOrder(false)
-        , mPartialConvection(false)
         , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_TRY
@@ -188,7 +187,6 @@ public:
      * @brief Perform the level-set convection
      * This solver provides a stabilized convection solver based on [Codina, R., 1993. Comput. Methods Appl. Mech. Engrg., 110(3-4), pp.325-342.]
      * It uses the sub-stepping approach to comply with the user defined maximum CFL number.
-     * It also allows the user to do the time-marching in a portion of the time-step set by DELTA_TIME_FACTOR in the ProcessInfo (needs "levelset_splitting": true).
      * The error compensation is done according to the BFECC algorithm, which requires forward, backward, and the final forward solution steps (that triplicates the computational cost).
      * The error compensation severely disturbs the monotonicity of the results that is compensated for by implementing a limited BFECC algorithm.
      * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41].
@@ -205,35 +203,23 @@ public:
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
 
-        // Set time step factor in case partial convection (e.g. Strang splitting) is performed
-        double dt_factor = 1.0;
         auto& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
-        if (mPartialConvection){
-            if (rCurrentProcessInfo.Has(DELTA_TIME_FACTOR)) {
-                dt_factor = rCurrentProcessInfo.GetValue(DELTA_TIME_FACTOR);
-                KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "\'DELTA_TIME_FACTOR\' should be larger than zero." <<std::endl;
-            } else {
-                KRATOS_ERROR << "\'DELTA_TIME_FACTOR\' not found in ProcessInfo. Please set it or deactivate the partial convection." << std::endl;
-            }
-        }
 
         // Save the variables to be employed so that they can be restored after the solution
         const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-        const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
-            mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(*mpConvectVar,1) +
-                (1.0 - dt_factor)*it_node->FastGetSolutionStepValue(*mpConvectVar);
+            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
             }
         );
 
-        const double dt = levelset_delta_time / static_cast<double>(n_substep);
+        const double dt =  previous_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
 
@@ -287,7 +273,7 @@ public:
         [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(*mpConvectVar,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
+            it_node->FastGetSolutionStepValue(*mpConvectVar,1) = mVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar,1) = mOldDistance[i_node];
         }
         );
@@ -328,7 +314,6 @@ public:
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : false,
             "cross_wind_stabilization_factor" : 0.7,
             "algebraic_stabilization" : false,
@@ -398,8 +383,6 @@ protected:
     bool mIsAlgebraicStabilization;
 
     bool mIsHighOrder;
-
-    bool mPartialConvection;
 
     Vector mError;
 
@@ -478,7 +461,6 @@ protected:
           mIsBfecc(IsBFECC),
           mIsAlgebraicStabilization(IsAlgebraicStabilization),
           mIsHighOrder(IsHighOrder),
-          mPartialConvection(PartialDt),
           mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
@@ -870,7 +852,6 @@ private:
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
         mIsAlgebraicStabilization = ThisParameters["algebraic_stabilization"].GetBool();
         mIsHighOrder = ThisParameters["high_order_terms"].GetBool();
-        mPartialConvection = ThisParameters["levelset_splitting"].GetBool();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());

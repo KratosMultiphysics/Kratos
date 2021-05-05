@@ -77,7 +77,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
-                "levelset_splitting" : false,
                 "eulerian_error_compensation" : false,
                 "cross_wind_stabilization_factor" : 0.7,
                 "algebraic_stabilization" : false,
@@ -101,6 +100,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def __init__(self, model, custom_settings):
         # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
+
+        if custom_settings.Has("levelset_convection_settings"):
+            if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
+                custom_settings["levelset_convection_settings"].RemoveValue("levelset_splitting")
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "\'levelset_splitting\' has been temporarily deactivated. Using the standard levelset convection with no splitting.")
+
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
@@ -124,12 +129,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         # this is used to enable high-order terms in the algebraic stabilization for the eulerian LS convection
         self._high_order_terms = self.settings["levelset_convection_settings"]["high_order_terms"].GetBool()
-
-        # this is used to identify the splitting of LS convection (Strang splitting idea)
-        self._levelset_splitting = self.settings["levelset_convection_settings"]["levelset_splitting"].GetBool()
-        self._levelset_dt_factor = 0.5 if self._levelset_splitting else 1.0
-        if self._levelset_splitting:
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, self._levelset_dt_factor)
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
@@ -221,8 +220,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-            if (self._levelset_splitting):
-                self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, self._levelset_dt_factor)
             self.__PerformLevelSetConvection()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
@@ -257,17 +254,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         if self._TimeBufferIsInitialized():
-            # If convection splitting, perform the level-set convection to complete the solution step
-            if self._levelset_splitting:
-                self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME_FACTOR, (1.0 - self._levelset_dt_factor))
-
-                if self._bfecc_convection:
-                    self._GetLevelSetConvectionProcess().CopyScalarVarToPreviousTimeStep(
-                        self.main_model_part,
-                        self._levelset_variable)
-
-                self.__PerformLevelSetConvection()
-
             # Recompute the distance field according to the new level-set position
             if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
@@ -465,11 +451,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 if domain_size == 2:
                     locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part)
                     locator.UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator, self._levelset_splitting, True)
+                    level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator, True)
                 else:
                     locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part)
                     locator.UpdateSearchDatabase()
-                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator, self._levelset_splitting, True)
+                    level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator, True)
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:

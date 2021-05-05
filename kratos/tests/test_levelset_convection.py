@@ -110,7 +110,6 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
             "cross_wind_stabilization_factor" : 0.7,
             "algebraic_stabilization" : false
@@ -194,7 +193,6 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : false,
             "cross_wind_stabilization_factor" : 0.7,
             "algebraic_stabilization" : true,
