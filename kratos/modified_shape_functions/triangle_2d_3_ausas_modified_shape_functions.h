@@ -106,66 +106,7 @@ public:
     */
     const DivideGeometry::Pointer pGetSplittingUtil() const override;
 
-    /**
-    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceAreaNormal: Outwards area normal vector list.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputePositiveSideInterfaceAreaNormals(
-        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceAreaNormal: Outwards area normal vector list.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputeNegativeSideInterfaceAreaNormals(
-        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveExteriorFaceAreaNormal: Outwards area normal vector list.
-    * @param FaceId Face local id. in where the values are to be computed.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputePositiveExteriorFaceAreaNormals(
-        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
-        const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeExteriorFaceAreaNormal: Outwards area normal vector list.
-    * @param FaceId Face local id. in where the values are to be computed.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
-    void ComputeNegativeExteriorFaceAreaNormals(
-        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
-        const unsigned int FaceId,
-        const IntegrationMethodType IntegrationMethod) override;
-
-    /**
-    * Returns the positive side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
-    * containing the positive side edge intersection shape function values. For non-split edges,
-    * the corresponding row is plenty of zeros.
-    */
-    void ComputeShapeFunctionsOnPositiveEdgeIntersections(
-        Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues) override;
-
-    /**
-    * Returns the negative side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
-    * containing the negative side edge intersection shape function values. For non-split edges,
-    * the corresponding row is plenty of zeros.
-    */
-    void ComputeShapeFunctionsOnNegativeEdgeIntersections(
-        Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues) override;
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{

@@ -126,6 +126,10 @@ protected:
 
     void SetCondensationMatrix(Matrix& rIntPointCondMatrix) override;
 
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
+
     ///@}
     ///@name Protected  Access
     ///@{

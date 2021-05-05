@@ -73,4 +73,22 @@ void Tetrahedra3D4ModifiedShapeFunctions::SetCondensationMatrix(Matrix& rIntPoin
         mpTetrahedraSplitter->mSplitEdges);
 }
 
+void Tetrahedra3D4ModifiedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix)
+{
+    ModifiedShapeFunctions::SetCondensationMatrix(
+        rPosSideCondMatrix,
+        mpTetrahedraSplitter->mEdgeNodeI,
+        mpTetrahedraSplitter->mEdgeNodeJ,
+        mpTetrahedraSplitter->mSplitEdges);
+}
+
+void Tetrahedra3D4ModifiedShapeFunctions::SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix)
+{
+    ModifiedShapeFunctions::SetCondensationMatrix(
+        rNegSideCondMatrix,
+        mpTetrahedraSplitter->mEdgeNodeI,
+        mpTetrahedraSplitter->mEdgeNodeJ,
+        mpTetrahedraSplitter->mSplitEdges);
+}
+
 }; //namespace Kratos

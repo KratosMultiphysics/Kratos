@@ -91,7 +91,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the intersection points condensation matrix
             Matrix p_matrix;
-            SetCondensationMatrix(p_matrix);
+            SetPositiveSideCondensationMatrix(p_matrix);
 
             // Compute the positive side values
             const auto& r_splitting_util = *(pGetSplittingUtil());
@@ -115,7 +115,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the intersection points condensation matrix
             Matrix p_matrix;
-            SetCondensationMatrix(p_matrix);
+            SetNegativeSideCondensationMatrix(p_matrix);
 
             // Compute the negative side values
             const auto& r_splitting_util = *(pGetSplittingUtil());
@@ -141,7 +141,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the intersection points condensation matrix
             Matrix p_matrix;
-            SetCondensationMatrix(p_matrix);
+            SetPositiveSideCondensationMatrix(p_matrix);
 
             // Compute the positive side values
             const auto& r_splitting_util = *(pGetSplittingUtil());
@@ -167,7 +167,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the intersection points condensation matrix
             Matrix p_matrix;
-            SetCondensationMatrix(p_matrix);
+            SetNegativeSideCondensationMatrix(p_matrix);
 
             // Compute the negative side values
             const auto& r_splitting_util = *(pGetSplittingUtil());
@@ -193,7 +193,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the interface condensation matrix
             Matrix p_matrix;
-            this->SetCondensationMatrix(p_matrix);
+            SetPositiveSideCondensationMatrix(p_matrix);
 
             // Compute the positive side interface values
             const auto& r_splitting_util = *(pGetSplittingUtil());
@@ -221,7 +221,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the interface condensation matrix
             Matrix p_matrix;
-            this->SetCondensationMatrix(p_matrix);
+            SetNegativeSideCondensationMatrix(p_matrix);
 
             // Compute the positive side interface values
             const auto& r_splitting_util = *(pGetSplittingUtil());
@@ -250,7 +250,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the condensation matrix
             Matrix p_matrix;
-            this->SetCondensationMatrix(p_matrix);
+            SetPositiveSideCondensationMatrix(p_matrix);
 
             // Get the external faces
             auto& r_splitting_util = *(pGetSplittingUtil());
@@ -289,7 +289,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the condensation matrix
             Matrix p_matrix;
-            this->SetCondensationMatrix(p_matrix);
+            SetNegativeSideCondensationMatrix(p_matrix);
 
             // Get the external faces
             auto& r_splitting_util = *(pGetSplittingUtil());
@@ -411,7 +411,7 @@ namespace Kratos
         if (this->IsSplit()) {
             // Get the interface condensation matrix
             Matrix p_matrix;
-            this->SetCondensationMatrix(p_matrix);
+            SetPositiveSideCondensationMatrix(p_matrix);
 
             // Compute the edge intersections shape function values
             this->ComputeEdgeIntersectionValuesOnOneSide(
@@ -427,8 +427,14 @@ namespace Kratos
     void ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues)
     {
         if (this->IsSplit()) {
-            // Note that positive and negative sides values are equal for standard shape functions
-            this->ComputeShapeFunctionsOnPositiveEdgeIntersections(rNegativeEdgeIntersectionsShapeFunctionsValues);
+            // Get the interface condensation matrix
+            Matrix p_matrix;
+            SetNegativeSideCondensationMatrix(p_matrix);
+
+            // Compute the edge intersections shape function values
+            this->ComputeEdgeIntersectionValuesOnOneSide(
+                p_matrix,
+                rNegativeEdgeIntersectionsShapeFunctionsValues);
         } else {
             KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
         }

@@ -73,4 +73,22 @@ void Triangle2D3ModifiedShapeFunctions::SetCondensationMatrix(Matrix& rIntPointC
         mpTriangleSplitter->mSplitEdges);
 }
 
+void Triangle2D3ModifiedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix)
+{
+    ModifiedShapeFunctions::SetCondensationMatrix(
+        rPosSideCondMatrix,
+        mpTriangleSplitter->mEdgeNodeI,
+        mpTriangleSplitter->mEdgeNodeJ,
+        mpTriangleSplitter->mSplitEdges);
+}
+
+void Triangle2D3ModifiedShapeFunctions::SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix)
+{
+    ModifiedShapeFunctions::SetCondensationMatrix(
+        rNegSideCondMatrix,
+        mpTriangleSplitter->mEdgeNodeI,
+        mpTriangleSplitter->mEdgeNodeJ,
+        mpTriangleSplitter->mSplitEdges);
+}
+
 }; //namespace Kratos
