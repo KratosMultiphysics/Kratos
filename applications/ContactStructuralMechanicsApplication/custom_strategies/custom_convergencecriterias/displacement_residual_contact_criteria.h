@@ -103,10 +103,10 @@ public:
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
     explicit DisplacementResidualContactCriteria(
-        const TDataType DispRatioTolerance,
-        const TDataType DispAbsTolerance,
-        const TDataType RotRatioTolerance,
-        const TDataType RotAbsTolerance,
+        const double DispRatioTolerance,
+        const double DispAbsTolerance,
+        const double RotRatioTolerance,
+        const double RotAbsTolerance,
         const bool PrintingOutput = false
         )
         : BaseType()
@@ -179,9 +179,9 @@ public:
     {
         if (SparseSpaceType::Size(rb) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0;
+            double disp_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0);
-            TDataType rot_residual_solution_norm = 0.0;
+            double rot_residual_solution_norm = 0.0;
             IndexType rot_dof_num(0);
 
             // First iterator
@@ -189,7 +189,7 @@ public:
 
             // Auxiliar values
             std::size_t dof_id = 0;
-            TDataType residual_dof_value = 0.0;
+            double residual_dof_value = 0.0;
 
             // Auxiliar displacement DoF check
             const std::function<bool(const VariableData&)> check_without_rot =
@@ -222,8 +222,8 @@ public:
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mRotCurrentResidualNorm = rot_residual_solution_norm;
 
-            TDataType residual_disp_ratio = 1.0;
-            TDataType residual_rot_ratio = 1.0;
+            double residual_disp_ratio = 1.0;
+            double residual_rot_ratio = 1.0;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementResidualContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
@@ -241,8 +241,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            const TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            const TDataType residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            const double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
+            const double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -484,15 +484,15 @@ private:
 
     Flags mOptions; /// Local flags
 
-    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
-    TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
-    TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
+    double mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
+    double mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
+    double mDispInitialResidualNorm; /// The reference norm of the displacement residual
+    double mDispCurrentResidualNorm; /// The current norm of the displacement residual
 
-    TDataType mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
-    TDataType mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
-    TDataType mRotInitialResidualNorm; /// The reference norm of the rotation residual
-    TDataType mRotCurrentResidualNorm; /// The current norm of the rotation residual
+    double mRotRatioTolerance;      /// The ratio threshold for the norm of the rotation residual
+    double mRotAbsTolerance;        /// The absolute value threshold for the norm of the rotation residual
+    double mRotInitialResidualNorm; /// The reference norm of the rotation residual
+    double mRotCurrentResidualNorm; /// The current norm of the rotation residual
 
     ///@}
     ///@name Private Operators
