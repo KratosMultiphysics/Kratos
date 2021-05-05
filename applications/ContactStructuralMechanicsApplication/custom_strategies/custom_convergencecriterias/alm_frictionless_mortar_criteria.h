@@ -244,13 +244,6 @@ public:
      */
     Parameters GetDefaultParameters() const override
     {
-        /**
-         * error_mesh_tolerance: The tolerance in the convergence criteria of the error
-         * error_mesh_constant: The constant considered in the remeshing process
-         * penalty_normal: The penalty used in the normal direction (for the contact patch)
-         * penalty_tangential: The penalty used in the tangent direction (for the contact patch)
-         * echo_level: The verbosity
-         */
         Parameters default_parameters = Parameters(R"(
         {
             "name"                        : "alm_frictionless_mortar_criteria",
