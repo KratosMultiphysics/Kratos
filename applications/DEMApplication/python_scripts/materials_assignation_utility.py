@@ -1,6 +1,8 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication import *
 
+import sys
+
 class MaterialsAssignationUtility:
 
     def __init__(self, model, spheres_model_part, DEM_material_parameters):
@@ -56,14 +58,22 @@ class MaterialsAssignationUtility:
 
         for pair in material_assignation_table:
             submodelpart_name_in_assignation_table = pair[0].GetString()
-            material_name_in_assignation_table = pair[1].GetString()
-            submodelpart = None
-            for material in list_of_materials:
-                material_name_in_materials_list = material["material_name"].GetString()
-                if material_name_in_assignation_table == material_name_in_materials_list:
-                    submodelpart = self.model.GetModelPart(submodelpart_name_in_assignation_table)
-                    material_id = material["material_id"].GetInt()
-                    props = self.spheres_model_part.GetProperties()[material_id]
+            submodelpart = self.model.GetModelPart(submodelpart_name_in_assignation_table)
+
+            if pair[1].IsString():
+                material_name_in_assignation_table = pair[1].GetString()
+                for material in list_of_materials:
+                    material_name_in_materials_list = material["material_name"].GetString()
+                    if material_name_in_assignation_table == material_name_in_materials_list:
+                        material_id = material["material_id"].GetInt()
+            elif pair[1].IsInt():
+                material_id = pair[1].GetInt()
+            else:
+                Kratos.Logger.PrintInfo("DEM", "Error: while reading the materials assignation table, the material was not identified with a string or an integer. Exiting.")
+                sys.exit()
+
+            props = self.spheres_model_part.GetProperties()[material_id]
+            submodelpart.SetValue(PROPERTIES_ID, material_id)
             for element in submodelpart.Elements:
                 element.Properties = props
             for condition in submodelpart.Conditions:
