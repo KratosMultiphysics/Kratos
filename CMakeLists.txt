@@ -483,7 +483,7 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
         endif(NOT DEFINED KRATOS_BUILD_${application_name})
 
         # Add application to the build list if it's not in it yet
-        list(FIND ${KRATOS_APPLICATIONS} "KRATOS_BUILD_${application_name}" index) # CMake < 3.3 does not support IN_LIST
+        list(FIND "${KRATOS_APPLICATIONS}" "KRATOS_BUILD_${application_name}" index) # CMake < 3.3 does not support IN_LIST
         if(${index} EQUAL -1)
             list(APPEND KRATOS_APPLICATIONS "${application_path}")
         endif(${index EQUAL -1})
