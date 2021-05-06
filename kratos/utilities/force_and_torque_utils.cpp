@@ -24,52 +24,97 @@ namespace Kratos
 {
 
 
-std::array<array_1d<double,3>,2> ForceAndTorqueUtils::SumForceAndTorque(const ModelPart& rModelPart,
-                                                                        const array_1d<double,3>& rReferencePoint)
+array_1d<double,3> ForceAndTorqueUtils::SumForce(
+    const ModelPart& rModelPart,
+    const Variable<array_1d<double,3>>& rForceVariable)
 {
     KRATOS_TRY
 
-    using CompoundArray = array_1d<double,6>;
-
-    CompoundArray force_and_moment = block_for_each<SumReduction<CompoundArray>>(
+    array_1d<double,3> force = block_for_each<SumReduction<array_1d<double,3>>>(
         rModelPart.GetCommunicator().LocalMesh().Nodes(),
-        [&rReferencePoint](const Node<3>& rNode) -> CompoundArray
+        [&rForceVariable](const Node<3>& rNode) -> array_1d<double,3>
         {
-            array_1d<double,3> force, moment;
-
-            force = rNode.GetSolutionStepValue(REACTION);
-
-            if (rNode.SolutionStepsDataHas(MOMENT)) {
-                moment = rNode.GetSolutionStepValue(MOMENT);
-            }
-            else {
-                moment[0] = 0.0;
-                moment[1] = 0.0;
-                moment[2] = 0.0;
-            }
-
-            moment += MathUtils<double>::CrossProduct<array_1d<double,3>>(
-                rNode-rReferencePoint,
-                force
-            );
-
-            return CompoundArray {force[0], force[1], force[2],
-                                  moment[0], moment[1], moment[2]};
+            return rNode.GetSolutionStepValue(rForceVariable);
         }
     );
 
-    std::array<array_1d<double,3>,2> output;
-    output[0][0] = force_and_moment[0];
-    output[0][1] = force_and_moment[1];
-    output[0][2] = force_and_moment[2];
-    output[1][0] = force_and_moment[3];
-    output[1][1] = force_and_moment[4];
-    output[1][2] = force_and_moment[5];
+    force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(force);
 
-    output[0] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(output[0]);
-    output[1] = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(output[1]);
+    return force;
 
-    return output;
+    KRATOS_CATCH("")
+}
+
+
+std::array<array_1d<double,3>,2> ForceAndTorqueUtils::SumForceAndTorque(
+    const ModelPart& rModelPart,
+    const array_1d<double,3>& rReferencePoint,
+    const Variable<array_1d<double,3>>& rForceVariable,
+    const Variable<array_1d<double,3>>& rTorqueVariable)
+{
+    KRATOS_TRY
+
+    using CompoundArray = std::array<array_1d<double,3>,2>;
+    using CompoundTuple = std::tuple<array_1d<double,3>,array_1d<double,3>>;
+    using CompoundReduction = CombinedReduction<
+        SumReduction<array_1d<double,3>>,
+        SumReduction<array_1d<double,3>>
+    >;
+
+    std::function<CompoundTuple(const Node<3>&)> compute_force_and_moment;
+
+    // Check whether nodes have the torque variable and set the lambda accordingly.
+    // Note: multiple node types within the model part are not supported.
+    //       In that case, this check would have to performed for each node.
+    if (rModelPart.GetCommunicator().LocalMesh().Nodes().begin()->SolutionStepsDataHas(rTorqueVariable)) {
+        compute_force_and_moment = [&](const Node<3>& rNode) -> CompoundTuple
+        {
+            // {{fx, fy, fz},{mx, my, mz}}
+            CompoundTuple force_and_moment_nodal;
+            array_1d<double,3>& r_force = std::get<0>(force_and_moment_nodal);
+            array_1d<double,3>& r_moment = std::get<1>(force_and_moment_nodal);
+            
+            r_force = rNode.GetSolutionStepValue(rForceVariable);
+            r_moment = rNode.GetSolutionStepValue(rTorqueVariable);
+
+            r_moment += MathUtils<double>::CrossProduct<array_1d<double,3>>(
+                rNode-rReferencePoint,
+                r_force
+            );
+
+            return force_and_moment_nodal;
+        };
+    }
+    else {
+        compute_force_and_moment = [&](const Node<3>& rNode) -> CompoundTuple
+        {
+            // {{fx, fy, fz},{mx, my, mz}}
+            CompoundTuple force_and_moment_nodal;
+            array_1d<double,3>& r_force = std::get<0>(force_and_moment_nodal);
+            array_1d<double,3>& r_moment = std::get<1>(force_and_moment_nodal);
+
+            r_force = rNode.GetSolutionStepValue(rForceVariable);
+            r_moment = MathUtils<double>::CrossProduct<array_1d<double,3>>(
+                rNode-rReferencePoint,
+                r_force
+            );
+
+            return force_and_moment_nodal;
+        };
+    }
+
+    auto force_and_moment = block_for_each<CompoundReduction>(
+        rModelPart.GetCommunicator().LocalMesh().Nodes(),
+        compute_force_and_moment
+    );
+
+    array_1d<double,3>& r_force = std::get<0>(force_and_moment);
+    array_1d<double,3>& r_moment = std::get<1>(force_and_moment);
+
+    r_force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(r_force);
+    r_moment = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(r_moment);
+
+    return CompoundArray {r_force, r_moment};
 
     KRATOS_CATCH("")
 }

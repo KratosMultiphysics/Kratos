@@ -23,22 +23,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -48,70 +32,29 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) ForceAndTorqueUtils
 {
 public:
-    ///@name Type Definitions
-    ///@{
-    
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /** Constructor.
-     */
-
-    /** Destructor.
-     */
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
-    static std::array<array_1d<double,3>,2> SumForceAndTorque(const ModelPart& rModelPart, const array_1d<double,3>& rReferencePoint);
+    /** Sum forces on all nodes
+     *  @param rModelPart model part containing all nodes to perform the sum on
+     *  @param rForceVariable nodal force variable to be summed up (REACTION by default)
+     */
+    static array_1d<double,3> SumForce(
+        const ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rForceVariable = REACTION);
 
-    ///@}
-    ///@name Acces
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private Acces
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
-    ///@{
+    /** Sum forces and torques on all nodes
+     *  @param rModelPart model part containing all nodes to perform the sum on
+     *  @param rReferencePoint reference point for computing moments
+     *  @param rForceVariable nodal force variable to be summed up (REACTION by default)
+     *  @param rTorqueVariable nodal torque variable to be summed up (MOMENT by default)
+     *  @note either all nodes are expected to have rTorqueVariable or none of them; they are not checked individually 
+     */
+    static std::array<array_1d<double,3>,2> SumForceAndTorque(
+        const ModelPart& rModelPart,
+        const array_1d<double,3>& rReferencePoint,
+        const Variable<array_1d<double,3>>& rForceVariable = REACTION,
+        const Variable<array_1d<double,3>>& rTorqueVariable = MOMENT);
 
     ///@}
 }; /* class ForceAndTorqueUtils */

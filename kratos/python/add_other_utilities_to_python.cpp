@@ -608,7 +608,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<ForceAndTorqueUtils>(m, "ForceAndTorqueUtils")
         .def(py::init<>())
-        .def("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
+        .def_static(
+            "SumForce",
+            &ForceAndTorqueUtils::SumForce,
+            py::arg(),
+            py::arg("rForceVariable") = REACTION)
+        .def_static(
+            "SumForceAndTorque",
+            &ForceAndTorqueUtils::SumForceAndTorque,
+            py::arg(),
+            py::arg(),
+            py::arg("rForceVariable") = REACTION,
+            py::arg("rTorqueVariable") = MOMENT)
         ;
 
 }

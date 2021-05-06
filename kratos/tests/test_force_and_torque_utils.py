@@ -34,6 +34,15 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
+    def test_force(self):
+        model_part = GenerateModelPart()
+
+        force = KratosMultiphysics.ForceAndTorqueUtils.SumForce(model_part)
+
+        self.assertAlmostEqual(force[0], 10.0)
+        self.assertAlmostEqual(force[1], 0.0)
+        self.assertAlmostEqual(force[2], 20.0)
+
     def test_with_moment(self):
         model_part = GenerateModelPart()
 
