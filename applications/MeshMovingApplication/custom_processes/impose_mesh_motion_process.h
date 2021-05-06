@@ -84,12 +84,6 @@ public:
     virtual const Parameters GetDefaultParameters() const override;
 
     ///@}
-    ///@name Inquiry
-    ///@{
-
-    const Matrix& TransformationMatrix() const;
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -107,7 +101,7 @@ private:
 
     void Transform(array_1d<double,3>& rPoint) const
     {
-        rPoint = prod(mTransformationMatrix, rPoint - mReferencePoint);
+        rPoint = prod(mRotationMatrix, rPoint - mReferencePoint);
         rPoint += mReferencePoint + mTranslationVector;
     }
 
@@ -117,7 +111,7 @@ private:
         
     ModelPart& mrModelPart;
 
-    Matrix mTransformationMatrix;
+    Matrix mRotationMatrix;
 
     array_1d<double,3> mReferencePoint;
 

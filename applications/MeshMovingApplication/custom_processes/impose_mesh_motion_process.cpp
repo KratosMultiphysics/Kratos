@@ -174,11 +174,11 @@ void ImposeMeshMotionProcess::LoadFromQuaternion(const Quaternion<double>& rQuat
 {
     KRATOS_TRY;
 
-    mTransformationMatrix.resize(3, 3);
+    mRotationMatrix.resize(3, 3);
     mReferencePoint = rReferencePoint;
     mTranslationVector = rTranslationVector;
 
-    rQuaternion.ToRotationMatrix(mTransformationMatrix);
+    rQuaternion.ToRotationMatrix(mRotationMatrix);
 
     KRATOS_CATCH("");
 }
@@ -213,12 +213,6 @@ const Parameters ImposeMeshMotionProcess::GetDefaultParameters() const
         "rotation_angle"        : 0,
         "translation_vector"    : [0.0, 0.0, 0.0]
     })");
-}
-
-
-const Matrix& ImposeMeshMotionProcess::TransformationMatrix() const
-{
-    return mTransformationMatrix;
 }
 
 
