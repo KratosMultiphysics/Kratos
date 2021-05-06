@@ -76,6 +76,24 @@ const Vector& Tetrahedra3D4AusasIncisedShapeFunctions::GetExtrapolatedEdgeRatios
     return mExtraEdgeRatios;
 }
 
+void Tetrahedra3D4AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix)
+{
+    Tetrahedra3D4AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(
+        rPosSideCondMatrix,
+        Tetrahedra3D4AusasModifiedShapeFunctions::mpTetrahedraSplitter->mEdgeNodeI,
+        Tetrahedra3D4AusasModifiedShapeFunctions::mpTetrahedraSplitter->mEdgeNodeJ,
+        Tetrahedra3D4AusasModifiedShapeFunctions::mpTetrahedraSplitter->mSplitEdges);
+}
+
+void Tetrahedra3D4AusasIncisedShapeFunctions::SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix)
+{
+    Tetrahedra3D4AusasIncisedShapeFunctions::SetNegativeSideCondensationMatrix(
+        rNegSideCondMatrix,
+        Tetrahedra3D4AusasModifiedShapeFunctions::mpTetrahedraSplitter->mEdgeNodeI,
+        Tetrahedra3D4AusasModifiedShapeFunctions::mpTetrahedraSplitter->mEdgeNodeJ,
+        Tetrahedra3D4AusasModifiedShapeFunctions::mpTetrahedraSplitter->mSplitEdges);
+}
+
 // Sets the condensation matrix to transform the subdivsion positive side values to entire element ones.
 void Tetrahedra3D4AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(
     Matrix& rPosSideCondMatrix,
