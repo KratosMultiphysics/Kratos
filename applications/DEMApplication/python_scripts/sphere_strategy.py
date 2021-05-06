@@ -642,6 +642,9 @@ class ExplicitStrategy():
         if param:
             return
 
+        if not properties.Has(COMPUTE_WEAR):
+            properties.SetValue(COMPUTE_WEAR, False)
+
         if properties.Has(CLUSTER_FILE_NAME):
             cluster_file_name = properties[CLUSTER_FILE_NAME]
             [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
