@@ -25,11 +25,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             self._bfecc_convection = False
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
 
-        if self.settings["formulation"].Has("surface_tension"):
-            self.settings["formulation"]["surface_tension"].SetBool(False)
-            self.main_model_part.ProcessInfo.SetValue(KratosFluid.SURFACE_TENSION, False)
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Surface tension is not implemented in MPI yet. Deactivating it.")
-
         if not self._reinitialization_type == None:
             if not self._reinitialization_type == "variational":
                 self._reinitialization_type == "variational"

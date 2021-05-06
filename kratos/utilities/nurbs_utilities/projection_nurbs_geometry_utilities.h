@@ -19,14 +19,16 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "containers/array_1d.h"
 
 namespace Kratos
 {
-template<class TPointType> class Geometry;
 template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
-namespace ProjectionNurbsGeometryUtilities
+class ProjectionNurbsGeometryUtilities
 {
+public:
+
     typedef array_1d<double, 3> CoordinatesArrayType;
 
     /*
@@ -46,7 +48,7 @@ namespace ProjectionNurbsGeometryUtilities
     * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
     */
     template <class TPointType>
-    bool NewtonRaphsonCurve(
+    static bool NewtonRaphsonCurve(
         CoordinatesArrayType& rParameterLocalCoordinates,
         const CoordinatesArrayType& rPointGlobal,
         CoordinatesArrayType& rResultLocal,
@@ -123,7 +125,7 @@ namespace ProjectionNurbsGeometryUtilities
     * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
     */
     template <int TDimension, class TPointType>
-    bool NewtonRaphsonSurface(
+    static bool NewtonRaphsonSurface(
         CoordinatesArrayType& rParameterLocalCoordinates,
         const CoordinatesArrayType& rPointGlobal,
         CoordinatesArrayType& rResultLocal,
@@ -237,7 +239,7 @@ namespace ProjectionNurbsGeometryUtilities
 
         return false;
     }
-}
+};
 } // namespace Kratos
 
 #endif // KRATOS_PROJECTION_NURBS_GEOMETRY_UTILITIES_H_INCLUDED

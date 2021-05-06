@@ -63,7 +63,7 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
+    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -352,35 +352,13 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        mpNurbsSurface->PolynomialDegreeU();
-
         const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
             + mpNurbsSurface->PolynomialDegreeV() + 1;
 
         std::vector<double> spans;
         Spans(spans);
 
-        mpNurbsCurve->CreateIntegrationPoints(
-            rIntegrationPoints, spans, points_per_span);
-    }
-
-    /* Creates integration points according to the knot intersections
-     * of the underlying nurbs surface, within a given range.
-     * @param result integration points.
-     */
-    void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
-        double StartParameter, double EndParameter) const
-    {
-        mpNurbsSurface->PolynomialDegreeU();
-
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
-
-        std::vector<double> spans;
-        Spans(spans, StartParameter, EndParameter);
-
-        mpNurbsCurve->CreateIntegrationPoints(
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
     }
 
@@ -449,10 +427,8 @@ public:
                 nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...

@@ -172,18 +172,6 @@ namespace Kratos {
 
     }//SolveSolutionStep()
 
-    void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        const int time_step = r_process_info[TIME_STEPS];
-        const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-
-        if (is_time_to_search_neighbours) {
-            SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
-            SearchRigidFaceNeighbours();
-            ComputeNewRigidFaceNeighboursHistoricalData();
-        }
-    }
-
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
 
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -353,6 +341,19 @@ namespace Kratos {
                 mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
+
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
+        KRATOS_TRY
+
+        block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
+            particle->ReorderFEMneighbours();
+        });
+
+
+        BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
 
         KRATOS_CATCH("")
     }
