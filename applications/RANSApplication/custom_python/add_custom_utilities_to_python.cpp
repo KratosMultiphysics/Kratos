@@ -34,11 +34,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<RansNutUtility, RansNutUtility::Pointer>(m, "RansNutUtility")
-        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const double, const double, const int>())
+        .def(py::init<ModelPart&, const double, const double, const int>())
         .def("Initialize", &RansNutUtility::Initialize)
         .def("InitializeCalculation", &RansNutUtility::InitializeCalculation)
         .def("CheckConvergence", &RansNutUtility::CheckConvergence)
-        .def("UpdateTurbulenceData", &RansNutUtility::UpdateTurbulenceData)
         .def("UpdateTurbulentViscosity", &RansNutUtility::UpdateTurbulentViscosity)
         ;
 

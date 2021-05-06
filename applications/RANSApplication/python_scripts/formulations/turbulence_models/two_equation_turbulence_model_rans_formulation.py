@@ -26,8 +26,6 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         self.echo_level = settings["echo_level"].GetInt()
         self.nu_t_convergence_utility = RansNutUtility(
             self.GetBaseModelPart(),
-            self.formulation_1.GetSolvingVariable(),
-            self.formulation_2.GetSolvingVariable(),
             settings["coupling_settings"]["relative_tolerance"].GetDouble(),
             settings["coupling_settings"]["absolute_tolerance"].GetDouble(),
             self.echo_level)
@@ -45,6 +43,17 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             self.GetParameters()["auxiliar_process_list"])
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
+
+        turbulence_data_copy_process = KratosRANS.RansVariableDataTransferProcess(
+            self.GetBaseModelPart().GetModel(),
+            self.GetBaseModelPart().Name,
+            self.GetBaseModelPart().Name,
+            ["initialize", "after_coupling_solve_step"],
+            [(self.formulation_1.GetSolvingVariable().Name(), True, self.formulation_1.GetSolvingVariable().Name(), False),
+             (self.formulation_2.GetSolvingVariable().Name(), True, self.formulation_2.GetSolvingVariable().Name(), False)],
+            self.echo_level
+        )
+        self.AddProcess(turbulence_data_copy_process)
 
         super().Initialize()
 
@@ -94,11 +103,6 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
 
     def ExecuteAfterCouplingSolveStep(self):
         super().ExecuteAfterCouplingSolveStep()
-
-        # In here we transfer turbulence model variables to non-historical
-        # data value container of nodes so, nu_t can be calculated on those values
-        # this is done in order to achieve easier convergence.
-        self.nu_t_convergence_utility.UpdateTurbulenceData()
 
         # It is required to update nut here for old FractionalStep and
         # VMS formulations, so this nut can be distributed via rans_nut_nodal_update process
