@@ -1575,7 +1575,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
             }
         }
 
-        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
         array_1d<double, 3>& hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
         hydrodynamic_reaction = ZeroVector(3);
         //body_force = gravity;
