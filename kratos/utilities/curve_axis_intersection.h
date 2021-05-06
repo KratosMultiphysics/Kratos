@@ -19,11 +19,11 @@
 // External includes
 
 // Project includes
-#include "nurbs_curve_tessellation.h"
+#include "tessellation_utilities/curve_tessellation.h"
 
 namespace Kratos
 {
-    template<std::size_t TWorkingSpaceDimension, class TNodeType>
+    template<class TNodeType>
     class CurveAxisIntersection
     {
     public:
@@ -34,7 +34,7 @@ namespace Kratos
         typedef typename GeometryType::Pointer GeometryPointerType;
         typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
-        typedef NurbsCurveTessellation<TWorkingSpaceDimension, PointerVector<TNodeType>> CurveTesselationType;
+        typedef CurveTessellation<PointerVector<TNodeType>> CurveTesselationType;
 
     private:
         static double BisectionToAxis(
