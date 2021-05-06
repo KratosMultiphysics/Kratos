@@ -37,7 +37,7 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
     def test_force(self):
         model_part = GenerateModelPart()
 
-        force = KratosMultiphysics.ForceAndTorqueUtils.SumForce(model_part)
+        force = KratosMultiphysics.ForceAndTorqueUtils.SumForce(model_part, KratosMultiphysics.REACTION)
 
         self.assertAlmostEqual(force[0], 10.0)
         self.assertAlmostEqual(force[1], 0.0)
@@ -51,7 +51,9 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
 
         force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
-            reference_point
+            reference_point,
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.MOMENT
         )
 
         self.assertAlmostEqual(force[0], 10.0)
@@ -69,7 +71,9 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
 
         force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
-            reference_point
+            reference_point,
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.MOMENT
         )
 
         self.assertAlmostEqual(force[0], 10.0)

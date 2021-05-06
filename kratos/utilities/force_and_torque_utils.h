@@ -37,24 +37,24 @@ public:
 
     /** Sum forces on all nodes
      *  @param rModelPart model part containing all nodes to perform the sum on
-     *  @param rForceVariable nodal force variable to be summed up (REACTION by default)
+     *  @param rForceVariable nodal force variable to be summed up (example: REACTION)
      */
     static array_1d<double,3> SumForce(
         const ModelPart& rModelPart,
-        const Variable<array_1d<double,3>>& rForceVariable = REACTION);
+        const Variable<array_1d<double,3>>& rForceVariable);
 
     /** Sum forces and torques on all nodes
      *  @param rModelPart model part containing all nodes to perform the sum on
      *  @param rReferencePoint reference point for computing moments
-     *  @param rForceVariable nodal force variable to be summed up (REACTION by default)
-     *  @param rTorqueVariable nodal torque variable to be summed up (MOMENT by default)
+     *  @param rForceVariable nodal force variable to be summed up (example: REACTION)
+     *  @param rTorqueVariable nodal torque variable to be summed up (example: MOMENT)
      *  @note either all nodes are expected to have rTorqueVariable or none of them; they are not checked individually 
      */
     static std::array<array_1d<double,3>,2> SumForceAndTorque(
         const ModelPart& rModelPart,
         const array_1d<double,3>& rReferencePoint,
-        const Variable<array_1d<double,3>>& rForceVariable = REACTION,
-        const Variable<array_1d<double,3>>& rTorqueVariable = MOMENT);
+        const Variable<array_1d<double,3>>& rForceVariable,
+        const Variable<array_1d<double,3>>& rTorqueVariable);
 
     ///@}
 }; /* class ForceAndTorqueUtils */
