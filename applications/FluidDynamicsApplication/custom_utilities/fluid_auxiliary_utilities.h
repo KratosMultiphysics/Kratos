@@ -87,7 +87,7 @@ public:
      * @param rModelPart The model part to calculate the volume of
      * @return double Fluid volume
      */
-    static double CalculateFluidVolume(ModelPart& rModelPart);
+    static double CalculateFluidVolume(const ModelPart& rModelPart);
 
     /**
      * @brief Calculate the fluid positive volume
@@ -99,7 +99,7 @@ public:
      * @param rModelPart The model part to calculate the positive volume
      * @return double Fluid positive volume
      */
-    static double CalculateFluidPositiveVolume(ModelPart& rModelPart);
+    static double CalculateFluidPositiveVolume(const ModelPart& rModelPart);
 
     /**
      * @brief Calculate the fluid negative volume
@@ -111,7 +111,16 @@ public:
      * @param rModelPart The model part to calculate the negative volume
      * @return double Fluid negative volume
      */
-    static double CalculateFluidNegativeVolume(ModelPart& rModelPart);
+    static double CalculateFluidNegativeVolume(const ModelPart& rModelPart);
+
+    /**
+     * @brief Calculate the flow rate through the given model part conditions
+     * This method calculates the flow rate throught the given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @return double Flow rate
+     */
+    static double CalculateFlowRate(const ModelPart& rModelPart);
 
     /**
      * @brief Get the Standard Modified Shape Functions Factory object

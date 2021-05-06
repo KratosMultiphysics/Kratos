@@ -58,22 +58,24 @@ bool FluidAuxiliaryUtilities::IsNegative(const Vector& rNodalDistances)
     return !IsPositive(rNodalDistances);
 }
 
-double FluidAuxiliaryUtilities::CalculateFluidVolume(ModelPart& rModelPart)
+double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart)
 {
     KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
 
     double fluid_volume = 0.0;
     const auto& r_communicator = rModelPart.GetCommunicator();
-    fluid_volume = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Elements(), [](Element& rElement){
-        const auto& r_geom = rElement.GetGeometry();
-        return r_geom.DomainSize();
-    });
+    if (r_communicator.LocalMesh().NumberOfElements() != 0) {
+        fluid_volume = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Elements(), [](Element& rElement){
+            const auto& r_geom = rElement.GetGeometry();
+            return r_geom.DomainSize();
+        });
+    }
     r_communicator.GetDataCommunicator().SumAll(fluid_volume);
 
     return fluid_volume;
 }
 
-double FluidAuxiliaryUtilities::CalculateFluidPositiveVolume(ModelPart& rModelPart)
+double FluidAuxiliaryUtilities::CalculateFluidPositiveVolume(const ModelPart& rModelPart)
 {
     // Check that there are elements and distance variable in the nodal database
     KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
@@ -119,9 +121,9 @@ double FluidAuxiliaryUtilities::CalculateFluidPositiveVolume(ModelPart& rModelPa
     return fluid_volume;
 }
 
-double FluidAuxiliaryUtilities::CalculateFluidNegativeVolume(ModelPart& rModelPart)
+double FluidAuxiliaryUtilities::CalculateFluidNegativeVolume(const ModelPart& rModelPart)
 {
-// Check that there are elements and distance variable in the nodal database
+    // Check that there are elements and distance variable in the nodal database
     KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
     const auto& r_communicator = rModelPart.GetCommunicator();
     if (r_communicator.LocalMesh().NumberOfNodes() !=0) {
@@ -163,6 +165,44 @@ double FluidAuxiliaryUtilities::CalculateFluidNegativeVolume(ModelPart& rModelPa
     r_communicator.GetDataCommunicator().SumAll(fluid_volume);
 
     return fluid_volume;
+}
+
+double FluidAuxiliaryUtilities::CalculateFlowRate(const ModelPart& rModelPart)
+{
+    // Check that there are conditions and distance variable in the nodal database
+    KRATOS_ERROR_IF(rModelPart.NumberOfConditions() == 0) << "There are no conditions in the provided model part. Flow rate cannot be computed." << std::endl;
+    const auto& r_communicator = rModelPart.GetCommunicator();
+    if (r_communicator.LocalMesh().NumberOfNodes() !=0) {
+        KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(VELOCITY)) << "Nodal solution step data has no \'VELOCITY\' variable. Flow rate cannot be computed" << std::endl;
+    }
+
+    double flow_rate = 0.0;
+    if (r_communicator.LocalMesh().NumberOfConditions() != 0) {
+        flow_rate = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Conditions(), [](Condition& rCondition){
+            // Calculate the condition area (length in 2D)
+            const auto& r_geom = rCondition.GetGeometry();
+            // Calculate the condition area normal
+            GeometryType::CoordinatesArrayType point_local;
+            r_geom.PointLocalCoordinates(point_local, r_geom.Center()) ;
+            const array_1d<double,3> area_normal = r_geom.Normal(point_local);
+            // Check condition area and calculate the condition average flow rate
+            double condition_flow_rate = 0.0;
+            if (norm_2(area_normal) > std::numeric_limits<double>::epsilon()) {
+                for (auto& r_node : r_geom) {
+                    condition_flow_rate += MathUtils<double>::Dot(r_node.FastGetSolutionStepValue(VELOCITY), area_normal);
+                }
+                condition_flow_rate /= static_cast<double>(r_geom.PointsNumber());
+            } else {
+                KRATOS_WARNING("CalculateFlowRate") << "Condition " << rCondition.Id() << " area is close to zero. Flow rate not considered." << std::endl;
+            }
+            return condition_flow_rate;
+        });
+    }
+
+    // Synchronize among processors
+    flow_rate = r_communicator.GetDataCommunicator().SumAll(flow_rate);
+
+    return flow_rate;
 }
 
 FluidAuxiliaryUtilities::ModifiedShapeFunctionsFactoryType FluidAuxiliaryUtilities::GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry)
