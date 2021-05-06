@@ -84,7 +84,7 @@ void RansVariableDataTransferProcess::CopyVariableData::CopyNonHistoricalToNonHi
 std::string RansVariableDataTransferProcess::CopyVariableData::Info() const
 {
     const auto& type_str = [](const bool IsHistorical) -> std::string {
-        return (IsHistorical ? "Historical" : "Nonhistorical");
+        return (IsHistorical ? "Historical" : "Non-historical");
     };
 
     return type_str(mIsSourceVariableHistorical) + " " + mrSourceVariable.Name() +
@@ -287,7 +287,6 @@ void RansVariableDataTransferProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-
 void RansVariableDataTransferProcess::ExecuteCopy()
 {
     KRATOS_TRY
@@ -315,7 +314,7 @@ void RansVariableDataTransferProcess::ExecuteCopy()
     if (mEchoLevel > 0) {
         std::stringstream msg;
         msg << "Following variable data was copied successfully from "
-            << mSourceModelPartName << " to " << mDestinationModelPartName << " :\n";
+            << mSourceModelPartName << " to " << mDestinationModelPartName << ":\n";
 
         for (const auto& copy_variable_data : mCopyVariableDataList) {
             msg << "\t" << copy_variable_data.Info() << "\n";
