@@ -21,10 +21,10 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
 
     def testCalculateFluidPositiveVolume(self):
         # Set fluid level set
-        level_set_y = 0.4
+        level_set_y = 1.0/3.0
         fluid_model_part = self.model.GetModelPart("FluidModelPart")
         for node in fluid_model_part.Nodes:
-            node.SetSolutionStepValue(Kratos.DISTANCE, 1.0, node.Y - level_set_y)
+            node.SetSolutionStepValue(Kratos.DISTANCE, 0, node.Y - level_set_y)
 
         # Calculate the fluid positive volume
         fluid_positive_volume = KratosFluid.FluidAuxiliaryUtilities.CalculateFluidPositiveVolume(fluid_model_part)
@@ -32,10 +32,10 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
 
     def testCalculateFluidNegativeVolume(self):
         # Set fluid level set
-        level_set_y = 0.4
+        level_set_y = 2.0/3.0
         fluid_model_part = self.model.GetModelPart("FluidModelPart")
         for node in fluid_model_part.Nodes:
-            node.SetSolutionStepValue(Kratos.DISTANCE, 1.0, node.Y - level_set_y)
+            node.SetSolutionStepValue(Kratos.DISTANCE, 0, node.Y - level_set_y)
 
         # Calculate the fluid negative volume
         fluid_negative_volume = KratosFluid.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(fluid_model_part)

@@ -15,8 +15,6 @@
 #define KRATOS_FLUID_AUXILIARY_UTILITIES_H
 
 // System includes
-#include <tuple>
-#include <type_traits>
 
 // External includes
 
@@ -25,6 +23,7 @@
 #include "includes/node.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
+#include "modified_shape_functions/modified_shape_functions.h"
 
 // Application includes
 
@@ -49,9 +48,38 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
+    using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
+
     ///@}
     ///@name Static Operations
     ///@{
+
+    /**
+     * @brief Checks if an element is split
+     * From the given vector containing the distance in each node, this method checks if the element is split
+     * @param rNodalDistances Vector containing the distance values at each node
+     * @return true The element is split
+     * @return false The element is not split
+     */
+    static inline bool IsSplit(const Vector& rNodalDistances);
+
+    /**
+     * @brief Checks if an element is positive
+     * From the given vector containing the distance in each node, this method checks if the element is positive
+     * @param rNodalDistances Vector containing the distance values at each node
+     * @return true The element is positive
+     * @return false The element is not positive
+     */
+    static inline bool IsPositive(const Vector& rNodalDistances);
+
+    /**
+     * @brief Checks if an element is negative
+     * From the given vector containing the distance in each node, this method checks if the element is negative
+     * @param rNodalDistances Vector containing the distance values at each node
+     * @return true The element is negative
+     * @return false The element is not negative
+     */
+    static inline bool IsNegative(const Vector& rNodalDistances);
 
     /**
      * @brief Calculate the fluid volume
@@ -61,18 +89,39 @@ public:
      */
     static double CalculateFluidVolume(ModelPart& rModelPart);
 
-
+    /**
+     * @brief Calculate the fluid positive volume
+     * For the given model part, this function calculates the total positive fluid volume fraction.
+     * It is assumed that a unique element geometry type it is present in the mesh.
+     * Only simplex geometries (linear triangle and tetrahedron) are supported.
+     * The positive fraction must be described in terms of a continuous level set function stored
+     * in the variable DISTANCE of the historical database
+     * @param rModelPart The model part to calculate the positive volume
+     * @return double Fluid positive volume
+     */
     static double CalculateFluidPositiveVolume(ModelPart& rModelPart);
 
+    /**
+     * @brief Calculate the fluid negative volume
+     * For the given model part, this function calculates the total negative fluid volume fraction.
+     * It is assumed that a unique element geometry type it is present in the mesh.
+     * Only simplex geometries (linear triangle and tetrahedron) are supported.
+     * The negative fraction must be described in terms of a continuous level set function stored
+     * in the variable DISTANCE of the historical database
+     * @param rModelPart The model part to calculate the negative volume
+     * @return double Fluid negative volume
+     */
     static double CalculateFluidNegativeVolume(ModelPart& rModelPart);
 
-    ///@}
-private:
-    ///@name Private Operations
-    ///@{
-
-    // template<bool IsPositiveSide>
-    // static double
+    /**
+     * @brief Get the Standard Modified Shape Functions Factory object
+     * For the given geometry, this methods returns a factory function to create the corresponding
+     * standard modified shape functions. The factory returns a unique pointer and expects a
+     * pointer to the geometry as well as the nodal distances vector.
+     * @param rGeometry Geometry reference to check the geometry type
+     * @return ModifiedShapeFunctionsFactoryType Factory function to create the standard modified shape functions
+     */
+    static ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry);
 
     ///@}
 };
