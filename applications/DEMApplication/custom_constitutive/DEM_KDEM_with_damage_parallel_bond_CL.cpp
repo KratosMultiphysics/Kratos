@@ -3,20 +3,6 @@
 #include <iostream>
 #include <cmath>
 #include <cstdio>
-#ifdef _WIN32
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#else
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#endif
-
-std::string GetCurrentWorkingDir( void ) {
-    char buff[FILENAME_MAX];
-    GetCurrentDir( buff, FILENAME_MAX );
-    std::string current_working_dir(buff);
-    return current_working_dir;
-}
 
 // Project includes
 #include "DEM_KDEM_with_damage_parallel_bond_CL.h"

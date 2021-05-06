@@ -1,8 +1,8 @@
 # MESH TO COHESIVE MDPA CONVERTER
-mesh_namefile = 'inlet_test_8_0.0380000000037.post'
-mdpa_namefile = 'inlet_test_8DEMbuild'
-mesh_namefile = mesh_namefile + '.msh'
-mdpa_namefile = mdpa_namefile + '.mdpa'
+import sys
+
+mesh_namefile = sys.argv[1] + '.msh'
+mdpa_namefile = sys.argv[2] + '.mdpa'
 
 SpheresMesh = open(mesh_namefile, 'r')
 SpheresMdpa = open(mdpa_namefile, 'w')

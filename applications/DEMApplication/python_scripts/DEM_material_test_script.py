@@ -193,8 +193,6 @@ class MaterialTest():
 
         eps = 3.0 #2.0
 
-        surface = 2 * math.pi * d * d * 0.25 + math.pi * d * h
-
         xlat_area = 0.0
         xbot_area = 0.0
         xtop_area = 0.0
