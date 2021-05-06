@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/penalty_coupling_condition.h"
+#include "custom_conditions/coupling_penalty_condition.h"
 
 namespace Kratos
 {
