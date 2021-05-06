@@ -275,7 +275,7 @@ namespace Kratos
         ///@{
 
         // Initialization
-        bool InitializeDamageLaw = false;
+        bool mInitializeDamageLaw = false;
 
         // Tension & Compression Thresholds
         double mCurrentThresholdTension = 0.0;

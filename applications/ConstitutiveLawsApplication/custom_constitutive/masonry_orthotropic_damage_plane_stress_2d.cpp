@@ -98,7 +98,7 @@ namespace Kratos
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionsValues)
     {
-        if (!InitializeDamageLaw) {
+        if (!mInitializeDamageLaw) {
             mThresholdTension = rProperties[YIELD_STRESS_TENSION];
             mCurrentThresholdTension = mThresholdTension;
 
@@ -114,7 +114,7 @@ namespace Kratos
                 rGeometry,
                 mInitialCharacteristicLength);
 
-            InitializeDamageLaw = true;
+            mInitializeDamageLaw = true;
         }
     }
 
@@ -155,8 +155,7 @@ namespace Kratos
         // Computation of the Constitutive Tensor
         if (rParameters.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) {
-                this->CalculateTangentTensor(
-                    rParameters);
+                this->CalculateTangentTensor(rParameters);
             }
             else {
                 this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
@@ -180,7 +179,7 @@ namespace Kratos
         mDamageCompression = 0.0;
 
         mInitialCharacteristicLength = 0.0;
-        InitializeDamageLaw = false;
+        mInitializeDamageLaw = false;
 
     }
     /***********************************************************************************/
