@@ -261,3 +261,7 @@ class PotentialFlowSolver(FluidSolver):
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
         return solution_strategy
+
+    def _SetPhysicalProperties(self):
+        # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py
+        return True
