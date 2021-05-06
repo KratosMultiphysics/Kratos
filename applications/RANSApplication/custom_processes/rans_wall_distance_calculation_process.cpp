@@ -106,15 +106,11 @@ int RansWallDistanceCalculationProcess::Check()
     KRATOS_CATCH("");
 }
 
-void RansWallDistanceCalculationProcess::ExecuteInitialize()
-{
-    CalculateWallDistances();
-}
-
 void RansWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
 {
-    if (mRecalculateAtEachTimeStep) {
+    if (mRecalculateAtEachTimeStep || !mIsInitialized) {
         CalculateWallDistances();
+        mIsInitialized = true;
     }
 }
 

@@ -67,8 +67,6 @@ public:
 
     int Check() override;
 
-    void ExecuteInitialize() override;
-
     void ExecuteInitializeSolutionStep() override;
 
     const Parameters GetDefaultParameters() const override;
@@ -105,6 +103,7 @@ private:
     std::string mDistanceVariableName;
     std::string mNodalAreaVariableName;
     bool mRecalculateAtEachTimeStep;
+    bool mIsInitialized = false;
     double mMaxDistance;
 
     ///@}
