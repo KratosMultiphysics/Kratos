@@ -70,9 +70,6 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "utilities/python_function_callback_utility.h"
-
-
 namespace Kratos
 {
 

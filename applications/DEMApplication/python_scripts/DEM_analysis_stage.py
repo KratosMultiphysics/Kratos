@@ -540,7 +540,6 @@ class DEMAnalysisStage(AnalysisStage):
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
 
-
     def BreakSolutionStepsLoop(self):
         return False
 
@@ -566,12 +565,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
 
-        self.AdditionalFinalizeOperations()
-
         self.CleanUpOperations()
-
-    def AdditionalFinalizeOperations(self):
-        pass
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
