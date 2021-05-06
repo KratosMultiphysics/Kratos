@@ -1732,7 +1732,7 @@ namespace Kratos {
                 std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
                 std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
 
-                size_t neigh_size = potential_neighbour_rigid_faces.size();
+                size_t neigh_size = neighbour_rigid_faces.size();
 
                 std::vector<DEMWall*> temporal_neigh(0);
                 std::vector< array_1d<double, 4> > temporal_contact_weights;
