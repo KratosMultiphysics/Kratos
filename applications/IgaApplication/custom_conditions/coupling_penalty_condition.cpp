@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-    void PenaltyCouplingCondition::CalculateAll(
+    void CouplingPenaltyCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -124,7 +124,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void PenaltyCouplingCondition::DeterminantOfJacobianInitial(
+    void CouplingPenaltyCondition::DeterminantOfJacobianInitial(
         const GeometryType& rGeometry,
         Vector& rDeterminantOfJacobian)
     {
@@ -163,14 +163,14 @@ namespace Kratos
         }
     }
 
-    int PenaltyCouplingCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int CouplingPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
         return 0;
     }
 
-    void PenaltyCouplingCondition::EquationIdVector(
+    void CouplingPenaltyCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -204,7 +204,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void PenaltyCouplingCondition::GetDofList(
+    void CouplingPenaltyCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const
     {

@@ -12,8 +12,8 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED )
-#define  KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED
+#if !defined(KRATOS_COUPLING_PENALTY_CONDITION_H_INCLUDED )
+#define  KRATOS_COUPLING_PENALTY_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -43,15 +43,15 @@ namespace Kratos
 *   The continuities can be enabled or disabled with the
 *   FIX_DISPLACEMENT_{dir} flags.
 */
-class PenaltyCouplingCondition
+class CouplingPenaltyCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PenaltyCouplingCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PenaltyCouplingCondition);
+    /// Counted pointer of CouplingPenaltyCondition
+    KRATOS_CLASS_POINTER_DEFINITION(CouplingPenaltyCondition);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -62,14 +62,14 @@ public:
     ///@{
 
     /// Constructor with Id and geometry
-    PenaltyCouplingCondition(
+    CouplingPenaltyCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    PenaltyCouplingCondition(
+    CouplingPenaltyCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -77,12 +77,12 @@ public:
     {};
 
     /// Default constructor
-    PenaltyCouplingCondition()
+    CouplingPenaltyCondition()
         : Condition()
     {};
 
     /// Destructor.
-    virtual ~PenaltyCouplingCondition() = default;
+    virtual ~CouplingPenaltyCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -95,7 +95,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<PenaltyCouplingCondition>(
+        return Kratos::make_intrusive<CouplingPenaltyCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -106,7 +106,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< PenaltyCouplingCondition >(
+        return Kratos::make_intrusive< CouplingPenaltyCondition >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -211,14 +211,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"PenaltyCouplingCondition\" #" << Id();
+        buffer << "\"CouplingPenaltyCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"PenaltyCouplingCondition\" #" << Id();
+        rOStream << "\"CouplingPenaltyCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -246,10 +246,8 @@ private:
 
     ///@}
 
-}; // Class PenaltyCouplingCondition
+}; // Class CouplingPenaltyCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED  defined
-
-
+#endif // KRATOS_COUPLING_PENALTY_CONDITION_H_INCLUDED  defined
