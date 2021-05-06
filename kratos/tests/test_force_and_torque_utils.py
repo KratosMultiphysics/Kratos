@@ -6,7 +6,7 @@ import KratosMultiphysics
 import pathlib
 
 def GetFullPathToFile(fileName):
-    return pathlib.Path(__file__).parent / fileName
+    return pathlib.Path(__file__).absolute().parent / fileName
 
 def GenerateModelPart(generate_moments=True):
     model = KratosMultiphysics.Model()
