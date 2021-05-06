@@ -67,7 +67,6 @@ namespace Kratos {
     double DallavalleDragLaw::GetParticleMassFraction(SphericParticle* p_particle){
 
         double sum_masses = p_particle->GetMass();
-
         for (unsigned int i = 0; i < p_particle->mNeighbourElements.size(); ++i){
             sum_masses += p_particle->mNeighbourElements[i]->GetMass();
         }
@@ -76,7 +75,7 @@ namespace Kratos {
 
     double DallavalleDragLaw::CalculateWeightingSum(SphericParticle* p_particle){
 
-    double sum_parameter = this->GetParticleMassFraction(p_particle) / ( 2 * p_particle->GetRadius() / this->CalculateEquivalentDiameter(p_particle));
+    double sum_parameter = this->GetParticleMassFraction(p_particle) / std::pow( 2 * p_particle->GetRadius() / this->CalculateEquivalentDiameter(p_particle), 2);
     for (unsigned int i = 0; i < p_particle->mNeighbourElements.size(); ++i){
         sum_parameter += this->GetParticleMassFraction(p_particle->mNeighbourElements[i])
                         / std::pow(2 * p_particle->mNeighbourElements[i]->GetRadius() / this->CalculateEquivalentDiameter(p_particle->mNeighbourElements[i]), 2);
