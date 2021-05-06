@@ -21,7 +21,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-
+    @KratosUnittest.skip("This test is very long and should be shortend")
     def test_wave_through_drained_linear_elastic_soil(self):
         """
         Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
