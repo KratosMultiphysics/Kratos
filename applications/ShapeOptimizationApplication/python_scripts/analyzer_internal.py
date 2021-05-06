@@ -120,7 +120,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
         sho_response_functions = ["plane_based_packaging", "mesh_based_packaging", "surface_normal_shape_change", "geometric_centroid_deviation", "total_volume"]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         convdiff_response_functions = ["point_temperature"]
-        rans_respone_functions = ["lift_to_drag", "drag", "drag_frequency_max_amplitude"]
+        rans_respone_functions = ["lift_to_drag", "drag", "drag_frequency_max_amplitude", "transient_drag_steady_adjoint"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():
