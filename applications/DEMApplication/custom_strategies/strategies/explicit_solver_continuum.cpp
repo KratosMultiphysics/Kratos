@@ -907,21 +907,10 @@ namespace Kratos {
 
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
-        Vector rhs_cond;
-        std::vector<unsigned int> condition_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
 
-        #pragma omp parallel for private (rhs_cond)
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
-            ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
-
-            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                it->FinalizeSolutionStep(r_process_info);
-            }
-        }
-
+        block_for_each(pConditions, [&r_process_info](ModelPart::ConditionType& rCondition){
+            rCondition.FinalizeSolutionStep(r_process_info);
+        });
         KRATOS_CATCH("")
     }
-
 }
