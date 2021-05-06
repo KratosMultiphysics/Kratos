@@ -60,7 +60,7 @@ bool FluidAuxiliaryUtilities::IsNegative(const Vector& rNodalDistances)
 
 double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart)
 {
-    KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
+    KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
 
     double fluid_volume = 0.0;
     const auto& r_communicator = rModelPart.GetCommunicator();
