@@ -22,8 +22,8 @@
 #define OPTIMIZE_CHARACTERISTIC_LENGTH
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
 #define MACAULAY(X)  ( X >= 0.0 ? X : 0.0)
-//#define PROJECTION_OPERATOR_CERVERA_2003
-#define PROJECTION_OPERATOR_CERVERA_2017
+//#define PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
+#define PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
 
 namespace Kratos
 {
@@ -274,7 +274,9 @@ namespace Kratos
 
         // Biaxial
         data.BiaxialCompressionMultiplier = rProperties[BIAXIAL_COMPRESSION_MULTIPLIER];
-        data.ShearCompressionReductor = rProperties.Has(SHEAR_COMPRESSION_REDUCTOR) ? rProperties[SHEAR_COMPRESSION_REDUCTOR] : 0.5;
+        data.ShearCompressionReductor = rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)
+            ? rProperties[SHEAR_COMPRESSION_REDUCTOR]
+            : 0.5;
         data.ShearCompressionReductor = std::min(std::max(data.ShearCompressionReductor, 0.0), 1.0);
 
         // Misc
@@ -465,7 +467,7 @@ namespace Kratos
         noalias(rProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(1, 1)) *
             outer_prod(projection_vector_22, projection_vector_22);
 
-#ifdef PROJECTION_OPERATOR_CERVERA_2003
+#ifdef PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
         /*
         Theory from: "Viscoelasticity and rate-dependent continuum damage models"
                       Miguel Cervera
@@ -494,9 +496,9 @@ namespace Kratos
             factor_12 = 1.0;
         }
         noalias(rProjectionTensorTension) += factor_12 * outer_prod(projection_vector_cross, projection_vector_cross);
-#endif //PROJECTION_OPERATOR_CERVERA_2003
+#endif //PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
 
-#ifdef PROJECTION_OPERATOR_CERVERA_2017
+#ifdef PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
         /*
         Theory from:     "An Energy-Equivalent d+/d- Damage Model with
                         Enhanced Microcrack Closure-Reopening
@@ -518,7 +520,7 @@ namespace Kratos
 
         noalias(rProjectionTensorTension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
             outer_prod(projection_vector_cross, projection_vector_cross);
-#endif //PROJECTION_OPERATOR_CERVERA_2017
+#endif //PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
 
         noalias(rProjectionTensorCompression) = IdentityMatrix(3, 3) - rProjectionTensorTension;
     }

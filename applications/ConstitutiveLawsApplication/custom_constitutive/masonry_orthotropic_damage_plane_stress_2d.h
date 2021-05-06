@@ -105,41 +105,42 @@ namespace Kratos
                 double CharacteristicLength,
                 const Properties& rProperties)
                 : E(rProperties[YOUNG_MODULUS]),
-                nu(rProperties[POISSON_RATIO]),
-                G(rProperties[SHEAR_MODULUS]),
-                YieldStressTension(rProperties[YIELD_STRESS_TENSION]),
-                FractureEnergyTension(rProperties[FRACTURE_ENERGY_TENSION]),
-                ElasticLimitStressCompression(rProperties[DAMAGE_ONSET_STRESS_COMPRESSION]),
-                YieldStressCompression(rProperties[YIELD_STRESS_COMPRESSION]),
-                YieldStrainCompression(rProperties[YIELD_STRAIN_COMPRESSION]),
-                ResidualStressCompression(rProperties[RESIDUAL_STRESS_COMPRESSION]),
-                FractureEnergyCompression(rProperties[FRACTURE_ENERGY_COMPRESSION]),
-                BezierControllerC1(rProperties[BEZIER_CONTROLLER_C1]),
-                BezierControllerC2(rProperties[BEZIER_CONTROLLER_C2]),
-                BezierControllerC3(rProperties[BEZIER_CONTROLLER_C3]),
-                YieldStressShearTension(rProperties[YIELD_STRESS_SHEAR_TENSION]),
-                YieldStressShearCompression(rProperties[YIELD_STRESS_SHEAR_COMPRESSION]),
-                CharacteristicLength(CharacteristicLength)
+                  nu(rProperties[POISSON_RATIO]),
+                  G(rProperties[SHEAR_MODULUS]),
+                  YieldStressTension(rProperties[YIELD_STRESS_TENSION]),
+                  FractureEnergyTension(rProperties[FRACTURE_ENERGY_TENSION]),
+                  ElasticLimitStressCompression(rProperties[DAMAGE_ONSET_STRESS_COMPRESSION]),
+                  YieldStressCompression(rProperties[YIELD_STRESS_COMPRESSION]),
+                  YieldStrainCompression(rProperties[YIELD_STRAIN_COMPRESSION]),
+                  ResidualStressCompression(rProperties[RESIDUAL_STRESS_COMPRESSION]),
+                  FractureEnergyCompression(rProperties[FRACTURE_ENERGY_COMPRESSION]),
+                  BezierControllerC1(rProperties[BEZIER_CONTROLLER_C1]),
+                  BezierControllerC2(rProperties[BEZIER_CONTROLLER_C2]),
+                  BezierControllerC3(rProperties[BEZIER_CONTROLLER_C3]),
+                  YieldStressShearTension(rProperties[YIELD_STRESS_SHEAR_TENSION]),
+                  YieldStressShearCompression(rProperties[YIELD_STRESS_SHEAR_COMPRESSION]),
+                  CharacteristicLength(CharacteristicLength)
             {
             }
 
             DirectionalMaterialProperties(
                 const DirectionalMaterialProperties& rOther)
-                : 
-                E(rOther.E), nu(rOther.nu), G(rOther.G),
-                YieldStressTension(rOther.YieldStressTension),
-                FractureEnergyTension(rOther.FractureEnergyTension),
-                ElasticLimitStressCompression(rOther.ElasticLimitStressCompression),
-                YieldStressCompression(rOther.YieldStressCompression),
-                YieldStrainCompression(rOther.YieldStrainCompression),
-                ResidualStressCompression(rOther.ResidualStressCompression),
-                FractureEnergyCompression(rOther.FractureEnergyCompression),
-                BezierControllerC1(rOther.BezierControllerC1),
-                BezierControllerC2(rOther.BezierControllerC2),
-                BezierControllerC3(rOther.BezierControllerC3),
-                YieldStressShearTension(rOther.YieldStressShearTension),
-                YieldStressShearCompression(rOther.YieldStressShearCompression),
-                CharacteristicLength(rOther.CharacteristicLength)
+                : E(rOther.E),
+                  nu(rOther.nu),
+                  G(rOther.G),
+                  YieldStressTension(rOther.YieldStressTension),
+                  FractureEnergyTension(rOther.FractureEnergyTension),
+                  ElasticLimitStressCompression(rOther.ElasticLimitStressCompression),
+                  YieldStressCompression(rOther.YieldStressCompression),
+                  YieldStrainCompression(rOther.YieldStrainCompression),
+                  ResidualStressCompression(rOther.ResidualStressCompression),
+                  FractureEnergyCompression(rOther.FractureEnergyCompression),
+                  BezierControllerC1(rOther.BezierControllerC1),
+                  BezierControllerC2(rOther.BezierControllerC2),
+                  BezierControllerC3(rOther.BezierControllerC3),
+                  YieldStressShearTension(rOther.YieldStressShearTension),
+                  YieldStressShearCompression(rOther.YieldStressShearCompression),
+                  CharacteristicLength(rOther.CharacteristicLength)
             {
             }
         };
@@ -168,7 +169,7 @@ namespace Kratos
             CalculationData(const DirectionalMaterialProperties& rMaterialProperties1,
                 const DirectionalMaterialProperties& rMaterialProperties2)
                 : MaterialProperties1(rMaterialProperties1),
-                MaterialProperties2(rMaterialProperties2)
+                  MaterialProperties2(rMaterialProperties2)
             {
                 ProjectionTensorTension = ZeroMatrix(3, 3);
                 ProjectionTensorCompression = ZeroMatrix(3, 3);
@@ -292,23 +293,7 @@ namespace Kratos
         // Misc
         double mInitialCharacteristicLength = 0.0;
 
-        // for IMPLEX_Integration:
-        double PreviousThresholdTension = 0.0;
-        double PreviousThresholdCompression = 0.0;    // at time step n - 1:
-        // end for IMPLEX_Integration
-
-        // for IMPLEX Integration
-        double CurrentDeltaTime = 0.0;    // at time step n + 1
-        double PreviousDeltaTime = 0.0;   // at time step n
-
-        // temporary internal variables saved for the implicit step in the finalize solution step of the IMPLEX 
-        double TemporaryImplicitThresholdTension = 0.0;
-        double TemporaryImplicitThresholdTCompression = 0.0;
-        // end for IMPLEX Integration
-
         ///@}
-
-
         ///@name Protected Operators
         ///@{
 
