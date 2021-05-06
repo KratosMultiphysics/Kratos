@@ -386,6 +386,8 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
   find_package(Tetgen REQUIRED)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
+set(USE_MPI OFF CACHE BOOL "Build Kratos with MPI")
+
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
   add_definitions( -DKRATOS_USING_MPI )
@@ -449,27 +451,63 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
+# Collect Kratos applications for the CMake GUI / CMake variables
+set(KRATOS_APPLICATION_DIRECTORIES "${KRATOS_SOURCE_DIR}/applications" CACHE STRING "List of directories with Kratos applications")
+set(KRATOS_APPLICATIONS "")
+
+foreach(application_directory ${KRATOS_APPLICATION_DIRECTORIES})
+    file(GLOB items_in_directory RELATIVE "${application_directory}" "${application_directory}/*")
+    foreach(item ${items_in_directory})
+        if(IS_DIRECTORY "${application_directory}/${item}")
+
+            # Create application switch (off by default)
+            set(KRATOS_BUILD_${item} OFF CACHE BOOL "Build application: ${item}")
+
+            # Register application in the build list
+            if(${KRATOS_BUILD_${item}})
+                list(APPEND KRATOS_APPLICATIONS "${application_directory}/${item}")
+            endif(${KRATOS_BUILD_${item}})
+
+        endif(IS_DIRECTORY "${application_directory}/${item}")
+    endforeach(item ${items_in_directory})
+endforeach(application_directory ${KRATOS_APPLICATION_DIRECTORIES})
+
+# Collect Kratos applications from the environment
+if(DEFINED ENV{KRATOS_APPLICATIONS})
+    foreach(application_path $ENV{KRATOS_APPLICATIONS})
+        get_filename_component(application_name "${application_path}" NAME)
+
+        # Define the application switch if it wasn't already
+        if(NOT DEFINED KRATOS_BUILD_${application_name})
+            set(KRATOS_BUILD_${application_name} ON CACHE BOOL "Build application: ${application_name}")
+        endif(NOT DEFINED KRATOS_BUILD_${application_name})
+
+        # Add application to the build list if it's not in it yet
+        list(FIND ${KRATOS_APPLICATIONS} "KRATOS_BUILD_${application_name}" index) # CMake < 3.3 does not support IN_LIST
+        if(${index} EQUAL -1)
+            list(APPEND KRATOS_APPLICATIONS "${application_path}")
+        endif(${index EQUAL -1})
+
+    endforeach(application_path $ENV{KRATOS_APPLICATIONS})
+endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
 # Configure kratos applications
 message("-- Configuring applications (ENV):")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
-if(DEFINED ENV{KRATOS_APPLICATIONS})
-    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
-        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
-        list(APPEND LIST_OF_APPLICATIONS_TO_BE_COMPILED ${APPLICATION_NAME})
-    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
-endif(DEFINED ENV{KRATOS_APPLICATIONS})
+foreach(APPLICATION_PATH ${KRATOS_APPLICATIONS})
+    get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+    list(APPEND LIST_OF_APPLICATIONS_TO_BE_COMPILED ${APPLICATION_NAME})
+endforeach(APPLICATION_PATH ${KRATOS_APPLICATIONS})
 
-if(DEFINED ENV{KRATOS_APPLICATIONS})
-    foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
-        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
-        if(NOT TARGET Kratos${APPLICATION_NAME})
-            message("Adding application '${APPLICATION_PATH}'")
-            add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
-        else(NOT TARGET Kratos${APPLICATION_NAME})
-            message("[Warning] Application '${APPLICATION_PATH}' was already added")
-        endif(NOT TARGET Kratos${APPLICATION_NAME})
-    endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
-endif(DEFINED ENV{KRATOS_APPLICATIONS})
+foreach(APPLICATION_PATH ${KRATOS_APPLICATIONS})
+    get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+    if(NOT TARGET Kratos${APPLICATION_NAME})
+        message("Adding application '${APPLICATION_PATH}'")
+        add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
+    else(NOT TARGET Kratos${APPLICATION_NAME})
+        message("[Warning] Application '${APPLICATION_PATH}' was already added")
+    endif(NOT TARGET Kratos${APPLICATION_NAME})
+endforeach(APPLICATION_PATH ${KRATOS_APPLICATIONS})
 
 message("")
 message("***********************************************************************")
