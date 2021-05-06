@@ -67,7 +67,6 @@ namespace Kratos {
     double DallavalleDragLaw::GetParticleMassFraction(SphericParticle* p_particle){
 
         double sum_masses = p_particle->GetMass();
-
         for (unsigned int i = 0; i < p_particle->mNeighbourElements.size(); ++i){
             sum_masses += p_particle->mNeighbourElements[i]->GetMass();
         }
