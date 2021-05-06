@@ -170,7 +170,7 @@ double FluidAuxiliaryUtilities::CalculateFluidNegativeVolume(const ModelPart& rM
 double FluidAuxiliaryUtilities::CalculateFlowRate(const ModelPart& rModelPart)
 {
     // Check that there are conditions and distance variable in the nodal database
-    KRATOS_ERROR_IF(rModelPart.NumberOfConditions() == 0) << "There are no conditions in the provided model part. Flow rate cannot be computed." << std::endl;
+    KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "There are no conditions in the provided model part. Flow rate cannot be computed." << std::endl;
     const auto& r_communicator = rModelPart.GetCommunicator();
     if (r_communicator.LocalMesh().NumberOfNodes() !=0) {
         KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(VELOCITY)) << "Nodal solution step data has no \'VELOCITY\' variable. Flow rate cannot be computed" << std::endl;
