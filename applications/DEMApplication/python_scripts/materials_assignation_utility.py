@@ -67,13 +67,12 @@ class MaterialsAssignationUtility:
                     if material_name_in_assignation_table == material_name_in_materials_list:
                         material_id = material["material_id"].GetInt()
                 if material_id is None:
-                    Kratos.Logger.PrintWarning("DEM", "Error: while reading the materials assignation table, the material name ", material_name_in_assignation_table, " could not be found in the materials list. Exiting.")
-                    sys.exit()
+                    raise Exception("Error: while reading the materials assignation table, the material name " + material_name_in_assignation_table + " could not be found in the materials list.")
+
             elif pair[1].IsInt():
                 material_id = pair[1].GetInt()
             else:
-                Kratos.Logger.PrintWarning("DEM", "Error: while reading the materials assignation table, the material was not identified with a string or an integer. Exiting.")
-                sys.exit()
+                raise Exception("While reading the materials assignation table, the material was not identified with a string or an integer.")
 
             props = self.spheres_model_part.GetProperties()[material_id]
             submodelpart.SetValue(PROPERTIES_ID, material_id)
