@@ -357,6 +357,19 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void ContinuumExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
+        KRATOS_TRY
+
+        block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
+            particle->ReorderFEMneighbours();
+        });
+
+
+        BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+
+        KRATOS_CATCH("")
+    }
+
     void ContinuumExplicitSolverStrategy::CreateContactElements() {
         KRATOS_TRY
 
