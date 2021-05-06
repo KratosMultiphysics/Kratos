@@ -44,6 +44,8 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
 
+        # adding this process as the last process to copy historical turbulence nodal data to non historical
+        # container so user can have custom processes to assign historical nodal turbulence data.
         turbulence_data_copy_process = KratosRANS.RansVariableDataTransferProcess(
             self.GetBaseModelPart().GetModel(),
             self.GetBaseModelPart().Name,
@@ -57,9 +59,6 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
 
         super().Initialize()
 
-        # set formulation initialized historical solving variables to non historical nodal containers
-        # this is run after super().Initialize() so user can use initialization processes via
-        # json to initialize historical variables, and it will be copied here.
         self.nu_t_convergence_utility.Initialize()
 
     def SetTimeSchemeSettings(self, settings):
