@@ -48,7 +48,10 @@ void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
     // Parse translation
     array_1d<double,3> translation_vector;
     vector_parameter = parameters.GetValue("translation_vector").GetVector();
-    KRATOS_CHECK(vector_parameter.size() == 3);
+    if (vector_parameter.size() != 3) {
+        KRATOS_ERROR << "'translation_vector' must be of size 3, but got" << vector_parameter.size();
+    }
+
     translation_vector[0] = vector_parameter[0];
     translation_vector[1] = vector_parameter[1];
     translation_vector[2] = vector_parameter[2];
@@ -56,7 +59,10 @@ void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
     // Parse reference point
     array_1d<double,3> reference_point;
     vector_parameter = parameters.GetValue("reference_point").GetVector();
-    KRATOS_CHECK(vector_parameter.size() == 3);
+    if (vector_parameter.size() != 3) {
+        KRATOS_ERROR << "'reference_point' must be of size 3, but got" << vector_parameter.size();
+    }
+
     reference_point[0] = vector_parameter[0];
     reference_point[1] = vector_parameter[1];
     reference_point[2] = vector_parameter[2];
@@ -68,7 +74,10 @@ void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
     if (rotation_definition == "rotation_axis") {
         array_1d<double,3> rotation_axis;
         vector_parameter = parameters.GetValue("rotation_axis").GetVector();
-        KRATOS_CHECK(vector_parameter.size() == 3);
+        if (vector_parameter.size() != 3) {
+            KRATOS_ERROR << "'rotation_axis' must be of size 3, but got" << vector_parameter.size();
+        }
+
         rotation_axis[0] = vector_parameter[0];
         rotation_axis[1] = vector_parameter[1];
         rotation_axis[2] = vector_parameter[2];
@@ -87,7 +96,10 @@ void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
     else if (rotation_definition == "euler_angles") {
         array_1d<double,3> euler_angles;
         vector_parameter = parameters.GetValue("euler_angles").GetVector();
-        KRATOS_CHECK(vector_parameter.size() == 3);
+        if (vector_parameter.size() != 3) {
+            KRATOS_ERROR << "'euler_angles' must be of size 3, but got" << vector_parameter.size();
+        }
+
         euler_angles[0] = vector_parameter[0];
         euler_angles[1] = vector_parameter[1];
         euler_angles[2] = vector_parameter[2];
@@ -101,11 +113,8 @@ void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
 
     // Rotation definition not implemented
     else {
-        KRATOS_THROW_ERROR(
-            Exception,
-            "Invalid 'rotation_definition'",
-            "Options are 'rotation_axis' or 'euler_angles'"
-        );
+        KRATOS_ERROR << "Invalid parameter for 'rotation_definition': " << rotation_definition
+        << " (expecting 'rotation_axis' or 'euler_angles')";
     } // rotation_definition else
 
     KRATOS_CATCH("");
@@ -119,8 +128,10 @@ void ImposeMeshMotionProcess::LoadFromAxisAndAngle(const array_1d<double,3>& rRo
 {
     KRATOS_TRY;
 
-    // Axis of rotation must not be a zero vector
-    KRATOS_CHECK_GREATER(norm_2(rRotationAxis), 1e-15);
+    // Check arguments
+    if (std::abs(norm_2(rRotationAxis)) < 1e-15) {
+        KRATOS_ERROR << "Axis of rotation must not be a null vector!";
+    }
 
     auto quaternion = Quaternion<double>::FromAxisAngle(
         rRotationAxis[0],
@@ -177,8 +188,7 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
-    block_for_each(
-        mrModelPart.Nodes(),
+    block_for_each(mrModelPart.Nodes(),
         [this](Node<3>& rNode) {
             array_1d<double,3> transformed_point = rNode;
             this->Transform(transformed_point);
