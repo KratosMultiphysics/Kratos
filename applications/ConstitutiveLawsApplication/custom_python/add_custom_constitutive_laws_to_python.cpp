@@ -55,11 +55,14 @@
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
 #include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
-#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 #include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "custom_constitutive/serial_parallel_rule_of_mixtures_law.h"
+
+// Masonry laws
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_constitutive/masonry_orthotropic_damage_plane_stress_2d.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
