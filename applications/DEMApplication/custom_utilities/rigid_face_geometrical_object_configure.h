@@ -357,11 +357,11 @@ public:
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
 
-           if (New_projected_distance - Old_dist > -1.0e-15 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
+           if (New_projected_distance - Old_dist > -1.0e-6 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
              return false;
            }
 
-           if (Old_projected_distance - New_Dist > -1.0e-15 * std::abs(New_Dist)) { //new has hierarchy over old
+           if (Old_projected_distance - New_Dist > -1.0e-6 * std::abs(New_Dist)) { //new has hierarchy over old
 
              int old_ID = Id_Array[i_old_neigh];
              if (new_ID == old_ID) {//SUBSTITUTE
