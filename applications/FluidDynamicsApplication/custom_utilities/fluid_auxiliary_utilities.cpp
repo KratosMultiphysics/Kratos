@@ -124,7 +124,7 @@ double FluidAuxiliaryUtilities::CalculateFluidPositiveVolume(const ModelPart& rM
 double FluidAuxiliaryUtilities::CalculateFluidNegativeVolume(const ModelPart& rModelPart)
 {
     // Check that there are elements and distance variable in the nodal database
-    KRATOS_ERROR_IF(rModelPart.NumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
+    KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfElements() == 0) << "There are no elements in the provided model part. Fluid volume cannot be computed." << std::endl;
     const auto& r_communicator = rModelPart.GetCommunicator();
     if (r_communicator.LocalMesh().NumberOfNodes() !=0) {
         KRATOS_ERROR_IF_NOT(r_communicator.LocalMesh().NodesBegin()->SolutionStepsDataHas(DISTANCE)) << "Nodal solution step data has no \'DISTANCE\' variable. Negative volume cannot be computed" << std::endl;
