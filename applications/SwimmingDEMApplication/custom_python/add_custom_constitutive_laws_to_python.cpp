@@ -25,6 +25,7 @@
 #include "../custom_constitutive/drag_laws/ganser_drag_law.h"
 #include "../custom_constitutive/drag_laws/shah_drag_law.h"
 #include "../custom_constitutive/drag_laws/newton_drag_law.h"
+#include "../custom_constitutive/drag_laws/dallavalle_drag_law.h"
 
 // Inviscid force laws
 #include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
@@ -145,6 +146,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<NewtonDragLaw, NewtonDragLaw::Pointer, BaseDragLawType>(m, "NewtonDragLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<DallavalleDragLaw, DallavalleDragLaw::Pointer, BaseDragLawType>(m, "DallavalleDragLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;

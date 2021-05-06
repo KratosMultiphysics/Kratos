@@ -17,7 +17,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void NewtonDragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void NewtonDragLaw::ComputeForce(SphericParticle* p_particle,
                                        const double reynolds_number,
                                        double particle_radius,
                                        double fluid_density,

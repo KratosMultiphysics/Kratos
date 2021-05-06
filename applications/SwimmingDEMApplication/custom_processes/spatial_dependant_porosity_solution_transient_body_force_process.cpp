@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/variable_utils.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "swimming_DEM_application.h"
@@ -31,25 +32,10 @@ namespace Kratos
 
 /* Public functions *******************************************************/
 SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPorositySolutionTransientBodyForceProcess(
-    ModelPart& rModelPart,
-    const double Density,
-    const double Viscosity,
-    const double IndependentTerm,
-    const double MaximumAlpha,
-    const double Centerx1,
-    const double Centerx2)
+    ModelPart& rModelPart)
     : Process(),
-      mrModelPart(rModelPart)
-{
-    // Member variables initialization
-    mDensity         = Density;
-    mViscosity       = Viscosity;
-    mIndependentTerm = IndependentTerm;
-    mMaximumAlpha    = MaximumAlpha;
-    mCenterx1        = Centerx1;
-    mCenterx2        = Centerx2;
-
-}
+    mrModelPart(rModelPart)
+{}
 
 SpatialDependantPorositySolutionTransientBodyForceProcess::SpatialDependantPorositySolutionTransientBodyForceProcess(
     ModelPart& rModelPart,
@@ -85,6 +71,7 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::CheckDefaultsAnd
     mMaximumAlpha    = rParameters["benchmark_parameters"]["maximum_alpha"].GetDouble();
     mCenterx1  = rParameters["benchmark_parameters"]["center_x1"].GetDouble();
     mCenterx2  = rParameters["benchmark_parameters"]["center_x2"].GetDouble();
+    mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
 }
 
 const Parameters SpatialDependantPorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
@@ -104,7 +91,8 @@ const Parameters SpatialDependantPorositySolutionTransientBodyForceProcess::GetD
                                                 "independent_term"  : 0.4,
                                                 "maximum_alpha"     : 1.0,
                                                 "center_x1"   : 0.0,
-                                                "center_x2"   : 0.0
+                                                "center_x2"   : 0.0,
+                                                "use_initial_conditions" : true
                 },
                 "compute_nodal_error"      : true,
                 "print_convergence_output" : false,
@@ -126,7 +114,11 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteInitializ
 
 void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
-    this->SetInitialBodyForceAndPorosityField();
+    this->SetFluidProperties();
+    if (mInitialConditions == true)
+    {
+        this->SetInitialBodyForceAndPorosityField();
+    }
 }
 
 void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteInitializeSolutionStep()
@@ -140,7 +132,8 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::ExecuteFinalizeS
 
 void SpatialDependantPorositySolutionTransientBodyForceProcess::SetInitialBodyForceAndPorosityField() {
 
-    const double time = mrModelPart.GetProcessInfo()[TIME];
+    //const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double time = 0.0;
     const double maximum_alpha = mMaximumAlpha;
     const double centerx1 = mCenterx1;
     const double centerx2 = mCenterx2;
@@ -153,6 +146,8 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetInitialBodyFo
 
         const double x1 = it_node->X();
         const double x2 = it_node->Y();
+
+        double& r_mass_source = it_node->FastGetSolutionStepValue(MASS_SOURCE);
 
         double& r_alpha = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
 
@@ -175,9 +170,13 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetInitialBodyFo
 
         r_u2 = 100*pow(-centerx2 + x2, 2)*(-100*(-2*centerx1 + 2*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
 
-        double du1dt = -100*Globals::Pi*pow(-centerx1 + x1, 2)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx1 + x1, 2)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
+        //double du1dt = -100*Globals::Pi*pow(-centerx1 + x1, 2)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx1 + x1, 2)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
 
-        double du2dt = -100*Globals::Pi*pow(-centerx2 + x2, 2)*(-100*(-2*centerx1 + 2*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx2 + x2, 2)*(-100*(-2*centerx1 + 2*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
+        //double du2dt = -100*Globals::Pi*pow(-centerx2 + x2, 2)*(-100*(-2*centerx1 + 2*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx2 + x2, 2)*(-100*(-2*centerx1 + 2*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
+
+        double du1dt = 0.0;
+
+        double du2dt = 0.0;
 
         double du11 = 100*independent_term*pow(-centerx1 + x1, 2)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/pow(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha, 2) + 100*(-2*centerx1 + 2*x1)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) + 100*pow(-centerx1 + x1, 2)*(100*(-2*centerx2 + 2*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*(-2*centerx1 + 2*x1 - 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
 
@@ -218,16 +217,20 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetInitialBodyFo
         r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
         r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
 
+        r_mass_source = (r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22)) / r_alpha;
+
         it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
         it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-
+        it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
+        it_node->FastGetSolutionStepValue(EXACT_PRESSURE) = 0.0;
         }
 
 }
 
 void SpatialDependantPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosityField() {
 
-    const double time = mrModelPart.GetProcessInfo()[TIME];
+    //const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double time = 0.0;
     const double maximum_alpha = mMaximumAlpha;
     const double centerx1 = mCenterx1;
     const double centerx2 = mCenterx2;
@@ -240,6 +243,8 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetBodyForceAndP
 
         const double x1 = it_node->X();
         const double x2 = it_node->Y();
+
+        double& r_mass_source = it_node->FastGetSolutionStepValue(MASS_SOURCE);
 
         double& r_alpha = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
 
@@ -262,9 +267,13 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetBodyForceAndP
 
         r_u2 = 100*pow(-centerx2 + x2, 2)*(-(-200*centerx1 + 200*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
 
-        double du1dt = -100*Globals::Pi*pow(-centerx1 + x1, 2)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx1 + x1, 2)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
+        //double du1dt = -100*Globals::Pi*pow(-centerx1 + x1, 2)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx1 + x1, 2)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
 
-        double du2dt = -100*Globals::Pi*pow(-centerx2 + x2, 2)*(-(-200*centerx1 + 200*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx2 + x2, 2)*(-(-200*centerx1 + 200*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
+        //double du2dt = -100*Globals::Pi*pow(-centerx2 + x2, 2)*(-(-200*centerx1 + 200*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*sin(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) - 100*pow(-centerx2 + x2, 2)*(-(-200*centerx1 + 200*x1)*pow(centerx1 - x1 + 1, 2) - 100*pow(-centerx1 + x1, 2)*(-2*centerx1 + 2*x1 - 2))*pow(centerx2 - x2 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
+
+        double du1dt = 0.0;
+
+        double du2dt = 0.0;
 
         double du11 = 100*independent_term*pow(-centerx1 + x1, 2)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/pow(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha, 2) + (-200*centerx1 + 200*x1)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*pow(centerx1 - x1 + 1, 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha) + 100*pow(-centerx1 + x1, 2)*((-200*centerx2 + 200*x2)*pow(centerx2 - x2 + 1, 2) + 100*pow(-centerx2 + x2, 2)*(-2*centerx2 + 2*x2 - 2))*(-2*centerx1 + 2*x1 - 2)*exp(-time)*cos(Globals::Pi*time)/(-independent_term*(-centerx1 + x1) - independent_term*(-centerx2 + x2) + maximum_alpha);
 
@@ -304,8 +313,38 @@ void SpatialDependantPorositySolutionTransientBodyForceProcess::SetBodyForceAndP
 
         r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
         r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
-        }
 
+        r_mass_source = (r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22)) / r_alpha;
+
+        if (mInitialConditions == true){
+            if (mrModelPart.GetProcessInfo()[STEP] == 0)
+            {
+                it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
+                it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+                it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
+            }
+        }
+        // else if(mInitialConditions == false && mrModelPart.GetProcessInfo()[STEP] == 1){
+        //     it_node->FastGetSolutionStepValue(FLUID_FRACTION, 1) = r_alpha;
+        // }
+        }
+}
+
+void SpatialDependantPorositySolutionTransientBodyForceProcess::SetFluidProperties()
+{
+    (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
+    (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
+    (mrModelPart.pGetProperties(1))->SetValue(VISCOSITY, mViscosity);
+
+    block_for_each(mrModelPart.Elements(), [&](Element& rElement){
+        rElement.SetProperties(mrModelPart.pGetProperties(1));
+    });
+
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.FastGetSolutionStepValue(VISCOSITY) = mViscosity;
+        rNode.FastGetSolutionStepValue(DENSITY) = mDensity;
+        rNode.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = mViscosity * mDensity;
+    });
 }
 /* Private functions ****************************************************/
 

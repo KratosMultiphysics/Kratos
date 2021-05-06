@@ -1302,7 +1302,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             }
 
             if (mTimeAveragingType == 0){
-                noalias(body_force)                         = hydrodynamic_reaction + mGravity;
+                noalias(body_force)                         += hydrodynamic_reaction;
             }
 
             else {
@@ -1311,7 +1311,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
                 noalias(mean_hydrodynamic_reaction)            += hydrodynamic_reaction;
                 mean_hydrodynamic_reaction                      = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
 
-                noalias(body_force)                             = mean_hydrodynamic_reaction + mGravity;
+                noalias(body_force)                             += mean_hydrodynamic_reaction;
             }
         }
     }
@@ -1449,7 +1449,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             hydrodynamic_reaction += contribution;
 
             if (mTimeAveragingType == 0){
-                noalias(body_force) = hydrodynamic_reaction + mGravity;
+                noalias(body_force) += hydrodynamic_reaction;
             }
 
             else {
@@ -1457,7 +1457,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
                 mean_hydrodynamic_reaction = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep)* mean_hydrodynamic_reaction;
                 mean_hydrodynamic_reaction += hydrodynamic_reaction;
                 mean_hydrodynamic_reaction = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
-                noalias(body_force) = mean_hydrodynamic_reaction + mGravity;
+                noalias(body_force) += mean_hydrodynamic_reaction;
             }
         }
     }
@@ -1558,7 +1558,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetDEM
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFluidVariables(ModelPart& r_fluid_model_part)
 {
-    const array_1d<double, 3>& gravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
+    //const array_1d<double, 3>& gravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
 
     for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
         if (!mVariables.Is(FLUID_FRACTION, "FluidTimeFiltered")){
@@ -1578,7 +1578,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
         array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
         array_1d<double, 3>& hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
         hydrodynamic_reaction = ZeroVector(3);
-        body_force = gravity;
+        //body_force = gravity;
 
         if (mTimeAveragingType == 1 && mNumberOfDEMSamplesSoFarInTheCurrentFluidStep == 0){ // There are 0 DEM accumulated samples when we move into a new fluid time step
             array_1d<double, 3>& mean_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);

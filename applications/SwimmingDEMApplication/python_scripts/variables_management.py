@@ -349,6 +349,7 @@ class VariablesManager:
         self.coupling_fluid_vars += [SDEM.ERROR_P]
         self.coupling_fluid_vars += [SDEM.SCALAR_ERROR]
         self.coupling_fluid_vars += [SDEM.EXACT_PRESSURE]
+        self.coupling_fluid_vars += [SDEM.BETA_GRADIENT]
 
         self.coupling_fluid_vars += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
@@ -359,6 +360,7 @@ class VariablesManager:
             or parameters["coupling"]["coupling_level_type"].GetInt() >= 1):
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION]
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_OLD]
+            self.coupling_fluid_vars += [SDEM.FLUID_FRACTION_OLDEST]
 
             if 'DISPERSE_FRACTION' in self.nodal_results:
                 self.coupling_fluid_vars += [Kratos.DISPERSE_FRACTION]
@@ -370,7 +372,6 @@ class VariablesManager:
 
         if parameters["custom_fluid"]["fluid_model_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_GRADIENT]
-            self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_RATE]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [Kratos.HYDRODYNAMIC_REACTION]

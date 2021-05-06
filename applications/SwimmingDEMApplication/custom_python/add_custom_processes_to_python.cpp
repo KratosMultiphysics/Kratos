@@ -52,7 +52,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SpatialDependantPorositySolutionTransientBodyForceProcess, SpatialDependantPorositySolutionTransientBodyForceProcess::Pointer, Process>
     (m, "SpatialDependantPorositySolutionTransientBodyForceProcess")
-    .def(py::init< ModelPart&, const double, const double, const double, const double, const double, const double>())
+    .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
 }
