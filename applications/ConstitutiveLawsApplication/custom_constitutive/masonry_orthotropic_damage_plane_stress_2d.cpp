@@ -156,11 +156,7 @@ namespace Kratos
         if (rParameters.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) {
                 this->CalculateTangentTensor(
-                    rParameters,
-                    ElasticityMatrix,
-                    r_strain_vector,
-                    r_stress_vector,
-                    data);
+                    rParameters);
             }
             else {
                 this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
@@ -844,11 +840,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamagePlaneStress2DLaw::CalculateTangentTensor(
-        Parameters& rValues,
-        const Matrix& rElasticityMatrix,
-        const array_1d<double, 3>& rStrainVector,
-        const array_1d<double, 3>& rPredictiveStressVector,
-        CalculationData& data)
+        Parameters& rValues)
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 

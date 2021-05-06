@@ -554,11 +554,7 @@ namespace Kratos
         *        IntegrationImplex       Using Integration implex if 1, elso not.
         */
         void CalculateTangentTensor(
-            Parameters& rValues,
-            const Matrix& rElasticityMatrix,
-            const array_1d<double, 3>& rStrainVector,
-            const array_1d<double, 3>& PredictiveStressVector,
-            CalculationData& data);
+            Parameters& rValues);
 
         /**
          * @brief This method computes the secant tensor
