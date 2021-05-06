@@ -14,6 +14,7 @@
 
 // External includes
 #include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
 
 // Project includes
 #include "containers/model.h"
@@ -35,6 +36,7 @@
 #include "custom_processes/rans_line_output_process.h"
 #include "custom_processes/rans_nut_nodal_update_process.h"
 #include "custom_processes/rans_compute_reactions_process.h"
+#include "custom_processes/rans_variable_data_transfer_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -91,6 +93,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, RansFormulationProcess>(m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const int>());
+
+    py::class_<RansVariableDataTransferProcess, RansVariableDataTransferProcess::Pointer, RansFormulationProcess>(m, "RansVariableDataTransferProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const std::string&, const std::vector<std::string>&, const std::vector<std::tuple<const std::string, const bool, const std::string, const bool>>&, const int>())
+        ;
 
 }
 } // namespace Python
