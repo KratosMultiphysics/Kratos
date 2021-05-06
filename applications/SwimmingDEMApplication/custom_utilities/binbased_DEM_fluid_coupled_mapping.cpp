@@ -34,11 +34,11 @@ void ModifyViscosityLikeLiu(double & viscosity, const double solid_fraction)
 
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateFromFluidMesh(
-        ModelPart& r_fluid_model_part, //reference_model_part (origin) 
-        ModelPart& r_dem_model_part, //destination_model_part
+        ModelPart& r_fluid_model_part,
+        ModelPart& r_dem_model_part,
         Parameters& parameters,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
-        const double alpha) 
+        const double alpha)
 {
     KRATOS_TRY
 
@@ -69,11 +69,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
                 p_particle->Set(INSIDE, true);
 				VariablesList& dem_variables = mVariables.GetVariablesList("DEM");
-                for (unsigned int j = 0; j != dem_variables.size(); ++j){ //out for
+                for (unsigned int j = 0; j != dem_variables.size(); ++j){
                     Project(p_element,
                             shape_function_values_at_point,
                             p_particle,
-                            dem_variables[j], //Dest
+                            dem_variables[j],
                             alpha);
                 }
             }
