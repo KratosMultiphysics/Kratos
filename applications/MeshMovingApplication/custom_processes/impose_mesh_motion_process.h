@@ -4,8 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:        BSD License
+//	                Kratos default license: kratos/license.txt
+//
+//  Main Authors:   Máté Kelemen
+//
 
 #ifndef KRATOS_IMPOSE_MESH_MOTION_PROCESS_INCLUDED
 #define KRATOS_IMPOSE_MESH_MOTION_PROCESS_INCLUDED
