@@ -180,7 +180,7 @@ class MaterialTest():
             extended_length = self.height + (self.height - inner_initial_height)
 
             self.length_correction_factor = self.height/extended_length
- 
+
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
         for smp in self.rigid_face_model_part.SubModelParts:
