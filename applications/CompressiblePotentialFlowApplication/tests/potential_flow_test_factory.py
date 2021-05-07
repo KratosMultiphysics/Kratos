@@ -194,6 +194,13 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
 
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        work_folder = "body_fitted_opt"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
+
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
         solution_element_id_list = []
