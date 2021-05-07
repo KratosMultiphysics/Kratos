@@ -81,7 +81,7 @@ class MaterialTest():
             self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
             self.MeshType = self.parameters["MeshType"].GetString()
             self.MeshPath = self.parameters["MeshPath"].GetString()
-        
+
         self.ComputeLoadingVelocity()
         self.problem_name = self.parameters["problem_name"].GetString()
         self.initial_time = datetime.datetime.now()
