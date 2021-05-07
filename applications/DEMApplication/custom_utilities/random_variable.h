@@ -26,10 +26,11 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RandomVariable);
 
     /// Default constructor
+    RandomVariable();
     RandomVariable(const Parameters rParameters);
 
     /// Destructor
-    virtual ~RandomVariable();
+    ~RandomVariable(){};
 
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
     virtual std::string Info() const;

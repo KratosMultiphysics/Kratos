@@ -33,7 +33,7 @@
 #include "custom_utilities/move_mesh_utility.h"
 #include "custom_utilities/stationarity_checker.h"
 #include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
-
+#include "custom_utilities/random_variable.h"
 
 namespace Kratos {
 
@@ -368,6 +368,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ExecuteInitialize", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize)
         .def("ExecuteInitializeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitializeSolutionStep)
         .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
+        ;
+
+    py::class_<RandomVariable, RandomVariable::Pointer>(m, "RandomVariable")
+        .def(py::init<const Parameters>())
         ;
 
     }
