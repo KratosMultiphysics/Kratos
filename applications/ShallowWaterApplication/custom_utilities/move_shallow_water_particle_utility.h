@@ -50,7 +50,7 @@
 #include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 #include "time.h"
 
