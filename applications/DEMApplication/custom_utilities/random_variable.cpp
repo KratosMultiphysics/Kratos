@@ -6,7 +6,17 @@ namespace Kratos {
     RandomVariable::RandomVariable(const Parameters rParameters){
     }
 
-    std::string RandomVariable::Info() const { return "Random Variable Object"; }
-    void RandomVariable::PrintInfo(std::ostream& rOStream) const {}
+    std::string RandomVariable::Info() const
+    {
+        std::stringstream buffer;
+        buffer << "RandomVariable" ;
+        return buffer.str();
+    }
+    void RandomVariable::PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Flags";
+    }
     void RandomVariable::PrintData(std::ostream& rOStream) const {}
 }
+
+

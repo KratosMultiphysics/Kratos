@@ -34,6 +34,7 @@
 #include "custom_utilities/stationarity_checker.h"
 #include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
 #include "custom_utilities/random_variable.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
 
 namespace Kratos {
 
@@ -374,7 +375,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<const Parameters>())
         ;
 
+    py::class_<PiecewiseLinearRandomVariable, PiecewiseLinearRandomVariable::Pointer, RandomVariable>(m, "PiecewiseLinearRandomVariable")
+        .def(py::init<const Parameters>())
+        ;
+
     }
+
 
 
 
