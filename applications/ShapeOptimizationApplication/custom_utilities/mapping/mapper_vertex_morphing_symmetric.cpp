@@ -206,6 +206,9 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
     const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
     const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
+    #pragma omp parallel
+    {
+
     // variable size, fixed capacity vecs
     std::vector<bool> transform;
     NodeVectorType total_neighbor_nodes;
@@ -218,6 +221,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
 
     // fixed size vec
     NodeVectorType neighbor_nodes( max_number_of_neighbors );
+    #pragma omp for
     for (int i = 0; i < int(mrDestinationModelPart.NumberOfNodes()); ++i)
     {
         const auto& node_i = *(mrDestinationModelPart.NodesBegin() + i);
@@ -250,7 +254,8 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
             KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
 
         FillMappingMatrixWithWeights( node_i, total_neighbor_nodes, total_number_of_neighbors, total_list_of_weights, transform, total_sum_of_weights );
-    }
+    } // omp for
+    } // omp parallel
 }
 
 void MapperVertexMorphingSymmetric::AllocateMatrix() {
