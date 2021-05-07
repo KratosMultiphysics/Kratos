@@ -115,6 +115,7 @@ namespace Kratos {
 
         mFemIniNeighbourIds.resize(fem_neighbours_size);
         mFemIniNeighbourDelta.resize(fem_neighbours_size);
+        mContactConditionWeights.resize(fem_neighbours_size);
 
         for (unsigned int i = 0; i < rFemNeighbours.size(); i++) {
 

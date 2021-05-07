@@ -1695,7 +1695,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
+            std::vector< double > Distance_Array; 
             std::vector< array_1d<double, 3> > Normal_Array;
             std::vector< array_1d<double, 4> > Weight_Array;
             std::vector< int > Id_Array;
