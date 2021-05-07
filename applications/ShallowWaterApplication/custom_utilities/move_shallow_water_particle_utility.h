@@ -394,108 +394,89 @@ public:
         array_1d<double,TDim+1> N;
         const unsigned int max_results = 10000;
 
-        //double integration_distance= 2.0;
-
         mMaxSubSteps = 10;
         mMaxSubStepDt = delta_t / static_cast<double>(mMaxSubSteps);
 
-        std::vector<unsigned int> element_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
+        IndexPartition<unsigned int>(mrModelPart.Elements().size()).for_each([&](unsigned int ii){
+            int & number_of_particles = mNumOfParticlesInElems[ii];
+            mNumOfParticlesInElemsAux[ii] = number_of_particles;
+            mNumOfParticlesInElems[ii] = 0;
+        });
 
-        ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
-
-
-        //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
-            {
-                //ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
-
-                int & number_of_particles = mNumOfParticlesInElems[ii]; //old_element->GetValue(NUMBER_OF_BED_PARTICLES);
-
-                mNumOfParticlesInElemsAux[ii] = number_of_particles;
-                mNumOfParticlesInElems[ii] = 0;
-                //we reset the local vectors for a faster access;
-            }
-        }
         std::cout << "convecting particles" << std::endl;
         //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 
         #pragma omp barrier
 
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            ResultContainerType results(max_results);
+        // struct TLS {
+        //     ResultContainerType results;
+        //     GlobalPointersVector<Element> elements_in_trajectory;
+        // };
+        // TLS tls;
+        // tls.results.resize(max_results);
+        // tls.elements_in_trajectory.resize(20);
 
-            GlobalPointersVector< Element > elements_in_trajectory;
-            elements_in_trajectory.resize(20);
+        ResultContainerType results(max_results);
+        GlobalPointersVector<Element> elements_in_trajectory;
+        elements_in_trajectory.resize(20);
 
-            for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
+        // block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS){
+        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        #pragma omp parallel for firstprivate(results, elements_in_trajectory)
+        for (int ielem = 0; ielem < static_cast<int>(mrModelPart.NumberOfElements()); ++ielem) {
+            ModelPart::ElementsContainerType::iterator old_element = i_elem_begin + ielem;
+            const int old_element_id = old_element->Id();
+
+            ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
+
+            if ( (results.size()) != max_results )
+                results.resize(max_results);
+
+            unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
+
+            for (int ii = 0; ii < mNumOfParticlesInElemsAux[old_element_id-1]; ii++)
             {
-                ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
-                const int old_element_id = old_element->Id();
+                ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
 
-                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
+                Element::Pointer p_current_element(*old_element.base());
+                ResultIteratorType result_begin = results.begin();
+                bool & erase_flag = pparticle.GetEraseFlag();
+                if (erase_flag == false){
+                    MoveParticle(pparticle,p_current_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
 
-                if ( (results.size()) != max_results )
-                    results.resize(max_results);
+                    const int current_element_id = p_current_element->Id();
 
-                unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
+                    int & number_of_particles_in_current_elem = mNumOfParticlesInElems[current_element_id-1];
 
-                for (int ii = 0; ii < mNumOfParticlesInElemsAux[ielem]; ii++)
-                {
-                    ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
+                    if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false)
+                    {
+                        ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors[current_element_id-1];
 
-                    Element::Pointer pcurrent_element( *old_element.base() );
-                    ResultIteratorType result_begin = results.begin();
-                    bool & erase_flag=pparticle.GetEraseFlag();
-                    if (erase_flag == false){
-                        MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
-
-                        const int current_element_id = pcurrent_element->Id();
-
-                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems[current_element_id-1];
-
-                        if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false)
+                        #pragma omp critical
                         {
-                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors[current_element_id-1];
-
-                            #pragma omp critical
+                            if (number_of_particles_in_current_elem < mMaxNumberOfParticles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
                             {
-                                if (number_of_particles_in_current_elem < mMaxNumberOfParticles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
-                                {
-                                    current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
-                                    number_of_particles_in_current_elem++ ;
-                                    KRATOS_ERROR_IF( number_of_particles_in_current_elem > mMaxNumberOfParticles ) <<
-                                        "In move shallow water particle utility: exceeded maximum number of particles" << std::endl;
-                                    //~ if (number_of_particles_in_current_elem > mMaxNumberOfParticles)
-                                        //~ KRATOS_WATCH("MAL");
-                                }
-                                else
-                                {
-                                    pparticle.GetEraseFlag()=true; //so we just delete it!
-                                }
+                                current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
+                                number_of_particles_in_current_elem++ ;
+                                KRATOS_ERROR_IF( number_of_particles_in_current_elem > mMaxNumberOfParticles ) <<
+                                    "In move shallow water particle utility: exceeded maximum number of particles" << std::endl;
+                            }
+                            else
+                            {
+                                pparticle.GetEraseFlag()=true; //so we just delete it!
                             }
                         }
-                        else
-                        {
-                            pparticle.GetEraseFlag()=true; //so we just delete it!
-                        }
+                    }
+                    else
+                    {
+                        pparticle.GetEraseFlag()=true; //so we just delete it!
                     }
                 }
             }
         }
 
         // After having changed everything we change the status of the mOddTimeStep flag:
-        mOffset = post_offset;; //
+        mOffset = post_offset;
 
         KRATOS_CATCH("")
     }
