@@ -755,115 +755,78 @@ public:
 
         const int offset = mOffset;
 
-        //TOOLS FOR THE PARALELIZATION
-        unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
-        std::vector<unsigned int> elem_partition;
-        int number_of_rows=mrModelPart.Elements().size();
-        //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-        elem_partition.resize(number_of_threads + 1);
-        int elem_partition_size = number_of_rows / number_of_threads;
-        elem_partition[0] = 0;
-        elem_partition[number_of_threads] = number_of_rows;
+        BoundedMatrix<double, 3+2*TDim, 3> pos; //7 particles (2D) or 9 particles (3D)
+        BoundedMatrix<double, 3+2*TDim, TDim+1> N;
+        unsigned int free_particle = 0; //we start by the first position;
 
-        for (unsigned int i = 1; i < number_of_threads; i++)
-        elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
+        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        #pragma omp parallel for firstprivate(pos, N, free_particle)
+        for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
+            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + ii;
 
-        ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
+            int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
+            ParticlePointerVector& element_particle_pointers = mVectorOfParticlePointersVectors[ii];
 
-        #pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemple everything toghether, remaming particles ids to get consecutive ids
-        {
-            unsigned int reused_particles=0;
-
-            unsigned int freeparticle = 0; //we start by the first position;
-
-            int k = OpenMPUtils::ThisThread();
-
-            BoundedMatrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
-            BoundedMatrix<double, (3+2*TDim), (TDim+1) > N;
-
-            double mesh_scalar1;
-            array_1d<double,3> mesh_vector1;
-
-            array_1d<int, (3+2*TDim) > positions;
-
-            unsigned int number_of_reseeded_particles;
-
-            for(unsigned int ii=elem_partition[k]; ii<elem_partition[k+1]; ii++)
+            GeometryType& geom = ielem->GetGeometry();
+            if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(MinimumNumberOfParticles) ) )
             {
-                //const int & elem_id = ielem->Id();
-                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-
-                int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
-                ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
-
-                GeometryType& geom = ielem->GetGeometry();
-                if ( number_of_particles_in_elem < (MinimumNumberOfParticles) ) // && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(MinimumNumberOfParticles) ) )
+                ComputeGaussPointPositionsForPostReseed(geom, pos, N);
+                unsigned int number_of_reseeded_particles = 3 + 2*TDim;
+                for (unsigned int j = 0; j < number_of_reseeded_particles; j++)
                 {
-                    //bool reseed_more=false;
-                    number_of_reseeded_particles = 0;
-
-                    //reseed_more=true;
-                    number_of_reseeded_particles = 3 + 2*TDim;
-                    ComputeGaussPointPositionsForPostReseed(geom, pos, N);
-
-                    for (unsigned int j = 0; j < number_of_reseeded_particles; j++)
+                    // Now we have to find an empty space (a particle that was about to be deleted) in the
+                    // particles model part. once found. there will be our renewed particle:
+                    bool keep_looking = true;
+                    while(keep_looking)
                     {
-                        // Now we have to find an empty space (a particle that was about to be deleted) in the
-                        // particles model part. once found. there will be our renewed particle:
-                        bool keep_looking = true;
-                        while(keep_looking)
+                        if (mParticlesVector[free_particle].GetEraseFlag()==true)
                         {
-                            if (mParticlesVector[freeparticle].GetEraseFlag()==true)
+                            #pragma omp critical
                             {
-                                #pragma omp critical
+                                if (mParticlesVector[free_particle].GetEraseFlag()==true)
                                 {
-                                    if (mParticlesVector[freeparticle].GetEraseFlag()==true)
-                                    {
-                                        mParticlesVector[freeparticle].GetEraseFlag()=false;
-                                        keep_looking=false;
-                                    }
+                                    mParticlesVector[free_particle].GetEraseFlag()=false;
+                                    keep_looking=false;
                                 }
-                                if (keep_looking==false)
-                                    break;
-
-                                else
-                                    freeparticle++;
                             }
+                            if (keep_looking==false)
+                                break;
+
                             else
-                                freeparticle++;
+                                free_particle++;
                         }
-
-                        ShallowParticle pparticle(pos(j,0),pos(j,1),pos(j,2));
-
-                        array_1d<double,TDim+1>aux_N;
-                        bool is_found = CalculatePosition(geom,pos(j,0),pos(j,1),pos(j,2),aux_N);
-                        KRATOS_ERROR_IF_NOT( is_found ) <<
-                            "In move shallow water particle utility: particle not found in domain" << std::endl;
-
-                        mesh_scalar1 = 0.0;
-                        mesh_vector1 = ZeroVector(3);
-
-                        for (unsigned int l = 0; l < (TDim+1); l++)
-                        {
-                            mesh_scalar1 +=  N(j,l) * geom[l].FastGetSolutionStepValue(*mScalarVar1);
-                            noalias(mesh_vector1) += N(j, l) * geom[l].FastGetSolutionStepValue(*mVectorVar1);
-                        }
-                        pparticle.GetScalar1()=mesh_scalar1;
-                        pparticle.GetVector1()=mesh_vector1;
-                        pparticle.GetEraseFlag()=false;
-
-                        mParticlesVector[freeparticle]=pparticle;
-                        element_particle_pointers(offset+number_of_particles_in_elem) = &mParticlesVector[freeparticle];
-                        number_of_particles_in_elem++;
-
-                        KRATOS_ERROR_IF( keep_looking ) <<
-                            "In move shallow water particle utility: Finished the list and couldnt find a free cell for the new particle!" << std::endl;
-                        reused_particles++;
+                        else
+                            free_particle++;
                     }
+
+                    ShallowParticle p_particle(pos(j,0), pos(j,1), pos(j,2));
+
+                    array_1d<double,TDim+1> aux_N;
+                    bool is_found = CalculatePosition(geom, pos(j,0), pos(j,1), pos(j,2), aux_N);
+                    KRATOS_ERROR_IF_NOT(is_found) <<
+                        "In move shallow water particle utility: particle not found in domain" << std::endl;
+
+                    double mesh_scalar1 = 0.0;
+                    array_1d<double,3> mesh_vector1 = ZeroVector(3);
+
+                    for (unsigned int l = 0; l < (TDim+1); l++)
+                    {
+                        mesh_scalar1 +=  N(j,l) * geom[l].FastGetSolutionStepValue(*mScalarVar1);
+                        noalias(mesh_vector1) += N(j, l) * geom[l].FastGetSolutionStepValue(*mVectorVar1);
+                    }
+                    p_particle.GetScalar1() = mesh_scalar1;
+                    p_particle.GetVector1() = mesh_vector1;
+                    p_particle.GetEraseFlag() = false;
+
+                    mParticlesVector[free_particle] = p_particle;
+                    element_particle_pointers(offset + number_of_particles_in_elem) = &mParticlesVector[free_particle];
+                    number_of_particles_in_elem++;
+
+                    KRATOS_ERROR_IF(keep_looking) <<
+                        "In move shallow water particle utility: Finished the list and couldnt find a free cell for the new particle!" << std::endl;
                 }
             }
         }
-
         KRATOS_CATCH("")
     }
 
