@@ -111,78 +111,51 @@ public:
             ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
             ielem->SetId(ii+1);
         }
-        mLastElemId= (mrModelPart.ElementsEnd()-1)->Id();
-        int node_id=0;
+        mLastElemId = (mrModelPart.ElementsEnd()-1)->Id();
+
         // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
-        ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        std::vector<unsigned int> node_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Nodes().size(), node_partition);
-
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            array_1d<double,3> position_node;
+            double distance=0.0;
+            position_node = rNode.Coordinates();
+            GlobalPointersVector<NodeType>& rneigh = rNode.GetValue(NEIGHBOUR_NODES);
+            //we loop all the nodes to check all the edges
+            const double number_of_neighbours = static_cast<double>(rneigh.size());
+            for( GlobalPointersVector<NodeType>::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
             {
-                ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
-                array_1d<double,3> position_node;
-                double distance=0.0;
-                position_node = pnode->Coordinates();
-                GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
-                //we loop all the nodes to check all the edges
-                const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( GlobalPointersVector<NodeType>::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
-                {
-                    array_1d<double,3> position_difference;
-                    position_difference = inode->Coordinates() - position_node;
-                    const double current_distance = norm_2( position_difference );
-                    distance += current_distance / number_of_neighbours;
-                }
-                //and we save the largest edge.
-                pnode->SetValue(MEAN_SIZE, distance);
-
-                node_id=pnode->GetId();
+                array_1d<double,3> position_difference;
+                position_difference = inode->Coordinates() - position_node;
+                const double current_distance = norm_2( position_difference );
+                distance += current_distance / number_of_neighbours;
             }
-        }
-        mLastNodeId=node_id;
+            //and we save the largest edge.
+            rNode.SetValue(MEAN_SIZE, distance);
+        });
+        mLastNodeId = (mrModelPart.NodesEnd() - 1)->Id();
 
         //we also calculate the element mean size in the same way, for the courant number
         //also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
-        std::vector<unsigned int> element_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
-
         //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
-            {
-                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+        block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+            double elem_size;
+            array_1d<double,3> Edge(3,0.0);
+            Edge = rElem.GetGeometry()[1].Coordinates() - rElem.GetGeometry()[0].Coordinates();
+            elem_size = Edge[0]*Edge[0];
+            for (unsigned int d = 1; d < TDim; d++)
+                elem_size += Edge[d]*Edge[d];
 
-                double elem_size;
-                array_1d<double,3> Edge(3,0.0);
-                Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
-                elem_size = Edge[0]*Edge[0];
-                for (unsigned int d = 1; d < TDim; d++)
-                    elem_size += Edge[d]*Edge[d];
-
-                for (unsigned int i = 2; i < (TDim+1); i++)
-                    for(unsigned int j = 0; j < i; j++)
-                    {
-                        Edge = ielem->GetGeometry()[i].Coordinates() - ielem->GetGeometry()[j].Coordinates();
-                        double Length = Edge[0]*Edge[0];
-                        for (unsigned int d = 1; d < TDim; d++)
-                            Length += Edge[d]*Edge[d];
-                        if (Length < elem_size) elem_size = Length;
-                    }
-                elem_size = sqrt(elem_size);
-                ielem->SetValue(MEAN_SIZE, elem_size);
-            }
-        }
+            for (unsigned int i = 2; i < (TDim+1); i++)
+                for(unsigned int j = 0; j < i; j++)
+                {
+                    Edge = rElem.GetGeometry()[i].Coordinates() - rElem.GetGeometry()[j].Coordinates();
+                    double Length = Edge[0]*Edge[0];
+                    for (unsigned int d = 1; d < TDim; d++)
+                        Length += Edge[d]*Edge[d];
+                    if (Length < elem_size) elem_size = Length;
+                }
+            elem_size = sqrt(elem_size);
+            rElem.SetValue(MEAN_SIZE, elem_size);
+        });
 
         //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
         BoundedMatrix<double, 5*(1+TDim), 3 > pos;
@@ -212,28 +185,17 @@ public:
         int i_int=0; //careful! it's not the id, but the position inside the array!
         std::cout << "  about to create particles" << std::endl;
         //now we seed: LOOP IN ELEMENTS
-        //using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mMaxNumberOfParticles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
-
+        //using loop index, DO NOT parallelize this!
         mOffset=0;
-        //ShallowParticle& firstparticle = mParticlesVector[0];
         for(unsigned int ii=0; ii<mrModelPart.Elements().size(); ii++)
         {
             ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-            //(ielem->GetValue(BED_PARTICLE_POINTERS)) = ParticlePointerVector( mMaxNumberOfParticles*2, &firstparticle );
-            //ParticlePointerVector&  particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
-            //now we link the mpointers_to_particle_pointers_vectors to the corresponding element
-            //mpointers_to_particle_pointers_vectors(ii) = &particle_pointers;
-            //now we resize the vector of particle pointers. it is double sized because we move the particles from an initial position (first half) to a final position (second half).
-            //for(int j=0; j<(mMaxNumberOfParticles*2); j++)
-            //        particle_pointers.push_back(&firstparticle);
             mVectorOfParticlePointersVectors[ii] = ParticlePointerVector( mMaxNumberOfParticles*2 );
             ParticlePointerVector& particle_pointers = mVectorOfParticlePointersVectors[ii];
-            //int & number_of_particles = ielem->GetValue(NUMBER_OF_BED_PARTICLES);
             int & number_of_particles = mNumOfParticlesInElems[ii];
             number_of_particles=0;
 
             GeometryType& geom = ielem->GetGeometry();
-            //unsigned int elem_id = ielem->Id();
             ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
             //now we seed the particles in the current element
             for (unsigned int j = 0; j < pos.size1(); j++)
@@ -241,9 +203,6 @@ public:
                 ++particle_id;
 
                 ShallowParticle& pparticle = mParticlesVector[particle_id-1];
-                //~ pparticle.X()=pos(j,0);
-                //~ pparticle.Y()=pos(j,1);
-                //~ pparticle.Z()=pos(j,2);
                 pparticle.Coordinates() = row(pos,j);
 
                 pparticle.GetEraseFlag()=false;
