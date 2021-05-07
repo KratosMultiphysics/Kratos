@@ -511,7 +511,7 @@ public:
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
             rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3);
-            rNode.FastGetSolutionStepValue(YP)=0.0;
+            rNode.FastGetSolutionStepValue(INTEGRATION_WEIGHT)=0.0;
         });
 
         // Adding contribution, loop on elements, since each element has stored the particles found inside of it
@@ -581,13 +581,13 @@ public:
                 geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y) += nodes_added_vector1[3*i+1];
                 geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Z) += nodes_added_vector1[3*i+2];
 
-                geom[i].FastGetSolutionStepValue(YP) += nodes_added_weights[i];
+                geom[i].FastGetSolutionStepValue(INTEGRATION_WEIGHT) += nodes_added_weights[i];
                 geom[i].UnSetLock();
             }
         });
 
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-            double sum_weights = rNode.FastGetSolutionStepValue(YP);
+            double sum_weights = rNode.FastGetSolutionStepValue(INTEGRATION_WEIGHT);
             if (sum_weights > 0.00001)
             {
                 double & scalar = rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
@@ -2001,7 +2001,7 @@ private:
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(YP, rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(INTEGRATION_WEIGHT, rnode)
 
         return 0;
 
