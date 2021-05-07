@@ -247,7 +247,7 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
 
     def CalculateValue(self):
         self.chord = self._ComputeChord(self.te_node.X,self.te_node.Y, self.le_node.X,self.le_node.Y)
-        print("CHORD:", self.chord )
+
     def CalculateGradient(self):
         epsilon = 1e-9
         self.te_x_gradient = (self._ComputeChord(self.te_node.X + epsilon,self.te_node.Y, self.le_node.X, self.le_node.Y) - self.chord) / epsilon
