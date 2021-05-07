@@ -65,6 +65,8 @@ class MoveShallowWaterParticleUtility
 {
 public:
 
+    typedef Node<3>                                            NodeType;
+    typedef Geometry<NodeType>                                 GeometryType;
     typedef SpatialContainersConfigure<TDim>                   Configure;
     typedef typename Configure::PointType                      PointType;
     typedef typename Configure::ContainerType                  ContainerType;
@@ -133,7 +135,7 @@ public:
                 GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
                 const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                for( GlobalPointersVector<NodeType>::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
@@ -230,7 +232,7 @@ public:
             int & number_of_particles = mNumOfParticlesInElems[ii];
             number_of_particles=0;
 
-            Geometry< Node<3> >& geom = ielem->GetGeometry();
+            GeometryType& geom = ielem->GetGeometry();
             //unsigned int elem_id = ielem->Id();
             ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
             //now we seed the particles in the current element
@@ -327,7 +329,7 @@ public:
             for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
             {
                 ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-                Geometry<Node<3> >& geom = ielem->GetGeometry();
+                GeometryType& geom = ielem->GetGeometry();
 
                 array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
@@ -687,7 +689,7 @@ public:
                 array_1d<double,(TDim+1)> nodes_added_weights = ZeroVector((TDim+1));
                 //array_1d<double,(TDim+1)> weighting_inverse_divisor;
 
-                Geometry<Node<3> >& geom = ielem->GetGeometry();
+                GeometryType& geom = ielem->GetGeometry();
 
                 for (int i=0 ; i!=(TDim+1) ; ++i)
                 {
@@ -813,7 +815,7 @@ public:
                 //const int & elem_id = ielem->Id();
                 ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
                 Element::Pointer pelement(*ielem.base());
-                Geometry<Node<3> >& geom = ielem->GetGeometry();
+                GeometryType& geom = ielem->GetGeometry();
 
                 //ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
                 //int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_BED_PARTICLES);
@@ -897,7 +899,7 @@ public:
                 ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
                 if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (ielem->GetGeometry())[0].Y()<0.10 )
                 {
-                    Geometry< Node<3> >& geom = ielem->GetGeometry();
+                    GeometryType& geom = ielem->GetGeometry();
                     ComputeGaussPointPositionsForPreReseed(geom, pos, N);
 
                     for (unsigned int j = 0; j < (pos.size1()); j++) // I am dropping the last one, the one in the middle of the element
@@ -1012,7 +1014,7 @@ public:
                 int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
                 ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
 
-                Geometry< Node<3> >& geom = ielem->GetGeometry();
+                GeometryType& geom = ielem->GetGeometry();
                 if ( number_of_particles_in_elem < (MinimumNumberOfParticles) ) // && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(MinimumNumberOfParticles) ) )
                 {
                     //bool reseed_more=false;
@@ -1194,7 +1196,7 @@ private:
         if(is_found == true)
         {
             keep_integrating=true;
-            Geometry< Node<3> >& geom = pElement->GetGeometry();//the element we're in
+            GeometryType& geom = pElement->GetGeometry();//the element we're in
             vel=ZeroVector(3);
 
             for(unsigned int j=0; j<(TDim+1); j++)
@@ -1221,7 +1223,7 @@ private:
                     is_found = FindNodeOnMesh(position, N, pElement, rElementsInTrajectory, rNumberOfElementsInTrajectory, check_from_element_number, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
                     if(is_found == true)
                     {
-                        Geometry< Node<3> >& geom = pElement->GetGeometry();//the element we're in
+                        GeometryType& geom = pElement->GetGeometry();//the element we're in
 
                         vel = ZeroVector(3);
                         for(unsigned int j=0; j<(TDim+1); j++)
@@ -1266,7 +1268,7 @@ private:
      */
     void CorrectParticleUsingDeltaVariables(ShallowParticle & pParticle,
                                             Element::Pointer & pElement,
-                                            Geometry< Node<3> >& rGeom)
+                                            GeometryType& rGeom)
     {
         array_1d<double,TDim+1> N;
 
@@ -1341,7 +1343,7 @@ private:
         if(is_found == true)
         {
             keep_integrating = true;
-            Geometry< Node<3> >& geom = pElement->GetGeometry(); //the element we're in
+            GeometryType& geom = pElement->GetGeometry(); //the element we're in
 
             scalar1 = 0.0;
             vector1 = ZeroVector(3);
@@ -1369,7 +1371,7 @@ private:
                     is_found = FindNodeOnMesh(position, N, pElement, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
                     if (is_found == true)
                     {
-                        Geometry< Node<3> >& geom = pElement->GetGeometry();//the element we're in
+                        GeometryType& geom = pElement->GetGeometry();//the element we're in
 
                         scalar1 = 0.0;
                         vector1 = ZeroVector(3);
@@ -1421,7 +1423,7 @@ private:
 
         array_1d<double,TDim+1> aux_N;
         //before using the bin to search for possible elements we check first the last element in which the particle was.
-        Geometry<Node<3> >& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
+        GeometryType& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
         bool is_found_1 = CalculatePosition(geom_default,rPosition[0],rPosition[1],rPosition[2],N);
         if (is_found_1) //that was easy!
         {
@@ -1432,7 +1434,7 @@ private:
         GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
-            Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+            GeometryType& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
@@ -1450,7 +1452,7 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
+                GeometryType& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
@@ -1503,7 +1505,7 @@ private:
         //~ const array_1d<double,3>& coords = rPosition;
          array_1d<double,TDim+1> aux_N;
         //before using the bin to search for possible elements we check first the last element in which the particle was.
-        Geometry<Node<3> >& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
+        GeometryType& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
         bool is_found_1 = CalculatePosition(geom_default,rPosition[0],rPosition[1],rPosition[2],N);
         if(is_found_1 == true)
         {
@@ -1513,7 +1515,7 @@ private:
         // If it was not found in the first element, we can proceed to check in the following elements (in the trajectory defined by previous particles that started from the same element.
         for (unsigned int i=(rCheckFromElementNumber);i!=rNumberOfElementsInTrajectory;i++)
         {
-            Geometry<Node<3> >& geom = rElementsInTrajectory[i].GetGeometry();
+            GeometryType& geom = rElementsInTrajectory[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
@@ -1528,7 +1530,7 @@ private:
         GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
-            Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+            GeometryType& geom = neighb_elems[i].GetGeometry();
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
@@ -1552,7 +1554,7 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
+                GeometryType& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
@@ -2169,7 +2171,7 @@ private:
     {
         KRATOS_TRY
 
-        Node<3>& rnode = *mrModelPart.NodesBegin();
+        NodeType& rnode = *mrModelPart.NodesBegin();
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mVectorVar1), rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*mScalarVar1), rnode)
