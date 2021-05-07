@@ -28,17 +28,6 @@ def _GetModelPart(model, solver_settings):
 
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionInterface):
-    """Linear static adjoint strain energy response function.
-    - runs the primal analysis (writes the primal results to an .h5 file)
-    - reads the primal results from the .h5 file into the adjoint model part
-    - uses primal results to calculate value
-    - uses primal results to calculate gradient by running the adjoint analysis
-
-    Attributes
-    ----------
-    primal_analysis : Primal analysis object of the response function
-    adjoint_analysis : Adjoint analysis object of the response function
-    """
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
         self.response_settings = response_settings
@@ -83,7 +72,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self._GetResponseFunctionUtility().InitializeSolutionStep()
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-        print("LIFT VALUE", value)
+
         self._value = value
 
     def CalculateGradient(self):
@@ -103,9 +92,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
     def GetNodalGradient(self, variable):
         if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
-        gradient = {}
-        for node in self.adjoint_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(variable)
+
+        gradient = {node.Id : node.GetSolutionStepValue(variable) for node in self.adjoint_model_part.Nodes}
 
         return gradient
 
@@ -174,21 +162,25 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 class AngleOfAttackResponseFunction(ResponseFunctionInterface):
     def __init__(self, response_id, response_settings, model):
         self.model = model
+        if not response_settings.Has("trailing_edge_model_part")  or not response_settings.Has("leading_edge_model_part"):
+            raise(Exception("Please define a model part with the trailing edge node and a model part with the leading edge node"))
+
+        self.trailing_edge_model_part_name = response_settings["trailing_edge_model_part"].GetString()
+        self.leading_edge_sub_model_part_name = response_settings["leading_edge_model_part"].GetString()
 
     def Initialize(self):
         self.main_model_part = self.model["MainModelPart"]
-        self.free_stream_velocity = KratosMultiphysics.Vector(3,0.0)
-        self.free_stream_velocity[0] = 1.0
-        for node in self.main_model_part.GetSubModelPart("TrailingEdgeNode").Nodes:
+        self.free_stream_velocity = self.main_model_part.ProcessInfo[KCPFApp.FREE_STREAM_VELOCITY]
+        for node in self.model[self.trailing_edge_model_part_name].Nodes:
             self.te_node = node
             break
-        for node in self.main_model_part.GetSubModelPart("LeadingEdgeNode").Nodes:
+        for node in self.model[self.leading_edge_sub_model_part_name].Nodes:
             self.le_node = node
             break
 
     def CalculateValue(self):
         self.aoa = self._CalculateAOA(self.te_node.X,self.te_node.Y, self.le_node.X, self.le_node.Y)
-        print("AOA:", self.aoa)
+
     def CalculateGradient(self):
         epsilon = 1e-9
         self.te_x_gradient = (self._CalculateAOA(self.te_node.X + epsilon,self.te_node.Y, self.le_node.X, self.le_node.Y) - self.aoa) / epsilon
@@ -232,12 +224,19 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
     def __init__(self, response_id, response_settings, model):
         self.model = model
 
+        if not response_settings.Has("trailing_edge_model_part")  or not response_settings.Has("leading_edge_model_part"):
+            raise(Exception("Please define a model part with the trailing edge node and a model part with the leading edge node"))
+
+        self.trailing_edge_model_part_name = response_settings["trailing_edge_model_part"].GetString()
+        self.leading_edge_sub_model_part_name = response_settings["leading_edge_model_part"].GetString()
+
     def Initialize(self):
         self.main_model_part = self.model["MainModelPart"]
-        for node in self.main_model_part.GetSubModelPart("TrailingEdgeNode").Nodes:
+
+        for node in self.model[self.trailing_edge_model_part_name].Nodes:
             self.te_node = node
             break
-        for node in self.main_model_part.GetSubModelPart("LeadingEdgeNode").Nodes:
+        for node in self.model[self.leading_edge_sub_model_part_name].Nodes:
             self.le_node = node
             break
 
@@ -303,7 +302,7 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
         gradient = {}
         epsilon = 1e-6
         initial_perimeter =  self._ComputePerimeter(self.body_model_part)
-        print("PERIMETER", initial_perimeter)
+
         for node in self.body_model_part.Nodes:
             shape_gradient = KratosMultiphysics.Vector(3, 0.0)
 
