@@ -618,46 +618,29 @@ public:
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //(flag managed only by MoveParticles)
-        ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
+        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int i){
+            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + i;
+            Element::Pointer p_element(*ielem.base());
+            GeometryType& geom = ielem->GetGeometry();
 
-        std::vector<unsigned int> element_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
+            int & number_of_particles_in_elem= mNumOfParticlesInElems[i];
+            ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[i];
 
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+            for (int iii = 0; iii < number_of_particles_in_elem ; iii++)
             {
-                //const int & elem_id = ielem->Id();
-                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-                Element::Pointer pelement(*ielem.base());
-                GeometryType& geom = ielem->GetGeometry();
+                if (iii > mMaxNumberOfParticles) //it means we are out of our portion of the array, abort loop!
+                    break;
 
-                //ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
-                //int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_BED_PARTICLES);
-                int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
-                ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
+                ShallowParticle& p_particle = element_particle_pointers[offset+iii];
 
-                for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
+                bool erase_flag= p_particle.GetEraseFlag();
+                if (erase_flag==false)
                 {
-                    if (iii>mMaxNumberOfParticles) //it means we are out of our portion of the array, abort loop!
-                        break;
-
-                    ShallowParticle & pparticle = element_particle_pointers[offset+iii];
-
-                    bool erase_flag= pparticle.GetEraseFlag();
-                    if (erase_flag==false)
-                    {
-                        CorrectParticleUsingDeltaVariables(pparticle,pelement,geom); //'lite' version, we pass by reference the geometry, so much cheaper
-                    }
+                    CorrectParticleUsingDeltaVariables(p_particle, p_element, geom); //'lite' version, we pass by reference the geometry, so much cheaper
                 }
             }
-        }
+        });
         KRATOS_CATCH("")
     }
 
