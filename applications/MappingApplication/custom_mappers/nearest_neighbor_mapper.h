@@ -164,8 +164,12 @@ public:
                                      rModelPartDestination,
                                      JsonParameters)
     {
+        KRATOS_TRY;
+
         this->ValidateInput();
         this->Initialize();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -179,10 +183,14 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
+        KRATOS_TRY;
+
         return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
+
+        KRATOS_CATCH("");
     }
 
     ///@}
