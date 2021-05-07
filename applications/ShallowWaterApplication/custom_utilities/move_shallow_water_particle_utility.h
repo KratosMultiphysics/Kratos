@@ -853,7 +853,6 @@ public:
             for (unsigned int i = 0; i != ((mMaxNumberOfParticles*mNElems)/FilterFactor) + FilterFactor; i++)
             {
                 Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode( i+mLastNodeId+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
-                //pnode->SetBufferSize(mrModelPart.NodesBegin()->GetBufferSize());
                 pnode->SetBufferSize(1);
             }
             mParticlePrintingToolInitialized=true;
@@ -874,7 +873,6 @@ public:
         }
 
         int counter = 0;
-        //ModelPart::NodesContainerType::iterator it_begin = rLagrangianModelPart.NodesBegin();
         for (int i = 0; i != mMaxNumberOfParticles*mNElems; i++)
         {
             ShallowParticle& pparticle = mParticlesVector[i];
@@ -927,7 +925,7 @@ private:
         bool is_found;
 
         array_1d<double,3> vel;
-        array_1d<double,3> vel_without_other_phase_nodes=ZeroVector(3);
+        array_1d<double,3> vel_without_other_phase_nodes = ZeroVector(3);
         array_1d<double,3> position;
         array_1d<double,3> mid_position;
         array_1d<double,TDim+1> N;
@@ -940,19 +938,19 @@ private:
         is_found = FindNodeOnMesh(position, N, pElement, ResultBegin, MaxNumberOfResults); //good, now we know where this point is:
         if(is_found == true)
         {
-            keep_integrating=true;
+            keep_integrating = true;
             GeometryType& geom = pElement->GetGeometry();//the element we're in
-            vel=ZeroVector(3);
+            vel = ZeroVector(3);
 
-            for(unsigned int j=0; j<(TDim+1); j++)
+            for(unsigned int j = 0; j< TDim+1; j++)
             {
                 noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
             }
 
             //calculating substep to get +- courant(substep) = 0.1
             nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
-            if (nsubsteps<1)
-                nsubsteps=1;
+            if (nsubsteps < 1)
+                nsubsteps = 1;
             substep_dt = delta_t / double(nsubsteps);
 
             only_integral = 1.0;// weight;//*double(nsubsteps);
@@ -978,12 +976,12 @@ private:
 
                         only_integral += 1.0; //values saved for the current time step
 
-                        position+=vel*substep_dt;//weight;
+                        position += vel * substep_dt;//weight;
 
                     }
                     else
                     {
-                        keep_integrating=false;
+                        keep_integrating = false;
                         break;
                     }
                 }
@@ -1030,9 +1028,9 @@ private:
         if(is_found == false)
         {
             KRATOS_INFO("MoveShallowWaterParticleUtility") << N << std::endl;
-            for (int j=0 ; j!=(TDim+1); j++)
-                                if (N[j]<0.0 )
-                                    N[j]=1e-10;
+            for (int j = 0 ; j != TDim+1; j++)
+                if (N[j] < 0.0 )
+                    N[j] = 1e-10;
         }
 
         for(unsigned int j=0; j<(TDim+1); j++)
@@ -1094,22 +1092,22 @@ private:
             vector1 = ZeroVector(3);
             vel     = ZeroVector(3);
 
-            for(unsigned int j=0; j<(TDim+1); j++)
+            for(unsigned int j = 0; j < TDim+1; j++)
             {
-                scalar1          += geom[j].FastGetSolutionStepValue(*mScalarVar1)*N[j];
-                noalias(vector1) += geom[j].FastGetSolutionStepValue(*mVectorVar1)*N[j];
-                noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
+                scalar1          += geom[j].FastGetSolutionStepValue(*mScalarVar1) * N[j];
+                noalias(vector1) += geom[j].FastGetSolutionStepValue(*mVectorVar1) * N[j];
+                noalias(vel)     += geom[j].FastGetSolutionStepValue(VELOCITY) * N[j];
             }
             //calculating substep to get +- courant(substep) = 1/4
             nsubsteps = 10.0 * (delta_t * pElement->GetValue(MEAN_VEL_OVER_ELEM_SIZE));
-            if (nsubsteps<1)
-                nsubsteps=1;
+            if (nsubsteps < 1)
+                nsubsteps = 1;
             substep_dt = delta_t / double(nsubsteps);
 
             only_integral = 1.0; // weight;//*double(nsubsteps);
             position -= vel*substep_dt; //weight;
 
-            for(unsigned int i=0; i<(nsubsteps-1); i++) // this is for the substeps n+1. in the first one we already knew the position of the particle.
+            for(unsigned int i = 0; i < nsubsteps-1; i++) // this is for the substeps n+1. in the first one we already knew the position of the particle.
             {
                 if (keep_integrating == true)
                 {
@@ -1150,7 +1148,7 @@ private:
      * If false is returned the element is not found
      *
      * @param position of the node
-     * @param N: return shape functions that define the positions within the elem
+     * @param N return shape functions that define the positions within the elem
      * @param pElement: return a pointer to the element
      * @param ResultBegin
      * @param MaxNumberOfResults
@@ -1176,11 +1174,11 @@ private:
         }
 
         // To begin with we check the neighbour elements; it is a bit more expensive
-        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
-        for (unsigned int i=0;i!=(neighb_elems.size());i++)
+        GlobalPointersVector<Element>& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        for (unsigned int i = 0; i != neighb_elems.size(); i++)
         {
             GeometryType& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
+            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
             if (is_found_2)
             {
                 pElement = neighb_elems[i].shared_from_this();
@@ -1195,7 +1193,7 @@ private:
         if (results_found>0)
         {
             //loop over the candidate elements and check if the particle falls within
-            for(SizeType i = 0; i< results_found; i++)
+            for(SizeType i = 0; i < results_found; i++)
             {
                 GeometryType& geom = (*(ResultBegin + i))->GetGeometry();
 
@@ -1251,7 +1249,7 @@ private:
          array_1d<double,TDim+1> aux_N;
         //before using the bin to search for possible elements we check first the last element in which the particle was.
         GeometryType& geom_default = pElement->GetGeometry(); //(*(i))->GetGeometry();
-        bool is_found_1 = CalculatePosition(geom_default,rPosition[0],rPosition[1],rPosition[2],N);
+        bool is_found_1 = CalculatePosition(geom_default, rPosition[0], rPosition[1], rPosition[2], N);
         if(is_found_1 == true)
         {
             return true; //that was easy!
@@ -1261,7 +1259,7 @@ private:
         for (unsigned int i=(rCheckFromElementNumber);i!=rNumberOfElementsInTrajectory;i++)
         {
             GeometryType& geom = rElementsInTrajectory[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
+            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], aux_N);
             if (is_found_2)
             {
                 pElement = rElementsInTrajectory[i].shared_from_this();
@@ -1276,11 +1274,11 @@ private:
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             GeometryType& geom = neighb_elems[i].GetGeometry();
-            bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
+            bool is_found_2 = CalculatePosition(geom, rPosition[0], rPosition[1], rPosition[2], N);
             if (is_found_2)
             {
                 pElement = neighb_elems[i].shared_from_this();
-                if (rNumberOfElementsInTrajectory<20)
+                if (rNumberOfElementsInTrajectory < 20)
                 {
                     rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
                     rNumberOfElementsInTrajectory++;
@@ -1307,7 +1305,7 @@ private:
                 if (is_found)
                 {
                     pElement = (*(ResultBegin + i))->shared_from_this();
-                    if (rNumberOfElementsInTrajectory<20)
+                    if (rNumberOfElementsInTrajectory < 20)
                     {
                         rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
                         rNumberOfElementsInTrajectory++;
