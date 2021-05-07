@@ -108,22 +108,6 @@ void ShallowWaterUtilities::ComputeEnergy(ModelPart& rModelPart)
     });
 }
 
-void ShallowWaterUtilities::ComputeAccelerations(ModelPart& rModelPart)
-{
-    double dt_inv = rModelPart.GetProcessInfo()[DELTA_TIME];
-
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-
-        // Free suface derivative or vertical velocity
-        auto delta_surface = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION,1);
-        rNode.FastGetSolutionStepValue(VELOCITY_Z) = dt_inv * delta_surface;
-
-        // Acceleration
-        auto delta_vel = rNode.FastGetSolutionStepValue(VELOCITY) - rNode.FastGetSolutionStepValue(VELOCITY,1);
-        rNode.SetValue(ACCELERATION, dt_inv * delta_vel);
-    });
-}
-
 void ShallowWaterUtilities::FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){

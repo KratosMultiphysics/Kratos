@@ -96,8 +96,6 @@ public:
 
     void ComputeEnergy(ModelPart& rModelPart);
 
-    void ComputeAccelerations(ModelPart& rModelPart);
-
     double InverseHeight(const double Height, const double Epsilon);
 
     double WetFraction(double Height, double Epsilon);
