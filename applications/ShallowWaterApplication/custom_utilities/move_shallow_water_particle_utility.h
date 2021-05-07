@@ -301,40 +301,20 @@ public:
         const auto& vector_var_y = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_Y"));
         const auto& vector_var_z = KratosComponents<Variable<double>>::Get(m_vector_var1_name+std::string("_Z"));
 
-        ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        std::vector<unsigned int> node_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Nodes().size(), node_partition);
-
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-            {
-                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-
-                if (inode->IsFixed(*mScalarVar1))
-                {
-                    inode->FastGetSolutionStepValue(*mScalarVar1)=inode->GetSolutionStepValue(*mScalarVar1,1);
-                }
-                if (inode->IsFixed(vector_var_x))
-                {
-                    inode->FastGetSolutionStepValue(vector_var_x)=inode->GetSolutionStepValue(vector_var_x,1);
-                }
-                if (inode->IsFixed(vector_var_y))
-                {
-                    inode->FastGetSolutionStepValue(vector_var_y)=inode->GetSolutionStepValue(vector_var_y,1);
-                }
-                if (inode->IsFixed(vector_var_z))
-                {
-                    inode->FastGetSolutionStepValue(vector_var_z)=inode->GetSolutionStepValue(vector_var_z,1);
-                }
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            if (rNode.IsFixed(*mScalarVar1)) {
+                rNode.FastGetSolutionStepValue(*mScalarVar1)=rNode.GetSolutionStepValue(*mScalarVar1,1);
             }
-        }
+            if (rNode.IsFixed(vector_var_x)) {
+                rNode.FastGetSolutionStepValue(vector_var_x)=rNode.GetSolutionStepValue(vector_var_x,1);
+            }
+            if (rNode.IsFixed(vector_var_y)) {
+                rNode.FastGetSolutionStepValue(vector_var_y)=rNode.GetSolutionStepValue(vector_var_y,1);
+            }
+            if (rNode.IsFixed(vector_var_z)) {
+                rNode.FastGetSolutionStepValue(vector_var_z)=rNode.GetSolutionStepValue(vector_var_z,1);
+            }
+        });
 
         KRATOS_CATCH("")
     }
