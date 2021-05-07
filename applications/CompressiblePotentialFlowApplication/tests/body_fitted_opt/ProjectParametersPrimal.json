@@ -15,22 +15,14 @@
             "input_filename" : "current_design"
         },
         "maximum_iterations"     : 10,
+        "reform_dofs_at_each_step"  : true,
         "echo_level"             : 0,
         "formulation" :
         {
             "element_type": "compressible"
         },
         "linear_solver_settings"  : {
-            "solver_type": "amgcl",
-            "max_iteration": 400,
-            "gmres_krylov_space_dimension": 100,
-            "smoother_type":"ilu0",
-            "coarsening_type":"ruge_stuben",
-            "coarse_enough" : 5000,
-            "krylov_type": "lgmres",
-            "tolerance": 1e-9,
-            "verbosity": 0,
-            "scaling": false
+            "solver_type": "LinearSolversApplication.sparse_lu"
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
         "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
