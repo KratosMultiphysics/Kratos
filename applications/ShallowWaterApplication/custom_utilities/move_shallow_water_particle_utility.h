@@ -651,7 +651,7 @@ public:
      * If an element finishes with less particles than "minimum number
      * of particles", then PreReseed adds particles inside it.
      * A minimal reseed is performed in order to not disturb the projection
-     * from lagrangian to euelrian.
+     * from lagrangian to eulerian.
      *
      * @see MinimumNumberOfParticles
      *
@@ -665,92 +665,70 @@ public:
         const int offset =mOffset;
         const int max_results = 1000;
 
-        //tools for the paralelization
-        unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
-        std::vector<unsigned int> elem_partition;
-        int number_of_rows = mrModelPart.Elements().size();
-        elem_partition.resize(number_of_threads + 1);
-        int elem_partition_size = number_of_rows / number_of_threads;
-        elem_partition[0] = 0;
-        elem_partition[number_of_threads] = number_of_rows;
-        //KRATOS_WATCH(elem_partition_size);
-        for (unsigned int i = 1; i < number_of_threads; i++)
-        elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
-        ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
+        ResultContainerType results(max_results);
+        BoundedMatrix<double, TDim+1, 3> pos;
+        BoundedMatrix<double, TDim+1, TDim+1> N;
+        unsigned int free_particle = 0; //we start with the first position in the particles array
 
-        #pragma omp parallel firstprivate(elem_partition)
-        {
-            ResultContainerType results(max_results);
-            int k = OpenMPUtils::ThisThread();
-            //ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.ElementsBegin() +  elem_partition[k];
-            //ModelPart::ElementsContainerType::iterator it_end = mrModelPart.ElementsBegin() + elem_partition[k+1] ;
-            //ModelPart::NodesContainerType local_list=aux[k];
-            //PointerVectorSet<ShallowParticle, IndexedObject> & list=aux[k];
-            BoundedMatrix<double, (TDim+1), 3 > pos;
-            BoundedMatrix<double, (TDim+1) , (TDim+1) > N;
-            unsigned int freeparticle=0; //we start with the first position in the particles array
+        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        #pragma omp parallel for firstprivate(results, pos, N, free_particle)
+        for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
+            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + ii;
 
-            //int local_id=1;
-            for(unsigned int ii=elem_partition[k]; ii<elem_partition[k+1]; ii++)
-            {
-                //const int & elem_id = ielem->Id();
-                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+            if (results.size() != max_results)
                 results.resize(max_results);
-                //const int & elem_id = ielem->Id();
-                //ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(BED_PARTICLE_POINTERS));
-                //int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_BED_PARTICLES);
-                int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
-                ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
-                if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (ielem->GetGeometry())[0].Y()<0.10 )
+
+            int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
+            ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
+            if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (ielem->GetGeometry())[0].Y()<0.10 )
+            {
+                GeometryType& geom = ielem->GetGeometry();
+                ComputeGaussPointPositionsForPreReseed(geom, pos, N);
+
+                for (unsigned int j = 0; j < (pos.size1()); j++) // I am dropping the last one, the one in the middle of the element
                 {
-                    GeometryType& geom = ielem->GetGeometry();
-                    ComputeGaussPointPositionsForPreReseed(geom, pos, N);
-
-                    for (unsigned int j = 0; j < (pos.size1()); j++) // I am dropping the last one, the one in the middle of the element
+                    bool keep_looking = true;
+                    while(keep_looking)
                     {
-                        bool keep_looking = true;
-                        while(keep_looking)
+                        if (mParticlesVector[free_particle].GetEraseFlag()==true)
                         {
-                            if (mParticlesVector[freeparticle].GetEraseFlag()==true)
+                            #pragma omp critical
                             {
-                                #pragma omp critical
+                                if (mParticlesVector[free_particle].GetEraseFlag()==true)
                                 {
-                                    if (mParticlesVector[freeparticle].GetEraseFlag()==true)
-                                    {
-                                        mParticlesVector[freeparticle].GetEraseFlag()=false;
-                                        keep_looking=false;
-                                    }
+                                    mParticlesVector[free_particle].GetEraseFlag()=false;
+                                    keep_looking=false;
                                 }
-                                if (keep_looking==false)
-                                    break;
-                                else
-                                    freeparticle++;
                             }
+                            if (keep_looking==false)
+                                break;
                             else
-                                freeparticle++;
+                                free_particle++;
                         }
-
-                        ShallowParticle pparticle(pos(j,0),pos(j,1),pos(j,2));
-
-                        array_1d<double,TDim+1>aux2_N;
-                        bool is_found = CalculatePosition(geom,pos(j,0),pos(j,1),pos(j,2),aux2_N);
-                        KRATOS_ERROR_IF_NOT( is_found ) <<
-                            "In move shallow water particle utility: particle not found in domain" << std::endl;
-
-                        pparticle.GetEraseFlag()=false;
-
-                        ResultIteratorType result_begin = results.begin();
-                        Element::Pointer pelement( *ielem.base() );
-                        MoveParticleInverseWay(pparticle, pelement, result_begin, max_results);
-
-                        //and we copy it to the array:
-                        mParticlesVector[freeparticle] =  pparticle;
-
-                        element_particle_pointers(offset+number_of_particles_in_elem) = &mParticlesVector[freeparticle];
-                        pparticle.GetEraseFlag()=false;
-
-                        number_of_particles_in_elem++;
+                        else
+                            free_particle++;
                     }
+
+                    ShallowParticle p_particle(pos(j,0),pos(j,1),pos(j,2));
+
+                    array_1d<double,TDim+1> aux_N;
+                    bool is_found = CalculatePosition(geom, pos(j,0), pos(j,1), pos(j,2), aux_N);
+                    KRATOS_ERROR_IF_NOT( is_found ) <<
+                        "In move shallow water particle utility: particle not found in domain" << std::endl;
+
+                    p_particle.GetEraseFlag()=false;
+
+                    ResultIteratorType result_begin = results.begin();
+                    Element::Pointer p_element(*ielem.base());
+                    MoveParticleInverseWay(p_particle, p_element, result_begin, max_results);
+
+                    //and we copy it to the array:
+                    mParticlesVector[free_particle] = p_particle;
+
+                    element_particle_pointers(offset+number_of_particles_in_elem) = &mParticlesVector[free_particle];
+                    p_particle.GetEraseFlag()=false;
+
+                    number_of_particles_in_elem++;
                 }
             }
         }
