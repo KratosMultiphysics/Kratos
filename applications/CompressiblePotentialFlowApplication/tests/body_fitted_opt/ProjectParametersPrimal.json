@@ -58,40 +58,33 @@
                 "epsilon"         : 1e-9,
                 "echo_level" : 0
             }
-        }]
-    },
-    "output_processes" : {
-        "gid_output" : [{
-            "python_module" : "gid_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "MainModelPart.Parts_Parts_Auto1",
-                "output_name"            : "naca0012",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_interval"    : 1,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_nonhistorical_results" : ["TRAILING_EDGE"],
-                        "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
-                        "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","KUTTA"],
-                        "elemental_conditional_flags_results": ["STRUCTURE"]
-                    },
-                    "point_data_configuration"  : []
+        }],
+        "list_other_processes": [
+            {
+                "python_module" : "from_json_check_result_process",
+                "kratos_module" : "KratosMultiphysics",
+                "help"          : "",
+                "process_name"  : "FromJsonCheckResultProcess",
+                "Parameters"    : {
+                    "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                    "input_file_name"  : "airfoil_change_results.json",
+                    "model_part_name"  : "MainModelPart.Body2D_Body",
+                    "time_frequency"   : 0.0
                 }
             }
-        }]
-    }
+        ]
+    },
+    "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                "output_file_name" : "airfoil_change_results.json",
+                "model_part_name"  : "MainModelPart.Body2D_Body",
+                "time_frequency"   : 0.0
+            }
+    }]
 }
