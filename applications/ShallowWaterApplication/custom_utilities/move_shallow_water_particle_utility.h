@@ -273,34 +273,18 @@ public:
 
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
-        ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
-        std::vector<unsigned int> element_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
+        block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+            GeometryType& geom = rElem.GetGeometry();
 
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
-            {
-                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-                GeometryType& geom = ielem->GetGeometry();
+            array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
-                array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
+            for (unsigned int i=0; i != (TDim+1) ; i++)
+                vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
+            vector_mean_velocity *= nodal_weight;
 
-                for (unsigned int i=0; i != (TDim+1) ; i++)
-                    vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
-                vector_mean_velocity *= nodal_weight;
-
-                //~ const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-                const double mean_velocity = norm_2( vector_mean_velocity );
-                ielem->SetValue(MEAN_VEL_OVER_ELEM_SIZE, mean_velocity / ( ielem->GetValue(MEAN_SIZE) ) );
-            }
-        }
+            const double mean_velocity = norm_2( vector_mean_velocity );
+            rElem.SetValue(MEAN_VEL_OVER_ELEM_SIZE, mean_velocity / ( rElem.GetValue(MEAN_SIZE) ) );
+        });
         KRATOS_CATCH("")
     }
 
