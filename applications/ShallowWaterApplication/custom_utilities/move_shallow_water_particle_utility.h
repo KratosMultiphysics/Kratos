@@ -501,144 +501,106 @@ public:
         // we use a part in odd timesteps and the other in even ones.
         //(flag managed only by MoveParticles)
 
-        // We must project data from the particles (lagrangian) onto the eulerian mesh
-        //int nnodes = mrModelPart.Nodes().size();
-        //array_1d<double,(n_nodes)> eulerian_nodes_sumweights;
+        // We must project data from the particles (lagrangian) onto the mesh (eulerian)
 
         // We save data from previous time step of the eulerian mesh in case we must reuse it later
         // cos no particle was found around the nodes though we could've use a bigger buffer, to be changed later!
         // after having saved data, we reset them to zero, this way it's easier to add the contribution
         // of the surrounding particles.
-        ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        std::vector<unsigned int> node_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Nodes().size(), node_partition);
 
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-            {
-                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
-                inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3);
-                inode->FastGetSolutionStepValue(YP)=0.0;
-            }
-        }
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
+            rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3);
+            rNode.FastGetSolutionStepValue(YP)=0.0;
+        });
 
         // Adding contribution, loop on elements, since each element has stored the particles found inside of it
-        std::vector<unsigned int> element_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
+        IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int i){
+            array_1d<double,3*(TDim+1)> nodes_positions;
+            array_1d<double,3*(TDim+1)> nodes_added_vector1 = ZeroVector(3*(TDim+1));
+            array_1d<double,(TDim+1)> nodes_added_scalar1 = ZeroVector((TDim+1));
+            array_1d<double,(TDim+1)> nodes_added_weights = ZeroVector((TDim+1));
 
-        ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+            auto i_elem = mrModelPart.ElementsBegin() + i;
+            GeometryType& geom = i_elem->GetGeometry();
+
+            for (int i=0 ; i!=(TDim+1) ; ++i)
             {
-                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+                nodes_positions[i*3+0]=geom[i].X();
+                nodes_positions[i*3+1]=geom[i].Y();
+                nodes_positions[i*3+2]=geom[i].Z();
+            }
 
-                array_1d<double,3*(TDim+1)> nodes_positions;
-                array_1d<double,3*(TDim+1)> nodes_added_vector1 = ZeroVector(3*(TDim+1));
-                array_1d<double,(TDim+1)> nodes_added_scalar1 = ZeroVector((TDim+1));
-                array_1d<double,(TDim+1)> nodes_added_weights = ZeroVector((TDim+1));
-                //array_1d<double,(TDim+1)> weighting_inverse_divisor;
+            int & number_of_particles_in_elem = mNumOfParticlesInElems[i];
+            ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[i];
 
-                GeometryType& geom = ielem->GetGeometry();
+            for (int iii=0; iii < number_of_particles_in_elem; iii++ )
+            {
+                if (iii == mMaxNumberOfParticles) // It means we are out of our portion of the array, abort loop!
+                    break;
 
-                for (int i=0 ; i!=(TDim+1) ; ++i)
+                ShallowParticle& pparticle = element_particle_pointers[offset+iii];
+
+                if (pparticle.GetEraseFlag() == false)
                 {
-                    nodes_positions[i*3+0]=geom[i].X();
-                    nodes_positions[i*3+1]=geom[i].Y();
-                    nodes_positions[i*3+2]=geom[i].Z();
-                }
+                    array_1d<double,3> & position = pparticle.Coordinates();
+                    const float& particle_scalar1 = pparticle.GetScalar1();
+                    const array_1d<float,3>& particle_vector1 = pparticle.GetVector1();
 
-                int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
-                ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
-
-                for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
-                {
-                    if (iii==mMaxNumberOfParticles) // It means we are out of our portion of the array, abort loop!
-                        break;
-
-                    ShallowParticle& pparticle = element_particle_pointers[offset+iii];
-
-                    if (pparticle.GetEraseFlag()==false)
+                    array_1d<double,TDim+1> N;
+                    bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
+                    if (is_found == false) // Something went wrong. if it was close enough to the edge we simply send it inside the element.
                     {
-                        array_1d<double,3> & position = pparticle.Coordinates();
-                        const float& particle_scalar1 = pparticle.GetScalar1();
-                        const array_1d<float,3>& particle_vector1 = pparticle.GetVector1();
+                        KRATOS_INFO("MoveShallowWaterParticleUtility") << N << std::endl;
+                        for (int j=0 ; j!=(TDim+1); j++)
+                            if (N[j]<0.0 && N[j]> -1e-5)
+                                N[j]=1e-10;
+                    }
 
-                        array_1d<double,TDim+1> N;
-                        bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
-                        if (is_found==false) // Something went wrong. if it was close enough to the edge we simply send it inside the element.
+                    for (int j = 0 ; j != TDim+1; j++) //going through the 3/4 nodes of the element
+                    {
+                        // These lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
+                        double weight = N(j)*N(j);
+                        if (weight < threshold) weight=1e-10;
+
+                        nodes_added_weights[j] += weight;
+                        nodes_added_scalar1[j] += weight*static_cast<double>(particle_scalar1);
+                        for (int k = 0 ; k != TDim; k++) //x,y,(z)
                         {
-                            KRATOS_INFO("MoveShallowWaterParticleUtility") << N << std::endl;
-                            for (int j=0 ; j!=(TDim+1); j++)
-                                if (N[j]<0.0 && N[j]> -1e-5)
-                                    N[j]=1e-10;
-                        }
-
-                        for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
-                        {
-                            // These lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
-                            //double sq_dist = 0;
-                            //for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
-                            //double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
-
-                            double weight=N(j)*N(j);
-                            //weight=N(j)*N(j)*N(j);
-                            if (weight<threshold) weight=1e-10;
-
-                            nodes_added_weights[j] += weight;
-                            nodes_added_scalar1[j] += weight*static_cast<double>(particle_scalar1);
-                            for (int k=0 ; k!=(TDim); k++) //x,y,(z)
-                            {
-                                nodes_added_vector1[j*3+k] += weight * static_cast<double>(particle_vector1[k]);
-                            }
+                            nodes_added_vector1[j*3+k] += weight * static_cast<double>(particle_vector1[k]);
                         }
                     }
                 }
-
-                for (int i=0 ; i!=(TDim+1) ; ++i) {
-                    geom[i].SetLock();
-                    geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1)   += nodes_added_scalar1[i];
-
-                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X) += nodes_added_vector1[3*i+0];
-                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y) += nodes_added_vector1[3*i+1];
-                    geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Z) += nodes_added_vector1[3*i+2];
-
-                    geom[i].FastGetSolutionStepValue(YP) += nodes_added_weights[i];
-                    geom[i].UnSetLock();
-                }
             }
-        }
 
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+            for (int i = 0 ; i != TDim+1; ++i) {
+                geom[i].SetLock();
+                geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1)   += nodes_added_scalar1[i];
+
+                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X) += nodes_added_vector1[3*i+0];
+                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y) += nodes_added_vector1[3*i+1];
+                geom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Z) += nodes_added_vector1[3*i+2];
+
+                geom[i].FastGetSolutionStepValue(YP) += nodes_added_weights[i];
+                geom[i].UnSetLock();
+            }
+        });
+
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            double sum_weights = rNode.FastGetSolutionStepValue(YP);
+            if (sum_weights > 0.00001)
             {
-                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                double sum_weights = inode->FastGetSolutionStepValue(YP);
-                if (sum_weights>0.00001)
-                {
-                    double & scalar = inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
-                    array_1d<double,3> & vector = inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);
-                    scalar /=sum_weights; // resetting the scalar1
-                    vector /=sum_weights; // resetting the vector1
-                }
-                else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
-                {
-                    inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(*mScalarVar1,1); // Resetting the convected scalar
-                    inode->FastGetSolutionStepValue(PROJECTED_VECTOR1)=inode->FastGetSolutionStepValue(*mVectorVar1,1); // Resetting the convected vector
-                }
+                double & scalar = rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
+                array_1d<double,3> & vector = rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
+                scalar /= sum_weights;
+                vector /= sum_weights;
             }
-        }
+            else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
+            {
+                rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=rNode.FastGetSolutionStepValue(*mScalarVar1,1);
+                rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
+            }
+        });
 
         KRATOS_CATCH("")
     }
