@@ -50,6 +50,11 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
 
+        print("#######################")
+        print(model_part_origin.Name , ' ################ ', model_part_destination.Name)
+        print(model_part_origin.Nodes[9403] , '\n ################ \n', model_part_destination.Nodes[9403])
+        print("#######################")
+
         if identifier_tuple in self.__mappers:
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
         elif inverse_identifier_tuple in self.__mappers:
@@ -73,6 +78,12 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             if self.echo_level > 2:
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
+
+        print("SECOND #######################")
+        print(model_part_origin.Name , ' ################ ', model_part_destination.Name)
+        print(model_part_origin.Nodes[9403] , '\n ################ \n', model_part_destination.Nodes[9403])
+        print("#######################")
+
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):

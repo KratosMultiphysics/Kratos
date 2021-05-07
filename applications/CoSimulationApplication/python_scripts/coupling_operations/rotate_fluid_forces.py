@@ -13,9 +13,9 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver_wrappers):
+def Create(settings, solver_wrappers, process_info):
     cs_tools.SettingsTypeCheck(settings)
-    return RotateFluidForcesOperation(settings, solver_wrappers)
+    return RotateFluidForcesOperation(settings, solver_wrappers, process_info)
 
 class RotateFluidForcesOperation(CoSimulationCouplingOperation):
     """This operation Rotates the fluid forces from the deformed config
@@ -31,8 +31,8 @@ class RotateFluidForcesOperation(CoSimulationCouplingOperation):
         Since fluid forces are reactios and are not used internally in FluidDynamicaApp
         we replace the actual REACTION with rotated ones
     """
-    def __init__(self, settings, solver_wrappers):
-        super(RotateFluidForcesOperation, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info):
+        super(RotateFluidForcesOperation, self).__init__(settings, process_info)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -78,13 +78,13 @@ class RotateFluidForcesOperation(CoSimulationCouplingOperation):
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
             "axis_of_rotation" : []
         }""")
-        this_defaults.AddMissingParameters(super(RotateFluidForcesOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(RotateFluidForcesOperation, cls)._GetDefaultParameters())
         return this_defaults
 
     def __RotateVector(self,vector, theta, axis):

@@ -13,9 +13,9 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(settings, solver_wrappers):
+def Create(settings, solver_wrappers, process_info):
     cs_tools.SettingsTypeCheck(settings)
-    return RotateStructDispOperation(settings, solver_wrappers)
+    return RotateStructDispOperation(settings, solver_wrappers, process_info)
 
 class RotateStructDispOperation(CoSimulationCouplingOperation):
     """This operation Rotates the structural displacements from the
@@ -32,8 +32,8 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         The displacements should be first mapped to MESH_DISPLACEMENT and then this
         operation should be used to rotate MESH_DISPLACEMENT
     """
-    def __init__(self, settings, solver_wrappers):
-        super(RotateStructDispOperation, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info):
+        super(RotateStructDispOperation, self).__init__(settings, process_info)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -80,13 +80,13 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
             "data_name" : "UNSPECIFIED",
             "axis_of_rotation" : []
         }""")
-        this_defaults.AddMissingParameters(super(RotateStructDispOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(RotateStructDispOperation, cls)._GetDefaultParameters())
         return this_defaults
 
     def __RotateVector(self,vector, theta, axis):
