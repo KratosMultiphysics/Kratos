@@ -218,7 +218,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
         NodeVectorType neighbor_nodes;
 
         // constructor
-        tls_vecs(const unsigned int MaxNumberOfNeighbors) {
+        explicit tls_vecs(const unsigned int MaxNumberOfNeighbors) {
             transform.reserve(MaxNumberOfNeighbors);
             total_neighbor_nodes.reserve( MaxNumberOfNeighbors );
             total_list_of_weights.reserve( MaxNumberOfNeighbors );
