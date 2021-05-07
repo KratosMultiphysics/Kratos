@@ -320,7 +320,7 @@ public:
     }
 
 
-    /// Auxiliar function to compute the "delta variables"
+    /// Auxiliary function to compute the "delta variables"
     /** Delta variables are the difference between two time steps.
      * It's value is used to update particles info
      *
@@ -329,83 +329,38 @@ public:
     void CalculateDeltaVariables()
     {
         KRATOS_TRY
-        ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        std::vector<unsigned int> node_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Nodes().size(), node_partition);
-
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-            {
-                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(*mScalarVar1) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
-                inode->FastGetSolutionStepValue(DELTA_VECTOR1) = inode->FastGetSolutionStepValue(*mVectorVar1) - inode->FastGetSolutionStepValue(PROJECTED_VECTOR1);  //PROJECTED_VECTOR1
-            }
-        }
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(DELTA_SCALAR1) = rNode.FastGetSolutionStepValue(*mScalarVar1) - rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
+            rNode.FastGetSolutionStepValue(DELTA_VECTOR1) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
+        });
         KRATOS_CATCH("")
     }
 
 
-    /// Auxiliar function
+    /// Auxiliary function
     /** This function copy a scalar variable value to the previous time step
      */
     void CopyScalarVarToPreviousTimeStep(const Variable<double>& OriginVariable,
                    ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
-        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        std::vector<unsigned int> node_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
-
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-            {
-                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                inode->GetSolutionStepValue(OriginVariable,1) = inode->FastGetSolutionStepValue(OriginVariable);
-            }
-        }
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.GetSolutionStepValue(OriginVariable,1) = rNode.FastGetSolutionStepValue(OriginVariable);
+        });
         KRATOS_CATCH("")
     }
 
 
-    /// Auxiliar function
+    /// Auxiliary function
     /** This function copy a vector variable value to the previous time step
      */
     void CopyVectorVarToPreviousTimeStep(const Variable<array_1d<double,3>>& OriginVariable,
                    ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
-        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        std::vector<unsigned int> node_partition;
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
-
-        #pragma omp parallel for
-        for(int kkk=0; kkk<number_of_threads; kkk++)
-        {
-            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-            {
-                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                noalias(inode->GetSolutionStepValue(OriginVariable,1)) = inode->FastGetSolutionStepValue(OriginVariable);
-            }
-        }
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            noalias(rNode.GetSolutionStepValue(OriginVariable,1)) = rNode.FastGetSolutionStepValue(OriginVariable);
+        });
         KRATOS_CATCH("")
     }
 
