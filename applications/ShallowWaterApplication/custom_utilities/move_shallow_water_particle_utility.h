@@ -29,14 +29,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/node.h"
 #include "includes/checks.h"
 
-#include "includes/dof.h"
 #include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
 #include "utilities/math_utils.h"
 #include "includes/global_pointer_variables.h"
 #include "processes/node_erase_process.h"
@@ -46,15 +41,11 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
-#include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "utilities/spatial_containers_configure.h"
 
-#include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
-#include "geometries/point.h"
 
 #include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
