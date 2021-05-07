@@ -5,13 +5,13 @@
             "model_part_name"       : "MainModelPart",
             "model_import_settings" : {
                 "input_type"     : "mdpa",
-                "input_filename" : "naca0012_5_2"
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
             },
             "design_surface_sub_model_part_name" : "Body2D_Body",
             "mesh_motion" : {
                 "apply_mesh_solver" : true,
                 "solver_settings" : {
-                    "solver_type": "mesh_solver_structural_similarity",
+                    "solver_type": "structural_similarity",
                     "model_part_name"    : "MainModelPart",
                     "model_import_settings"              : {
                         "input_type"     : "use_input_model_part"
@@ -52,8 +52,8 @@
             "identifier" : "lift_coefficient",
             "response_settings":{
                 "response_type"          : "adjoint_lift_potential_jump",
-                "primal_settings"        : "ProjectParametersPrimal.json",
-                "adjoint_settings"       : "ProjectParametersAdjoint.json",
+                "primal_settings"        : "primal_parameters.json",
+                "adjoint_settings"       : "adjoint_parameters.json",
                 "primal_data_transfer_with_python"       : true,
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              :  1e-6
@@ -105,7 +105,7 @@
         },
         "optimization_algorithm" : {
             "name": "trust_region",
-            "max_iterations": 200,
+            "max_iterations": 3,
             "bisectioning_max_itr": 30,
             "bisectioning_tolerance": 0.01,
             "far_away_length": 2.0,
@@ -116,7 +116,7 @@
 
         },
         "output" : {
-            "design_output_mode" : "write_optimization_model_part",
+            "design_output_mode" : "none",
             "nodal_results"      : [ "NORMALIZED_SURFACE_NORMAL",
                                      "DF1DX",
                                      "DF1DX_MAPPED",
