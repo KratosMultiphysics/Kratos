@@ -294,7 +294,8 @@ protected:
 
     void AddFluidFirstDerivatives(
         MatrixType& rOutput,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo,
+        const double MassTermsDerivativesWeight = 1.0);
 
     void AddFluidSecondDerivatives(
         MatrixType& rOutput,
@@ -310,7 +311,8 @@ protected:
 
     void AddTurbulenceFirstDerivatives(
         MatrixType& rOutput,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo,
+        const double MassTermsDerivativesWeight = 1.0);
 
     void AddTurbulenceSecondDerivatives(
         MatrixType& rOutput,

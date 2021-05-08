@@ -481,6 +481,32 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES) {
+
+        if (rOutput.size1() != TElementLocalSize || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TElementLocalSize, TElementLocalSize, false);
+        }
+
+        rOutput.clear();
+
+        AddFluidFirstDerivatives(rOutput, rCurrentProcessInfo, 0.0);
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested for Calculate method. "
+                        "[ rVariable.Name() = "
+                     << rVariable.Name() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 std::string FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Info() const
 {
     std::stringstream buffer;
@@ -538,7 +564,8 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidual
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDerivatives(
     MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo,
+    const double MassTermsDerivativesWeight)
 {
     KRATOS_TRY
 
@@ -568,11 +595,11 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
         IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
-                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
                 AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
             }
 
-            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
         }
     }

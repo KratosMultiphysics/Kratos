@@ -319,7 +319,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
     const Matrix& rdNdX,
     const double WDerivative,
     const double DetJDerivative,
-    const Matrix& rdNdXDerivative)
+    const Matrix& rdNdXDerivative,
+    const double MassTermsDerivativesWeight)
 {
     KRATOS_TRY
 
@@ -461,8 +462,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
         value -= tau_operator * mrData.mStabilizationTau * reaction_term_derivative * mrData.mPrimalVariableValue;
 
         // add mass term derivatives
-        value -= tau_operator_derivative * mrData.mStabilizationTau * mrData.mPrimalRelaxedVariableRateValue;
-        value -= tau_operator * stabilization_tau_derivative * mrData.mPrimalRelaxedVariableRateValue;
+        value -= tau_operator_derivative * mrData.mStabilizationTau * mrData.mPrimalRelaxedVariableRateValue * MassTermsDerivativesWeight;
+        value -= tau_operator * stabilization_tau_derivative * mrData.mPrimalRelaxedVariableRateValue * MassTermsDerivativesWeight;
 
         rResidualDerivative[a] = value * W;
     }
