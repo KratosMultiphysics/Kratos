@@ -28,10 +28,10 @@ try:
     from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response_function_factory as convdiff_response_factory
 except ImportError:
     convdiff_response_factory = None
-try:
-    from KratosMultiphysics.RANSApplication.response_functions import rans_response_function_factory as rans_response_factory
-except ImportError:
-    rans_response_factory = None
+# try:
+from KratosMultiphysics.RANSApplication.response_functions import rans_response_function_factory as rans_response_factory
+# except ImportError:
+    # rans_response_factory = None
 
 import time as timer
 

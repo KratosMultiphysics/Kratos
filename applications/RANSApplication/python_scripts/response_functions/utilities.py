@@ -93,13 +93,14 @@ def GetDragValues(kratos_parameters, model_part_name):
     else:
         raise RuntimeError("No \"compute_body_fitted_drag_process\" found in auxiliar_process_list.")
 
-def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction):
+def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction, start_time = 0.0):
     time_steps, reactions = GetDragValues(kratos_parameters, model_part_name)
     total_drag = 0.0
-    for reaction in reversed(reactions):
-        total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
-        if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
-            break
+    for index, reaction in enumerate(reversed(reactions)):
+        if (time_steps[len(time_steps) - index - 1] >= start_time):
+            total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
+            if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
+                break
     if len(time_steps) > 1:
         delta_time = time_steps[1] - time_steps[0]
         total_drag *= delta_time

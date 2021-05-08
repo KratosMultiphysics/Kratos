@@ -26,7 +26,8 @@ class TransientDragSteadyAdjoint(Drag):
                 "primal_problem_solving_type"     : "solved"
             },
             "primal_transient_project_parameters_file": "PLEASE_SPECIFY_PRIMAL_TRANSIENT_PROJECT_PARAMETERS_FILE_NAME",
-            "primal_steady_project_parameters_file": "PLEASE_SPECIFY_PRIMAL_steady_PROJECT_PARAMETERS_FILE_NAME"
+            "primal_steady_project_parameters_file"   : "PLEASE_SPECIFY_PRIMAL_steady_PROJECT_PARAMETERS_FILE_NAME",
+            "statistics_start_point_control_value"    : 0.0
         }
         """)
         self.identifier = identifier
@@ -34,6 +35,7 @@ class TransientDragSteadyAdjoint(Drag):
 
         self.problem_setup_settings = self.response_settings["problem_setup_settings"]
         self.primal_problem_solving_type = self.problem_setup_settings["primal_problem_solving_type"].GetString()
+        self.statistics_start_point_control_value = self.response_settings["statistics_start_point_control_value"].GetDouble()
 
         if (self.primal_problem_solving_type == "solved"):
             self.drag_configuration = DragConfigurationPrimalFromFile(self.problem_setup_settings)
@@ -48,10 +50,10 @@ class TransientDragSteadyAdjoint(Drag):
         startTime = timer.time()
 
         # open primal settings
-        primal_parameters = SolvePrimalProblem(self.response_settings["primal_transient_project_parameters_file"].GetString())
+        primal_parameters = SolvePrimalProblem(self.response_settings["primal_transient_project_parameters_file"].GetString(), "primal_transient_evaluation.log")
 
         # calculate drag
-        self.drag = CalculateTimeAveragedDrag(primal_parameters, self.drag_configuration.GetDragModelPartName(), self.drag_configuration.GetDragDirection())
+        self.drag = CalculateTimeAveragedDrag(primal_parameters, self.drag_configuration.GetDragModelPartName(), self.drag_configuration.GetDragDirection(), self.statistics_start_point_control_value)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
@@ -62,7 +64,7 @@ class TransientDragSteadyAdjoint(Drag):
         self.gradient = {}
 
         # now run the RANS analysis
-        _ = SolvePrimalProblem(self.response_settings["primal_steady_project_parameters_file"].GetString())
+        _ = SolvePrimalProblem(self.response_settings["primal_steady_project_parameters_file"].GetString(), "primal_rans_evaluation.log")
 
         drag_adjoint_model = Kratos.Model()
         _ = SolveAdjointProblem(
