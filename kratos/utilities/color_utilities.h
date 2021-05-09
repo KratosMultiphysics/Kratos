@@ -11,50 +11,96 @@
 //                    
 //
 
-#ifndef _COLORS_
-#define _COLORS_
+#ifndef COLOR_UTILITIES_H_INCLUDED
+#define COLOR_UTILITIES_H_INCLUDED
 
-/* FOREGROUND */
-#if !defined(_WIN32)
-    #define RST  "\x1B[0m"
-    #define KRED  "\x1B[31m"
-    #define KGRN  "\x1B[32m"
-    #define KYEL  "\x1B[33m"
-    #define KBLU  "\x1B[34m"
-    #define KMAG  "\x1B[35m"
-    #define KCYN  "\x1B[36m"
-    #define KWHT  "\x1B[37m"
+// System includes
 
-    #define FRED(x) KRED x RST
-    #define FGRN(x) KGRN x RST
-    #define FYEL(x) KYEL x RST
-    #define FBLU(x) KBLU x RST
-    #define FMAG(x) KMAG x RST
-    #define FCYN(x) KCYN x RST
-    #define FWHT(x) KWHT x RST
+// External includes
 
-    #define BOLDFONT(x) "\x1B[1m" x RST
-    #define UNDL(x) "\x1B[4m" x RST
+// Project includes
+#include "includes/define.h"
+
+/* FOREGROUND */    
+#if KRATOS_COLOR_STREAM
+    #ifdef KRATOS_COMPILED_IN_WINDOWS
+        #define BASE_STRING_ANSI   "\033"
+    #else
+        #define BASE_STRING_ANSI   "\x1B"
+    #endif
 #else
-    #define RST  ""
-    #define KRED ""
-    #define KGRN ""
-    #define KYEL ""
-    #define KBLU ""
-    #define KMAG ""
-    #define KCYN ""
-    #define KWHT ""
-
-    #define FRED(x) KRED x RST
-    #define FGRN(x) KGRN x RST
-    #define FYEL(x) KYEL x RST
-    #define FBLU(x) KBLU x RST
-    #define FMAG(x) KMAG x RST
-    #define FCYN(x) KCYN x RST
-    #define FWHT(x) KWHT x RST
-
-    #define BOLDFONT(x) "" x RST
-    #define UNDL(x) "" x RST
+    #define BASE_STRING_ANSI   ""
 #endif
 
-#endif  /* _COLORS_ */
+#if KRATOS_COLOR_STREAM
+    #define RST   BASE_STRING_ANSI "[0m"
+    #define BOLD_FONT  BASE_STRING_ANSI "[1m"
+    #define KRED  BASE_STRING_ANSI "[31m"
+    #define KGRN  BASE_STRING_ANSI "[32m"
+    #define KYEL  BASE_STRING_ANSI "[33m"
+    #define KBLU  BASE_STRING_ANSI "[34m"
+    #define KMAG  BASE_STRING_ANSI "[35m"
+    #define KCYN  BASE_STRING_ANSI "[36m"
+    #define KWHT  BASE_STRING_ANSI "[37m"
+    #define UNDERLINE_FONT  BASE_STRING_ANSI "[4m"
+#else
+    #define RST   BASE_STRING_ANSI ""
+    #define BOLD_FONT  BASE_STRING_ANSI ""
+    #define KRED  BASE_STRING_ANSI ""
+    #define KGRN  BASE_STRING_ANSI ""
+    #define KYEL  BASE_STRING_ANSI ""
+    #define KBLU  BASE_STRING_ANSI ""
+    #define KMAG  BASE_STRING_ANSI ""
+    #define KCYN  BASE_STRING_ANSI ""
+    #define KWHT  BASE_STRING_ANSI ""
+    #define UNDERLINE_FONT  BASE_STRING_ANSI ""
+#endif
+
+#define FRED(x) KRED x RST
+#define FGRN(x) KGRN x RST
+#define FYEL(x) KYEL x RST
+#define FBLU(x) KBLU x RST
+#define FMAG(x) KMAG x RST
+#define FCYN(x) KCYN x RST
+#define FWHT(x) KWHT x RST
+
+#define BOLDFONT(x) BOLD_FONT x RST
+#define UNDL(x) UNDERLINE_FONT x RST
+
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+/**
+ * @namespace ColorUtilities
+ * @ingroup KratosCore
+ * @brief This namespace includes several utilities necessaries for use ANSI colors
+ * @author Vicente Mataix Ferrandiz
+ */
+namespace ColorUtilities
+{
+    /**
+     * @brief This method inits the standard STD output in each OS
+     */
+    void KRATOS_API(KRATOS_CORE) InitializeSTDOutput();
+
+}; // namespace ColorUtilities
+}  // namespace Kratos
+
+#endif  /* COLOR_UTILITIES_H_INCLUDED */

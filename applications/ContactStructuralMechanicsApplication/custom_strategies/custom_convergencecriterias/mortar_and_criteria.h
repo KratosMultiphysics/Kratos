@@ -111,6 +111,9 @@ public:
         :BaseType(pFirstCriterion, pSecondCriterion),
         mpConditionNumberUtility(pConditionNumberUtility)
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+        
         // Set local flags
         mOptions.Set(MortarAndConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED, false);

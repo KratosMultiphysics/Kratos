@@ -112,6 +112,9 @@ public:
         )
         : BaseType()
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Set local flags
         mOptions.Set(DisplacementResidualContactCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(DisplacementResidualContactCriteria::TABLE_IS_INITIALIZED, false);

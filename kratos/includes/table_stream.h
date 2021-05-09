@@ -28,6 +28,7 @@
 #include "includes/serializer.h"
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
+#include "utilities/color_utilities.h"
 
 namespace Kratos 
 {
@@ -84,6 +85,9 @@ public:
             mSeparator(Separator),
             mBoldFont(UseBoldFont)
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Initialize values
         mIndexRow    = 0;
         mIndexColumn = 0;
@@ -237,10 +241,8 @@ public:
     {
         PrintHorizontalLine();
         
-        if (mBoldFont == true) {
-        #if !defined(_WIN32)
-            *mOutStream << "\x1B[1m";
-        #endif
+        if (mBoldFont) {
+            *mOutStream << BOLD_FONT;
         }
 
         *mOutStream << "|";
@@ -261,10 +263,8 @@ public:
 
         *mOutStream << "|";
 
-        if (mBoldFont == true) {
-        #if !defined(_WIN32)
-            *mOutStream << "\x1B[0m";
-        #endif
+        if (mBoldFont) {
+            *mOutStream << RST;
         }
 
         *mOutStream << "\n";

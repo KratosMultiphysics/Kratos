@@ -56,6 +56,12 @@ message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
 SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
+# If no color policy not enable by default
+if(NOT DEFINED KRATOS_COLOR_STREAM)
+	message("KRATOS_COLOR_STREAM not defined. Setting to OFF")
+	SET (KRATOS_COLOR_STREAM OFF)
+endif(NOT DEFINED KRATOS_COLOR_STREAM)
+
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")

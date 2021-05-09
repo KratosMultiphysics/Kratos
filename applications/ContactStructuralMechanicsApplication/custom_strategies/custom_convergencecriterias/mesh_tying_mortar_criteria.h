@@ -91,6 +91,8 @@ public:
     explicit MeshTyingMortarConvergenceCriteria()
         : BaseType()
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
     }
 
     ///Copy constructor
