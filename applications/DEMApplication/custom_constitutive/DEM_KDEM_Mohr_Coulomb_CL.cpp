@@ -39,7 +39,7 @@ namespace Kratos {
 
     double DEM_KDEM_Mohr_Coulomb::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
-        const double mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
+        const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
 
         // calculation of equivalent young modulus
         double myYoung = element1->GetYoung();
@@ -78,8 +78,8 @@ namespace Kratos {
             Vector principal_stresses(3);
             noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(average_stress_tensor);
 
-            const double mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
-            const double mohr_coulomb_phi = (*mpProperties)[INTERNAL_FRICTION_ANGLE];
+            const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
+            const double& mohr_coulomb_phi = (*mpProperties)[INTERNAL_FRICTION_ANGLE];
             const double mohr_coulomb_phi_in_radians = mohr_coulomb_phi * Globals::Pi / 180.0;
             const double sinphi = std::sin(mohr_coulomb_phi_in_radians);
             const double cosphi = std::cos(mohr_coulomb_phi_in_radians);

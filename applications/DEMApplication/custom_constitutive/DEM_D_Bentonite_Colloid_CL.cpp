@@ -123,7 +123,7 @@ namespace Kratos {
 
 //        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-//        const double equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
+//        const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 //        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
 //        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
 
@@ -192,7 +192,7 @@ namespace Kratos {
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
-        
+
         const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
         const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 

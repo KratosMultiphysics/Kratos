@@ -163,7 +163,7 @@ namespace Kratos {
 
 		const double equiv_mass = 1.0 / (1.0 / my_mass + 1.0 / other_mass);
 
-		const double equiv_gamma = (*mpProperties)[DAMPING_GAMMA];		
+		const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 
 		equiv_visco_damp_coeff_normal = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
 	}
@@ -257,7 +257,7 @@ namespace Kratos {
 
 		InitializeContact(element1, element2, indentation, minimal_radius, kn, sintering_displ);
 
-		const double tension_limit = (*mpProperties)[CONTACT_SIGMA_MIN];
+		const double& tension_limit = (*mpProperties)[CONTACT_SIGMA_MIN];
 		const double limit_force = tension_limit * calculation_area;
 		if (indentation <= 0.0) { //COMPRESSION
 			LocalElasticContactForce[2] = - kn * (indentation - sintering_displ) * 0.666666666666666;

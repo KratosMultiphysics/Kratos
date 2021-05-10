@@ -167,7 +167,7 @@ namespace Kratos {
         KRATOS_TRY
 
         const double angle_of_internal_friction_in_radians = atan((*mpProperties)[CONTACT_INTERNAL_FRICC]);
-        const double contact_tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+        const double& contact_tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
 
         double sigma = 2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians) / (1.0 + sin(angle_of_internal_friction_in_radians));
 
@@ -331,8 +331,8 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
 
-            const double tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
-            const double internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
+            const double& tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+            const double& internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
 
             contact_tau = ShearForceNow / calculation_area;
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
@@ -348,9 +348,9 @@ namespace Kratos {
             }
         }
         else {
-            double equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
-            double equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
-            double equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
+            const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
@@ -408,7 +408,7 @@ namespace Kratos {
                                                     double indentation) {
 
         KRATOS_TRY
-        double rotational_moment_coeff = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& rotational_moment_coeff = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -432,7 +432,7 @@ namespace Kratos {
         const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
 
-        const double damping_gamma = (*mpProperties)[DAMPING_GAMMA];
+        const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'
         array_1d<double, 3> visc_param;

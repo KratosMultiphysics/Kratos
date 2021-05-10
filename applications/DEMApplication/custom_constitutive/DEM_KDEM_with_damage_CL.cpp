@@ -124,7 +124,7 @@ namespace Kratos {
         KRATOS_TRY
 
         const double tension_limit = GetContactSigmaMax();
-        const double damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
+        const double& damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
         double k_unload = 0.0;
         double limit_force = 0.0;
 
@@ -205,9 +205,9 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
-        const double internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
-        const double damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
+        const double& tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+        const double& internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
+        const double& damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
         double k_unload = 0.0;
         double tau_strength = 0.0;
 
@@ -284,9 +284,9 @@ namespace Kratos {
                 }
             }
         } else {
-            const double equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
-            const double equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
-            const double equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
+            const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);

@@ -36,7 +36,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        double sigma_max_capped = (*mpProperties)[CONTACT_SIGMA_MIN];
+        const double& sigma_max_capped = (*mpProperties)[CONTACT_SIGMA_MIN];
         return sigma_max_capped;
 
         KRATOS_CATCH("")

@@ -36,7 +36,7 @@ namespace Kratos {
                                                     double indentation) {
         KRATOS_TRY
 
-        double rotational_moment_coefficient = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& rotational_moment_coefficient = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
 
         DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
                                                     ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);

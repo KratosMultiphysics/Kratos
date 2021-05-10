@@ -20,8 +20,8 @@ namespace Kratos {
     }
 
     double DEM_KDEM_Fissured_Rock_CL::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
-        
-        const double mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
+
+        const double& mohr_coulomb_c = (*mpProperties)[INTERNAL_COHESION];
 
         // calculation of equivalent young modulus
         double myYoung = element1->GetYoung();
@@ -62,7 +62,7 @@ namespace Kratos {
 
             double tension_limit = GetContactSigmaMax();
 
-            const double slope = (*mpProperties)[TENSION_LIMIT_INCREASE_SLOPE];
+            const double& slope = (*mpProperties)[TENSION_LIMIT_INCREASE_SLOPE];
 
             Vector ordered_principal_stresses(3);
             if(principal_stresses[1]>=principal_stresses[0]) {

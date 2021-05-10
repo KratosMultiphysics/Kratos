@@ -23,7 +23,7 @@ namespace Kratos {
         this->Check(pProp);
     }
 
-    void DEMBeamConstitutiveLaw::Check(Properties::Pointer pProp) const {        
+    void DEMBeamConstitutiveLaw::Check(Properties::Pointer pProp) const {
 
         if(!pProp->Has(STATIC_FRICTION)) {
             if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
@@ -162,8 +162,8 @@ namespace Kratos {
 
         kn_el = equiv_young * calculation_area / initial_dist;
 
-        const double Inertia_Iyy = (*mpProperties)[I22];
-        const double Inertia_Izz = (*mpProperties)[I33];
+        const double& Inertia_Iyy = (*mpProperties)[I22];
+        const double& Inertia_Izz = (*mpProperties)[I33];
 
         kt_el_0 = 3.0 * equiv_young * Inertia_Izz / (calculation_area * initial_dist);
         kt_el_1 = 3.0 * equiv_young * Inertia_Iyy / (calculation_area * initial_dist);
@@ -187,7 +187,7 @@ namespace Kratos {
         const double beam_total_mass = (*mpProperties)[BEAM_LENGTH] * (*mpProperties)[CROSS_AREA] * element1->GetDensity();
         const double aux_mass = beam_total_mass / equiv_mass;
 
-        const double equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
+        const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         equiv_visco_damp_coeff_normal       = equiv_gamma * aux_mass * sqrt(equiv_mass * kn_el  );
         equiv_visco_damp_coeff_tangential_0 = equiv_gamma * aux_mass * sqrt(equiv_mass * kt_el_0);
@@ -327,8 +327,8 @@ namespace Kratos {
 
         const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson));
 
-        const double Inertia_Iyy = (*mpProperties)[I22];
-        const double Inertia_Izz = (*mpProperties)[I33];
+        const double& Inertia_Iyy = (*mpProperties)[I22];
+        const double& Inertia_Izz = (*mpProperties)[I33];
         const double Inertia_J = Inertia_Iyy + Inertia_Izz;
 
         const double k_rot_x = equiv_young * Inertia_Iyy * norm_distance / distance;
@@ -341,7 +341,7 @@ namespace Kratos {
 
         ////////////////////////////////////////////////////// ViscoLocalRotationalMoment //////////////////////////////////////////////////////
 
-        const double equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
+        const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         const double a = std::sqrt(12.0 * (*mpProperties)[BEAM_INERTIA_ROT_UNIT_LENGHT_Y] - 1.0);
         const double b = std::sqrt(12.0 * (*mpProperties)[BEAM_INERTIA_ROT_UNIT_LENGHT_Z] - 1.0);

@@ -55,7 +55,7 @@ namespace Kratos {
             pProp->GetValue(LOOSE_MATERIAL_YOUNG_MODULUS) = 0.0;
         }
         if (!pProp->Has(FRACTURE_ENERGY)) {
-            KRATOS_WARNING("DEM")<<"\nWARNING: Variable FRACTURE_ENERGY was not found in the Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned.\n\n";
+            KRATOS_WARNING("DEM")<<"\nWARNING: Variable FRACTURE_ENERGY was not found in cthe Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned.\n\n";
             pProp->GetValue(FRACTURE_ENERGY) = 0.0;
         }
     }
@@ -71,7 +71,7 @@ namespace Kratos {
             mDebugPrintingOption = bool((*mpProperties)[DEBUG_PRINTING_OPTION]);
         }
         if (mDebugPrintingOption) {
-            if (!pProp->Has(DEBUG_PRINTING_ID_1) || !pProp->Has(DEBUG_PRINTING_ID_2)) {
+            if (!mpProperties->Has(DEBUG_PRINTING_ID_1) || !mpProperties->Has(DEBUG_PRINTING_ID_2)) {
                 KRATOS_WARNING("DEM") << "\nWARNING: We are currently in DEBUG PRINTING mode, so the ids of the two particles involved must be given.\n\n";
             }
         }
@@ -89,7 +89,7 @@ namespace Kratos {
         mUnbondedNormalElasticConstant = unbonded_equivalent_young * calculation_area / initial_dist;
         mUnbondedTangentialElasticConstant = unbonded_equivalent_shear * calculation_area / initial_dist;
 
-        const double bonded_equiv_young = (*mpProperties)[BONDED_YOUNG_MODULUS];;
+        const double& bonded_equiv_young = (*mpProperties)[BONDED_YOUNG_MODULUS];;
         const double bonded_equiv_shear = bonded_equiv_young / (2.0 * (1 + equiv_poisson));
 
         kn_el = bonded_equiv_young * calculation_area / initial_dist;
@@ -342,8 +342,8 @@ namespace Kratos {
 
         if (mDebugPrintingOption) {
 
-            long unsigned int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
-            long unsigned int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
+            const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
+            const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
 
             if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
                 std::ofstream normal_forces_file("nl.txt", std::ios_base::out | std::ios_base::app);
@@ -391,8 +391,8 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
-        const double internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
+        const double& tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+        const double& internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
         double k_softening = 0.0;
         double tau_strength = 0.0;
 
@@ -499,9 +499,9 @@ namespace Kratos {
             UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mUnbondedTangentialElasticConstant * LocalDeltDisp[0];
             UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mUnbondedTangentialElasticConstant * LocalDeltDisp[1];
 
-            const double equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
-            const double equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
-            const double equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
+            const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
@@ -584,8 +584,8 @@ namespace Kratos {
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
         if (mDebugPrintingOption) {
-            long unsigned int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
-            long unsigned int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
+            const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
+            const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
             double quotient = local_elastic_force_modulus / calculation_area;
             double quotient_bonded_only = local_elastic_force_modulus_bonded_only / calculation_area;
             double quotient_unbonded_only = local_elastic_force_modulus_unbonded_only / calculation_area;
@@ -628,7 +628,7 @@ namespace Kratos {
         double tension_limit;
 
         // calculation of equivalent Young modulus
-        double equiv_young = (*mpProperties)[LOOSE_MATERIAL_YOUNG_MODULUS];
+        const double& equiv_young = (*mpProperties)[LOOSE_MATERIAL_YOUNG_MODULUS];
 
         const double my_radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
@@ -658,7 +658,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double unbonded_young = (*mpProperties)[YOUNG_MODULUS];;
+        const double& unbonded_young = (*mpProperties)[YOUNG_MODULUS];;
 
         equiv_young -= unbonded_young;
 

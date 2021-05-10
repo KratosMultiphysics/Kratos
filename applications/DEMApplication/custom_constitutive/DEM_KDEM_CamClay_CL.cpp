@@ -34,7 +34,7 @@ namespace Kratos {
             noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(average_stress_tensor);
 
             // Preconsolidation pressure
-            const double p_c = (*mpProperties)[DEM_PRECONSOLIDATION_PRESSURE];
+            const double& p_c = (*mpProperties)[DEM_PRECONSOLIDATION_PRESSURE];
 
             // p and q computation
             const double p = 0.333333333333333333333 * (principal_stresses[0] + principal_stresses[1] + principal_stresses[2]);

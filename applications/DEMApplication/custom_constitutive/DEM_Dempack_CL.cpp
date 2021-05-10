@@ -37,7 +37,7 @@ namespace Kratos {
     void DEM_Dempack::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_Dempack to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        
+
         TransferParametersToProperties(parameters, pProp);
 
         this->Check(pProp);
@@ -141,7 +141,7 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;               // sqrt(kt_el / kn_el);
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-        const double equiv_coefficientOfRestitution = (*mpProperties)[COEFFICIENT_OF_RESTITUTION];
+        const double& equiv_coefficientOfRestitution = (*mpProperties)[COEFFICIENT_OF_RESTITUTION];
 
         equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // not used in Dempack
@@ -406,7 +406,7 @@ namespace Kratos {
         mTensionLimit = (*mpProperties)[CONTACT_SIGMA_MIN];
         mTauZero = (*mpProperties)[CONTACT_TAU_ZERO];
         mInternalFriccion = (*mpProperties)[CONTACT_INTERNAL_FRICC];
-        mShearEnergyCoef = (*mpProperties)[SHEAR_ENERGY_COEF];        
+        mShearEnergyCoef = (*mpProperties)[SHEAR_ENERGY_COEF];
 
         double degradation = 1.0;               //Tangential. With degradation:
 
