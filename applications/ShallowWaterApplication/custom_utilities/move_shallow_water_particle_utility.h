@@ -331,7 +331,7 @@ public:
         KRATOS_TRY
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             rNode.FastGetSolutionStepValue(DELTA_SCALAR1) = rNode.FastGetSolutionStepValue(*mScalarVar1) - rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
-            rNode.FastGetSolutionStepValue(DELTA_VECTOR1) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
+            noalias(rNode.FastGetSolutionStepValue(DELTA_VECTOR1)) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
         });
         KRATOS_CATCH("")
     }
