@@ -121,7 +121,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
 
     def _GetAdjointParameters(self):
-        adjoint_settings = self.response_settings["adjoint_settings"].GetString()
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
             adjoint_parameters = Parameters( parameter_file.read() )
 
