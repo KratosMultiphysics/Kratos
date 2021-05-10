@@ -40,28 +40,19 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         x_diff = self.le_node.X - self.te_node.X
         y_diff = self.le_node.Y - self.te_node.Y
 
-        cshape_sensitivity_te0 = x_diff
-        cshape_sensitivity_te1 = y_diff
-        cshape_sensitivity_te2 = cshape_sensitivity_te0**2 + cshape_sensitivity_te1**2
-        cshape_sensitivity_te3 = 1/cshape_sensitivity_te2
-        cshape_sensitivity_te4 = cshape_sensitivity_te0*horizontal_direction[0] + cshape_sensitivity_te1*horizontal_direction[1]
-        cshape_sensitivity_te5 = cshape_sensitivity_te3*cshape_sensitivity_te4
-        cshape_sensitivity_te6 = horizontal_direction[0]**2 + horizontal_direction[1]**2
-        cshape_sensitivity_te7 = 1/(math.sqrt(cshape_sensitivity_te2)*math.sqrt(cshape_sensitivity_te6)*math.sqrt(-cshape_sensitivity_te3*cshape_sensitivity_te4**2/cshape_sensitivity_te6 + 1))
+        cshape_sensitivity_0 = x_diff
+        cshape_sensitivity_1 = y_diff
+        cshape_sensitivity_2 = cshape_sensitivity_0**2 + cshape_sensitivity_1**2
+        cshape_sensitivity_3 = 1/cshape_sensitivity_2
+        cshape_sensitivity_4 = cshape_sensitivity_0*horizontal_direction[0] + cshape_sensitivity_1*horizontal_direction[1]
+        cshape_sensitivity_5 = cshape_sensitivity_3*cshape_sensitivity_4
+        cshape_sensitivity_6 = horizontal_direction[0]**2 + horizontal_direction[1]**2
+        cshape_sensitivity_7 = 1/(math.sqrt(cshape_sensitivity_2)*math.sqrt(cshape_sensitivity_6)*math.sqrt(-cshape_sensitivity_3*cshape_sensitivity_4**2/cshape_sensitivity_6 + 1))
 
-        cshape_sensitivity_le0 = x_diff
-        cshape_sensitivity_le1 = y_diff
-        cshape_sensitivity_le2 = cshape_sensitivity_le0**2 + cshape_sensitivity_le1**2
-        cshape_sensitivity_le3 = 1/cshape_sensitivity_le2
-        cshape_sensitivity_le4 = cshape_sensitivity_le0*horizontal_direction[0] + cshape_sensitivity_le1*horizontal_direction[1]
-        cshape_sensitivity_le5 = cshape_sensitivity_le3*cshape_sensitivity_le4
-        cshape_sensitivity_le6 = horizontal_direction[0]**2 + horizontal_direction[1]**2
-        cshape_sensitivity_le7 = 1/(math.sqrt(cshape_sensitivity_le2)*math.sqrt(cshape_sensitivity_le6)*math.sqrt(-cshape_sensitivity_le3*cshape_sensitivity_le4**2/cshape_sensitivity_le6 + 1))
-
-        self.te_x_gradient = -cshape_sensitivity_te7*(-cshape_sensitivity_te0*cshape_sensitivity_te5 + horizontal_direction[0])
-        self.te_y_gradient = -cshape_sensitivity_te7*(-cshape_sensitivity_te1*cshape_sensitivity_te5 + horizontal_direction[1])
-        self.le_x_gradient = cshape_sensitivity_le7*(-cshape_sensitivity_le0*cshape_sensitivity_le5 + horizontal_direction[0])
-        self.le_y_gradient = cshape_sensitivity_le7*(-cshape_sensitivity_le1*cshape_sensitivity_le5 + horizontal_direction[1])
+        self.te_x_gradient = -cshape_sensitivity_7*(-cshape_sensitivity_0*cshape_sensitivity_5 + horizontal_direction[0])
+        self.te_y_gradient = -cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + horizontal_direction[1])
+        self.le_x_gradient = cshape_sensitivity_7*(-cshape_sensitivity_0*cshape_sensitivity_5 + horizontal_direction[0])
+        self.le_y_gradient = cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + horizontal_direction[1])
 
     def GetValue(self):
         return self.aoa
