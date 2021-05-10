@@ -1,6 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
-import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import math
 
@@ -155,7 +155,7 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
         self.main_model_part = self.model[self.model_part_name]
 
     def _ComputePerimeter(self,  model_part):
-        return KCPFApp.PotentialFlowUtilities.CalculateArea(model_part.Conditions)
+        return KSO.GeometryUtilities(model_part).CalculateArea(model_part.Conditions)
 
     def CalculateValue(self):
         pass
