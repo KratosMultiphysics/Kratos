@@ -95,7 +95,7 @@ void ShallowWaterUtilities::ComputeSmoothVelocity(ModelPart& rModelPart)
 void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(MOMENTUM) = rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(HEIGHT);
+        noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(HEIGHT);
     });
 }
 
@@ -125,7 +125,7 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
         else
         {
             auto topography_gradient = rNode.GetValue(TOPOGRAPHY_GRADIENT);
-            auto normal = rNode.FastGetSolutionStepValue(NORMAL);
+            array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
             double sign = inner_prod(normal, topography_gradient);
             // NOTE: Normal is positive outwards
             // NOTE: The flowstream is opposite to the topography gradient
@@ -197,7 +197,7 @@ void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickne
         if (height < Thickness)
         {
             height = 0.5 * Thickness;
-            rNode.FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
+            noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = ZeroVector(3);
         }
     });
 }
@@ -215,7 +215,7 @@ void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<arra
 void ShallowWaterUtilities::SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        auto& value = rNode.FastGetSolutionStepValue(rVariable);
+        double& value = rNode.FastGetSolutionStepValue(rVariable);
         value = std::max(value, MinValue);
     });
 }

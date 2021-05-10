@@ -82,7 +82,7 @@ void ApplySinusoidalFunctionProcess<Variable<array_1d<double, 3>>>::ExecuteIniti
     double modulus = smooth * Function(time);
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
         array_1d<double, 3> direction = rNode.FastGetSolutionStepValue(NORMAL);
-        rNode.FastGetSolutionStepValue(mrVariable) = -modulus * direction;
+        noalias(rNode.FastGetSolutionStepValue(mrVariable)) = -modulus * direction;
     });
 }
 

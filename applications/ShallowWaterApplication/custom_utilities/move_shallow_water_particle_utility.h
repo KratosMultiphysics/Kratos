@@ -274,7 +274,7 @@ public:
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
         block_for_each(mrModelPart.Elements(), [&](Element& rElem){
-            GeometryType& geom = rElem.GetGeometry();
+            const GeometryType& geom = rElem.GetGeometry();
 
             array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
@@ -331,7 +331,7 @@ public:
         KRATOS_TRY
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             rNode.FastGetSolutionStepValue(DELTA_SCALAR1) = rNode.FastGetSolutionStepValue(*mScalarVar1) - rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1);
-            rNode.FastGetSolutionStepValue(DELTA_VECTOR1) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
+            noalias(rNode.FastGetSolutionStepValue(DELTA_VECTOR1)) = rNode.FastGetSolutionStepValue(*mVectorVar1) - rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1);
         });
         KRATOS_CATCH("")
     }
@@ -502,7 +502,7 @@ public:
 
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
-            rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3);
+            noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1))=ZeroVector(3);
             rNode.FastGetSolutionStepValue(INTEGRATION_WEIGHT)=0.0;
         });
 
@@ -590,7 +590,7 @@ public:
             else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
             {
                 rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=rNode.FastGetSolutionStepValue(*mScalarVar1,1);
-                rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
+                noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1))=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
             }
         });
 
@@ -610,9 +610,9 @@ public:
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //(flag managed only by MoveParticles)
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        auto i_elem_begin = mrModelPart.ElementsBegin();
         IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int i){
-            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + i;
+            auto ielem = i_elem_begin + i;
             Element::Pointer p_element(*ielem.base());
             GeometryType& geom = ielem->GetGeometry();
 
@@ -662,10 +662,10 @@ public:
         BoundedMatrix<double, TDim+1, TDim+1> N;
         unsigned int free_particle = 0; //we start with the first position in the particles array
 
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        auto i_elem_begin = mrModelPart.ElementsBegin();
         #pragma omp parallel for firstprivate(results, pos, N, free_particle)
         for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
-            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + ii;
+            auto ielem = i_elem_begin + ii;
 
             if (results.size() != max_results)
                 results.resize(max_results);
@@ -751,10 +751,10 @@ public:
         BoundedMatrix<double, 3+2*TDim, TDim+1> N;
         unsigned int free_particle = 0; //we start by the first position;
 
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        auto i_elem_begin = mrModelPart.ElementsBegin();
         #pragma omp parallel for firstprivate(pos, N, free_particle)
         for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
-            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + ii;
+            auto ielem = i_elem_begin + ii;
 
             int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
             ParticlePointerVector& element_particle_pointers = mVectorOfParticlePointersVectors[ii];
