@@ -598,7 +598,7 @@ public:
             else // This should never happen because other ways to recover the information have been executed before, but leaving it just in case..
             {
                 rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=rNode.FastGetSolutionStepValue(*mScalarVar1,1);
-                rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
+                noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1))=rNode.FastGetSolutionStepValue(*mVectorVar1,1);
             }
         });
 
