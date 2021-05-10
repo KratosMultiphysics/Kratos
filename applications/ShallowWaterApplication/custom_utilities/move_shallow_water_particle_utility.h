@@ -759,7 +759,7 @@ public:
         BoundedMatrix<double, 3+2*TDim, TDim+1> N;
         unsigned int free_particle = 0; //we start by the first position;
 
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        auto i_elem_begin = mrModelPart.ElementsBegin();
         #pragma omp parallel for firstprivate(pos, N, free_particle)
         for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
             ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + ii;
