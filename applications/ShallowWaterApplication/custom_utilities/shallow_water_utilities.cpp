@@ -125,7 +125,7 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
         else
         {
             auto topography_gradient = rNode.GetValue(TOPOGRAPHY_GRADIENT);
-            auto normal = rNode.FastGetSolutionStepValue(NORMAL);
+            array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
             double sign = inner_prod(normal, topography_gradient);
             // NOTE: Normal is positive outwards
             // NOTE: The flowstream is opposite to the topography gradient
