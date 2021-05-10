@@ -68,7 +68,7 @@
             "reference"  : "initial_value",
             "analyzer" : "kratos",
             "response_settings":{
-                "response_type"          : "angle_of_attack",
+                "response_type"          : "airfoil_angle_of_attack",
                 "trailing_edge_model_part" : "MainModelPart.TrailingEdgeNode",
                 "leading_edge_model_part" : "MainModelPart.LeadingEdgeNode"
             },
@@ -79,7 +79,7 @@
             "reference"  : "initial_value",
             "analyzer" : "kratos",
             "response_settings":{
-                "response_type"          : "chord_length",
+                "response_type"          : "airfoil_chord_length",
                 "trailing_edge_model_part" : "MainModelPart.TrailingEdgeNode",
                 "leading_edge_model_part" : "MainModelPart.LeadingEdgeNode"
             },
@@ -90,7 +90,7 @@
             "reference"  : "initial_value",
             "analyzer" : "kratos",
             "response_settings":{
-                "response_type"          : "perimeter",
+                "response_type"          : "airfoil_perimeter",
                 "model_part_name"        : "MainModelPart.Body2D_Body"
             },
             "project_gradient_on_surface_normals" : false

@@ -122,9 +122,9 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "mesh_based_packaging",
             "surface_normal_shape_change",
             "face_angle",
-            "angle_of_attack",
-            "chord_length",
-            "perimeter"
+            "airfoil_angle_of_attack",
+            "airfoil_chord_length",
+            "airfoil_perimeter"
         ]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         cps_response_functions = ["adjoint_lift_potential_jump"]
