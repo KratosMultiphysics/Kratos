@@ -122,9 +122,12 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "mesh_based_packaging",
             "surface_normal_shape_change",
             "face_angle",
+            "angle_of_attack",
+            "chord_length",
+            "perimeter"
         ]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
-        cps_response_functions = ["adjoint_lift_potential_jump", "angle_of_attack", "chord_length", "perimeter"]
+        cps_response_functions = ["adjoint_lift_potential_jump"]
         convdiff_response_functions = ["point_temperature"]
 
         for (response_id, response_settings) in specified_responses:
@@ -145,6 +148,8 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                 if potential_flow_response_factory is None:
                     raise RuntimeError("ShapeOpt: {} response function requires CompressiblePotentialFlowApplication.".format(response_type))
                 response_functions[response_id] = potential_flow_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            elif response_type in sho_response_functions:
+                response_functions[response_id] = sho_response_factory.CreateResponseFunction(response_id, response_settings, model)
             else:
                 raise NameError("The response function '{}' of type '{}' is not available.".format(response_id, response_type))
 
