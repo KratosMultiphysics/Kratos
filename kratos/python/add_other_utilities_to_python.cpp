@@ -56,6 +56,7 @@
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
 #include "utilities/dense_svd_decomposition.h"
+#include "utilities/sub_model_part_entities_boolean_operation_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -159,6 +160,18 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     std::string name;
     CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name);
     return name;
+}
+
+template<class TEntityType, class TContainerType>
+void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::string Name)
+{
+    namespace py = pybind11;
+    typedef SubModelPartEntitiesBooleanOperationUtility<TEntityType,TContainerType> UtilityType;
+    py::class_<UtilityType>(m, Name.c_str())
+        .def_static("Union", &UtilityType::Union)
+        .def_static("Intersection", &UtilityType::Intersection)
+        .def_static("Difference", &UtilityType::Difference)
+        ;
 }
 
 void AddOtherUtilitiesToPython(pybind11::module &m)
@@ -633,6 +646,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
+        m, "SubModelPartNodesBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(
+        m, "SubModelPartElementsBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Condition,ModelPart::ConditionsContainerType>(
+        m, "SubModelPartConditionsBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
+        m, "SubModelPartConstraintsBooleanOperationUtility");
 
 }
 

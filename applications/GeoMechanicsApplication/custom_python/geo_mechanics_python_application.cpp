@@ -26,6 +26,10 @@
 // Application includes
 #include "geo_mechanics_application.h"
 #include "geo_mechanics_application_variables.h"
+#include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 
 namespace Kratos {
@@ -42,6 +46,11 @@ namespace Python {
         .def(init<>());
 
 
+
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
+    AddCustomProcessesToPython(m);
 
     //Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, VELOCITY_COEFFICIENT )
@@ -83,8 +92,11 @@ namespace Python {
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_DAMAGE )
 
     /* Reset displacement "flag" needed for GeoMechanicalApplication*/
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESET_DISPLACEMENTS);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESET_DISPLACEMENTS)
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONSIDER_GAP_CLOSURE)
+
+    // KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 
   }

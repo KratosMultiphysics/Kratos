@@ -25,7 +25,7 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
 
         self.creator_destructor = DEM.ParticleCreatorDestructor()
 
-    def ModifyProperties(self, properties, param = 0):       
+    def ModifyProperties(self, properties, param = 0):
 
         scheme = DEM.SymplecticEulerScheme()
         scheme.SetTranslationalIntegrationSchemeInProperties(properties, False)
@@ -66,7 +66,7 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
             counter += 1
             self.assertEqual(element.Properties[Kratos.YOUNG_MODULUS], 3.331)
 
-        self.assertEqual(counter, 1)    
+        self.assertEqual(counter, 1)
 
 if __name__ == '__main__':
     KratosUnittest.main()

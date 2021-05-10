@@ -218,7 +218,8 @@ namespace Kratos {
                                                                         equiv_poisson,
                                                                         calculation_area,
                                                                         this,
-                                                                        neighbour_iterator);
+                                                                        neighbour_iterator,
+                                                                        indentation);
             }
 
             EvaluateDeltaDisplacement(data_buffer,

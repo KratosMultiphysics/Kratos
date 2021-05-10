@@ -33,7 +33,7 @@ namespace Kratos {
 
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double bonded_equiv_young,
                                         double equiv_poisson, double calculation_area,
-                                        SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+                                        SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
 
         double GetYoungModulusForComputingRotationalMoments(const double& equiv_young) override;
 
@@ -102,17 +102,18 @@ namespace Kratos {
             bool& sliding,
             const ProcessInfo& r_process_info) override;
 
-        double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        virtual void ComputeNormalUnbondedForce(double indentation);
+
+        virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) override;
 
-        virtual void AdjustTauStrengthAndUpdatedMaxTauStrength(double& tau_strength, double& updated_max_tau_strength, const double internal_friction,
-                                                               double contact_sigma, SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+        virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant;
         double mUnbondedTangentialElasticConstant;
-        double mViscoDampingLocalContactForce[3];
+        double mUnbondedViscoDampingLocalContactForce[3];
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
         bool mDebugPrintingOption;

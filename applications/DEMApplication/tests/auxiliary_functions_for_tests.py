@@ -32,3 +32,6 @@ class controlledExecutionScope:
 
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
+
+def  GetHardcodedNumberOfThreads():
+    return 1

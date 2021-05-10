@@ -156,7 +156,7 @@ namespace Kratos {
                                                            double equiv_poisson,
                                                            double calculation_area,
                                                            SphericContinuumParticle* element1,
-                                                           SphericContinuumParticle* element2) {
+                                                           SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
 
