@@ -102,6 +102,23 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
 
+    Vector initial_strain_w(6);
+    initial_strain_w(0) = 0.000000;
+    initial_strain_w(1) = 0.000001;
+    initial_strain_w(2) = 0.000002;
+    initial_strain_w(3) = 0.000003;
+    initial_strain_w(4) = 0.000004;
+    initial_strain_w(5) = 0.000005;
+    InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>
+	    (initial_strain_w, InitialState::InitialImposingType::STRAIN_ONLY);
+    cl.SetInitialState(p_initial_state);
+    Vector initial_strain_r;  // Should be accordingly resized in the CL
+    cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, initial_strain_r);
+    KRATOS_CHECK_VECTOR_NEAR(initial_strain_r, initial_strain_w, 1e-8);
+    p_initial_state->SetInitialStrainVector(ZeroVector(6));
+    cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, initial_strain_r);
+    KRATOS_CHECK_VECTOR_NEAR(initial_strain_r, ZeroVector(6), 1e-8);
+
     //
     // Test: exponential hardening model, load in traction
     //
