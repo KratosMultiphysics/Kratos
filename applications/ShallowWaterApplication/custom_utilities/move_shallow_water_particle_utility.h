@@ -618,7 +618,7 @@ public:
 
         const int offset = mOffset; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
                                     //(flag managed only by MoveParticles)
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        auto i_elem_begin = mrModelPart.ElementsBegin();
         IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int i){
             ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + i;
             Element::Pointer p_element(*ielem.base());
