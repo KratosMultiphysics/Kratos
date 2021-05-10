@@ -1,5 +1,5 @@
 {
-    "momentEstimatorInpuctDict": {
+    "momentEstimatorInputDict": {
         "indexSetDimension": 0,
         "order": 1,
         "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",

@@ -311,6 +311,7 @@ class PreUtilities
         outputfile << "POISSON_RATIO 0.20\n";
         outputfile << "STATIC_FRICTION 0.5773502691896257\n";
         outputfile << "DYNAMIC_FRICTION 0.5773502691896257\n";
+        outputfile << "FRICTION_DECAY 500.0\n";
         outputfile << "PARTICLE_COHESION 0.0\n";
         outputfile << "COEFFICIENT_OF_RESTITUTION 0.2\n";
         outputfile << "PARTICLE_MATERIAL 1\n";
@@ -503,12 +504,6 @@ class PreUtilities
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
-
-    std::vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
-
-    protected:
-
-        std::vector<unsigned int> mElementPartition;
 
     private:
 
