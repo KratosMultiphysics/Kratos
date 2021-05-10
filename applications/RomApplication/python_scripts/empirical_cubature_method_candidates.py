@@ -1,5 +1,3 @@
-from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
-import KratosMultiphysics
 
 import numpy as np
 import json
@@ -10,8 +8,7 @@ try:
 except ImportError as e:
     missing_matplotlib = True
 
-
-class EmpiricalCubatureMethod(ElementSelectionStrategy):
+class EmpiricalCubatureMethod():
     """
     This class selects a subset of elements and corresponding positive weights necessary for the construction of a hyper-reduced order model
     Reference: Hernandez 2020. "A multiscale method for periodic structures using domain decomposition and ECM-hyperreduction"
@@ -25,15 +22,18 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
         Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
         Plotting: whether to plot the error evolution of the element selection algorithm
+
+        WOULD ALSO HAVE TO UPDATE THE DOC !!!!!!!!
+        SHOULD THE DOC INFO BE PLACED AFTER THE METHOD DECLARATION ? ? ? ?S
+
+
     """
     def __init__(self, ECM_tolerance = 1e-6, Filter_tolerance = 1e-16, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
-        self.Name = "EmpiricalCubature"
         self.Plotting = Plotting
-
-
+        self.Name = "EmpiricalCubature"
 
     """
     Method for setting up the element selection
@@ -41,36 +41,39 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
             ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
     """
-    def SetUp(self, LeftSingularVectorsOfResidualProjected, OriginalNumberOfElements, ModelPartName):
-        super().SetUp()
-        self.ModelPartName = ModelPartName
-        self.OriginalNumberOfElements = OriginalNumberOfElements
-        #u , s  = self._ObtainBasis(ResidualSnapshots) #First change, pass the snapshots matrix already, rather than passing a python list
-
-        self.W = np.ones(np.shape(LeftSingularVectorsOfResidualProjected)[1])
-        b = LeftSingularVectorsOfResidualProjected @ self.W  #these weights will always be a vector of ones in Kratos implementation...
-        bEXACT = b #* s
-        #self.SingularValues = s
-
-
-        self.b = b
+    def SetUp(self, LeftSingularVectorsOfResidualProjected, InitialCandidatesSet = None, OriginalNumberOfElements=None, ModelPartName=None, MaximumMumberUnsuccesfulIterations = 10):
+        #super().SetUp()
         self.G = LeftSingularVectorsOfResidualProjected
-        self.ExactNorm = np.linalg.norm(bEXACT)  #also useless? c'mon
+        self.OriginalNumberOfElements = OriginalNumberOfElements
+        self.ModelPartName = ModelPartName
+        self.y = InitialCandidatesSet
+        self.MaximumMumberUnsuccesfulIterations = MaximumMumberUnsuccesfulIterations
+        self.b = np.sum(self.G, axis = 1 )
+        self.UnsuccesfulIterations = 0
+
 
     """
     Method performing calculations required before launching the Calculate method
     """
     def Initialize(self):
-        super().Initialize()
+        #super().Initialize()
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
-        self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
-        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
-        if self.Filter_tolerance > 0:
-            TOL_REMOVE = self.Filter_tolerance * normB
-            rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
-            self.y = np.delete(self.y,rmvpin)
+        if self.y is None:
+            self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
+            GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
+                self.y = np.delete(self.y,rmvpin)
+        else:
+            self.y_complement = np.arange(0,M,1)
+            self.y_complement = np.delete(self.y_complement, self.y)# Set of candidate points (those whose associated column has low norm are removed)
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(GnormNOONE[self.y_complement] < TOL_REMOVE)
+                self.y_complement = np.delete(self.y_complement,rmvpin)
         self.z = {}  # Set of intergration points
         self.mPOS = 0 # Number of nonzero weights
         self.r = self.b.copy() # residual vector    This change is necessary, but it was not affecting result (fortunately...)
@@ -79,13 +82,13 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.nerrorACTUAL = self.nerror
 
 
-
     """
     Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
     """
     def Calculate(self):
-        super().Calculate()
+        #super().Calculate()
 
+        MaximumLengthZ = 0
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
 
@@ -97,6 +100,8 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             if k==1:
                 self.w = np.linalg.lstsq(self.G[:, [i]], self.b)[0]
                 H = 1/(self.G[:,i] @ self.G[:,i].T)
+                if  self.UnsuccesfulIterations >  self.MaximumMumberUnsuccesfulIterations:
+                    self.y = np.unique(self.y, self.y_complement)
             else:
                 H, self.w = self._UpdateWeightsInverse(self.G[:,self.z],H,self.G[:,i],self.w)
 
@@ -116,6 +121,11 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 H = self._MultiUpdateInverseHermitian(H, indexes_neg_weight)
                 self.w = H @ (self.G[:, self.z].T @ self.b)
                 self.w = self.w.reshape(len(self.w),1)
+
+            if np.size(self.z) > MaximumLengthZ :
+                self.UnsuccesfulIterations = 0
+            else:
+                self.UnsuccesfulIterations += 1
 
             #Step 6 Update the residual
             if len(self.w)==1:
@@ -138,6 +148,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 ERROR_GLO = np.c_[ ERROR_GLO , self.nerrorACTUAL]
                 NPOINTS = np.c_[ NPOINTS , np.size(self.z)]
 
+            MaximumLengthZ = max(MaximumLengthZ, np.size(self.z))
             k = k+1
 
         #self.w = alpha.T  #SINCE WE USE A VECTOR OF ONES ALWAYS, THIS IS USELES!

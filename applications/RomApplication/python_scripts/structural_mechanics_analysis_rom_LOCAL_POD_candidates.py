@@ -83,8 +83,8 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                # for i in range(self.Number_Of_Clusters):
-                #     self.time_step_residual_matrix_container.append([])
+                for i in range(self.Number_Of_Clusters):
+                    self.time_step_residual_matrix_container.append([])
                 self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver().get_solution_scheme(), Bases)
 
 
@@ -103,34 +103,36 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 ResMat = self.ResidualUtilityObject.GetResiduals(self._GetSolver().get_builder_and_solver().GetCurrentCluster())
                 #print(np.shape(ResMat))
                 NP_ResMat = np.array(ResMat, copy=False)
-                #self.time_step_residual_matrix_container[self._GetSolver().get_builder_and_solver().GetCurrentCluster()].append(NP_ResMat)
-                self.time_step_residual_matrix_container.append(NP_ResMat)
-
+                self.time_step_residual_matrix_container[self._GetSolver().get_builder_and_solver().GetCurrentCluster()].append(NP_ResMat)
+                #self.time_step_residual_matrix_container.append(NP_ResMat)
 
     def Finalize(self):
         super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
-                ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-                LeftSingularVectorsOfResidualProjected = self._ObtainBasis()
-                self. hyper_reduction_element_selector.SetUp(LeftSingularVectorsOfResidualProjected, OriginalNumberOfElements, ModelPartName)
-                self.hyper_reduction_element_selector.Run()
+                for i in range(len(self.time_step_residual_matrix_container)):
+                    np.save(f'ResidualProjectedOnBasis{i}', self._ObtainBasis(self.time_step_residual_matrix_container[i]))
+
+
+                # OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
+                # ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
+                # LeftSingularVectorsOfResidualProjected = self._ObtainBasis()
+                # self. hyper_reduction_element_selector.SetUp(LeftSingularVectorsOfResidualProjected, OriginalNumberOfElements, ModelPartName)
+                # self.hyper_reduction_element_selector.Run()
                 # for cluster_number in range(self.Number_Of_Clusters):
                 #     self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container[cluster_number], OriginalNumberOfElements, ModelPartName, cluster_number)
                 #     self.hyper_reduction_element_selector.Run()
 
 
-    def _ObtainBasis(self):
+    def _ObtainBasis(self, a_list):
         ### Building the Snapshot matrix ####
-        for i in range (len(self.time_step_residual_matrix_container)):
+        for i in range (len(a_list)):
             if i == 0:
-                SnapshotMatrix = self.time_step_residual_matrix_container[i]
+                SnapshotMatrix = a_list[i]
             else:
-                SnapshotMatrix = np.c_[SnapshotMatrix,self.time_step_residual_matrix_container[i]]
-            self.time_step_residual_matrix_container[i] = 0
+                SnapshotMatrix = np.c_[SnapshotMatrix,a_list[i]]
         U,_,_,_ = RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix, 1e-6)
-        return U.T
+        return U
 
 
 
