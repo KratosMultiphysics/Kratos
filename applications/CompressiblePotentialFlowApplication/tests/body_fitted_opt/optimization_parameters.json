@@ -90,7 +90,8 @@
             "reference"  : "initial_value",
             "analyzer" : "kratos",
             "response_settings":{
-                "response_type"          : "perimeter"
+                "response_type"          : "perimeter",
+                "model_part_name"        : "MainModelPart.Body2D_Body"
             },
             "project_gradient_on_surface_normals" : false
         }],

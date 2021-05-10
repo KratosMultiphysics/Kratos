@@ -135,10 +135,10 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
 
     def __init__(self, response_id, response_settings, model):
         self.model = model
+        self.model_part_name = response_settings["model_part_name"].GetString()
 
     def Initialize(self):
-        self.main_model_part = self.model["MainModelPart"]
-        self.body_model_part = self.main_model_part.GetSubModelPart("Body2D_Body")
+        self.main_model_part = self.model[self.model_part_name]
 
     def _ComputePerimeter(self,  model_part):
         return KCPFApp.PotentialFlowUtilities.CalculateArea(model_part.Conditions)
@@ -151,24 +151,24 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
 
     def GetValue(self):
 
-        return self._ComputePerimeter(self.body_model_part)
+        return self._ComputePerimeter(self.main_model_part)
 
     def GetNodalGradient(self, variable):
         gradient = {}
         epsilon = 1e-6
-        initial_perimeter =  self._ComputePerimeter(self.body_model_part)
+        initial_perimeter =  self._ComputePerimeter(self.main_model_part)
 
-        for node in self.body_model_part.Nodes:
+        for node in self.main_model_part.Nodes:
             shape_gradient = KratosMultiphysics.Vector(3, 0.0)
 
 
             node.X += epsilon
-            current_perimeter =  self._ComputePerimeter(self.body_model_part)
+            current_perimeter =  self._ComputePerimeter(self.main_model_part)
             shape_gradient[0] = (current_perimeter-initial_perimeter)/epsilon
             node.X -= epsilon
 
             node.Y += epsilon
-            current_perimeter =  self._ComputePerimeter(self.body_model_part)
+            current_perimeter =  self._ComputePerimeter(self.main_model_part)
             shape_gradient[1] = (current_perimeter-initial_perimeter)/epsilon
             node.Y -= epsilon
 
