@@ -421,7 +421,7 @@ public:
         elements_in_trajectory.resize(20);
 
         // block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS){
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
+        auto i_elem_begin = mrModelPart.ElementsBegin();
         #pragma omp parallel for firstprivate(results, elements_in_trajectory)
         for (int ielem = 0; ielem < static_cast<int>(mrModelPart.NumberOfElements()); ++ielem) {
             ModelPart::ElementsContainerType::iterator old_element = i_elem_begin + ielem;
