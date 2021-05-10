@@ -61,6 +61,7 @@ class MaterialTest():
         self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0
 
         self.new_strain = 0.0
+        self.LoadingVelocity = 0.0
 
         # for the graph plotting
         if "material_test_settings" in DEM_parameters.keys():
@@ -68,7 +69,6 @@ class MaterialTest():
             self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
-            self.LoadingVelocity = self.parameters["material_test_settings"]["LoadingVelocity"].GetDouble()
             self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
             self.MeshType = self.parameters["material_test_settings"]["MeshType"].GetString()
             #self.MeshPath = self.parameters["material_test_settings"]["MeshPath"].GetString()
@@ -78,11 +78,11 @@ class MaterialTest():
             self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["TestType"].GetString()
-            self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
             self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
             self.MeshType = self.parameters["MeshType"].GetString()
             self.MeshPath = self.parameters["MeshPath"].GetString()
 
+        self.ComputeLoadingVelocity()
         self.problem_name = self.parameters["problem_name"].GetString()
         self.initial_time = datetime.datetime.now()
 
@@ -180,6 +180,15 @@ class MaterialTest():
             extended_length = self.height + (self.height - inner_initial_height)
 
             self.length_correction_factor = self.height/extended_length
+
+    def ComputeLoadingVelocity(self):
+        top_vel = bot_vel = 0.0
+        for smp in self.rigid_face_model_part.SubModelParts:
+            if smp[TOP]:
+                top_vel = smp[LINEAR_VELOCITY_Y]
+            if smp[BOTTOM]:
+                bot_vel = smp[LINEAR_VELOCITY_Y]
+        self.LoadingVelocity = top_vel - bot_vel
 
     def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
@@ -336,7 +345,7 @@ class MaterialTest():
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-        self.strain += -100*self.length_correction_factor*1.0*self.LoadingVelocity*dt/self.height # Here the 2.0 is not included, there's a 1.0! TODO
+        self.strain += -100 * self.length_correction_factor * self.LoadingVelocity * dt / self.height
 
         if self.test_type =="BTS":
 
@@ -347,8 +356,8 @@ class MaterialTest():
                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_bts += force_node_y
 
-            self.total_stress_bts = 2.0*total_force_bts/(math.pi*self.height*self.diameter)
-            self.strain_bts += -100 * 2.0 * self.LoadingVelocity * dt / self.diameter # Here the 2.0 is correcty included! TODO
+            self.total_stress_bts = 2.0 * total_force_bts /(math.pi * self.height * self.diameter)
+            self.strain_bts += -100 * self.LoadingVelocity * dt / self.diameter
 
         else:
 
