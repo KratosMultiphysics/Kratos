@@ -25,14 +25,8 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
             "frequency_range"            : [1e-12, 10.0],
             "problem_setup_folder"       : "PLEASE_SPECIFY_PROBLEM_SETUP_FOLDER",
             "problem_setup_files"        : {
-                "stable_solution_parameter_files": {
-                    "primal_project_parameters_file" : "PLEASE_SPECIFY_STABLE_PRIMAL_PROJECT_PARAMETERS_FILE",
-                    "adjoint_project_parameters_file": "PLEASE_SPECIFY_STABLE_ADJOINT_PROJECT_PARAMETERS_FILE"
-                },
-                "refined_solution_parameter_files": {
-                    "primal_project_parameters_file" : "PLEASE_SPECIFY_REFINED_PRIMAL_PROJECT_PARAMETERS_FILE",
-                    "adjoint_project_parameters_file": "PLEASE_SPECIFY_REFINED_ADJOINT_PROJECT_PARAMETERS_FILE"
-                }
+                "primal_project_parameters_file" : "PLEASE_SPECIFY_PRIMAL_PROJECT_PARAMETERS_FILE",
+                "adjoint_project_parameters_file": "PLEASE_SPECIFY_ADJOINT_PROJECT_PARAMETERS_FILE"
             }
         }
         """)
@@ -46,7 +40,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         self.problem_setup_file_settings = self.response_settings["problem_setup_files"]
 
         # checks for adjoint response settings
-        adjoint_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["refined_solution_parameter_files"]["adjoint_project_parameters_file"].GetString()
+        adjoint_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["adjoint_project_parameters_file"].GetString()
         with open(adjoint_project_parameters_file, "r") as file_input:
             input_adjoint_project_parameters_lines = file_input.read()
 
@@ -59,7 +53,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         self.max_frequency_bin_index = -1
 
         # check for model part name settings
-        primal_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["refined_solution_parameter_files"]["primal_project_parameters_file"].GetString()
+        primal_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
         with open(primal_project_parameters_file, "r") as file_input:
             primal_settings = Kratos.Parameters(file_input.read())
 
@@ -103,11 +97,9 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
     def CalculateValue(self):
         startTime = timer.time()
 
-        # here we run the refined primal solution.
-
         # open primal settings
-        primal_settings_file_name = self.problem_setup_file_settings["refined_solution_parameter_files"]["primal_project_parameters_file"].GetString()
-        primal_parameters = SolvePrimalProblem(primal_settings_file_name, "primal_evaluation_refined.log")
+        primal_settings_file_name = self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
+        primal_parameters = SolvePrimalProblem(primal_settings_file_name, "primal_evaluation.log")
 
         # read time step reaction values
         time_steps, reactions = GetDragValues(primal_parameters, self.drag_model_part_name)
@@ -166,25 +158,18 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         # solve adjoint frequency bin problems
         start_time = timer.time()
 
-        # primal_settings_file_name = self.problem_setup_file_settings["stable_solution_parameter_files"]["primal_project_parameters_file"].GetString()
-        # _ = SolvePrimalProblem(primal_settings_file_name, "primal_evaluation_stable.log")
-
         # reset gradients
         self.gradients = {}
 
-        # # run adjoints for stable solution components of DFT
-        # _ = self._RunAdjointProblem("real", self.problem_setup_file_settings["stable_solution_parameter_files"], False)
-        # _ = self._RunAdjointProblem("imag", self.problem_setup_file_settings["stable_solution_parameter_files"], False)
-
-        # run adjoints for refined solution components of DFT
-        model = self._RunAdjointProblem("real", self.problem_setup_file_settings["refined_solution_parameter_files"], False)
+        # run adjoints for solution components of DFT
+        model = self._RunAdjointProblem("real", self.problem_setup_file_settings, False)
 
         adjoint_model_part = model[self.main_model_part_name]
         for node in adjoint_model_part.Nodes:
             self.gradients[node.Id] = Kratos.Array3(0.0)
 
         self._CalculateSensitivities(model, self.frequency_real_components)
-        model = self._RunAdjointProblem("imag", self.problem_setup_file_settings["refined_solution_parameter_files"], False)
+        model = self._RunAdjointProblem("imag", self.problem_setup_file_settings, False)
         self._CalculateSensitivities(model, self.frequency_imag_components)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the total adjoint analysis = ", round(timer.time() - start_time,2),"s")
