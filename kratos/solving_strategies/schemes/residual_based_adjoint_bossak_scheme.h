@@ -285,8 +285,10 @@ public:
         this->CalculatePreviousTimeStepContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        this->CalculateStabilizationContributions(
-            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        if (mStabilizationCoefficient > 0.0) {
+            this->CalculateStabilizationContributions(
+                rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        }
 
         this->CalculateResidualLocalContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
