@@ -29,6 +29,7 @@
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/coupling_penalty_condition.h"
+#include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 
@@ -119,6 +120,7 @@ private:
     const LoadCondition mLoadCondition;
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
+    const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
 
