@@ -21,6 +21,9 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell Hierarchic
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# Coupling tests
+from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
+from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -52,7 +55,10 @@ def AssembleTestSuites():
         # 5p Shell Director
         #ScordelisRoofShell5pTest,
         TTestModelers,
-        TTestNurbsVolumeElements
+        TTestNurbsVolumeElements,
+        # Coupling tests
+        TwoPatchCouplingPenaltyShell3pTest,
+        TwoPatchRefinedCouplingPenaltyMembraneTest
         ]))
 
     nightSuite = suites['nightly']
