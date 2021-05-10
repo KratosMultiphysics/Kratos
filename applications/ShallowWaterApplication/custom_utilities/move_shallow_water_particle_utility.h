@@ -620,7 +620,7 @@ public:
                                     //(flag managed only by MoveParticles)
         auto i_elem_begin = mrModelPart.ElementsBegin();
         IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int i){
-            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + i;
+            auto ielem = i_elem_begin + i;
             Element::Pointer p_element(*ielem.base());
             GeometryType& geom = ielem->GetGeometry();
 
