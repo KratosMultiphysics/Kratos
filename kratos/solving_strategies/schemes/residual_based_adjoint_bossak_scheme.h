@@ -22,16 +22,19 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "geometries/geometry.h"
 #include "includes/checks.h"
+#include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "solving_strategies/schemes/scheme.h"
+#include "includes/variables.h"
 #include "response_functions/adjoint_response_function.h"
-#include "utilities/variable_utils.h"
-#include "utilities/indirect_scalar.h"
+#include "solving_strategies/schemes/scheme.h"
 #include "utilities/adjoint_extensions.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/indirect_scalar.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/svd_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -66,6 +69,10 @@ public:
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
+    using NodeType = ModelPart::NodeType;
+
+    using GeometryType = Geometry<NodeType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -77,12 +84,15 @@ public:
         ) : mpResponseFunction(pResponseFunction)
     {
         Parameters default_parameters(R"({
-            "name"         : "adjoint_bossak",
-            "scheme_type"  : "bossak",
-            "alpha_bossak" : -0.3
+            "name"                      : "adjoint_bossak",
+            "scheme_type"               : "bossak",
+            "alpha_bossak"              : -0.3,
+            "stabilization_coefficient" : 0.0
         })");
+
         Settings.ValidateAndAssignDefaults(default_parameters);
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
+        mStabilizationCoefficient = Settings["stabilization_coefficient"].GetDouble();
     }
 
     /// Destructor.
@@ -166,6 +176,21 @@ public:
         mAdjointIndirectVector2.resize(num_threads);
         mAdjointIndirectVector3.resize(num_threads);
         mAuxAdjointIndirectVector1.resize(num_threads);
+        mStabilizationDiffusionMatrix.resize(num_threads);
+        mStabilizationPrimalSteadyMatrix.resize(num_threads);
+        mStabilizationPrimalSteadyInputSVDUMatrix.resize(num_threads);
+        mStabilizationPrimalSteadyInputSVDSMatrix.resize(num_threads);
+        mStabilizationPrimalSteadyInputSVDVMatrix.resize(num_threads);
+        mStabilizationPrimalSteadyInputSVD.resize(num_threads);
+
+        mStabilizationDiffusionMatrix.resize(num_threads);
+        mStabilizationDiffusionSVDUMatrix.resize(num_threads);
+        mStabilizationDiffusionSVDSMatrix.resize(num_threads);
+        mStabilizationDiffusionSVDVMatrix.resize(num_threads);
+
+        mElementGaussWeights.resize(num_threads);
+        mElementShapeFunctions.resize(num_threads);
+        mElementShapeFunctionDerivatives.resize(num_threads);
 
         VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS, rModelPart.Nodes());
 
@@ -258,6 +283,9 @@ public:
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         this->CalculatePreviousTimeStepContributions(
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        this->CalculateStabilizationContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         this->CalculateResidualLocalContributions(
@@ -401,10 +429,25 @@ protected:
     std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
     std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
     std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
+    std::vector<LocalSystemMatrixType> mStabilizationPrimalSteadyInputSVD;
+    std::vector<LocalSystemMatrixType> mStabilizationPrimalSteadyInputSVDUMatrix;
+    std::vector<LocalSystemMatrixType> mStabilizationPrimalSteadyInputSVDSMatrix;
+    std::vector<LocalSystemMatrixType> mStabilizationPrimalSteadyInputSVDVMatrix;
+
+    std::vector<LocalSystemMatrixType> mStabilizationDiffusionMatrix;
+    std::vector<LocalSystemMatrixType> mStabilizationDiffusionSVDUMatrix;
+    std::vector<LocalSystemMatrixType> mStabilizationDiffusionSVDSMatrix;
+    std::vector<LocalSystemMatrixType> mStabilizationDiffusionSVDVMatrix;
+
+    std::vector<LocalSystemMatrixType> mStabilizationPrimalSteadyMatrix;
     std::vector<LocalSystemVectorType> mAdjointValuesVector;
     std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
     std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
     std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
+
+    std::vector<LocalSystemVectorType> mElementGaussWeights;
+    std::vector<LocalSystemMatrixType> mElementShapeFunctions;
+    std::vector<GeometryType::ShapeFunctionsGradientsType> mElementShapeFunctionDerivatives;
 
     ///@}
     ///@name Protected Operations
@@ -468,6 +511,93 @@ protected:
     {
         CalculateEntitySecondDerivativeContributions(
             rCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Calculates stabilization diffusion matrix contributions
+     *
+     * @param rCurrentElement
+     * @param rLHS_Contribution
+     * @param rRHS_Contribution
+     * @param rCurrentProcessInfo
+     */
+    virtual void CalculateStabilizationContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const int k = OpenMPUtils::ThisThread();
+
+        auto& primal_steady_residual_first_derivative = mStabilizationPrimalSteadyMatrix[k];
+
+        auto& primal_steady_input_matrix = mStabilizationPrimalSteadyInputSVD[k];
+        auto& primal_steady_u_matrix = mStabilizationPrimalSteadyInputSVDUMatrix[k];
+        auto& primal_steady_s_matrix = mStabilizationPrimalSteadyInputSVDSMatrix[k];
+        auto& primal_steady_v_matrix = mStabilizationPrimalSteadyInputSVDVMatrix[k];
+
+        auto& stabilization_diffusion_matrix = mStabilizationDiffusionMatrix[k];
+        auto& stabilization_diffusion_u_matrix = mStabilizationDiffusionSVDUMatrix[k];
+        auto& stabilization_diffusion_s_matrix = mStabilizationDiffusionSVDSMatrix[k];
+        auto& stabilization_diffusion_v_matrix = mStabilizationDiffusionSVDVMatrix[k];
+
+        const auto& r_geometry = rCurrentElement.GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        const unsigned int number_of_equations = rLHS_Contribution.size2() / number_of_nodes;
+
+        if (stabilization_diffusion_matrix.size1() != number_of_nodes || stabilization_diffusion_matrix.size2() != number_of_nodes) {
+            stabilization_diffusion_matrix.resize(number_of_nodes, number_of_nodes, false);
+        }
+
+        if (primal_steady_input_matrix.size1() != rLHS_Contribution.size1() || primal_steady_input_matrix.size2() != number_of_nodes) {
+            primal_steady_input_matrix.resize(rLHS_Contribution.size1(), number_of_nodes, false);
+        }
+
+        rCurrentElement.Calculate(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES,
+                                  primal_steady_residual_first_derivative,
+                                  rCurrentProcessInfo);
+
+        auto& Ws = mElementGaussWeights[k];
+        auto& Ns = mElementShapeFunctions[k];
+        auto& dNdXs = mElementShapeFunctionDerivatives[k];
+
+        this->CalculateGeometryData(r_geometry, rCurrentElement.GetIntegrationMethod(), Ws, Ns, dNdXs);
+        const unsigned int number_of_gauss_points = Ws.size();
+
+        noalias(stabilization_diffusion_matrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g) {
+            noalias(stabilization_diffusion_matrix) += prod(dNdXs[g], trans(dNdXs[g])) * Ws[g];
+        }
+
+        SVDUtils<double>::SingularValueDecomposition(stabilization_diffusion_matrix, stabilization_diffusion_u_matrix, stabilization_diffusion_s_matrix, stabilization_diffusion_v_matrix);
+
+        // now get the minimum non-zero eigen values (since diffusion matrix is a symmetric semi-positive definite)
+        const double phi = stabilization_diffusion_s_matrix(number_of_nodes - 2, number_of_nodes - 2);
+
+        for (unsigned int i = 0; i < number_of_equations; ++i) {
+            for (unsigned int j = 0; j < number_of_nodes; ++j) {
+                column(primal_steady_input_matrix, j) = column(primal_steady_residual_first_derivative, j * number_of_equations + i);
+            }
+
+            SVDUtils<double>::SingularValueDecomposition(primal_steady_input_matrix, primal_steady_u_matrix, primal_steady_s_matrix, primal_steady_v_matrix);
+
+            // get the maximum singular value
+            const double sigma_1 = primal_steady_s_matrix(0, 0);
+
+            // now add the diffusion accordingly
+            const double diffusion_coeff = mStabilizationCoefficient * sigma_1 / phi;
+            for (unsigned int j = 0; j < number_of_nodes; ++j) {
+                for (unsigned int k = 0; k < number_of_nodes; ++k) {
+                    rLHS_Contribution(j * number_of_equations + i,
+                                      k * number_of_equations + i) +=
+                        diffusion_coeff * stabilization_diffusion_matrix(j, k);
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -625,6 +755,11 @@ protected:
         {
             mSecondDerivsResponseGradient[k].resize(SystemSize, false);
         }
+
+        if (mStabilizationPrimalSteadyMatrix[k].size1() != SystemSize || mStabilizationPrimalSteadyMatrix[k].size2() != SystemSize)
+        {
+            mStabilizationPrimalSteadyMatrix[k].resize(SystemSize, SystemSize, false);
+        }
     }
 
     ///@}
@@ -636,6 +771,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    double mStabilizationCoefficient;
 
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
         TSparseSpace::CreateDofUpdater();
@@ -1315,6 +1452,41 @@ private:
                              << "\" not found!\n";
             }
         }
+        KRATOS_CATCH("");
+    }
+
+    void CalculateGeometryData(
+        const GeometryType& rGeometry,
+        const GeometryData::IntegrationMethod& rIntegrationMethod,
+        Vector& rGaussWeights,
+        Matrix& rNContainer,
+        GeometryType::ShapeFunctionsGradientsType& rDN_DX)
+    {
+        KRATOS_TRY
+
+        const unsigned int number_of_gauss_points =
+            rGeometry.IntegrationPointsNumber(rIntegrationMethod);
+
+        Vector DetJ;
+        rGeometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, rIntegrationMethod);
+
+        const std::size_t number_of_nodes = rGeometry.PointsNumber();
+
+        if (rNContainer.size1() != number_of_gauss_points || rNContainer.size2() != number_of_nodes) {
+            rNContainer.resize(number_of_gauss_points, number_of_nodes, false);
+        }
+        rNContainer = rGeometry.ShapeFunctionsValues(rIntegrationMethod);
+
+        const auto& IntegrationPoints = rGeometry.IntegrationPoints(rIntegrationMethod);
+
+        if (rGaussWeights.size() != number_of_gauss_points) {
+            rGaussWeights.resize(number_of_gauss_points, false);
+        }
+
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g) {
+            rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+        }
+
         KRATOS_CATCH("");
     }
 
