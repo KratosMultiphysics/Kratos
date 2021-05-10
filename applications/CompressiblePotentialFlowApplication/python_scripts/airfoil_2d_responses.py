@@ -18,6 +18,7 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
 
         self.trailing_edge_model_part_name = response_settings["trailing_edge_model_part"].GetString()
         self.leading_edge_sub_model_part_name = response_settings["leading_edge_model_part"].GetString()
+        self.reference_direction= response_settings["reference_direction"].GetVector() if response_settings.Has("reference_direction") else [1.0,0.0,0.0]
 
     def Initialize(self):
         self.te_model_part = self.model[self.trailing_edge_model_part_name]
@@ -35,8 +36,6 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         self.aoa = self._CalculateAOA(self.te_node.X,self.te_node.Y, self.le_node.X, self.le_node.Y)
 
     def CalculateGradient(self):
-        horizontal_direction = KratosMultiphysics.Vector(3, 0.0)
-        horizontal_direction[0] = 1.0
         x_diff = self.le_node.X - self.te_node.X
         y_diff = self.le_node.Y - self.te_node.Y
 
@@ -44,15 +43,15 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         cshape_sensitivity_1 = y_diff
         cshape_sensitivity_2 = cshape_sensitivity_0**2 + cshape_sensitivity_1**2
         cshape_sensitivity_3 = 1/cshape_sensitivity_2
-        cshape_sensitivity_4 = cshape_sensitivity_0*horizontal_direction[0] + cshape_sensitivity_1*horizontal_direction[1]
+        cshape_sensitivity_4 = cshape_sensitivity_0*self.reference_direction[0] + cshape_sensitivity_1*self.reference_direction[1]
         cshape_sensitivity_5 = cshape_sensitivity_3*cshape_sensitivity_4
-        cshape_sensitivity_6 = horizontal_direction[0]**2 + horizontal_direction[1]**2
+        cshape_sensitivity_6 = self.reference_direction[0]**2 + self.reference_direction[1]**2
         cshape_sensitivity_7 = 1/(math.sqrt(cshape_sensitivity_2)*math.sqrt(cshape_sensitivity_6)*math.sqrt(-cshape_sensitivity_3*cshape_sensitivity_4**2/cshape_sensitivity_6 + 1))
 
-        self.te_x_gradient = -cshape_sensitivity_7*(-cshape_sensitivity_0*cshape_sensitivity_5 + horizontal_direction[0])
-        self.te_y_gradient = -cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + horizontal_direction[1])
-        self.le_x_gradient = cshape_sensitivity_7*(-cshape_sensitivity_0*cshape_sensitivity_5 + horizontal_direction[0])
-        self.le_y_gradient = cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + horizontal_direction[1])
+        self.te_x_gradient = -cshape_sensitivity_7*(-cshape_sensitivity_0*cshape_sensitivity_5 + self.reference_direction[0])
+        self.te_y_gradient = -cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + self.reference_direction[1])
+        self.le_x_gradient = cshape_sensitivity_7*(-cshape_sensitivity_0*cshape_sensitivity_5 + self.reference_direction[0])
+        self.le_y_gradient = cshape_sensitivity_7*(-cshape_sensitivity_1*cshape_sensitivity_5 + self.reference_direction[1])
 
     def GetValue(self):
         return self.aoa
