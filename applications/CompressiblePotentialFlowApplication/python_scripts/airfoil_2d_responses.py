@@ -35,11 +35,33 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         self.aoa = self._CalculateAOA(self.te_node.X,self.te_node.Y, self.le_node.X, self.le_node.Y)
 
     def CalculateGradient(self):
-        epsilon = 1e-9
-        self.te_x_gradient = (self._CalculateAOA(self.te_node.X + epsilon,self.te_node.Y, self.le_node.X, self.le_node.Y) - self.aoa) / epsilon
-        self.te_y_gradient = (self._CalculateAOA(self.te_node.X ,self.te_node.Y+ epsilon, self.le_node.X, self.le_node.Y) - self.aoa) / epsilon
-        self.le_x_gradient = (self._CalculateAOA(self.te_node.X ,self.te_node.Y, self.le_node.X+ epsilon, self.le_node.Y) - self.aoa) / epsilon
-        self.le_y_gradient = (self._CalculateAOA(self.te_node.X ,self.te_node.Y, self.le_node.X, self.le_node.Y+ epsilon) - self.aoa) / epsilon
+        horizontal_direction = KratosMultiphysics.Vector(3, 0.0)
+        horizontal_direction[0] = 1.0
+        x_diff = self.le_node.X - self.te_node.X
+        y_diff = self.le_node.Y - self.te_node.Y
+
+        cshape_sensitivity_te0 = x_diff
+        cshape_sensitivity_te1 = y_diff
+        cshape_sensitivity_te2 = cshape_sensitivity_te0**2 + cshape_sensitivity_te1**2
+        cshape_sensitivity_te3 = 1/cshape_sensitivity_te2
+        cshape_sensitivity_te4 = cshape_sensitivity_te0*horizontal_direction[0] + cshape_sensitivity_te1*horizontal_direction[1]
+        cshape_sensitivity_te5 = cshape_sensitivity_te3*cshape_sensitivity_te4
+        cshape_sensitivity_te6 = horizontal_direction[0]**2 + horizontal_direction[1]**2
+        cshape_sensitivity_te7 = 1/(math.sqrt(cshape_sensitivity_te2)*math.sqrt(cshape_sensitivity_te6)*math.sqrt(-cshape_sensitivity_te3*cshape_sensitivity_te4**2/cshape_sensitivity_te6 + 1))
+
+        cshape_sensitivity_le0 = x_diff
+        cshape_sensitivity_le1 = y_diff
+        cshape_sensitivity_le2 = cshape_sensitivity_le0**2 + cshape_sensitivity_le1**2
+        cshape_sensitivity_le3 = 1/cshape_sensitivity_le2
+        cshape_sensitivity_le4 = cshape_sensitivity_le0*horizontal_direction[0] + cshape_sensitivity_le1*horizontal_direction[1]
+        cshape_sensitivity_le5 = cshape_sensitivity_le3*cshape_sensitivity_le4
+        cshape_sensitivity_le6 = horizontal_direction[0]**2 + horizontal_direction[1]**2
+        cshape_sensitivity_le7 = 1/(math.sqrt(cshape_sensitivity_le2)*math.sqrt(cshape_sensitivity_le6)*math.sqrt(-cshape_sensitivity_le3*cshape_sensitivity_le4**2/cshape_sensitivity_le6 + 1))
+
+        self.te_x_gradient = -cshape_sensitivity_te7*(-cshape_sensitivity_te0*cshape_sensitivity_te5 + horizontal_direction[0])
+        self.te_y_gradient = -cshape_sensitivity_te7*(-cshape_sensitivity_te1*cshape_sensitivity_te5 + horizontal_direction[1])
+        self.le_x_gradient = cshape_sensitivity_le7*(-cshape_sensitivity_le0*cshape_sensitivity_le5 + horizontal_direction[0])
+        self.le_y_gradient = cshape_sensitivity_le7*(-cshape_sensitivity_le1*cshape_sensitivity_le5 + horizontal_direction[1])
 
     def GetValue(self):
         return self.aoa
@@ -61,7 +83,6 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         return gradient
 
     def _CalculateAOA(self, te_x, te_y, le_x, le_y):
-
         velocity_norm = self.free_stream_velocity.norm_2()
         chord_vector = KratosMultiphysics.Vector(3, 0.0)
         chord_vector[0] = le_x-te_x
@@ -104,7 +125,6 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
         self.chord = self._ComputeChord(self.te_node.X,self.te_node.Y, self.le_node.X,self.le_node.Y)
 
     def CalculateGradient(self):
-
         x_diff = self.le_node.X - self.te_node.X
         y_diff = self.le_node.Y - self.te_node.Y
 
@@ -141,7 +161,6 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
         self.model_part_name = response_settings["model_part_name"].GetString()
         self.step_size = response_settings["step_size"].GetDouble() if response_settings.Has("step_size") else 1e-6
 
-
     def Initialize(self):
         self.main_model_part = self.model[self.model_part_name]
 
@@ -164,7 +183,6 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
 
         for node in self.main_model_part.Nodes:
             shape_gradient = KratosMultiphysics.Vector(3, 0.0)
-
 
             node.X += self.step_size
             current_perimeter =  self._ComputePerimeter(self.main_model_part)
