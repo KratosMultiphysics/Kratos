@@ -269,6 +269,17 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    template <class TContainerType>
+    double CalculateArea(TContainerType& rContainer)
+    {
+        double area = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Area();
+        });
+
+        return area;
+    }
+
     // --------------------------------------------------------------------------
 
     ///@}

@@ -190,6 +190,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
         .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
+        .def("CalculateArea",&GeometryUtilities::CalculateArea<ModelPart::ElementsContainerType>)
+        .def("CalculateArea",&GeometryUtilities::CalculateArea<ModelPart::ConditionsContainerType>)
         ;
 
     // ========================================================================
