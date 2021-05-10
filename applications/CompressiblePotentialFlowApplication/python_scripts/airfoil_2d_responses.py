@@ -104,11 +104,14 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
         self.chord = self._ComputeChord(self.te_node.X,self.te_node.Y, self.le_node.X,self.le_node.Y)
 
     def CalculateGradient(self):
-        epsilon = 1e-9
-        self.te_x_gradient = (self._ComputeChord(self.te_node.X + epsilon,self.te_node.Y, self.le_node.X, self.le_node.Y) - self.chord) / epsilon
-        self.te_y_gradient = (self._ComputeChord(self.te_node.X ,self.te_node.Y+ epsilon, self.le_node.X, self.le_node.Y) - self.chord) / epsilon
-        self.le_x_gradient = (self._ComputeChord(self.te_node.X ,self.te_node.Y, self.le_node.X+ epsilon, self.le_node.Y) - self.chord) / epsilon
-        self.le_y_gradient = (self._ComputeChord(self.te_node.X ,self.te_node.Y, self.le_node.X, self.le_node.Y+ epsilon) - self.chord) / epsilon
+
+        x_diff = self.le_node.X - self.te_node.X
+        y_diff = self.le_node.Y - self.te_node.Y
+
+        self.te_x_gradient = -x_diff/math.sqrt(x_diff**2 + y_diff**2)
+        self.te_y_gradient = -y_diff/math.sqrt(x_diff**2 + y_diff**2)
+        self.le_x_gradient = x_diff/math.sqrt(x_diff**2 + y_diff**2)
+        self.le_y_gradient = y_diff/math.sqrt(x_diff**2 + y_diff**2)
 
     def GetValue(self):
         return self.chord
@@ -136,6 +139,8 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
     def __init__(self, response_id, response_settings, model):
         self.model = model
         self.model_part_name = response_settings["model_part_name"].GetString()
+        self.step_size = response_settings["step_size"].GetDouble() if response_settings.Has("step_size") else 1e-6
+
 
     def Initialize(self):
         self.main_model_part = self.model[self.model_part_name]
@@ -155,22 +160,21 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
 
     def GetNodalGradient(self, variable):
         gradient = {}
-        epsilon = 1e-6
         initial_perimeter =  self._ComputePerimeter(self.main_model_part)
 
         for node in self.main_model_part.Nodes:
             shape_gradient = KratosMultiphysics.Vector(3, 0.0)
 
 
-            node.X += epsilon
+            node.X += self.step_size
             current_perimeter =  self._ComputePerimeter(self.main_model_part)
-            shape_gradient[0] = (current_perimeter-initial_perimeter)/epsilon
-            node.X -= epsilon
+            shape_gradient[0] = (current_perimeter-initial_perimeter)/self.step_size
+            node.X -= self.step_size
 
-            node.Y += epsilon
+            node.Y += self.step_size
             current_perimeter =  self._ComputePerimeter(self.main_model_part)
-            shape_gradient[1] = (current_perimeter-initial_perimeter)/epsilon
-            node.Y -= epsilon
+            shape_gradient[1] = (current_perimeter-initial_perimeter)/self.step_size
+            node.Y -= self.step_size
 
             gradient[node.Id] = shape_gradient
 
