@@ -510,7 +510,7 @@ public:
 
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             rNode.FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
-            rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1)=ZeroVector(3);
+            noalias(rNode.FastGetSolutionStepValue(PROJECTED_VECTOR1))=ZeroVector(3);
             rNode.FastGetSolutionStepValue(INTEGRATION_WEIGHT)=0.0;
         });
 
