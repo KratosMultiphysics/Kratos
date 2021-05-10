@@ -95,7 +95,7 @@ void ShallowWaterUtilities::ComputeSmoothVelocity(ModelPart& rModelPart)
 void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(MOMENTUM) = rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(HEIGHT);
+        noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(HEIGHT);
     });
 }
 
