@@ -79,83 +79,6 @@ class ResetToZeroAdjointSolutionController(AdjointSolutionController):
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Resetted adjoint solution to zero.")
 
-class ResetToStableTemporalSolutionAdjointSolutionController(AdjointSolutionController):
-    def __init__(self, model_part, parameters):
-        super().__init__(model_part, parameters)
-
-        default_parameters = Kratos.Parameters("""{
-            "solution_control_method"               : "reset_to_stable_temporal_solution",
-            "reset_interval_steps"                  : 1,
-            "stable_temporal_solution_file_settings": {
-                "io_type"         : "serial_hdf5_file_io",
-                "file_name"       : "<model_part_name>-<time>.h5",
-                "file_access_mode": "read_only",
-                "time_format"     : "0.6f"
-            }
-        }""")
-
-        self.parameters.RecursivelyValidateAndAssignDefaults(default_parameters)
-
-        self.reset_interval_steps = self.parameters["reset_interval_steps"].GetInt()
-        self.reset_step = 1
-        self.hdf5_parameters = Kratos.Parameters("""{
-            "prefix": "/ResultsData",
-            "list_of_variables" : [
-                "ADJOINT_FLUID_VECTOR_1",
-                "ADJOINT_FLUID_VECTOR_2",
-                "ADJOINT_FLUID_VECTOR_3",
-                "ADJOINT_FLUID_SCALAR_1",
-                "RANS_SCALAR_1_ADJOINT_1",
-                "RANS_SCALAR_1_ADJOINT_2",
-                "RANS_SCALAR_1_ADJOINT_3",
-                "RANS_SCALAR_2_ADJOINT_1",
-                "RANS_SCALAR_2_ADJOINT_2",
-                "RANS_SCALAR_2_ADJOINT_3",
-                "SHAPE_SENSITIVITY"
-            ]
-        }""")
-
-        self.hdf5_file_io_settings = self.parameters["stable_temporal_solution_file_settings"]
-        if IsDistributedRun():
-            self.hdf5_file_io_settings["io_type"].SetString("parallel_hdf5_file_io")
-        else:
-            self.hdf5_file_io_settings["io_type"].SetString("serial_hdf5_file_io")
-        self.hdf5_file_io_settings["file_access_mode"].SetString("read_only")
-        self.hdf5_file_io = CreateHDF5FileIO(ParametersWrapper(self.hdf5_file_io_settings))
-
-        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.SHAPE_SENSITIVITY, self.main_model_part.Nodes)
-
-    def FinalizeSolutionStep(self):
-        if (self.inteval_steps >= self.reset_interval_steps):
-            self.reset_step += 1
-            self.check_step = self.main_model_part.ProcessInfo[Kratos.STEP]
-
-            Kratos.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-                Kratos.SHAPE_SENSITIVITY,
-                Kratos.SHAPE_SENSITIVITY,
-                self.main_model_part,
-                self.main_model_part,
-                0)
-
-            # set step variable to match with the temporal coarse solution
-            current_step = self.main_model_part.ProcessInfo[Kratos.STEP]
-            self.main_model_part.ProcessInfo[Kratos.STEP] = self.reset_step
-
-            # read data from coarse temporal solution
-            hdf5_file_io = self.hdf5_file_io.Get(self.main_model_part)
-            hdf5_settings = self.hdf5_file_io._FileSettings(self.main_model_part).Get()
-            nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(self.hdf5_parameters, hdf5_file_io)
-            nodal_io.ReadNodalResults(self.main_model_part, 0)
-
-            # revert to original step in the refined temporal solution
-            self.main_model_part.ProcessInfo[Kratos.STEP] = current_step
-
-            KratosRANS.RansAdjointUtilities.RescaleShapeSensitivity(
-                self.main_model_part)
-
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Resetted adjoint solution from the coarse temporal solution in {:s}.".format(hdf5_settings["file_name"].GetString()))
-
-
 class AdjointRANSSolver(CoupledRANSSolver):
     def __init__(self, model, custom_settings):
         # adjoint settings is validated here without going through
@@ -217,8 +140,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
             adjoint_solution_controller_type = adjoint_solution_controller_settings["solution_control_method"].GetString()
             solution_control_methods = [
                 "none",
-                "reset_to_zero",
-                "reset_to_stable_temporal_solution"
+                "reset_to_zero"
             ]
             if (not adjoint_solution_controller_type in solution_control_methods):
                 msg = "Unsupported adjoint solution control method provided. Requested \"adjoint_solution_controller_settings\" = \"{:s}\".".format(adjoint_solution_controller_type)
@@ -229,8 +151,6 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 self.adjoint_solution_controller = AdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
             elif (adjoint_solution_controller_type == "reset_to_zero"):
                 self.adjoint_solution_controller = ResetToZeroAdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
-            elif (adjoint_solution_controller_type == "reset_to_stable_temporal_solution"):
-                self.adjoint_solution_controller = ResetToStableTemporalSolutionAdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
         else:
             self.adjoint_solution_controller = AdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
 
