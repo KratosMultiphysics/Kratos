@@ -20,12 +20,14 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         self.leading_edge_sub_model_part_name = response_settings["leading_edge_model_part"].GetString()
 
     def Initialize(self):
-        self.main_model_part = self.model["MainModelPart"]
+        self.te_model_part = self.model[self.trailing_edge_model_part_name]
+        self.le_model_part = self.model[self.leading_edge_sub_model_part_name]
+        self.main_model_part = self.te_model_part.GetRootModelPart()
         self.free_stream_velocity = self.main_model_part.ProcessInfo[KCPFApp.FREE_STREAM_VELOCITY]
-        for node in self.model[self.trailing_edge_model_part_name].Nodes:
+        for node in self.te_model_part.Nodes::
             self.te_node = node
             break
-        for node in self.model[self.leading_edge_sub_model_part_name].Nodes:
+        for node in self.le_model_part.Nodes:
             self.le_node = node
             break
 
