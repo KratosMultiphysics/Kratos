@@ -189,26 +189,26 @@ public:
         mOffset=0;
         for(unsigned int ii=0; ii<mrModelPart.Elements().size(); ii++)
         {
-            ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+            ModelPart::ElementsContainerType::iterator i_elem = ielembegin+ii;
             mVectorOfParticlePointersVectors[ii] = ParticlePointerVector( mMaxNumberOfParticles*2 );
             ParticlePointerVector& particle_pointers = mVectorOfParticlePointersVectors[ii];
             int & number_of_particles = mNumOfParticlesInElems[ii];
             number_of_particles=0;
 
-            GeometryType& geom = ielem->GetGeometry();
+            GeometryType& geom = i_elem->GetGeometry();
             ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
             //now we seed the particles in the current element
             for (unsigned int j = 0; j < pos.size1(); j++)
             {
                 ++particle_id;
 
-                ShallowParticle& pparticle = mParticlesVector[particle_id-1];
-                pparticle.Coordinates() = row(pos,j);
+                ShallowParticle& p_particle = mParticlesVector[particle_id-1];
+                p_particle.Coordinates() = row(pos,j);
 
-                pparticle.GetEraseFlag()=false;
+                p_particle.GetEraseFlag()=false;
 
-                array_1d<float, 3 > & vector1 = pparticle.GetVector1();
-                float & scalar1 = pparticle.GetScalar1();
+                array_1d<double, 3 > & vector1 = p_particle.GetVector1();
+                double & scalar1 = p_particle.GetScalar1();
                 noalias(vector1) = ZeroVector(3);
                 scalar1=0.0;
 
@@ -218,7 +218,7 @@ public:
                     noalias(vector1) += N(j, k) * geom[k].FastGetSolutionStepValue(*mVectorVar1);
                 }
 
-                particle_pointers(j) = &pparticle;
+                particle_pointers(j) = &p_particle;
                 number_of_particles++ ;
 
             }
@@ -408,41 +408,33 @@ public:
 
         #pragma omp barrier
 
-        // struct TLS {
-        //     ResultContainerType results;
-        //     GlobalPointersVector<Element> elements_in_trajectory;
-        // };
-        // TLS tls;
-        // tls.results.resize(max_results);
-        // tls.elements_in_trajectory.resize(20);
+        struct TLS {
+            ResultContainerType results;
+            GlobalPointersVector<Element> elements_in_trajectory;
+        };
+        TLS tls;
+        tls.results.resize(max_results);
+        tls.elements_in_trajectory.resize(20);
 
-        ResultContainerType results(max_results);
-        GlobalPointersVector<Element> elements_in_trajectory;
-        elements_in_trajectory.resize(20);
-
-        // block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS){
-        ModelPart::ElementsContainerType::iterator i_elem_begin = mrModelPart.ElementsBegin();
-        #pragma omp parallel for firstprivate(results, elements_in_trajectory)
-        for (int ielem = 0; ielem < static_cast<int>(mrModelPart.NumberOfElements()); ++ielem) {
-            ModelPart::ElementsContainerType::iterator old_element = i_elem_begin + ielem;
-            const int old_element_id = old_element->Id();
+        block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS){
+            const int old_element_id = rElem.Id();
 
             ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
 
-            if ( (results.size()) != max_results )
-                results.resize(max_results);
+            if ( (rTLS.results.size()) != max_results )
+                rTLS.results.resize(max_results);
 
             unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
 
             for (int ii = 0; ii < mNumOfParticlesInElemsAux[old_element_id-1]; ii++)
             {
-                ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
+                ShallowParticle& p_particle = old_element_particle_pointers[offset+ii];
 
-                Element::Pointer p_current_element(*old_element.base());
-                ResultIteratorType result_begin = results.begin();
-                bool & erase_flag = pparticle.GetEraseFlag();
+                Element::Pointer p_current_element(&rElem);
+                ResultIteratorType result_begin = rTLS.results.begin();
+                bool & erase_flag = p_particle.GetEraseFlag();
                 if (erase_flag == false){
-                    MoveParticle(pparticle,p_current_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
+                    MoveParticle(p_particle,p_current_element,rTLS.elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
 
                     const int current_element_id = p_current_element->Id();
 
@@ -456,24 +448,24 @@ public:
                         {
                             if (number_of_particles_in_current_elem < mMaxNumberOfParticles) // we cant go over this node, there's no room. otherwise we would be in the position of the first particle of the next element!!
                             {
-                                current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
+                                current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &p_particle;
                                 number_of_particles_in_current_elem++ ;
                                 KRATOS_ERROR_IF( number_of_particles_in_current_elem > mMaxNumberOfParticles ) <<
                                     "In move shallow water particle utility: exceeded maximum number of particles" << std::endl;
                             }
                             else
                             {
-                                pparticle.GetEraseFlag()=true; //so we just delete it!
+                                p_particle.GetEraseFlag()=true; //so we just delete it!
                             }
                         }
                     }
                     else
                     {
-                        pparticle.GetEraseFlag()=true; //so we just delete it!
+                        p_particle.GetEraseFlag()=true; //so we just delete it!
                     }
                 }
             }
-        }
+        });
 
         // After having changed everything we change the status of the mOddTimeStep flag:
         mOffset = post_offset;
@@ -515,13 +507,13 @@ public:
         });
 
         // Adding contribution, loop on elements, since each element has stored the particles found inside of it
-        IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int i){
+        IndexPartition<unsigned int>(mrModelPart.NumberOfElements()).for_each([&](unsigned int ii){
             array_1d<double,3*(TDim+1)> nodes_positions;
             array_1d<double,3*(TDim+1)> nodes_added_vector1 = ZeroVector(3*(TDim+1));
             array_1d<double,(TDim+1)> nodes_added_scalar1 = ZeroVector((TDim+1));
             array_1d<double,(TDim+1)> nodes_added_weights = ZeroVector((TDim+1));
 
-            auto i_elem = mrModelPart.ElementsBegin() + i;
+            auto i_elem = mrModelPart.ElementsBegin() + ii;
             GeometryType& geom = i_elem->GetGeometry();
 
             for (int i=0 ; i!=(TDim+1) ; ++i)
@@ -531,21 +523,21 @@ public:
                 nodes_positions[i*3+2]=geom[i].Z();
             }
 
-            int & number_of_particles_in_elem = mNumOfParticlesInElems[i];
-            ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[i];
+            int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
+            ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
 
             for (int iii=0; iii < number_of_particles_in_elem; iii++ )
             {
                 if (iii == mMaxNumberOfParticles) // It means we are out of our portion of the array, abort loop!
                     break;
 
-                ShallowParticle& pparticle = element_particle_pointers[offset+iii];
+                ShallowParticle& p_particle = element_particle_pointers[offset+iii];
 
-                if (pparticle.GetEraseFlag() == false)
+                if (p_particle.GetEraseFlag() == false)
                 {
-                    array_1d<double,3> & position = pparticle.Coordinates();
-                    const float& particle_scalar1 = pparticle.GetScalar1();
-                    const array_1d<float,3>& particle_vector1 = pparticle.GetVector1();
+                    array_1d<double,3> & position = p_particle.Coordinates();
+                    const double& particle_scalar1 = p_particle.GetScalar1();
+                    const array_1d<double,3>& particle_vector1 = p_particle.GetVector1();
 
                     array_1d<double,TDim+1> N;
                     bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
@@ -553,8 +545,8 @@ public:
                     {
                         KRATOS_INFO("MoveShallowWaterParticleUtility") << N << std::endl;
                         for (int j=0 ; j!=(TDim+1); j++)
-                            if (N[j]<0.0 && N[j]> -1e-5)
-                                N[j]=1e-10;
+                            if (N[j] < 0.0 && N[j] > -1e-5)
+                                N[j] = 1e-10;
                     }
 
                     for (int j = 0 ; j != TDim+1; j++) //going through the 3/4 nodes of the element
@@ -635,7 +627,7 @@ public:
                 ShallowParticle& p_particle = element_particle_pointers[offset+iii];
 
                 bool erase_flag= p_particle.GetEraseFlag();
-                if (erase_flag==false)
+                if (erase_flag == false)
                 {
                     CorrectParticleUsingDeltaVariables(p_particle, p_element, geom); //'lite' version, we pass by reference the geometry, so much cheaper
                 }
@@ -662,7 +654,7 @@ public:
     {
         KRATOS_TRY
 
-        const int offset =mOffset;
+        const int offset = mOffset;
         const int max_results = 1000;
 
         ResultContainerType results(max_results);
@@ -875,12 +867,12 @@ public:
         int counter = 0;
         for (int i = 0; i != mMaxNumberOfParticles*mNElems; i++)
         {
-            ShallowParticle& pparticle = mParticlesVector[i];
-            if(pparticle.GetEraseFlag() == false && i%FilterFactor == 0)
+            ShallowParticle& p_particle = mParticlesVector[i];
+            if(p_particle.GetEraseFlag() == false && i%FilterFactor == 0)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + counter; //copying info from the particle to the (printing) node.
-                inode->FastGetSolutionStepValue(*mScalarVar1)  = pparticle.GetScalar1();
-                inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
+                inode->FastGetSolutionStepValue(*mScalarVar1)  = p_particle.GetScalar1();
+                inode->FastGetSolutionStepValue(DISPLACEMENT) = p_particle.Coordinates();
                 counter++;
             }
         }
@@ -1017,8 +1009,8 @@ private:
 
         //we start with the first position, then it will enter the loop.
         array_1d<double,3> coords = pParticle.Coordinates();
-        float & particle_scalar1 = pParticle.GetScalar1();
-        array_1d<float,3> & particle_vector1 = pParticle.GetVector1();
+        double & particle_scalar1 = pParticle.GetScalar1();
+        array_1d<double,3> & particle_vector1 = pParticle.GetVector1();
 
         //double distance=0.0;
         double delta_scalar1 = 0.0;
