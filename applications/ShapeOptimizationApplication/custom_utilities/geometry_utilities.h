@@ -271,13 +271,13 @@ public:
 
 
     template <class TContainerType>
-    double CalculateArea(TContainerType& rContainer)
+    double CalculateLength(TContainerType& rContainer)
     {
-        double area = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
-            return rEntity.GetGeometry().Area();
+        double length = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Length();
         });
 
-        return area;
+        return length;
     }
 
     // --------------------------------------------------------------------------
