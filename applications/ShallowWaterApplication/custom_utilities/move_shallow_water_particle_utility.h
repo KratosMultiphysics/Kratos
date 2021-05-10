@@ -762,7 +762,7 @@ public:
         auto i_elem_begin = mrModelPart.ElementsBegin();
         #pragma omp parallel for firstprivate(pos, N, free_particle)
         for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
-            ModelPart::ElementsContainerType::iterator ielem = i_elem_begin + ii;
+            auto ielem = i_elem_begin + ii;
 
             int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
             ParticlePointerVector& element_particle_pointers = mVectorOfParticlePointersVectors[ii];
