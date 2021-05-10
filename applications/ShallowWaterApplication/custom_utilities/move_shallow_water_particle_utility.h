@@ -274,7 +274,7 @@ public:
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
         block_for_each(mrModelPart.Elements(), [&](Element& rElem){
-            GeometryType& geom = rElem.GetGeometry();
+            const GeometryType& geom = rElem.GetGeometry();
 
             array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
