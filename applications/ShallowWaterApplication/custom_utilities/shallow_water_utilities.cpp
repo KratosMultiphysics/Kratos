@@ -215,7 +215,7 @@ void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<arra
 void ShallowWaterUtilities::SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        auto& value = rNode.FastGetSolutionStepValue(rVariable);
+        double& value = rNode.FastGetSolutionStepValue(rVariable);
         value = std::max(value, MinValue);
     });
 }
