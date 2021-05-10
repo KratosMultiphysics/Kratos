@@ -24,7 +24,7 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         self.te_model_part = self.model[self.trailing_edge_model_part_name]
         self.le_model_part = self.model[self.leading_edge_sub_model_part_name]
         self.main_model_part = self.te_model_part.GetRootModelPart()
-        self.free_stream_velocity = self.main_model_part.ProcessInfo[KCPFApp.FREE_STREAM_VELOCITY]
+
         for node in self.te_model_part.Nodes:
             self.te_node = node
             break
@@ -73,12 +73,12 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
         return gradient
 
     def _CalculateAOA(self, te_x, te_y, le_x, le_y):
-        velocity_norm = self.free_stream_velocity.norm_2()
+        ref_dir_norm = KratosMultiphysics.Vector(self.reference_direction).norm_2()
         chord_vector = KratosMultiphysics.Vector(3, 0.0)
-        chord_vector[0] = le_x-te_x
-        chord_vector[1] = le_y-te_y
+        chord_vector[0] = te_x-le_x
+        chord_vector[1] = te_y-le_y
         chord_norm = chord_vector.norm_2()
-        aoa = math.acos(DotProduct(self.free_stream_velocity, -1*chord_vector)/(velocity_norm*chord_norm))
+        aoa = math.acos(DotProduct(self.reference_direction, chord_vector)/(ref_dir_norm*chord_norm))
 
         return aoa
 
