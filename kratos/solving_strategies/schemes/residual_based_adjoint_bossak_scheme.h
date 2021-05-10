@@ -93,6 +93,8 @@ public:
         Settings.ValidateAndAssignDefaults(default_parameters);
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
         mStabilizationCoefficient = Settings["stabilization_coefficient"].GetDouble();
+
+        KRATOS_INFO(this->Info()) << "Created adjoint bossak scheme with alpha_bossak = " << mBossak.Alpha << ", and stabilization_coefficient = " << mStabilizationCoefficient << ".\n";
     }
 
     /// Destructor.

@@ -31,6 +31,7 @@ class AdjointSolutionController:
         self.parameters = parameters
         self.check_step = -1
         self.inteval_steps = 0
+        self.diffusion_coefficient = 0.0
 
     def InitializeSolutionStep(self):
         if (self.check_step == -1):
@@ -40,6 +41,18 @@ class AdjointSolutionController:
 
     def FinalizeSolutionStep(self):
         pass
+
+class DiffusionSolutionController(AdjointSolutionController):
+    def __init__(self, main_model_part, parameters):
+        super().__init__(main_model_part, parameters)
+
+        default_parameters = Kratos.Parameters("""{
+            "solution_control_method"       : "diffusion",
+            "stabilization_coefficient"     : 1
+        }""")
+
+        self.parameters.ValidateAndAssignDefaults(default_parameters)
+        self.diffusion_coefficient = self.parameters["stabilization_coefficient"].GetDouble()
 
 class ResetToZeroAdjointSolutionController(AdjointSolutionController):
     def __init__(self, main_model_part, parameters):
@@ -140,7 +153,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
             adjoint_solution_controller_type = adjoint_solution_controller_settings["solution_control_method"].GetString()
             solution_control_methods = [
                 "none",
-                "reset_to_zero"
+                "reset_to_zero",
+                "diffusion"
             ]
             if (not adjoint_solution_controller_type in solution_control_methods):
                 msg = "Unsupported adjoint solution control method provided. Requested \"adjoint_solution_controller_settings\" = \"{:s}\".".format(adjoint_solution_controller_type)
@@ -151,6 +165,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 self.adjoint_solution_controller = AdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
             elif (adjoint_solution_controller_type == "reset_to_zero"):
                 self.adjoint_solution_controller = ResetToZeroAdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
+            elif (adjoint_solution_controller_type == "diffusion"):
+                self.adjoint_solution_controller = DiffusionSolutionController(self.main_model_part, adjoint_solution_controller_settings)
         else:
             self.adjoint_solution_controller = AdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
 
@@ -421,6 +437,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
+            self.settings["time_scheme_settings"].AddEmptyValue("stabilization_coefficient")
+            self.settings["time_scheme_settings"]["stabilization_coefficient"].SetDouble(self.adjoint_solution_controller.diffusion_coefficient)
             scheme = GetKratosObjectPrototype("VelocityBossakAdjointScheme")(self.settings["time_scheme_settings"], response_function, domain_size, block_size)
         elif scheme_type == "steady":
             scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(response_function, domain_size, block_size)
