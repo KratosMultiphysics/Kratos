@@ -307,11 +307,20 @@ protected:
     /**
      * @brief Intersected element geometry data fill
      * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
-     * intersected or incised element. To do that, the modified shape functions utility is firstly created and then called
-     * to perform all operations on both the positive and negative sides of the element.
+     * intersected element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineModifiedGeometryData(EmbeddedDiscontinuousElementData& rData, const bool& IsAusasIncised = false) const;
+    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Intersected element geometry data fill
+     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
+     * incised element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both, the positive and negative, sides of the element.
+     * @param rData reference to the element data structure
+     */
+    void DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const;
 
     /**
      * @brief For an intersected element, normalize the interface normals
@@ -500,7 +509,7 @@ private:
 namespace EmbeddedDiscontinuousInternals {
 
 template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator(
     const Element &rElement,
     const Vector &rElementalDistances);
 
@@ -510,7 +519,7 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
     const Vector &rElementalDistances);
 
 template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetIncisedShapeFunctionCalculator(
+ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator(
     const Element &rElement,
     const Vector &rElementalDistancesWithExtrapolated,
     const Vector &rElementalEdgeDistancesExtrapolated);
