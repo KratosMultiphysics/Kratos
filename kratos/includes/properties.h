@@ -202,7 +202,7 @@ public:
     template<class TVariableType>
     void Erase(const TVariableType& rV)
     {
-        return mData.Erase(rV);
+        mData.Erase(rV);
     }
 
     template<class TVariableType>
