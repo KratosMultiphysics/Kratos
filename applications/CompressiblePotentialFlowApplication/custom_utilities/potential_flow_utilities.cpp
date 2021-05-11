@@ -895,7 +895,7 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
             number_of_unfulfilled_wake_conditions += 1;
         }
     }
-    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0 && rEchoLevel > 0)
         << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
         << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
 }
