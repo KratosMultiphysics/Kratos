@@ -57,29 +57,29 @@ public:
     /**
      * @brief Checks if an element is split
      * From the given vector containing the distance in each node, this method checks if the element is split
-     * @param rNodalDistances Vector containing the distance values at each node
+     * @param rElementDistancesVector Vector containing the distance values at each node
      * @return true The element is split
      * @return false The element is not split
      */
-    static inline bool IsSplit(const Vector& rNodalDistances);
+    static inline bool IsSplit(const Vector& rElementDistancesVector);
 
     /**
      * @brief Checks if an element is positive
      * From the given vector containing the distance in each node, this method checks if the element is positive
-     * @param rNodalDistances Vector containing the distance values at each node
+     * @param rElementDistancesVector Vector containing the distance values at each node
      * @return true The element is positive
      * @return false The element is not positive
      */
-    static inline bool IsPositive(const Vector& rNodalDistances);
+    static inline bool IsPositive(const Vector &rElementDistancesVector);
 
     /**
      * @brief Checks if an element is negative
      * From the given vector containing the distance in each node, this method checks if the element is negative
-     * @param rNodalDistances Vector containing the distance values at each node
+     * @param rElementDistancesVector Vector containing the distance values at each node
      * @return true The element is negative
      * @return false The element is not negative
      */
-    static inline bool IsNegative(const Vector& rNodalDistances);
+    static inline bool IsNegative(const Vector &rElementDistancesVector);
 
     /**
      * @brief Calculate the fluid volume
