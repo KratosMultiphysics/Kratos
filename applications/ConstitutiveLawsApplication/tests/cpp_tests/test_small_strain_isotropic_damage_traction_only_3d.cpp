@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                     license: structural_mechanics_application/license.txt
@@ -21,9 +23,11 @@
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 // Constitutive law
-#include "custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -31,12 +35,15 @@ namespace Kratos
 {
 namespace Testing
 {
-// We test the associated plasticity Constitutive laws...
 typedef Node<3> NodeType;
 
-// Check the correct calculation of the integrated stress with the CL's in small strain
-KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnly3D, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnly3D, KratosConstitutiveLawsFastSuite)
 {
+
+    //
+    //  CREATE LAW
+    //
+
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
     Vector stress_vector(6), strain_vector(6);
@@ -50,13 +57,17 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
     Tetrahedra3D4<NodeType> geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
     // Set material properties
-    material_properties.SetValue(YOUNG_MODULUS, 3000);
+    material_properties.SetValue(YOUNG_MODULUS, 6);
     material_properties.SetValue(POISSON_RATIO, 0.3);
-    material_properties.SetValue(YIELD_STRESS, 0.5);
-    material_properties.SetValue(INFINITY_YIELD_STRESS, 0.7);
-    Vector hardening_moduli(2);
-    hardening_moduli(0) = 0.3; hardening_moduli(1) = 0.15;
-    material_properties.SetValue(HARDENING_MODULI_VECTOR, hardening_moduli);
+    material_properties.SetValue(HARDENING_CURVE, 0);
+    Vector stress_limits(2);
+    stress_limits(0) = 1.5;
+    stress_limits(1) = 3.0;
+    material_properties.SetValue(STRESS_LIMITS, stress_limits);
+    //Vector hardening_params(3);
+    Vector hardening_params(1);
+    hardening_params(0) = 0.5;
+    material_properties.SetValue(HARDENING_PARAMETERS, hardening_params);
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
@@ -70,215 +81,163 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
     // Create the CL
-    SmallStrainIsotropicDamageTractionOnly3D cl = SmallStrainIsotropicDamageTractionOnly3D();
+    SmallStrainIsotropicDamage3D cl = SmallStrainIsotropicDamageTractionOnly3D();
 
-    // Set variables for the test
-    const double tolerance = 1.0e-4;
-    std::size_t nr_ts = 4;  // timesteps tested
-    Vector ser(nr_ts), dvr(nr_ts);  // reference strain energy, damage variable
-    Matrix epr(nr_ts, 6), str(nr_ts, 6);  // reference strain ("epsilon"), stress
-    Matrix cmr(nr_ts, 6 * 6);  // reference constitutive matrix
-
+    //
+    //  TESTS
+    //
 
     //
     // Test: check correct behavior of internal and calculated variables
     //
+    KRATOS_CHECK_IS_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
+
     KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
     KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
+    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    Vector internal_variables_w(1);
+    internal_variables_w[0] = 0.123;
+    cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
+    Vector internal_variables_r;  // CL should internally resize it to 1
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
+    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
 
     //
-    // Test: load - unload in traction
+    // Test: exponential hardening model, load in traction
     //
-    epr(0,0)=1.000000e-04; epr(0,1)=1.000000e-04; epr(0,2)=0.000000e+00; epr(0,3)=1.000000e-04; epr(0,4)=0.000000e+00; epr(0,5)=0.000000e+00;
-    epr(1,0)=3.000000e-04; epr(1,1)=3.000000e-04; epr(1,2)=0.000000e+00; epr(1,3)=3.000000e-04; epr(1,4)=0.000000e+00; epr(1,5)=0.000000e+00;
-    epr(2,0)=1.000000e-03; epr(2,1)=1.000000e-03; epr(2,2)=0.000000e+00; epr(2,3)=1.000000e-03; epr(2,4)=0.000000e+00; epr(2,5)=0.000000e+00;
-    epr(3,0)=-1.000000e-03; epr(3,1)=-1.000000e-03; epr(3,2)=0.000000e+00; epr(3,3)=-1.000000e-03; epr(3,4)=0.000000e+00; epr(3,5)=0.000000e+00;
+    const double tolerance = 1e-4;
+    double ref_damage_variable = 0.562727;
+    double ref_strain_energy = 1.36795;
+    Vector imposed_strain = ZeroVector(6);
+    imposed_strain(0) = -0.0759;
+    imposed_strain(1) =  0.7483;
+    imposed_strain(2) =  0.1879;
+    imposed_strain(3) =  0.5391;
+    imposed_strain(4) =  0.0063;
+    imposed_strain(5) = -0.3292;
+    Vector ref_stress = ZeroVector(6);
+    ref_stress(0) =  1.1490;
+    ref_stress(1) =  2.8123;
+    ref_stress(2) =  1.6813;
+    ref_stress(3) =  0.5440;
+    ref_stress(4) =  0.0063;
+    ref_stress(5) = -0.3321;
+    Matrix ref_C = ZeroMatrix(6, 6);
+    ref_C(0,0) =  3.1672e+00; ref_C(0,1) =  6.2137e-01; ref_C(0,2) =  9.8019e-01; ref_C(0,3) = -1.7259e-01; ref_C(0,4) = -2.0169e-03; ref_C(0,5) =  1.0539e-01;
+    ref_C(1,0) =  6.2137e-01; ref_C(1,1) =  1.3478e+00; ref_C(1,2) =  2.0793e-01; ref_C(1,3) = -4.2244e-01; ref_C(1,4) = -4.9367e-03; ref_C(1,5) =  2.5796e-01;
+    ref_C(2,0) =  9.8019e-01; ref_C(2,1) =  2.0793e-01; ref_C(2,2) =  2.7511e+00; ref_C(2,3) = -2.5256e-01; ref_C(2,4) = -2.9514e-03; ref_C(2,5) =  1.5422e-01;
+    ref_C(3,0) = -1.7259e-01; ref_C(3,1) = -4.2244e-01; ref_C(3,2) = -2.5256e-01; ref_C(3,3) =  9.2737e-01; ref_C(3,4) = -9.5492e-04; ref_C(3,5) =  4.9898e-02;
+    ref_C(4,0) = -2.0169e-03; ref_C(4,1) = -4.9367e-03; ref_C(4,2) = -2.9514e-03; ref_C(4,3) = -9.5492e-04; ref_C(4,4) =  1.0090e+00; ref_C(4,5) =  5.8312e-04;
+    ref_C(5,0) =  1.0539e-01; ref_C(5,1) =  2.5796e-01; ref_C(5,2) =  1.5422e-01; ref_C(5,3) =  4.9898e-02; ref_C(5,4) =  5.8312e-04; ref_C(5,5) =  9.7862e-01;
 
-    str(0,0)=5.003084e-01; str(0,1)=5.003084e-01; str(0,2)=3.001850e-01; str(0,3)=1.000617e-01; str(0,4)=0.000000e+00; str(0,5)=0.000000e+00;
-    str(1,0)=7.504626e-01; str(1,1)=7.504626e-01; str(1,2)=4.502775e-01; str(1,3)=1.500925e-01; str(1,4)=0.000000e+00; str(1,5)=0.000000e+00;
-    str(2,0)=1.356232e+00; str(2,1)=1.356232e+00; str(2,2)=8.137391e-01; str(2,3)=2.712464e-01; str(2,4)=0.000000e+00; str(2,5)=0.000000e+00;
-    str(3,0)=-1.356232e+00; str(3,1)=-1.356232e+00; str(3,2)=-8.137391e-01; str(3,3)=-2.712464e-01; str(3,4)=0.000000e+00; str(3,5)=0.000000e+00;
+    // Simulate the call sequence of the element
+    Vector dummy_vector;
+    cl.InitializeMaterial(material_properties, geometry, dummy_vector);
 
-    cmr(0, 0)=2.014743e+03; cmr(0, 1)=1.350944e+01; cmr(0, 2)=6.084757e+02; cmr(0, 3)=-2.974831e+02; cmr(0, 4)=0.000000e+00; cmr(0, 5)=0.000000e+00;
-    cmr(0, 6)=1.350944e+01; cmr(0, 7)=2.014743e+03; cmr(0, 8)=6.084757e+02; cmr(0, 9)=-2.974831e+02; cmr(0,10)=0.000000e+00; cmr(0,11)=0.000000e+00;
-    cmr(0,12)=6.084757e+02; cmr(0,13)=6.084757e+02; cmr(0,14)=2.966689e+03; cmr(0,15)=-1.784899e+02; cmr(0,16)=0.000000e+00; cmr(0,17)=0.000000e+00;
-    cmr(0,18)=-2.974831e+02; cmr(0,19)=-2.974831e+02; cmr(0,20)=-1.784899e+02; cmr(0,21)=9.411201e+02; cmr(0,22)=0.000000e+00; cmr(0,23)=0.000000e+00;
-    cmr(0,24)=0.000000e+00; cmr(0,25)=0.000000e+00; cmr(0,26)=0.000000e+00; cmr(0,27)=0.000000e+00; cmr(0,28)=1.000617e+03; cmr(0,29)=0.000000e+00;
-    cmr(0,30)=0.000000e+00; cmr(0,31)=0.000000e+00; cmr(0,32)=0.000000e+00; cmr(0,33)=0.000000e+00; cmr(0,34)=0.000000e+00; cmr(0,35)=1.000617e+03;
-    cmr(1, 0)=1.007371e+03; cmr(1, 1)=6.754721e+00; cmr(1, 2)=3.042379e+02; cmr(1, 3)=-1.487416e+02; cmr(1, 4)=0.000000e+00; cmr(1, 5)=0.000000e+00;
-    cmr(1, 6)=6.754721e+00; cmr(1, 7)=1.007371e+03; cmr(1, 8)=3.042379e+02; cmr(1, 9)=-1.487416e+02; cmr(1,10)=0.000000e+00; cmr(1,11)=0.000000e+00;
-    cmr(1,12)=3.042379e+02; cmr(1,13)=3.042379e+02; cmr(1,14)=1.483344e+03; cmr(1,15)=-8.924494e+01; cmr(1,16)=0.000000e+00; cmr(1,17)=0.000000e+00;
-    cmr(1,18)=-1.487416e+02; cmr(1,19)=-1.487416e+02; cmr(1,20)=-8.924494e+01; cmr(1,21)=4.705601e+02; cmr(1,22)=0.000000e+00; cmr(1,23)=0.000000e+00;
-    cmr(1,24)=0.000000e+00; cmr(1,25)=0.000000e+00; cmr(1,26)=0.000000e+00; cmr(1,27)=0.000000e+00; cmr(1,28)=5.003084e+02; cmr(1,29)=0.000000e+00;
-    cmr(1,30)=0.000000e+00; cmr(1,31)=0.000000e+00; cmr(1,32)=0.000000e+00; cmr(1,33)=0.000000e+00; cmr(1,34)=0.000000e+00; cmr(1,35)=5.003084e+02;
-    cmr(2, 0)=7.262499e+02; cmr(2, 1)=1.837572e+02; cmr(2, 2)=2.730021e+02; cmr(2, 3)=-4.462247e+01; cmr(2, 4)=0.000000e+00; cmr(2, 5)=0.000000e+00;
-    cmr(2, 6)=1.837572e+02; cmr(2, 7)=7.262499e+02; cmr(2, 8)=2.730021e+02; cmr(2, 9)=-4.462247e+01; cmr(2,10)=0.000000e+00; cmr(2,11)=0.000000e+00;
-    cmr(2,12)=2.730021e+02; cmr(2,13)=2.730021e+02; cmr(2,14)=8.690418e+02; cmr(2,15)=-2.677348e+01; cmr(2,16)=0.000000e+00; cmr(2,17)=0.000000e+00;
-    cmr(2,18)=-4.462247e+01; cmr(2,19)=-4.462247e+01; cmr(2,20)=-2.677348e+01; cmr(2,21)=2.623219e+02; cmr(2,22)=0.000000e+00; cmr(2,23)=0.000000e+00;
-    cmr(2,24)=0.000000e+00; cmr(2,25)=0.000000e+00; cmr(2,26)=0.000000e+00; cmr(2,27)=0.000000e+00; cmr(2,28)=2.712464e+02; cmr(2,29)=0.000000e+00;
-    cmr(2,30)=0.000000e+00; cmr(2,31)=0.000000e+00; cmr(2,32)=0.000000e+00; cmr(2,33)=0.000000e+00; cmr(2,34)=0.000000e+00; cmr(2,35)=2.712464e+02;
-    cmr(3, 0)=9.493622e+02; cmr(3, 1)=4.068695e+02; cmr(3, 2)=4.068695e+02; cmr(3, 3)=0.000000e+00; cmr(3, 4)=0.000000e+00; cmr(3, 5)=0.000000e+00;
-    cmr(3, 6)=4.068695e+02; cmr(3, 7)=9.493622e+02; cmr(3, 8)=4.068695e+02; cmr(3, 9)=0.000000e+00; cmr(3,10)=0.000000e+00; cmr(3,11)=0.000000e+00;
-    cmr(3,12)=4.068695e+02; cmr(3,13)=4.068695e+02; cmr(3,14)=9.493622e+02; cmr(3,15)=0.000000e+00; cmr(3,16)=0.000000e+00; cmr(3,17)=0.000000e+00;
-    cmr(3,18)=0.000000e+00; cmr(3,19)=0.000000e+00; cmr(3,20)=0.000000e+00; cmr(3,21)=2.712464e+02; cmr(3,22)=0.000000e+00; cmr(3,23)=0.000000e+00;
-    cmr(3,24)=0.000000e+00; cmr(3,25)=0.000000e+00; cmr(3,26)=0.000000e+00; cmr(3,27)=0.000000e+00; cmr(3,28)=2.712464e+02; cmr(3,29)=0.000000e+00;
-    cmr(3,30)=0.000000e+00; cmr(3,31)=0.000000e+00; cmr(3,32)=0.000000e+00; cmr(3,33)=0.000000e+00; cmr(3,34)=0.000000e+00; cmr(3,35)=2.712464e+02;
+    for (std::size_t t = 0; t < 10; ++t){
+        for (std::size_t comp = 0; comp < 6; ++comp)
+            strain_vector(comp) = t / 9 * imposed_strain(comp);
 
-    ser[0]=5.503392e-05; ser[1]=2.476526e-04; ser[2]=1.491855e-03; ser[3]=1.491855e-03;
-    dvr[0]=1.327988e-01; dvr[1]=5.663994e-01; dvr[2]=7.649198e-01; dvr[3]=7.649198e-01;
-
-    // Here we must simulate the call sequence of the element
-    Vector dummy;
-    cl.InitializeMaterial(material_properties, geometry, dummy);
-    for (std::size_t t = 0; t < nr_ts; ++t){
-        for (std::size_t comp = 0; comp < 6; ++comp) {
-            strain_vector[comp] = epr(t, comp);
-        }
         if (cl.RequiresInitializeMaterialResponse()){
             cl.InitializeMaterialResponseCauchy(cl_parameters);
         }
+
         cl.CalculateMaterialResponseCauchy(cl_parameters);
-        if (cl.RequiresFinalizeMaterialResponse()) {
+
+        if (cl.RequiresFinalizeMaterialResponse()){
             cl.FinalizeMaterialResponseCauchy(cl_parameters);
         }
-        double value;
-
-        // Check damage variable
-        cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-        // TODO(marandra): NAN values are not handled correctly by KRATOS CHECK functions
-        if (std::isnan(dvr[t]/value)){
-            KRATOS_CHECK_NEAR(dvr[t], value, tolerance);
-        } else {
-            KRATOS_CHECK_NEAR(dvr[t]/value, 1, tolerance);
-        }
-
-        // Check strain energy
-        cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-        if (std::isnan(ser[t]/value)){
-            KRATOS_CHECK_NEAR(ser[t], value, tolerance);
-        } else {
-            KRATOS_CHECK_NEAR(ser[t]/value, 1, tolerance);
-        }
-
-        // Check stress
-        for (std::size_t comp = 0; comp < 6; ++comp){
-            KRATOS_CHECK_IS_FALSE(std::isnan(stress_vector[comp]));
-            if (std::isnan(stress_vector[comp]/str(t, comp))){
-                KRATOS_CHECK_NEAR(stress_vector[comp], str(t, comp), tolerance);
-            } else {
-                KRATOS_CHECK_NEAR(stress_vector[comp]/str(t, comp), 1, tolerance);
-            }
-        }
-
-        // Check constitutive tensor
-        for (std::size_t i = 0; i < 6; ++i){
-            for (std::size_t j = 0; j < 6; ++j){
-                std::size_t idx = i * 6 + j;
-                KRATOS_CHECK_IS_FALSE(std::isnan(const_matrix(i, j)));
-                if (std::isnan(const_matrix(i, j)/cmr(t, idx))){
-                    KRATOS_CHECK_NEAR(const_matrix(i, j), cmr(t, idx), tolerance);
-                } else {
-                    KRATOS_CHECK_NEAR(const_matrix(i, j)/cmr(t, idx), 1, tolerance);
-                    }
-            }
-        }
     }
 
+    // Check damage variable and strain energy
+    double value;
+    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
+    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
+    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
+    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+
+    // Check stress
+    for (std::size_t comp = 0; comp < 6; ++comp)
+        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+
+    // Check constitutive tensor
+    for (std::size_t i = 0; i < 6; ++i)
+        for (std::size_t j = 0; j < 6; ++j)
+            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
 
     //
-    // Test: load - unload in compression
+    // Test: trilinear hardening model, load in traction
     //
-    epr(0,0)=-1.000000e-04; epr(0,1)=-1.000000e-04; epr(0,2)=0.000000e+00; epr(0,3)=-1.000000e-04; epr(0,4)=0.000000e+00; epr(0,5)=0.000000e+00;
-    epr(1,0)=-3.000000e-04; epr(1,1)=-3.000000e-04; epr(1,2)=0.000000e+00; epr(1,3)=-3.000000e-04; epr(1,4)=0.000000e+00; epr(1,5)=0.000000e+00;
-    epr(2,0)=-1.000000e-03; epr(2,1)=-1.000000e-03; epr(2,2)=0.000000e+00; epr(2,3)=-1.000000e-03; epr(2,4)=0.000000e+00; epr(2,5)=0.000000e+00;
-    epr(3,0)=1.000000e-03; epr(3,1)=1.000000e-03; epr(3,2)=0.000000e+00; epr(3,3)=1.000000e-03; epr(3,4)=0.000000e+00; epr(3,5)=0.000000e+00;
+    ref_damage_variable = 0.510366;
+    ref_strain_energy = 1.53176;
+    imposed_strain(0) = -0.0759;
+    imposed_strain(1) =  0.7483;
+    imposed_strain(2) =  0.1879;
+    imposed_strain(3) =  0.5391;
+    imposed_strain(4) =  0.0063;
+    imposed_strain(5) = -0.3292;
+    ref_stress(0) =  1.28659;
+    ref_stress(1) =  3.14916;
+    ref_stress(2) =  1.88274;
+    ref_stress(3) =  0.60914;
+    ref_stress(4) =  0.00712;
+    ref_stress(5) = -0.37197;
+    ref_C(0,0) =  3.41440e+00; ref_C(0,1) =  3.72331e-01; ref_C(0,2) =  9.04190e-01; ref_C(0,3) = -2.55822e-01; ref_C(0,4) = -2.98958e-03; ref_C(0,5) =  1.56217e-01;
+    ref_C(1,0) =  3.72331e-01; ref_C(1,1) =  7.17543e-01; ref_C(1,2) = -2.40482e-01; ref_C(1,3) = -6.26171e-01; ref_C(1,4) = -7.31753e-03; ref_C(1,5) =  3.82370e-01;
+    ref_C(2,0) =  9.04191e-01; ref_C(2,1) = -2.40483e-01; ref_C(2,2) =  2.79766e+00; ref_C(2,3) = -3.74359e-01; ref_C(2,4) = -4.37481e-03; ref_C(2,5) =  2.28601e-01;
+    ref_C(3,0) = -2.55822e-01; ref_C(3,1) = -6.26171e-01; ref_C(3,2) = -3.74359e-01; ref_C(3,3) =  1.00880e+00; ref_C(3,4) = -1.41543e-03; ref_C(3,5) =  7.39619e-02;
+    ref_C(4,0) = -2.98958e-03; ref_C(4,1) = -7.31753e-03; ref_C(4,2) = -4.37481e-03; ref_C(4,3) = -1.41543e-03; ref_C(4,4) =  1.12991e+00; ref_C(4,5) =  8.64329e-04;
+    ref_C(5,0) =  1.56217e-01; ref_C(5,1) =  3.82370e-01; ref_C(5,2) =  2.28601e-01; ref_C(5,3) =  7.39619e-02; ref_C(5,4) =  8.64329e-04; ref_C(5,5) =  1.08476e+00;
 
-    str(0,0)=-5.769231e-01; str(0,1)=-5.769231e-01; str(0,2)=-3.461538e-01; str(0,3)=-1.153846e-01; str(0,4)=0.000000e+00; str(0,5)=0.000000e+00;
-    str(1,0)=-1.730769e+00; str(1,1)=-1.730769e+00; str(1,2)=-1.038462e+00; str(1,3)=-3.461538e-01; str(1,4)=0.000000e+00; str(1,5)=0.000000e+00;
-    str(2,0)=-5.769231e+00; str(2,1)=-5.769231e+00; str(2,2)=-3.461538e+00; str(2,3)=-1.153846e+00; str(2,4)=0.000000e+00; str(2,5)=0.000000e+00;
-    str(3,0)=1.356232e+00; str(3,1)=1.356232e+00; str(3,2)=8.137391e-01; str(3,3)=2.712464e-01; str(3,4)=0.000000e+00; str(3,5)=0.000000e+00;
+    // Update properties for this test
+    material_properties.SetValue(HARDENING_CURVE, 1);
+    stress_limits.resize(3);
+    stress_limits(0) = 1.5;
+    stress_limits(1) = 2.0;
+    stress_limits(2) = 3.0;
+    material_properties.SetValue(STRESS_LIMITS, stress_limits);
+    hardening_params.resize(3);
+    hardening_params(0) = 0.6;
+    hardening_params(1) = 0.4;
+    hardening_params(2) = 0.0;
+    material_properties.SetValue(HARDENING_PARAMETERS, hardening_params);
 
-    cmr(0, 0)=4.038462e+03; cmr(0, 1)=1.730769e+03; cmr(0, 2)=1.730769e+03; cmr(0, 3)=0.000000e+00; cmr(0, 4)=0.000000e+00; cmr(0, 5)=0.000000e+00;
-    cmr(0, 6)=1.730769e+03; cmr(0, 7)=4.038462e+03; cmr(0, 8)=1.730769e+03; cmr(0, 9)=0.000000e+00; cmr(0,10)=0.000000e+00; cmr(0,11)=0.000000e+00;
-    cmr(0,12)=1.730769e+03; cmr(0,13)=1.730769e+03; cmr(0,14)=4.038462e+03; cmr(0,15)=0.000000e+00; cmr(0,16)=0.000000e+00; cmr(0,17)=0.000000e+00;
-    cmr(0,18)=0.000000e+00; cmr(0,19)=0.000000e+00; cmr(0,20)=0.000000e+00; cmr(0,21)=1.153846e+03; cmr(0,22)=0.000000e+00; cmr(0,23)=0.000000e+00;
-    cmr(0,24)=0.000000e+00; cmr(0,25)=0.000000e+00; cmr(0,26)=0.000000e+00; cmr(0,27)=0.000000e+00; cmr(0,28)=1.153846e+03; cmr(0,29)=0.000000e+00;
-    cmr(0,30)=0.000000e+00; cmr(0,31)=0.000000e+00; cmr(0,32)=0.000000e+00; cmr(0,33)=0.000000e+00; cmr(0,34)=0.000000e+00; cmr(0,35)=1.153846e+03;
-    cmr(1, 0)=4.038462e+03; cmr(1, 1)=1.730769e+03; cmr(1, 2)=1.730769e+03; cmr(1, 3)=0.000000e+00; cmr(1, 4)=0.000000e+00; cmr(1, 5)=0.000000e+00;
-    cmr(1, 6)=1.730769e+03; cmr(1, 7)=4.038462e+03; cmr(1, 8)=1.730769e+03; cmr(1, 9)=0.000000e+00; cmr(1,10)=0.000000e+00; cmr(1,11)=0.000000e+00;
-    cmr(1,12)=1.730769e+03; cmr(1,13)=1.730769e+03; cmr(1,14)=4.038462e+03; cmr(1,15)=0.000000e+00; cmr(1,16)=0.000000e+00; cmr(1,17)=0.000000e+00;
-    cmr(1,18)=0.000000e+00; cmr(1,19)=0.000000e+00; cmr(1,20)=0.000000e+00; cmr(1,21)=1.153846e+03; cmr(1,22)=0.000000e+00; cmr(1,23)=0.000000e+00;
-    cmr(1,24)=0.000000e+00; cmr(1,25)=0.000000e+00; cmr(1,26)=0.000000e+00; cmr(1,27)=0.000000e+00; cmr(1,28)=1.153846e+03; cmr(1,29)=0.000000e+00;
-    cmr(1,30)=0.000000e+00; cmr(1,31)=0.000000e+00; cmr(1,32)=0.000000e+00; cmr(1,33)=0.000000e+00; cmr(1,34)=0.000000e+00; cmr(1,35)=1.153846e+03;
-    cmr(2, 0)=4.038462e+03; cmr(2, 1)=1.730769e+03; cmr(2, 2)=1.730769e+03; cmr(2, 3)=0.000000e+00; cmr(2, 4)=0.000000e+00; cmr(2, 5)=0.000000e+00;
-    cmr(2, 6)=1.730769e+03; cmr(2, 7)=4.038462e+03; cmr(2, 8)=1.730769e+03; cmr(2, 9)=0.000000e+00; cmr(2,10)=0.000000e+00; cmr(2,11)=0.000000e+00;
-    cmr(2,12)=1.730769e+03; cmr(2,13)=1.730769e+03; cmr(2,14)=4.038462e+03; cmr(2,15)=0.000000e+00; cmr(2,16)=0.000000e+00; cmr(2,17)=0.000000e+00;
-    cmr(2,18)=0.000000e+00; cmr(2,19)=0.000000e+00; cmr(2,20)=0.000000e+00; cmr(2,21)=1.153846e+03; cmr(2,22)=0.000000e+00; cmr(2,23)=0.000000e+00;
-    cmr(2,24)=0.000000e+00; cmr(2,25)=0.000000e+00; cmr(2,26)=0.000000e+00; cmr(2,27)=0.000000e+00; cmr(2,28)=1.153846e+03; cmr(2,29)=0.000000e+00;
-    cmr(2,30)=0.000000e+00; cmr(2,31)=0.000000e+00; cmr(2,32)=0.000000e+00; cmr(2,33)=0.000000e+00; cmr(2,34)=0.000000e+00; cmr(2,35)=1.153846e+03;
-    cmr(3, 0)=7.262499e+02; cmr(3, 1)=1.837572e+02; cmr(3, 2)=2.730021e+02; cmr(3, 3)=-4.462247e+01; cmr(3, 4)=0.000000e+00; cmr(3, 5)=0.000000e+00;
-    cmr(3, 6)=1.837572e+02; cmr(3, 7)=7.262499e+02; cmr(3, 8)=2.730021e+02; cmr(3, 9)=-4.462247e+01; cmr(3,10)=0.000000e+00; cmr(3,11)=0.000000e+00;
-    cmr(3,12)=2.730021e+02; cmr(3,13)=2.730021e+02; cmr(3,14)=8.690418e+02; cmr(3,15)=-2.677348e+01; cmr(3,16)=0.000000e+00; cmr(3,17)=0.000000e+00;
-    cmr(3,18)=-4.462247e+01; cmr(3,19)=-4.462247e+01; cmr(3,20)=-2.677348e+01; cmr(3,21)=2.623219e+02; cmr(3,22)=0.000000e+00; cmr(3,23)=0.000000e+00;
-    cmr(3,24)=0.000000e+00; cmr(3,25)=0.000000e+00; cmr(3,26)=0.000000e+00; cmr(3,27)=0.000000e+00; cmr(3,28)=2.712464e+02; cmr(3,29)=0.000000e+00;
-    cmr(3,30)=0.000000e+00; cmr(3,31)=0.000000e+00; cmr(3,32)=0.000000e+00; cmr(3,33)=0.000000e+00; cmr(3,34)=0.000000e+00; cmr(3,35)=2.712464e+02;
+    // Simulate the call sequence of the element
+    cl.Check(material_properties, geometry, test_model_part.GetProcessInfo());
+    cl.InitializeMaterial(material_properties, geometry, dummy_vector);
 
-    ser[0]=6.346154e-05; ser[1]=5.711538e-04; ser[2]=6.346154e-03; ser[3]=1.491855e-03;
-    dvr[0]=0.000000e+00; dvr[1]=0.000000e+00; dvr[2]=0.000000e+00; dvr[3]=7.649198e-01;
+    for (std::size_t t = 0; t < 10; ++t){
+        for (std::size_t comp = 0; comp < 6; ++comp)
+            strain_vector(comp) = t / 9 * imposed_strain(comp);
 
-    // Here we must simulate the call sequence of the element
-    cl.InitializeMaterial(material_properties, geometry, dummy);
-    for (std::size_t t = 0; t < nr_ts; ++t){
-        for (std::size_t comp = 0; comp < 6; ++comp) {
-            strain_vector[comp] = epr(t, comp);
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
         }
-        cl.InitializeMaterialResponseCauchy(cl_parameters);
+
         cl.CalculateMaterialResponseCauchy(cl_parameters);
-        cl.FinalizeMaterialResponseCauchy(cl_parameters);
-        double value;
 
-        // Check damage variable
-        cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-        if (std::isnan(dvr[t]/value)){
-            KRATOS_CHECK_NEAR(dvr[t], value, tolerance);
-        } else {
-            KRATOS_CHECK_NEAR(dvr[t]/value, 1, tolerance);
-        }
-
-        // Check strain energy
-        cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-        if (std::isnan(ser[t]/value)){
-            KRATOS_CHECK_NEAR(ser[t], value, tolerance);
-        } else {
-            KRATOS_CHECK_NEAR(ser[t]/value, 1, tolerance);
-        }
-
-        // Check stress
-        for (std::size_t comp = 0; comp < 6; ++comp){
-            KRATOS_CHECK_IS_FALSE(std::isnan(stress_vector[comp]));
-            if (std::isnan(stress_vector[comp]/str(t, comp))){
-                KRATOS_CHECK_NEAR(stress_vector[comp], str(t, comp), tolerance);
-            } else {
-                KRATOS_CHECK_NEAR(stress_vector[comp]/str(t, comp), 1, tolerance);
-            }
-        }
-
-        // Check constitutive tensor
-        for (std::size_t i = 0; i < 6; ++i){
-            for (std::size_t j = 0; j < 6; ++j){
-                std::size_t idx = i * 6 + j;
-                KRATOS_CHECK_IS_FALSE(std::isnan(const_matrix(i, j)));
-                if (std::isnan(const_matrix(i, j)/cmr(t, idx))){
-                    KRATOS_CHECK_NEAR(const_matrix(i, j), cmr(t, idx), tolerance);
-                } else {
-                    KRATOS_CHECK_NEAR(const_matrix(i, j)/cmr(t, idx), 1, tolerance);
-                }
-            }
+        if (cl.RequiresFinalizeMaterialResponse()){
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
         }
     }
+
+    // Check damage variable and strain energy
+    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
+    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
+    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
+    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+
+    // Check stress
+    for (std::size_t comp = 0; comp < 6; ++comp)
+        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+
+    // Check constitutive tensor
+    for (std::size_t i = 0; i < 6; ++i)
+        for (std::size_t j = 0; j < 6; ++j)
+            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
 
 
 }
-
 } // namespace Testing
 } // namespace Kratos
