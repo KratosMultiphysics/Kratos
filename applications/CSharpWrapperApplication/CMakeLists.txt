@@ -90,3 +90,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCSharpWrapperCore DESTINATION libs)
 install(TARGETS KratosCSharpWrapperApplication DESTINATION libs)
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCSharpWrapperCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCSharpWrapperApplication" PARENT_SCOPE)

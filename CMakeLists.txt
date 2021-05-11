@@ -478,6 +478,8 @@ endif(DEFINED ENV{KRATOS_APPLICATIONS})
 add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
 add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
 
+message("Interface List: ${KRATOS_PYTHON_INTERFACE}")
+
 message("")
 message("***********************************************************************")
 message("")

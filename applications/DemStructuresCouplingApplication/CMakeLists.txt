@@ -84,3 +84,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosDemStructuresCouplingCore DESTINATION libs )
 install(TARGETS KratosDemStructuresCouplingApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDemStructuresCouplingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosDemStructuresCouplingApplication" PARENT_SCOPE)

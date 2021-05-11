@@ -48,3 +48,5 @@ install(TARGETS KratosMeshMovingTrilinosExtension DESTINATION libs )
 ###############################################################################
 ## install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosExtension.py" DESTINATION "KratosMultiphysics/MeshMovingApplication")
+
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMeshMovingTrilinosExtension" PARENT_SCOPE)
