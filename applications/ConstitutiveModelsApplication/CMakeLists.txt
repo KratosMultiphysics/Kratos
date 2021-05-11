@@ -121,3 +121,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosConstitutiveModelsCore DESTINATION libs )
 install(TARGETS KratosConstitutiveModelsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosConstitutiveModelsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosConstitutiveModelsApplication" PARENT_SCOPE)
