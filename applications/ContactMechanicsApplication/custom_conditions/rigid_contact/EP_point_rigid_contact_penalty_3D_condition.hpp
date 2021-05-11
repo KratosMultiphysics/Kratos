@@ -130,18 +130,18 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) EPPointRigidContactPenalty3DCond
     /**
      * Called at the end of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Called at the beginning of each iteration
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@name Access
     ///@{
