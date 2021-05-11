@@ -50,6 +50,8 @@
     }],
     "material_assignation_table":[
         ["SpheresPart", "mat1"],
-        ["RigidFacePart","mat2"]
+        ["RigidFacePart","mat2"],
+        ["DEMInletPart.Inlet_Inlet_of_particles", "mat1"],
+        ["DEMInletPart.Inlet_Inlet_of_clusters", "mat1"]
     ]
 }

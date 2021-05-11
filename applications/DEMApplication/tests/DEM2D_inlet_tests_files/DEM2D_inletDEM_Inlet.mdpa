@@ -13,7 +13,6 @@ End Nodes
 
 Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Auto1 // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 1
         RIGID_BODY_MOTION 0
         IDENTIFIER Inlet_Particle_injectors_Auto1
         INJECTOR_ELEMENT_TYPE CylinderParticle2D
@@ -36,7 +35,6 @@ Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Au
 
   Begin SubModelPart Inlet_Particle_injectors_Auto2 // Group Particle injectors Auto2 // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 1
         RIGID_BODY_MOTION 0
         IDENTIFIER Inlet_Particle_injectors_Auto2
         INJECTOR_ELEMENT_TYPE CylinderParticle2D

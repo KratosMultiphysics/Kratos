@@ -16,7 +16,6 @@ End Nodes
 
 Begin SubModelPart Inlet_Inlet_of_particles // Group Inlet_of_particles // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 1
         RIGID_BODY_MOTION 0
         //TABLE_VELOCITY_COMPONENT 0
         IDENTIFIER Inlet_Inlet_of_particles
@@ -45,7 +44,6 @@ Begin SubModelPart Inlet_Inlet_of_particles // Group Inlet_of_particles // Subtr
 
 Begin SubModelPart Inlet_Inlet_of_clusters // Group Inlet_of_clusters // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 1
         RIGID_BODY_MOTION 0
         //TABLE_VELOCITY_COMPONENT 0
         CLUSTER_FILE_NAME ringcluster3D.clu

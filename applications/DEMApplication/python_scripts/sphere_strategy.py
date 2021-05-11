@@ -280,14 +280,13 @@ class ExplicitStrategy():
             for subproperties in properties.GetSubProperties():
                 self.ModifySubProperties(subproperties)
 
-        for properties in self.inlet_model_part.Properties:
-            self.ModifyProperties(properties)
-
         for submp in self.inlet_model_part.SubModelParts:
             if submp.Has(CLUSTER_FILE_NAME):
                 cluster_file_name = submp[CLUSTER_FILE_NAME]
                 [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
                 pre_utils = PreUtilities(self.spheres_model_part)
+                if not submp.Has(PROPERTIES_ID):
+                    raise Exception("This ModelPart: " + submp.Name + " should contain PROPERTIES_ID. Make sure it was added in the assignation table of the Materials json file.")
                 props_id = submp[PROPERTIES_ID]
                 for prop in self.inlet_model_part.Properties:
                     if prop.Id == props_id:
@@ -296,12 +295,6 @@ class ExplicitStrategy():
                 pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
                 if not properties.Has(BREAKABLE_CLUSTER):
                     properties.SetValue(BREAKABLE_CLUSTER, False)
-
-        for properties in self.cluster_model_part.Properties:
-            self.ModifyProperties(properties)
-
-        for properties in self.fem_model_part.Properties:
-            self.ModifyProperties(properties)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -708,7 +701,7 @@ class ExplicitStrategy():
         if write_AlphaFunction == True:
             properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
 
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")

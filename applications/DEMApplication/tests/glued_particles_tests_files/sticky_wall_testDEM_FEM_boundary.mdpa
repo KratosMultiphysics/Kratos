@@ -32,7 +32,6 @@ End Conditions
 Begin SubModelPart 0 // DEM-FEM-Wall. Group name: DEM-wall1
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
   IS_STICKY 1
-  PROPERTIES_ID 0
   RIGID_BODY_MOTION 1
   FREE_BODY_MOTION 0
   FIXED_MESH_OPTION 0

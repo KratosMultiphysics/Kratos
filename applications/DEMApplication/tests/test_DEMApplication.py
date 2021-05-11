@@ -67,8 +67,6 @@ def AssembleTestSuites():
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
     smallSuite.addTest(test_history_dependent_CLs.TestHistoryDependentCLs("test_HistoryDependentCLs"))
     smallSuite.addTest(test_clusters.TestClusters("test_clusters_1"))
-
-
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Taylor"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
