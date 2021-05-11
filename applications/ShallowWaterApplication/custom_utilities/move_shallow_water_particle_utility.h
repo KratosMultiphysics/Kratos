@@ -397,7 +397,9 @@ public:
         mMaxSubSteps = 10;
         mMaxSubStepDt = delta_t / static_cast<double>(mMaxSubSteps);
 
-        IndexPartition<unsigned int>(mrModelPart.Elements().size()).for_each([&](unsigned int ii){
+        unsigned int num_elems = mrModelPart.Elements().size();
+
+        IndexPartition<unsigned int>(num_elems).for_each([&](unsigned int ii){
             int & number_of_particles = mNumOfParticlesInElems[ii];
             mNumOfParticlesInElemsAux[ii] = number_of_particles;
             mNumOfParticlesInElems[ii] = 0;
@@ -416,21 +418,21 @@ public:
         tls.results.resize(max_results);
         tls.elements_in_trajectory.resize(20);
 
-        block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLS& rTLS){
-            const int old_element_id = rElem.Id();
+        IndexPartition<unsigned int>(num_elems).for_each(tls, [&](unsigned int i, TLS& rTLS){
+            auto it_old_element = mrModelPart.ElementsBegin() + i;
 
-            ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
+            ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[i];
 
             if ( (rTLS.results.size()) != max_results )
                 rTLS.results.resize(max_results);
 
             unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
 
-            for (int ii = 0; ii < mNumOfParticlesInElemsAux[old_element_id-1]; ii++)
+            for (int ii = 0; ii < mNumOfParticlesInElemsAux[i]; ii++)
             {
                 ShallowParticle& p_particle = old_element_particle_pointers[offset+ii];
 
-                Element::Pointer p_current_element(&rElem);
+                Element::Pointer p_current_element(*it_old_element.base());
                 ResultIteratorType result_begin = rTLS.results.begin();
                 bool & erase_flag = p_particle.GetEraseFlag();
                 if (erase_flag == false){
@@ -657,24 +659,29 @@ public:
         const int offset = mOffset;
         const int max_results = 1000;
 
-        ResultContainerType results(max_results);
-        BoundedMatrix<double, TDim+1, 3> pos;
-        BoundedMatrix<double, TDim+1, TDim+1> N;
-        unsigned int free_particle = 0; //we start with the first position in the particles array
+        struct TLS {
+            ResultContainerType results;
+            unsigned int free_particle = 0; //we start with the first position in the particles array
+        };
+        TLS tls;
+        tls.results.resize(max_results);
 
-        auto i_elem_begin = mrModelPart.ElementsBegin();
-        #pragma omp parallel for firstprivate(results, pos, N, free_particle)
-        for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
-            auto ielem = i_elem_begin + ii;
+        auto it_elem_begin = mrModelPart.ElementsBegin();
+        unsigned int num_elems = mrModelPart.NumberOfElements();
 
-            if (results.size() != max_results)
-                results.resize(max_results);
+        IndexPartition<unsigned int>(num_elems).for_each(tls, [&](unsigned int ii, TLS& rTLS){
+            auto it_elem = it_elem_begin + ii;
+
+            if (rTLS.results.size() != max_results)
+                rTLS.results.resize(max_results);
 
             int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
             ParticlePointerVector&  element_particle_pointers =  mVectorOfParticlePointersVectors[ii];
-            if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (ielem->GetGeometry())[0].Y()<0.10 )
+            if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (it_elem->GetGeometry())[0].Y()<0.10 )
             {
-                GeometryType& geom = ielem->GetGeometry();
+                BoundedMatrix<double, TDim+1, 3> pos;
+                BoundedMatrix<double, TDim+1, TDim+1> N;
+                GeometryType& geom = it_elem->GetGeometry();
                 ComputeGaussPointPositionsForPreReseed(geom, pos, N);
 
                 for (unsigned int j = 0; j < (pos.size1()); j++) // I am dropping the last one, the one in the middle of the element
@@ -682,26 +689,26 @@ public:
                     bool keep_looking = true;
                     while(keep_looking)
                     {
-                        if (mParticlesVector[free_particle].GetEraseFlag()==true)
+                        if (mParticlesVector[rTLS.free_particle].GetEraseFlag()==true)
                         {
                             #pragma omp critical
                             {
-                                if (mParticlesVector[free_particle].GetEraseFlag()==true)
+                                if (mParticlesVector[rTLS.free_particle].GetEraseFlag()==true)
                                 {
-                                    mParticlesVector[free_particle].GetEraseFlag()=false;
+                                    mParticlesVector[rTLS.free_particle].GetEraseFlag()=false;
                                     keep_looking=false;
                                 }
                             }
                             if (keep_looking==false)
                                 break;
                             else
-                                free_particle++;
+                                rTLS.free_particle++;
                         }
                         else
-                            free_particle++;
+                            rTLS.free_particle++;
                     }
 
-                    ShallowParticle p_particle(pos(j,0),pos(j,1),pos(j,2));
+                    ShallowParticle p_particle(pos(j,0), pos(j,1), pos(j,2));
 
                     array_1d<double,TDim+1> aux_N;
                     bool is_found = CalculatePosition(geom, pos(j,0), pos(j,1), pos(j,2), aux_N);
@@ -710,20 +717,20 @@ public:
 
                     p_particle.GetEraseFlag()=false;
 
-                    ResultIteratorType result_begin = results.begin();
-                    Element::Pointer p_element(*ielem.base());
+                    ResultIteratorType result_begin = rTLS.results.begin();
+                    Element::Pointer p_element(*it_elem.base());
                     MoveParticleInverseWay(p_particle, p_element, result_begin, max_results);
 
                     //and we copy it to the array:
-                    mParticlesVector[free_particle] = p_particle;
+                    mParticlesVector[rTLS.free_particle] = p_particle;
 
-                    element_particle_pointers(offset+number_of_particles_in_elem) = &mParticlesVector[free_particle];
+                    element_particle_pointers(offset+number_of_particles_in_elem) = &mParticlesVector[rTLS.free_particle];
                     p_particle.GetEraseFlag()=false;
 
                     number_of_particles_in_elem++;
                 }
             }
-        }
+        });
 
         KRATOS_CATCH("")
     }
@@ -747,21 +754,23 @@ public:
 
         const int offset = mOffset;
 
-        BoundedMatrix<double, 3+2*TDim, 3> pos; //7 particles (2D) or 9 particles (3D)
-        BoundedMatrix<double, 3+2*TDim, TDim+1> N;
         unsigned int free_particle = 0; //we start by the first position;
 
-        auto i_elem_begin = mrModelPart.ElementsBegin();
-        #pragma omp parallel for firstprivate(pos, N, free_particle)
-        for (int ii = 0; ii < static_cast<int>(mrModelPart.NumberOfElements()); ++ii) {
-            auto ielem = i_elem_begin + ii;
+        auto it_elem_begin = mrModelPart.ElementsBegin();
+        unsigned int num_elems = mrModelPart.NumberOfElements();
+
+        IndexPartition<unsigned int>(num_elems).for_each(free_particle, [&](unsigned int ii, unsigned int FreeParticleTLS){
+            auto it_elem = it_elem_begin + ii;
 
             int & number_of_particles_in_elem = mNumOfParticlesInElems[ii];
             ParticlePointerVector& element_particle_pointers = mVectorOfParticlePointersVectors[ii];
 
-            GeometryType& geom = ielem->GetGeometry();
+            GeometryType& geom = it_elem->GetGeometry();
             if (number_of_particles_in_elem < (MinimumNumberOfParticles)) // && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(MinimumNumberOfParticles) ) )
             {
+                BoundedMatrix<double, 3+2*TDim, 3> pos; //7 particles (2D) or 9 particles (3D)
+                BoundedMatrix<double, 3+2*TDim, TDim+1> N;
+
                 ComputeGaussPointPositionsForPostReseed(geom, pos, N);
                 unsigned int number_of_reseeded_particles = 3 + 2*TDim;
                 for (unsigned int j = 0; j < number_of_reseeded_particles; j++)
@@ -771,13 +780,13 @@ public:
                     bool keep_looking = true;
                     while(keep_looking)
                     {
-                        if (mParticlesVector[free_particle].GetEraseFlag()==true)
+                        if (mParticlesVector[FreeParticleTLS].GetEraseFlag()==true)
                         {
                             #pragma omp critical
                             {
-                                if (mParticlesVector[free_particle].GetEraseFlag()==true)
+                                if (mParticlesVector[FreeParticleTLS].GetEraseFlag()==true)
                                 {
-                                    mParticlesVector[free_particle].GetEraseFlag()=false;
+                                    mParticlesVector[FreeParticleTLS].GetEraseFlag()=false;
                                     keep_looking=false;
                                 }
                             }
@@ -785,10 +794,10 @@ public:
                                 break;
 
                             else
-                                free_particle++;
+                                FreeParticleTLS++;
                         }
                         else
-                            free_particle++;
+                            FreeParticleTLS++;
                     }
 
                     ShallowParticle p_particle(pos(j,0), pos(j,1), pos(j,2));
@@ -810,15 +819,15 @@ public:
                     p_particle.GetVector1() = mesh_vector1;
                     p_particle.GetEraseFlag() = false;
 
-                    mParticlesVector[free_particle] = p_particle;
-                    element_particle_pointers(offset + number_of_particles_in_elem) = &mParticlesVector[free_particle];
+                    mParticlesVector[FreeParticleTLS] = p_particle;
+                    element_particle_pointers(offset + number_of_particles_in_elem) = &mParticlesVector[FreeParticleTLS];
                     number_of_particles_in_elem++;
 
                     KRATOS_ERROR_IF(keep_looking) <<
                         "In move shallow water particle utility: Finished the list and couldnt find a free cell for the new particle!" << std::endl;
                 }
             }
-        }
+        });
         KRATOS_CATCH("")
     }
 
