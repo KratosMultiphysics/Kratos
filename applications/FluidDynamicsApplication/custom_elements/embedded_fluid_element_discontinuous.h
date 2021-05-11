@@ -91,11 +91,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef Geometry<NodeType>::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = TBaseElement::Dim;
-    constexpr static unsigned int NumNodes = TBaseElement::NumNodes;
-    constexpr static unsigned int BlockSize = TBaseElement::BlockSize;
-    constexpr static unsigned int LocalSize = TBaseElement::LocalSize;
-    constexpr static unsigned int StrainSize = TBaseElement::StrainSize;
+    constexpr static std::size_t Dim = TBaseElement::Dim;
+    constexpr static std::size_t NumNodes = TBaseElement::NumNodes;
+    constexpr static std::size_t BlockSize = TBaseElement::BlockSize;
+    constexpr static std::size_t LocalSize = TBaseElement::LocalSize;
+    constexpr static std::size_t StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
     using EmbeddedDiscontinuousElementData = EmbeddedDiscontinuousData< BaseElementData >;
@@ -470,7 +470,7 @@ private:
      */
     inline double AuxiliaryDensityGetter(
         const EmbeddedDiscontinuousElementData& rData,
-        const unsigned int NodeIndex) const;
+        const std::size_t NodeIndex) const;
 
     ///@}
     ///@name Private  Access

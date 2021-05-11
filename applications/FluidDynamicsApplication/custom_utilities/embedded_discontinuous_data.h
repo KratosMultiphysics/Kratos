@@ -39,7 +39,7 @@ typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector< Vector > InterfaceNormalsType;
 
 /// Number of edges of the element (simplex elements are assumed)
-constexpr static unsigned int NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
+constexpr static std::size_t NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 
 ///@}
 ///@name Public Members
@@ -71,10 +71,10 @@ InterfaceNormalsType NegativeInterfaceUnitNormals;
 std::vector< size_t > PositiveIndices;
 std::vector< size_t > NegativeIndices;
 
-size_t NumPositiveNodes;
-size_t NumNegativeNodes;
-size_t NumIntersectedEdges;
-size_t NumIntersectedEdgesExtrapolated;
+std::size_t NumPositiveNodes;
+std::size_t NumNegativeNodes;
+std::size_t NumIntersectedEdges;
+std::size_t NumIntersectedEdgesExtrapolated;
 
 ///@}
 ///@name Public Operations
@@ -140,7 +140,7 @@ static int Check(
  */
 bool IsCut()
 {
-    if (IsAusasIncised()) {
+    if (IsIncised()) {
         return false;
     } else {
         return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
@@ -155,12 +155,9 @@ bool IsCut()
  * @return true if the element is incised
  * @return false if the element is not incised
  */
-bool IsAusasIncised()
+inline bool IsIncised()
 {
-    if (NumIntersectedEdgesExtrapolated > 0) {
-        return true;
-    }
-    return false;
+    return NumIntersectedEdgesExtrapolated > 0 ? true : false;
 }
 
 ///@}
