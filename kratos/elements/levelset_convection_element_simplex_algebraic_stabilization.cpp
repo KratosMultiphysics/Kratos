@@ -24,7 +24,7 @@
 namespace Kratos
 {
     template< unsigned int TDim, unsigned int TNumNodes>
-    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization() 
+    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization()
     : LevelSetConvectionElementSimplex<TDim, TNumNodes>::LevelSetConvectionElementSimplex()
     {}
 
@@ -55,6 +55,17 @@ namespace Kratos
     {
         KRATOS_TRY
         return Element::Pointer(new LevelSetConvectionElementSimplexAlgebraicStabilization(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("");
+    }
+
+    template <unsigned int TDim, unsigned int TNumNodes>
+    Element::Pointer LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Element::Pointer(new LevelSetConvectionElementSimplexAlgebraicStabilization(NewId, pGeom, pProperties));
         KRATOS_CATCH("");
     }
 
@@ -215,7 +226,7 @@ namespace Kratos
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
         const double gauss_pt_weigth = Volume * aux_weight;
-        
+
         rRightHandSideVector *= gauss_pt_weigth;
         rLeftHandSideMatrix *= gauss_pt_weigth;
 
