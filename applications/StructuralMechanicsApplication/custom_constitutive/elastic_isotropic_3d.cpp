@@ -254,7 +254,10 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
-            noalias(rValue) = GetInitialState().GetInitialStrainVector();
+	    if (rValue.size() != GetStrainSize()) {
+	        rValue.resize(GetStrainSize());
+	    }
+	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
             noalias(rValue) = ZeroVector(0);
         }
