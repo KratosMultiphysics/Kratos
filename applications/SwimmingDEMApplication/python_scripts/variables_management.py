@@ -349,7 +349,6 @@ class VariablesManager:
         self.coupling_fluid_vars += [SDEM.ERROR_P]
         self.coupling_fluid_vars += [SDEM.SCALAR_ERROR]
         self.coupling_fluid_vars += [SDEM.EXACT_PRESSURE]
-        self.coupling_fluid_vars += [SDEM.BETA_GRADIENT]
 
         self.coupling_fluid_vars += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
