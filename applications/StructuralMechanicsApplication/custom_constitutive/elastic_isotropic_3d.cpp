@@ -224,6 +224,9 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
         noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
