@@ -60,11 +60,12 @@ mapper = KratosMapping.MapperFactory.CreateMapper(
 )
 ~~~
 
-For constructing an _MPI-Mapper_ use `CreateMPIMapper` instead:
+For constructing an _MPI-Mapper_ use the `MPIExtension` instead:
 
 ~~~py
 # creating a mapper for distributed memory
-mpi_mapper = KratosMapping.MapperFactory.CreateMPIMapper(
+from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
+mpi_mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
     model_part_origin,
     model_part_destination,
     mapper_settings
@@ -157,13 +158,13 @@ The following can be used to see which _Mappers_ are available:
 KratosMapping.MapperFactory.GetRegisteredMapperNames()
 
 # available mappers for distributed memory
-KratosMapping.MapperFactory.GetRegisteredMPIMapperNames()
+MappingMPIExtension.MPIMapperFactory.GetRegisteredMapperNames()
 
 # check if mapper for shared memory exists
 KratosMapping.MapperFactory.HasMapper("mapper_name")
 
 # check if mapper for distributed memory exists
-KratosMapping.MapperFactory.HasMPIMapper("mapper_name")
+MappingMPIExtension.MPIMapperFactory.HasMapper("mapper_name")
 ~~~
 
 

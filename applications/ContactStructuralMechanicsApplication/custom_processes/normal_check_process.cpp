@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -25,6 +26,9 @@ namespace Kratos
 void NormalCheckProcess::Execute()
 {
     KRATOS_TRY
+
+    // The propoortion of length considered in the normal check
+    const double length_proportion = mParameters["length_proportion"].GetDouble();
 
     // First we compute the normals
     NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
@@ -136,7 +140,7 @@ void NormalCheckProcess::Execute()
                 // First check if the elements are inverted
                 r_face.PointLocalCoordinates(aux_coords, r_face.Center());
                 const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
-                aux_perturbed_coords = r_face.Center() + 1.0e-1 * r_face.Length() * normal;
+                aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
                 if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, 5.0e-7)) {
                     it_elem->Set(MARKER);
                     KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
@@ -148,7 +152,7 @@ void NormalCheckProcess::Execute()
         for (auto& r_node : r_geometry) {
             if (r_node.Is(INTERFACE)) {
                 const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
-                aux_perturbed_coords = r_node.Coordinates() + 1.0e-1 * r_geometry.Length() * r_normal;
+                aux_perturbed_coords = r_node.Coordinates() + length_proportion * r_geometry.Length() * r_normal;
 
                 if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, 5.0e-7)) {
                     r_node.SetLock();
@@ -166,7 +170,7 @@ void NormalCheckProcess::Execute()
     MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
 
     // Auxiliar boolean
-    bool inverted_condition = true;
+    bool inverted_condition = false;
 
     #pragma omp parallel for firstprivate(inverted_condition)
     for(int i = 0; i < number_of_conditions; ++i) {
@@ -174,8 +178,8 @@ void NormalCheckProcess::Execute()
         const auto& r_geometry = it_cond->GetGeometry();
 
         for (auto& r_node : r_geometry) {
-            if (r_node.IsNot(MARKER)) {
-                inverted_condition = false;
+            if (r_node.Is(MARKER)) {
+                inverted_condition = true;
                 break;
             }
         }
@@ -183,7 +187,7 @@ void NormalCheckProcess::Execute()
             it_cond->Set(MARKER);
         }
 
-        inverted_condition = true;
+        inverted_condition = false;
     }
 
     // Invert conditions
@@ -222,6 +226,23 @@ void NormalCheckProcess::Execute()
 
     // We re-compute the normals
     NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters NormalCheckProcess::GetDefaultParameters() const
+{
+    KRATOS_TRY
+
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "length_proportion" : 0.1
+    })" );
+
+    return default_parameters;
 
     KRATOS_CATCH("")
 }

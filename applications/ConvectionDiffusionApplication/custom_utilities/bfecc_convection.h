@@ -31,17 +31,25 @@
 #include "utilities/timer.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/openmp_utils.h"
+#include "processes/compute_nodal_gradient_process.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 
 namespace Kratos
 {
 
-template<std::size_t TDim> class BFECCConvection
+template<std::size_t TDim>
+class BFECCConvection
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BFECCConvection<TDim>);
 
-    BFECCConvection(typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure)
-        : mpSearchStructure(pSearchStructure)
+    BFECCConvection(
+        typename BinBasedFastPointLocator<TDim>::Pointer pSearchStructure,
+        const bool PartialDt = false,
+        const bool ActivateLimiter = false)
+        : mpSearchStructure(pSearchStructure), mActivateLimiter(ActivateLimiter)
     {
     }
 
@@ -51,7 +59,11 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void BFECCconvect(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps)
+    void BFECCconvect(
+        ModelPart& rModelPart,
+        const Variable< double >& rVar,
+        const Variable<array_1d<double,3> >& conv_var,
+        const double substeps)
     {
         KRATOS_TRY
         const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
@@ -69,8 +81,17 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
 
         // Allocate non-historical variables
-        for (auto &r_node : rModelPart.Nodes()) {
-            r_node.SetValue(rVar, 0.0);
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            rNode.SetValue(rVar, 0.0);
+        });
+
+        mLimiter.resize(nparticles);
+        if (mActivateLimiter){
+            CalculateLimiter(rModelPart, rVar);
+        } else{
+            for (int i = 0; i < nparticles; i++){
+                mLimiter[i] = 1.0;
+            }
         }
 
         //FIRST LOOP: estimate rVar(n+1)
@@ -79,13 +100,13 @@ public:
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
 
             Element::Pointer pelement;
             Element::Pointer pelement_valid;
 
-            array_1d<double,3> bckPos = iparticle->Coordinates();
-            const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var);
+            array_1d<double,3> bckPos = it_particle->Coordinates();
+            const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(conv_var);
             bool has_valid_elem_pointer = false;
             bool is_found = ConvectBySubstepping(dt,bckPos,vel, N,N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, substeps, conv_var, has_valid_elem_pointer);
             found[i] = is_found;
@@ -101,7 +122,7 @@ public:
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
-                iparticle->FastGetSolutionStepValue(rVar) = phi1;
+                it_particle->FastGetSolutionStepValue(rVar) = phi1;
             }
             else if(has_valid_elem_pointer)
             {
@@ -115,7 +136,7 @@ public:
                     phi1 += N_valid[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
 
-                iparticle->FastGetSolutionStepValue(rVar) = phi1;
+                it_particle->FastGetSolutionStepValue(rVar) = phi1;
             }
         }
 
@@ -125,13 +146,13 @@ public:
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
 
             Element::Pointer pelement;
             Element::Pointer pelement_valid;
 
-            array_1d<double,3> fwdPos = iparticle->Coordinates();
-            const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var,1);
+            array_1d<double,3> fwdPos = it_particle->Coordinates();
+            const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(conv_var,1);
             bool has_valid_elem_pointer = false;
             bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
 
@@ -144,19 +165,20 @@ public:
                 }
 
                 //store correction
-                iparticle->GetValue(rVar) = 1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old;
+                const auto limiter_factor = 0.5*mLimiter[i];
+                it_particle->GetValue(rVar) = (1.0 + limiter_factor)*it_particle->FastGetSolutionStepValue(rVar,1) - limiter_factor*phi_old;
 //                 iparticle->FastGetSolutionStepValue(rVar) = iparticle->GetValue(rVar) - 0.5 * (phi2 - iparticle->FastGetSolutionStepValue(rVar,1));
             }
             else
             {
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                it_particle->GetValue(rVar) = it_particle->FastGetSolutionStepValue(rVar,1);
             }
         }
 
-         #pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nparticles; i++)
         {
-            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator it_particle = rModelPart.NodesBegin() + i;
             bool is_found = found[i];
             if(is_found) {
                 Vector N = Ns[i];
@@ -166,7 +188,7 @@ public:
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
                 }
 
-                iparticle->FastGetSolutionStepValue(rVar) = phi1;
+                it_particle->FastGetSolutionStepValue(rVar) = phi1;
             }
 //             else
 //                 std::cout << "it should find it" << std::endl;
@@ -261,42 +283,127 @@ public:
 
     }
 
+    // ************************************************************************************************************
+    // See [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41] for more info about this limiter
+    // Befor calling make sure that non-historical variable "DISTANCE_GRADIENT" contains the nodal gradient of rVar
+    void CalculateLimiter(
+        ModelPart& rModelPart,
+        const Variable< double >& rVar)
+    {
+        const double epsilon = 1.0e-15;
+        const double power = 2.0;
 
-        void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
-        {
-                KRATOS_TRY
+        const int nparticles = rModelPart.Nodes().size();
 
-                ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-                vector<unsigned int> node_partition;
-                #ifdef _OPENMP
-                    int number_of_threads = omp_get_max_threads();
-                #else
-                    int number_of_threads = 1;
-                #endif
-                OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
-
-                #pragma omp parallel for
-                for(int kkk=0; kkk<number_of_threads; kkk++)
-                {
-                    for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-                    {
-                            ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-
-                            if (inode->IsFixed(rVar))
-                            {
-                                inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
-                            }
-                    }
-                }
-
-                KRATOS_CATCH("")
+        if(static_cast<int>(mSigmaPlus.size()) != nparticles){
+            mSigmaPlus.resize(nparticles);
+            mSigmaMinus.resize(nparticles);
         }
 
-        void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
-        {
+        auto& r_default_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        GlobalPointersVector< Node<3 > > gp_list;
+
+        for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                gp_list.push_back(global_pointer);
+            }
+        }
+
+        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+
+        auto coordinate_proxy = pointer_comm.Apply(
+            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            {
+                return global_pointer->Coordinates();
+            }
+        );
+
+        auto distance_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            {
+                return global_pointer->FastGetSolutionStepValue(rVar);
+            }
+        );
+
+        IndexPartition<int>(nparticles).for_each(
+        [&](int i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+            double S_plus = 0.0;
+            double S_minus = 0.0;
+
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+
+                /* if (it_node->Id() == j_node->Id())
+                    continue; */
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+
+                S_plus += std::max(0.0, inner_prod(grad_i, X_i-X_j));
+                S_minus += std::min(0.0, inner_prod(grad_i, X_i-X_j));
+            }
+
+            mSigmaPlus[i_node] = std::min(1.0, (std::abs(S_minus)+epsilon)/(S_plus+epsilon));
+            mSigmaMinus[i_node] = std::min(1.0, (S_plus+epsilon)/(std::abs(S_minus)+epsilon));
+        }
+        );
+
+        IndexPartition<int>(nparticles).for_each(
+        [&](int i_node){
+            auto it_node = rModelPart.NodesBegin() + i_node;
+            const double distance_i = it_node->FastGetSolutionStepValue(rVar);
+            const auto& X_i = it_node->Coordinates();
+            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+
+            double numerator = 0.0;
+            double denominator = 0.0;
+
+            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+
+                /* if (it_node->Id() == j_node->Id())
+                    continue; */
+
+                auto& global_pointer = global_pointer_list(j);
+                auto X_j = coordinate_proxy.Get(global_pointer);
+                const double distance_j = distance_proxy.Get(global_pointer);
+
+                double beta_ij = 1.0;
+                if (inner_prod(grad_i, X_i-X_j) > 0)
+                    beta_ij = mSigmaPlus[i_node];
+                else if (inner_prod(grad_i, X_i-X_j) < 0)
+                    beta_ij = mSigmaMinus[i_node];
+
+                numerator += beta_ij*(distance_i - distance_j);
+                denominator += beta_ij*std::abs(distance_i - distance_j);
+            }
+
+            const double fraction = (std::abs(numerator)/* +epsilon */) / (denominator + epsilon);
+            mLimiter[i_node] = 1.0 - std::pow(fraction, power);
+        }
+        );
+    }
+
+
+    void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
+    {
             KRATOS_TRY
+
             ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-            vector<unsigned int> node_partition;
+            vector<int> node_partition;
             #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
             #else
@@ -307,16 +414,51 @@ public:
             #pragma omp parallel for
             for(int kkk=0; kkk<number_of_threads; kkk++)
             {
-                for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+                for(int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
                 {
-                    ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                    inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+                        ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+
+                        if (inode->IsFixed(rVar))
+                        {
+                            inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
+                        }
                 }
             }
+
             KRATOS_CATCH("")
+    }
+
+    void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
+        vector<int> node_partition;
+        #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+        #else
+            int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
+
+        #pragma omp parallel for
+        for(int kkk=0; kkk<number_of_threads; kkk++)
+        {
+            for(int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+                inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+            }
         }
+        KRATOS_CATCH("")
+    }
+
+protected:
+    Kratos::Vector mSigmaPlus, mSigmaMinus, mLimiter;
+
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
+    //const bool mPartialDt;
+    const bool mActivateLimiter;
 
 
 

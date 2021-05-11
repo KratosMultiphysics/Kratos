@@ -10,7 +10,7 @@
 //  Main authors:    Andreas Apostolatos
 //					 Tobias Teschemacher
 //					 Thomas Oberbichler
-//					
+//
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -48,7 +48,7 @@ private:
     ///@{
 
     static double DistanceToLine(
-        const typename GeometryType::CoordinatesArrayType& rPoint, 
+        const typename GeometryType::CoordinatesArrayType& rPoint,
         const typename GeometryType::CoordinatesArrayType& rLineA,
         const typename GeometryType::CoordinatesArrayType& rLineB
         )
@@ -69,17 +69,17 @@ public:
     {
     }
 
-    /** 
+    /**
     * @brief This method tessellates a curve and stores the tessellation in the class
     * @param rGeometry Reference to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
     * @param rKnotSpanIntervals Reference to the knot span intervals laying in the DomainInterval
-    * @param Tolerance Tolerance for the choral error
+    * @param Tolerance Tolerance for the chordal error
     * @see ComputeTessellation
     */
     void Tessellate(
-        const GeometryType& rGeometry, 
+        const GeometryType& rGeometry,
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
@@ -93,13 +93,15 @@ public:
             Tolerance);
     }
 
-    /** 
+    /**
     * @brief This method returns the tessellation of a curve
     * @param pGeometry Pointer to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
     * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
     * @param Tolerance Tolerance for the choral error
+    * @param ToSurfaceParameter defines if the tesselation is computed in
+    *        global coordinates or in local coordinates of the underlying surface.
     * @return std::vector<std::pair<double, Vector>> tessellation
     * @see ANurbs library (https://github.com/oberbichler/ANurbs)
     */
@@ -108,14 +110,14 @@ public:
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
-        const double Tolerance
+        const double Tolerance,
+        bool ToSurfaceParameter = false
     )
     {
         TessellationType sample_points;
         TessellationType points;
 
         typename GeometryType::CoordinatesArrayType point;
-        typename GeometryType::CoordinatesArrayType result;
 
         // compute sample points
 
@@ -130,7 +132,8 @@ public:
             typename GeometryType::CoordinatesArrayType t0;
             t0[0] = span.GetT0();
 
-            point = rGeometry.GlobalCoordinates(result, t0);
+            ComputeGlobalCoordinates(
+                point, t0, rGeometry, ToSurfaceParameter);
 
             sample_points.emplace_back(t, point);
         }
@@ -138,7 +141,8 @@ public:
         typename GeometryType::CoordinatesArrayType t_at_normalized;
         t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(1.0);
 
-        point = rGeometry.GlobalCoordinates(result, t_at_normalized);
+        ComputeGlobalCoordinates(
+            point, t_at_normalized, rGeometry, ToSurfaceParameter);
 
         sample_points.emplace_back(1.0, point);
 
@@ -181,8 +185,8 @@ public:
 
                     t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(t);
 
-                    point = rGeometry.GlobalCoordinates(
-                        result, t_at_normalized);
+                    ComputeGlobalCoordinates(
+                        point, t_at_normalized, rGeometry, ToSurfaceParameter);
 
                     const double distance = DistanceToLine(point, point_a,
                         point_b);
@@ -204,6 +208,21 @@ public:
         return points;
     }
 
+    static void ComputeGlobalCoordinates(
+        CoordinatesArrayType& rGlobalCoordinates,
+        const CoordinatesArrayType& crLocaCoordinates,
+        const GeometryType& rGeometry,
+        bool to_surface_parameter = false
+    )
+    {
+        if (!to_surface_parameter) {
+            rGeometry.GlobalCoordinates(
+                rGlobalCoordinates, crLocaCoordinates);
+            return;
+        }
+        rGlobalCoordinates = crLocaCoordinates;
+        rGeometry.Calculate(PARAMETER_2D_COORDINATES, rGlobalCoordinates);
+    }
 
     /* @brief This method returns polygon of this curve with equal curve segments.
      * @param pGeometry Pointer to the geometry
@@ -235,7 +254,7 @@ public:
         return points;
     }
 
-    /** 
+    /**
     * @brief This method returns the already computed tessellation of a curve
     * @return return std::vector<std::pair<double, Vector>> tessellation
     */
