@@ -129,6 +129,36 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         Properties& rProperty
         );
 
+    /**
+     * @brief This method assigns the constitutive law to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignConstitutiveLawToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
+    /**
+     * @brief This method assigns the variables to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignVariablesToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
+    /**
+     * @brief This method assigns the tables to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignTablesToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
     ///@}
     ///@name Access
     ///@{
@@ -177,36 +207,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method assigns the constitutive law to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignConstitutiveLawToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
-
-    /**
-     * @brief This method assigns the variables to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignVariablesToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
-
-    /**
-     * @brief This method assigns the tables to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignTablesToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
 
     /**
      * @brief This method creates an auxiliar Parameters when reading properties in order to avoid error, so these non-registered properties can be processed later
