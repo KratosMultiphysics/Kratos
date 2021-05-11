@@ -131,36 +131,36 @@ public:
         KRATOS_CATCH("")
     }
 
-    LevelSetConvectionProcess(
-        Variable<double>& rLevelSetVar,
-        ModelPart& rBaseModelPart,
-        typename TLinearSolver::Pointer pLinearSolver,
-        const double MaxCFL = 1.0,
-        const double CrossWindStabilizationFactor = 0.7,
-        const unsigned int MaxSubsteps = 0)
-        : mrBaseModelPart(rBaseModelPart)
-        , mrModel(rBaseModelPart.GetModel())
-        , mpLevelSetVar(&rLevelSetVar)
-        , mpConvectVar(&VELOCITY)
-        , mpLevelSetGradientVar(nullptr)
-        , mMaxAllowedCFL(MaxCFL)
-        , mMaxSubsteps(MaxSubsteps)
-        , mIsBfecc(false)
-        , mIsAlgebraicStabilization(false)
-        , mIsHighOrder(false)
-        , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
-    {
-        KRATOS_TRY
+    // LevelSetConvectionProcess(
+    //     Variable<double>& rLevelSetVar,
+    //     ModelPart& rBaseModelPart,
+    //     typename TLinearSolver::Pointer pLinearSolver,
+    //     const double MaxCFL = 1.0,
+    //     const double CrossWindStabilizationFactor = 0.7,
+    //     const unsigned int MaxSubsteps = 0)
+    //     : mrBaseModelPart(rBaseModelPart)
+    //     , mrModel(rBaseModelPart.GetModel())
+    //     , mpLevelSetVar(&rLevelSetVar)
+    //     , mpConvectVar(&VELOCITY)
+    //     , mpLevelSetGradientVar(nullptr)
+    //     , mMaxAllowedCFL(MaxCFL)
+    //     , mMaxSubsteps(MaxSubsteps)
+    //     , mIsBfecc(false)
+    //     , mIsAlgebraicStabilization(false)
+    //     , mIsHighOrder(false)
+    //     , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
+    // {
+    //     KRATOS_TRY
 
-        KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
+    //     KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
 
-        SetConvectionProblemSettings(CrossWindStabilizationFactor);
+    //     SetConvectionProblemSettings(CrossWindStabilizationFactor);
 
-        auto p_builder_solver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
-        InitializeConvectionStrategy(p_builder_solver);
+    //     auto p_builder_solver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
+    //     InitializeConvectionStrategy(p_builder_solver);
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("")
+    // }
 
     /// Copy constructor.
     LevelSetConvectionProcess(LevelSetConvectionProcess const& rOther) = delete;
@@ -315,10 +315,21 @@ public:
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "cross_wind_stabilization_factor" : 0.7,
-            "algebraic_stabilization" : false,
-            "high_order_terms" : false
+            "element_type" : "LevelSetConvectionElementSimplex",
+            "element_settings" : {}
         })");
+        // const Parameters default_parameters = Parameters(R"({
+        //     "model_part_name" : "",
+        //     "levelset_variable_name" : "DISTANCE",
+        //     "levelset_convection_variable_name" : "VELOCITY",
+        //     "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+        //     "max_CFL" : 1.0,
+        //     "max_substeps" : 0,
+        //     "eulerian_error_compensation" : false,
+        //     "cross_wind_stabilization_factor" : 0.7,
+        //     "algebraic_stabilization" : false,
+        //     "high_order_terms" : false
+        // })");
 
         return default_parameters;
     }
@@ -366,17 +377,17 @@ protected:
 
     Model& mrModel;
 
-    ModelPart* mpDistanceModelPart;
+    ModelPart* mpDistanceModelPart = nullptr;
 
-    const Variable<double>* mpLevelSetVar;
+    const Variable<double>* mpLevelSetVar = nullptr;
 
-    const Variable<array_1d<double,3>>* mpConvectVar;
+    const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
     const Variable<array_1d<double,3>>* mpLevelSetGradientVar = nullptr;
 
-    double mMaxAllowedCFL;
+    double mMaxAllowedCFL = 1.0;
 
-	unsigned int mMaxSubsteps;
+	unsigned int mMaxSubsteps = 0;
 
     bool mIsBfecc;
 
@@ -404,6 +415,8 @@ protected:
 
     std::string mAuxModelPartName;
 
+    const Element* mpConvectionFactoryElement = nullptr;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -420,6 +433,13 @@ protected:
     {
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         CheckAndAssignSettings(ThisParameters);
+
+
+
+
+
+
+
 
         if (!mIsAlgebraicStabilization){
             SetConvectionProblemSettings(ThisParameters["cross_wind_stabilization_factor"].GetDouble());
@@ -439,32 +459,32 @@ protected:
         }
     }
 
-    /// Constructor without linear solver for derived classes
-    //TODO: Remove this once we remove the deprecated Trilinos constructor
-    LevelSetConvectionProcess(
-        Variable<double>& rLevelSetVar,
-        Variable< array_1d< double, 3 > >& rConvectVar,
-        ModelPart& rBaseModelPart,
-        const double MaxCFL = 1.0,
-        const unsigned int MaxSubsteps = 0,
-        const bool IsBFECC = false,
-        const bool IsAlgebraicStabilization = false,
-        const bool IsHighOrder = false,
-        const bool PartialDt = false)
-        : mrBaseModelPart(rBaseModelPart),
-          mrModel(rBaseModelPart.GetModel()),
-          mpLevelSetVar(&rLevelSetVar),
-          mpConvectVar(&rConvectVar),
-          mpLevelSetGradientVar(&DISTANCE_GRADIENT),
-          mMaxAllowedCFL(MaxCFL),
-          mMaxSubsteps(MaxSubsteps),
-          mIsBfecc(IsBFECC),
-          mIsAlgebraicStabilization(IsAlgebraicStabilization),
-          mIsHighOrder(IsHighOrder),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
-    {
-        KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
-    }
+    // /// Constructor without linear solver for derived classes
+    // //TODO: Remove this once we remove the deprecated Trilinos constructor
+    // LevelSetConvectionProcess(
+    //     Variable<double>& rLevelSetVar,
+    //     Variable< array_1d< double, 3 > >& rConvectVar,
+    //     ModelPart& rBaseModelPart,
+    //     const double MaxCFL = 1.0,
+    //     const unsigned int MaxSubsteps = 0,
+    //     const bool IsBFECC = false,
+    //     const bool IsAlgebraicStabilization = false,
+    //     const bool IsHighOrder = false,
+    //     const bool PartialDt = false)
+    //     : mrBaseModelPart(rBaseModelPart),
+    //       mrModel(rBaseModelPart.GetModel()),
+    //       mpLevelSetVar(&rLevelSetVar),
+    //       mpConvectVar(&rConvectVar),
+    //       mpLevelSetGradientVar(&DISTANCE_GRADIENT),
+    //       mMaxAllowedCFL(MaxCFL),
+    //       mMaxSubsteps(MaxSubsteps),
+    //       mIsBfecc(IsBFECC),
+    //       mIsAlgebraicStabilization(IsAlgebraicStabilization),
+    //       mIsHighOrder(IsHighOrder),
+    //       mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
+    // {
+    //     KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
+    // }
 
     /**
      * @brief Set the level set convection formulation settings
@@ -549,19 +569,26 @@ protected:
 
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
+        KRATOS_ERROR_IF(mpConvectionFactoryElement == nullptr) << "Convection factory element has not been set yet." << std::endl;
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element;
-            if (mIsAlgebraicStabilization){
-                p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexAlgebraicStabilization < TDim, TDim+1 > >(
-                    it_elem->Id(),
-                    it_elem->pGetGeometry(),
-                    it_elem->pGetProperties());
-            } else {
-                p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
-                    it_elem->Id(),
-                    it_elem->pGetGeometry(),
-                    it_elem->pGetProperties());
-            }
+            // Element::Pointer p_element;
+            // if (mIsAlgebraicStabilization){
+            //     p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplexAlgebraicStabilization < TDim, TDim+1 > >(
+            //         it_elem->Id(),
+            //         it_elem->pGetGeometry(),
+            //         it_elem->pGetProperties());
+            // } else {
+            //     p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+            //         it_elem->Id(),
+            //         it_elem->pGetGeometry(),
+            //         it_elem->pGetProperties());
+            // }
+
+            // Create the new element from the factory registered one
+            auto p_element = mpConvectionFactoryElement->Create(
+                it_elem->Id(),
+                it_elem->pGetGeometry(),
+                it_elem->pGetProperties());
 
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
@@ -857,6 +884,26 @@ private:
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
         mpLevelSetGradientVar = (mIsBfecc || mIsAlgebraicStabilization) ? &(KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
+
+        std::string element_name = ThisParameters["element_type"].GetString();
+        const auto element_list = GetConvectionElementsList();
+        KRATOS_ERROR_IF(std::find(element_list.begin(), element_list.end(), element_name) == element_list.end()) << "Specified \'" << element_name << "\' is not in the available elements list." << std::endl;
+        std::string element_register_name = element_name + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
+    }
+
+    const virtual inline std::vector<std::string> GetConvectionElementsList()
+    {
+        std::vector<std::string> elements_list = {
+            "LevelSetConvectionElementSimplex",
+            "LevelSetConvectionElementSimplexAlgebraicStabilization"
+        };
+        return elements_list;
+    }
+
+    const Parameters GetConvectionElementDefaultParameters()
+    {
+
     }
 
     void InitializeConvectionStrategy(BuilderAndSolverPointerType pBuilderAndSolver)
