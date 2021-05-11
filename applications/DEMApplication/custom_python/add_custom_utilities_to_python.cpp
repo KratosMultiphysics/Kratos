@@ -377,6 +377,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<PiecewiseLinearRandomVariable, PiecewiseLinearRandomVariable::Pointer, RandomVariable>(m, "PiecewiseLinearRandomVariable")
         .def(py::init<const Parameters>())
+        .def("Sample", &PiecewiseLinearRandomVariable::Sample)
         ;
 
     }

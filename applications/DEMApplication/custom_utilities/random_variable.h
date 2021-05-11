@@ -32,6 +32,8 @@ public:
     /// Destructor
     ~RandomVariable(){};
 
+    virtual double Sample(){return 0.0;};
+
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
     virtual std::string Info() const;
 

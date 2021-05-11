@@ -33,6 +33,8 @@ public:
     /// Destructor
     ~PiecewiseLinearRandomVariable(){};
 
+    double Sample() override;
+
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
     std::string Info() const override
     {
@@ -60,8 +62,19 @@ protected:
 
 private:
 
+    void CalculateTrapezoidProbabilitiesAndNormalize();
+    std::size_t SampleTrapezoidChoice();
+    double SampleWithinTrapezoid(const double H, const double B1, const double B2);
+    double SampleWithinStandardTrapezoid(const double b);
+    double SamplePositiveSlopingStandardTriangle();
+    double SampleNegativeSlopingStandardTriangle();
+
     /// Assignment operator.
     PiecewiseLinearRandomVariable & operator=(PiecewiseLinearRandomVariable const& rOther);
+
+    std::vector<double> mPDFValues;
+    std::vector<double> mPDFRange;
+    std::discrete_distribution<int> mTrapezoidsDiscreteDistribution;
 
 }; // Class PiecewiseLinearRandomVariable
 

@@ -124,7 +124,14 @@ class TestRandomVariable(KratosUnittest.TestCase):
         params = Parameters()
         params.boundaries = np.array([0, 1, 2, 3, 4, 5], dtype=np.float32)
         params.heights = np.array([1, 2, 2, 4, 2, 0], dtype=np.float32)
-        rvar = PiecewiseLinearRV(params)
+        rvar = PiecewiseLinearRV(params) # python alternative
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "pdf_breakpoints" : [0, 1, 2, 3, 4, 5],
+			"pdf_values"      : [1, 2, 2, 4, 2, 0]
+        }
+        """)
+        random_variable = DEM.PiecewiseLinearRandomVariable(settings)
         # print('sample trapezoid:', rvar.SampleTrapezoid())
 
         n_bins = 25
@@ -138,7 +145,9 @@ class TestRandomVariable(KratosUnittest.TestCase):
             piecewise_linear_pdf = np.zeros(n_experiments)
 
             for i in range(n_experiments):
-                piecewise_linear_pdf[i] = rvar.Sample()
+                # value = rvar.Sample()
+                value = random_variable.Sample()
+                piecewise_linear_pdf[i] = value
 
             y, edges = np.histogram(piecewise_linear_pdf, n_bins, density=True)
             centers = 0.5 * (edges[1:] + edges[:-1])
