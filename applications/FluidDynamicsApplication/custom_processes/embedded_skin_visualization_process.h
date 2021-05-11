@@ -471,7 +471,7 @@ private:
      * @param rEdgeDistancesExtrapolated vector containing the element edge distances of extrapolated geometry
      * @return true if the element is incised and extrapolated edge distances are provided; false if not
      */
-    bool ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated);
+    bool ElementIsIncised(const Vector &rEdgeDistancesExtrapolated);
 
     /**
      * Checks wether the element is in the positive side or not
@@ -516,7 +516,7 @@ private:
      * @param rEdgeDistancesExtrapolated Vector containing the edge distances rations of extrapolated intersections
      * @return A pointer to the modified shape functions utility
      */
-    ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
+    ModifiedShapeFunctions::Pointer SetAusasIncisedModifiedShapeFunctionsUtility(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistancesWithExtra,
         const Vector &rEdgeDistancesExtrapolated);

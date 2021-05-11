@@ -640,16 +640,16 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
         if (nodal_distances_norm < zero_tol) {
             KRATOS_WARNING_FIRST_N("EmbeddedSkinVisualizationProcess", 10) << "Element: " << it_elem->Id() << " Distance vector norm: " << nodal_distances_norm << ". Please check the level set function." << std::endl;
         }
-        const bool is_ausas_incised = this->ElementIsAusasIncised(edge_distances_extrapolated);
+        const bool is_incised = this->ElementIsIncised(edge_distances_extrapolated);
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
         // If the element is split or Ausas incised, create the new entities
         if (is_split) {
             // Set the split utility
-            // NOTE: Check if is_ausas_incised needs to be done first, because ElementIsSplit() also returns 'true' for Ausas incised elements!
+            // NOTE: Check if is_incised needs to be done first, because ElementIsSplit() also returns 'true' for Ausas incised elements!
             ModifiedShapeFunctions::Pointer p_modified_shape_functions;
-            if (is_ausas_incised) {
-                p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances, edge_distances_extrapolated);
+            if (is_incised) {
+                p_modified_shape_functions = this->SetAusasIncisedModifiedShapeFunctionsUtility(p_geometry, nodal_distances, edge_distances_extrapolated);
             } else {
                 p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
             }
@@ -921,7 +921,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     return is_split;
 }
 
-bool EmbeddedSkinVisualizationProcess::ElementIsAusasIncised(const Vector &rEdgeDistancesExtrapolated)
+bool EmbeddedSkinVisualizationProcess::ElementIsIncised(const Vector &rEdgeDistancesExtrapolated)
 {
     // Check whether one edge has intersection ratio with extrapolated skin if the vector is not empty
     if (mShapeFunctionsType == ShapeFunctionsType::Ausas) {
@@ -999,7 +999,7 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
     }
 }
 
-ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetAusasIncisedModifiedShapeFunctionsUtility(
     const Geometry<Node<3>>::Pointer pGeometry,
     const Vector& rNodalDistancesWithExtra,
     const Vector& rEdgeDistancesExtrapolated)
