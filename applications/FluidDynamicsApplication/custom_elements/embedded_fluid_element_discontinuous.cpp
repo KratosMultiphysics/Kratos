@@ -135,7 +135,33 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     }
 
     // If the element is cut or incised (using Ausas FE space), add the interface contributions
-    if ( data.IsIncised() )
+    if ( data.IsCut() )
+    {
+        // Add the base element boundary contribution on the positive interface
+        const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+        const std::size_t number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
+        for (std::size_t g = 0; g < number_of_positive_interface_gauss_points; ++g){
+            const std::size_t gauss_pt_index = g + volume_gauss_points;
+            this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+        }
+
+        // Add the base element boundary contribution on the negative interface
+        const std::size_t number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
+        for (std::size_t g = 0; g < number_of_negative_interface_gauss_points; ++g){
+            const std::size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+            this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
+            this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+        }
+
+        // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
+        AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+        AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+    }
+    else if ( data.IsIncised() )
     {
         // Add the base element boundary contribution on the positive interface
             const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
@@ -161,31 +187,6 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
             AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
 
-    } else if ( data.IsCut() )
-    {
-        // Add the base element boundary contribution on the positive interface
-        const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
-        const std::size_t number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
-        for (std::size_t g = 0; g < number_of_positive_interface_gauss_points; ++g){
-            const std::size_t gauss_pt_index = g + volume_gauss_points;
-            this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
-        }
-
-        // Add the base element boundary contribution on the negative interface
-        const std::size_t number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
-        for (std::size_t g = 0; g < number_of_negative_interface_gauss_points; ++g){
-            const std::size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
-            this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
-            this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
-        }
-
-        // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
-        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
-        AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-        AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
-        AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-        AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
     }
 }
 
@@ -318,12 +319,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    // Check whether element is incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
+    // Check whether element is intersected or incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
     // then use Ausas incised shape functions
-    if ( rData.IsIncised() ) {
-        this->DefineIncisedGeometryData(rData);
-    } else if ( rData.IsCut() ){
+    if ( rData.IsCut() ) {
         this->DefineCutGeometryData(rData);
+    } else if ( rData.IsIncised() ) {
+        this->DefineIncisedGeometryData(rData);
     } else {
         this->DefineStandardGeometryData(rData);
     }
