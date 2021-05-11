@@ -151,7 +151,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/15_elements_small_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name, True)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [2, 4, 9, 13, 15]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [1, 10, 14]
@@ -165,7 +165,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name, True)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [1, 2, 3, 4, 5, 6]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
@@ -179,7 +179,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name, True)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [2, 4, 8, 16, 17, 19, 20]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
