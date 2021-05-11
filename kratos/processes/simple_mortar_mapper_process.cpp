@@ -763,8 +763,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 {
     // First we assemble the RHS
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const int node_i_id = rSlaveGeometry[i_node].Id();
-        const int pos_i_id = rInverseConectivityDatabase[node_i_id];
+        const SizeType node_i_id = rSlaveGeometry[i_node].Id();
+        const SizeType pos_i_id = rInverseConectivityDatabase[node_i_id];
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
             AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
