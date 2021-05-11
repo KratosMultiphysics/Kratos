@@ -318,8 +318,6 @@ namespace Testing {
     /** Checks bins search nearest, outside near the element
     */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraOutsideNear, KratosFastSuite) {
-        constexpr double tolerance = 1e-12;
-
         Model current_model;
         
         // Generate the cube skin
@@ -343,8 +341,6 @@ namespace Testing {
     /** Checks bins search nearest outside close to the element
     */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraOutsideClose, KratosFastSuite) {
-        constexpr double tolerance = 1e-12;
-
         Model current_model;
         
         // Generate the cube skin
@@ -368,8 +364,6 @@ namespace Testing {
     /** Checks bins search nearest, far from the element
     */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraOutsideFar, KratosFastSuite) {
-        constexpr double tolerance = 1e-12;
-
         Model current_model;
         
         // Generate the cube skin
@@ -392,8 +386,6 @@ namespace Testing {
     /** Checks bins search nearest, on the edge of the element
     */
     KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraEdge, KratosFastSuite) {
-        constexpr double tolerance = 1e-12;
-
         Model current_model;
         
         // Generate the cube skin
