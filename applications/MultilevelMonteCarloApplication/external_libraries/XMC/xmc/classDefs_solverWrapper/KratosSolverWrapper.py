@@ -17,7 +17,7 @@ import xmc.classDefs_solverWrapper.methodDefs_KratosSolverWrapper.utilities as m
 from xmc.tools import dynamicImport
 
 # Import distributed environment
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 class KratosSolverWrapper(sw.SolverWrapper):
     """
@@ -152,11 +152,11 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
             # postprocess components
             if self.number_contributions_per_instance > 1:
-                unm = mdu.UnfolderManager(self._numberOfOutputs(),self.outputBatchSize)
+                unm = mdu.UnfolderManager(self._numberOfOutputs(), self.outputBatchSize)
                 if (self._numberOfOutputs() == self.outputBatchSize):
-                    qoi_list = [unm.PostprocessContributionsPerInstance_Task(aux_qoi_array,self.qoi_estimator)]
+                    qoi_list = [unm.PostprocessContributionsPerInstance_Task(aux_qoi_array,self.qoi_estimator,returns=math.ceil(self._numberOfOutputs()/self.outputBatchSize))]
                 elif (self._numberOfOutputs() > self.outputBatchSize):
-                    qoi_list = unm.PostprocessContributionsPerInstance_Task(aux_qoi_array,self.qoi_estimator)
+                    qoi_list = unm.PostprocessContributionsPerInstance_Task(aux_qoi_array,self.qoi_estimator,returns=math.ceil(self._numberOfOutputs()/self.outputBatchSize))
                 else:
                     raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 delete_object(unm)
@@ -164,9 +164,9 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 # unfold qoi into its components of fixed size
                 unm = mdu.UnfolderManager(self._numberOfOutputs(), self.outputBatchSize)
                 if (self._numberOfOutputs() == self.outputBatchSize):
-                    qoi_list = [unm.UnfoldNValues_Task(aux_qoi_array[0])]
+                    qoi_list = [unm.UnfoldNValues_Task(aux_qoi_array[0],returns=math.ceil(self._numberOfOutputs()/self.outputBatchSize))]
                 elif (self._numberOfOutputs() > self.outputBatchSize):
-                    qoi_list = unm.UnfoldNValues_Task(aux_qoi_array[0])
+                    qoi_list = unm.UnfoldNValues_Task(aux_qoi_array[0],returns=math.ceil(self._numberOfOutputs()/self.outputBatchSize))
                 else:
                     raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
                 # delete COMPSs future objects no longer needed
@@ -175,7 +175,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
             # delete COMPSs future objects no longer needed
             for contribution_counter in range (0,self.number_contributions_per_instance):
                 delete_object(aux_qoi_array[contribution_counter])
-            delete_object(qoi)
+            #delete_object(qoi)
             del(aux_qoi_array)
 
         else:
@@ -183,13 +183,14 @@ class KratosSolverWrapper(sw.SolverWrapper):
             # unfold qoi into its components of fixed size
             unm = mdu.UnfolderManager(self._numberOfOutputs(), self.outputBatchSize)
             if (self._numberOfOutputs() == self.outputBatchSize):
-                qoi_list = [unm.UnfoldNValues_Task(qoi)]
+                qoi_list = [unm.UnfoldNValues_Task(qoi,returns=math.ceil(self._numberOfOutputs()/self.outputBatchSize))]
             elif (self._numberOfOutputs() > self.outputBatchSize):
-                qoi_list = unm.UnfoldNValues_Task(qoi)
+                qoi_list = unm.UnfoldNValues_Task(qoi,returns=math.ceil(self._numberOfOutputs()/self.outputBatchSize))
             else:
                 raise Exception("_numberOfOutputs() returns a value smaller than self.outputBatchSize. Set outputBatchSize smaller or equal to the number of scalar outputs.")
             # delete COMPSs future objects no longer needed
             delete_object(unm)
+            delete_object(qoi)
 
         return qoi_list,time_for_qoi
 

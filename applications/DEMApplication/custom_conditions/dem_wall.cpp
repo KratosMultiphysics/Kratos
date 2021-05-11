@@ -147,10 +147,9 @@ void DEMWall::CalculateElasticForces(VectorType& rElasticForces, const ProcessIn
 
         for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+            const int& contact_type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
 
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
+            if ( (rRFnei[i_nei] != nullptr) && ( rRFnei[i_nei]->Id() == this->Id() ) && (contact_type > 0 ) ) {
                 const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double ContactElasticForce[3] = {0.0};
 

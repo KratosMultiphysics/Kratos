@@ -24,9 +24,7 @@
 // Project includes
 #include "includes/model_part_io.h"
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
-
-// This one needs mpi
-#include "mpi.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 #ifndef KRATOS_USE_METIS_5
   extern "C" {
@@ -95,14 +93,15 @@ public:
     ///@{
 
     /// Default constructor.
-    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, ModelPartIO& rSerialIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
-        BaseType(rIO,NumberOfPartitions,Dimension,Verbosity,SynchronizeConditions), mrSerialIO(rSerialIO)
+    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, ModelPartIO& rSerialIO, const DataCommunicator& rDataComm, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
+        BaseType(rIO,rDataComm.Size(),Dimension,Verbosity,SynchronizeConditions), mrSerialIO(rSerialIO), mrDataComm(rDataComm)
     {
+        KRATOS_ERROR_IF_NOT(mrDataComm.IsDistributed()) << "DataCommunicator must be distributed!" << std::endl;
     }
 
     /// Copy constructor.
     MetisDivideHeterogeneousInputInMemoryProcess(MetisDivideHeterogeneousInputInMemoryProcess const& rOther):
-        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions), mrSerialIO(rOther.mrSerialIO)
+        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions), mrSerialIO(rOther.mrSerialIO), mrDataComm(rOther.mrDataComm)
     {
     }
 
@@ -131,11 +130,10 @@ public:
      */
     void Execute() override
     {
-        int mpi_rank;
-        int mpi_size;
+        MPI_Comm this_comm = MPIDataCommunicator::GetMPICommunicator(mrDataComm);
 
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        int mpi_rank = mrDataComm.Rank();
+        int mpi_size = mrDataComm.Size();
 
         int * msgSendSize = new int[mpi_size];
         int * msgRecvSize = new int[mpi_size];
@@ -285,7 +283,7 @@ public:
         }
 
         // Send the message size to all processes
-        MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,MPI_COMM_WORLD);
+        MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,this_comm);
 
         // Calculate the number of events:
         auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
@@ -299,20 +297,20 @@ public:
         if( mpi_rank == 0) {
             for(auto i = 0; i < mpi_size; i++) {
                 char* aux_char = const_cast<char*>(mpi_send_buffer[i]);
-                MPI_Isend(aux_char,msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                MPI_Isend(aux_char,msgSendSize[i],MPI_CHAR,i,0,this_comm,&reqs[NumberOfCommunicationEventsIndex++]);
             }
         }
 
         // Recieve the buffers
         mpi_recv_buffer[mpi_rank] = (char *)malloc(sizeof(char) * msgRecvSize[mpi_rank]);
-        MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+        MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,this_comm,&reqs[NumberOfCommunicationEventsIndex++]);
 
         // Wait untill all communications finish
         if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS ) {
             KRATOS_ERROR << "Error in metis_partition_mem" << std::endl;
         }
 
-        MPI_Barrier(MPI_COMM_WORLD);
+        mrDataComm.Barrier();
 
         if(mpi_rank != 0) {
             streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
@@ -426,6 +424,8 @@ private:
     ///@{
 
     ModelPartIO& mrSerialIO;
+
+    const DataCommunicator& mrDataComm;
 
     ///@}
     ///@name Private Operators
