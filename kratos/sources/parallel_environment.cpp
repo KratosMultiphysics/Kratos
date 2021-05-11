@@ -191,6 +191,16 @@ ParallelEnvironment::~ParallelEnvironment()
     mpInstance = nullptr;
 }
 
+std::string ParallelEnvironment::RetrieveRegisteredName(const DataCommunicator& rComm)
+{
+    ParallelEnvironment& env = GetInstance();
+    for(const auto& item : env.mDataCommunicators){
+        if(&*(item.second) == &rComm)
+            return item.first;
+    }
+    KRATOS_ERROR << "the required communicator was not registered" << std::endl;
+}
+
 ParallelEnvironment& ParallelEnvironment::GetInstance()
 {
     // Using double-checked locking to ensure thread safety in the first creation of the singleton.
