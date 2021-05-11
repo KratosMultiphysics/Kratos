@@ -1085,7 +1085,7 @@ public:
     virtual int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const
+    ) const override
     {
         int is_inside = -1;
         if (rPointLocalCoordinates[0] < 0.0-Tolerance 
@@ -1319,7 +1319,7 @@ public:
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const
+    ) const override
     {
         PointLocalCoordinates(rProjectedPointLocalCoordinates, rPointGlobalCoordinates);
         

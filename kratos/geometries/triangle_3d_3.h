@@ -1047,7 +1047,7 @@ public:
     virtual double CalculateDistance(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const 
+    ) const override
     {
         double distance = GeometryUtils::PointDistanceToTriangle3D(
             BaseType::GetPoint( 0 ),
