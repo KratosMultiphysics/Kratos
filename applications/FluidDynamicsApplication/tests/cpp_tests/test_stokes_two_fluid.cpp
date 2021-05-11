@@ -25,10 +25,10 @@
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 
 namespace Kratos {
-	namespace Testing {
+    namespace Testing {
 
-		typedef ModelPart::IndexType									 IndexType;
-		typedef ModelPart::NodeIterator					          NodeIteratorType;
+        typedef ModelPart::IndexType									 IndexType;
+        typedef ModelPart::NodeIterator					          NodeIteratorType;
 
         void PrepareModelPart(ModelPart& modelPart)
         {
@@ -58,7 +58,7 @@ namespace Kratos {
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
             pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
-			pElemProp->SetValue(DENSITY_AIR, 1.0);
+            pElemProp->SetValue(DENSITY_AIR, 1.0);
             NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
             pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
@@ -99,32 +99,32 @@ namespace Kratos {
             }
         }
 
-	    // /** Checks the StokesTwoFluid3D4N element
-	    //  * Checks the LHS and RHS for a cut element
-	    //  */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidCut3D4N, FluidDynamicsApplicationFastSuite)
-		{
-			Model current_model;
-			ModelPart& modelPart = current_model.CreateModelPart("Main");
+        // /** Checks the StokesTwoFluid3D4N element
+        //  * Checks the LHS and RHS for a cut element
+        //  */
+        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidCut3D4N, FluidDynamicsApplicationFastSuite)
+        {
+            Model current_model;
+            ModelPart& modelPart = current_model.CreateModelPart("Main");
             PrepareModelPart(modelPart);
             
             auto pElement = modelPart.pGetElement(1);
 
-			pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
-			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
-			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
-			pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
+            pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
+            pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
+            pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
+            pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
-			// Compute RHS and LHS
-			Vector RHS = ZeroVector(16);
-			Matrix LHS = ZeroMatrix(16,16);
+            // Compute RHS and LHS
+            Vector RHS = ZeroVector(16);
+            Matrix LHS = ZeroMatrix(16,16);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+            const auto& r_process_info = modelPart.GetProcessInfo();
+            pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+            pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
-			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+            // Check the RHS values (the RHS is computed as the LHS x previous_solution,
+            // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             KRATOS_CHECK_NEAR(RHS(0), -8.86905, 1e-2);
             KRATOS_CHECK_NEAR(RHS(1), -0.37064, 1e-2);
             KRATOS_CHECK_NEAR(RHS(2), 7.71903, 1e-2);
@@ -141,7 +141,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(RHS(13), 9.57769, 1e-2);
             KRATOS_CHECK_NEAR(RHS(14), 30.8809, 1e-2);
             KRATOS_CHECK_NEAR(RHS(15), -996.765, 1e-2);
-		}
+        }
 
         // /** Checks the StokesTwoFluid3D4N element
         //  * Checks the LHS and RHS for a negative element (distance <= 0.0)
@@ -163,9 +163,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(16);
             Matrix LHS = ZeroMatrix(16, 16);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+            const auto& r_process_info = modelPart.GetProcessInfo();
+            pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+            pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -208,9 +208,9 @@ namespace Kratos {
             Vector RHS = ZeroVector(16);
             Matrix LHS = ZeroMatrix(16, 16);
 
-			const auto& r_process_info = modelPart.GetProcessInfo();
-			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
-			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+            const auto& r_process_info = modelPart.GetProcessInfo();
+            pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+            pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -232,5 +232,5 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(RHS(15), -8123.29, 1e-2);
         }
 
-	} // namespace Testing
+    } // namespace Testing
 }  // namespace Kratos.
