@@ -81,7 +81,7 @@ std::string MassConservationCheckProcess::Initialize(){
 
     this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);
     this->mInitialNegativeVolume = r_comm.SumAll(neg_vol);
-    this->mTheoreticalNegativeVolume = neg_vol;
+    this->mTheoreticalNegativeVolume = this->mInitialNegativeVolume;
     inter_area = r_comm.SumAll(inter_area);
 
     std::string output_line =   "------ Initial values ----------------- \n";

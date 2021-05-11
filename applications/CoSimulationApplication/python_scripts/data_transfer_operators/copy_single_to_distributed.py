@@ -12,10 +12,21 @@ class CopySingleToDistributed(CoSimulationDataTransferOperator):
         to_solver_values = to_solver_data.GetData()
         data_value = from_solver_data.GetData()
 
-        if not data_value.size == 1:
+        data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
+
+        if (not data_comm.SumAll(data_value.size) == 1):
             raise Exception('Interface data "{}" of solver "{}" requires to be of size 1, got: {}'.format(from_solver_data.name, from_solver_data.solver_name, data_value.size))
 
-        to_solver_values.fill(data_value[0])
+        # Get Value from solver, if not existent set 0
+        if data_value.size == 0:
+            value = float(0)
+        else:
+            value = data_value[0]        
+
+        # sum Up Value from solver from all ranks -> so not zero when not definied in this rank
+        value = from_solver_data.model_part.GetCommunicator().GetDataCommunicator().SumAll(value)
+
+        to_solver_values.fill(value)
 
         # the order is IMPORTANT here!
         if "swap_sign" in transfer_options.GetStringArray():
