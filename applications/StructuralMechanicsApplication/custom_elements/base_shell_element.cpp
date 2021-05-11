@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
@@ -233,16 +233,16 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
             }
         }
 
-        if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
+        if (Has(LOCAL_MATERIAL_AXIS_1)) {
             // calculate the angle between the prescribed direction and the local axis 1
             // this is currently required in teh derived classes TODO refactor
 
             std::vector<array_1d<double, 3>> local_axes_1;
             std::vector<array_1d<double, 3>> local_axes_2;
-            this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
-            this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
+            CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , rCurrentProcessInfo);
+            CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , rCurrentProcessInfo);
 
-            const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
+            const array_1d<double, 3> prescribed_direcition = GetValue(LOCAL_MATERIAL_AXIS_1);
 
             double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
 
@@ -252,15 +252,20 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
                 mat_orientation_angle *= -1.0;
             }
 
-            this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
+            SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
         }
+
+        mpCoordinateTransformation->Initialize();
+        SetupOrientationAngles();
     }
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto& r_geom = this->GetGeometry();
+    mpCoordinateTransformation->InitializeNonLinearIteration();
+
+    const auto& r_geom = GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->InitializeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
@@ -268,9 +273,11 @@ void BaseShellElement<TCoordinateTransformation>::BaseInitializeNonLinearIterati
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto& r_geom = this->GetGeometry();
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
+
+    const auto& r_geom = GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
@@ -278,7 +285,7 @@ void BaseShellElement<TCoordinateTransformation>::BaseFinalizeNonLinearIteration
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -287,10 +294,12 @@ void BaseShellElement<TCoordinateTransformation>::BaseInitializeSolutionStep(con
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->InitializeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
     }
+
+    mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 template <class TCoordinateTransformation>
-void BaseShellElement<TCoordinateTransformation>::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement<TCoordinateTransformation>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -299,6 +308,8 @@ void BaseShellElement<TCoordinateTransformation>::BaseFinalizeSolutionStep(const
     for (IndexType i = 0; i < mSections.size(); ++i) {
         mSections[i]->FinalizeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
     }
+
+    mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 template <class TCoordinateTransformation>
@@ -343,7 +354,123 @@ void BaseShellElement<TCoordinateTransformation>::CalculateRightHandSide(VectorT
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    // TODO unify implementation and move it to BaseClass
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
+
+    const SizeType num_gps = GetNumberOfGPs();
+    const SizeType num_dofs = GetNumberOfDofs();
+    const SizeType num_nodes = GetGeometry().PointsNumber();
+
+    if ((rMassMatrix.size1() != num_dofs) || (rMassMatrix.size2() != num_dofs)) {
+        rMassMatrix.resize(num_dofs, num_dofs, false);
+    }
+    noalias(rMassMatrix) = ZeroMatrix(num_dofs, num_dofs);
+
+    // Compute the local coordinate system.
+    auto ref_coord_sys(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    const double ref_area = ref_coord_sys.Area();
+
+    // Average mass per unit area over the whole element
+    double av_mass_per_unit_area = 0.0;
+
+    for (SizeType i = 0; i < num_gps; i++) {
+        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
+    }
+    av_mass_per_unit_area /= static_cast<double>(num_gps);
+
+    if (compute_lumped_mass_matrix) {
+        // lumped area
+        double lump_area = ref_area / static_cast<double>(num_nodes);
+        double nodal_mass = av_mass_per_unit_area * lump_area;
+
+        // loop on nodes
+        for (SizeType i=0; i < num_nodes; i++) {
+            SizeType index = i * 6;
+
+            // translational mass
+            rMassMatrix(index, index) = nodal_mass;
+            rMassMatrix(index + 1, index + 1) = nodal_mass;
+            rMassMatrix(index + 2, index + 2) = nodal_mass;
+
+            // rotational mass - neglected for the moment...
+        }
+    } else { // consistent mass matrix
+        if (num_nodes == 3) { // triangular element
+            // General matrix form as per Felippa plane stress CST eqn 31.27:
+            // http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf
+
+            // Density and thickness are averaged over element.
+
+            // Average thickness over the whole element
+            double thickness = 0.0;
+            for (SizeType i = 0; i < num_gps; i++) {
+                thickness += this->mSections[i]->GetThickness(GetProperties());
+            }
+            thickness /= static_cast<double>(num_gps);
+
+            // Populate mass matrix with integation results
+            for (SizeType row = 0; row < num_dofs; row++) {
+                if (row % 6 < 3) { // translational entry
+                    for (SizeType col = 0; col < 3; col++) {
+                        rMassMatrix(row, 6 * col + row % 6) = 1.0;
+                    }
+                } else { // rotational entry
+                    for (SizeType col = 0; col < 3; col++) {
+                        rMassMatrix(row, 6 * col + row % 6) = thickness*thickness / 12.0;
+                    }
+                }
+
+                // Diagonal entry
+                rMassMatrix(row, row) *= 2.0;
+            }
+
+            rMassMatrix *= av_mass_per_unit_area * ref_area / 12.0;
+
+        } else { // quadrilateral element
+            // Get shape function values and setup jacobian
+            const GeometryType& geom = GetGeometry();
+            const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
+            ShellUtilities::JacobianOperator jac_operator;
+
+            // Get integration points
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->mIntegrationMethod);
+
+            // Setup matrix of shape functions
+            Matrix N = Matrix(6, 24, 0.0);
+
+            // Gauss loop
+            for (SizeType gauss_point = 0; gauss_point < 4; gauss_point++) {
+                // Calculate average mass per unit area and thickness at the
+                // current GP
+                av_mass_per_unit_area =
+                    this->mSections[gauss_point]->CalculateMassPerUnitArea(GetProperties());
+                const double thickness = this->mSections[gauss_point]->GetThickness(GetProperties());
+
+                // Calc jacobian and weighted dA at current GP
+                jac_operator.Calculate(ref_coord_sys, geom.ShapeFunctionLocalGradient(gauss_point));
+                const double dA = integration_points[gauss_point].Weight() *
+                    jac_operator.Determinant();
+
+                // Assemble shape function matrix over nodes
+                for (SizeType node = 0; node < 4; node++) {
+                    // translational entries - dofs 1-3
+                    for (SizeType dof = 0; dof < 3; dof++) {
+                        N(dof, 6 * node + dof) =
+                            shapeFunctions(gauss_point, node);
+                    }
+
+                    // rotational inertia entries - dofs 4-6
+                    for (SizeType dof = 0; dof < 3; dof++) {
+                        N(dof + 3, 6 * node + dof + 3) =
+                            thickness / std::sqrt(12.0) *
+                            shapeFunctions(gauss_point, node);
+                    }
+                }
+
+                // Add contribution to total mass matrix
+                rMassMatrix += prod(trans(N), N)*dA*av_mass_per_unit_area;
+            }
+        }
+    }
 }
 
 template <class TCoordinateTransformation>
@@ -359,6 +486,37 @@ void BaseShellElement<TCoordinateTransformation>::CalculateDampingMatrix(
         rDampingMatrix,
         rCurrentProcessInfo,
         matrix_size);
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3> >& rVariable,
+    std::vector<array_1d<double, 3> >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_AXIS_1 ||
+            rVariable == LOCAL_AXIS_2 ||
+            rVariable == LOCAL_AXIS_3) {
+        ComputeLocalAxis(rVariable, rOutput);
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
+               rVariable == LOCAL_MATERIAL_AXIS_2 ||
+               rVariable == LOCAL_MATERIAL_AXIS_3) {
+        ComputeLocalMaterialAxis(rVariable, rOutput);
+    }
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::Calculate(
+    const Variable<Matrix>& rVariable, Matrix& Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        Output.resize(3, 3, false);
+
+        // Compute the local coordinate system.
+        auto localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+        Output = trans(localCoordinateSystem.Orientation());
+    }
 }
 
 template <class TCoordinateTransformation>
@@ -392,7 +550,7 @@ void BaseShellElement<TCoordinateTransformation>::SetCrossSectionsOnIntegrationP
     for (IndexType i = 0; i < crossSections.size(); ++i) {
         mSections.push_back(crossSections[i]);
     }
-    this->SetupOrientationAngles();
+    SetupOrientationAngles();
     KRATOS_CATCH("")
 }
 
@@ -449,7 +607,121 @@ ShellCrossSection::SectionBehaviorType BaseShellElement<TCoordinateTransformatio
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::SetupOrientationAngles()
 {
-    KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
+    if (Has(MATERIAL_ORIENTATION_ANGLE)) {
+        for (auto it = mSections.begin(); it != mSections.end(); ++it) {
+            (*it)->SetOrientationAngle(GetValue(MATERIAL_ORIENTATION_ANGLE));
+        }
+    } else {
+        auto lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+        Vector3Type normal;
+        noalias(normal) = lcs.Vz();
+
+        Vector3Type dZ;
+        dZ(0) = 0.0;
+        dZ(1) = 0.0;
+        dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
+
+        Vector3Type dirX;
+        MathUtils<double>::CrossProduct(dirX, dZ, normal);
+
+        // try to normalize the x vector. if it is near zero it means that we need
+        // to choose a default one.
+        double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
+        if (dirX_norm < 1.0E-12) {
+            dirX(0) = 1.0;
+            dirX(1) = 0.0;
+            dirX(2) = 0.0;
+        } else if (dirX_norm != 1.0) {
+            dirX_norm = std::sqrt(dirX_norm);
+            dirX /= dirX_norm;
+        }
+
+        Vector3Type elem_dirX = lcs.Vx();
+
+        // now calculate the angle between the element x direction and the material x direction.
+        Vector3Type& a = elem_dirX;
+        Vector3Type& b = dirX;
+        double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
+        if (a_dot_b < -1.0) {
+            a_dot_b = -1.0;
+        }
+        if (a_dot_b > 1.0) {
+            a_dot_b = 1.0;
+        }
+        double angle = std::acos(a_dot_b);
+
+        // if they are not counter-clock-wise, let's change the sign of the angle
+        if (angle != 0.0) {
+            const MatrixType& R = lcs.Orientation();
+            if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0) {
+                angle = -angle;
+            }
+        }
+
+        for (auto it = mSections.begin(); it != mSections.end(); ++it) {
+            (*it)->SetOrientationAngle(angle);
+        }
+    }
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::ComputeLocalAxis(
+    const Variable<array_1d<double, 3> >& rVariable,
+    std::vector<array_1d<double, 3> >& rOutput) const
+{
+    const SizeType num_gps = GetNumberOfGPs();
+    if (rOutput.size() != num_gps) {
+        rOutput.resize(num_gps);
+    }
+
+    for (IndexType i=1; i<num_gps; ++i) {
+        noalias(rOutput[i]) = ZeroVector(3);
+    }
+
+    const auto localCoordinateSystem(mpCoordinateTransformation->CreateLocalCoordinateSystem());
+    if (rVariable == LOCAL_AXIS_1) {
+        noalias(rOutput[0]) = localCoordinateSystem.Vx();
+    } else if (rVariable == LOCAL_AXIS_2) {
+        noalias(rOutput[0]) = localCoordinateSystem.Vy();
+    } else if (rVariable == LOCAL_AXIS_3) {
+        noalias(rOutput[0]) = localCoordinateSystem.Vz();
+    } else {
+        KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+    }
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::ComputeLocalMaterialAxis(
+    const Variable<array_1d<double, 3> >& rVariable,
+    std::vector<array_1d<double, 3> >& rOutput) const
+{
+    const double mat_angle = GetValue(MATERIAL_ORIENTATION_ANGLE);
+
+    const SizeType num_gps = GetNumberOfGPs();
+    if (rOutput.size() != num_gps) {
+        rOutput.resize(num_gps);
+    }
+
+    for (IndexType i=1; i<num_gps; ++i) {
+        noalias(rOutput[i]) = ZeroVector(3);
+    }
+
+    const auto localCoordinateSystem(mpCoordinateTransformation->CreateLocalCoordinateSystem());
+
+    const auto eZ = localCoordinateSystem.Vz();
+
+    if (rVariable == LOCAL_MATERIAL_AXIS_1) {
+        const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
+        q.RotateVector3(localCoordinateSystem.Vx(), rOutput[0]);
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_2) {
+        const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
+        q.RotateVector3(localCoordinateSystem.Vy(), rOutput[0]);
+    } else if (rVariable == LOCAL_MATERIAL_AXIS_3) {
+        noalias(rOutput[0]) = eZ;
+    } else {
+        KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+    }
 }
 
 template <class TCoordinateTransformation>
@@ -555,7 +827,7 @@ void BaseShellElement<TCoordinateTransformation>::CheckSpecificProperties() cons
     // KRATOS_ERROR_IF(LawFeatures.mOptions.Is(ConstitutiveLaw::ANISOTROPIC) &&
     //                 !Has(MATERIAL_ORIENTATION_ANGLE))
     //     << "Using an Anisotropic Constitutive law requires the specification of "
-    //     << "\"MATERIAL_ORIENTATION_ANGLE\" for shell element with Id " << this->Id() << std::endl;
+    //     << "\"MATERIAL_ORIENTATION_ANGLE\" for shell element with Id " << Id() << std::endl;
 
     if (GetSectionBehavior() == ShellCrossSection::Thick) {
         // Check constitutive law has been verified with Stenberg stabilization
@@ -565,6 +837,18 @@ void BaseShellElement<TCoordinateTransformation>::CheckSpecificProperties() cons
         KRATOS_WARNING_IF("BaseShellElement", !stenberg_stabilization_suitable)
                 << "The current constitutive law has not been checked with Stenberg "
                 << "shear stabilization.\nPlease check results carefully." << std::endl;
+    }
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::DecimalCorrection(Vector& a)
+{
+    const double norm = norm_2(a);
+    const double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
+    for (SizeType i = 0; i < a.size(); i++) {
+        if (std::abs(a(i)) < tolerance) {
+            a(i) = 0.0;
+        }
     }
 }
 

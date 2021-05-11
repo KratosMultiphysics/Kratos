@@ -68,7 +68,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.problem_path = os.getcwd()
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
-                
+
                         #print model_part and properties
         if (self.echo_level>-1):
             for properties in self.main_model_part.Properties:
@@ -127,6 +127,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         ## here we initialize user-provided processes
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+        self._list_of_processes.extend(self._list_of_output_processes)
 
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
@@ -211,11 +213,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteAfterOutputStep()
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
-
-    def OutputSolutionStep(self):
-        """This function printed / writes output files after the solution of a step
-        """
-        pass
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
@@ -354,7 +351,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        
+
         for i in range(self.constitutive_laws_names.size()):
             if (self.constitutive_laws_names[i].GetString()=="FrictionalViscoplastic2DLaw" or self.constitutive_laws_names[i].GetString()=="FrictionalViscoplastic3DLaw"):
                 if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE):
@@ -414,7 +411,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY):
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)        
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.COHESION):
@@ -450,9 +447,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER):
             self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
 
-                    
+
     def AddPfemVariables(self):
-        
+
         if not self.main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
 

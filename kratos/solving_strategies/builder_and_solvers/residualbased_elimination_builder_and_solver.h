@@ -30,6 +30,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -1079,8 +1080,7 @@ protected:
 #else
                 double& r_a = rb[i_global];
                 const double& v_a = rRHSContribution(i_local);
-                #pragma omp atomic
-                r_a += v_a;
+                AtomicAdd(r_a, v_a);
 #endif
                 AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
 
@@ -1284,8 +1284,7 @@ protected:
 #ifndef USE_LOCKS_IN_ASSEMBLY
             double& r_a = values_vector[last_pos];
             const double& v_a = rALocal(i_local,counter - 1);
-            #pragma omp atomic
-            r_a +=  v_a;
+            AtomicAdd(r_a,  v_a);
 #else
             values_vector[last_pos] += rALocal(i_local,counter - 1);
 #endif
@@ -1304,8 +1303,7 @@ protected:
 #ifndef USE_LOCKS_IN_ASSEMBLY
                     double& r = values_vector[pos];
                     const double& v = rALocal(i_local,j);
-                    #pragma omp atomic
-                    r +=  v;
+                    AtomicAdd(r,  v);
 #else
                     values_vector[pos] += rALocal(i_local,j);
 #endif
@@ -1403,8 +1401,7 @@ private:
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 }
             }
         } else {
@@ -1417,14 +1414,12 @@ private:
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 } else { // Fixed dof
                     double& b_value = r_reactions_vector[i_global - BaseType::mEquationSystemSize];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 }
             }
         }

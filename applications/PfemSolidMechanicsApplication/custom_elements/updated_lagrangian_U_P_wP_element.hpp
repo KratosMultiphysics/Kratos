@@ -54,7 +54,7 @@ namespace Kratos
          typedef GeometryData::IntegrationMethod IntegrationMethod;
 
          /// Counted pointer of LargeDisplacementUPElement
-         KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPwPElement );
+         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUPwPElement );
          ///@}
 
          ///@name Life Cycle

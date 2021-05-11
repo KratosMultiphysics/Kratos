@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -129,9 +130,10 @@ public:
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
 
-        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) << "Origin and destination model parts have different number of nodes."
-                                                        << "\n\t- Number of origin nodes: " << n_orig_nodes
-                                                        << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes)
+            << "Origin and destination model parts have different number of nodes."
+            << "\n\t- Number of origin nodes: " << n_orig_nodes
+            << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
         IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
@@ -139,6 +141,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
     }
 
     /**
@@ -182,6 +186,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->GetValue(rDestinationVariable) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
     }
 
     template< class TVarType >
@@ -912,8 +918,7 @@ public:
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
             rEntity.SetValue(rSavedVariable, rEntity.GetValue(rOriginVariable));
-        }
-        );
+        });
 
         KRATOS_CATCH("")
     }
@@ -1145,13 +1150,10 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
-            const auto it_node = it_node_begin + k;
-            sum_value += it_node->GetValue(rVar);
-        }
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+            return rNode.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -1178,29 +1180,16 @@ public:
     {
         KRATOS_TRY
 
-        TDataType sum_value;
-        AuxiliaryInitializeValue(sum_value);
-
         const auto &r_communicator = rModelPart.GetCommunicator();
-        const int n_nodes = r_communicator.LocalMesh().NumberOfNodes();
 
-#pragma omp parallel firstprivate(n_nodes)
-        {
-            TDataType private_sum_value;
-            AuxiliaryInitializeValue(private_sum_value);
-
-#pragma omp for
-            for (int i_node = 0; i_node < n_nodes; ++i_node) {
-                const auto it_node = r_communicator.LocalMesh().NodesBegin() + i_node;
-                private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
-            }
-
-            AuxiliaryAtomicAdd(private_sum_value, sum_value);
-        }
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+            return rNode.GetSolutionStepValue(rVariable, BuffStep);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
+
     }
 
     /**
@@ -1234,13 +1223,10 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_conditions_array = r_local_mesh.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_conditions_array.size()); ++k) {
-            const auto it_cond = it_cond_begin + k;
-            sum_value += it_cond->GetValue(rVar);
-        }
+        sum_value = block_for_each<SumReduction<double>>(r_conditions_array, [&](ConditionType& rCond){
+            return rCond.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -1278,13 +1264,10 @@ public:
         const auto& r_communicator = rModelPart.GetCommunicator();
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_elements_array = r_local_mesh.Elements();
-        const auto it_elem_begin = r_elements_array.begin();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_elements_array.size()); ++k) {
-            const auto it_elem = it_elem_begin + k;
-            sum_value += it_elem->GetValue(rVar);
-        }
+        sum_value = block_for_each<SumReduction<double>>(r_elements_array, [&](ElementType& rElem){
+            return rElem.GetValue(rVar);
+        });
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
@@ -1404,11 +1387,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
@@ -1418,42 +1399,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Auxiliary double initialize method
-     * Auxiliary method to initialize a double value
-     * @param rValue Variable to initialize
-     */
-    void AuxiliaryInitializeValue(double &rValue);
-
-    /**
-     * @brief Auxiliary array initialize method
-     * Auxiliary method to initialize an array value
-     * @param rValue Variable to initialize
-     */
-    void AuxiliaryInitializeValue(array_1d<double,3> &rValue);
-
-    /**
-     * @brief Auxiliary scalar reduce method
-     * Auxiliary method to perform the reduction of a scalar value
-     * @param rPrivateValue Private variable to reduce
-     * @param rSumValue Variable to save the reduction
-     */
-    void AuxiliaryAtomicAdd(
-        const double &rPrivateValue,
-        double &rSumValue
-        );
-
-    /**
-     * @brief Auxiliary array reduce method
-     * Auxiliary method to perform the reduction of an array value
-     * @param rPrivateValue Private variable to reduce
-     * @param rSumValue Variable to save the reduction
-     */
-    void AuxiliaryAtomicAdd(
-        const array_1d<double,3> &rPrivateValue,
-        array_1d<double,3> &rSumValue
-        );
 
     /**
      * @brief This is auxiliar method to check the keys
@@ -1517,6 +1462,7 @@ private:
 
         KRATOS_CATCH("");
     }
+
 
     ///@}
     ///@name Private  Acces

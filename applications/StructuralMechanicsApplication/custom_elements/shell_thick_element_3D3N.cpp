@@ -123,140 +123,6 @@ Element::Pointer ShellThickElement3D3N<TKinematics>::Create(IndexType NewId,
     return Kratos::make_intrusive< ShellThickElement3D3N >(NewId, pGeom, pProperties);
 }
 
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    BaseType::Initialize(rCurrentProcessInfo);
-
-    const int points_number = GetGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
-
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        this->mpCoordinateTransformation->Initialize();
-        this->SetupOrientationAngles();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::InitializeNonLinearIteration
-(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->InitializeNonLinearIteration();
-
-    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
-
-    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->InitializeSolutionStep();
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->FinalizeSolutionStep();
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
-        rMassMatrix.resize(18, 18, false);
-    }
-    noalias(rMassMatrix) = ZeroMatrix(18, 18);
-
-    // Compute the local coordinate system.
-    ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
-        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-    // Average mass per unit area over the whole element
-    double av_mass_per_unit_area = 0.0;
-
-    const SizeType num_gps = this->GetNumberOfGPs();
-
-    for (SizeType i = 0; i < num_gps; i++) {
-        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
-    }
-    av_mass_per_unit_area /= double(num_gps);
-
-    // Flag for consistent or lumped mass matrix
-    bool bconsistent_matrix = false;
-
-    // Consistent mass matrix
-    if (bconsistent_matrix) {
-        // General matrix form as per Felippa plane stress CST eqn 31.27:
-        // http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf
-        //
-        // Density and thickness are averaged over element.
-
-        // Average thickness over the whole element
-        double thickness = 0.0;
-        for (SizeType i = 0; i < num_gps; i++) {
-            thickness += this->mSections[i]->GetThickness(GetProperties());
-        }
-        thickness /= double(num_gps);
-
-        // Populate mass matrix with integation results
-        for (SizeType row = 0; row < 18; row++) {
-            if (row % 6 < 3) {
-                // translational entry
-                for (SizeType col = 0; col < 3; col++) {
-                    rMassMatrix(row, 6 * col + row % 6) = 1.0;
-                }
-            } else {
-                // rotational entry
-                for (SizeType col = 0; col < 3; col++) {
-                    rMassMatrix(row, 6 * col + row % 6) =
-                        thickness*thickness / 12.0;
-                }
-            }
-
-            // Diagonal entry
-            rMassMatrix(row, row) *= 2.0;
-        }
-
-        rMassMatrix *=
-            av_mass_per_unit_area*referenceCoordinateSystem.Area() / 12.0;
-    }// Consistent mass matrix
-    else {
-        // Lumped mass matrix
-
-        // lumped area
-        double lump_area = referenceCoordinateSystem.Area() / 3.0;
-
-        // loop on nodes
-        for (SizeType i = 0; i < 3; i++) {
-            SizeType index = i * 6;
-
-            double nodal_mass = av_mass_per_unit_area * lump_area;
-
-            // translational mass
-            rMassMatrix(index, index) = nodal_mass;
-            rMassMatrix(index + 1, index + 1) = nodal_mass;
-            rMassMatrix(index + 2, index + 2) = nodal_mass;
-
-            // rotational mass - neglected for the moment...
-        }
-    }// Lumped mass matrix
-}
 
 // =====================================================================================
 //
@@ -445,31 +311,18 @@ void ShellThickElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Vari
 }
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
-        std::vector<array_1d<double, 3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+int ShellThickElement3D3N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    if (rVariable == LOCAL_AXIS_1 ||
-            rVariable == LOCAL_AXIS_2 ||
-            rVariable == LOCAL_AXIS_3) {
-        BaseType::ComputeLocalAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
-               rVariable == LOCAL_MATERIAL_AXIS_2 ||
-               rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    }
-}
+    KRATOS_TRY;
 
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-        Output.resize(3, 3, false);
+    BaseType::Check(rCurrentProcessInfo);
 
-        // Compute the local coordinate system.
-        ShellT3_LocalCoordinateSystem localCoordinateSystem(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = trans(localCoordinateSystem.Orientation());
-    }
+    const int points_number = GetGeometry().PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes" << points_number << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
 }
 
 // =====================================================================================
@@ -832,78 +685,6 @@ void ShellThickElement3D3N<TKinematics>::CheckGeneralizedStressOrStrainOutput(co
     } else if (rVariable == SHELL_ORTHOTROPIC_4PLY_THROUGH_THICKNESS) {
         // TESTING VARIABLE
         ijob = 99;
-    }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::DecimalCorrection(Vector& a)
-{
-    double norm = norm_2(a);
-    double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-    for (SizeType i = 0; i < a.size(); i++)
-        if (std::abs(a(i)) < tolerance) {
-            a(i) = 0.0;
-        }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D3N<TKinematics>::SetupOrientationAngles()
-{
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
-        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
-        }
-    } else {
-        ShellT3_LocalCoordinateSystem lcs(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-        Vector3Type normal;
-        noalias(normal) = lcs.Vz();
-
-        Vector3Type dZ;
-        dZ(0) = 0.0;
-        dZ(1) = 0.0;
-        dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
-
-        Vector3Type dirX;
-        MathUtils<double>::CrossProduct(dirX, dZ, normal);
-
-        // try to normalize the x vector. if it is near zero it means that we need
-        // to choose a default one.
-        double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-        if (dirX_norm < 1.0E-12) {
-            dirX(0) = 1.0;
-            dirX(1) = 0.0;
-            dirX(2) = 0.0;
-        } else if (dirX_norm != 1.0) {
-            dirX_norm = std::sqrt(dirX_norm);
-            dirX /= dirX_norm;
-        }
-
-        Vector3Type elem_dirX = lcs.Vx();
-
-        // now calculate the angle between the element x direction and the material x direction.
-        Vector3Type& a = elem_dirX;
-        Vector3Type& b = dirX;
-        double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-        if (a_dot_b < -1.0) {
-            a_dot_b = -1.0;
-        }
-        if (a_dot_b > 1.0) {
-            a_dot_b = 1.0;
-        }
-        double angle = std::acos(a_dot_b);
-
-        // if they are not counter-clock-wise, let's change the sign of the angle
-        if (angle != 0.0) {
-            const MatrixType& R = lcs.Orientation();
-            if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0) {
-                angle = -angle;
-            }
-        }
-
-        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(angle);
-        }
     }
 }
 
@@ -1763,11 +1544,11 @@ bool ShellThickElement3D3N<TKinematics>::TryCalculateOnIntegrationPoints_General
                                                      section->GetThickness(GetProperties()));
             }
         }
-        DecimalCorrection(data.generalizedStresses);
+        this->DecimalCorrection(data.generalizedStresses);
     }
 
     // adjust output
-    DecimalCorrection(data.generalizedStrains);
+    this->DecimalCorrection(data.generalizedStrains);
 
     // store the results, but first rotate them back to the section
     // coordinate system. we want to visualize the results in that system not

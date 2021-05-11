@@ -21,6 +21,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
@@ -75,8 +76,6 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -95,53 +94,12 @@ public:
 
     using Element::GetProperties;
 
+    using Vector3Type = typename BaseType::Vector3Type;
+
     ///@}
 
     ///@name Classes
     ///@{
-
-    /** \brief JacobianOperator
-     *
-     * This class is a utility to compute at a given integration point,
-     * the Jacobian, its inverse, its determinant
-     * and the derivatives of the shape functions in the local
-     * cartesian coordinate system.
-     */
-    class JacobianOperator
-    {
-    public:
-
-        JacobianOperator();
-
-        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
-
-        inline const Matrix& Jacobian()const
-        {
-            return mJac;
-        }
-
-        inline const Matrix& Inverse()const
-        {
-            return mInv;
-        }
-
-        inline const Matrix& XYDerivatives()const
-        {
-            return mXYDeriv;
-        }
-
-        inline double Determinant()const
-        {
-            return mDet;
-        }
-
-    private:
-
-        Matrix mJac;     /*!< Jacobian matrix */
-        Matrix mInv;     /*!< Inverse of the Jacobian matrix */
-        Matrix mXYDeriv; /*!< Shape function derivatives in cartesian coordinates */
-        double mDet;     /*!< Determinant of the Jacobian matrix */
-    };
 
     /** \brief MITC4Params
      *
@@ -254,7 +212,7 @@ public:
          * after the standard strain-displacement matrix has been computed, as well as the standard
          * generalized strains, but before the computation of the constitutive laws.
          */
-        inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
+        inline void GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
                                                 Vector& generalizedStrains,
                                                 EASOperatorStorage& storage);
 
@@ -338,31 +296,32 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     ///@}
@@ -408,12 +367,8 @@ private:
 
     double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
-    void DecimalCorrection(Vector& a);
-
-    void SetupOrientationAngles() override;
-
     void CalculateBMatrix(double xi, double eta,
-                          const JacobianOperator& Jac, const MITC4Params& params,
+                          const ShellUtilities::JacobianOperator& Jac, const MITC4Params& params,
                           const Vector& N,
                           Matrix& B, Vector& Bdrill);
 

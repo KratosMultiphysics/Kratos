@@ -5,7 +5,7 @@ USER root
 ENV HOME /root
 
 #RUN python --version
-RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfortran zlib-devel bzip2-devel openssl-devel samba-client openmpi-devel hdf5-openmpi-devel
+RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfortran zlib-devel bzip2-devel openssl-devel samba-client openmpi-devel hdf5-openmpi-devel boost-devel
 
 
 # compiling python3.5.4 to be compatible with HW

@@ -20,6 +20,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
@@ -96,8 +97,6 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -116,53 +115,7 @@ public:
 
     using Element::GetProperties;
 
-    ///@}
-
-    ///@name Classes
-    ///@{
-    /** \brief JacobianOperator
-    *
-    * This class is a utility to compute at a given integration point,
-    * the Jacobian, its inverse, its determinant
-    * and the derivatives of the shape functions in the local
-    * cartesian coordinate system.
-    */
-
-    class JacobianOperator // TODO cannot this be taken from the Geometry?
-    {
-    public:
-
-        JacobianOperator();
-
-        void Calculate(const ShellQ4_LocalCoordinateSystem& CS, const Matrix& dN);
-
-        inline const Matrix& Jacobian()const
-        {
-            return mJac;
-        }
-
-        inline const Matrix& Inverse()const
-        {
-            return mInv;
-        }
-
-        inline const Matrix& XYDerivatives()const
-        {
-            return mXYDeriv;
-        }
-
-        inline double Determinant()const
-        {
-            return mDet;
-        }
-
-    private:
-
-        Matrix mJac;     //!< Jacobian matrix
-        Matrix mInv;    //!< Inverse of the Jacobian matrix
-        Matrix mXYDeriv; //*!< Shape function derivatives in cartesian coordinates
-        double mDet;     //*!< Determinant of the Jacobian matrix
-    };
+    using Vector3Type = typename BaseType::Vector3Type;
 
     ///@}
 
@@ -209,34 +162,27 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -352,7 +298,7 @@ private:
         std::vector<VectorType> rlaminateStrains;    /*!< laminate strain vector at all surfaces at the current integration point */
         std::vector<VectorType> rlaminateStresses;    /*!< laminate stress vector at all surfaces at the current integration point */
 
-        JacobianOperator jacOp;
+        ShellUtilities::JacobianOperator jacOp;
         ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
     public:
@@ -385,10 +331,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void DecimalCorrection(Vector& a);
-
-    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 

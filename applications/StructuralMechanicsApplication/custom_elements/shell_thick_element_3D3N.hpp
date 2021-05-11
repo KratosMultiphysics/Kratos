@@ -84,8 +84,6 @@ public:
         ShellT3_CorotationalCoordinateTransformation,
         ShellT3_CoordinateTransformation>::type>;
 
-    typedef array_1d<double, 3> Vector3Type;
-
     typedef Quaternion<double> QuaternionType;
 
     using GeometryType = Element::GeometryType;
@@ -103,6 +101,8 @@ public:
     using Element::GetGeometry;
 
     using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
 
     using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
 
@@ -158,33 +158,26 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
-
-    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
-
-    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
-
-    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override; //corotational formulation
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -330,10 +323,6 @@ private:
     void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
     void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
-
-    void DecimalCorrection(Vector& a);
-
-    void SetupOrientationAngles() override;
 
     void CalculateSectionResponse(CalculationData& data);
 
