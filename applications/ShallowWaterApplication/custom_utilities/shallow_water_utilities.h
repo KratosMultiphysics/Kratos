@@ -96,8 +96,6 @@ public:
 
     void ComputeEnergy(ModelPart& rModelPart);
 
-    void ComputeAccelerations(ModelPart& rModelPart);
-
     double InverseHeight(const double Height, const double Epsilon);
 
     double WetFraction(double Height, double Epsilon);
@@ -113,12 +111,9 @@ public:
     template<class TContainerType>
     void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
-        {
-            auto it = rContainer.begin() + i;
-            it->Set(DestinationFlag, it->Is(OriginFlag));
-        }
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            rEntity.Set(DestinationFlag, rEntity.Is(OriginFlag));
+        });
     }
 
     void NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable);
@@ -126,12 +121,9 @@ public:
     template<class TVarType>
     void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVariable)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
-        {
-            auto const it_node = rModelPart.NodesBegin() + i;
-            it_node->FastGetSolutionStepValue(rVariable,1) = it_node->FastGetSolutionStepValue(rVariable);
-        }
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.FastGetSolutionStepValue(rVariable, 1) = rNode.FastGetSolutionStepValue(rVariable);
+        });
     }
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
