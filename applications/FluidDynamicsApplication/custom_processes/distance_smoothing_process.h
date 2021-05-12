@@ -72,6 +72,12 @@ public:
         ModelPart& rModelPart,
         typename TLinearSolver::Pointer);
 
+    /// Constructor.
+    DistanceSmoothingProcess(
+        ModelPart& rModelPart,
+        typename TLinearSolver::Pointer,
+        BuilderSolverPointerType pBuilderAndSolver);
+
     /// Constructor with Kratos parameters.
     DistanceSmoothingProcess(
         ModelPart& rModelPart,
@@ -160,7 +166,7 @@ private:
      * This method creates the linear solution strategy
      * @param pBuilderAndSolver Builder and solver pointer
      */
-    void CreateSolutionStrategy(typename TLinearSolver::Pointer pLinearSolver);
+    void CreateSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver);
 
     /**
      * @brief Initialize the process

@@ -24,6 +24,8 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -47,7 +49,25 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
     // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
     CreateAuxModelPart();
 
-    CreateSolutionStrategy(p_linear_solver);
+    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(p_linear_solver);
+
+    CreateSolutionStrategy(p_builder_solver);
+}
+
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::DistanceSmoothingProcess(
+        ModelPart& rModelPart,
+        typename TLinearSolver::Pointer,
+        BuilderSolverPointerType pBuilderAndSolver)
+        : Process(),
+        mrModelPart(rModelPart),
+        mrModel(rModelPart.GetModel()),
+        mAuxModelPartName("smoothing_model_part")
+{
+    // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
+    CreateAuxModelPart();
+
+    CreateSolutionStrategy(pBuilderAndSolver);
 }
 
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
@@ -110,22 +130,73 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
                 - rNode.FastGetSolutionStepValue(DISTANCE, 1) ); // Corrected distance difference
         });
 
+    auto& r_default_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    GlobalPointersVector< Node<3 > > gp_list;
+
+    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+
+        for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+        {
+            auto& global_pointer = global_pointer_list(j);
+            gp_list.push_back(global_pointer);
+        }
+    }
+
+    GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+
+    auto coordinate_proxy = pointer_comm.Apply(
+        [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+        {
+            return global_pointer->Coordinates();
+        }
+    );
+
+    auto distance_proxy = pointer_comm.Apply(
+        [&](GlobalPointer<Node<3> >& global_pointer) -> double
+        {
+            return global_pointer->GetValue(DISTANCE);
+        }
+    );
+
+    auto contact_proxy = pointer_comm.Apply(
+        [&](GlobalPointer<Node<3> >& global_pointer) -> bool
+        {
+            return global_pointer->Is(CONTACT);
+        }
+    );
+
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-            const double x_i = rNode.X();
+            const auto& x_i = rNode.Coordinates();
+
+            /* const double x_i = rNode.X();
             const double y_i = rNode.Y();
-            const double z_i = rNode.Z();
+            const double z_i = rNode.Z(); */
 
             double weight = 0.0;
             double dist_diff_avg = 0.0;
 
-            auto& n_nodes = rNode.GetValue(NEIGHBOUR_NODES);
-            for (unsigned int j = 0; j < n_nodes.size(); ++j) {
-                if (n_nodes[j].Is(CONTACT) == rNode.Is(CONTACT)){
+            /* auto& n_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+            for (unsigned int j = 0; j < n_nodes.size(); ++j) { */
 
-                    const double dx = x_i - n_nodes[j].X();
+            GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                const auto x_j = coordinate_proxy.Get(global_pointer);
+
+                if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
+
+                    const Vector dx = x_i - x_j;
+
+                    /* const double dx = x_i - n_nodes[j].X();
                     const double dy = y_i - n_nodes[j].Y();
                     const double dz = z_i - n_nodes[j].Z();
-                    const double distance_ij = sqrt( dx*dx + dy*dy + dz*dz );
+                    const double distance_ij = sqrt( dx*dx + dy*dy + dz*dz ); */
+
+                    const double distance_ij = norm_2(dx);
 
 #ifdef KRATOS_DEBUG
                     KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
@@ -134,7 +205,7 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
 
                     if (distance_ij > 1.0e-12){
                         weight += 1.0/distance_ij;
-                        dist_diff_avg += n_nodes[j].GetValue(DISTANCE)/distance_ij;
+                        dist_diff_avg += distance_proxy.Get(global_pointer)/distance_ij;
                     }
                 }
             }
@@ -162,7 +233,7 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::C
 }
 
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateSolutionStrategy(typename TLinearSolver::Pointer pLinearSolver)
+void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
 {
     // Generate a linear solver strategy
     auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -173,12 +244,10 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::C
     const bool ReformDofAtEachIteration = false;
     const bool CalculateNormDxFlag = false;
 
-    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
-
     mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
         r_smoothing_model_part,
         p_scheme,
-        p_builder_solver,
+        pBuilderAndSolver,
         CalculateReactions,
         ReformDofAtEachIteration,
         CalculateNormDxFlag);

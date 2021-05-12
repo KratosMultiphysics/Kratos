@@ -25,11 +25,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             self._bfecc_convection = False
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
 
-        if not self._distance_smoothing == None:
-            if self._distance_smoothing:
-                self._distance_smoothing = False
-                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Distance smoothing is not implemented in MPI yet. Deactivating it.")
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPITwoFluidsSolver finished.")
 
     def AddVariables(self):
@@ -185,3 +180,20 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
 
         return distance_reinitialization_process
+
+    def _CreateDistanceSmoothingProcess(self):
+        # construct the distance smoothing process
+        linear_solver = self._GetSmoothingLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            distance_smoothing_process = KratosCFD.DistanceSmoothingProcess2D(
+                epetra_communicator,
+                self.main_model_part,
+                linear_solver)
+        else:
+            distance_smoothing_process = KratosCFD.DistanceSmoothingProcess3D(
+                epetra_communicator,
+                self.main_model_part,
+                linear_solver)
+
+        return distance_smoothing_process
