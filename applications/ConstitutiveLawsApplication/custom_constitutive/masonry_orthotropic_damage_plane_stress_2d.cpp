@@ -213,8 +213,8 @@ namespace Kratos
             KRATOS_THROW_ERROR(std::logic_error,
                 "MasonryOrthotropicDamagePlaneStress2DLaw requires 2 sub properties.", "");
         // ELASTIC PARAMETERS
-        CheckOrthotropicParameter(rProperties.GetSubProperties(2));
-        CheckOrthotropicParameter(rProperties.GetSubProperties(3));
+        CheckOrthotropicParameter(*rProperties.GetSubProperties().begin());
+        CheckOrthotropicParameter(*(rProperties.GetSubProperties().begin() + 1));
 
         return 0;
 
@@ -271,15 +271,15 @@ namespace Kratos
         const GeometryType& rGeometry,
         const ProcessInfo& rProcessInfo)
     {
-        auto MaterialProperties1 = DirectionalMaterialProperties(
+        const DirectionalMaterialProperties MaterialProperties1(
             this->ComputeCharacteristicLength(
                 rGeometry, 0),
-            rProperties.GetSubProperties(2));
+            *rProperties.GetSubProperties().begin());
 
-        auto MaterialProperties2 = DirectionalMaterialProperties(
+        const DirectionalMaterialProperties MaterialProperties2(
             this->ComputeCharacteristicLength(
                 rGeometry, 1),
-            rProperties.GetSubProperties(3));
+            *(rProperties.GetSubProperties().begin() + 1));
 
         CalculationData data(MaterialProperties1, MaterialProperties2);
 
@@ -863,7 +863,7 @@ namespace Kratos
             : true;
         const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION)
             ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION])
-            : TangentOperatorEstimation::SecondOrderPerturbation;
+            : TangentOperatorEstimation::FirstOrderPerturbation;
 
         if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
             // Already stored in rValues.GetConstitutiveMatrix()...
