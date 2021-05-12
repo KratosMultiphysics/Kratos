@@ -140,66 +140,68 @@ void Define3DWakeProcess::SetWakeAndSpanDirections()
 void Define3DWakeProcess::MarkTrailingEdgeNodes()
 {
     KRATOS_WATCH(mrTrailingEdgeModelPart.NumberOfNodes())
-    // chord at the root
-    const double A = 0.8104915;
+    // // chord at the root
+    // const double A = 0.8104915;
 
-    // pi
-    const double pi = 3.14159265358979;
+    // // pi
+    // const double pi = 3.14159265358979;
 
-    // trailing edge sweep in degrees
-    const double te_sweep = 15.69175411;
-    const double te_sweep_rad = te_sweep * pi / 180.0;
+    // // trailing edge sweep in degrees
+    // const double te_sweep = 15.69175411;
+    // const double te_sweep_rad = te_sweep * pi / 180.0;
 
-    // angle of attack in degrees
-    const double aoa = 3.06;
-    const double aoa_rad = aoa * pi / 180.0;
+    // // angle of attack in degrees
+    // const double aoa = 3.06;
+    // const double aoa_rad = aoa * pi / 180.0;
 
-    std::vector<std::size_t> te_nodes_ordered_ids;
-    for (auto& r_node : mrBodyModelPart.Nodes()) {
-        const double new_x = ( r_node.Y() * tan(te_sweep_rad) + A ) * cos(aoa_rad);
-        if( r_node.X() > new_x - 0.0001){
-            r_node.SetValue(TRAILING_EDGE, true);
-            r_node.SetValue(KUTTA, 5.0);
-            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
-            r_node.SetValue(TE_ELEMENT_COUNTER, 0);
-            te_nodes_ordered_ids.push_back(r_node.Id());
-        }
-    }
-
-    std::sort(te_nodes_ordered_ids.begin(),
-              te_nodes_ordered_ids.end());
-    mrTrailingEdgeModelPart.AddNodes(te_nodes_ordered_ids);
-    KRATOS_WATCH(mrTrailingEdgeModelPart.NumberOfNodes())
-
-    // KRATOS_ERROR_IF(mrTrailingEdgeModelPart.NumberOfNodes() == 0) << "There are no nodes in the mrTrailingEdgeModelPart!"<< std::endl;
-
-    // double max_span_position = std::numeric_limits<double>::lowest();
-    // double min_span_position = std::numeric_limits<double>::max();
-
-    // auto p_right_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
-    // auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
-
-    // for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
-    //     r_node.SetValue(TRAILING_EDGE, true);
-    //     r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
-    //     r_node.SetValue(TE_ELEMENT_COUNTER, 0);
-    //     const auto& r_coordinates = r_node.Coordinates();
-    //     const double distance_projection = inner_prod(r_coordinates, mSpanDirection);
-
-    //     if(distance_projection > max_span_position){
-    //         p_right_wing_tip_node = &r_node;
-    //         max_span_position = distance_projection;
-    //     }
-    //     if(distance_projection < min_span_position){
-    //         p_left_wing_tip_node = &r_node;
-    //         min_span_position = distance_projection;
+    // std::vector<std::size_t> te_nodes_ordered_ids;
+    // for (auto& r_node : mrBodyModelPart.Nodes()) {
+    //     const double new_x = ( r_node.Y() * tan(te_sweep_rad) + A ) * cos(aoa_rad);
+    //     if( r_node.X() > new_x - 0.0001){
+    //         r_node.SetValue(TRAILING_EDGE, true);
+    //         r_node.SetValue(KUTTA, 5.0);
+    //         r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
+    //         r_node.SetValue(TE_ELEMENT_COUNTER, 0);
+    //         te_nodes_ordered_ids.push_back(r_node.Id());
     //     }
     // }
 
-    // mpRightWingTipNode = p_right_wing_tip_node;
-    // mpLeftWingTipNode = p_left_wing_tip_node;
-    // mpRightWingTipNode->SetValue(WING_TIP, true);
-    // mpLeftWingTipNode->SetValue(WING_TIP, true);
+    // std::sort(te_nodes_ordered_ids.begin(),
+    //           te_nodes_ordered_ids.end());
+    // mrTrailingEdgeModelPart.AddNodes(te_nodes_ordered_ids);
+    // KRATOS_WATCH(mrTrailingEdgeModelPart.NumberOfNodes())
+
+    // KRATOS_ERROR_IF(mrTrailingEdgeModelPart.NumberOfNodes() == 0) << "There are no nodes in the mrTrailingEdgeModelPart!"<< std::endl;
+
+    /////////////////////////////////////////////////////////////////
+
+    double max_span_position = std::numeric_limits<double>::lowest();
+    double min_span_position = std::numeric_limits<double>::max();
+
+    auto p_right_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
+    auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
+
+    for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
+        r_node.SetValue(TRAILING_EDGE, true);
+        r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
+        r_node.SetValue(TE_ELEMENT_COUNTER, 0);
+        const auto& r_coordinates = r_node.Coordinates();
+        const double distance_projection = inner_prod(r_coordinates, mSpanDirection);
+
+        if(distance_projection > max_span_position){
+            p_right_wing_tip_node = &r_node;
+            max_span_position = distance_projection;
+        }
+        if(distance_projection < min_span_position){
+            p_left_wing_tip_node = &r_node;
+            min_span_position = distance_projection;
+        }
+    }
+
+    mpRightWingTipNode = p_right_wing_tip_node;
+    mpLeftWingTipNode = p_left_wing_tip_node;
+    mpRightWingTipNode->SetValue(WING_TIP, true);
+    mpLeftWingTipNode->SetValue(WING_TIP, true);
 }
 
 void Define3DWakeProcess::ComputeLowerSurfaceNormals() const
@@ -264,7 +266,7 @@ void Define3DWakeProcess::MarkWakeElements()
             auto wake_elemental_distances_tmp = it_elem->GetValue(ELEMENTAL_DISTANCES);
             auto wake_elemental_distances = it_elem->GetValue(ELEMENTAL_DISTANCES);
             for(unsigned int j = 0; j < wake_elemental_distances.size(); j++){
-                wake_elemental_distances[j] = -wake_elemental_distances_tmp[j];
+                wake_elemental_distances[j] = wake_elemental_distances_tmp[j];
 
             }
             auto r_geometry = it_elem->GetGeometry();

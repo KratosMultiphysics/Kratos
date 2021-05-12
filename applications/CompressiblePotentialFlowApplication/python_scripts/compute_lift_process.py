@@ -120,7 +120,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             lever = mid_point-self.moment_reference_point
             self.moment_coefficient += _CrossProduct(lever, surface_normal*pressure_coefficient)
 
-        self.moment_coefficient /= self.reference_area
+        mean_aerodynamic_chord = 1.0#0.64607
+        self.moment_coefficient /= (self.reference_area * mean_aerodynamic_chord)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cmx = ', self.moment_coefficient[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cmy = ', self.moment_coefficient[1])
