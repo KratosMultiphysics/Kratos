@@ -704,6 +704,8 @@ private:
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
+            const bool has_entity = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.HasCondition(master_id) : mOriginModelPart.HasElement(master_id);
+            if (!has_entity) continue;
             const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
