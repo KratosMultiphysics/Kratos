@@ -80,7 +80,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     return ShellT3_CorotationalCoordinateTransformation::Pointer( new ShellT3_CorotationalCoordinateTransformation( pGeometry ) );
   }
 
-  void Initialize() override
+  void Initialize(const ProcessInfo& CurrentProcessInfo) override
   {
     KRATOS_TRY
 
@@ -108,7 +108,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     KRATOS_CATCH("")
         }
 
-  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+  void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override
   {
     for(int i = 0; i < 3; i++)
     {
@@ -117,7 +117,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     }
   }
 
-  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+  void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override
   {
     for(int i = 0; i < 3; i++)
     {
@@ -126,11 +126,11 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     }
   }
 
-  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+  void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override
   {
   }
 
-  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+  void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override
   {
     const GeometryType & geom = GetGeometry();
     Vector3Type incrementalRotation;

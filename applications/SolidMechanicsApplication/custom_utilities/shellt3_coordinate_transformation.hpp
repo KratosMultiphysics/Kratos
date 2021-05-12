@@ -61,23 +61,23 @@ class ShellT3_CoordinateTransformation
     return ShellT3_CoordinateTransformation::Pointer( new ShellT3_CoordinateTransformation( pGeometry ) );
   }
 
-  virtual void Initialize()
+  virtual void Initialize(const ProcessInfo& CurrentProcessInfo)
   {
   }
 
-  virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  virtual void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
   {
   }
 
-  virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  virtual void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
   {
   }
 
-  virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+  virtual void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
   {
   }
 
-  virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+  virtual void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
   {
   }
 
