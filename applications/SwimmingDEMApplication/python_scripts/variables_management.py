@@ -444,6 +444,8 @@ class VariablesManager:
         if self.time_filtered_vars:
             self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_DOUBLE]
             self.coupling_fluid_vars += [Kratos.TIME_AVERAGED_ARRAY_3]
+            self.coupling_fluid_vars += [SDEM.TIME_AVERAGED_BODY_FORCE]
+            self.time_filtered_vars  += [Kratos.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString())]
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
         fluid_list = self.project_parameters["fluid_nodal_results"]

@@ -320,9 +320,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
     for (unsigned int j = 0; j != fluid_variables.size(); ++j){
         const auto& variable = *fluid_variables[j];
-        if (mVariables.Is(variable, "FluidTimeFiltered")){ // hold the current value in an auxiliary variable
+        if (mVariables.Is(variable, "FluidTimeFiltered") && variable != FLUID_FRACTION){ // hold the current value in an auxiliary variable
             CopyValues(r_fluid_model_part, variable);
-            SetToZero(r_fluid_model_part, variable);
+            if (variable == PARTICLE_VEL_FILTERED) SetToZero(r_fluid_model_part, variable);
         }
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
@@ -330,9 +330,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
             ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
         }
 
-        if (mVariables.Is(variable, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
-            ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
+        // if (mVariables.Is(variable, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
+        //     ApplyExponentialTimeFiltering(r_fluid_model_part, variable);
+        // }
+
+        if (mVariables.Is(PARTICLE_VEL_FILTERED, "FluidTimeFiltered") && variable == PARTICLE_VEL_FILTERED){ // average current avalue and previous (averaged) value
+            ApplyExponentialTimeFiltering(r_fluid_model_part, PARTICLE_VEL_FILTERED, TIME_AVERAGED_ARRAY_3);
         }
+        if (mVariables.Is(GetBodyForcePerUnitMassVariable(), "FluidTimeFiltered") && variable == GetBodyForcePerUnitMassVariable()){ // average current avalue and previous (averaged) value
+            ApplyExponentialTimeFiltering(r_fluid_model_part, GetBodyForcePerUnitMassVariable(), TIME_AVERAGED_BODY_FORCE);
+        }
+
     }
 
     KRATOS_CATCH("")
@@ -385,7 +393,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CopyValu
         CopyValues(r_model_part, static_cast<const Variable<double>& >(r_origin_variable), TIME_AVERAGED_DOUBLE);
     }
 
-    else if (mVariables.Is(r_origin_variable, "Vector")){
+    else if (r_origin_variable == GetBodyForcePerUnitMassVariable()){
+        CopyValues(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_origin_variable), TIME_AVERAGED_BODY_FORCE);
+    }
+
+    else if (r_origin_variable == PARTICLE_VEL_FILTERED){
         CopyValues(r_model_part, static_cast<const Variable<array_1d<double, 3> >& >(r_origin_variable), TIME_AVERAGED_ARRAY_3);
     }
 
