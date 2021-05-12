@@ -350,7 +350,6 @@ public:
                     p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::GI_GAUSS_2);
                     // Save the coordinates of all the subdivision Gauss pts.
                     const unsigned int n_neg_gauss_pt = w_gauss_neg_side.size();
-                    const unsigned int n_neg_sbdiv = (p_divide_util->mNegativeSubdivisions).size();
                     const unsigned int n_interface_side_gauss_pt=w_gauss_interface.size();
                     for (unsigned int i_gauss_interface = 0; i_gauss_interface < n_interface_side_gauss_pt ; ++i_gauss_interface)
                     {
@@ -382,7 +381,6 @@ public:
 
                     // Save the coordinates of all the subdivision Gauss pts.
                     const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
-                    const unsigned int n_pos_sbdiv = (p_divide_util->mPositiveSubdivisions).size();
 
                     for (unsigned int i_gauss = 0; i_gauss < n_pos_gauss_pt; ++i_gauss)
                     {
