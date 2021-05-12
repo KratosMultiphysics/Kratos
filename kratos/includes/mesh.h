@@ -402,10 +402,11 @@ public:
         return mpNodes->GetContainer();
     }
 
-	bool HasNode(IndexType NodeId) const
-	{
-		return (mpNodes->find(NodeId) != mpNodes->end());
-	}
+    bool HasNode(IndexType NodeId) const
+    {
+        const auto& r_nodes = *mpNodes;
+        return (r_nodes.find(NodeId) != r_nodes.end());
+    }
 
     ///@}
     ///@name Properties
@@ -501,10 +502,11 @@ public:
         return mpProperties->GetContainer();
     }
 
-	bool HasProperties(IndexType NodeId) const
-	{
-		return (mpProperties->find(NodeId) != mpProperties->end());
-	}
+    bool HasProperties(IndexType NodeId) const
+    {
+        const auto& r_properties = *mpProperties;
+        return (r_properties.find(NodeId) != r_properties.end());
+    }
 
     ///@}
     ///@name Elements
@@ -622,10 +624,11 @@ public:
     }
 
 
-	bool HasElement(IndexType ElementId) const
-	{
-		return (mpElements->find(ElementId) != mpElements->end());
-	}
+    bool HasElement(IndexType ElementId) const
+    {
+        const auto& r_elements = *mpElements;
+        return (r_elements.find(ElementId) != r_elements.end());
+    }
 
     ///@}
     ///@name Conditions
@@ -742,11 +745,11 @@ public:
         return mpConditions->GetContainer();
     }
 
-	bool HasCondition(IndexType ConditionId) const
-	{
-		return (mpConditions->find(ConditionId) != mpConditions->end());
-	}
-
+    bool HasCondition(IndexType ConditionId) const
+    {
+        const auto& r_conditions = *mpConditions;
+        return (r_conditions.find(ConditionId) != r_conditions.end());
+    }
 
     ///@}
     ///@name MasterSlaveConstraints
