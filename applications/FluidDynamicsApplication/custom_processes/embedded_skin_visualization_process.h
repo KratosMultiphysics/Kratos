@@ -456,7 +456,7 @@ private:
     void InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector);
 
     /**
-     * Checks whether the element is split or not
+     * Checks whether the element is split (intersected or incised using Ausas incised SF) or not
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
@@ -496,7 +496,7 @@ private:
      * @param ItElem Element iterator
      * @return Vector containing the distance values
      */
-    const Vector SetEdgeDistancesExtrapolatedVector(ModelPart::ElementIterator ItElem);
+    const inline Vector SetEdgeDistancesExtrapolatedVector(const Element& rElem);
 
     /**
      * Sets the the modified shape functions utility according to the

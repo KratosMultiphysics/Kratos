@@ -628,25 +628,26 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
     for (int i_elem = 0; i_elem < n_elems; ++i_elem){
         ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i_elem;
 
-        // Get element geometry and distances
+        // Get element geometry and nodal distances
         const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
         const unsigned int n_nodes = p_geometry->PointsNumber();
         const Vector nodal_distances = this->SetDistancesVector(it_elem);
-        const Vector edge_distances_extrapolated = this->SetEdgeDistancesExtrapolatedVector(it_elem);
 
-        // Check if the element is split or Ausas incised
+        // Check if the element is split
         const double zero_tol = 1.0e-10;
         const double nodal_distances_norm = norm_2(nodal_distances);
         if (nodal_distances_norm < zero_tol) {
             KRATOS_WARNING_FIRST_N("EmbeddedSkinVisualizationProcess", 10) << "Element: " << it_elem->Id() << " Distance vector norm: " << nodal_distances_norm << ". Please check the level set function." << std::endl;
         }
-        const bool is_incised = this->ElementIsIncised(edge_distances_extrapolated);
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
         // If the element is split or Ausas incised, create the new entities
         if (is_split) {
+            // Check whether element is incised. NOTE: ElementIsSplit() also returns 'true' for Ausas incised elements!
+            const Vector edge_distances_extrapolated = this->SetEdgeDistancesExtrapolatedVector(*it_elem);
+            const bool is_incised = this->ElementIsIncised(edge_distances_extrapolated);
+
             // Set the split utility
-            // NOTE: Check if is_incised needs to be done first, because ElementIsSplit() also returns 'true' for Ausas incised elements!
             ModifiedShapeFunctions::Pointer p_modified_shape_functions;
             if (is_incised) {
                 p_modified_shape_functions = this->SetAusasIncisedModifiedShapeFunctionsUtility(p_geometry, nodal_distances, edge_distances_extrapolated);
@@ -916,6 +917,7 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
             n_neg++;
     }
 
+    //NOTE: applies to intersected elements as well as incised elements, for which extrapolated edge distances were calculated
     const bool is_split = (n_pos > 0 && n_neg > 0) ? true : false;
 
     return is_split;
@@ -958,11 +960,11 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
     return nodal_distances;
 }
 
-const Vector EmbeddedSkinVisualizationProcess::SetEdgeDistancesExtrapolatedVector(ModelPart::ElementIterator ItElem)
+const inline Vector EmbeddedSkinVisualizationProcess::SetEdgeDistancesExtrapolatedVector(const Element& rElem)
 {
     Vector edge_distances_extrapolated;
     if (mLevelSetType == LevelSetType::Discontinuous) {
-        edge_distances_extrapolated = ItElem->GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+        edge_distances_extrapolated = rElem.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
     }
     return edge_distances_extrapolated;
 }
