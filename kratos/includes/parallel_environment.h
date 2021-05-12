@@ -84,6 +84,9 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Get the MPI Comm size, as given by the default DataCommunicator.
     static int GetDefaultSize();
 
+    /// Get the MPI Comm size, as given by the default DataCommunicator.
+    static std::string RetrieveRegisteredName(const DataCommunicator& rComm);
+
     ///@}
     ///@name Operations
     ///@{
