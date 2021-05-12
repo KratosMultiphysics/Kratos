@@ -1,6 +1,9 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import numpy as np
+import os 
+# Import applications
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -213,36 +216,58 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize() #TODO: THINK ABOUT HOW TO PROPERLY CONSTRUCT THIS
-        mass_settings = KratosMultiphysics.Parameters( """
-        {
-            "model_part_name"                    : "FluidModelPart.FluidParts_Boundary-Fluid",
-            "mass_correction_settings"           : {
-                "echo_level" : 1
-            },
-            "write_to_log_file"                      : true,
-            "log_file_name"                      : "mass_conservation.log",
-            "convector_settings"                 : {},
-            "check_volume_loss_at_the_end"       : false,
-            "min_dt_factor"                      : 1e-5,
-            "max_dt_factor"                      : 1.0,
-            "correct_backwards"                  : true,
-            "maximum_iterations"                 : 1
-        }""" )
+        # mass_settings = KratosMultiphysics.Parameters( """
+        # {
+        #     "model_part_name"                    : "FluidModelPart.FluidParts_Boundary-Fluid",
+        #     "mass_correction_settings"           : {
+        #         "echo_level" : 1
+        #     },
+        #     "write_to_log_file"                      : true,
+        #     "log_file_name"                      : "mass_conservation.log",
+        #     "convector_settings"                 : {},
+        #     "check_volume_loss_at_the_end"       : false,
+        #     "min_dt_factor"                      : 1e-5,
+        #     "max_dt_factor"                      : 1.0,
+        #     "correct_backwards"                  : true,
+        #     "maximum_iterations"                 : 1
+        # }""" )
         #self.mass_conservation_process = ApplyLocalMassConservationCheckProcessWithFlow(self.model, mass_settings)
-        self.mass_conservation_process = ApplyLocalMassConservationCheckProcess(self.model, mass_settings)
-        self.mass_conservation_process.ExecuteBeforeSolutionLoop()
+        # self.mass_conservation_process = ApplyLocalMassConservationCheckProcess(self.model, mass_settings)
+        # self.mass_conservation_process.ExecuteBeforeSolutionLoop()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+            
+            # Recompute the BDF2 coefficients
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+             # velocity predict before levelset process
+            if not len(self.velocity_proyection_slope) == 0:
+                i = 0
+                for node in  self.main_model_part.Nodes:               
+                    velocity_n= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1) 
+                    delta_time= self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                    velocity_n__1= velocity_n+self.velocity_proyection_slope[i]*delta_time
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity_n__1)
+                    i+=1
 
             # Perform the level-set convection according to the previous step velocity
             self.__PerformLevelSetConvection()
+               # water_volume_before_transport=self.mass_conservation_process._GetWaterVolume()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
+            # water_volume_after_transport=self.mass_conservation_process._GetWaterVolume()
+            # print("HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            # print(water_volume_after_transport)
+            # volume_error = (water_volume_after_transport - water_volume_before_transport)/water_volume_after_transport
+            # volume_error = (water_volume_after_transport - 0.05)/0.05
+            # self.GetComputingModelPart().ProcessInfo[KratosCFD.FIC_BETA] = volume_error
+            # self.GetComputingModelPart().ProcessInfo[KratosCFD.FIC_BETA] = 0
+
+            # filtering noises is necessary for curvature calculation
             # filtering noises is necessary for curvature calculation
             if (self._distance_smoothing):
                 # distance gradient is used as a boundary condition for smoothing process
@@ -262,7 +287,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #TODO: THINK IF WE KEEP THIS IN HERE OR AT THE END OF THE STEP
             # Apply mass conservation process
             # self.mass_conservation_process.Execute()
+             # water_volume_after_correction=self.mass_conservation_process._GetWaterVolume()
+            # new_error = self.mass_conservation_process._GetErrorVolume()
+            # Area=self.mass_conservation_process._GetArea()
+            # filename = 'error_mass_not_conservation.txt'
+            # if os.path.exists(filename):
+            #     append_write = 'a' # append if already exists
+            # else:
+            #     append_write = 'w' # make a new file if not
+            # Time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            # highscore = open(filename,append_write)
+            # highscore.write(str(Time)+' '+str(new_error) +' '+str(water_volume_after_correction) +' '+'\n')
+            # highscore.close()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set mass correction is performed.")
+            #TODO: THINK IF WE KEEP THIS IN HERE OR AT THE END OF THE STE            
+
+            # Apply mass conservation process
             # Perform distance correction to prevent ill-conditioned cuts
             self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
@@ -271,7 +311,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
-
+            for node in self.main_model_part.Nodes:
+                if node.Id==1837:
+                    print("after initialize solver for NS  ")
+                    print("current distance",node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+                    print("current velocity",node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
+                    print("previous distance", node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,1))
+                    print("previous velocity",node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1))
+                    # print("current time",node.GetSolutionStepValue(KratosMultiphysics.TIME))
+                    # print("current delta",node.GetSolutionStepValue(KratosMultiphysics.DELTA_TIME))
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
@@ -300,9 +348,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Finalize the solver current step
             self._GetSolutionStrategy().FinalizeSolutionStep()
+            #CHANGING BDF1   
+        delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.velocity_proyection_slope=[]
+        for node in self.main_model_part.Nodes:
+            velocity_n_1= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+            velocity_n= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) 
+            
+            self.velocity_proyection_slope.append((velocity_n-velocity_n_1)/delta_time)
+    
+
 
             # Limit the obtained acceleration for the next step
-            self._GetAccelerationLimitationUtility().Execute()
+            # self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
         if self._bfecc_convection:
@@ -365,6 +423,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         rho_2 = properties_2.GetValue(KratosMultiphysics.DENSITY)
         mu_1 = properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
         mu_2 = properties_2.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+        print("AHORA ASIGNAMOS LAS PROPIEDADES")
+        print(mu_1)
+        print(mu_2)
 
         # Check fluid 1 and 2 properties
         if rho_1 <= 0.0:

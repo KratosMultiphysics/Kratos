@@ -109,7 +109,16 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         self.ExecuteInitializeSolutionStep()
-    
+    def _GetWaterVolume(self):
+        initial_water_volume=self.mass_conservation_utility.CalculateWaterVolume()
+        return initial_water_volume
+    def _GetErrorVolume(self):
+        self.mass_conservation_utility.ComputeBalancedVolume()
+        initial_volume_error = self.mass_conservation_utility.GetVolumeError()
+        return initial_volume_error
+    def _GetArea(self):
+        area=self.mass_conservation_utility.GetInterfaceArea()
+        return area
     def _DistanceGradientNorm(self,gradient):
         norm_distance_gradient=(gradient[0]**2+gradient[1]**2+gradient[2]**2)**(0.5)
         return norm_distance_gradient
@@ -128,7 +137,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
         #         veloc=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
         #         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         #         print(veloc)
-        
+        initial_water_volume=self.mass_conservation_utility.CalculateWaterVolume()
         self.mass_conservation_utility.ComputeBalancedVolume()
         initial_volume_error = self.mass_conservation_utility.GetVolumeError()
         Flow_interface_corrected_old=self._CalculateFlowIntoAir()
@@ -177,7 +186,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                     new_distance= previous_distance+ corrector_distance
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,new_distance)
                 
-            
+                water_volume_after_correction=self.mass_conservation_utility.CalculateWaterVolume()
                 self.mass_conservation_utility.ComputeBalancedVolume()
                 new_error = self.mass_conservation_utility.GetVolumeError()
                 filename = 'error_mass.txt'
@@ -186,9 +195,9 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                     append_write = 'a' # append if already exists
                 else:
                     append_write = 'w' # make a new file if not
-
+                Time=self._fluid_model_part.ProcessInfo[KratosMultiphysics.TIME]
                 highscore = open(filename,append_write)
-                highscore.write( str(old_volume_error) +' ' +str(new_error) +'\n')
+                highscore.write(str(Time)+' '+ str(old_volume_error) +' ' +str(new_error) +' '+str(initial_water_volume) +' ' +str(water_volume_after_correction)+'\n')
                 highscore.close()
 
                 if abs(new_error)< abs(initial_volume_error):
@@ -207,12 +216,14 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
 
                 if abs(new_error)>tol_error:
                     old_volume_error=new_error 
+                    initial_water_volume=water_volume_after_correction
                     iteration+=1
                 else:
                     print("MASS CONSERVATION CHECK IS COMPLETED")
                     
                     return
         else:
+            Time=self._fluid_model_part.ProcessInfo[KratosMultiphysics.TIME]
             filename = 'error_mass.txt'
             if os.path.exists(filename):
                 append_write = 'a' # append if already exists
@@ -220,7 +231,7 @@ class ApplyLocalMassConservationCheckProcess(KratosMultiphysics.Process):
                 append_write = 'w' # make a new file if not
 
             highscore = open(filename,append_write)
-            highscore.write( str(initial_volume_error) +' ' +str(initial_volume_error) +'\n')
+            highscore.write( str(Time)+' '+str(initial_volume_error) +' ' +str(initial_volume_error)+' '+str(initial_water_volume) +' ' +str(initial_water_volume) +'\n')
             highscore.close()
 
                 

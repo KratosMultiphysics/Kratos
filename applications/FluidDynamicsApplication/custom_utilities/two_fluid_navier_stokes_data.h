@@ -68,6 +68,7 @@ double SmagorinskyConstant;
 double LinearDarcyCoefficient;
 double NonLinearDarcyCoefficient;
 double DarcyTerm;
+double VolumeError;
 
 double bdf0;
 double bdf1;
@@ -127,6 +128,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProperties(NonLinearDarcyCoefficient, NONLIN_DARCY_COEF, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
+    this->FillFromProcessInfo(VolumeError,FIC_BETA,rProcessInfo);
 
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
