@@ -71,6 +71,9 @@ class BlockDenseLayer(NeuralNetworkLayerClass):
             if not dense_layer_parameters["parameters"]["layer_parameters"]["tunable"].GetBool():
                 dense_layer_parameters["parameters"]["layer_parameters"].AddEmptyValue("units")
                 dense_layer_parameters["parameters"]["layer_parameters"]["units"].SetInt(int(self.neurons_per_layer[i]))
+            else:
+                dense_layer_parameters["parameters"]["layer_parameters"]["tuning_parameters"].AddEmptyValue("name")
+                dense_layer_parameters["parameters"]["layer_parameters"]["tuning_parameters"]["name"].SetString("units_"+str(i))
             dense_layer = AddLayer.Factory(dense_layer_parameters)
         
             self.layer_block = dense_layer.Add(self.layer_block, hp = hp)
@@ -94,7 +97,7 @@ class BlockDenseLayer(NeuralNetworkLayerClass):
                 activation_layer_parameters["parameters"]["layer_parameters"]=KM.Parameters()
                 activation_layer_parameters["parameters"]["layer_parameters"].AddEmptyValue("activation")
                 activation_layer_parameters["parameters"]["layer_parameters"]["activation"].SetString(self.activation)
-                activation_layer = AddLayer.Factory(normalization_layer_parameters)
+                activation_layer = AddLayer.Factory(activation_layer_parameters)
                 self.layer_block = activation_layer.Add(self.layer_block, hp = hp)
         
         return self.layer_block

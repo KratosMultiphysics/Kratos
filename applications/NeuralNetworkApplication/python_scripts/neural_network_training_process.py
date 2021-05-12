@@ -45,7 +45,9 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
             raise Exception("Output data format not supported. Supported formats are .dat and .h5")
 
         # Validation files
+        self.validation = False
         if parameters.Has("val_input"):
+            self.validation = True
             self.val_input_file = parameters["val_input"].GetString()
             # Data loading for h5
             if self.val_input_file.endswith('.h5'):

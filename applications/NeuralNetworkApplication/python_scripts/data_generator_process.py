@@ -206,19 +206,19 @@ class DataGeneratorProcess(KM.Process):
                             factor = getattr(np.random, dist)(*params)
                         else:
                             factor = 0.0
-                        input_value = op.imul(condition.GetValue(var),(1.0+factor))
+                        input_value = op.imul(condition.GetValue(var),(0.0+factor))
                         for node in self.input_model_part.Nodes:
                             node.SetSolutionStepValue(var,input_value)
-                            input_value_list.append(input_value)
+                            input_value_list.append(input_value+condition.GetValue(var))
                     else:
                         if self.perturbate :
                             factor = getattr(np.random, dist)(*params)
                         else:
                             factor = 0.0
-                        input_value = op.imul(condition.GetValue(var),(1.0+factor))
+                        input_value = op.imul(condition.GetValue(var),(0.0+factor))
                         for node in self.input_model_part.Nodes:
                             node.SetSolutionStepValue(var,input_value)
-                            input_value_list.append(input_value)
+                            input_value_list.append(input_value+condition.GetValue(var))
             # Writing input file
             if (self.write_output_file):
                 if self.output_format == "ascii":

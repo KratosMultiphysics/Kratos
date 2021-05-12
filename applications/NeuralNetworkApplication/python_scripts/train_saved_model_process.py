@@ -18,6 +18,7 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
         self.model_name = parameters["model"].GetString()
         self.epochs = parameters["epochs"].GetInt()
         self.training_log = parameters["training_log"].GetBool()
+        self.shuffle = parameters["shuffle"].GetBool()
         if self.training_log:
             self.training_log_file = parameters["training_log_file"].GetString()
 
@@ -27,7 +28,11 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
         # This has yet to be implemented, it should read the loss and optimizer from the json
         # self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
         self.reconstructed_model.compile(loss=loss_function, optimizer=optimizer, metrics = metrics_list)
-        history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=False, callbacks = callbacks_list) 
+        if self.validation:
+            history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, 
+            validation_data = (self.val_input, self.val_output), shuffle=self.shuffle, callbacks = callbacks_list)
+        else:
+            history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=self.shuffle, callbacks = callbacks_list) 
         self.reconstructed_model.save(self.model_name)
         if self.training_log:
             with open(self.training_log_file,'w') as f:
