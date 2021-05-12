@@ -413,6 +413,12 @@ public:
         return GetMesh(ThisIndex).pGetNode(NodeId);
     }
 
+    /** Returns the Node::Pointer corresponding to it's identifier */
+    const NodeType::Pointer pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).pGetNode(NodeId);
+    }
+
     /** Returns a reference node corresponding to it's identifier */
     NodeType& GetNode(IndexType NodeId, IndexType ThisIndex = 0)
     {
@@ -1085,6 +1091,12 @@ public:
         return GetMesh(ThisIndex).pGetElement(ElementId);
     }
 
+    /** Returns the Element::Pointer  corresponding to it's identifier */
+    const ElementType::Pointer pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).pGetElement(ElementId);
+    }
+
     /** Returns a reference element corresponding to it's identifier */
     ElementType& GetElement(IndexType ElementId, IndexType ThisIndex = 0)
     {
@@ -1267,6 +1279,12 @@ public:
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetCondition(ConditionId);
+    }
+
+    /** Returns the Condition::Pointer  corresponding to it's identifier */
+    const ConditionType::Pointer pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetCondition(ConditionId);
     }
