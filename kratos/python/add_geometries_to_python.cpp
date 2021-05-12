@@ -159,6 +159,16 @@ void  AddGeometriesToPython(pybind11::module& m)
     // ShapeFunctionsValues
     .def("ShapeFunctionsValues", [](GeometryType& self)
         { return(self.ShapeFunctionsValues()); })
+    .def("ShapeFunctionsValues", [](GeometryType& self, const CoordinatesArrayType& rCoordinates)
+        {
+            Vector result;
+            return(self.ShapeFunctionsValues(result, rCoordinates));
+        })
+    .def("ShapeFunctionsLocalGradients", [](GeometryType& self , const CoordinatesArrayType& rCoordinates)
+        {
+            Matrix result;
+            return(self.ShapeFunctionsLocalGradients(result, rCoordinates));
+        })
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
@@ -168,6 +178,15 @@ void  AddGeometriesToPython(pybind11::module& m)
         CoordinatesArrayType result = ZeroVector( 3 );
         return(self.GlobalCoordinates(result, LocalCoordinates)); })
     // Geometrical
+    .def("IsInside", [](GeometryType& self, const CoordinatesArrayType& rPointGlobalCoordinates){
+        CoordinatesArrayType rResult;
+        return self.IsInside(rPointGlobalCoordinates, rResult);
+    })
+    .def("GetLocalCoordinates", [](GeometryType& self, const CoordinatesArrayType& rPointGlobalCoordinates){
+        CoordinatesArrayType rResult;
+        self.IsInside(rPointGlobalCoordinates, rResult);
+        return rResult;
+    })
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
