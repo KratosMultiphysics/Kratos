@@ -186,12 +186,12 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         linear_solver = self._GetSmoothingLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            distance_smoothing_process = KratosCFD.DistanceSmoothingProcess2D(
+            distance_smoothing_process = KratosTrilinos.TrilinosDistanceSmoothingProcess2D(
                 epetra_communicator,
                 self.main_model_part,
                 linear_solver)
         else:
-            distance_smoothing_process = KratosCFD.DistanceSmoothingProcess3D(
+            distance_smoothing_process = KratosTrilinos.TrilinosDistanceSmoothingProcess3D(
                 epetra_communicator,
                 self.main_model_part,
                 linear_solver)
