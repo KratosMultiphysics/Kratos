@@ -112,12 +112,12 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    * if the condition needs to perform any operation before any calculation is done
    * the condition variables will be initialized and set using this method
    */
-  void Initialize() override;
+  void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Called at the beginning of each solution step
    */
-  void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+  void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
   //************* GETTING METHODS
@@ -126,13 +126,13 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    * Sets on rConditionDofList the degrees of freedom of the considered element geometry
    */
   void GetDofList(DofsVectorType& rConditionDofList,
-                  ProcessInfo& rCurrentProcessInfo ) override;
+                  const ProcessInfo& rCurrentProcessInfo ) const override;
 
   /**
    * Sets on rResult the ID's of the element degrees of freedom
    */
   void EquationIdVector(EquationIdVectorType& rResult,
-                        ProcessInfo& rCurrentProcessInfo ) override;
+                        const ProcessInfo& rCurrentProcessInfo ) const override;
 
   /**
    * Sets on rValues the nodal displacements
@@ -165,7 +165,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    */
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                             VectorType& rRightHandSideVector,
-                            ProcessInfo& rCurrentProcessInfo) override;
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -174,7 +174,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    * @param rCurrentProcessInfo: the current process info instance
    */
   void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -185,7 +185,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    */
   void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                                                VectorType& rRightHandSideVector,
-                                               ProcessInfo& rCurrentProcessInfo) override;
+                                               const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -194,7 +194,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    * @param rCurrentProcessInfo: the current process info instance
    */
   void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                     ProcessInfo& rCurrentProcessInfo) override;
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
   /**
@@ -204,7 +204,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    * @param rCurrentProcessInfo: the current process info instance
    */
   void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                     ProcessInfo& rCurrentProcessInfo) override;
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
   /**
@@ -214,7 +214,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkSegregatedVCon
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  virtual int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
   ///@}
