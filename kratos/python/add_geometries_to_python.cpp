@@ -152,6 +152,8 @@ void  AddGeometriesToPython(pybind11::module& m)
      // Jacobian
     .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
         { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
+    .def("Jacobian", [](GeometryType& self, const CoordinatesArrayType& rCoordinates)
+        { Matrix results; return(self.Jacobian(results, rCoordinates)); })
     .def("DeterminantOfJacobian", [](GeometryType& self)
         { Vector results; return(self.DeterminantOfJacobian(results)); })
     .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
