@@ -131,12 +131,12 @@ public:
 
     static MatrixPointerType CreateEmptyMatrixPointer()
     {
-        return MatrixPointerType(new TMatrixType(0, 0));
+        return Kratos::make_shared<TMatrixType>();
     }
 
     static VectorPointerType CreateEmptyVectorPointer()
     {
-        return VectorPointerType(new TVectorType(0));
+        return Kratos::make_shared<TVectorType>(); 
     }
 
     /// return size of vector rV
@@ -365,36 +365,34 @@ public:
         rX.SetValue(A);
     }
 
-    static void Resize(MatrixType& rA, SizeType m, SizeType n)
-    {
-        rA.resize(m, n, false);
-    }
+    // static void Resize(MatrixType& rA, SizeType m, SizeType n)
+    // {
+    //     rA.resize(m, n, false);
+    // }
 
-    static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
-    {
-        pA->resize(m, n, false);
-    }
+    // static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
+    // {
+    //     pA->resize(m, n, false);
+    // }
 
-    static void Resize(VectorType& rX, SizeType n)
-    {
-        rX.resize(n, false);
-    }
+    // static void Resize(VectorType& rX, SizeType n)
+    // {
+    //     rX.resize(n, false);
+    // }
 
-    static void Resize(VectorPointerType& pX, SizeType n)
-    {
-        pX->resize(n, false);
-    }
+    // static void Resize(VectorPointerType& pX, SizeType n)
+    // {
+    //     pX->resize(n, false);
+    // }
 
     static void Clear(MatrixPointerType& pA)
     {
-        pA->clear();
-        pA->resize(0, 0, false);
+        pA->Clear();
     }
 
     static void Clear(VectorPointerType& pX)
     {
-        pX->clear();
-        pX->resize(0, false);
+        pX->Clear();
     }
 
     template<class TOtherMatrixType>
