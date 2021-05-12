@@ -157,6 +157,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
+        kratos_comm = self.model_part.GetCommunicator().GetDataCommunicator()
         min_distance = kratos_comm.MinAll(min_distance)
         max_distance = kratos_comm.MaxAll(max_distance)
 
