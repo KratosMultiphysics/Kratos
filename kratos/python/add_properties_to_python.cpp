@@ -114,10 +114,10 @@ typename TVariableType::Type GetValueHelperFunction1( TContainerType& rContainer
 }
     
 template< class TContainerType, class TVariableType >
-typename TVariableType::Type EraseHelperFunction1( TContainerType& rContainer,
+void EraseHelperFunction1( TContainerType& rContainer,
         const TVariableType& rVar )
 {
-    return rContainer.Erase(rVar);
+    rContainer.Erase(rVar);
 }
 
 template< class TContainerType, class XVariableType, class YVariableType>
