@@ -106,6 +106,10 @@ def Factory(parameters, model):
         "list_of_variables" : ["SLIP"]
     }""")
 
+    list_of_element_variables = ParametersWrapper("""{
+        "list_of_variables" : ["ADJOINT_STABILIZATION_COEFFICIENT", "ELEMENT_H"]
+    }""")
+
     initialize_list = []
     finalize_list = []
     if (is_steady):
@@ -128,13 +132,21 @@ def Factory(parameters, model):
     ])
     core_settings[0]["list_of_operations"] = initialize_list
 
-    core_settings[1]["list_of_operations"] = [
+    transient_list = [
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),
         CreateOperationSettings("nodal_data_value_output", list_of_nodal_variables),
         CreateOperationSettings("nodal_flag_value_output", list_of_nodal_flags),
         CreateOperationSettings("condition_data_value_output", list_of_condition_data_variables),
         CreateOperationSettings("condition_flag_value_output", list_of_condition_flags)
     ]
+
+    if (not is_steady):
+        transient_list.extend([
+            CreateOperationSettings(
+                "element_data_value_output", list_of_element_variables)
+        ])
+
+    core_settings[1]["list_of_operations"] = transient_list
 
     finalize_list.extend([
         CreateOperationSettings("nodal_solution_step_data_output", list_of_solution_step_variables),

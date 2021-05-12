@@ -33,6 +33,9 @@ class AdjointSolutionController:
         self.inteval_steps = 0
         self.diffusion_coefficient = 0.0
 
+    def AddTimeSchemeParameters(self, parameters):
+        pass
+
     def InitializeSolutionStep(self):
         if (self.check_step == -1):
             self.check_step = self.main_model_part.ProcessInfo[Kratos.STEP]
@@ -47,12 +50,15 @@ class DiffusionSolutionController(AdjointSolutionController):
         super().__init__(main_model_part, parameters)
 
         default_parameters = Kratos.Parameters("""{
-            "solution_control_method"       : "diffusion",
-            "stabilization_coefficient"     : 1
+            "solution_control_method"   : "diffusion",
+            "stabilization_length_scale": 10.0
         }""")
 
         self.parameters.ValidateAndAssignDefaults(default_parameters)
-        self.diffusion_coefficient = self.parameters["stabilization_coefficient"].GetDouble()
+
+    def AddTimeSchemeParameters(self, parameters):
+        parameters.AddEmptyValue("stabilization_length_scale")
+        parameters["stabilization_length_scale"].SetDouble(self.parameters["stabilization_length_scale"].GetDouble())
 
 class ResetToZeroAdjointSolutionController(AdjointSolutionController):
     def __init__(self, main_model_part, parameters):
@@ -437,8 +443,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
-            self.settings["time_scheme_settings"].AddEmptyValue("stabilization_coefficient")
-            self.settings["time_scheme_settings"]["stabilization_coefficient"].SetDouble(self.adjoint_solution_controller.diffusion_coefficient)
+            self.adjoint_solution_controller.AddTimeSchemeParameters(self.settings["time_scheme_settings"])
             scheme = GetKratosObjectPrototype("VelocityBossakAdjointScheme")(self.settings["time_scheme_settings"], response_function, domain_size, block_size)
         elif scheme_type == "steady":
             scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(response_function, domain_size, block_size)
