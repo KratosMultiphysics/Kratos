@@ -853,10 +853,13 @@ private:
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
 
+        // The model part as const to avoid race conditions
+        const auto& r_const_origin_model_part = mOriginModelPart;
+
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
-            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.pGetCondition(master_id)->GetGeometry() : r_const_origin_model_part.pGetElement(master_id)->GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
 
