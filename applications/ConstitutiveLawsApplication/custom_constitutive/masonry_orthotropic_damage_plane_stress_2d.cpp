@@ -213,8 +213,8 @@ namespace Kratos
             KRATOS_THROW_ERROR(std::logic_error,
                 "MasonryOrthotropicDamagePlaneStress2DLaw requires 2 sub properties.", "");
         // ELASTIC PARAMETERS
-        CheckOrthotropicParameter(rProperties.GetSubProperties(0));
-        CheckOrthotropicParameter(rProperties.GetSubProperties(1));
+        CheckOrthotropicParameter(rProperties.GetSubProperties(2));
+        CheckOrthotropicParameter(rProperties.GetSubProperties(3));
 
         return 0;
 
@@ -246,9 +246,20 @@ namespace Kratos
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: RESIDUAL_STRESS_COMPRESSION", "");
         if (!rProperties.Has(FRACTURE_ENERGY_COMPRESSION))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_COMPRESSION", "");
+        if (!rProperties.Has(BEZIER_CONTROLLER_C1))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BEZIER_CONTROLLER_C1", "");
+        if (!rProperties.Has(BEZIER_CONTROLLER_C2))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BEZIER_CONTROLLER_C2", "");
+        if (!rProperties.Has(BEZIER_CONTROLLER_C3))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BEZIER_CONTROLLER_C3", "");
         // BIAXIAL
         if (!rProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))
             KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
+        // SHEAR
+        if (!rProperties.Has(YIELD_STRESS_SHEAR_TENSION))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_SHEAR_TENSION", "");
+        if (!rProperties.Has(YIELD_STRESS_SHEAR_COMPRESSION))
+            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_SHEAR_COMPRESSION", "");
 
         return 0;
     }
@@ -263,12 +274,12 @@ namespace Kratos
         auto MaterialProperties1 = DirectionalMaterialProperties(
             this->ComputeCharacteristicLength(
                 rGeometry, 0),
-            rProperties.GetSubProperties(0));
+            rProperties.GetSubProperties(2));
 
         auto MaterialProperties2 = DirectionalMaterialProperties(
             this->ComputeCharacteristicLength(
                 rGeometry, 1),
-            rProperties.GetSubProperties(1));
+            rProperties.GetSubProperties(3));
 
         CalculationData data(MaterialProperties1, MaterialProperties2);
 
@@ -276,12 +287,14 @@ namespace Kratos
         data.BiaxialCompressionMultiplier = rProperties[BIAXIAL_COMPRESSION_MULTIPLIER];
         data.ShearCompressionReductor = rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)
             ? rProperties[SHEAR_COMPRESSION_REDUCTOR]
-            : 0.5;
+            : 0.16;
         data.ShearCompressionReductor = std::min(std::max(data.ShearCompressionReductor, 0.0), 1.0);
 
         // Misc
         data.DeltaTime = rProcessInfo[DELTA_TIME];
-        data.TensionYieldModel = rProperties.Has(TENSION_YIELD_MODEL) ? rProperties[TENSION_YIELD_MODEL] : 0;
+        data.TensionYieldModel = rProperties.Has(TENSION_YIELD_MODEL)
+            ? rProperties[TENSION_YIELD_MODEL]
+            : 0;
 
         return data;
     }
