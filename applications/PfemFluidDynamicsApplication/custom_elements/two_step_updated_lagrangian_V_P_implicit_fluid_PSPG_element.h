@@ -330,7 +330,7 @@ namespace Kratos
                           double ElemSize,
                           const double Density,
                           const double Viscosity,
-                          const ProcessInfo &rCurrentProcessInfo) override;
+                          const ProcessInfo &rCurrentProcessInfo);
 
     void AddStabilizationMatrixLHS(MatrixType &rLeftHandSideMatrix,
                                    Matrix &BulkAccMatrix,
