@@ -170,15 +170,8 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
             const auto& x_i = rNode.Coordinates();
 
-            /* const double x_i = rNode.X();
-            const double y_i = rNode.Y();
-            const double z_i = rNode.Z(); */
-
             double weight = 0.0;
             double dist_diff_avg = 0.0;
-
-            /* auto& n_nodes = rNode.GetValue(NEIGHBOUR_NODES);
-            for (unsigned int j = 0; j < n_nodes.size(); ++j) { */
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
 
@@ -190,11 +183,6 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
                 if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
 
                     const Vector dx = x_i - x_j;
-
-                    /* const double dx = x_i - n_nodes[j].X();
-                    const double dy = y_i - n_nodes[j].Y();
-                    const double dz = z_i - n_nodes[j].Z();
-                    const double distance_ij = sqrt( dx*dx + dy*dy + dz*dz ); */
 
                     const double distance_ij = norm_2(dx);
 
