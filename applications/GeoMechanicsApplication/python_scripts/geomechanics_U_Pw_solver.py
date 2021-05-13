@@ -321,7 +321,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_PRESSURE_COEFFICIENT, 1.0)
 
-        if (scheme_type == "Newmark"):
+        if (scheme_type.lower() == "newmark"):
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
             theta = self.settings["newmark_theta"].GetDouble()
@@ -362,19 +362,19 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
 
-        if(convergence_criterion == "Displacement_criterion" or convergence_criterion == "displacement_criterion"):
+        if(convergence_criterion.lower() == "displacement_criterion"):
             convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion == "Residual_criterion" or convergence_criterion == "residual_criterion"):
+        elif(convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion == "And_criterion" or convergence_criterion == "and_criterion"):
+        elif(convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-        elif(convergence_criterion == "Or_criterion" or convergence_criterion == "or_criterion"):
+        elif(convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
@@ -393,7 +393,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
-        if strategy_type == "newton_raphson":
+        if strategy_type.lower() == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
@@ -407,7 +407,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
-        elif strategy_type == "line_search":
+        elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_iteration",             self.settings["max_iterations"])
             self.strategy_params.AddValue("compute_reactions",          self.settings["compute_reactions"])
@@ -423,7 +423,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                      self.convergence_criterion,
                                                                      self.strategy_params)
 
-        elif strategy_type == "arc_length":
+        elif strategy_type.lower() == "arc_length":
             # Arc-Length strategy
             self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_LAMBDA,        1.0)
             self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_RADIUS_FACTOR, 1.0)
