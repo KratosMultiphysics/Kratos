@@ -29,9 +29,25 @@
 // FluidDynamics trilinos extensions
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
 #include "custom_processes/trilinos_stokes_initialization_process.h"
+#include "../../custom_processes/distance_smoothing_process.h"
 
 namespace Kratos {
 namespace Python {
+
+// Helper to define Trilinos DistanceSmoothingProcess
+template<unsigned int TDim> using TrilinosDistanceSmoothingProcess = DistanceSmoothingProcess<TDim, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>;
+
+template< class TBinder, unsigned int TDim > void DistanceSmoothingConstructionHelper(TBinder& rBinder)
+{
+    rBinder.def(py::init([](
+        Epetra_MpiComm& rComm, ModelPart& rModelPart, TrilinosLinearSolverType::Pointer pLinearSolver)
+        {
+            constexpr int RowSizeGuess = (TDim == 2 ? 15 : 40);
+            auto p_builder_solver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > >(
+                rComm, RowSizeGuess, pLinearSolver);
+            return Kratos::make_shared<TrilinosDistanceSmoothingProcess<TDim>>(rModelPart, pLinearSolver, p_builder_solver);
+        }));
+}
 
 void AddTrilinosProcessesToPython(pybind11::module& m)
 {
@@ -55,6 +71,16 @@ void AddTrilinosProcessesToPython(pybind11::module& m)
     .def(py::init<Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolver::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess::SetConditions)
     ;
+
+    // Distance smoothing processes
+    using DistanceSmoothing2DBinderType = py::class_<TrilinosDistanceSmoothingProcess<2>, typename TrilinosDistanceSmoothingProcess<2>::Pointer, Process >;
+    using DistanceSmoothing3DBinderType = py::class_<TrilinosDistanceSmoothingProcess<3>, typename TrilinosDistanceSmoothingProcess<3>::Pointer, Process >;
+
+    auto distance_smoothing_2d_binder = DistanceSmoothing2DBinderType(m,"TrilinosDistanceSmoothingProcess2D");
+    auto distance_smoothing_3d_binder = DistanceSmoothing3DBinderType(m,"TrilinosDistanceSmoothingProcess3D");
+
+    DistanceSmoothingConstructionHelper<DistanceSmoothing2DBinderType,2>(distance_smoothing_2d_binder);
+    DistanceSmoothingConstructionHelper<DistanceSmoothing3DBinderType,3>(distance_smoothing_3d_binder);
 }
 
 }
