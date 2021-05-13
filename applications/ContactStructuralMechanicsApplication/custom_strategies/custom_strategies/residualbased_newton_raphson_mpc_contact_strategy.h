@@ -86,6 +86,8 @@ public:
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedNewtonRaphsonMPCContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
     typedef MPCContactCriteria<TSparseSpace, TDenseSpace>                 TMPCContactCriteriaType;
@@ -126,6 +128,26 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
@@ -134,7 +156,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonMPCContactStrategy(
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -145,7 +167,7 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters)
     {
         KRATOS_TRY;
@@ -170,7 +192,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonMPCContactStrategy(
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -180,8 +202,8 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
         mThisParameters(ThisParameters)
     {
         KRATOS_TRY;
@@ -206,7 +228,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonMPCContactStrategy(
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -218,7 +240,7 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters)
     {
         KRATOS_TRY;
@@ -238,8 +260,26 @@ public:
     ~ResidualBasedNewtonRaphsonMPCContactStrategy() override
     = default;
 
-    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
-    //***********************************************************************************//
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename StrategyBaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -570,6 +610,35 @@ public:
         return is_converged;
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_mpc_contact_strategy",
+            "inner_loop_iterations"               : 5,
+            "update_each_nl_iteration"            : false,
+            "enforce_ntn"                         : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_mpc_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -595,33 +664,31 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mThisParameters;                                   /// The configuration parameters
+    Parameters mThisParameters;                                      /// The configuration parameters
     typename TConvergenceCriteriaType::Pointer mpMPCContactCriteria; /// The contact criteria
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-    /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "inner_loop_iterations"    : 5,
-            "update_each_nl_iteration" : false,
-            "enforce_ntn"              : false
-        })" );
-
-        return default_parameters;
-    }
-
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        
+        // We create the contact criteria
+        mpMPCContactCriteria = Kratos::make_shared<TMPCContactCriteriaType>();
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
 
     ///@}
     ///@name Protected  Access
