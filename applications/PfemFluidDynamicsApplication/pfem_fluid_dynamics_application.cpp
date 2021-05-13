@@ -70,10 +70,10 @@ KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication() : Krato
                                                                            mUpdatedLagrangianVImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
                                                                            mUpdatedLagrangianVImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
                                                                            mUpdatedLagrangianVImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
-                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
-                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
+                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
+                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+                                                                           mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
                                                                            mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
                                                                            mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
                                                                            mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -194,10 +194,10 @@ void KratosPfemFluidDynamicsApplication::Register()
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement3D", mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement3Dquadratic", mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic);
-  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2D", mTwoStepUpdatedLagrangianVPImplicitFluidElement2D);
-  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidElement2Dquadratic);
-  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3D", mTwoStepUpdatedLagrangianVPImplicitFluidElement3D);
-  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic);
+  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidFicElement2D", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2D);
+  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidFicElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2Dquadratic);
+  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidFicElement3D", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D);
+  KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidFicElement3Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidDEMcouplingElement2D", mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidDEMcouplingElement2Dquadratic", mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2Dquadratic);
   KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidDEMcouplingElement3D", mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3D);
