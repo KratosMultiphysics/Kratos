@@ -3,26 +3,14 @@ import numpy as np
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-class ParticleWatcherAnalyzer:
-    def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
-        self.particle_watcher = analytic_particle_watcher
-
-    # call everytime post results are generated
-    def SetNodalMaxImpactVelocities(self, analytic_model_part):
-        self.analytic_particle_watcher.SetNodalMaxImpactVelocities(analytic_model_part)
-
-    def SetNodalMaxFaceImpactVelocities(self, analytic_model_part):
-        self.analytic_particle_watcher.SetNodalMaxFaceImpactVelocities(analytic_model_part)
-
-
-class FaceWatcherAnalyzer:
-    def __init__(self, name, analytic_face_watcher):
-        self.face_watcher = analytic_face_watcher
-        self.face_watcher_name = name
-        # the following objects are useful if data is chunked into several databases
+class SurfaceAnalyzer:
+    def __init__(self, surface_dict, smp):
         self.inlet = None
         self.n_particles_accumulated = 0
         self.mass_accumulated = 0.0
+
+        surface_dict[smp.Name] = AnalyticFaceWatcher(smp)
+        self.face_watcher = surface_dict[smp.Name]
 
     def MakeReading(self):
         times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [], [], [], [], []
@@ -71,12 +59,28 @@ class FaceWatcherAnalyzer:
     def ClearData(self):
         self.face_watcher.ClearData()
 
+
+class ParticleAnalyzerClass:
+    def __init__(self, model_part):
+        self.analytic_model_part = model_part
+        self.particle_analyzer = AnalyticParticleWatcher()
+
+    def MakeAnalyticsMeasurements(self):
+       self.particle_analyzer.MakeMeasurements(self.analytic_model_part)
+
+    def SetNodalMaxImpactVelocities(self):
+        self.particle_analyzer.SetNodalMaxImpactVelocities(self.analytic_model_part)
+
+    def SetNodalMaxFaceImpactVelocities(self):
+        self.particle_analyzer.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+
 class FaceAnalyzerClass:
     def __init__(self, model_part, main_path, do_clear_data = True):
         self.model_part = model_part
         self.main_path = main_path
-        self.face_watcher_dict = dict()
-        self.face_watcher_analysers = dict()
+        self.surface_dict = dict()
+        self.surface_analyzers = dict()
         self.do_clear_data = do_clear_data
         self.times_data_base_names = []
         self.n_particles_data_base_names = []
@@ -87,16 +91,16 @@ class FaceAnalyzerClass:
         self.name_mass = 'm_accum'
         self.name_avg_vel_nr = 'mass_avg_normal_vel'
 
-        for sub_part in self.model_part:
-            if sub_part[IS_GHOST] == True:
-                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = FaceWatcherAnalyzer(name=sub_part.Name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name])
+        for smp in model_part:
+            if smp[IS_GHOST] == True:
+                self.surface_analyzers[smp.Name] = SurfaceAnalyzer(self.surface_dict,smp)
 
         self.RemoveFiles()
 
     def MakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
+        for obj in self.surface_dict.values():
+            obj.MakeMeasurements()
+
 
     def MakeAnalyticsPipeLine(self, time):
         self.CreateNewFile()
@@ -133,7 +137,7 @@ class FaceAnalyzerClass:
         with h5py.File(self.new_path, 'a') as f, h5py.File(self.old_path, 'r') as f_old:
             for sub_part in self.model_part:
                 if sub_part[IS_GHOST]:
-                    shape, time, n_particles, mass, avg_vel_nr = self.face_watcher_analysers[sub_part.Name].UpdateData(time)
+                    shape, time, n_particles, mass, avg_vel_nr = self.surface_analyzers[sub_part.Name].UpdateData(time)
                     shape_old = f_old['/' + sub_part.Name + '/time'].shape
                     current_shape = (shape_old[0] + shape[0], )
                     time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, sub_part.Name)
@@ -148,8 +152,8 @@ class FaceAnalyzerClass:
                     avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
                     if self.do_clear_data:
                         if len(n_particles):
-                            self.face_watcher_analysers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
-                        self.face_watcher_analysers[sub_part.Name].ClearData()
+                            self.surface_analyzers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
+                        self.surface_analyzers[sub_part.Name].ClearData()
 
         # how to extract data from h5 subgrouped datasets:
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
@@ -165,7 +169,7 @@ class FaceAnalyzerClass:
         with h5py.File(self.new_path, 'a') as f:
             for sub_part in self.model_part:
                 if sub_part[IS_GHOST]:
-                    shape, time, n_particles, mass, avg_vel_nr = self.face_watcher_analysers[sub_part.Name].UpdateData(time)
+                    shape, time, n_particles, mass, avg_vel_nr = self.surface_analyzers[sub_part.Name].UpdateData(time)
                     time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, sub_part.Name)
                     time_db[:] = time[:]
                     n_particles_db[:] = n_particles[:]
@@ -173,8 +177,8 @@ class FaceAnalyzerClass:
                     avg_vel_nr_db[:] = avg_vel_nr[:]
                     if self.do_clear_data:
                         if len(n_particles):
-                            self.face_watcher_analysers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
-                        self.face_watcher_analysers[sub_part.Name].ClearData()
+                            self.surface_analyzers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
+                        self.surface_analyzers[sub_part.Name].ClearData()
 
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
         #x_h5 = input_data.get('/patch/X')

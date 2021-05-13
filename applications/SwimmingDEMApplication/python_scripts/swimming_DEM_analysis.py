@@ -77,8 +77,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.report = DP.Report()
 
-        self._GetDEMAnalysis().SetAnalyticFaceWatcher()
-
         # defining member variables for the model_parts (for convenience)
         self.fluid_model_part = self._GetFluidAnalysis().fluid_model_part
         self.spheres_model_part = self._GetDEMAnalysis().spheres_model_part
@@ -234,6 +232,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.FluidInitialize()
 
         self.DispersePhaseInitialize()
+
+        self._GetDEMAnalysis().SetAnalyticWatchers()
 
         self.SetAllModelParts()
 
@@ -562,7 +562,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = DEM.AnalyticParticleWatcher()
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(
+        self.particle_watcher_analyser = analytic_data_procedures.ParticleAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)
 
