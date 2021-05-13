@@ -5,6 +5,7 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosTrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial two fluid solver
@@ -186,12 +187,12 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         linear_solver = self._GetSmoothingLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            distance_smoothing_process = KratosFluid.TrilinosDistanceSmoothingProcess2D(
+            distance_smoothing_process = KratosTrilinosFluid.TrilinosDistanceSmoothingProcess2D(
                 epetra_communicator,
                 self.main_model_part,
                 linear_solver)
         else:
-            distance_smoothing_process = KratosFluid.TrilinosDistanceSmoothingProcess3D(
+            distance_smoothing_process = KratosTrilinosFluid.TrilinosDistanceSmoothingProcess3D(
                 epetra_communicator,
                 self.main_model_part,
                 linear_solver)

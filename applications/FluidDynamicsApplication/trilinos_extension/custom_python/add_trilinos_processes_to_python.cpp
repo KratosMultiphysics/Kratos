@@ -29,7 +29,9 @@
 // FluidDynamics trilinos extensions
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
 #include "custom_processes/trilinos_stokes_initialization_process.h"
-#include "../../custom_processes/distance_smoothing_process.h"
+
+// FluidDynamicsApplication dependencies
+#include "custom_processes/distance_smoothing_process.h"
 
 namespace Kratos {
 namespace Python {
