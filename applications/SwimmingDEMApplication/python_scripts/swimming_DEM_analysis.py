@@ -233,7 +233,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.DispersePhaseInitialize()
 
-        self._GetDEMAnalysis().SetAnalyticWatchers()
+        #self._GetDEMAnalysis().SetAnalyticWatchers()
 
         self.SetAllModelParts()
 

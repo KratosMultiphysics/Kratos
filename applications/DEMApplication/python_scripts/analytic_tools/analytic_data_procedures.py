@@ -4,13 +4,24 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 class SurfaceAnalyzer:
-    def __init__(self, surface_dict, smp):
+    def __init__(self, smp):
         self.inlet = None
         self.n_particles_accumulated = 0
         self.mass_accumulated = 0.0
+        self.smp_name = smp.Name
 
-        surface_dict[smp.Name] = AnalyticFaceWatcher(smp)
-        self.face_watcher = surface_dict[smp.Name]
+        self.ghost = smp[IS_GHOST]
+
+        # develop version
+        self.face_watcher = AnalyticFaceWatcher(smp)
+
+
+    def MakeMeasurements(self):
+        '''
+        From python to c++
+        '''
+        self.face_watcher.MakeMeasurements()
+
 
     def MakeReading(self):
         times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [], [], [], [], []
@@ -76,11 +87,12 @@ class ParticleAnalyzerClass:
 
 
 class FaceAnalyzerClass:
-    def __init__(self, model_part, main_path, do_clear_data = True):
-        self.model_part = model_part
+    def __init__(self, sub_model_parts, main_path, do_clear_data = True):
+        self.sub_model_parts = sub_model_parts
         self.main_path = main_path
         self.surface_dict = dict()
         self.surface_analyzers = dict()
+        self.surface_analyzers_list = []
         self.do_clear_data = do_clear_data
         self.times_data_base_names = []
         self.n_particles_data_base_names = []
@@ -92,16 +104,33 @@ class FaceAnalyzerClass:
         self.name_avg_vel_nr = 'mass_avg_normal_vel'
         self.ghost_smp_detected = False
 
-        for smp in model_part:
+        for smp in sub_model_parts:
             if smp[IS_GHOST] == True:
-                self.surface_analyzers[smp.Name] = SurfaceAnalyzer(self.surface_dict,smp)
                 self.ghost_smp_detected = True
+                self.surface_analyzers_list.append(SurfaceAnalyzer(smp))
 
+        self.surface_analyzers_list_size = len(self.surface_analyzers_list)
         self.RemoveFiles()
 
-    def MakeAnalyticsMeasurements(self):
+    #TODO:remove b4 merge
+    def original_MakeAnalyticsMeasurements(self):
         for obj in self.surface_dict.values():
             obj.MakeMeasurements()
+
+    #TODO:remove b4 merge
+    def v1_MakeAnalyticsMeasurements(self):
+        for i in range(self.surface_analyzers_list_size):
+            (self.surface_analyzers_list[i].face_watcher).MakeMeasurements()
+            # enlloc de pasar pel face_watcher cridar directament a la funcio enllac
+            # fer loop surface analyzer
+
+    def MakeAnalyticsMeasurements(self):
+        '''
+        This function is used as interface to reach the SurfaceAnalyzer MakeMeasurements
+        and from there, the cpp function.
+        '''
+        for i in range(self.surface_analyzers_list_size):
+            self.surface_analyzers_list[i].MakeMeasurements()
 
 
     def MakeAnalyticsPipeLine(self, time):
@@ -131,6 +160,8 @@ class FaceAnalyzerClass:
         else:
             self.CreateDataFile(time)
 
+
+
     def UpdateDataFile(self, time):
 
         # how to create subgrouped datasets with variable name:
@@ -138,25 +169,29 @@ class FaceAnalyzerClass:
         # group2.create_dataset('data',data=d)
         import h5py
         with h5py.File(self.new_path, 'a') as f, h5py.File(self.old_path, 'r') as f_old:
-            for sub_part in self.model_part:
-                if sub_part[IS_GHOST]:
-                    shape, time, n_particles, mass, avg_vel_nr = self.surface_analyzers[sub_part.Name].UpdateData(time)
-                    shape_old = f_old['/' + sub_part.Name + '/time'].shape
-                    current_shape = (shape_old[0] + shape[0], )
-                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, sub_part.Name)
+            #for sub_part in self.sub_model_parts:
+            for i in range(self.surface_analyzers_list_size):
+                #if sub_part[IS_GHOST]:
+                if self.surface_analyzers_list[i].ghost:
+                    shape, time, n_particles, mass, avg_vel_nr = (self.surface_analyzers_list[i]).UpdateData(time)
 
-                    time_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/time'][:]
+                    #shape, time, n_particles, mass, avg_vel_nr = self.surface_analyzers[sub_part.Name].UpdateData(time)
+                    shape_old = f_old['/' + str(i) + '/time'].shape
+                    current_shape = (shape_old[0] + shape[0], )
+                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, str(i))
+
+                    time_db[:shape_old[0]] = f_old['/' + str(i) + '/time'][:]
                     time_db[shape_old[0]:] = time[:]
-                    n_particles_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + self.name_n_particles][:]
+                    n_particles_db[:shape_old[0]] = f_old['/' + str(i) + '/' + self.name_n_particles][:]
                     n_particles_db[shape_old[0]:] = n_particles[:]
-                    mass_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + self.name_mass][:]
+                    mass_db[:shape_old[0]] = f_old['/' + str(i) + '/' + self.name_mass][:]
                     mass_db[shape_old[0]:] = mass[:]
-                    avg_vel_nr_db[:shape_old[0]] = f_old['/' + sub_part.Name + '/' + self.name_avg_vel_nr][:]
+                    avg_vel_nr_db[:shape_old[0]] = f_old['/' + str(i) + '/' + self.name_avg_vel_nr][:]
                     avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
                     if self.do_clear_data:
                         if len(n_particles):
-                            self.surface_analyzers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
-                        self.surface_analyzers[sub_part.Name].ClearData()
+                            (self.surface_analyzers_list[i]).UpdateVariables(n_particles[-1], mass[-1])
+                        (self.surface_analyzers_list[i]).ClearData()
 
         # how to extract data from h5 subgrouped datasets:
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
@@ -170,18 +205,21 @@ class FaceAnalyzerClass:
         # group2.create_dataset('data',data=d)
         import h5py
         with h5py.File(self.new_path, 'a') as f:
-            for sub_part in self.model_part:
-                if sub_part[IS_GHOST]:
-                    shape, time, n_particles, mass, avg_vel_nr = self.surface_analyzers[sub_part.Name].UpdateData(time)
-                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, sub_part.Name)
+            #for sub_part in self.sub_model_parts:
+            for i in range(self.surface_analyzers_list_size):
+                #if sub_part[IS_GHOST]:
+                if self.surface_analyzers_list[i].ghost:
+                    shape, time, n_particles, mass, avg_vel_nr = (self.surface_analyzers_list[i]).UpdateData(time)
+
+                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, str(i))
                     time_db[:] = time[:]
                     n_particles_db[:] = n_particles[:]
                     mass_db[:] = mass[:]
                     avg_vel_nr_db[:] = avg_vel_nr[:]
                     if self.do_clear_data:
                         if len(n_particles):
-                            self.surface_analyzers[sub_part.Name].UpdateVariables(n_particles[-1], mass[-1])
-                        self.surface_analyzers[sub_part.Name].ClearData()
+                            (self.surface_analyzers_list[i]).UpdateVariables(n_particles[-1], mass[-1])
+                        (self.surface_analyzers_list[i]).ClearData()
 
         #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
         #x_h5 = input_data.get('/patch/X')
@@ -201,6 +239,12 @@ class FaceAnalyzerClass:
     def OldFileExists(self):
         return os.path.exists(self.old_path)
 
+
+
+
+
+    #TODO: Decide what to do with these unused.
+    # Currently not being used
     def GetJointData(self, data_base_names):
         data_list = []
         import h5py
@@ -214,15 +258,11 @@ class FaceAnalyzerClass:
 
         return joint_list
 
-    def GetTimes(self):
-        return self.GetJointData(self.times_data_base_names)
-
-    def GetNumberOfParticlesFlux(self):
-        return self.GetJointData(self.n_particles_data_base_names)
-
+    # Currently not being used
     def GetMassFlux(self):
         return self.GetJointData(self.mass_data_base_names)
 
+    # Currently not being used
     def MakeTotalFluxPlot(self):
         import matplotlib.pyplot as plt
         import h5py
@@ -234,6 +274,7 @@ class FaceAnalyzerClass:
         plt.plot(times, mass_flux)
         plt.savefig(self.main_path + '/mass_throughput.pdf', bbox_inches='tight')
 
+    # Currently not being used
     def MakeFluxOfNumberOfParticlesPlot(self):
         import matplotlib.pyplot as plt
         self.MakeReading()
@@ -246,3 +287,10 @@ class FaceAnalyzerClass:
         plt.savefig(self.main_path + '/throughput.svg')
         plt.clf()
         '''
+    # Currently not being used
+    def GetNumberOfParticlesFlux(self):
+        return self.GetJointData(self.n_particles_data_base_names)
+
+    # Currently not being used
+    def GetTimes(self):
+        return self.GetJointData(self.times_data_base_names)
