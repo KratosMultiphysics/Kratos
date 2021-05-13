@@ -13,6 +13,8 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
 
 namespace Kratos {
 
@@ -117,36 +119,37 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     this->InitializeGeometryData(data);
 
     // Iterate over the positive side volume integration points
-    const unsigned int number_of_positive_gauss_points = data.PositiveSideWeights.size();
-    for (unsigned int g = 0; g < number_of_positive_gauss_points; ++g){
-        const size_t gauss_pt_index = g;
+    const std::size_t number_of_positive_gauss_points = data.PositiveSideWeights.size();
+    for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g){
+        const std::size_t gauss_pt_index = g;
         this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveSideWeights[g], row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
     // Iterate over the negative side volume integration points
-    const unsigned int number_of_negative_gauss_points = data.NegativeSideWeights.size();
-    for (unsigned int g = 0; g < number_of_negative_gauss_points; ++g){
-        const size_t gauss_pt_index = g + number_of_positive_gauss_points;
+    const std::size_t number_of_negative_gauss_points = data.NegativeSideWeights.size();
+    for (std::size_t g = 0; g < number_of_negative_gauss_points; ++g){
+        const std::size_t gauss_pt_index = g + number_of_positive_gauss_points;
         this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeSideWeights[g], row(data.NegativeSideN, g), data.NegativeSideDNDX[g]);
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
-    // If the element is cut, add the interface contributions
-    if ( data.IsCut() ) {
+    // If the element is cut or incised (using Ausas FE space), add the interface contributions
+    if ( data.IsCut() )
+    {
         // Add the base element boundary contribution on the positive interface
-        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
-        const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
-        for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
-            const size_t gauss_pt_index = g + volume_gauss_points;
+        const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+        const std::size_t number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
+        for (std::size_t g = 0; g < number_of_positive_interface_gauss_points; ++g){
+            const std::size_t gauss_pt_index = g + volume_gauss_points;
             this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
             this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
 
         // Add the base element boundary contribution on the negative interface
-        const unsigned int number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
-        for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
-            const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+        const std::size_t number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
+        for (std::size_t g = 0; g < number_of_negative_interface_gauss_points; ++g){
+            const std::size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
             this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
             this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
@@ -157,6 +160,33 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+    }
+    else if ( data.IsIncised() )
+    {
+        // Add the base element boundary contribution on the positive interface
+            const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+            const std::size_t number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
+            for (std::size_t g = 0; g < number_of_positive_interface_gauss_points; ++g){
+                const std::size_t gauss_pt_index = g + volume_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the base element boundary contribution on the negative interface
+            const std::size_t number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
+            for (std::size_t g = 0; g < number_of_negative_interface_gauss_points; ++g){
+                const std::size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+                this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
+                this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+            }
+
+            // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+            data.InitializeBoundaryConditionData(rCurrentProcessInfo);
+            AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+
     }
 }
 
@@ -265,7 +295,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
     rData.NegativeIndices.clear();
 
     // Number of positive and negative distance function values
-    for (size_t i = 0; i < EmbeddedDiscontinuousElementData::NumNodes; ++i){
+    for (std::size_t i = 0; i < EmbeddedDiscontinuousElementData::NumNodes; ++i){
         if (rData.ElementalDistances[i] > 0.0){
             rData.NumPositiveNodes++;
             rData.PositiveIndices.push_back(i);
@@ -275,8 +305,26 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(Emb
         }
     }
 
-    if (rData.IsCut()){
+    // Number of intersected edges
+    for (std::size_t i = 0; i < EmbeddedDiscontinuousElementData::NumEdges; ++i) {
+        if (rData.ElementalEdgeDistances[i] > 0.0) {
+            rData.NumIntersectedEdges++;
+        }
+    }
+
+    // Number of edges cut by extrapolated geometry, if not empty
+    for (std::size_t i = 0; i < rData.ElementalEdgeDistancesExtrapolated.size(); ++i) {
+        if (rData.ElementalEdgeDistancesExtrapolated[i] > 0.0) {
+            rData.NumIntersectedEdgesExtrapolated++;
+        }
+    }
+
+    // Check whether element is intersected or incised and whether user gave flag CALCULATE_EXTRAPOLATED_EDGE_DISTANCES,
+    // then use Ausas incised shape functions
+    if ( rData.IsCut() ) {
         this->DefineCutGeometryData(rData);
+    } else if ( rData.IsIncised() ) {
+        this->DefineIncisedGeometryData(rData);
     } else {
         this->DefineStandardGeometryData(rData);
     }
@@ -296,10 +344,71 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(Embe
     // Auxiliary distance vector for the element subdivision utility
     Vector elemental_distances = rData.ElementalDistances;
 
-    ModifiedShapeFunctions::Pointer p_calculator =
+    ModifiedShapeFunctions::UniquePointer p_calculator =
         EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
             *this,
             elemental_distances);
+
+    // Positive side volume
+    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        rData.PositiveSideN,
+        rData.PositiveSideDNDX,
+        rData.PositiveSideWeights,
+        GeometryData::GI_GAUSS_2);
+
+    // Negative side volume
+    p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        rData.NegativeSideN,
+        rData.NegativeSideDNDX,
+        rData.NegativeSideWeights,
+        GeometryData::GI_GAUSS_2);
+
+    // Positive side interface
+    p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+        rData.PositiveInterfaceN,
+        rData.PositiveInterfaceDNDX,
+        rData.PositiveInterfaceWeights,
+        GeometryData::GI_GAUSS_2);
+
+    // Negative side interface
+    p_calculator->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+        rData.NegativeInterfaceN,
+        rData.NegativeInterfaceDNDX,
+        rData.NegativeInterfaceWeights,
+        GeometryData::GI_GAUSS_2);
+
+    // Positive side interface normals
+    p_calculator->ComputePositiveSideInterfaceAreaNormals(
+        rData.PositiveInterfaceUnitNormals,
+        GeometryData::GI_GAUSS_2);
+
+    // Negative side interface normals
+    p_calculator->ComputeNegativeSideInterfaceAreaNormals(
+        rData.NegativeInterfaceUnitNormals,
+        GeometryData::GI_GAUSS_2);
+
+    // Normalize the normals
+    // Note: we calculate h here (and we don't use the value in rData.ElementSize)
+    // because rData.ElementSize might still be uninitialized: some data classes define it at the Gauss point.
+    double h = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
+    const double tolerance = std::pow(1e-3 * h, Dim-1);
+    this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
+    this->NormalizeInterfaceNormals(rData.NegativeInterfaceUnitNormals, tolerance);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const
+{
+    // Auxiliary distance vector for the element subdivision utility
+    Vector elemental_distances = rData.ElementalDistances;
+    // Auxiliary edge distance vector of extrapolated intersecting geometry for the element subdivision utility
+    Vector edge_distances_extrapolated = rData.ElementalEdgeDistancesExtrapolated;
+
+    ModifiedShapeFunctions::UniquePointer p_calculator =
+        EmbeddedDiscontinuousInternals::GetIncisedShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
+            *this,
+            elemental_distances,
+            edge_distances_extrapolated);
 
     // Positive side volume
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
@@ -353,7 +462,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::NormalizeInterfaceNormals(
     typename EmbeddedDiscontinuousElementData::InterfaceNormalsType& rNormals,
     double Tolerance) const
 {
-    for (unsigned int i = 0; i < rNormals.size(); ++i) {
+    for (std::size_t i = 0; i < rNormals.size(); ++i) {
         double norm = norm_2(rNormals[i]);
         rNormals[i] /= std::max(norm,Tolerance);
     }
@@ -371,16 +480,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
 
     // Substract the embedded nodal velocity to the previous iteration solution
     const auto &r_geom = this->GetGeometry();
-    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
         const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-        for (unsigned int d = 0; d < Dim; ++d) {
+        for (std::size_t d = 0; d < Dim; ++d) {
             values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
     }
 
     // Compute the positive side LHS and RHS contributions
-    const unsigned int number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_positive_interface_integration_points; ++g) {
+    const std::size_t number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_positive_interface_integration_points; ++g) {
         // Get the Gauss pt. data
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto aux_N = row(rData.PositiveInterfaceN, g);
@@ -390,12 +499,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
         const double pen_coef = this->ComputeNormalPenaltyCoefficient(rData, aux_N);
 
         // Compute the Gauss pt. LHS contribution
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int j = 0; j < NumNodes; ++j){
-                for (unsigned int m = 0; m < Dim; ++m){
-                    const unsigned int row = i * BlockSize + m;
-                    for (unsigned int n = 0; n < Dim; ++n){
-                        const unsigned int col = j * BlockSize + n;
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t j = 0; j < NumNodes; ++j){
+                for (std::size_t m = 0; m < Dim; ++m){
+                    const std::size_t row = i * BlockSize + m;
+                    for (std::size_t n = 0; n < Dim; ++n){
+                        const std::size_t col = j * BlockSize + n;
                         const double aux = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
                         rLHS(row, col) += aux;
                         rRHS(row) -= aux*values(col);
@@ -406,8 +515,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
     }
 
     // Compute the negative side LHS and RHS contributions
-    const unsigned int number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_negative_interface_integration_points; ++g) {
+    const std::size_t number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_negative_interface_integration_points; ++g) {
         // Get the Gauss pt. data
         const double weight = rData.NegativeInterfaceWeights[g];
         const auto aux_N = row(rData.NegativeInterfaceN, g);
@@ -417,12 +526,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
         const double pen_coef = this->ComputeNormalPenaltyCoefficient(rData, aux_N);
 
         // Compute the Gauss pt. LHS contribution
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int j = 0; j < NumNodes; ++j){
-                for (unsigned int m = 0; m < Dim; ++m){
-                    const unsigned int row = i * BlockSize + m;
-                    for (unsigned int n = 0; n < Dim; ++n){
-                        const unsigned int col = j * BlockSize + n;
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t j = 0; j < NumNodes; ++j){
+                for (std::size_t m = 0; m < Dim; ++m){
+                    const std::size_t row = i * BlockSize + m;
+                    for (std::size_t n = 0; n < Dim; ++n){
+                        const std::size_t col = j * BlockSize + n;
                         const double aux = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
                         rLHS(row, col) += aux;
                         rRHS(row) -= aux*values(col);
@@ -445,9 +554,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
 
     // Substract the embedded nodal velocity to the previous iteration solution
     const auto &r_geom = this->GetGeometry();
-    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
         const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-        for (unsigned int d = 0; d < Dim; ++d) {
+        for (std::size_t d = 0; d < Dim; ++d) {
             values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
     }
@@ -459,8 +568,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
 
     // Compute positive side LHS contribution
-    const unsigned int number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_positive_interface_integration_points; ++g){
+    const std::size_t number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_positive_interface_integration_points; ++g){
         // Get the Gauss pt. data
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto aux_N = row(rData.PositiveInterfaceN, g);
@@ -469,16 +578,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
 
         // Fill the pressure to Voigt notation operator normal projected matrix
         BoundedMatrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
             }
         }
 
         // Set the shape functions auxiliar matrix
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
             }
         }
@@ -509,8 +618,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
     }
 
     // Compute negative side LHS contribution
-    const unsigned int number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_negative_interface_integration_points; ++g){
+    const std::size_t number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_negative_interface_integration_points; ++g){
         // Get the Gauss pt. data
         const double weight = rData.NegativeInterfaceWeights[g];
         const auto aux_N = row(rData.NegativeInterfaceN, g);
@@ -519,16 +628,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
 
         // Fill the pressure to Voigt notation operator normal projected matrix
         BoundedMatrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
             }
         }
 
         // Set the shape functions auxiliar matrix
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
             }
         }
@@ -584,8 +693,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS_2 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution generated by the viscous shear force generated by the velocity
 
     // Compute positive side LHS contribution
-    const unsigned int number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_positive_interface_integration_points; ++g){
+    const std::size_t number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_positive_interface_integration_points; ++g){
         // Get the Gauss pt. data
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto aux_N = row(rData.PositiveInterfaceN, g);
@@ -594,8 +703,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
 
         // Set the shape functions auxiliar matrices
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
             }
         }
@@ -627,8 +736,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
     }
 
     // Compute negative side LHS contribution
-    const unsigned int number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_negative_interface_integration_points; ++g){
+    const std::size_t number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_negative_interface_integration_points; ++g){
         // Get the Gauss pt. data
         const double weight = rData.NegativeInterfaceWeights[g];
         const auto aux_N = row(rData.NegativeInterfaceN, g);
@@ -637,8 +746,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
 
         // Set the shape functions auxiliar matrices
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
             }
         }
@@ -681,9 +790,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
     // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
     const auto &r_geom = this->GetGeometry();
     array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
         const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-        for (unsigned int d = 0; d < Dim; ++d) {
+        for (std::size_t d = 0; d < Dim; ++d) {
             embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
     }
@@ -711,8 +820,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS_2 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution generated by the viscous shear force generated by the velocity
 
     // Compute positive side LHS contribution
-    const unsigned int number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_positive_interface_integration_points; ++g){
+    const std::size_t number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_positive_interface_integration_points; ++g){
         // Get the Gauss pt. data
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto aux_N = row(rData.PositiveInterfaceN, g);
@@ -721,8 +830,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
 
         // Set the shape functions auxiliar matrices
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
             }
         }
@@ -754,8 +863,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
     }
 
     // Compute negative side LHS contribution
-    const unsigned int number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
-    for (unsigned int g = 0; g < number_of_negative_interface_integration_points; ++g){
+    const std::size_t number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_negative_interface_integration_points; ++g){
         // Get the Gauss pt. data
         const double weight = rData.NegativeInterfaceWeights[g];
         const auto aux_N = row(rData.NegativeInterfaceN, g);
@@ -764,8 +873,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
 
         // Set the shape functions auxiliar matrices
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
+        for (std::size_t i = 0; i < NumNodes; ++i){
+            for (std::size_t comp = 0; comp < Dim; ++comp){
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
             }
         }
@@ -804,9 +913,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
     // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
     const auto &r_geom = this->GetGeometry();
     array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+    for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
         const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-        for (unsigned int d = 0; d < Dim; ++d) {
+        for (std::size_t d = 0; d < Dim; ++d) {
             embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
     }
@@ -825,10 +934,10 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoef
 {
     // Get the nodal magnitudes at the current Gauss point
     const auto& r_geom = this->GetGeometry();
-    const unsigned int n_nodes = r_geom.PointsNumber();
+    const std::size_t n_nodes = r_geom.PointsNumber();
     double gauss_pt_rho = rN(0) * AuxiliaryDensityGetter(rData, 0);
     array_1d<double,Dim> gauss_pt_v = rN(0) * row(rData.Velocity, 0);
-    for (unsigned int i_node = 1;  i_node < n_nodes; ++i_node) {
+    for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
         gauss_pt_rho += rN(i_node) * AuxiliaryDensityGetter(rData, i_node);
         noalias(gauss_pt_v) += rN(i_node) * row(rData.Velocity, i_node);
     }
@@ -885,16 +994,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
     array_1d<double,3>& rDragForce) const
 {
     // Initialize the embedded element data
-    const unsigned int number_of_positive_gauss_points = rData.PositiveSideWeights.size();
-    const unsigned int number_of_negative_gauss_points = rData.NegativeSideWeights.size();
-    const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+    const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
+    const std::size_t number_of_negative_gauss_points = rData.NegativeSideWeights.size();
+    const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
 
     if (rData.IsCut()){
         const auto& r_geom = this->GetGeometry();
 
         // Integrate positive interface side drag
-        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
-        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+        const std::size_t n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (std::size_t g = 0; g < n_int_pos_gauss; ++g) {
             // Update the Gauss pt. data and the constitutive law
             this->UpdateIntegrationPointData(
                 rData,
@@ -910,9 +1019,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
             const double p_gauss = inner_prod(rData.N, rData.Pressure);
             const array_1d<double, Dim> v_gauss = prod(rData.N, rData.Velocity);
             array_1d<double,Dim> v_emb_gauss = ZeroVector(Dim);
-            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
                 const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-                for (unsigned int d = 0; d < Dim; ++d) {
+                for (std::size_t d = 0; d < Dim; ++d) {
                     v_emb_gauss(d) += r_i_emb_vel(d) * rData.N(i_node);
                 }
             }
@@ -933,7 +1042,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
                 const auto v_tan = prod(v_aux, tang_proj_matrix);
                 shear_proj_t = rData.Weight * (rData.DynamicViscosity / rData.SlipLength) * v_tan;
             }
-            for (unsigned int i = 0; i < Dim ; ++i){
+            for (std::size_t i = 0; i < Dim ; ++i){
                 rDragForce(i) -= shear_proj_n(i);
                 rDragForce(i) += shear_proj_t(i);
             }
@@ -941,8 +1050,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
         }
 
         // Integrate negative interface side drag
-        const unsigned int n_int_neg_gauss = rData.NegativeInterfaceWeights.size();
-        for (unsigned int g = 0; g < n_int_neg_gauss; ++g) {
+        const std::size_t n_int_neg_gauss = rData.NegativeInterfaceWeights.size();
+        for (std::size_t g = 0; g < n_int_neg_gauss; ++g) {
             // Update the Gauss pt. data and the constitutive law
             this->UpdateIntegrationPointData(
                 rData,
@@ -958,9 +1067,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
             const double p_gauss = inner_prod(rData.N, rData.Pressure);
             const array_1d<double, Dim> v_gauss = prod(rData.N, rData.Velocity);
             array_1d<double,Dim> v_emb_gauss = ZeroVector(Dim);
-            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
                 const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-                for (unsigned int d = 0; d < Dim; ++d) {
+                for (std::size_t d = 0; d < Dim; ++d) {
                     v_emb_gauss(d) += r_i_emb_vel(d) * rData.N(i_node);
                 }
             }
@@ -981,7 +1090,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
                 const auto v_tan = prod(v_aux, tang_proj_matrix);
                 shear_proj_t = rData.Weight * (rData.DynamicViscosity / rData.SlipLength) * v_tan;
             }
-            for (unsigned int i = 0; i < Dim ; ++i){
+            for (std::size_t i = 0; i < Dim ; ++i){
                 rDragForce(i) -= shear_proj_n(i);
                 rDragForce(i) += shear_proj_t(i);
             }
@@ -997,9 +1106,9 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
 {
     const auto &r_geometry = this->GetGeometry();
     array_1d<double,3> tot_drag = ZeroVector(3);
-    const unsigned int number_of_positive_gauss_points = rData.PositiveSideWeights.size();
-    const unsigned int number_of_negative_gauss_points = rData.NegativeSideWeights.size();
-    const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+    const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
+    const std::size_t number_of_negative_gauss_points = rData.NegativeSideWeights.size();
+    const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
 
     if (rData.IsCut()){
         // Get the positive interface continuous shape functions
@@ -1016,12 +1125,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
             GeometryData::GI_GAUSS_2);
 
         // Integrate positive interface side drag
-        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
-        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+        const std::size_t n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (std::size_t g = 0; g < n_int_pos_gauss; ++g) {
             // Obtain the Gauss pt. coordinates using the standard shape functions
             array_1d<double,3> g_coords = ZeroVector(3);
             const auto g_shape_functions = row(pos_int_continuous_N, g);
-            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
                 g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
             }
 
@@ -1046,7 +1155,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
             // Add the shear and pressure drag contributions
             const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
             const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i){
+            for (std::size_t i = 0; i < Dim ; ++i){
                 tot_drag(i) -= shear_proj(i);
                 rDragForceLocation(i) += g_coords(i) * p_proj(i);
                 rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
@@ -1055,12 +1164,12 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
         }
 
         // Integrate negative interface side drag
-        const unsigned int n_int_neg_gauss = rData.NegativeInterfaceWeights.size();
-        for (unsigned int g = 0; g < n_int_neg_gauss; ++g) {
+        const std::size_t n_int_neg_gauss = rData.NegativeInterfaceWeights.size();
+        for (std::size_t g = 0; g < n_int_neg_gauss; ++g) {
             // Obtain the Gauss pt. coordinates using the standard shape functions
             array_1d<double,3> g_coords = ZeroVector(3);
             const auto g_shape_functions = row(pos_int_continuous_N, g);
-            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
                 g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
             }
 
@@ -1085,7 +1194,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
             // Add the shear and pressure drag contributions
             const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
             const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i){
+            for (std::size_t i = 0; i < Dim ; ++i){
                 tot_drag(i) -= shear_proj(i);
                 rDragForceLocation(i) += g_coords(i) * p_proj(i);
                 rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
@@ -1105,7 +1214,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
 template <class TBaseElement>
 double EmbeddedFluidElementDiscontinuous<TBaseElement>::AuxiliaryDensityGetter(
     const EmbeddedDiscontinuousElementData& rData,
-    const unsigned int NodeIndex) const
+    const std::size_t NodeIndex) const
 {
     return rData.Density;
 }
@@ -1113,7 +1222,7 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::AuxiliaryDensityGetter(
 template <>
 double EmbeddedFluidElementDiscontinuous<WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> >>::AuxiliaryDensityGetter(
     const EmbeddedDiscontinuousElementData& rData,
-    const unsigned int NodeIndex) const
+    const std::size_t NodeIndex) const
 {
     return rData.Density(NodeIndex);
 }
@@ -1121,7 +1230,7 @@ double EmbeddedFluidElementDiscontinuous<WeaklyCompressibleNavierStokes< WeaklyC
 template <>
 double EmbeddedFluidElementDiscontinuous<WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> >>::AuxiliaryDensityGetter(
     const EmbeddedDiscontinuousElementData& rData,
-    const unsigned int NodeIndex) const
+    const std::size_t NodeIndex) const
 {
     return rData.Density(NodeIndex);
 }
@@ -1147,15 +1256,19 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::load(Serializer& rSerializ
 namespace EmbeddedDiscontinuousInternals {
 
 template <>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(const Element& rElement, const Vector& rElementalDistances)
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<2, 3>(const Element& rElement, const Vector& rElementalDistances)
 {
-    return ModifiedShapeFunctions::Pointer(new Triangle2D3AusasModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
+    return Kratos::make_unique<Triangle2D3AusasModifiedShapeFunctions>(
+        rElement.pGetGeometry(),
+        rElementalDistances);
 }
 
 template <>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(const Element& rElement, const Vector& rElementalDistances)
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<3, 4>(const Element& rElement, const Vector& rElementalDistances)
 {
-    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4AusasModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
+    return Kratos::make_unique<Tetrahedra3D4AusasModifiedShapeFunctions>(
+        rElement.pGetGeometry(),
+        rElementalDistances);
 }
 
 template <>
@@ -1172,6 +1285,30 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
     const Vector& rElementalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
+}
+
+template <>
+ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<2, 3>(
+    const Element& rElement,
+    const Vector& rElementalDistancesWithExtrapolated,
+    const Vector& rElementalEdgeDistancesExtrapolated)
+{
+    return Kratos::make_unique<Triangle2D3AusasIncisedShapeFunctions>(
+        rElement.pGetGeometry(),
+        rElementalDistancesWithExtrapolated,
+        rElementalEdgeDistancesExtrapolated);
+}
+
+template <>
+ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<3, 4>(
+    const Element& rElement,
+    const Vector& rElementalDistancesWithExtrapolated,
+    const Vector& rElementalEdgeDistancesExtrapolated)
+{
+    return Kratos::make_unique<Tetrahedra3D4AusasIncisedShapeFunctions>(
+        rElement.pGetGeometry(),
+        rElementalDistancesWithExtrapolated,
+        rElementalEdgeDistancesExtrapolated);
 }
 
 }

@@ -5,7 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -29,105 +28,107 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
-                if self.time > 0.18 and self.time < 0.2:
+                if self.time > 0.19 and self.time < 0.2:
                     expected_value = 0.0
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 2, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
-                elif self.time > 0.31999 and self.time < 0.32:
-                    expected_value = -1.179
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
+                elif self.time > 0.30990 and self.time < 0.31:
+                    expected_value = -1.08106
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
 
             if node.Id == 2:
                 if self.time > 0.25 and self.time < 0.3:
                     expected_value = -10.0 * self.time
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
-                if self.time > 0.59999 and self.time < 0.6:
-                    expected_value = -1.962
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
+                if self.time > 0.30990 and self.time < 0.31:
+
+                    expected_value = -0.0981
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
 
             if node.Id == 3:
-                if self.time < 0.1:
+                if self.time < 0.1 and self.time > 0.05:
                     expected_value = -5.0
-                    self.CheckValueOfVelocity(velocity, 0, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfVelocity(velocity, 1, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfVelocity(velocity, 2, expected_value, tolerance)
+                    self.CheckKinematicValues(velocity, 2, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
-                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = -10.0
-                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
             if node.Id == 4:
-                if self.time > 0.22 and self.time < 0.25:
+                if self.time > 0.2495 and self.time < 0.25:
                     expected_value = 0.2192
-                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
             if node.Id == 5:
-                if self.time > 0.5999 and self.time < 0.6001:
-                    expected_value = 6.000
-                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = 5.998
-                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = 6.000
-                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
-                    expected_value = 6.000
-                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 6.000
-                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
-                    expected_value = 6.000
-                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+                if self.time > 0.2998 and self.time < 0.30:
+                    expected_value = 3
+                    self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
+                    expected_value = 2.99804
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
+                    expected_value = 3
+                    self.CheckKinematicValues(velocity, 2, expected_value, tolerance)
+                    expected_value = 3
+                    self.CheckKinematicValues(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = 3
+                    self.CheckKinematicValues(angular_velocity, 1, expected_value, tolerance)
+                    expected_value = 3
+                    self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
         for node in self.rigid_face_model_part.Nodes:
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
 
             if node.Id == 10:
-                if self.time > 0.5999 and self.time < 0.6001:
-                    expected_value = -0.975
-                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = -1.062
-                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = 9.664
-                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
-                    expected_value = 5.017
-                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = -1.200
-                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                if self.time > 0.2998 and self.time < 0.30:
+                    expected_value = -0.464725
+                    self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
+                    expected_value = 1.04281
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
+                    expected_value = 9.19637
+                    self.CheckKinematicValues(velocity, 2, expected_value, tolerance)
+                    expected_value = 2.45516
+                    self.CheckKinematicValues(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = -0.6
+                    self.CheckKinematicValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 1.000
-                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+                    self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
             if node.Id == 20:
-                if self.time > 0.5999 and self.time < 0.6001:
-                    expected_value = 7.788
-                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
-                    expected_value = 0.262
-                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
-                    expected_value = 0.894
-                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
-                    expected_value = 0.450
-                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 2.400
-                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
-                    expected_value = 5.400
-                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+                if self.time > 0.2998 and self.time < 0.30:
+                    expected_value = 2.42451
+                    self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
+                    expected_value = -0.0543884
+                    self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
+                    expected_value = 0.651258
+                    self.CheckKinematicValues(velocity, 2, expected_value, tolerance)
+                    expected_value = 0.225
+                    self.CheckKinematicValues(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = 1.2
+                    self.CheckKinematicValues(angular_velocity, 1, expected_value, tolerance)
+                    expected_value = 2.7
+                    self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
-    def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):
-        self.assertAlmostEqual(velocity[component], expected_value, delta=tolerance)
+    def CheckKinematicValues(self, kinematic_variable, component, expected_value, tolerance):
+        self.assertAlmostEqual(kinematic_variable[component], expected_value, delta=tolerance)
 
-    def CheckValueOfAngularVelocity(self, angular_velocity, component, expected_value, tolerance):
-        self.assertAlmostEqual(angular_velocity[component], expected_value, delta=tolerance)
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestKinematicConstraints(KratosUnittest.TestCase):
 
@@ -140,14 +141,6 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("kinematic_constraints_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("kinematic_constraints_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

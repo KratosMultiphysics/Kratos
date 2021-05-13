@@ -505,12 +505,6 @@ class PreUtilities
     {
     }
 
-    std::vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
-
-    protected:
-
-        std::vector<unsigned int> mElementPartition;
-
     private:
 
         array_1d<double, 3> mInitialCenterOfMassAndMass;

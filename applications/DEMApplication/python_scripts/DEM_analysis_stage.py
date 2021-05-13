@@ -566,12 +566,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
 
-        self.AdditionalFinalizeOperations()
-
         self.CleanUpOperations()
-
-    def AdditionalFinalizeOperations(self):
-        pass
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)

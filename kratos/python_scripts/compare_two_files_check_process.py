@@ -82,9 +82,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         Please see the respective files for details on the format of the files
         """
 
-        KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
+        KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
         ## only do the check in ranks zero, otherwise this can experience in race condition
-        if (KratosMultiphysics.DataCommunicator.GetDefault().Rank() != 0):
+        if KratosMultiphysics.Testing.GetDefaultDataCommunicator().Rank() != 0:
             return
 
         if (self.comparison_type == "deterministic"):

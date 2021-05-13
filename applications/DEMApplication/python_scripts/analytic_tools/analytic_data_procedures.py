@@ -90,10 +90,12 @@ class FaceAnalyzerClass:
         self.name_n_particles = 'n_accum'
         self.name_mass = 'm_accum'
         self.name_avg_vel_nr = 'mass_avg_normal_vel'
+        self.ghost_smp_detected = False
 
         for smp in model_part:
             if smp[IS_GHOST] == True:
                 self.surface_analyzers[smp.Name] = SurfaceAnalyzer(self.surface_dict,smp)
+                self.ghost_smp_detected = True
 
         self.RemoveFiles()
 
@@ -103,9 +105,10 @@ class FaceAnalyzerClass:
 
 
     def MakeAnalyticsPipeLine(self, time):
-        self.CreateNewFile()
-        self.UpdateDataBases(time)
-        self.RemoveOldFile()
+        if self.ghost_smp_detected:
+            self.CreateNewFile()
+            self.UpdateDataBases(time)
+            self.RemoveOldFile()
 
     def CreateNewFile(self):
         import h5py
