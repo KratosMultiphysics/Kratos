@@ -41,6 +41,7 @@
 #include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
@@ -272,6 +273,14 @@ private:
   /// 3D two step v-p fluid element
   const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D;
   const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic;
+
+  /// 2D two step v-p fluid element
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2Dquadratic;
+
+  /// 3D two step v-p fluid element
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3Dquadratic;
 
   /// 2D two step v-p fluid DEMcoupling element
   const TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D;
