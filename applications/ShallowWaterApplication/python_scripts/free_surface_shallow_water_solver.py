@@ -31,7 +31,6 @@ class FreeSurfaceShallowWaterSolver(ShallowWaterBaseSolver):
         super().FinalizeSolutionStep()
         SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.GetComputingModelPart())
         SW.ShallowWaterUtilities().ComputeVelocity(self.GetComputingModelPart(), True)
-        SW.ShallowWaterUtilities().ComputeAccelerations(self.GetComputingModelPart())
 
     @classmethod
     def GetDefaultParameters(cls):
