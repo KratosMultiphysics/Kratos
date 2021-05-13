@@ -34,8 +34,14 @@
 namespace Kratos {
 namespace Python {
 
+namespace py = pybind11;
+
+typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+typedef UblasSpace<double, Matrix, Vector> UblasLocalSpaceType;
+typedef LinearSolver<TrilinosSparseSpaceType, UblasLocalSpaceType> TrilinosLinearSolverType;
+
 // Helper to define Trilinos DistanceSmoothingProcess
-template<unsigned int TDim> using TrilinosDistanceSmoothingProcess = DistanceSmoothingProcess<TDim, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>;
+template<unsigned int TDim> using TrilinosDistanceSmoothingProcess = DistanceSmoothingProcess<TDim, TrilinosSparseSpaceType, UblasLocalSpaceType, TrilinosLinearSolverType>;
 
 template< class TBinder, unsigned int TDim > void DistanceSmoothingConstructionHelper(TBinder& rBinder)
 {
@@ -43,7 +49,7 @@ template< class TBinder, unsigned int TDim > void DistanceSmoothingConstructionH
         Epetra_MpiComm& rComm, ModelPart& rModelPart, TrilinosLinearSolverType::Pointer pLinearSolver)
         {
             constexpr int RowSizeGuess = (TDim == 2 ? 15 : 40);
-            auto p_builder_solver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > >(
+            auto p_builder_solver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, UblasLocalSpaceType, TrilinosLinearSolverType > >(
                 rComm, RowSizeGuess, pLinearSolver);
             return Kratos::make_shared<TrilinosDistanceSmoothingProcess<TDim>>(rModelPart, pLinearSolver, p_builder_solver);
         }));
@@ -51,24 +57,18 @@ template< class TBinder, unsigned int TDim > void DistanceSmoothingConstructionH
 
 void AddTrilinosProcessesToPython(pybind11::module& m)
 {
-    namespace py = pybind11;
-
-    using TrilinosSparseSpace = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using UblasLocalSpace = UblasSpace<double, Matrix, Vector>;
-    using TrilinosLinearSolver = LinearSolver<TrilinosSparseSpace, UblasLocalSpace>;
-
     // Turbulence models
-    using SpalartAllmarasProcess = TrilinosSpalartAllmarasTurbulenceModel<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    using SpalartAllmarasProcess = TrilinosSpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, UblasLocalSpaceType, TrilinosLinearSolverType>;
     py::class_< SpalartAllmarasProcess, typename SpalartAllmarasProcess::Pointer, Process>(m, "TrilinosSpalartAllmarasTurbulenceModel")
-    .def(py::init < Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolver::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+    .def(py::init < Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasProcess::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasProcess::AdaptForFractionalStep)
     ;
 
     // Stokes initialization processes
-    using StokesInitializationProcess = TrilinosStokesInitializationProcess<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    using StokesInitializationProcess = TrilinosStokesInitializationProcess<TrilinosSparseSpaceType, UblasLocalSpaceType, TrilinosLinearSolverType>;
     py::class_< StokesInitializationProcess, typename StokesInitializationProcess::Pointer, Process>(m,"TrilinosStokesInitializationProcess")
-    .def(py::init<Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolver::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    .def(py::init<Epetra_MpiComm&, ModelPart&, typename TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess::SetConditions)
     ;
 
