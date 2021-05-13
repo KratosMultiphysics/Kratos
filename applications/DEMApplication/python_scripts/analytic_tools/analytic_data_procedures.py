@@ -176,17 +176,17 @@ class FaceAnalyzerClass:
                     shape, time, n_particles, mass, avg_vel_nr = (self.surface_analyzers_list[i]).UpdateData(time)
 
                     #shape, time, n_particles, mass, avg_vel_nr = self.surface_analyzers[sub_part.Name].UpdateData(time)
-                    shape_old = f_old['/' + str(i) + '/time'].shape
+                    shape_old = f_old['/' + self.surface_analyzers_list[i].smp_name + '/time'].shape
                     current_shape = (shape_old[0] + shape[0], )
-                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, str(i))
+                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, current_shape, self.surface_analyzers_list[i].smp_name)
 
-                    time_db[:shape_old[0]] = f_old['/' + str(i) + '/time'][:]
+                    time_db[:shape_old[0]] = f_old['/' + self.surface_analyzers_list[i].smp_name + '/time'][:]
                     time_db[shape_old[0]:] = time[:]
-                    n_particles_db[:shape_old[0]] = f_old['/' + str(i) + '/' + self.name_n_particles][:]
+                    n_particles_db[:shape_old[0]] = f_old['/' + self.surface_analyzers_list[i].smp_name + '/' + self.name_n_particles][:]
                     n_particles_db[shape_old[0]:] = n_particles[:]
-                    mass_db[:shape_old[0]] = f_old['/' + str(i) + '/' + self.name_mass][:]
+                    mass_db[:shape_old[0]] = f_old['/' + self.surface_analyzers_list[i].smp_name + '/' + self.name_mass][:]
                     mass_db[shape_old[0]:] = mass[:]
-                    avg_vel_nr_db[:shape_old[0]] = f_old['/' + str(i) + '/' + self.name_avg_vel_nr][:]
+                    avg_vel_nr_db[:shape_old[0]] = f_old['/' + self.surface_analyzers_list[i].smp_name + '/' + self.name_avg_vel_nr][:]
                     avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
                     if self.do_clear_data:
                         if len(n_particles):
@@ -211,7 +211,7 @@ class FaceAnalyzerClass:
                 if self.surface_analyzers_list[i].ghost:
                     shape, time, n_particles, mass, avg_vel_nr = (self.surface_analyzers_list[i]).UpdateData(time)
 
-                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, str(i))
+                    time_db, n_particles_db, mass_db, avg_vel_nr_db = self.CreateDataSets(f, shape, self.surface_analyzers_list[i].smp_name)
                     time_db[:] = time[:]
                     n_particles_db[:] = n_particles[:]
                     mass_db[:] = mass[:]

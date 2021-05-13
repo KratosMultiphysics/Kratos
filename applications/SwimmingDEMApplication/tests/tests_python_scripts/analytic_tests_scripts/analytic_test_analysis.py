@@ -19,5 +19,5 @@ class MultipleGhostsTestAnalysis(SwimmingDEMAnalysis, KratosUnittest.TestCase):
 
         if self.time > 0.0002:
             with h5py.File('flux_data_new.hdf5', 'a') as f:
-                n_accum_h5 = f['/'+ str(0) +'/n_accum'][-1]
+                n_accum_h5 = f['/'+ str(2) +'/n_accum'][-1]
                 self.assertEqual(n_accum_h5,-3)
