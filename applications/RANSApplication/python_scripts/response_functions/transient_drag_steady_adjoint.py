@@ -64,7 +64,7 @@ class TransientDragSteadyAdjoint(Drag):
         self.gradient = {}
 
         # now run the RANS analysis
-        _ = SolvePrimalProblem(self.response_settings["primal_steady_project_parameters_file"].GetString(), "primal_rans_evaluation.log")
+        _ = SolvePrimalProblem(self.response_settings["primal_steady_project_parameters_file"].GetString(), "primal_steady_evaluation.log")
 
         drag_adjoint_model = Kratos.Model()
         _ = SolveAdjointProblem(

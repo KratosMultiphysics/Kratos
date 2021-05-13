@@ -10,6 +10,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
+from KratosMultiphysics.RANSApplication import RansNutUtility
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
@@ -85,6 +86,11 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5
                 }
+            },
+            "coupling_settings":
+            {
+                "relative_tolerance": 1e-3,
+                "absolute_tolerance": 1e-5
             }
         }""")
 
@@ -94,6 +100,12 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         self.echo_level = settings["echo_level"].GetInt()
         self.SetMaxCouplingIterations(1)
+
+        self.nu_t_convergence_utility = RansNutUtility(
+            self.GetBaseModelPart(),
+            settings["coupling_settings"]["relative_tolerance"].GetDouble(),
+            settings["coupling_settings"]["absolute_tolerance"].GetDouble(),
+            self.echo_level)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
 
@@ -220,6 +232,8 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
         super().Initialize()
 
+        self.nu_t_convergence_utility.Initialize()
+
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
@@ -238,6 +252,8 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                     Kratos.PRESSURE,
                     settings["pressure_tolerances"])
                 self.is_converged = self.is_converged and formulation_converged
+            else:
+                self.is_converged = self.nu_t_convergence_utility.CheckConvergence()
 
             return self.is_converged
         return False
@@ -247,6 +263,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
                 self.ExecuteBeforeCouplingSolveStep()
+                self.nu_t_convergence_utility.InitializeCalculation()
                 self.is_converged = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
