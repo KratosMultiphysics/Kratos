@@ -357,7 +357,6 @@ namespace Kratos
     void GetPressureAccelerationValues(Vector &rValues,
                                        const int Step);
 
-
     ///@}
     ///@name Protected  Access
     ///@{

@@ -37,7 +37,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -177,12 +177,10 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-
-
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                                                                   VectorType &rRightHandSideVector,
-                                                                                                   const ProcessInfo &rCurrentProcessInfo)
+                                                                                                       VectorType &rRightHandSideVector,
+                                                                                                       const ProcessInfo &rCurrentProcessInfo)
   {
 
     GeometryType &rGeom = this->GetGeometry();
@@ -224,7 +222,7 @@ namespace Kratos
     }
 
     double Tau = 0;
-    this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
+    this->CalculateTauPSPG(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
 
     double totalVolume = 0;
     bool computeElement = false;
@@ -328,12 +326,10 @@ namespace Kratos
     }
   }
 
-
-
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::ComputeBoundLHSMatrix(Matrix &BoundLHSMatrix,
-                                                                                const ShapeFunctionsType &rN,
-                                                                                const double Weight)
+                                                                                    const ShapeFunctionsType &rN,
+                                                                                    const double Weight)
   {
     GeometryType &rGeom = this->GetGeometry();
     double coeff = 1.0 / 3.0;
@@ -364,8 +360,8 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::ComputeBoundLHSMatrix(Matrix &BoundLHSMatrix,
-                                                                                const ShapeFunctionsType &rN,
-                                                                                const double Weight)
+                                                                                    const ShapeFunctionsType &rN,
+                                                                                    const double Weight)
   {
     GeometryType &rGeom = this->GetGeometry();
     double coeff = 0.25;
@@ -410,10 +406,10 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
-                                                                                        const double TimeStep,
-                                                                                        const double BoundRHSCoeffAcc,
-                                                                                        const double BoundRHSCoeffDev,
-                                                                                        const VectorType SpatialDefRate)
+                                                                                            const double TimeStep,
+                                                                                            const double BoundRHSCoeffAcc,
+                                                                                            const double BoundRHSCoeffDev,
+                                                                                            const VectorType SpatialDefRate)
   {
     GeometryType &rGeom = this->GetGeometry();
     const double coeff = 1.0 / 3.0;
@@ -496,10 +492,10 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
-                                                                                        const double TimeStep,
-                                                                                        const double BoundRHSCoeffAcc,
-                                                                                        const double BoundRHSCoeffDev,
-                                                                                        const VectorType SpatialDefRate)
+                                                                                            const double TimeStep,
+                                                                                            const double BoundRHSCoeffAcc,
+                                                                                            const double BoundRHSCoeffDev,
+                                                                                            const VectorType SpatialDefRate)
   {
     GeometryType &rGeom = this->GetGeometry();
     const double coeff = 0.25;
@@ -632,10 +628,10 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::ComputeBoundRHSVector(VectorType &BoundRHSVector,
-                                                                                const ShapeFunctionsType &rN,
-                                                                                const double TimeStep,
-                                                                                const double BoundRHSCoeffAcc,
-                                                                                const double BoundRHSCoeffDev)
+                                                                                    const ShapeFunctionsType &rN,
+                                                                                    const double TimeStep,
+                                                                                    const double BoundRHSCoeffAcc,
+                                                                                    const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
     //const SizeType NumNodes = rGeom.PointsNumber();
@@ -725,10 +721,10 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::ComputeBoundRHSVector(VectorType &BoundRHSVector,
-                                                                                const ShapeFunctionsType &rN,
-                                                                                const double TimeStep,
-                                                                                const double BoundRHSCoeffAcc,
-                                                                                const double BoundRHSCoeffDev)
+                                                                                    const ShapeFunctionsType &rN,
+                                                                                    const double TimeStep,
+                                                                                    const double BoundRHSCoeffAcc,
+                                                                                    const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
     //const SizeType NumNodes = rGeom.PointsNumber();
@@ -841,11 +837,11 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::CalculateTauFIC(double &Tau,
-                                                                             double ElemSize,
-                                                                             const double Density,
-                                                                             const double Viscosity,
-                                                                             const ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::CalculateTauPSPG(double &Tau,
+                                                                                  double ElemSize,
+                                                                                  const double Density,
+                                                                                  const double Viscosity,
+                                                                                  const ProcessInfo &rCurrentProcessInfo)
   {
     double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
     if (rCurrentProcessInfo.GetValue(DELTA_TIME) < rCurrentProcessInfo.GetValue(PREVIOUS_DELTA_TIME))
@@ -868,9 +864,9 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::AddStabilizationMatrixLHS(MatrixType &rLeftHandSideMatrix,
-                                                                                       Matrix &BulkAccMatrix,
-                                                                                       const ShapeFunctionsType &rN,
-                                                                                       const double Weight)
+                                                                                           Matrix &BulkAccMatrix,
+                                                                                           const ShapeFunctionsType &rN,
+                                                                                           const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -893,8 +889,8 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
-                                                                                        const ShapeFunctionDerivativesType &rDN_DX,
-                                                                                        const double Weight)
+                                                                                            const ShapeFunctionDerivativesType &rDN_DX,
+                                                                                            const double Weight)
 
   {
     // LHS contribution
@@ -915,10 +911,10 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::AddStabilizationNodalTermsLHS(MatrixType &rLeftHandSideMatrix,
-                                                                                           const double Tau,
-                                                                                           const double Weight,
-                                                                                           const ShapeFunctionDerivativesType &rDN_DX,
-                                                                                           const SizeType i)
+                                                                                               const double Tau,
+                                                                                               const double Weight,
+                                                                                               const ShapeFunctionDerivativesType &rDN_DX,
+                                                                                               const SizeType i)
   {
     // LHS contribution
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -937,11 +933,11 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::AddStabilizationNodalTermsRHS(VectorType &rRightHandSideVector,
-                                                                                           const double Tau,
-                                                                                           const double Density,
-                                                                                           const double Weight,
-                                                                                           const ShapeFunctionDerivativesType &rDN_DX,
-                                                                                           const SizeType i)
+                                                                                               const double Tau,
+                                                                                               const double Density,
+                                                                                               const double Weight,
+                                                                                               const ShapeFunctionDerivativesType &rDN_DX,
+                                                                                               const SizeType i)
   {
 
     double RHSi = 0;
@@ -985,7 +981,7 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::GetPressureAccelerationValues(Vector &rValues,
-                                                                                           const int Step)
+                                                                                               const int Step)
   {
     GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();

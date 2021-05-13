@@ -326,11 +326,11 @@ namespace Kratos
                                     const ShapeFunctionDerivativesType &rShapeDeriv,
                                     const double Weight) override;
 
-    void CalculateTauFIC(double &TauOne,
-                         double ElemSize,
-                         const double Density,
-                         const double Viscosity,
-                         const ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateTauPSPG(double &TauOne,
+                          double ElemSize,
+                          const double Density,
+                          const double Viscosity,
+                          const ProcessInfo &rCurrentProcessInfo) override;
 
     void AddStabilizationMatrixLHS(MatrixType &rLeftHandSideMatrix,
                                    Matrix &BulkAccMatrix,
@@ -356,7 +356,6 @@ namespace Kratos
 
     void GetPressureAccelerationValues(Vector &rValues,
                                        const int Step);
-
 
     ///@}
     ///@name Protected  Access
