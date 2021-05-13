@@ -36,11 +36,11 @@
         "max_iteration": 100,
         "solver_type": "static",
         "linear_solver_settings": {
-            "solver_type": "LinearSolversApplication.sparse_lu"
+            "solver_type": "LinearSolversApplication.sparse_qr"
         },
-        "auxiliary_variables_list": [],
-        "auxiliary_dofs_list": [],
-        "auxiliary_reaction_list": []
+        "auxiliary_variables_list": ["VECTOR_LAGRANGE_MULTIPLIER","FORCE"],
+        "auxiliary_dofs_list": ["VECTOR_LAGRANGE_MULTIPLIER"],
+        "auxiliary_reaction_list": ["FORCE"]
     },
     "modelers": [{
         "modeler_name": "CadIoModeler",
@@ -55,7 +55,7 @@
             "echo_level": 0,
             "cad_model_part_name": "IgaModelPart",
             "analysis_model_part_name": "IgaModelPart",
-            "physics_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p_physics.iga.json"
+            "physics_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_lagrange_shell_3p_physics.iga.json"
         }
     }],
     "processes": {
@@ -96,7 +96,7 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-                "input_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p_result.json",
+                "input_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_lagrange_shell_3p_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0
             }

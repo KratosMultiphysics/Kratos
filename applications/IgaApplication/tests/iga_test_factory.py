@@ -73,9 +73,15 @@ class ScordelisRoofShell5pTest(IgaTestFactory):
 # Coupling
 class TwoPatchCouplingPenaltyShell3pTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p"
+    
+class TwoPatchCouplingLagrangeShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_lagrange_shell_3p"
 
 class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane"
+    
+class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
 
 if __name__ == '__main__':
     KratosUnittest.main()

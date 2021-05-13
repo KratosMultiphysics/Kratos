@@ -23,7 +23,9 @@ from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5p
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
 # Coupling tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
+from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
+from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -58,7 +60,9 @@ def AssembleTestSuites():
         TTestNurbsVolumeElements,
         # Coupling tests
         TwoPatchCouplingPenaltyShell3pTest,
-        TwoPatchRefinedCouplingPenaltyMembraneTest
+        TwoPatchCouplingLagrangeShell3pTest,
+        TwoPatchRefinedCouplingPenaltyMembraneTest,
+        TwoPatchRefinedCouplingLagrangeMembraneTest
         ]))
 
     nightSuite = suites['nightly']
