@@ -331,7 +331,7 @@ namespace Testing {
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES;
+        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES.AsFalse();
         // Compute the discontinuous distance function
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
         disc_dist_proc.Execute();

@@ -403,7 +403,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
-        .def_readonly_static("USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES", &CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES)
+        .def_readonly_static("USE_POSITIVE_EPSILON_FOR_ZERO_VALUES", &CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES)
         ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
@@ -413,7 +413,7 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
-        .def_readonly_static("USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES", &CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES)
+        .def_readonly_static("USE_POSITIVE_EPSILON_FOR_ZERO_VALUES", &CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES)
         ;
 
     // Continuous distance computation methods

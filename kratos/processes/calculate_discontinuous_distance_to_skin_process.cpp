@@ -31,7 +31,7 @@ namespace Kratos
 {
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES, 0);
     KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, 1);
-    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES, 2);
+    KRATOS_CREATE_LOCAL_FLAG(CalculateDiscontinuousDistanceToSkinProcessFlags, USE_POSITIVE_EPSILON_FOR_ZERO_VALUES, 2);
 
     template<std::size_t TDim>
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
@@ -42,7 +42,7 @@ namespace Kratos
         , mrVolumePart(rVolumePart)
         , mOptions(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES.AsFalse()
              | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.AsFalse()
-             | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES.AsFalse())
+             | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES)
     {
     }
 
@@ -552,8 +552,8 @@ namespace Kratos
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ReplaceZeroDistances(
         Vector& rElementalDistances)
     {
-        const bool use_negative_epsilon = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_NEGATIVE_EPSILON_FOR_ZERO_VALUES);
-        const double multiplier = (use_negative_epsilon)  ? -mZeroToleranceMultiplier : mZeroToleranceMultiplier;
+        const bool use_positive_epsilon = mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES);
+        const double multiplier = (use_positive_epsilon)  ? mZeroToleranceMultiplier : -mZeroToleranceMultiplier;
         const double corrected_distance = multiplier*std::numeric_limits<double>::epsilon();
         for (double& r_distance : rElementalDistances) {
             if (std::abs(r_distance) < std::numeric_limits<double>::epsilon()) {
