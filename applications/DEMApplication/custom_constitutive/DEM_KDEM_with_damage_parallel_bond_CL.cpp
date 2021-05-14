@@ -488,7 +488,7 @@ namespace Kratos {
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
 
-            double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_friction;
+            double max_admissible_shear_force = (mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2]) * equiv_friction;
 
             if (equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
@@ -500,9 +500,6 @@ namespace Kratos {
             ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
             if (ActualTotalShearForce > max_admissible_shear_force) {
-
-                max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_static_fri_ang;
-
                 const double ActualElasticShearForce = sqrt(UnbondedLocalElasticContactForce[0] * UnbondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[1] * UnbondedLocalElasticContactForce[1]);
 
                 const double dot_product = UnbondedLocalElasticContactForce[0] * mUnbondedViscoDampingLocalContactForce[0] + UnbondedLocalElasticContactForce[1] * mUnbondedViscoDampingLocalContactForce[1];
@@ -549,12 +546,6 @@ namespace Kratos {
         double local_elastic_force_modulus = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] +
                                                   LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        double local_elastic_force_modulus_bonded_only = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0] +
-                                                              BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
-
-        double local_elastic_force_modulus_unbonded_only = sqrt(UnbondedLocalElasticContactForce[0] * UnbondedLocalElasticContactForce[0] +
-                                                              UnbondedLocalElasticContactForce[1] * UnbondedLocalElasticContactForce[1]);
-
         if (local_elastic_force_modulus) {
             mBondedScalingFactor = (BondedLocalElasticContactForce[0] * LocalElasticContactForce[0] +
                                     BondedLocalElasticContactForce[1] * LocalElasticContactForce[1]) / (local_elastic_force_modulus * local_elastic_force_modulus);
@@ -566,6 +557,10 @@ namespace Kratos {
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
 
         if (mDebugPrintingOption) {
+            double local_elastic_force_modulus_bonded_only = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0] +
+                                                              BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
+            double local_elastic_force_modulus_unbonded_only = sqrt(UnbondedLocalElasticContactForce[0] * UnbondedLocalElasticContactForce[0] +
+                                                              UnbondedLocalElasticContactForce[1] * UnbondedLocalElasticContactForce[1]);
             long unsigned int sphere_id = element1->GetProperties().GetValue(DEBUG_PRINTING_ID_1);
             long unsigned int neigh_sphere_id = element2->GetProperties().GetValue(DEBUG_PRINTING_ID_2);
             double quotient = local_elastic_force_modulus / calculation_area;
