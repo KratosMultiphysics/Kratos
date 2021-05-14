@@ -186,8 +186,8 @@ protected:
     * @param rValues Parameters of the constitutive law
     */
     void CalculatePK2Stress(
-        const ConstitutiveLaw::StrainVectorType& rStrainVector,
-        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+        ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -198,7 +198,7 @@ protected:
     */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::StrainVectorType& rStrainVector
+        ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
         ) override;
 
     ///@}

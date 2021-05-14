@@ -100,7 +100,7 @@ Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vecto
 /***********************************************************************************/
 /***********************************************************************************/
 
-// ConstitutiveLaw::StrainVectorType& LinearPlaneStrain::GetValue(const Variable<StrainVectorType>& rThisVariable, ConstitutiveLaw::StrainVectorType& rValue)
+// ConstitutiveLaw::VoigtSizeVectorType& LinearPlaneStrain::GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, ConstitutiveLaw::VoigtSizeVectorType& rValue)
 // {
 //     return rValue;
 // }
@@ -108,7 +108,7 @@ Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vecto
 /***********************************************************************************/
 /***********************************************************************************/
 
-// ConstitutiveLaw::StressVectorType& LinearPlaneStrain::GetValue(const Variable<StressVectorType>& rThisVariable, ConstitutiveLaw::StressVectorType& rValue)
+// ConstitutiveLaw::VoigtSizeVectorType& LinearPlaneStrain::GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, ConstitutiveLaw::VoigtSizeVectorType& rValue)
 // {
 //     return rValue;
 // }
@@ -169,8 +169,8 @@ void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& C, Constitut
 /***********************************************************************************/
 
 void LinearPlaneStrain::CalculatePK2Stress(
-    const ConstitutiveLaw::StrainVectorType& rStrainVector,
-    ConstitutiveLaw::StressVectorType& rStressVector,
+    const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+    ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -191,7 +191,7 @@ void LinearPlaneStrain::CalculatePK2Stress(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, ConstitutiveLaw::StrainVectorType& rStrainVector)
+void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, ConstitutiveLaw::VoigtSizeVectorType& rStrainVector)
 {
     //1.-Compute total deformation gradient
     const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();

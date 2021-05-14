@@ -112,8 +112,8 @@ void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& C, Constitut
 //************************************************************************************
 
 void LinearPlaneStress::CalculatePK2Stress(
-    const ConstitutiveLaw::StrainVectorType& rStrainVector,
-    ConstitutiveLaw::StressVectorType& rStressVector,
+    const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+    ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
 )
 {

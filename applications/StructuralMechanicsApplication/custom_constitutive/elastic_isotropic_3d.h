@@ -282,29 +282,29 @@ public:
         ) override;
 
     // /**
-    //  * @brief It calculates the value of a specified variable (StrainVectorType case)
+    //  * @brief It calculates the value of a specified variable (VoigtSizeVectorType case)
     //  * @param rParameterValues the needed parameters for the CL calculation
     //  * @param rThisVariable the variable to be returned
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // ConstitutiveLaw::StrainVectorType& CalculateValue(
+    // ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<StrainVectorType>& rThisVariable,
-    //     ConstitutiveLaw::StrainVectorType& rValue
+    //     const Variable<VoigtSizeVectorType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeVectorType& rValue
     //     ) override;
 
     // /**
-    //  * @brief It calculates the value of a specified variable (StressVectorType case)
+    //  * @brief It calculates the value of a specified variable (VoigtSizeVectorType case)
     //  * @param rParameterValues the needed parameters for the CL calculation
     //  * @param rThisVariable the variable to be returned
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // ConstitutiveLaw::StressVectorType& CalculateValue(
+    // ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<StressVectorType>& rThisVariable,
-    //     ConstitutiveLaw::StressVectorType& rValue
+    //     const Variable<VoigtSizeVectorType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeVectorType& rValue
     //     ) override;
 
     /**
@@ -400,8 +400,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     virtual void CalculatePK2Stress(
-        const ConstitutiveLaw::StrainVectorType& rStrainVector,
-        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+        ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -412,7 +412,7 @@ protected:
      */
     virtual void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::StrainVectorType& rStrainVector
+        ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
         );
 
     ///@}

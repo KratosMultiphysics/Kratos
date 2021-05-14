@@ -270,10 +270,10 @@ public:
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // ConstitutiveLaw::StrainVectorType& CalculateValue(
+    // ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<StrainVectorType>& rThisVariable,
-    //     ConstitutiveLaw::StrainVectorType& rValue) override;
+    //     const Variable<VoigtSizeVectorType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeVectorType& rValue) override;
 
     // /**
     //  * @brief It calculates the value of a specified variable (Vector case)
@@ -282,10 +282,10 @@ public:
     //  * @param rValue a reference to the returned value
     //  * @return rValue output: the value of the specified variable
     //  */
-    // ConstitutiveLaw::StressVectorType& CalculateValue(
+    // ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(
     //     ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<StressVectorType>& rThisVariable,
-    //     ConstitutiveLaw::StressVectorType& rValue) override;
+    //     const Variable<VoigtSizeVectorType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeVectorType& rValue) override;
 
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
@@ -370,8 +370,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     virtual void CalculatePK2Stress(
-        const ConstitutiveLaw::StrainVectorType& rStrainVector,
-        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+        ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -382,7 +382,7 @@ protected:
      */
     virtual void CalculateGreenLagrangeStrainVector(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::StrainVectorType& rStrainVector
+        ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
         );
 
     ///@}

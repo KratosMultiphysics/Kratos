@@ -82,8 +82,7 @@ public:
     typedef std::size_t SizeType;
     typedef Geometry<Node < 3 > > GeometryType;
 
-    typedef Vector StrainVectorType;
-    typedef Vector StressVectorType;
+    typedef Vector VoigtSizeVectorType;           // Strain and Stress
     typedef Matrix VoigtSizeMatrixType;           // Constitutive Matrix
     typedef Matrix DeformationGradientMatrixType; // Def. gradient tensor
 
@@ -225,8 +224,8 @@ public:
       Flags                                 mOptions;
       double                                mDeterminantF;
 
-      StrainVectorType*                    mpStrainVector;
-      StressVectorType*                    mpStressVector;
+      VoigtSizeVectorType*                    mpStrainVector;
+      VoigtSizeVectorType*                    mpStressVector;
 
       const Vector*                        mpShapeFunctionsValues;
       const Matrix*                        mpShapeFunctionsDerivatives;
@@ -398,8 +397,8 @@ public:
 
       void SetDeformationGradientF         (const DeformationGradientMatrixType& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
 
-      void SetStrainVector                 (StrainVectorType& rStrainVector)                       {mpStrainVector=&rStrainVector;};
-      void SetStressVector                 (StressVectorType& rStressVector)                       {mpStressVector=&rStressVector;};
+      void SetStrainVector                 (VoigtSizeVectorType& rStrainVector)                       {mpStrainVector=&rStrainVector;};
+      void SetStressVector                 (VoigtSizeVectorType& rStressVector)                       {mpStressVector=&rStressVector;};
       void SetConstitutiveMatrix           (VoigtSizeMatrixType& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
 
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
@@ -432,12 +431,12 @@ public:
           return *mpDeformationGradientF;
       }
 
-      StrainVectorType& GetStrainVector()
+      VoigtSizeVectorType& GetStrainVector()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetStrainVector()) << "StrainVector is not set!" << std::endl;
           return *mpStrainVector;
       }
-      StressVectorType& GetStressVector()
+      VoigtSizeVectorType& GetStressVector()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetStressVector()) << "StressVector is not set!" << std::endl;
           return *mpStressVector;
@@ -470,9 +469,9 @@ public:
        */
 
       double& GetDeterminantF                                (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
-      StrainVectorType& GetStrainVector                      (StrainVectorType & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
+      VoigtSizeVectorType& GetStrainVector                      (VoigtSizeVectorType & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       DeformationGradientMatrixType& GetDeformationGradientF (DeformationGradientMatrixType & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
-      StressVectorType& GetStressVector                      (StressVectorType & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
+      VoigtSizeVectorType& GetStressVector                      (VoigtSizeVectorType & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       VoigtSizeMatrixType& GetConstitutiveMatrix             (VoigtSizeMatrixType & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
 
       /**

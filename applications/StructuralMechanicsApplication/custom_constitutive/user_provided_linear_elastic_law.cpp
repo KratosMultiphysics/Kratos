@@ -71,7 +71,7 @@ void  UserProvidedLinearElasticLaw<TDim>::CalculateMaterialResponsePK2(Constitut
     // Get the constitutive law options
     Flags & r_constitutive_law_options = rValues.GetOptions();
 
-    ConstitutiveLaw::StrainVectorType& r_strain_vector = rValues.GetStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if(r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -79,7 +79,7 @@ void  UserProvidedLinearElasticLaw<TDim>::CalculateMaterialResponsePK2(Constitut
     }
 
     if( r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        ConstitutiveLaw::StressVectorType& r_stress_vector = rValues.GetStressVector();
+        ConstitutiveLaw::VoigtSizeVectorType& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
     }
 
@@ -130,8 +130,8 @@ double& UserProvidedLinearElasticLaw<TDim>::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    ConstitutiveLaw::StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
-    ConstitutiveLaw::StressVectorType& r_stress_vector = rParameterValues.GetStressVector();
+    ConstitutiveLaw::VoigtSizeVectorType& r_strain_vector = rParameterValues.GetStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& r_stress_vector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
         this->CalculateGreenLagrangeStrainVector(rParameterValues, r_strain_vector);
@@ -241,8 +241,8 @@ void UserProvidedLinearElasticLaw<TDim>::CalculateElasticMatrix(
 
 template<unsigned int TDim>
 void UserProvidedLinearElasticLaw<TDim>::CalculatePK2Stress(
-    const ConstitutiveLaw::StrainVectorType& rStrainVector,
-    ConstitutiveLaw::StressVectorType& rStressVector,
+    const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+    ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -257,7 +257,7 @@ void UserProvidedLinearElasticLaw<TDim>::CalculatePK2Stress(
 template<unsigned int TDim>
 void UserProvidedLinearElasticLaw<TDim>::CalculateGreenLagrangeStrainVector(
     ConstitutiveLaw::Parameters& rValues,
-    ConstitutiveLaw::StrainVectorType& rStrainVector
+    ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
     )
 {
     const SizeType dim = this->WorkingSpaceDimension();
