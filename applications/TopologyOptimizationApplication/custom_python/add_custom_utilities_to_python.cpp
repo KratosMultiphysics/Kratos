@@ -54,7 +54,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
 	py::class_<TopologyFilteringUtilities >(m, "TopologyFilteringUtilities")
     .def(py::init<ModelPart&, const double, const int>())
-	.def("ApplyFilter", &TopologyFilteringUtilities::ApplyFilter)
+	.def("ApplyFilterSensitivity", &TopologyFilteringUtilities::ApplyFilterSensitivity)
+	.def("ApplyFilterDensity", &TopologyFilteringUtilities::ApplyFilterDensity)
 	;
 
 	py::class_<TopologyExtractorUtilities >(m, "TopologyExtractorUtilities")
@@ -71,6 +72,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 	py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
 	.def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
+	.def("UpdateDensitiesUsingMMAMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingMMAMethod)
+/* 	.def("InitializeMMA", &TopologyUpdatingUtilities::InitializeMMA) */
 	;
 
 	py::class_<IOUtilities >(m, "IOUtilities" )

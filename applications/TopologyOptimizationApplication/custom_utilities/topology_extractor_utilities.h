@@ -257,20 +257,21 @@ public:
 		rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
 		// Create reference conditions and elements to be assigned to a new skin-model-part
-		Condition const& rReferenceTriangleCondition = KratosComponents<Condition>::Get("Condition3D");
+		Condition const& rReferenceTriangleCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
 		Element const& rReferenceTriangleElement = KratosComponents<Element>::Get("SmallDisplacementSIMPElement3D3N");
 
 		// Add skin faces as triangles to skin-model-part (loop over all node sets)
 		// Add skin face both as condition and dummy element, since different useful Kratos utilities work with both elements and conditions
 		std::cout<<"  Extracting surface mesh and computing normals" <<std::endl;
 		for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
-		{
+		{	
+			std::cout<<"  Schleife 1" <<std::endl;
 			// If given node set represents face that is not overlapping with a face of another element, add it as skin element
 			if(it->second == 1)
-			{
+			{	std::cout<<"  Schleife 2" <<std::endl;
 				// If skin face is a triangle store triangle in with its original orientation in new skin model part
 				if(it->first.size()==3)
-				{
+				{	std::cout<<"  Schleife 3" <<std::endl;
 					// Getting original order is important to properly reproduce skin face including its normal orientation
 					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
@@ -292,9 +293,12 @@ public:
 
 				// If skin face is a quadrilateral then divide in two triangles and store them with their original orientation in new skin model part
 				if(it->first.size()==4)
-				{
+				{	
+					std::cout<<"  Schleife 4" <<std::endl;
 					// Getting original order is important to properly reproduce skin including its normal orientation
+					std::cout<<"  Step 1" <<std::endl;
 					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					std::cout<<"  Step 2" <<std::endl;
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
@@ -303,8 +307,11 @@ public:
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
 
 					// Add triangle one as condition
+					std::cout<<"  Step 3" <<std::endl;
 					Triangle3D3< Node<3> > triangle1_c(pnode1, pnode2, pnode3);
+					std::cout<<"  Step 2" <<std::endl;
 					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(face_id++, triangle1_c, properties);
+					std::cout<<"  Step 3" <<std::endl;
 					rExtractedSurfaceModelPart.Conditions().push_back(p_condition1);
 
 					// Add triangle two as condition
@@ -324,7 +331,7 @@ public:
 				}
 			}
 		}
-
+		std::cout<<"  Bis hierher gehts" <<std::endl;
 		// Remove free nodes (nodes which do not have any link to other nodes through a triangle, hence to not belong to the skin)
 		(FindConditionsNeighboursProcess(rExtractedSurfaceModelPart,domain_size, 10)).Execute();
 		for(ModelPart::NodesContainerType::iterator node_i =  rExtractedSurfaceModelPart.NodesBegin(); node_i !=rExtractedSurfaceModelPart.NodesEnd(); node_i++)
@@ -332,6 +339,7 @@ public:
 			GlobalPointersVector<Condition >& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
 			if(ng_cond.size()==0)
 				node_i->Set(TO_ERASE,true);
+			std::cout<<"  Schleife 5" <<std::endl;
 		}
 		(NodeEraseProcess(rExtractedSurfaceModelPart)).Execute();
 

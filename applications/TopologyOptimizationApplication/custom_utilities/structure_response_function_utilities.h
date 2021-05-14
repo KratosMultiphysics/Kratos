@@ -157,7 +157,7 @@ public:
 
 		// Calculate and return the Global Volume Fraction by knowing how many elements the model has
 		Global_Volume_Fraction = Global_Volume_Fraction/number_elements;
-		std::cout<< "GlobalVolume ist: " << Global_Volume_Fraction << " Wert"<< std::endl; 
+		std::cout<< "Global Volume Fraction: " << Global_Volume_Fraction << " Wert"<< std::endl;
 		clock_t end = clock();
 		std::cout << "  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 		return Global_Volume_Fraction;

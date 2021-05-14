@@ -168,7 +168,6 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 			ue[3 * node_i + 0] = CurrentDisplacement[0];
 			ue[3 * node_i + 1] = CurrentDisplacement[1];
 			ue[3 * node_i + 2] = CurrentDisplacement[2];
-
 		}
 
 		// Calculate trans(ue)*Ke0*ue
@@ -176,22 +175,21 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 		intermediateVector.resize(NumNodes * 3);
 		intermediateVector = prod(trans(ue), Ke0);
 		double ue_Ke0_ue = inner_prod(intermediateVector, ue);
-		/* std::cout<< "Velocity times stiffness: " << ue_Ke0_ue << " Wert"<< std::endl; */
 
 		if (rVariable == DCDX)
 		{
 			// Calculation of the compliance sensitivities DCDX
 			// Do they have to be normalized?
 			double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
+/* 			std::cout<< "Velocity times stiffness: " << dcdx << " Wert"<< std::endl; */
 			this->SetValue(DCDX, dcdx); 
-			/* std::cout<< "Velocity times stiffness: " << dcdx << " Wert"<< std::endl;  */
 		}
 		if (rVariable == LOCAL_STRAIN_ENERGY)
 		{
 			// Calculation of the local strain energy (requires Ke)
 			double local_strain_energy = factor * ue_Ke0_ue;
 			this->SetValue(LOCAL_STRAIN_ENERGY, local_strain_energy);
-/* 			std::cout<< "Local_strain: " << local_strain_energy << " Wert"<< std::endl; */
+
 		}
 
 	} else if (rVariable == DVDX) {
