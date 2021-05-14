@@ -165,7 +165,7 @@ bool ConstitutiveLaw::Has(const Variable<VoigtSizeVectorType>& rThisVariable)
  * @param rThisVariable the variable to be checked for
  * @return true if the variable is defined in the constitutive law
  */
-bool ConstitutiveLaw::Has(const Variable<VoigtSizeVectorType>& rThisVariable)
+bool ConstitutiveLaw::Has(const Variable<VoigtSizeMatrixType>& rThisVariable)
 {
     return false;
 }
@@ -241,7 +241,7 @@ double& ConstitutiveLaw::GetValue(const Variable<double>& rThisVariable, double&
  * @param rValue a reference to the returned value
  * @return the value of the specified variable
  */
-VoigtSizeVectorType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, Vector& rValue)
+VoigtSizeVectorType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, VoigtSizeVectorType& rValue)
 {
     return rValue;
 }
@@ -251,7 +251,7 @@ VoigtSizeVectorType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeVectorTyp
  * @param rThisVariable the variable to be returned
  * @return the value of the specified variable
  */
-Matrix& ConstitutiveLaw::GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, Matrix& rValue)
+VoigtSizeMatrixType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue)
 {
     return rValue;
 }
@@ -261,7 +261,7 @@ Matrix& ConstitutiveLaw::GetValue(const Variable<VoigtSizeMatrixType>& rThisVari
  * @param rThisVariable the variable to be returned
  * @return the value of the specified variable
  */
-Matrix& ConstitutiveLaw::GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, Matrix& rValue)
+DeformationGradientMatrixType& ConstitutiveLaw::GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, DeformationGradientMatrixType& rValue)
 {
     return rValue;
 }
@@ -506,9 +506,9 @@ void ConstitutiveLaw::CalculateDerivative(
 
 void ConstitutiveLaw::CalculateDerivative(
     Parameters& rParameterValues,
-    const Variable<Vector>& rFunctionVariable,
+    const Variable<VoigtSizeVectorType>& rFunctionVariable,
     const Variable<double>& rDerivativeVariable,
-    Vector& rOutput)
+    VoigtSizeVectorType& rOutput)
 {
     KRATOS_TRY
 
@@ -519,9 +519,22 @@ void ConstitutiveLaw::CalculateDerivative(
 
 void ConstitutiveLaw::CalculateDerivative(
     Parameters& rParameterValues,
-    const Variable<Matrix>& rFunctionVariable,
+    const Variable<VoigtSizeMatrixType>& rFunctionVariable,
     const Variable<double>& rDerivativeVariable,
-    Matrix& rOutput)
+    VoigtSizeMatrixType& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<DeformationGradientMatrixType>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    DeformationGradientMatrixType& rOutput)
 {
     KRATOS_TRY
 
@@ -901,8 +914,8 @@ void ConstitutiveLaw::ResetMaterial(const Properties& rMaterialProperties,
  * @param rStrainInitial the measure of stress of the given  rStrainVector
  * @param rStrainFinal the measure of stress of the returned rStrainVector
  */
-Vector& ConstitutiveLaw::TransformStrains (Vector& rStrainVector,
-        const Matrix &rF,
+VoigtSizeVectorType& ConstitutiveLaw::TransformStrains (VoigtSizeVectorType& rStrainVector,
+        const DeformationGradientMatrixType &rF,
         StrainMeasure rStrainInitial,
         StrainMeasure rStrainFinal)
 {
@@ -1000,8 +1013,8 @@ Vector& ConstitutiveLaw::TransformStrains (Vector& rStrainVector,
  * @param rStressInitial the measure of stress of the given  rStressMatrix
  * @param rStressFinal the measure of stress of the returned rStressMatrix
  */
-Matrix& ConstitutiveLaw::TransformStresses (Matrix& rStressMatrix,
-        const Matrix &rF,
+DeformationGradientMatrixType& ConstitutiveLaw::TransformStresses (DeformationGradientMatrixType& rStressMatrix,
+        const DeformationGradientMatrixType &rF,
         const double &rdetF,
         StressMeasure rStressInitial,
         StressMeasure rStressFinal)
@@ -1026,8 +1039,8 @@ Matrix& ConstitutiveLaw::TransformStresses (Matrix& rStressMatrix,
  * @param rStressInitial the measure of stress of the given  rStressVector
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
-Vector& ConstitutiveLaw::TransformStresses (Vector& rStressVector,
-        const Matrix &rF,
+VoigtSizeVectorType& ConstitutiveLaw::TransformStresses (VoigtSizeVectorType& rStressVector,
+        const DeformationGradientMatrixType &rF,
         const double &rdetF,
         StressMeasure rStressInitial,
         StressMeasure rStressFinal)
@@ -1077,8 +1090,8 @@ Vector& ConstitutiveLaw::TransformStresses (Vector& rStressVector,
  * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
-Vector& ConstitutiveLaw::TransformPK1Stresses (Vector& rStressVector,
-        const Matrix &rF,
+VoigtSizeVectorType& ConstitutiveLaw::TransformPK1Stresses (VoigtSizeVectorType& rStressVector,
+        const DeformationGradientMatrixType &rF,
         const double &rdetF,
         StressMeasure rStressFinal)
 {
@@ -1151,8 +1164,8 @@ Vector& ConstitutiveLaw::TransformPK1Stresses (Vector& rStressVector,
  * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
-Vector& ConstitutiveLaw::TransformPK2Stresses (Vector& rStressVector,
-        const Matrix &rF,
+VoigtSizeVectorType& ConstitutiveLaw::TransformPK2Stresses (VoigtSizeVectorType& rStressVector,
+        const DeformationGradientMatrixType &rF,
         const double &rdetF,
         StressMeasure rStressFinal)
 {
@@ -1213,8 +1226,8 @@ Vector& ConstitutiveLaw::TransformPK2Stresses (Vector& rStressVector,
  * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
-Vector& ConstitutiveLaw::TransformKirchhoffStresses (Vector& rStressVector,
-        const Matrix &rF,
+VoigtSizeVectorType& ConstitutiveLaw::TransformKirchhoffStresses (VoigtSizeVectorType& rStressVector,
+        const DeformationGradientMatrixType &rF,
         const double &rdetF,
         StressMeasure rStressFinal)
 {
@@ -1269,8 +1282,8 @@ Vector& ConstitutiveLaw::TransformKirchhoffStresses (Vector& rStressVector,
  * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
-Vector& ConstitutiveLaw::TransformCauchyStresses (Vector& rStressVector,
-        const Matrix &rF,
+VoigtSizeVectorType& ConstitutiveLaw::TransformCauchyStresses (VoigtSizeVectorType& rStressVector,
+        const DeformationGradientMatrixType &rF,
         const double &rdetF,
         StressMeasure rStressFinal)
 {
@@ -1331,14 +1344,14 @@ Vector& ConstitutiveLaw::TransformCauchyStresses (Vector& rStressVector,
 /**
  * This method performs a pull-back of the constitutive matrix
  */
-void ConstitutiveLaw::PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
-        const Matrix & rF )
+void ConstitutiveLaw::PullBackConstitutiveMatrix ( VoigtSizeMatrixType& rConstitutiveMatrix,
+        const DeformationGradientMatrixType & rF )
 {
-    Matrix OriginalConstitutiveMatrix = rConstitutiveMatrix;
+    VoigtSizeMatrixType OriginalConstitutiveMatrix = rConstitutiveMatrix;
 
     rConstitutiveMatrix.clear();
 
-    Matrix InverseF ( 3, 3 );
+    DeformationGradientMatrixType InverseF ( 3, 3 );
     double detF = 0;
     MathUtils<double>::InvertMatrix( rF, InverseF, detF);
 
@@ -1349,10 +1362,10 @@ void ConstitutiveLaw::PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
 /**
  * This method performs a push-forward of the constitutive matrix
  */
-void ConstitutiveLaw::PushForwardConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
-        const Matrix & rF )
+void ConstitutiveLaw::PushForwardConstitutiveMatrix ( VoigtSizeMatrixType& rConstitutiveMatrix,
+        const DeformationGradientMatrixType & rF )
 {
-    Matrix OriginalConstitutiveMatrix = rConstitutiveMatrix;
+    VoigtSizeMatrixType OriginalConstitutiveMatrix = rConstitutiveMatrix;
 
     rConstitutiveMatrix.clear();
 
@@ -1401,7 +1414,7 @@ void ConstitutiveLaw::ContraVariantPushForward( DeformationGradientMatrixType& r
         const DeformationGradientMatrixType& rF)  //i.e. 2nd PK stress to Kirchhoff stress
 {
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
-    Matrix temp ( size, size );
+    DeformationGradientMatrixType temp ( size, size );
 
     noalias( temp )     = prod( rF, rMatrix );
     noalias( rMatrix )  = prod( temp, trans( rF ) );
@@ -1417,11 +1430,11 @@ void ConstitutiveLaw::ContraVariantPullBack( DeformationGradientMatrixType& rMat
         const DeformationGradientMatrixType& rF)     //i.e. Kirchhoff stress to 2nd PK stress
 {
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
-    Matrix InvF ( size, size );
+    DeformationGradientMatrixType InvF ( size, size );
     double J;
     MathUtils<double>::InvertMatrix( rF, InvF, J );
 
-    Matrix temp ( size, size );
+    DeformationGradientMatrixType temp ( size, size );
 
     noalias( temp )    = prod( InvF, rMatrix );
     noalias( rMatrix ) = prod( temp, trans( InvF ) );
@@ -1436,11 +1449,11 @@ void ConstitutiveLaw::CoVariantPushForward( DeformationGradientMatrixType& rMatr
         const DeformationGradientMatrixType& rF)      //i.e. Green-Lagrange strain to Almansi strain
 {
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
-    Matrix InvF ( size, size );
+    DeformationGradientMatrixType InvF ( size, size );
     double J;
     MathUtils<double>::InvertMatrix( rF, InvF, J );
 
-    Matrix temp ( size, size );
+    DeformationGradientMatrixType temp ( size, size );
 
     noalias( temp )     = prod( trans( InvF ), rMatrix );
     noalias( rMatrix )  = prod( temp, InvF );
@@ -1456,7 +1469,7 @@ void ConstitutiveLaw::CoVariantPullBack( DeformationGradientMatrixType& rMatrix,
 {
 
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
-    Matrix temp ( size, size );
+    DeformationGradientMatrixType temp ( size, size );
 
     noalias( temp )     = prod( trans( rF ), rMatrix );
     noalias( rMatrix )  = prod( temp, rF );
@@ -1718,15 +1731,13 @@ double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
     return rCabcd;
 }
 
-// VM
-void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,
-        const Matrix& F,
-        const Vector& PK2_StressVector,
-        const Vector& GreenLagrangeStrainVector)
+
+void ConstitutiveLaw::CalculateCauchyStresses(VoigtSizeVectorType& rCauchyStressVector,
+        const DeformationGradientMatrixType& rF,
+        const VoigtSizeVectorType& rPK2StressVector,
+        const VoigtSizeVectorType& rGreenLagrangeStrainVector)
 {
 }
-
-
 
 
 } /* namespace Kratos.*/
