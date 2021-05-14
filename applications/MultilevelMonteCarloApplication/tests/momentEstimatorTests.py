@@ -19,8 +19,10 @@ from xmc.momentEstimator import (
     MultiCombinedMomentEstimator,
 )
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
-from xmc.distributedEnvironmentFramework import (
-    ExaquteTask,
+
+# Import exaqute for parallel tests
+from exaqute import (
+    task,
     get_value_from_remote,
     Type,
     COLLECTION_IN,
@@ -56,15 +58,15 @@ class TestMomentEstimator(unittest.TestCase):
             parameters = load(parameter_file)
 
         for order in [1, 2, 5]:
-            parameters["momentEstimatorInpuctDict"]["order"] = order
-            parameters["momentEstimatorInpuctDict"]["updatedPowerSums"] = (
+            parameters["momentEstimatorInputDict"]["order"] = order
+            parameters["momentEstimatorInputDict"]["updatedPowerSums"] = (
                 "xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder"
                 + str(2 * order)
                 + "Dimension0"
             )  # required order is 2 * order
 
             # build momentEstimator class
-            test_me = MomentEstimator(**parameters["momentEstimatorInpuctDict"])
+            test_me = MomentEstimator(**parameters["momentEstimatorInputDict"])
 
             # update power sums
             for value in list_values:
@@ -89,7 +91,7 @@ class TestMomentEstimator(unittest.TestCase):
             parameters = load(parameter_file)
 
         # build momentEstimator class
-        test_me = MomentEstimator(**parameters["momentEstimatorInpuctDict"])
+        test_me = MomentEstimator(**parameters["momentEstimatorInputDict"])
 
         # update power sums
         test_me.update(list_values)
@@ -222,9 +224,9 @@ class TestCombinedMomentEstimator(unittest.TestCase):
             parameters = load(parameter_file)
 
         for order in [1, 5]:
-            parameters["momentEstimatorInpuctDict"]["order"] = order
+            parameters["momentEstimatorInputDict"]["order"] = order
             # build momentEstimator class
-            test_me = CombinedMomentEstimator(**parameters["momentEstimatorInpuctDict"])
+            test_me = CombinedMomentEstimator(**parameters["momentEstimatorInputDict"])
 
             # update power sums
             for value in list_values:
@@ -269,7 +271,7 @@ class TestCombinedMomentEstimator(unittest.TestCase):
             parameters = load(parameter_file)
 
         # build momentEstimator class
-        test_me = CombinedMomentEstimator(**parameters["momentEstimatorInpuctDict"])
+        test_me = CombinedMomentEstimator(**parameters["momentEstimatorInputDict"])
 
         # update power sums
         for i in range(len(list_values)):
@@ -490,7 +492,7 @@ class TestMultiMomentEstimator(unittest.TestCase):
                 else:
                     self.assertTrue(estimator._isEstimationParallel)
 
-    def parallel_test_isParallel(self):
+    def pycompss_quake_test_isParallel(self):
         """
         Tests the parallel behaviours of estimation and update of MultiMomentEstimator,
         declared by its attributes _isUpdateParallel and _isEstimationParallel. This
@@ -700,7 +702,7 @@ def gaussianRawMoment(mean: float, variance: float, order: int) -> float:
     return moment
 
 
-@ExaquteTask(values={Type: COLLECTION_IN, Depth: 3})
+@task(keep=True, returns=1, values={Type: COLLECTION_IN, Depth: 3})
 def powerSumsDimension0(values: SampleArray) -> PowerSumsDict:
     """
     Produces reference values of power sums from samples corresponding to a Monte Carlo index
@@ -722,7 +724,7 @@ def powerSumsDimension0(values: SampleArray) -> PowerSumsDict:
     return ps
 
 
-@ExaquteTask(values={Type: COLLECTION_IN, Depth: 3})
+@task(keep=True, returns=1, values={Type: COLLECTION_IN, Depth: 3})
 def powerSumsDimension1(values: SampleArray) -> PowerSumsDict:
     """
     Produces reference values of power sums from samples corresponding to a Monte Carlo index

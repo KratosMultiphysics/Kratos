@@ -60,7 +60,7 @@ namespace Kratos {
     }
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
 
@@ -141,7 +141,9 @@ namespace Kratos {
         const double angle_of_internal_friction_in_radians = atan(element->GetFastProperties()->GetContactInternalFricc());
         const double contact_tau_zero = element->GetFastProperties()->GetContactTauZero();
 
-        return (2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians)) / (1.0 + sin(angle_of_internal_friction_in_radians));
+        double sigma = 2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians) / (1.0 + sin(angle_of_internal_friction_in_radians));
+        
+        return sigma; 
 
         KRATOS_CATCH("")
     }
@@ -296,7 +298,7 @@ namespace Kratos {
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        if (failure_type == 0) { // This means it has not broken
+        if (!failure_type) { // This means it has not broken
             //Properties& element1_props = element1->GetProperties();
             //Properties& element2_props = element2->GetProperties();
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
@@ -358,10 +360,10 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if ((indentation > 0) || (failure_id == 0)) {
+        if (indentation > 0 || !failure_id) {
             ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
         }
-        if (((indentation > 0) || (failure_id == 0)) && (sliding == false)) {
+        if ((indentation > 0 || !failure_id) && !sliding) {
             ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
