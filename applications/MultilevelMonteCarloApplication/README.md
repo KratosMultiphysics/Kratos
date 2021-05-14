@@ -145,7 +145,7 @@ The current version is able to run several thousands of samples at once exploiti
 
 Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs).
 To run with `runcompss`, the environment variable `EXAQUTE_BACKEND=pycompss` must be set to use the distributed computing capabilities.
-Additionally, running with `runcompss` requires to add to the `PYTHONPATH` the path of the XMC library. You can add the library to the `PYTHONPATH` either in the `.bashrc` file, or directly when running the code using the `runcompss` key `--pythonpath`. We refer to the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs#running-with-pycompss) for details.
+Additionally, running with `runcompss` requires to add to the `PYTHONPATH` the path of the XMC library, that is `/path/to/Kratos/applications/MultilevelMonteCarloApplication/external_libraries/XMC`. You can add the library to the `PYTHONPATH` either in the `.bashrc` file, or directly when running the code using the `runcompss` key `--pythonpath`. We refer to the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs#running-with-pycompss) for details.
 
 ### Mmg and ParMmg
 
