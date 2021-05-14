@@ -165,7 +165,27 @@ bool ConstitutiveLaw::Has(const Variable<VoigtSizeVectorType>& rThisVariable)
  * @param rThisVariable the variable to be checked for
  * @return true if the variable is defined in the constitutive law
  */
+bool ConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
+{
+    return false;
+}
+
+/**
+ * returns whether this constitutive Law has specified variable
+ * @param rThisVariable the variable to be checked for
+ * @return true if the variable is defined in the constitutive law
+ */
 bool ConstitutiveLaw::Has(const Variable<VoigtSizeMatrixType>& rThisVariable)
+{
+    return false;
+}
+
+/**
+ * returns whether this constitutive Law has specified variable
+ * @param rThisVariable the variable to be checked for
+ * @return true if the variable is defined in the constitutive law
+ */
+bool ConstitutiveLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     return false;
 }
@@ -249,9 +269,31 @@ VoigtSizeVectorType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeVectorTyp
 /**
  * returns the value of a specified variable
  * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @return the value of the specified variable
+ */
+Vector& ConstitutiveLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rThisVariable the variable to be returned
  * @return the value of the specified variable
  */
 VoigtSizeMatrixType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @return the value of the specified variable
+ */
+Matrix& ConstitutiveLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
 {
     return rValue;
 }
@@ -342,6 +384,18 @@ void ConstitutiveLaw::SetValue(const Variable<VoigtSizeVectorType >& rVariable,
 }
 
 /**
+ * @brief Sets the value of a specified variable (Vector)
+ * @param rVariable the variable to be returned
+ * @param rValue new value of the specified variable
+ * @param rCurrentProcessInfo the process info
+ */
+void ConstitutiveLaw::SetValue(const Variable<Vector >& rVariable,
+                               const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+}
+
+/**
  * @brief Sets the value of a specified variable (Matrix)
  * @param rVariable the variable to be returned
  * @param rValue new value of the specified variable
@@ -349,6 +403,18 @@ void ConstitutiveLaw::SetValue(const Variable<VoigtSizeVectorType >& rVariable,
  */
 void ConstitutiveLaw::SetValue(const Variable<VoigtSizeMatrixType >& rVariable,
                                const VoigtSizeMatrixType& rValue, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+}
+
+/**
+ * @brief Sets the value of a specified variable (Vector)
+ * @param rVariable the variable to be returned
+ * @param rValue new value of the specified variable
+ * @param rCurrentProcessInfo the process info
+ */
+void ConstitutiveLaw::SetValue(const Variable<Matrix >& rVariable,
+                               const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
 }
@@ -441,6 +507,18 @@ VoigtSizeVectorType& ConstitutiveLaw::CalculateValue(Parameters& rParameterValue
 }
 
 /**
+ * returns the value of a specified variable (Vector)
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+Vector& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    return rValue;
+}
+
+/**
  * returns the value of a specified variable (Matrix)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
@@ -448,6 +526,18 @@ VoigtSizeVectorType& ConstitutiveLaw::CalculateValue(Parameters& rParameterValue
  * @param rValue output: the value of the specified variable
  */
 VoigtSizeMatrixType& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable (Vector)
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+Matrix& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue)
 {
     return rValue;
 }
@@ -519,9 +609,35 @@ void ConstitutiveLaw::CalculateDerivative(
 
 void ConstitutiveLaw::CalculateDerivative(
     Parameters& rParameterValues,
+    const Variable<Vector>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Vector& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
     const Variable<VoigtSizeMatrixType>& rFunctionVariable,
     const Variable<double>& rDerivativeVariable,
     VoigtSizeMatrixType& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Matrix& rOutput)
 {
     KRATOS_TRY
 
@@ -680,7 +796,7 @@ void ConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProp
  * @see StressMeasures
  */
 
-void ConstitutiveLaw::CalculateMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
+void ConstitutiveLaw::CalculateMaterialResponse(Parameters& rValues, const StressMeasure& rStressMeasure)
 {
     switch(rStressMeasure)
     {
@@ -767,16 +883,16 @@ void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const Stres
 {
     switch(rStressMeasure)
     {
-        case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
+        case StressMeasure_PK1:       InitializeMaterialResponsePK1(rValues);
         break;
 
-        case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
+        case StressMeasure_PK2:       InitializeMaterialResponsePK2(rValues);
         break;
 
-        case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
+        case StressMeasure_Kirchhoff: InitializeMaterialResponseKirchhoff(rValues);
         break;
 
-        case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
+        case StressMeasure_Cauchy:    InitializeMaterialResponseCauchy(rValues);
         break;
 
         default:
@@ -1015,15 +1131,15 @@ VoigtSizeVectorType& ConstitutiveLaw::TransformStrains (VoigtSizeVectorType& rSt
  */
 DeformationGradientMatrixType& ConstitutiveLaw::TransformStresses (DeformationGradientMatrixType& rStressMatrix,
         const DeformationGradientMatrixType &rF,
-        const double &rdetF,
+        const double& rdetF,
         StressMeasure rStressInitial,
         StressMeasure rStressFinal)
 {
     Vector StressVector;
 
-    StressVector = MathUtils<double>::StressTensorToVector( rStressMatrix );
+    StressVector  = MathUtils<double>::StressTensorToVector( rStressMatrix );
 
-    StressVector=TransformStresses(StressVector,rF,rdetF,rStressInitial,rStressFinal);
+    StressVector  = TransformStresses(StressVector,rF,rdetF,rStressInitial,rStressFinal);
 
     rStressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
 
@@ -1227,8 +1343,8 @@ VoigtSizeVectorType& ConstitutiveLaw::TransformPK2Stresses (VoigtSizeVectorType&
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
 VoigtSizeVectorType& ConstitutiveLaw::TransformKirchhoffStresses (VoigtSizeVectorType& rStressVector,
-        const DeformationGradientMatrixType &rF,
-        const double &rdetF,
+        const DeformationGradientMatrixType& rF,
+        const double& rdetF,
         StressMeasure rStressFinal)
 {
 
@@ -1283,8 +1399,8 @@ VoigtSizeVectorType& ConstitutiveLaw::TransformKirchhoffStresses (VoigtSizeVecto
  * @param rStressFinal the measure of stress of the returned rStressVector
  */
 VoigtSizeVectorType& ConstitutiveLaw::TransformCauchyStresses (VoigtSizeVectorType& rStressVector,
-        const DeformationGradientMatrixType &rF,
-        const double &rdetF,
+        const DeformationGradientMatrixType& rF,
+        const double& rdetF,
         StressMeasure rStressFinal)
 {
 
@@ -1345,7 +1461,7 @@ VoigtSizeVectorType& ConstitutiveLaw::TransformCauchyStresses (VoigtSizeVectorTy
  * This method performs a pull-back of the constitutive matrix
  */
 void ConstitutiveLaw::PullBackConstitutiveMatrix ( VoigtSizeMatrixType& rConstitutiveMatrix,
-        const DeformationGradientMatrixType & rF )
+        const DeformationGradientMatrixType& rF )
 {
     VoigtSizeMatrixType OriginalConstitutiveMatrix = rConstitutiveMatrix;
 
@@ -1363,7 +1479,7 @@ void ConstitutiveLaw::PullBackConstitutiveMatrix ( VoigtSizeMatrixType& rConstit
  * This method performs a push-forward of the constitutive matrix
  */
 void ConstitutiveLaw::PushForwardConstitutiveMatrix ( VoigtSizeMatrixType& rConstitutiveMatrix,
-        const DeformationGradientMatrixType & rF )
+        const DeformationGradientMatrixType& rF )
 {
     VoigtSizeMatrixType OriginalConstitutiveMatrix = rConstitutiveMatrix;
 
