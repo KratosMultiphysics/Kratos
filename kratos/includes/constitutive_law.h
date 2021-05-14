@@ -469,9 +469,9 @@ public:
        */
 
       double& GetDeterminantF                                (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
-      VoigtSizeVectorType& GetStrainVector                      (VoigtSizeVectorType & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
+      VoigtSizeVectorType& GetStrainVector                   (VoigtSizeVectorType & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       DeformationGradientMatrixType& GetDeformationGradientF (DeformationGradientMatrixType & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
-      VoigtSizeVectorType& GetStressVector                      (VoigtSizeVectorType & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
+      VoigtSizeVectorType& GetStressVector                   (VoigtSizeVectorType & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       VoigtSizeMatrixType& GetConstitutiveMatrix             (VoigtSizeMatrixType & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
 
       /**
@@ -640,6 +640,20 @@ public:
     virtual bool Has(const Variable<VoigtSizeVectorType>& rThisVariable);
 
     /**
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    virtual bool Has(const Variable<Vector>& rThisVariable);
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    virtual bool Has(const Variable<Matrix>& rThisVariable);
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -699,21 +713,36 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    virtual VoigtSizeVectorType& GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, Vector& rValue);
+    virtual VoigtSizeVectorType& GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, VoigtSizeVectorType& rValue);
+
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
 
     /**
      * @brief Returns the value of a specified variable (Matrix)
      * @param rThisVariable the variable to be returned
      * @return rValue output: the value of the specified variable
      */
-    virtual VoigtSizeMatrixType& GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, Matrix& rValue);
+    virtual VoigtSizeMatrixType& GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue);
 
     /**
      * @brief Returns the value of a specified variable (Matrix)
      * @param rThisVariable the variable to be returned
      * @return rValue output: the value of the specified variable
      */
-    virtual DeformationGradientMatrixType& GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, Matrix& rValue);
+    virtual DeformationGradientMatrixType& GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, DeformationGradientMatrixType& rValue);
+
+    /**
+     * @brief Returns the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @return rValue output: the value of the specified variable
+     */
+    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
 
     /**
      * @brief Returns the value of a specified variable (array of 3 components)
@@ -774,6 +803,16 @@ public:
               const ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * @brief Sets the value of a specified variable (VoigtSizeVectorType)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(const Variable<Vector >& rVariable,
+                          const Vector& rValue,
+              const ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * @brief Sets the value of a specified variable (VoigtSizeMatrixType)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
@@ -781,6 +820,16 @@ public:
      */
     virtual void SetValue(const Variable<VoigtSizeMatrixType >& rVariable,
                           const VoigtSizeMatrixType& rValue,
+              const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Sets the value of a specified variable (VoigtSizeVectorType)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(const Variable<Matrix>& rVariable,
+                          const Matrix& rValue,
               const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -850,6 +899,15 @@ public:
     virtual VoigtSizeVectorType& CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeVectorType>& rThisVariable, VoigtSizeVectorType& rValue);
 
     /**
+     * @brief Calculates the value of a specified variable (Vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual VoigtSizeVectorType& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue);
+
+    /**
      * @brief Calculates the value of a specified variable (Matrix)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -857,6 +915,15 @@ public:
      * @param rValue output: the value of the specified variable
      */
     virtual VoigtSizeMatrixType& CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue);
+
+    /**
+     * @brief Calculates the value of a specified variable (Vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual VoigtSizeVectorType& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue);
 
     /**
      * @brief Calculates the value of a specified variable (Matrix)
@@ -951,6 +1018,46 @@ public:
         const Variable<VoigtSizeVectorType>& rFunctionVariable,
         const Variable<double>& rDerivativeVariable,
         VoigtSizeVectorType& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Matrix function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Matrix function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput);
 
     /**
      * @brief Calculates derivatives of a given function
