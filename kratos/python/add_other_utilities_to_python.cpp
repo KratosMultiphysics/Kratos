@@ -56,11 +56,8 @@
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
 #include "utilities/dense_svd_decomposition.h"
-<<<<<<< HEAD
 #include "utilities/force_and_torque_utils.h"
-=======
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
->>>>>>> 9b99868feea277b70dafe9c74996eff5bc13d429
 
 namespace Kratos {
 namespace Python {
