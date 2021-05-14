@@ -100,8 +100,6 @@ namespace Kratos {
 
         virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
-        void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) override;
-
         virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
