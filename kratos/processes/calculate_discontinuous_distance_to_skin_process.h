@@ -324,8 +324,7 @@ private:
      * that is a fixed factor from the double precision. Can be deactivated by a flag.
      * @param rElementalDistances array containing the ELEMENTAL_DISTANCES values
      */
-    void ReplaceZeroDistances(
-        Vector& rElementalDistances);
+    void ReplaceZeroDistances(Vector& rElementalDistances);
 
     /**
      * @brief Checks (and corrects if needed) the intersection normal orientation
