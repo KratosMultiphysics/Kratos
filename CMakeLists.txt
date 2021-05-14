@@ -1,5 +1,5 @@
 project (KratosMultiphysics)
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 3.3)
 set (CMAKE_CXX_STANDARD 11)
 
 # Setting some policies
@@ -483,10 +483,9 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
         endif(NOT DEFINED KRATOS_BUILD_${application_name})
 
         # Add application to the build list if it's not in it yet
-        list(FIND "${KRATOS_APPLICATIONS}" "KRATOS_BUILD_${application_name}" index) # CMake < 3.3 does not support IN_LIST
-        if(${index} EQUAL -1)
+        if(NOT "KRATOS_BUILD_${application_name}" IN_LIST KRATOS_APPLICATIONS)
             list(APPEND KRATOS_APPLICATIONS "${application_path}")
-        endif(${index EQUAL -1})
+        endif(NOT "KRATOS_BUILD_${application_name}" IN_LIST KRATOS_APPLICATIONS)
 
     endforeach(application_path $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
