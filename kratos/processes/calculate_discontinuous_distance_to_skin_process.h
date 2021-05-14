@@ -319,7 +319,20 @@ private:
         array_1d<double,3>& rPlaneBasePointCoords,
         array_1d<double,3>& rPlaneNormal);
 
-        /**
+
+    /**
+     * @brief Computes the elemental distances from the approximation
+     * plane defined by the set of points in rPointVector.
+     * @param rElement reference to the element of interest
+     * @param rElementalDistances reference to the elemental distances container containing the coordinates of al the intersecting points
+     * @param rPoitnVector reference to the vector containing the poits to define the approximation plane
+     */
+    void ComputeElementalDistancesFromPlaneApproximation(
+        Element& rElement,
+        Vector& rElementalDistances,
+        const std::vector<array_1d<double,3>>& rPointVector);
+
+    /**
      * @brief Checks and replaces the values of the ELEMENTAL_DISTANCES vector that are
      * zero. The values are replaced by an epsilon (whose sign depends on a flag)
      * that is a fixed factor from the double precision. Can be deactivated by a flag.

@@ -380,6 +380,24 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
+    void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeElementalDistancesFromPlaneApproximation(
+        Element& rElement,
+        Vector& rElementalDistances,
+        const std::vector<array_1d<double,3>>& rPointVector)
+
+    {
+        array_1d<double,3> base_pt, normal;
+        ComputePlaneApproximation(rElement, rPointVector, base_pt, normal);
+
+        // Compute the distance to the approximation plane
+        Plane3D approximation_plane(normal, Point{base_pt});
+        const auto &r_geometry = rElement.GetGeometry();
+        for (std::size_t i = 0; i < mNumNodes; i++) {
+            rElementalDistances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
+        }
+    }
+
+    template<std::size_t TDim>
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeIntersectionPlaneElementalDistances(
         Element& rElement,
         const PointerVector<GeometricalObject>& rIntersectedObjects,
@@ -395,21 +413,11 @@ namespace Kratos
         // using the ComputePlaneApproximation utility.
         // Otherwise, the distance is computed using the plane defined by the 3 (3D) or 2 (2D) intersection points.
         const bool do_plane_approx = (n_cut_points == TDim) ? false : true;
-        const auto compute_plane_appoximation = [&] (const std::vector<array_1d<double,3>>& rPointVector) {
-            array_1d<double,3> base_pt, normal;
-            ComputePlaneApproximation(rElement, rPointVector, base_pt, normal);
-
-            // Compute the distance to the approximation plane
-            Plane3D approximation_plane(normal, Point{base_pt});
-            for (std::size_t i = 0; i < mNumNodes; i++) {
-                r_elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
-            }
-        };
 
         if (do_plane_approx){
             if (n_cut_points > TDim) {
                 // Call the plane optimization utility
-                compute_plane_appoximation(rIntersectionPointsCoordinates);
+                ComputeElementalDistancesFromPlaneApproximation(rElement, r_elemental_distances, rIntersectionPointsCoordinates);
             }
             else {
                 // Not enough intersection points to build a plane
@@ -420,7 +428,7 @@ namespace Kratos
                         int_pts_vector.push_back(r_int_obj.GetGeometry()[i_int].Coordinates());
                     }
                 }
-                compute_plane_appoximation(int_pts_vector);
+                ComputeElementalDistancesFromPlaneApproximation(rElement, r_elemental_distances, int_pts_vector);
             }
         } else {
             // Create a plane with the 3 intersection points (or 2 in 2D)
