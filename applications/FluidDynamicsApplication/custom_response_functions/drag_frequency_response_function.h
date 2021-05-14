@@ -102,6 +102,7 @@ private:
     using BaseType::mrModelPart;
     using BaseType::mStructureModelPartName;
     using BaseType::mDragDirection;
+    using BaseType::mStartTime;
 
     int mEchoLevel;
 

@@ -54,6 +54,8 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
 
     mStructureModelPartName = Settings["structure_model_part_name"].GetString();
 
+    mStartTime = 0.0;
+
     if (Settings["drag_direction"].IsArray() == false ||
         Settings["drag_direction"].size() != 3) {
         KRATOS_ERROR << "Invalid \"drag_direction\"." << std::endl;
@@ -217,7 +219,7 @@ void DragFrequencyResponseFunction<TDim>::CalculateDragFrequencyContribution(
 
     if (offsetted_window_time >= 0.0) {
         // calculate raw drag sensitivities
-        BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag);
+        BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag, rProcessInfo);
 
         const double component_coefficient = mComponentFunction(2.0 * M_PI * current_time * mFrequencyBinIndex / mTotalLength);
 
