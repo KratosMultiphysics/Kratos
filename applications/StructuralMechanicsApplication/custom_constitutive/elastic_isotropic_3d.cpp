@@ -203,10 +203,10 @@ double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParamet
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& ElasticIsotropic3D::CalculateValue(
+ConstitutiveLaw::VoigtSizeVectorType& ElasticIsotropic3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rThisVariable,
+    ConstitutiveLaw::VoigtSizeVectorType& rValue
     )
 {
     if (rThisVariable == STRAIN ||
@@ -260,25 +260,24 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
-	    if (rValue.size() != GetStrainSize()) {
-	        rValue.resize(GetStrainSize());
-	    }
-	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
+            if (rValue.size() != GetStrainSize()) {
+                rValue.resize(GetStrainSize());
+            }
+            noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
             noalias(rValue) = ZeroVector(0);
         }
     }
-
     return( rValue );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& ElasticIsotropic3D::CalculateValue(
+ConstitutiveLaw::VoigtSizeMatrixType& ElasticIsotropic3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
+    const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rThisVariable,
+    ConstitutiveLaw::VoigtSizeMatrixType& rValue
     )
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX ||
@@ -328,7 +327,6 @@ int ElasticIsotropic3D::Check(
     const double nu = rMaterialProperties[POISSON_RATIO];
     KRATOS_ERROR_IF((nu_upper_bound - nu) < tolerance) << "POISSON_RATIO is above the upper bound 0.5." << std::endl;
     KRATOS_ERROR_IF((nu - nu_lower_bound) < tolerance) << "POISSON_RATIO is below the lower bound -1.0." << std::endl;
-
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is negative." << std::endl;
 
     return 0;
@@ -382,7 +380,7 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
 /***********************************************************************************/
 
 void ElasticIsotropic3D::CalculatePK2Stress(
-    const Vector& rStrainVector,
+    const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
     ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
@@ -421,7 +419,7 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
 
     ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
     for(unsigned int i=0; i<space_dimension; ++i)
-      E_tensor(i,i) -= 1.0;
+        E_tensor(i,i) -= 1.0;
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
