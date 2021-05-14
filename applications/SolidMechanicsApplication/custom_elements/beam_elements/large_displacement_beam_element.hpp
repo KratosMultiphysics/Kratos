@@ -105,28 +105,28 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
       /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -138,7 +138,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //on integration points:
@@ -167,7 +167,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -278,7 +278,7 @@ protected:
      * Calculates the elemental dynamic contributions
       */
     void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					 ProcessInfo& rCurrentProcessInfo ) override;
+			 	 const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
@@ -376,7 +376,7 @@ protected:
       */
     void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+					   const ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
     /**
@@ -384,7 +384,7 @@ protected:
       */
     void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementDataType& rVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+					   const ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
     /**
@@ -535,4 +535,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED defined
-

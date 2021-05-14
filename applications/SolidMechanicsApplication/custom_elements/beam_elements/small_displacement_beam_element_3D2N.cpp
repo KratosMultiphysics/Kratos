@@ -93,8 +93,8 @@ SmallDisplacementBeamElement3D2N::IntegrationMethod  SmallDisplacementBeamElemen
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
-                             CurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo&
+                             CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -114,7 +114,7 @@ void SmallDisplacementBeamElement3D2N::GetDofList(DofsVectorType& ElementalDofLi
 //************************************************************************************
 
 void SmallDisplacementBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
-                                   ProcessInfo& CurrentProcessInfo)
+                                   const ProcessInfo& CurrentProcessInfo) const
 {
 
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -232,24 +232,11 @@ void SmallDisplacementBeamElement3D2N::GetSecondDerivativesVector(Vector& rValue
 //************************************************************************************
 //************************************************************************************
 
-//**********************************GET VECTOR VALUE**********************************
-//************************************************************************************
-
-void SmallDisplacementBeamElement3D2N::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3 > >& rVariable,
-								    std::vector< array_1d<double, 3 > >& rValues,
-								    const ProcessInfo& rCurrentProcessInfo )
-{
-
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
-}
-
-
 //************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::Initialize()
+void SmallDisplacementBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -263,7 +250,7 @@ void SmallDisplacementBeamElement3D2N::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -273,7 +260,7 @@ void SmallDisplacementBeamElement3D2N::InitializeSolutionStep(ProcessInfo& rCurr
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -372,7 +359,7 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
 
 
 void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-								 ProcessInfo& rCurrentProcessInfo )
+								 const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -519,7 +506,7 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
 //************************************************************************************
 
 void  SmallDisplacementBeamElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo)
+					  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -548,7 +535,7 @@ void  SmallDisplacementBeamElement3D2N::CalculateRightHandSide(VectorType& rRigh
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -577,7 +564,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHa
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1068,7 +1055,7 @@ void SmallDisplacementBeamElement3D2N::CalculateGlobalBodyForce( Vector& rGlobal
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -1463,7 +1450,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalNodalStress(Vector& Stress,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1475,7 +1462,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
 
@@ -1525,5 +1512,3 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
 
 
 } // Namespace Kratos
-
-
