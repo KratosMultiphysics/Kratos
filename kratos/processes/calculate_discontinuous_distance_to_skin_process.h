@@ -213,6 +213,7 @@ private:
 
     const double mZeroToleranceMultiplier = 1e3;
     bool mDetectedZeroDistanceValues = false;
+    bool mAreNeighboursComputed = false;
 
     ///@}
     ///@name Private Operations
@@ -551,11 +552,6 @@ private:
      * are consistent with the zero-correction applied by the process.
      */
     void CheckAndCorrectEdgeDistances();
-
-    /**
-     * @brief Computes the list of neighbour elements that every node has.
-     */
-    void CalculateElementalNeighbours();
 
     /**
      * @brief Creates the global pointer communicator that contains all neighbours elements. In MPI, this

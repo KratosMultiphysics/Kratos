@@ -817,7 +817,11 @@ namespace Kratos
 
         KRATOS_TRY;
 
-        CalculateElementalNeighbours();
+        if (!mAreNeighboursComputed) {
+            FindGlobalNodalElementalNeighboursProcess find_nodal_elems_process(mrVolumePart);
+            find_nodal_elems_process.Execute();
+            mAreNeighboursComputed = true;
+        }
 
         auto p_global_ptr_comm = CreatePointerCommunicator();
 
@@ -897,17 +901,6 @@ namespace Kratos
                 check_edge_against_distances(edges_container, r_cut_edge_extra_vector);
             }
         }
-
-        KRATOS_CATCH(" ");
-    }
-
-    template <std::size_t TDim>
-    void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateElementalNeighbours()
-    {
-        KRATOS_TRY;
-
-        FindGlobalNodalElementalNeighboursProcess find_nodal_elems_process(mrVolumePart);
-        find_nodal_elems_process.Execute();
 
         KRATOS_CATCH(" ");
     }
