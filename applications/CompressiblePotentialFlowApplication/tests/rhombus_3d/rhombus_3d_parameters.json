@@ -38,6 +38,7 @@
                 "model_part_name" : "MainModelPart.Wake3D_Wake_Auto1",
                 "body_model_part_name": "MainModelPart.Body3D_Body_Auto1",
                 "wake_stl_file_name" : "wake_stl.stl",
+                "echo_level"   : 0,
                 "epsilon"         : 1e-6
             }
         },{

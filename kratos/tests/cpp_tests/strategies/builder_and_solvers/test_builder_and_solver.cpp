@@ -40,7 +40,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 // The builder and solvers
-#include "factories/factory.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"

@@ -93,28 +93,27 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
         return A,b
 
     def _solve(self, ModelPart):
-        # Define a minimal newton raphson solver
-        settings = KratosMultiphysics.Parameters("""
-        {
-            "name"                     : "linear_strategy",
-            "compute_reactions"        : true,
-            "reform_dofs_at_each_step" : true,
-            "move_mesh_flag"           : true,
-            "compute_norm_dx"          : false,
-            "echo_level"               : 0,
-            "linear_solver_settings" : {
-                "solver_type" : "skyline_lu_factorization"
-            },
-            "scheme_settings" : {
-                "name"          : "static_scheme"
-            },
-            "builder_and_solver_settings" : {
-                "name" : "block_builder_and_solver"
-            }
-        }
-        """)
-        strategy = KratosMultiphysics.StrategyFactory().Create(ModelPart, settings)
+        # Define a linear strategy to solve the problem
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        compute_reactions = True
+        reform_step_dofs = True
+        calculate_norm_dx = False
+        move_mesh_flag = True
+
+        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
+            ModelPart,
+            scheme,
+            builder_and_solver,
+            compute_reactions,
+            reform_step_dofs,
+            calculate_norm_dx,
+            move_mesh_flag)
+        strategy.SetEchoLevel(0)
         strategy.Check()
+
+        # Solve the problem
         strategy.Solve()
 
     def _check_results(self, ModelPart, A, b):
