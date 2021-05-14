@@ -73,10 +73,10 @@ Flags GetLawOptions(ConstitutiveLaw::Parameters& rThisParameters){ return rThisP
 
 double GetDeterminantF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeterminantF();}
 
-ConstitutiveLaw::StrainVectorType& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
-ConstitutiveLaw::StrainVectorType& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::StrainVectorType& strain){ return rThisParameters.GetStrainVector(strain);}
-ConstitutiveLaw::StressVectorType& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
-ConstitutiveLaw::StressVectorType& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::StressVectorType& stress){ return rThisParameters.GetStressVector(stress);}
+ConstitutiveLaw::VoigtSizeVectorType& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
+ConstitutiveLaw::VoigtSizeVectorType& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::VoigtSizeVectorType& strain){ return rThisParameters.GetStrainVector(strain);}
+ConstitutiveLaw::VoigtSizeVectorType& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
+ConstitutiveLaw::VoigtSizeVectorType& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::VoigtSizeVectorType& stress){ return rThisParameters.GetStressVector(stress);}
 ConstitutiveLaw::VoigtSizeMatrixType& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetConstitutiveMatrix();}
 ConstitutiveLaw::VoigtSizeMatrixType& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::VoigtSizeMatrixType& C){ return rThisParameters.GetConstitutiveMatrix(C);}
 const ConstitutiveLaw::DeformationGradientMatrixType& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
