@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -23,6 +23,8 @@ namespace Kratos
 {
 // Constitutive laws variables
 KRATOS_CREATE_VARIABLE(Vector, HIGH_CYCLE_FATIGUE_COEFFICIENTS)
+KRATOS_CREATE_VARIABLE(Vector, STRESS_LIMITS)
+KRATOS_CREATE_VARIABLE(Vector, HARDENING_PARAMETERS)
 KRATOS_CREATE_VARIABLE(double, FATIGUE_REDUCTION_FACTOR)
 KRATOS_CREATE_VARIABLE(int, LOCAL_NUMBER_OF_CYCLES)
 KRATOS_CREATE_VARIABLE(double, WOHLER_STRESS)
@@ -87,7 +89,6 @@ KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR_FIBER)
 KRATOS_CREATE_VARIABLE(double, EXPONENTIAL_SATURATION_YIELD_STRESS)
 KRATOS_CREATE_VARIABLE(double, ACCUMULATED_PLASTIC_STRAIN)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EULER_ANGLES)
-KRATOS_CREATE_VARIABLE(Vector, HARDENING_MODULI_VECTOR)
 KRATOS_CREATE_VARIABLE(Vector, LAYER_EULER_ANGLES)
 KRATOS_CREATE_VARIABLE(double, OGDEN_BETA_1)
 KRATOS_CREATE_VARIABLE(double, OGDEN_BETA_2)

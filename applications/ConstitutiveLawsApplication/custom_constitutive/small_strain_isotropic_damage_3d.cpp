@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -16,6 +16,7 @@
 #include "small_strain_isotropic_damage_3d.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -122,7 +123,7 @@ void SmallStrainIsotropicDamage3D::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    const double yield_stress = rMaterialProperties[YIELD_STRESS];
+    const double yield_stress = rMaterialProperties[STRESS_LIMITS](0);
     const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
     mStrainVariable = yield_stress / std::sqrt(young_modulus);
 }
@@ -155,7 +156,7 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rInternalVariables)
 {
-    double strain_variable = mStrainVariable;
+    double r = mStrainVariable;
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
@@ -172,38 +173,42 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         // Auxiliary stress vector to allow derived models (e.g. traction-only damage)
         // to set the value of r_stress_vector_pos with the ComputePositiveStressVector
         // function.
-        // In the symmetric model, ComputePositiveStressVector does nothing.
+	    // In this symmetric model, ComputePositiveStressVector function does nothing.
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
+        double energy = inner_prod(r_stress_vector_pos, r_strain_vector);
         // energy may be a small negative due to machine precision error, forcing zero
-        const double product = inner_prod(r_stress_vector_pos, r_strain_vector);
-        const double strain_norm = (product >=0 ) ? std::sqrt(product) : 0;
+        if (energy < 0) {
+            energy = 0;
+        }
+        const double strain_norm = std::sqrt(energy);
+
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
-            strain_variable = mStrainVariable;
-            const double stress_variable = EvaluateHardeningLaw(strain_variable, r_material_properties);
-            const double damage_variable = 1. - stress_variable / strain_variable;
-            r_constitutive_matrix *= (1 - damage_variable);
-            r_stress_vector *= (1 - damage_variable);
+            r = mStrainVariable;
+            const double q = EvaluateHardeningLaw(r, r_material_properties);
+            const double d = 1. - q / r;
+            r_constitutive_matrix *= (1 - d);
+            r_stress_vector *= (1 - d);
         }
         else
         {
             // INELASTIC
-            strain_variable = strain_norm;
-            const double stress_variable = EvaluateHardeningLaw(strain_variable, r_material_properties);
-            const double damage_variable = 1. - stress_variable / strain_variable;
-            const double hardening_modulus = EvaluateHardeningModulus(strain_variable, r_material_properties);
-            const double damage_rate = (stress_variable - hardening_modulus * strain_variable)
-                                       / (strain_variable * strain_variable * strain_variable);
-            r_constitutive_matrix *= (1. - damage_variable);
+            r = strain_norm;
+            const double q = EvaluateHardeningLaw(r, r_material_properties);
+            const double d = 1. - q / r;
+            const double hardening_modulus = EvaluateHardeningModulus(r, r_material_properties);
+            const double damage_rate = (q - hardening_modulus * r)
+                                       / (r * r * r);
+            r_constitutive_matrix *= (1. - d);
             r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
             // Computing: real stress = (1-d) * effective stress
-            r_stress_vector *= (1. - damage_variable);
+            r_stress_vector *= (1. - d);
         }
     }
-    rInternalVariables[0] = strain_variable;
+    rInternalVariables[0] = r;
 }
 
 //************************************************************************************
@@ -212,7 +217,10 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
 void SmallStrainIsotropicDamage3D::ComputePositiveStressVector(
             Vector& rStressVectorPos, Vector& rStressVector)
 {
-    // explicit pass for the symmetric model
+    // Function to be overided by derived CLs if needed.
+
+    // In this symmetric damage model, ComputePositiveStressVector function does
+    // nothing, as rStressVectorPos = rStressVector already.
 }
 
 //************************************************************************************
@@ -222,24 +230,82 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningModulus(
         double r,
         const Properties &rMaterialProperties)
 {
-    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-    const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
-    const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
+    if (rMaterialProperties[HARDENING_CURVE] == 0) {
 
-    const double H0 = rMaterialProperties[HARDENING_MODULI_VECTOR][0];
-    const double H1 = rMaterialProperties[HARDENING_MODULI_VECTOR][1];
+        // 0: exponential hardening
 
-    const double r0 = yield_stress / std::sqrt(young_modulus);
-    const double q0 = r0;  // strain_variable_init
-    const double q1 = inf_yield_stress / std::sqrt(young_modulus);  // stress_variable_inf
-    const double r1 = r0 + (q1 - q0) / H0;
+        const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
+        const double yield_stress = rMaterialProperties[STRESS_LIMITS](0);
+        const double inf_yield_stress = rMaterialProperties[STRESS_LIMITS](1);
+        const double h0 = rMaterialProperties[HARDENING_PARAMETERS](0);
+        const double r0 = yield_stress / std::sqrt(young_modulus);
+        const double q1 = inf_yield_stress / std::sqrt(young_modulus);
 
-    if (r < r0)
-        return 0.;
-    if (r >= r0 && r < r1)
-        return H0;
-    //Case r >= r1:
-    return H1;
+        if (r < r0)
+            return 0.;
+        else // >= r0:
+            return h0 * (q1/r0 - 1) * std::exp(h0 * (1 - r/r0));
+
+    } else {
+
+        // 1: multilinear hardening
+
+        const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
+        const double yield_stress = rMaterialProperties[STRESS_LIMITS](0);
+        const double r0 = yield_stress / std::sqrt(young_modulus);
+        const double h0 = rMaterialProperties[HARDENING_PARAMETERS](0);
+
+        if (r < r0)
+            return  0.;
+
+        switch(rMaterialProperties[HARDENING_PARAMETERS].size())
+        {
+            case 1:  // linear
+                return h0;
+                break;
+
+            case 2:  // bilinear
+            {
+                const double q0 = r0;
+                const double s1 = rMaterialProperties[STRESS_LIMITS](1);
+                const double q1 = s1 / std::sqrt(young_modulus);
+                const double r1 = r0 + (q1 - q0) / h0;
+                const double h1 = rMaterialProperties[HARDENING_PARAMETERS](1);
+
+                if (r >= r0 && r < r1)
+                    return h0;
+                else  // r >= r1:
+                    return h1;
+                break;
+            }
+
+            case 3:   // trilinear
+            {
+                const double q0 = r0;
+                const double s1 = rMaterialProperties[STRESS_LIMITS](1);
+                const double q1 = s1 / std::sqrt(young_modulus);
+                const double r1 = r0 + (q1 - q0) / h0;
+                const double h1 = rMaterialProperties[HARDENING_PARAMETERS](1);
+                const double s2 = rMaterialProperties[STRESS_LIMITS](2);
+                const double q2 = s2 / std::sqrt(young_modulus);
+                const double r2 = r1 + (q2 - q1) / h1;
+                const double h2 = rMaterialProperties[HARDENING_PARAMETERS](2);
+
+                if (r >= r0 && r < r1)
+                    return h0;
+                else if (r >= r1 && r < r2)
+                    return h1;
+                else  // r >= r2
+                    return h2;
+                break;
+            }
+
+            default:  // for other cases, implement as needed
+                KRATOS_ERROR << "Multilinear hardening model of more than 3 " <<
+                "regions not yet implemented." << std::endl;
+                break;
+        }
+    }
 }
 
 //************************************************************************************
@@ -249,23 +315,82 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
     double r,
     const Properties &rMaterialProperties)
 {
-    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-    const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
-    const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
+    if (rMaterialProperties[HARDENING_CURVE] == 0) {
 
-    const double r0 = yield_stress / std::sqrt(young_modulus);
-    const double H0 = EvaluateHardeningModulus(r0, rMaterialProperties);
-    const double q0 = r0;  // strain_variable_init
-    const double q1 = inf_yield_stress / std::sqrt(young_modulus);  // stress_variable_inf
-    const double r1 = r0 + (q1 - q0) / H0;
-    const double H1 = EvaluateHardeningModulus(r1, rMaterialProperties);
+        // 0: exponential hardening
 
-    if (r < r0)
-        return q0;
-    if (r >= r0 && r < r1)
-        return q0 + H0 * (r - r0);
-    // Case r >= r1:
-    return q1 + H1 * (r - r1);
+        const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
+        const double yield_stress = rMaterialProperties[STRESS_LIMITS](0);
+        const double inf_yield_stress = rMaterialProperties[STRESS_LIMITS](1);
+        const double r0 = yield_stress / std::sqrt(young_modulus);
+        const double h0 = EvaluateHardeningModulus(r0, rMaterialProperties);
+        const double q0 = r0;  // strain_variable_init
+        const double q1 = inf_yield_stress / std::sqrt(young_modulus);  // stress_variable_inf
+
+        if (r < r0)
+            return q0;
+        else  // r >= r0:
+            return q1 - (q1 - r0) * std::exp(h0 * (1 - r/r0));  //  for H0 > 0
+
+    } else {
+
+        // 1: bilinear hardening
+
+        const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
+        const double s0 = rMaterialProperties[STRESS_LIMITS](0);
+        const double r0 = s0 / std::sqrt(young_modulus);
+        const double h0 = EvaluateHardeningModulus(r0, rMaterialProperties);
+        const double q0 = r0;
+
+        if (r < r0)
+            return q0;
+
+        switch(rMaterialProperties[HARDENING_PARAMETERS].size())
+        {
+            case 1:  // linear
+                return q0 + h0 * (r - r0);
+                break;
+
+            case 2:  // bilinear
+            {
+                const double s1 = rMaterialProperties[STRESS_LIMITS](1);
+                const double q1 = s1 / std::sqrt(young_modulus);
+                const double r1 = r0 + (q1 - q0) / h0;
+                const double h1 = EvaluateHardeningModulus(r1, rMaterialProperties);
+
+                if (r >= r0 && r < r1)
+                    return q0 + h0 * (r - r0);
+                else  // r >= r1:
+                    return q1 + h1 * (r - r1);
+                break;
+            }
+
+            case 3:  // trilinear
+            {
+                const double s1 = rMaterialProperties[STRESS_LIMITS](1);
+                const double q1 = s1 / std::sqrt(young_modulus);
+                const double r1 = r0 + (q1 - q0) / h0;
+                const double h1 = EvaluateHardeningModulus(r1, rMaterialProperties);
+                const double s2 = rMaterialProperties[STRESS_LIMITS](2);
+                const double q2 = s2 / std::sqrt(young_modulus);
+                const double r2 = r1 + (q2 - q1) / h1;
+                const double h2 = EvaluateHardeningModulus(r2, rMaterialProperties);
+
+                if (r >= r0 && r < r1)
+                    return q0 + h0 * (r - r0);
+                else if (r >= r1 && r < r2)
+                    return q1 + h1 * (r - r1);
+                else  // r >= r2
+                    return q2 + h2 * (r - r2);
+                break;
+            }
+
+            default:  // for other cases, implement as needed
+                KRATOS_ERROR << "Multilinear hardening model of more than 3 " <<
+                "regions not yet implemented." << std::endl;
+                break;
+        }
+    }
 }
 
 //************************************************************************************
@@ -347,15 +472,33 @@ int SmallStrainIsotropicDamage3D::Check(
 
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
-    KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
-    KRATOS_CHECK(rMaterialProperties.Has(INFINITY_YIELD_STRESS));
-    KRATOS_CHECK(rMaterialProperties.Has(HARDENING_MODULI_VECTOR));
-    KRATOS_CHECK_GREATER(rMaterialProperties[YIELD_STRESS], tolerance);
-    KRATOS_CHECK_GREATER(rMaterialProperties[INFINITY_YIELD_STRESS], tolerance);
-    KRATOS_CHECK_LESS_EQUAL(rMaterialProperties[HARDENING_MODULI_VECTOR](0), 1.);
-    KRATOS_CHECK_GREATER_EQUAL(rMaterialProperties[HARDENING_MODULI_VECTOR](0), 0.);
-    KRATOS_CHECK_LESS_EQUAL(rMaterialProperties[HARDENING_MODULI_VECTOR](1), 1.);
-    KRATOS_CHECK_GREATER_EQUAL(rMaterialProperties[HARDENING_MODULI_VECTOR](1), 0.);
+    KRATOS_CHECK(rMaterialProperties.Has(HARDENING_CURVE));
+    KRATOS_CHECK(rMaterialProperties.Has(STRESS_LIMITS));
+    KRATOS_CHECK(rMaterialProperties.Has(HARDENING_PARAMETERS));
+
+    // current supported hardening models:
+    KRATOS_CHECK(rMaterialProperties[HARDENING_CURVE] == 0 || rMaterialProperties[HARDENING_CURVE] == 1);
+
+    // checks specific for exponential hardening
+    if (rMaterialProperties[HARDENING_CURVE] == 0){
+        KRATOS_CHECK_GREATER_EQUAL(rMaterialProperties[STRESS_LIMITS].size(), 2);
+        KRATOS_CHECK_GREATER(rMaterialProperties[STRESS_LIMITS](0), tolerance);
+        KRATOS_CHECK_GREATER(rMaterialProperties[STRESS_LIMITS](1), rMaterialProperties[STRESS_LIMITS](0));
+        KRATOS_CHECK_GREATER_EQUAL(rMaterialProperties[HARDENING_PARAMETERS](0), 0.);
+    }
+
+    // checks specific for multilinear hardening
+    if (rMaterialProperties[HARDENING_CURVE] == 1){
+        KRATOS_CHECK_EQUAL(rMaterialProperties[HARDENING_PARAMETERS].size(),
+                           rMaterialProperties[STRESS_LIMITS].size());
+        for (const auto& h : rMaterialProperties[HARDENING_PARAMETERS]){
+            KRATOS_CHECK_GREATER_EQUAL(h, 0.);
+            KRATOS_CHECK_LESS_EQUAL(h, 1.);
+        }
+        for (const auto& h : rMaterialProperties[STRESS_LIMITS]){
+            KRATOS_CHECK_GREATER(h, tolerance);
+        }
+    }
 
     return 0;
 }

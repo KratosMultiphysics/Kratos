@@ -91,11 +91,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef Geometry<NodeType>::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = TBaseElement::Dim;
-    constexpr static unsigned int NumNodes = TBaseElement::NumNodes;
-    constexpr static unsigned int BlockSize = TBaseElement::BlockSize;
-    constexpr static unsigned int LocalSize = TBaseElement::LocalSize;
-    constexpr static unsigned int StrainSize = TBaseElement::StrainSize;
+    constexpr static std::size_t Dim = TBaseElement::Dim;
+    constexpr static std::size_t NumNodes = TBaseElement::NumNodes;
+    constexpr static std::size_t BlockSize = TBaseElement::BlockSize;
+    constexpr static std::size_t LocalSize = TBaseElement::LocalSize;
+    constexpr static std::size_t StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
     using EmbeddedDiscontinuousElementData = EmbeddedDiscontinuousData< BaseElementData >;
@@ -307,11 +307,20 @@ protected:
     /**
      * @brief Intersected element geometry data fill
      * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
-     * intersected element. To do that, the modified shape functions utility is firstly created and then called to perform
-     * all operations in both the positive and negative sides of the element.
+     * intersected element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
     void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Intersected element geometry data fill
+     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
+     * incised element. To do that, the modified shape functions utility is firstly created and then called
+     * to perform all operations on both, the positive and negative, sides of the element.
+     * @param rData reference to the element data structure
+     */
+    void DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const;
 
     /**
      * @brief For an intersected element, normalize the interface normals
@@ -470,7 +479,7 @@ private:
      */
     inline double AuxiliaryDensityGetter(
         const EmbeddedDiscontinuousElementData& rData,
-        const unsigned int NodeIndex) const;
+        const std::size_t NodeIndex) const;
 
     ///@}
     ///@name Private  Access
@@ -500,7 +509,7 @@ private:
 namespace EmbeddedDiscontinuousInternals {
 
 template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator(
     const Element &rElement,
     const Vector &rElementalDistances);
 
@@ -508,6 +517,12 @@ template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
     const Element &rElement,
     const Vector &rElementalDistances);
+
+template <size_t TDim, size_t TNumNodes>
+ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator(
+    const Element &rElement,
+    const Vector &rElementalDistancesWithExtrapolated,
+    const Vector &rElementalEdgeDistancesExtrapolated);
 }
 
 ///@}

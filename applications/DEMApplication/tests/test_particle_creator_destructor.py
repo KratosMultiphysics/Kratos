@@ -18,6 +18,7 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
         properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
+        properties[DEM.FRICTION_DECAY] = 500.0
         properties[Kratos.POISSON_RATIO] = 0.0
         properties[DEM.DAMPING_GAMMA] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.0
