@@ -233,8 +233,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.DispersePhaseInitialize()
 
-        #self._GetDEMAnalysis().SetAnalyticWatchers()
-
         self.SetAllModelParts()
 
         if self.project_parameters.Has('sdem_output_processes') and self.do_print_results:
@@ -559,13 +557,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self._GetDEMAnalysis().DEM_inlet = self.DEM_inlet
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self._GetDEMAnalysis().creator_destructor)
 
+    # Not used
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = DEM.AnalyticParticleWatcher()
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleAnalyzer(
+        self.particle_watcher_analyser = analytic_data_procedures.ParticlesAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)
 
+    # Not used
     def ProcessAnalyticData(self):
         self._GetDEMAnalysis().WriteAnalyticDataToFileAndClear()
 

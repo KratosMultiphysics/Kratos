@@ -140,17 +140,17 @@ class DEMAnalysisStage(AnalysisStage):
         return False
 
     def SetAnalyticWatchers(self):
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
+        self.SurfacesAnalyzerClass = analytic_data_procedures.SurfacesAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
         if self.post_normal_impact_velocity_option:
-            self.ParticleAnalyzerClass = analytic_data_procedures.ParticleAnalyzerClass(self.analytic_model_part)
+            self.ParticlesAnalyzerClass = analytic_data_procedures.ParticlesAnalyzerClass(self.analytic_model_part)
 
 
     def MakeAnalyticsMeasurements(self):
-        self.FaceAnalyzerClass.MakeAnalyticsMeasurements()
+        self.SurfacesAnalyzerClass.MakeAnalyticsMeasurements()
 
         if self.post_normal_impact_velocity_option:
-            self.ParticleAnalyzerClass.MakeAnalyticsMeasurements()
+            self.ParticlesAnalyzerClass.MakeAnalyticsMeasurements()
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -453,11 +453,11 @@ class DEMAnalysisStage(AnalysisStage):
     def RunAnalytics(self, time):
         self.MakeAnalyticsMeasurements()
         if self.IsTimeToPrintPostProcess():
-            self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
+            self.SurfacesAnalyzerClass.MakeAnalyticsPipeLine(time)
 
         if self.post_normal_impact_velocity_option and self.IsTimeToPrintPostProcess():
-            self.ParticleAnalyzerClass.SetNodalMaxImpactVelocities()
-            self.ParticleAnalyzerClass.SetNodalMaxFaceImpactVelocities()
+            self.ParticlesAnalyzerClass.SetNodalMaxImpactVelocities()
+            self.ParticlesAnalyzerClass.SetNodalMaxFaceImpactVelocities()
 
 
     def IsTimeToPrintPostProcess(self):
