@@ -36,6 +36,7 @@ public:
     ~PiecewiseLinearRandomVariable(){};
 
     double Sample() override;
+    double ProbabilityDensity(const double x);
 
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
     std::string Info() const override

@@ -131,7 +131,8 @@ class TestRandomVariable(KratosUnittest.TestCase):
         params.heights = settings['pdf_values'].GetVector()
 
         rvar = PiecewiseLinearRV(params) # python alternative
-        random_variable = DEM.PiecewiseLinearRandomVariable(settings, 1)
+        seed = 1
+        random_variable = DEM.PiecewiseLinearRandomVariable(settings, seed)
 
         # print('sample trapezoid:', rvar.SampleTrapezoid())
 

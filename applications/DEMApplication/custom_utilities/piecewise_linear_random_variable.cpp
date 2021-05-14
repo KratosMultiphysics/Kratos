@@ -24,6 +24,30 @@ namespace Kratos {
         CalculateTrapezoidProbabilitiesAndNormalize();
     }
 
+
+   double PiecewiseLinearRandomVariable::ProbabilityDensity(const double x)
+   {
+       const double& x_min = mPDFBreakpoints[0];
+       const double& x_max = mPDFBreakpoints[mPDFBreakpoints.size() - 1];
+
+       if (x < x_min || x > x_max){
+           return 0.0;
+       }
+
+       for (std::size_t i = 0; i < mPDFBreakpoints.size() - 1; ++i){
+           const double& x1 = mPDFBreakpoints[i];
+           const double& x2 = mPDFBreakpoints[i + 1];
+           if (x >= x1){
+               const double alpha =  (x - x1) / (x2 - x1);
+               const double value1 = mPDFValues[i];
+               const double value2 = mPDFValues[i + 1];
+               return (1 - alpha) * value1 + alpha * value2;
+           }
+       }
+
+       return 0.0;
+   }
+
     double PiecewiseLinearRandomVariable::Sample(){
         const auto i_bin = SampleTrapezoidChoice();
         const double x0 = mPDFBreakpoints[i_bin];
