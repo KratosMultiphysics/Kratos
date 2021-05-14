@@ -895,8 +895,11 @@ namespace Kratos
             const auto edges_container = r_elem.GetGeometry().GenerateEdges();
             auto &r_cut_edge_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES);
             check_edge_against_distances(edges_container, r_cut_edge_vector);
-            if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED))
-            {
+
+        }
+        if (mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)) {
+            for (auto &r_elem : mrVolumePart.Elements())  {
+                const auto edges_container = r_elem.GetGeometry().GenerateEdges();
                 auto &r_cut_edge_extra_vector = r_elem.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
                 check_edge_against_distances(edges_container, r_cut_edge_extra_vector);
             }
