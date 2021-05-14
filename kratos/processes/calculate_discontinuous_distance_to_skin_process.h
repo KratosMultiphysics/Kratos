@@ -277,6 +277,19 @@ private:
         Point& rIntersectionPoint);
 
     /**
+     * @brief Checks if rIntersectionPoint is already present in the
+     * intersection point list in rIntersectionPointsVector for the tolerance rTolerance.
+     * @param rIntersectionPoint reference to the intersection point
+     * @param rIntersectionPointsVector reference to the list of already computed intersected points
+     * @param rEdgeTolerance tolerance to compare two points and assess if they are equal
+     * @return bool if rIntersectionPoint is present in rIntersectionPointsVector
+     */
+    bool CheckIfPointIsRepeated(
+        const array_1d<double,3>& rIntersectionPoint,
+        const std::vector<array_1d<double,3>>&  rIntersectionPointsVector,
+        const double& rEdgeTolerance);
+
+    /**
      * @brief Computes the element intersection unit normal
      * This method computes the element intersection unit normal vector using the distance function gradient.
      * @param rGeometry reference to the geometry of the element of interest

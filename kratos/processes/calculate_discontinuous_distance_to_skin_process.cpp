@@ -309,18 +309,8 @@ namespace Kratos
             avg_extra_geom_normal = ZeroVector(3);
             aux_pts.clear();
 
-            const auto repeated_point_check = [&] (array_1d<double,3>& rIntPt, std::vector<array_1d<double,3>>&  rAuxPts) {
-                // Check if there is a close intersection (repeated intersection point)
-                for (auto aux_pt : rAuxPts){
-                        const double aux_dist = norm_2(rIntPt - aux_pt);
-                        const double tol_edge = 1e-2*norm_2(rEdgesContainer[i_edge][0] - rEdgesContainer[i_edge][1]);
-                        if (aux_dist < tol_edge){
-                            return true;
-                    }
-                }
-                return false;
-            };
             // Check against all candidates to count the number of current edge intersections
+            const double edge_tolerance = 1e-2*norm_2(rEdgesContainer[i_edge][0] - rEdgesContainer[i_edge][1]);
             for (const auto &r_int_obj : rIntersectedObjects){
                 // Call the compute intersection method
                 Point int_pt;
@@ -330,7 +320,8 @@ namespace Kratos
                 // There is intersection
                 if (int_id == 1 || int_id == 3){
                     // If the intersection pt. is not repeated, consider it
-                    if (!repeated_point_check(int_pt, aux_pts)){
+
+                    if (!CheckIfPointIsRepeated(int_pt, aux_pts, edge_tolerance)) {
                         // Add the intersection pt. to the aux array pts.
                         aux_pts.push_back(int_pt);
                         // Increase the edge intersections counter
@@ -356,7 +347,7 @@ namespace Kratos
                 // Increase the total intersected edges counter
                 n_cut_edges++;
                 // Check if the avg_pt is already present
-                if (!repeated_point_check(avg_pt, aux_avg_pts)){
+                if (!CheckIfPointIsRepeated(avg_pt, aux_avg_pts, edge_tolerance)) {
                     rIntersectionPointsArray.push_back(avg_pt);
                     aux_avg_pts.push_back(avg_pt);
                 }
@@ -377,6 +368,22 @@ namespace Kratos
         }
 
         return n_cut_edges;
+    }
+
+    template<std::size_t TDim>
+    bool CalculateDiscontinuousDistanceToSkinProcess<TDim>::CheckIfPointIsRepeated(
+        const array_1d<double,3>& rIntersectionPoint,
+        const std::vector<array_1d<double,3>>&  rIntersectionPointsVector,
+        const double& rEdgeTolerance)
+    {
+        // Check if there is a close intersection (repeated intersection point)
+        for (auto aux_pt : rIntersectionPointsVector){
+                const double aux_dist = norm_2(rIntersectionPoint - aux_pt);
+                if (aux_dist < rEdgeTolerance){
+                    return true;
+            }
+        }
+        return false;
     }
 
     template<std::size_t TDim>
