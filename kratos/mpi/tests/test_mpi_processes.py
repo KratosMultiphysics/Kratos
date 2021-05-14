@@ -192,7 +192,9 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         skin_model_part.CreateNewNode(2,  0.4, 0.0, 0.0)
         skin_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
 
-        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES
+        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES | \
+            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.USE_POSITIVE_EPSILON_FOR_ZERO_VALUES
+
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
             main_model_part,
             skin_model_part,
@@ -230,7 +232,8 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         ReadModelPart(input_filename, main_model_part)
 
         flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES | \
-            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
+            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED | \
+            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.USE_POSITIVE_EPSILON_FOR_ZERO_VALUES
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
             main_model_part,
             skin_model_part,
