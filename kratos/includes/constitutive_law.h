@@ -224,8 +224,8 @@ public:
       Flags                                 mOptions;
       double                                mDeterminantF;
 
-      VoigtSizeVectorType*                    mpStrainVector;
-      VoigtSizeVectorType*                    mpStressVector;
+      VoigtSizeVectorType*                  mpStrainVector;
+      VoigtSizeVectorType*                  mpStressVector;
 
       const Vector*                        mpShapeFunctionsValues;
       const Matrix*                        mpShapeFunctionsDerivatives;
@@ -1506,8 +1506,8 @@ protected:
     /**
      * This method performs a pull-back or a push-forward between two constitutive matrices
      */
-    void ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
-                        const Matrix& rOriginalConstitutiveMatrix,
+    void ConstitutiveMatrixTransformation ( VoigtSizeMatrixType& rConstitutiveMatrix,
+                        const VoigtSizeMatrixType& rOriginalConstitutiveMatrix,
                         const DeformationGradientMatrixType & rF );
 
 
