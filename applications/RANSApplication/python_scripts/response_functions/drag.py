@@ -115,7 +115,8 @@ class Drag(ResponseFunctionInterface):
             "response_type"       : "drag",
             "problem_setup_settings" : {
                 "primal_problem_solving_type"     : "solved"
-            }
+            },
+            "start_time": 0.0
         }
         """)
         self.identifier = identifier
@@ -155,7 +156,7 @@ class Drag(ResponseFunctionInterface):
         primal_parameters = SolvePrimalProblem(self.drag_configuration.GetPrimalProjectParametersFileName())
 
         # calculate drag
-        self.drag = CalculateTimeAveragedDrag(primal_parameters, self.drag_configuration.GetDragModelPartName(), self.drag_configuration.GetDragDirection())
+        self.drag = CalculateTimeAveragedDrag(primal_parameters, self.drag_configuration.GetDragModelPartName(), self.drag_configuration.GetDragDirection(), self.response_settings["start_time"].GetDouble())
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
