@@ -1,18 +1,23 @@
 #include "piecewise_linear_random_variable.h"
 
 namespace Kratos {
-    PiecewiseLinearRandomVariable::PiecewiseLinearRandomVariable(){
-    }
-    PiecewiseLinearRandomVariable::PiecewiseLinearRandomVariable(const Parameters rParameters){
+    PiecewiseLinearRandomVariable::PiecewiseLinearRandomVariable():
+    mRandomNumberGenerator(std::random_device{}()){}
+
+    PiecewiseLinearRandomVariable::PiecewiseLinearRandomVariable(const Parameters rParameters):
+    PiecewiseLinearRandomVariable(rParameters, std::random_device{}()){};
+
+    PiecewiseLinearRandomVariable::PiecewiseLinearRandomVariable(const Parameters rParameters, const int seed)
+    : mRandomNumberGenerator(seed){
 
         const auto breakpoints = rParameters["pdf_breakpoints"].GetVector();
         const auto values = rParameters["pdf_values"].GetVector();
         const std::size_t n_points = breakpoints.size();
-        mPDFRange.resize(n_points);
+        mPDFBreakpoints.resize(n_points);
         mPDFValues.resize(n_points);
 
         for (std::size_t i = 0; i < n_points; ++i) {
-            mPDFRange[i] = breakpoints[i];
+            mPDFBreakpoints[i] = breakpoints[i];
             mPDFValues[i] = values[i];
         }
 
@@ -21,8 +26,8 @@ namespace Kratos {
 
     double PiecewiseLinearRandomVariable::Sample(){
         const auto i_bin = SampleTrapezoidChoice();
-        const double x0 = mPDFRange[i_bin];
-        const double H = mPDFRange[i_bin + 1] - x0;
+        const double x0 = mPDFBreakpoints[i_bin];
+        const double H = mPDFBreakpoints[i_bin + 1] - x0;
         const double B1 = mPDFValues[i_bin];
         const double B2 = mPDFValues[i_bin + 1];
         const double x_within = SampleWithinTrapezoid(H, B1, B2);
@@ -31,11 +36,11 @@ namespace Kratos {
 
     void PiecewiseLinearRandomVariable::CalculateTrapezoidProbabilitiesAndNormalize(){
         double total_area = 0.0;
-        std::vector<double> areas(mPDFRange.size() - 1);
+        std::vector<double> areas(mPDFBreakpoints.size() - 1);
 
         // Area under each straight bin
         for (std::size_t i = 0; i < areas.size(); ++i) {
-            const double trapezoid_area = 0.5 * (mPDFRange[i + 1] - mPDFRange[i]) * (mPDFValues[i + 1] + mPDFValues[i]);
+            const double trapezoid_area = 0.5 * (mPDFBreakpoints[i + 1] - mPDFBreakpoints[i]) * (mPDFValues[i + 1] + mPDFValues[i]);
             total_area += trapezoid_area;
             areas[i] = trapezoid_area;
         }
@@ -55,9 +60,7 @@ namespace Kratos {
     }
 
     std::size_t PiecewiseLinearRandomVariable::SampleTrapezoidChoice(){
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        return mTrapezoidsDiscreteDistribution(gen);
+        return mTrapezoidsDiscreteDistribution(mRandomNumberGenerator);
     }
 
     double PiecewiseLinearRandomVariable::SampleWithinTrapezoid(const double H, const double B1, const double B2){
@@ -75,10 +78,8 @@ namespace Kratos {
     }
 
     double PiecewiseLinearRandomVariable::SampleWithinStandardTrapezoid(const double b){
-        std::random_device rd;
-        std::mt19937 gen(rd());
         std::uniform_real_distribution<> uniform_distribution(0, 1);
-        const double alpha = uniform_distribution(gen);
+        const double alpha = uniform_distribution(mRandomNumberGenerator);
         double x;
         if (alpha < b/2){
             x = SampleNegativeSlopingStandardTriangle();
@@ -92,10 +93,8 @@ namespace Kratos {
     }
 
     double PiecewiseLinearRandomVariable::SamplePositiveSlopingStandardTriangle(){
-        std::random_device rd;
-        std::mt19937 gen(rd());
         std::uniform_real_distribution<> uniform_distribution(0, 1);
-        const double x = uniform_distribution(gen);
+        const double x = uniform_distribution(mRandomNumberGenerator);
         return std::sqrt(x);
     }
 

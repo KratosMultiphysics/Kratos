@@ -29,6 +29,8 @@ public:
     /// Default constructor
     PiecewiseLinearRandomVariable();
     PiecewiseLinearRandomVariable(const Parameters rParameters);
+    PiecewiseLinearRandomVariable(const Parameters rParameters, const int seed);
+
 
     /// Destructor
     ~PiecewiseLinearRandomVariable(){};
@@ -73,7 +75,8 @@ private:
     PiecewiseLinearRandomVariable & operator=(PiecewiseLinearRandomVariable const& rOther);
 
     std::vector<double> mPDFValues;
-    std::vector<double> mPDFRange;
+    std::vector<double> mPDFBreakpoints;
+    std::mt19937 mRandomNumberGenerator;
     std::discrete_distribution<int> mTrapezoidsDiscreteDistribution;
 
 }; // Class PiecewiseLinearRandomVariable
