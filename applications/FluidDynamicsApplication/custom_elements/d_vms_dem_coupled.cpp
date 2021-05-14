@@ -304,7 +304,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
         double divergence_convective = 0.0;
         for (unsigned int d = 0; d < Dim; d++) {
-            divergence_convective += (rData.Velocity[d] - rData.MeshVelocity[d]) * rData.DN_DX(i,d);
+            divergence_convective += (rData.Velocity(i,d) - rData.MeshVelocity(i,d)) * rData.DN_DX(i,d);
         }
 
         // LHS terms
@@ -470,7 +470,7 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
 
         double divergence_convective = 0.0;
         for (unsigned int d = 0; d < Dim; d++) {
-            divergence_convective += (rData.Velocity[d] - rData.MeshVelocity[d]) * rData.DN_DX(i,d);
+            divergence_convective += (rData.Velocity(i,d) - rData.MeshVelocity(i,d)) * rData.DN_DX(i,d);
         }
 
         for (unsigned int j = 0; j < NumNodes; j++) {
