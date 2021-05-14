@@ -862,16 +862,16 @@ namespace Kratos
                     // Get neighbour elements in a single vector without repetitions.
                     std::unordered_set<Element::WeakPointer, SharedPointerHasher<Element::WeakPointer>, SharedPointerComparator<Element::WeakPointer>> all_neighbour_set;
                     const auto& r_edge_containter_0  = rEdgeContainer[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
-                    for(const auto p_neigh : r_edge_containter_0) {
+                    for(const auto& p_neigh : r_edge_containter_0) {
                         all_neighbour_set.insert(p_neigh);
                     }
                     const auto& r_edge_containter_1  = rEdgeContainer[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
-                    for(const auto p_neigh : r_edge_containter_1) {
+                    for(const auto& p_neigh : r_edge_containter_1) {
                         all_neighbour_set.insert(p_neigh);
                     }
 
                     bool is_edge_cut = false;
-                    for (const auto g_ptr_neigh : all_neighbour_set) {
+                    for (const auto& g_ptr_neigh : all_neighbour_set) {
                         if (!is_edge_cut) {
                             auto cut_edges = get_neighbour_cut_edges.Get(g_ptr_neigh);
                             for (auto cut_edge: cut_edges) {
@@ -927,7 +927,7 @@ namespace Kratos
         }
 
         for (auto& r_node : mrVolumePart.Nodes()) {
-            for (const auto g_ptr : r_node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
+            for (const auto& g_ptr : r_node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
                 g_ptr_elem_list.push_back(g_ptr);
             }
         }
