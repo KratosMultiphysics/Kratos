@@ -1047,7 +1047,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformStrains (Constit
 
         case StrainMeasure_Almansi:
         {
-            Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector );
+            ConstitutiveLaw::DeformationGradientMatrixType StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector );
 
             CoVariantPushForward (StrainMatrix,rF);  //Almansi
 
@@ -1076,7 +1076,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformStrains (Constit
         {
         case StrainMeasure_GreenLagrange:
         {
-            Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector );
+            ConstitutiveLaw::DeformationGradientMatrixType StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector );
 
             CoVariantPullBack (StrainMatrix,rF);  //GreenLagrange
 
@@ -1135,7 +1135,7 @@ ConstitutiveLaw::DeformationGradientMatrixType& ConstitutiveLaw::TransformStress
         StressMeasure rStressInitial,
         StressMeasure rStressFinal)
 {
-    Vector StressVector;
+    ConstitutiveLaw::VoigtSizeVectorType StressVector;
 
     StressVector  = MathUtils<double>::StressTensorToVector( rStressMatrix );
 
@@ -1220,8 +1220,8 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK1Stresses (Con
 
     case StressMeasure_PK2:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
-        Matrix InvF ( size, size );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType InvF ( size, size );
         double J;
         MathUtils<double>::InvertMatrix( rF, InvF, J );
 
@@ -1233,8 +1233,8 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK1Stresses (Con
 
     case StressMeasure_Kirchhoff:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
-        Matrix InvF ( size, size );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType InvF ( size, size );
         double J;
         MathUtils<double>::InvertMatrix( rF, InvF, J );
 
@@ -1248,8 +1248,8 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK1Stresses (Con
 
     case StressMeasure_Cauchy:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
-        Matrix InvF ( size, size );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType InvF ( size, size );
         double J;
         MathUtils<double>::InvertMatrix( rF, InvF, J );
 
@@ -1257,7 +1257,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK1Stresses (Con
 
         ContraVariantPushForward (StressMatrix,rF); //Kirchhoff
 
-        StressMatrix/=J; //Cauchy
+        StressMatrix /= J; //Cauchy
 
         rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
@@ -1267,10 +1267,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK1Stresses (Con
         KRATOS_ERROR << "FINAL STRESS NOT DEFINED in StressTransformation"<< std::endl;;
         break;
     }
-
-
     return rStressVector;
-
 }
 
 /**
@@ -1290,7 +1287,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK2Stresses (Con
     {
     case StressMeasure_PK1:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         StressMatrix = prod( rF, StressMatrix ); //PK1
 
@@ -1303,7 +1300,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK2Stresses (Con
 
     case StressMeasure_Kirchhoff:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPushForward (StressMatrix,rF); //Kirchhoff
 
@@ -1314,7 +1311,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformPK2Stresses (Con
     case StressMeasure_Cauchy:
     {
 
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPushForward (StressMatrix,rF); //Kirchhoff
 
@@ -1352,7 +1349,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformKirchhoffStresse
     {
     case StressMeasure_PK1:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
@@ -1364,7 +1361,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformKirchhoffStresse
 
     case StressMeasure_PK2:
     {
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
@@ -1377,8 +1374,8 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformKirchhoffStresse
 
     case StressMeasure_Cauchy:
     {
-        if(rdetF!=0)
-            rStressVector/=rdetF; //Cauchy
+        if(rdetF != 0)
+            rStressVector /= rdetF; //Cauchy
     }
     break;
 
@@ -1410,7 +1407,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformCauchyStresses (
     {
         rStressVector*=rdetF; //Kirchhoff
 
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
@@ -1424,7 +1421,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ConstitutiveLaw::TransformCauchyStresses (
     {
         rStressVector*=rdetF; //Kirchhoff
 
-        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
+        ConstitutiveLaw::DeformationGradientMatrixType StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
