@@ -1661,7 +1661,8 @@ namespace Testing {
 
         // Compute the discontinuous distance function (including edge distances)
         Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
+            | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES;
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
