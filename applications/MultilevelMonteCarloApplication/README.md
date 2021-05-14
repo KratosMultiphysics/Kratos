@@ -1,7 +1,7 @@
 # Multilevel Monte Carlo Application
 
 MultilevelMonteCarloApplication provides different algorithms, belonging to the Monte Carlo (MC) family, to estimate statistics of scalar and field quantities of interest.
-The application works with both OpenMP and MPI parallel strategies.
+The application is designed for running on distributed and high performance computing systems, exploiting both OpenMP and MPI parallel strategies.
 The application contains several interfaces with external libraries.
 
 ## Getting started
@@ -141,7 +141,7 @@ Information about these libraries can be found in their respective pages, which 
 PyCOMPSs is the Python library required in order to use task-based programming software [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a Python environment.
 By default PyCOMPSs is not required in order to run the application.
 In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS=ON \ `.
-The current version is able to run several thousands of samples at once exploiting PyCOMPSs, maximizing parallelism and computational efficiency. Optimal strong scalability up to 128 working nodes (6144 CPUs) has been demonstrated.
+The current version is able to run several thousands of samples at once exploiting PyCOMPSs in distributed systems, maximizing parallelism and computational efficiency. Optimal strong scalability up to 128 working nodes (6144 CPUs) has been demonstrated.
 
 Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs).
 To run with `runcompss`, the environment variable `EXAQUTE_BACKEND=pycompss` must be set to use the distributed computing capabilities.
