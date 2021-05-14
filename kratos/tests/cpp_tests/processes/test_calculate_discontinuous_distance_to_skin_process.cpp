@@ -24,8 +24,6 @@
 namespace Kratos {
 namespace Testing {
 
-    const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
-
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosCoreFastSuite)
     {
         Model current_model;
@@ -274,6 +272,7 @@ namespace Testing {
         disc_dist_proc.Execute();
 
         // Check values
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
@@ -306,6 +305,7 @@ namespace Testing {
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK(r_to_split);
         KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
@@ -339,6 +339,7 @@ namespace Testing {
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
         const auto &r_to_split = (fluid_part.ElementsBegin())->Is(TO_SPLIT);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK(!r_to_split);
         KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
@@ -371,6 +372,7 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK_NEAR(r_elem_dist[0], epsilon, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], epsilon, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-16);
@@ -409,6 +411,7 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK_NEAR(r_elem_dist[0], -std::sqrt(2)/2.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], epsilon, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[2], epsilon, 1e-16);
@@ -463,6 +466,7 @@ namespace Testing {
             }
         }
 
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         // Check values
         for (auto& r_node : fluid_part.Nodes()) {
             if (std::abs(r_node.Y()) < epsilon) {
@@ -505,6 +509,7 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, 1e-16);
@@ -542,6 +547,7 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK_NEAR(r_elem_dist[0], epsilon, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-16);
@@ -580,6 +586,7 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         KRATOS_CHECK_NEAR(r_elem_dist[0], epsilon, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[1], epsilon, 1e-16);
         KRATOS_CHECK_NEAR(r_elem_dist[2], epsilon, 1e-16);
@@ -625,6 +632,7 @@ namespace Testing {
         disc_dist_proc.Execute();
 
         // Check values
+        const double epsilon = std::numeric_limits<double>::epsilon()*1e3;
         for (auto &elem : fluid_part.Elements()) {
             const auto& r_elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
             for (unsigned int i = 0; i < r_elem_dist.size(); i++) {
