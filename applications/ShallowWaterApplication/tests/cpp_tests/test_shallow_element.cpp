@@ -140,7 +140,7 @@ void PerformSteadyStateTest(
 
     // Process info creation
     const double gravity = 9.81;
-    const double stab_factor = 0.005;
+    const double stab_factor = 0.01;
     const double shock_stab_factor = 1.0;
     const double relative_dry_height = 0.1;
     const double density_water = 1000.0;
@@ -260,7 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(SteadyVariableFreeSurfaceShallowWater2D3N, ShallowWate
     const double central_height = height + height_grad[0] / 3.; // at the barycenter of the element
     const array_1d<double,3> friction = std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(central_height, 10./3.);
     const array_1d<double,3> slope = (inner_prod(momentum, momentum) / (gravity * std::pow(central_height, 3.)) -1.) * height_grad - friction;
-    const double tolerance = 1e-3;
+    const double tolerance = 1e-6;
 
     PerformSteadyStateTest(manning, height, momentum, slope, height_grad, tolerance);
 }
