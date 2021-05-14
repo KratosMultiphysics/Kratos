@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -155,7 +155,7 @@ bool ConstitutiveLaw::Has(const Variable<double>& rThisVariable)
  * @param rThisVariable the variable to be checked for
  * @return true if the variable is defined in the constitutive law
  */
-bool ConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
+bool ConstitutiveLaw::Has(const Variable<VoigtSizeVectorType>& rThisVariable)
 {
     return false;
 }
@@ -165,7 +165,17 @@ bool ConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
  * @param rThisVariable the variable to be checked for
  * @return true if the variable is defined in the constitutive law
  */
-bool ConstitutiveLaw::Has(const Variable<Matrix>& rThisVariable)
+bool ConstitutiveLaw::Has(const Variable<VoigtSizeVectorType>& rThisVariable)
+{
+    return false;
+}
+
+/**
+ * returns whether this constitutive Law has specified variable
+ * @param rThisVariable the variable to be checked for
+ * @return true if the variable is defined in the constitutive law
+ */
+bool ConstitutiveLaw::Has(const Variable<DeformationGradientMatrixType>& rThisVariable)
 {
     return false;
 }
@@ -231,7 +241,7 @@ double& ConstitutiveLaw::GetValue(const Variable<double>& rThisVariable, double&
  * @param rValue a reference to the returned value
  * @return the value of the specified variable
  */
-Vector& ConstitutiveLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+VoigtSizeVectorType& ConstitutiveLaw::GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, Vector& rValue)
 {
     return rValue;
 }
@@ -241,7 +251,17 @@ Vector& ConstitutiveLaw::GetValue(const Variable<Vector>& rThisVariable, Vector&
  * @param rThisVariable the variable to be returned
  * @return the value of the specified variable
  */
-Matrix& ConstitutiveLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
+Matrix& ConstitutiveLaw::GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, Matrix& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rThisVariable the variable to be returned
+ * @return the value of the specified variable
+ */
+Matrix& ConstitutiveLaw::GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, Matrix& rValue)
 {
     return rValue;
 }
@@ -315,8 +335,8 @@ void ConstitutiveLaw::SetValue(const Variable<double>& rVariable,
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
  */
-void ConstitutiveLaw::SetValue(const Variable<Vector >& rVariable,
-                               const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+void ConstitutiveLaw::SetValue(const Variable<VoigtSizeVectorType >& rVariable,
+                               const VoigtSizeVectorType& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
 }
@@ -327,8 +347,20 @@ void ConstitutiveLaw::SetValue(const Variable<Vector >& rVariable,
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
  */
-void ConstitutiveLaw::SetValue(const Variable<Matrix >& rVariable,
-                               const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
+void ConstitutiveLaw::SetValue(const Variable<VoigtSizeMatrixType >& rVariable,
+                               const VoigtSizeMatrixType& rValue, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+}
+
+/**
+ * @brief Sets the value of a specified variable (Matrix)
+ * @param rVariable the variable to be returned
+ * @param rValue new value of the specified variable
+ * @param rCurrentProcessInfo the process info
+ */
+void ConstitutiveLaw::SetValue(const Variable<DeformationGradientMatrixType >& rVariable,
+                               const DeformationGradientMatrixType& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
 }
@@ -403,7 +435,7 @@ double& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Vari
  * @param rValue a reference to the returned value
  * @param rValue output: the value of the specified variable
  */
-Vector& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue)
+VoigtSizeVectorType& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeVectorType>& rThisVariable, VoigtSizeVectorType& rValue)
 {
     return rValue;
 }
@@ -415,7 +447,19 @@ Vector& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Vari
  * @param rValue a reference to the returned value
  * @param rValue output: the value of the specified variable
  */
-Matrix& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue)
+VoigtSizeMatrixType& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable (Matrix)
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+DeformationGradientMatrixType& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<DeformationGradientMatrixType>& rThisVariable, DeformationGradientMatrixType& rValue)
 {
     return rValue;
 }
@@ -1353,8 +1397,8 @@ int ConstitutiveLaw::Check(const Properties& rMaterialProperties,
  * i.e. 2nd PK stress to Kirchhoff stress
  */
 
-void ConstitutiveLaw::ContraVariantPushForward( Matrix& rMatrix,
-        const Matrix& rF)  //i.e. 2nd PK stress to Kirchhoff stress
+void ConstitutiveLaw::ContraVariantPushForward( DeformationGradientMatrixType& rMatrix,
+        const DeformationGradientMatrixType& rF)  //i.e. 2nd PK stress to Kirchhoff stress
 {
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
     Matrix temp ( size, size );
@@ -1369,8 +1413,8 @@ void ConstitutiveLaw::ContraVariantPushForward( Matrix& rMatrix,
  * i.e. Kirchhoff stress to 2nd PK stress
  */
 
-void ConstitutiveLaw::ContraVariantPullBack( Matrix& rMatrix,
-        const Matrix& rF)     //i.e. Kirchhoff stress to 2nd PK stress
+void ConstitutiveLaw::ContraVariantPullBack( DeformationGradientMatrixType& rMatrix,
+        const DeformationGradientMatrixType& rF)     //i.e. Kirchhoff stress to 2nd PK stress
 {
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
     Matrix InvF ( size, size );
@@ -1388,8 +1432,8 @@ void ConstitutiveLaw::ContraVariantPullBack( Matrix& rMatrix,
  * i.e. Green-Lagrange strain to Almansi strain
  */
 
-void ConstitutiveLaw::CoVariantPushForward( Matrix& rMatrix,
-        const Matrix& rF)      //i.e. Green-Lagrange strain to Almansi strain
+void ConstitutiveLaw::CoVariantPushForward( DeformationGradientMatrixType& rMatrix,
+        const DeformationGradientMatrixType& rF)      //i.e. Green-Lagrange strain to Almansi strain
 {
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
     Matrix InvF ( size, size );
@@ -1407,8 +1451,8 @@ void ConstitutiveLaw::CoVariantPushForward( Matrix& rMatrix,
  * i.e. Almansi strain to Green-Lagrange strain
  */
 
-void ConstitutiveLaw::CoVariantPullBack( Matrix& rMatrix,
-        const Matrix& rF)         //i.e. Almansi strain to Green-Lagrange strain
+void ConstitutiveLaw::CoVariantPullBack( DeformationGradientMatrixType& rMatrix,
+        const DeformationGradientMatrixType& rF)         //i.e. Almansi strain to Green-Lagrange strain
 {
 
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
@@ -1423,9 +1467,9 @@ void ConstitutiveLaw::CoVariantPullBack( Matrix& rMatrix,
 /**
  * This method performs a pull-back or a push-forward between two constitutive matrices
  */
-void ConstitutiveLaw::ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
-        const Matrix& rOriginalConstitutiveMatrix,
-        const Matrix & rF )
+void ConstitutiveLaw::ConstitutiveMatrixTransformation ( VoigtSizeMatrixType& rConstitutiveMatrix,
+        const VoigtSizeMatrixType& rOriginalConstitutiveMatrix,
+        const DeformationGradientMatrixType & rF )
 {
     unsigned int size = rOriginalConstitutiveMatrix.size1();
     if(  size == 6 )
@@ -1479,8 +1523,8 @@ void ConstitutiveLaw::ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMa
  * This method performs a pull-back or a push-forward between two constitutive tensor components
  */
 double& ConstitutiveLaw::TransformConstitutiveComponent(double & rCabcd,
-        const Matrix & rConstitutiveMatrix,
-        const Matrix & rF,
+        const VoigtSizeMatrixType & rConstitutiveMatrix,
+        const DeformationGradientMatrixType & rF,
         const unsigned int& a, const unsigned int& b,
         const unsigned int& c, const unsigned int& d)
 
@@ -1517,18 +1561,17 @@ double& ConstitutiveLaw::TransformConstitutiveComponent(double & rCabcd,
  * from a consitutive matrix supplied in voigt notation
  */
 double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
-        const Matrix& rConstitutiveMatrix,
+        const VoigtSizeMatrixType& rConstitutiveMatrix,
         const unsigned int& a, const unsigned int& b,
         const unsigned int& c, const unsigned int& d)
 {
     // matrix indices
-    unsigned int k=0, l= 0;
+    unsigned int k = 0, l = 0;
 
     unsigned int size = rConstitutiveMatrix.size1();
 
     if( size == 3 )
     {
-
         //index k
         for(unsigned int i=0; i<3; i++)
         {
@@ -1572,7 +1615,6 @@ double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
                 }
             }
         }
-
 
     }
     else if( size == 4 )

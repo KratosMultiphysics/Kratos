@@ -637,14 +637,21 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    virtual bool Has(const Variable<Vector>& rThisVariable);
+    virtual bool Has(const Variable<VoigtSizeVectorType>& rThisVariable);
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    virtual bool Has(const Variable<Matrix>& rThisVariable);
+    virtual bool Has(const Variable<VoigtSizeMatrixType>& rThisVariable);
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    virtual bool Has(const Variable<DeformationGradientMatrixType>& rThisVariable);
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (array of 3 components)
@@ -692,14 +699,21 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
+    virtual VoigtSizeVectorType& GetValue(const Variable<VoigtSizeVectorType>& rThisVariable, Vector& rValue);
 
     /**
      * @brief Returns the value of a specified variable (Matrix)
      * @param rThisVariable the variable to be returned
      * @return rValue output: the value of the specified variable
      */
-    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
+    virtual VoigtSizeMatrixType& GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, Matrix& rValue);
+
+    /**
+     * @brief Returns the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @return rValue output: the value of the specified variable
+     */
+    virtual DeformationGradientMatrixType& GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, Matrix& rValue);
 
     /**
      * @brief Returns the value of a specified variable (array of 3 components)
@@ -750,23 +764,33 @@ public:
                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief Sets the value of a specified variable (Vector)
+     * @brief Sets the value of a specified variable (VoigtSizeVectorType)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue(const Variable<Vector >& rVariable,
-                          const Vector& rValue,
+    virtual void SetValue(const Variable<VoigtSizeVectorType >& rVariable,
+                          const VoigtSizeVectorType& rValue,
               const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * @brief Sets the value of a specified variable (Matrix)
+     * @brief Sets the value of a specified variable (VoigtSizeMatrixType)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue(const Variable<Matrix >& rVariable,
-                          const Matrix& rValue,
+    virtual void SetValue(const Variable<VoigtSizeMatrixType >& rVariable,
+                          const VoigtSizeMatrixType& rValue,
+              const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Sets the value of a specified variable (VoigtSizeMatrixType)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(const Variable<DeformationGradientMatrixType >& rVariable,
+                          const DeformationGradientMatrixType& rValue,
               const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -823,7 +847,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue);
+    virtual VoigtSizeVectorType& CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeVectorType>& rThisVariable, VoigtSizeVectorType& rValue);
 
     /**
      * @brief Calculates the value of a specified variable (Matrix)
@@ -832,7 +856,16 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue);
+    virtual VoigtSizeMatrixType& CalculateValue(Parameters& rParameterValues, const Variable<VoigtSizeMatrixType>& rThisVariable, VoigtSizeMatrixType& rValue);
+
+    /**
+     * @brief Calculates the value of a specified variable (Matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual DeformationGradientMatrixType& CalculateValue(Parameters& rParameterValues, const Variable<DeformationGradientMatrixType>& rThisVariable, DeformationGradientMatrixType& rValue);
 
     /**
      * @brief Calculates the value of a specified variable (array of 3 components)
@@ -841,8 +874,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 3 > >& rVariable,
-                          array_1d<double, 3 > & rValue);
+    virtual array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & rValue);
 
     /**
      * returns the value of a specified variable (array of 6 components)
@@ -850,8 +882,7 @@ public:
      * @param rValue a reference to the returned value
      * @return the value of the specified variable
      */
-    virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
-                          array_1d<double, 6 > & rValue);
+    virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable, array_1d<double, 6 > & rValue);
 
     /**
      * @brief Calculates derivatives of a given function
@@ -917,9 +948,9 @@ public:
      */
     virtual void CalculateDerivative(
         Parameters& rParameterValues,
-        const Variable<Vector>& rFunctionVariable,
+        const Variable<VoigtSizeVectorType>& rFunctionVariable,
         const Variable<double>& rDerivativeVariable,
-        Vector& rOutput);
+        VoigtSizeVectorType& rOutput);
 
     /**
      * @brief Calculates derivatives of a given function
@@ -937,9 +968,29 @@ public:
      */
     virtual void CalculateDerivative(
         Parameters& rParameterValues,
-        const Variable<Matrix>& rFunctionVariable,
+        const Variable<VoigtSizeMatrixType>& rFunctionVariable,
         const Variable<double>& rDerivativeVariable,
-        Matrix& rOutput);
+        VoigtSizeMatrixType& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Matrix function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<DeformationGradientMatrixType>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        DeformationGradientMatrixType& rOutput);
 
     /**
      * @brief Calculates derivatives of a given function
@@ -962,7 +1013,7 @@ public:
         array_1d<double, 3>& rOutput);
 
 
-     /**
+    /**
       * Is called to check whether the provided material parameters in the Properties
       * match the requirements of current constitutive model.
       * @param rMaterialProperties the current Properties to be validated against.
@@ -1219,8 +1270,8 @@ public:
      * @param rStrainInitial the measure of stress of the given  rStrainVector
      * @param rStrainFinal the measure of stress of the returned rStrainVector
      */
-    virtual Vector& TransformStrains (Vector& rStrainVector,
-                     const Matrix &rF,
+    virtual VoigtSizeVectorType& TransformStrains (VoigtSizeVectorType& rStrainVector,
+                     const DeformationGradientMatrixType &rF,
                      StrainMeasure rStrainInitial,
                      StrainMeasure rStrainFinal);
 
@@ -1232,8 +1283,8 @@ public:
      * @param rStressInitial the measure of stress of the given  rStressMatrix
      * @param rStressFinal the measure of stress of the returned rStressMatrix
      */
-    virtual Matrix& TransformStresses (Matrix& rStressMatrix,
-                       const Matrix &rF,
+    virtual DeformationGradientMatrixType& TransformStresses (DeformationGradientMatrixType& rStressMatrix,
+                       const DeformationGradientMatrixType &rF,
                        const double &rdetF,
                        StressMeasure rStressInitial,
                        StressMeasure rStressFinal);
@@ -1247,8 +1298,8 @@ public:
      * @param rStressInitial the measure of stress of the given  rStressVector
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
-    virtual Vector& TransformStresses (Vector& rStressVector,
-                       const Matrix &rF,
+    virtual VoigtSizeVectorType& TransformStresses (VoigtSizeVectorType& rStressVector,
+                       const DeformationGradientMatrixType &rF,
                        const double &rdetF,
                        StressMeasure rStressInitial,
                        StressMeasure rStressFinal);
@@ -1262,8 +1313,8 @@ public:
      * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
-    Vector& TransformPK1Stresses (Vector& rStressVector,
-                  const Matrix &rF,
+    VoigtSizeVectorType& TransformPK1Stresses (VoigtSizeVectorType& rStressVector,
+                  const DeformationGradientMatrixType &rF,
                   const double &rdetF,
                   StressMeasure rStressFinal);
 
@@ -1274,8 +1325,8 @@ public:
      * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
-    Vector& TransformPK2Stresses (Vector& rStressVector,
-                  const Matrix &rF,
+    VoigtSizeVectorType& TransformPK2Stresses (VoigtSizeVectorType& rStressVector,
+                  const DeformationGradientMatrixType &rF,
                   const double &rdetF,
                   StressMeasure rStressFinal);
 
@@ -1286,8 +1337,8 @@ public:
      * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
-    Vector& TransformKirchhoffStresses (Vector& rStressVector,
-                    const Matrix &rF,
+    VoigtSizeVectorType& TransformKirchhoffStresses (VoigtSizeVectorType& rStressVector,
+                    const DeformationGradientMatrixType &rF,
                     const double &rdetF,
                     StressMeasure rStressFinal);
 
@@ -1298,8 +1349,8 @@ public:
      * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
-    Vector& TransformCauchyStresses (Vector& rStressVector,
-                     const Matrix &rF,
+    VoigtSizeVectorType& TransformCauchyStresses (VoigtSizeVectorType& rStressVector,
+                     const DeformationGradientMatrixType &rF,
                      const double &rdetF,
                      StressMeasure rStressFinal);
 
@@ -1314,15 +1365,15 @@ public:
     /**
      * This method performs a pull-back of the constitutive matrix
      */
-    void PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
-                      const Matrix & rF );
+    void PullBackConstitutiveMatrix ( VoigtSizeMatrixType& rConstitutiveMatrix,
+                      const DeformationGradientMatrixType & rF );
 
 
     /**
      * This method performs a push-forward of the constitutive matrix
      */
-    void PushForwardConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
-                     const Matrix & rF );
+    void PushForwardConstitutiveMatrix ( VoigtSizeMatrixType& rConstitutiveMatrix,
+                     const DeformationGradientMatrixType & rF );
 
 
     /**
@@ -1346,12 +1397,10 @@ public:
                       const ProcessInfo& rCurrentProcessInfo);
 
 
-    // VM
-
-    virtual void CalculateCauchyStresses(Vector& Cauchy_StressVector,
-                                         const Matrix& F,
-                                         const Vector& PK2_StressVector,
-                                         const Vector& GreenLagrangeStrainVector);
+    virtual void CalculateCauchyStresses(VoigtSizeVectorType& rCauchyStressVector,
+                                         const DeformationGradientMatrixType& rF,
+                                         const VoigtSizeVectorType& rPK2StressVector,
+                                         const VoigtSizeVectorType& rGreenLagrangeStrainVector);
 
 
     /**
@@ -1427,31 +1476,31 @@ protected:
      * This method performs a contra-variant push-forward between to tensors
      * i.e. 2nd PK stress to Kirchhoff stress
      */
-    void ContraVariantPushForward( Matrix& rMatrix,
-                   const Matrix& rF );
+    void ContraVariantPushForward( DeformationGradientMatrixType& rMatrix,
+                   const DeformationGradientMatrixType& rF );
 
     /**
      * This method performs a contra-variant pull-back between to tensors
      * i.e. Kirchhoff stress to 2nd PK stress
      */
-    void ContraVariantPullBack( Matrix& rMatrix,
-                const Matrix& rF );
+    void ContraVariantPullBack( DeformationGradientMatrixType& rMatrix,
+                const DeformationGradientMatrixType& rF );
 
 
     /**
      * This method performs a co-variant push-forward between to tensors
      * i.e. Green-Lagrange strain to Almansi strain
      */
-    void CoVariantPushForward( Matrix& rMatrix,
-                   const Matrix& rF );
+    void CoVariantPushForward( DeformationGradientMatrixType& rMatrix,
+                   const DeformationGradientMatrixType& rF );
 
 
     /**
      * This method performs a co-variant pull-back between to tensors
      * i.e. Almansi strain to Green-Lagrange strain
      */
-    void CoVariantPullBack( Matrix& rMatrix,
-                const Matrix& rF );
+    void CoVariantPullBack( DeformationGradientMatrixType& rMatrix,
+                const DeformationGradientMatrixType& rF );
 
 
     /**
@@ -1459,15 +1508,15 @@ protected:
      */
     void ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
                         const Matrix& rOriginalConstitutiveMatrix,
-                        const Matrix & rF );
+                        const DeformationGradientMatrixType & rF );
 
 
     /**
      * This method performs a pull-back or a push-forward between two constitutive tensor components
      */
     double& TransformConstitutiveComponent(double & rCabcd,
-                       const Matrix & rConstitutiveMatrix,
-                       const Matrix & rF,
+                       const VoigtSizeMatrixType & rConstitutiveMatrix,
+                       const DeformationGradientMatrixType & rF,
                        const unsigned int& a, const unsigned int& b,
                        const unsigned int& c, const unsigned int& d);
 
@@ -1476,7 +1525,7 @@ protected:
      * from a consitutive matrix supplied in voigt notation
      */
     double& GetConstitutiveComponent(double & rCabcd,
-                     const Matrix& rConstitutiveMatrix,
+                     const VoigtSizeMatrixType& rConstitutiveMatrix,
                      const unsigned int& a, const unsigned int& b,
                      const unsigned int& c, const unsigned int& d);
 
