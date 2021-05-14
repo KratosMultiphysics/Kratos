@@ -857,16 +857,17 @@ namespace Kratos
 
                     // Get neighbour elements in a single vector without repetitions.
                     std::unordered_set<Element::WeakPointer, SharedPointerHasher<Element::WeakPointer>, SharedPointerComparator<Element::WeakPointer>> all_neighbour_set;
-                    for(auto& neigh : rEdgeContainer[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
-                        all_neighbour_set.insert(neigh);
+                    const auto& r_edge_containter_0  = rEdgeContainer[i_edge][0].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
+                    for(const auto p_neigh : r_edge_containter_0) {
+                        all_neighbour_set.insert(p_neigh);
                     }
-
-                    for(auto& neigh : rEdgeContainer[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
-                        all_neighbour_set.insert(neigh);
+                    const auto& r_edge_containter_1  = rEdgeContainer[i_edge][1].GetValue(NEIGHBOUR_ELEMENTS).GetContainer();
+                    for(const auto p_neigh : r_edge_containter_1) {
+                        all_neighbour_set.insert(p_neigh);
                     }
 
                     bool is_edge_cut = false;
-                    for (auto& g_ptr_neigh : all_neighbour_set) {
+                    for (const auto g_ptr_neigh : all_neighbour_set) {
                         if (!is_edge_cut) {
                             auto cut_edges = get_neighbour_cut_edges.Get(g_ptr_neigh);
                             for (auto cut_edge: cut_edges) {
@@ -917,23 +918,23 @@ namespace Kratos
         KRATOS_TRY;
 
 
-        auto &r_comm = mrVolumePart.GetCommunicator().GetDataCommunicator();
+        const auto &r_comm = mrVolumePart.GetCommunicator().GetDataCommunicator();
 
         std::vector<int> elem_indices;
         elem_indices.reserve(mrVolumePart.NumberOfElements());
-        for (auto& r_elem : mrVolumePart.Elements()) {
+        for (const auto& r_elem : mrVolumePart.Elements()) {
             elem_indices.push_back(r_elem.Id());
         }
 
-        auto g_ptr_elem_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mrVolumePart.Elements(), elem_indices, r_comm);
+        const auto g_ptr_elem_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mrVolumePart.Elements(), elem_indices, r_comm);
 
         GlobalPointersVector<Element> g_ptr_elem_list;
-        for(auto& item: g_ptr_elem_map) {
-            g_ptr_elem_list.push_back(item.second);
+        for(auto& r_item: g_ptr_elem_map) {
+            g_ptr_elem_list.push_back(r_item.second);
         }
 
         for (auto& r_node : mrVolumePart.Nodes()) {
-            for (auto& g_ptr : r_node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
+            for (const auto g_ptr : r_node.GetValue(NEIGHBOUR_ELEMENTS).GetContainer()) {
                 g_ptr_elem_list.push_back(g_ptr);
             }
         }
