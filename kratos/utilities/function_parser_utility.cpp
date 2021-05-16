@@ -63,7 +63,10 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(BasicGenericFunctionUti
 
 BasicGenericFunctionUtility::~BasicGenericFunctionUtility()
 {
-    te_free(mpTinyExpr);
+    for (std::size_t i = 0; i < mpTinyExpr.size(); ++i) {
+        te_free(mpTinyExpr[i]);
+        mpTinyExpr[i] =  nullptr;
+    }
 }
 
 /***********************************************************************************/
@@ -116,7 +119,16 @@ double BasicGenericFunctionUtility::CallFunction(
     mValues[5] = Y;
     mValues[6] = Z;
 
-    return te_eval(mpTinyExpr);
+    // Default function
+    if (mpTinyExpr.size() == 1) {
+      return te_eval(mpTinyExpr[0]);
+    } else { // Ternary expression
+      if (te_eval(mpTinyExpr[0])) {
+          return te_eval(mpTinyExpr[1]);
+      } else {
+          return te_eval(mpTinyExpr[2]);
+      }
+    }
 }
 
 /***********************************************************************************/
@@ -125,7 +137,7 @@ double BasicGenericFunctionUtility::CallFunction(
 void BasicGenericFunctionUtility::InitializeParser()
 {
     // Initialize
-    if (mpTinyExpr == nullptr) {
+    if (mpTinyExpr[0] == nullptr) {
         int err;
 
         /* Defining table */
@@ -141,8 +153,24 @@ void BasicGenericFunctionUtility::InitializeParser()
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
         /* Compile the expression with variables. */
-        mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
-        KRATOS_ERROR_IF_NOT(mpTinyExpr) << "Parsing error in function: " << mFunctionBody << std::endl;
+        if (!StringUtilities::ContainsPartialString(mFunctionBody, "?")) {
+            mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << mFunctionBody << std::endl;
+        } else { // Ternary operator
+            mpTinyExpr.resize(3, nullptr);
+            std::vector<std::string> splitted_string = StringUtilities::SplitStringByDelimiter(mFunctionBody, '?');
+            const std::string condition = splitted_string[0];
+            splitted_string = StringUtilities::SplitStringByDelimiter(splitted_string[1], ':');
+
+            mpTinyExpr[0] = te_compile(condition.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << condition << std::endl;
+
+            mpTinyExpr[1] = te_compile(splitted_string[0].c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << splitted_string[0] << std::endl;
+
+            mpTinyExpr[2] = te_compile(splitted_string[1].c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << splitted_string[1] << std::endl;
+        }
     }
 }
 
