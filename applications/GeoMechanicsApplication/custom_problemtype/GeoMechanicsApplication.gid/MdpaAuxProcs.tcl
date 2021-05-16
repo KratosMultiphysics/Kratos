@@ -1515,6 +1515,8 @@ proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
                     }
                 }
             } else {
+                # Elements
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
                     puts $MyFileVar "    [lindex $Entities $j]"
                 }
