@@ -89,26 +89,20 @@ namespace Kratos
         }
 
         // Set the auxiliary arrays for the L2-norm problem minimization
-        Matrix Bg(3, n_points);
-        Matrix DBg_Dx(3, n_points);
-        Matrix DBg_Dy(3, n_points);
         std::vector<array_1d<double,3>> B_vect(n_points);
+        std::vector<array_1d<double,3>> DB_Dx_vect(n_points);
+        std::vector<array_1d<double,3>> DB_Dy_vect(n_points);
 
         BoundedMatrix<double,3,3> M = ZeroMatrix(3,3);
         BoundedMatrix<double,3,3> DM_Dx = ZeroMatrix(3,3);
         BoundedMatrix<double,3,3> DM_Dy = ZeroMatrix(3,3);
 
-        // Set the polynomial basis values at the point of interest
-        array_1d<double,3> p0;
-        p0[0] = 1;
-        p0[1] = rX[0];
-        p0[2] = rX[1];
-
+        // Evaluate the L2-norm minimization problem
         array_1d<double,2> w;
         array_1d<double,3> p;
         array_1d<double,3> rad_vect;
         BoundedMatrix<double,3,3> p_outer_mat;
-        for (unsigned int i_pt = 0; i_pt < n_points; ++i_pt) {
+        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
             const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
             noalias(rad_vect) = rX - r_i_pt_coords;
@@ -117,7 +111,7 @@ namespace Kratos
             const double kernel = MLSShapeFunctionsUtility::CalculateKernel(rad_vect, h);
             MLSShapeFunctionsUtility::CalculateKernelDerivative<2>(rad_vect, h, w);
 
-            // Set current point basis
+            // Evaluate the current point basis
             p[0] = 1.0;
             p[1] = r_i_pt_coords[0];
             p[2] = r_i_pt_coords[1];
@@ -126,59 +120,51 @@ namespace Kratos
             // Add shape functions data
             noalias(M) += kernel*p_outer_mat;
             B_vect[i_pt] = kernel * p;
-            //TODO: REMOVE THIS --> ARRANGE THE GRADIENTS FIRST
-            Bg(0,i_pt) = kernel*p[0];
-            Bg(1,i_pt) = kernel*p[1];
-            Bg(2,i_pt) = kernel*p[2];
 
             // Add shape functions gradients data
             noalias(DM_Dx) += w[0]*p_outer_mat;
             noalias(DM_Dy) += w[1]*p_outer_mat;
-
-            DBg_Dx(0,i_pt) = w[0]*p[0];
-            DBg_Dx(1,i_pt) = w[0]*p[1];
-            DBg_Dx(2,i_pt) = w[0]*p[2];
-
-            DBg_Dy(0,i_pt) = w[1]*p[0];
-            DBg_Dy(1,i_pt) = w[1]*p[1];
-            DBg_Dy(2,i_pt) = w[1]*p[2];
+            DB_Dx_vect[i_pt] = w[0]*p;
+            DB_Dy_vect[i_pt] = w[1]*p;
         }
 
         // Least-Squares problem resolution
-        double det_M;
-        BoundedMatrix<double,3,3> Inverted_M;
-        MathUtils<double>::InvertMatrix(M, Inverted_M, det_M);
+        double M_det;
+        BoundedMatrix<double,3,3> M_inv;
+        MathUtils<double>::InvertMatrix(M, M_inv, M_det);
 
-        //MLS shape function
-        // rN = prod( p0, prod(Inverted_M , Bg));
-        array_1d<double,3> aux_prod;
-        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            aux_prod = prod(Inverted_M, B_vect[i_pt]);
-            rN[i_pt] = inner_prod(p0, aux_prod);
-        }
+        // Set the polynomial basis values at the point of interest
+        array_1d<double,3> p0;
+        p0[0] = 1;
+        p0[1] = rX[0];
+        p0[2] = rX[1];
 
-        //// first derivative of MLS shape function
+        // Set the polynomial basis x-derivative values at the point of interest
         array_1d<double,3> Dp0_Dx;
-        array_1d<double,3> Dp0_Dy;
-
-        /// only for 2d
         Dp0_Dx[0] = 0;
         Dp0_Dx[1] = 1;
         Dp0_Dx[2] = 0;
 
+        // Set the polynomial basis y-derivative values at the point of interest
+        array_1d<double,3> Dp0_Dy;
         Dp0_Dy[0] = 0;
         Dp0_Dy[1] = 0;
         Dp0_Dy[2] = 1;
 
-        const array_1d<double,3> Alpha = prod( Inverted_M, p0 );
-        const array_1d<double,3> DAlpha_Dx = prod(Dp0_Dx, Inverted_M) - prod(Alpha, prod(DM_Dx, Inverted_M));
-        const array_1d<double,3> DAlpha_Dy = prod(Dp0_Dy, Inverted_M) - prod(Alpha, prod(DM_Dy, Inverted_M));
-        const Vector DN_Dxg = prod(trans(DBg_Dx), Alpha)  + prod(trans(Bg), DAlpha_Dx);
-        const Vector DN_Dyg = prod(trans(DBg_Dy), Alpha)  + prod(trans(Bg), DAlpha_Dy);
+        // MLS shape function
+        array_1d<double,3> aux_prod;
+        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
+            aux_prod = prod(M_inv, B_vect[i_pt]);
+            rN[i_pt] = inner_prod(p0, aux_prod);
+        }
 
+        // MLS shape function gradients
+        const array_1d<double,3> alpha = prod(M_inv, p0);
+        const array_1d<double,3> Dalpha_Dx = prod(Dp0_Dx - Vector(prod(alpha,DM_Dx)), M_inv);
+        const array_1d<double,3> Dalpha_Dy = prod(Dp0_Dy - Vector(prod(alpha,DM_Dy)), M_inv);
         for(std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            rDNDX(i_pt,0) = DN_Dxg(i_pt);
-            rDNDX(i_pt,1) = DN_Dyg(i_pt);
+            rDNDX(i_pt,0) = inner_prod(DB_Dx_vect[i_pt], alpha)  + inner_prod(B_vect[i_pt], Dalpha_Dx);
+            rDNDX(i_pt,1) = inner_prod(DB_Dy_vect[i_pt], alpha)  + inner_prod(B_vect[i_pt], Dalpha_Dy);
         }
 
         KRATOS_CATCH("");
