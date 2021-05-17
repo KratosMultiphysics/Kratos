@@ -695,3 +695,6 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
     KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 
     PrintTestElementInfo(model_part);
+}
+} // namespace Testing
+} // namespace Kratos
