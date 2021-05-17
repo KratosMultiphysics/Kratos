@@ -19,15 +19,23 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/iga_membrane_element.h"
+#include "custom_elements/truss_embedded_edge_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
+#include "custom_elements/shell_5p_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
-#include "custom_conditions/penalty_coupling_condition.h"
+#include "custom_conditions/load_moment_director_5p_condition.h"
+#include "custom_conditions/coupling_penalty_condition.h"
+#include "custom_conditions/coupling_lagrange_condition.h"
+#include "custom_conditions/support_penalty_condition.h"
+#include "custom_conditions/support_lagrange_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
+#include "custom_modelers/nurbs_geometry_modeler.h"
 
 namespace Kratos {
 
@@ -102,15 +110,23 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
+    const IgaMembraneElement mIgaMembraneElement;
+    const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
+    const Shell5pElement mShell5pElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
     const LoadCondition mLoadCondition;
-    const PenaltyCouplingCondition mPenaltyCouplingCondition;
+    const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
+    const CouplingPenaltyCondition mCouplingPenaltyCondition;
+    const CouplingLagrangeCondition mCouplingLagrangeCondition;
+    const SupportPenaltyCondition mSupportPenaltyCondition;
+    const SupportLagrangeCondition mSupportLagrangeCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
+    const NurbsGeometryModeler mNurbsGeometryModeler;
 
     ///@}
     ///@name Private methods

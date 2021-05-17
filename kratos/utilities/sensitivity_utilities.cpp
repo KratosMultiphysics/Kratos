@@ -181,48 +181,62 @@ void SensitivityUtilities::AssignEntityDerivativesToNodes(
 
     auto& entity_container = GetContainer<TContainerType>(rModelPart);
 
+    auto& r_nodes = rModelPart.Nodes();
+
+    int value_dimension = 0;
     if (entity_container.size() != 0) {
-        auto& r_nodes = rModelPart.Nodes();
+        value_dimension = entity_container.begin()->GetValue(rDerivativeVariable).size2();
+    }
 
-        const int value_dimension =
-            entity_container.begin()->GetValue(rDerivativeVariable).size2();
+    value_dimension = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(value_dimension);
 
-        KRATOS_ERROR_IF(value_dimension == 0)
-            << "Column dimension (representing dimensionality of the value "
-               "where derivatives are calculated) of the matrix values are "
-               "zero in "
-            << rModelPart.Name() << ". Please assign proper matrix values for "
-            << rDerivativeVariable.Name() << ".";
+    VariableUtils().SetFlag(VISITED, false, r_nodes);
 
-        VariableUtils().SetFlag(VISITED, false, r_nodes);
+    // identify nodes where neighbours are required
+    int number_of_visited_nodes = block_for_each<SumReduction<int>>(entity_container, [&](typename TContainerType::value_type& rEntity) {
+        if (rEntity.Is(rFlag) == CheckValue) {
+            KRATOS_ERROR_IF(!rEntity.Has(rDerivativeVariable))
+                << rDerivativeVariable.Name() << " not found in data value container of "
+                << rEntity.Info() << ".";
 
-        // identify nodes where neighbours are required
-        block_for_each(entity_container, [&](typename TContainerType::value_type& rEntity) {
-            if (rEntity.Is(rFlag) == CheckValue) {
-                KRATOS_ERROR_IF(!rEntity.Has(rDerivativeVariable))
-                    << rDerivativeVariable.Name() << " not found in data value container of "
-                    << rEntity.Info() << ".";
+            const Matrix& r_value = rEntity.GetValue(rDerivativeVariable);
 
-                const Matrix& r_value = rEntity.GetValue(rDerivativeVariable);
+            KRATOS_ERROR_IF(value_dimension != static_cast<int>(r_value.size2()))
+                << rDerivativeVariable.Name()
+                << " matrix value second dimension is not consistent at "
+                << rEntity.Info() << " [ required dimension size: " << value_dimension
+                << ", obtained matrix: " << r_value << " ].\n";
 
-                KRATOS_ERROR_IF(value_dimension != static_cast<int>(r_value.size2()))
-                    << rDerivativeVariable.Name()
-                    << " matrix value second dimension is not consistent at "
-                    << rEntity.Info() << " [ required dimension size: " << value_dimension
-                    << ", obtained matrix: " << r_value << " ].\n";
-
-                auto& r_geometry = rEntity.GetGeometry();
-                for (auto& r_node : r_geometry) {
-                    if (r_node.Is(rFlag) == CheckValue) {
-                        r_node.SetLock();
-                        r_node.Set(VISITED, true);
-                        r_node.UnSetLock();
-                    }
+            auto& r_geometry = rEntity.GetGeometry();
+            int number_of_visited_nodes = 0;
+            for (auto& r_node : r_geometry) {
+                if (r_node.Is(rFlag) == CheckValue) {
+                    r_node.SetLock();
+                    r_node.Set(VISITED, true);
+                    r_node.UnSetLock();
+                    ++number_of_visited_nodes;
                 }
             }
-        });
 
-        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+            return number_of_visited_nodes;
+        }
+
+        return 0;
+    });
+
+    rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+
+    // this is done to identify whether it is required to continue with assigning entity derivatives to nodes
+    // if no nodes are flagged to get the entity derivatives (such as in no-slip case) then this can be avoided by checking this.
+    number_of_visited_nodes = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_visited_nodes);
+
+    if (number_of_visited_nodes > 0) {
+        KRATOS_ERROR_IF(value_dimension == 0)
+            << "Column dimension (representing dimensionality of the value "
+                "where derivatives are calculated) of the matrix values are "
+                "zero in "
+            << rModelPart.Name() << ". Please assign proper matrix values for "
+            << rDerivativeVariable.Name() << ".";
 
         // resizing matrices
         block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
@@ -239,8 +253,8 @@ void SensitivityUtilities::AssignEntityDerivativesToNodes(
                 // nodes and self node. So we reserve space for number_of_neighbour_nodes + 1 nodes
                 // first block always represent self node, rest in the order of rNeighbourNodeIdsMap vector
                 rNode.SetValue(rDerivativeVariable,
-                               Matrix((number_of_neighbour_nodes + 1) * DerivativeDimension,
-                                      value_dimension, 0.0));
+                                Matrix((number_of_neighbour_nodes + 1) * DerivativeDimension,
+                                        value_dimension, 0.0));
             } else {
                 // initializing these unused node matrices are required to do non-historical assembly
                 // otherwise, this method will fail with TContainerType = ModelPart::ConditionsContainerType
@@ -275,10 +289,10 @@ void SensitivityUtilities::AssignEntityDerivativesToNodes(
                             derivative_nodes_map.find(i_base_node)->second;
 
                         for (int i_deriv_node = 0;
-                             i_deriv_node < number_of_nodes; ++i_deriv_node) {
+                                i_deriv_node < number_of_nodes; ++i_deriv_node) {
                             GetMatrixSubBlock(nodal_derivative, r_entity_derivatives,
-                                              i_deriv_node * DerivativeDimension,
-                                              DerivativeDimension, 0, value_dimension);
+                                                i_deriv_node * DerivativeDimension,
+                                                DerivativeDimension, 0, value_dimension);
 
                             r_base_node.SetLock();
                             AddMatrixSubBlock(

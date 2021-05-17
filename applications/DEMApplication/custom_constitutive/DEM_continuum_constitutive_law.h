@@ -81,7 +81,7 @@ namespace Kratos {
                                                double equiv_poisson,
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2) {
+                                               SphericContinuumParticle* element2, double indentation) {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
@@ -145,6 +145,7 @@ namespace Kratos {
                                                double LocalElasticExtraContactForce[3],
                                                double LocalCoordSystem[3][3],
                                                double LocalDeltDisp[3],
+                                               double LocalRelVel[3],
                                                const double kt_el,
                                                const double equiv_shear,
                                                double& contact_sigma,
