@@ -46,13 +46,19 @@ public:
         const double h,
         array_1d<double,TDim>& rKernelDerivative);
 
-    ///A is the area we associate to the point
-    ///N is a vector such that N(j) is the shape function associated to node j
-    ///DN_DX(i,k) is the derivative of the shape function of node i, component k
-    ///coordinates, is a input matrix with the coordinates of all of the points in the cloud, Coordinates(i,k) is the component k of the i-th node in the cloud
-    ///nn, is number of gauss points in the cloud
-    // only 2d now
+    template<std::size_t TDim>
+    static void EvaluateLinearPolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double,TDim+1>& rBasis);
 
+    template<std::size_t TDim>
+    static void CalculateShapeFunctions(
+        const Matrix& rPoints,
+        const array_1d<double,3>& rX,
+        const double h,
+        Vector& rN);
+
+    template<std::size_t TDim>
     static void CalculateShapeFunctionsAndGradients(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,

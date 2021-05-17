@@ -28,7 +28,7 @@ namespace Kratos
 namespace Testing
 {
 
-    void SetPointsCoordinatesMatrix(Matrix& rPointsCoordinates)
+    void SetPointsCoordinatesMatrix2D(Matrix& rPointsCoordinates)
     {
         rPointsCoordinates = ZeroMatrix(4,3);
         rPointsCoordinates(0,0) = -1.0; rPointsCoordinates(0,1) = -1.0;
@@ -37,11 +37,24 @@ namespace Testing
         rPointsCoordinates(3,0) = -1.0; rPointsCoordinates(3,1) = 1.0;
     }
 
+    void SetPointsCoordinatesMatrix3D(Matrix& rPointsCoordinates)
+    {
+        rPointsCoordinates = ZeroMatrix(8,3);
+        rPointsCoordinates(0,0) = -1.0; rPointsCoordinates(0,1) = -1.0; rPointsCoordinates(0,2) = -1.0;
+        rPointsCoordinates(1,0) = 1.0; rPointsCoordinates(1,1) = -1.0; rPointsCoordinates(1,2) = -1.0;
+        rPointsCoordinates(2,0) = 1.0; rPointsCoordinates(2,1) = 1.0; rPointsCoordinates(2,2) = -1.0;
+        rPointsCoordinates(3,0) = -1.0; rPointsCoordinates(3,1) = 1.0; rPointsCoordinates(3,2) = -1.0;
+        rPointsCoordinates(4,0) = -1.0; rPointsCoordinates(4,1) = -1.0; rPointsCoordinates(4,2) = 1.0;
+        rPointsCoordinates(5,0) = 1.0; rPointsCoordinates(5,1) = -1.0; rPointsCoordinates(5,2) = 1.0;
+        rPointsCoordinates(6,0) = 1.0; rPointsCoordinates(6,1) = 1.0; rPointsCoordinates(6,2) = 1.0;
+        rPointsCoordinates(7,0) = -1.0; rPointsCoordinates(7,1) = 1.0; rPointsCoordinates(7,2) = 1.0;
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateKernelCoordinates, KratosCoreFastSuite)
     {
         // Set the points cloud
         Matrix pt_coords;
-        SetPointsCoordinatesMatrix(pt_coords);
+        SetPointsCoordinatesMatrix2D(pt_coords);
 
         // Set the point of interest
         const array_1d<double,3> ref_pt = ZeroVector(3);
@@ -69,7 +82,7 @@ namespace Testing
     {
         // Set the points cloud
         Matrix pt_coords;
-        SetPointsCoordinatesMatrix(pt_coords);
+        SetPointsCoordinatesMatrix2D(pt_coords);
 
         // Set the point of interest
         const array_1d<double,3> ref_pt = ZeroVector(3);
@@ -90,11 +103,37 @@ namespace Testing
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctions2D, KratosCoreFastSuite)
     {
         // Set the points cloud
         Matrix pt_coords;
-        SetPointsCoordinatesMatrix(pt_coords);
+        SetPointsCoordinatesMatrix2D(pt_coords);
+
+        // Set the point of interest
+        const array_1d<double,3> ref_pt = ZeroVector(3);
+
+        // Calculate kernel values
+        const double h = 1.0;
+        Vector N_container;
+        MLSShapeFunctionsUtility::CalculateShapeFunctions<2>(
+            pt_coords,
+            ref_pt,
+            h,
+            N_container);
+
+        // Check results
+        const double tol = 1.0e-12;
+        const std::array<double, 4> expected_N = {0.25,0.25,0.25,0.25};
+        for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
+            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients2D, KratosCoreFastSuite)
+    {
+        // Set the points cloud
+        Matrix pt_coords;
+        SetPointsCoordinatesMatrix2D(pt_coords);
 
         // Set the point of interest
         const array_1d<double,3> ref_pt = ZeroVector(3);
@@ -103,7 +142,7 @@ namespace Testing
         const double h = 1.0;
         Vector N_container;
         Matrix DN_DX_container;
-        MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients(
+        MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>(
             pt_coords,
             ref_pt,
             h,
@@ -121,8 +160,71 @@ namespace Testing
         }
     }
 
-// std::cout << std::setprecision(12) << kernel_der[0] << std::endl;
-// std::cout << std::setprecision(12) << kernel_der[1] << std::endl;
+    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctions3D, KratosCoreFastSuite)
+    {
+        // Set the points cloud
+        Matrix pt_coords;
+        SetPointsCoordinatesMatrix3D(pt_coords);
+
+        // Set the point of interest
+        const array_1d<double,3> ref_pt = ZeroVector(3);
+
+        // Calculate kernel values
+        const double h = 1.0;
+        Vector N_container;
+        MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(
+            pt_coords,
+            ref_pt,
+            h,
+            N_container);
+
+        // Check results
+        const double tol = 1.0e-12;
+        const std::array<double, 8> expected_N = {0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125};
+        for (std::size_t i_pt = 0; i_pt < 8; ++i_pt) {
+            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateShapeFunctionsAndGradients3D, KratosCoreFastSuite)
+    {
+        // Set the points cloud
+        Matrix pt_coords;
+        SetPointsCoordinatesMatrix3D(pt_coords);
+
+        // Set the point of interest
+        const array_1d<double,3> ref_pt = ZeroVector(3);
+
+        // Calculate kernel values
+        const double h = 1.0;
+        Vector N_container;
+        Matrix DN_DX_container;
+        MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>(
+            pt_coords,
+            ref_pt,
+            h,
+            N_container,
+            DN_DX_container);
+
+        // Check results
+        const double tol = 1.0e-12;
+        const std::array<double, 8> expected_N = {0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125};
+        const std::array<double, 24> expected_DN_DX = {
+            -0.125, -0.125, -0.125,
+            0.125, -0.125, -0.125,
+            0.125, 0.125, -0.125,
+            -0.125,0.125, -0.125,
+            -0.125, -0.125, 0.125,
+            0.125, -0.125, 0.125,
+            0.125, 0.125, 0.125,
+            -0.125,0.125, 0.125};
+        for (std::size_t i_pt = 0; i_pt < 8; ++i_pt) {
+            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[3*i_pt], tol);
+            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[3*i_pt+1], tol);
+            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 2), expected_DN_DX[3*i_pt+2], tol);
+        }
+    }
 
 } // namespace Testing
 }  // namespace Kratos.
