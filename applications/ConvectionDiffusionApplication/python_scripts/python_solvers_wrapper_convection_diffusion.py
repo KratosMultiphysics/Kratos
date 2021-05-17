@@ -36,6 +36,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Steady solver
         elif (solver_type == "stationary" or solver_type == "Stationary"):
             solver_module_name = "convection_diffusion_stationary_solver"
+        # Steady Shifted Boundary Method (SBM) solver
+        elif solver_type == "stationary_shifted_boundary":
+            solver_module_name = "convection_diffusion_stationary_shifted_boundary_solver"
         # Coupled CFD-thermal solvers (volume coupling by Boussinesq approximation)
         elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
             solver_module_name = "coupled_fluid_thermal_solver"
