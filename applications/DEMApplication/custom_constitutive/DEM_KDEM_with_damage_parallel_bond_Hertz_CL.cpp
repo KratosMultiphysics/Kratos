@@ -116,6 +116,12 @@ namespace Kratos {
         ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] + mBondedViscoDampingLocalContactForce[1];
         ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
 
+        double unbonded_normal_contact_force = mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2];
+
+        if (unbonded_normal_contact_force < 0.0) {
+            mUnbondedViscoDampingLocalContactForce[2] = -1.0 * mUnbondedLocalElasticContactForce2;
+            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
+        }
 
         #ifdef KRATOS_DEBUG
             DemDebugFunctions::CheckIfNan(mUnbondedViscoDampingLocalContactForce, "NAN in Viscous Force in CalculateViscoDamping");
