@@ -21,13 +21,8 @@
 // External includes
 
 // Project includes
-#include "includes/node.h"
-#include "includes/variables.h"
-#include "geometries/point_3d.h"
-#include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h"
-
-#define PI 3.14159265
+#include "containers/array_1d.h"
+#include "includes/define.h"
 
 namespace Kratos
 {
@@ -41,14 +36,13 @@ class MLSShapeFunctionsUtility
 
 public:
 
-    static void CalculateKernel(
+    static double CalculateKernel(
         const array_1d<double,3>& rRadVect,
-        const double h,
-        double& rKernel);
+        const double h);
 
     template<std::size_t TDim>
     static void CalculateKernelDerivative(
-        const array_1d<double,TDim>& rRadVect,
+        const array_1d<double,3>& rRadVect,
         const double h,
         array_1d<double,TDim>& rKernelDerivative);
 
@@ -59,12 +53,12 @@ public:
     ///nn, is number of gauss points in the cloud
     // only 2d now
 
-    static void ComputeMLSKernel(
-        Vector& Ng,
-        Matrix& DN_DX,
-        const Matrix& Coordinates,
-        const array_1d<double,3>& x_size3,
-        const double& h);
+    static void CalculateShapeFunctionsAndGradients(
+        const Matrix& rPoints,
+        const array_1d<double,3>& rX,
+        const double h,
+        Vector& rN,
+        Matrix& rDNDX);
 };
 
 }  // namespace Kratos.
