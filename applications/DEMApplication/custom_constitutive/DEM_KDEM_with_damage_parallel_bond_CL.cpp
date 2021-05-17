@@ -175,15 +175,67 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if ((indentation > 0) || (failure_id == 0)) {
-            ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-            ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
+        mUnbondedViscoDampingLocalContactForce[0] = 0.0;
+        mUnbondedViscoDampingLocalContactForce[1] = 0.0;
+        mUnbondedViscoDampingLocalContactForce[2] = 0.0;
+        mBondedViscoDampingLocalContactForce[0] = 0.0;
+        mBondedViscoDampingLocalContactForce[1] = 0.0;
+        mBondedViscoDampingLocalContactForce[2] = 0.0;
+
+        if (indentation > 0) {
+            mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
+            mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
+            mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
         }
 
-        mUnbondedViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[0];
-        mUnbondedViscoDampingLocalContactForce[1] = ViscoDampingLocalContactForce[1];
-        mUnbondedViscoDampingLocalContactForce[2] = ViscoDampingLocalContactForce[2];
+        if (!failure_id) { // Adding bonded and unbonded parts
+            mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+            mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+            mBondedViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
+        }
+
+        ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] + mBondedViscoDampingLocalContactForce[0];
+        ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] + mBondedViscoDampingLocalContactForce[1];
+        ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
+
+        double unbonded_normal_contact_force = mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2];
+
+        if (unbonded_normal_contact_force < 0.0) {
+            mUnbondedViscoDampingLocalContactForce[2] = -1.0 * mUnbondedLocalElasticContactForce2;
+            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
+        }
+
+        #ifdef KRATOS_DEBUG
+            DemDebugFunctions::CheckIfNan(mUnbondedViscoDampingLocalContactForce, "NAN in Viscous Force in CalculateViscoDamping");
+            DemDebugFunctions::CheckIfNan(ViscoDampingLocalContactForce, "NAN in Viscous Force in CalculateViscoDamping");
+        #endif
+
+        KRATOS_CATCH("")
+    }
+
+    void DEM_KDEM_with_damage_parallel_bond::CalculateViscoDampingCoeff(double& equiv_visco_damp_coeff_normal,
+                                              double& equiv_visco_damp_coeff_tangential,
+                                              SphericContinuumParticle* element1,
+                                              SphericContinuumParticle* element2,
+                                              const double kn_el,
+                                              const double kt_el) {
+
+        KRATOS_TRY
+
+        const double my_mass    = element1->GetMass();
+        const double other_mass = element2->GetMass();
+
+        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
+
+        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
+        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
+        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+
+        equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
+        equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);
+
+        mUnbondedEquivViscoDampCoeffNormal = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);
+        mUnbondedEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedTangentialElasticConstant);
 
         KRATOS_CATCH("")
     }
