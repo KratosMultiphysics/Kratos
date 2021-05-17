@@ -94,12 +94,12 @@ namespace Kratos
         // Set the auxiliary arrays for the L2-norm problem minimization
         static constexpr std::size_t BaseSize = TDim + 1;
         std::vector<array_1d<double,BaseSize>> B_vect(n_points);
-        BoundedMatrix<double,BaseSize,BaseSize> M = ZeroMatrix(3,3);
+        BoundedMatrix<double,BaseSize,BaseSize> M = ZeroMatrix(BaseSize,BaseSize);
 
         // Evaluate the L2-norm minimization problem
         array_1d<double,BaseSize> p;
         array_1d<double,3> rad_vect;
-        BoundedMatrix<double,3,3> p_outer_mat;
+        BoundedMatrix<double,BaseSize,BaseSize> p_outer_mat;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
             const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
@@ -338,10 +338,10 @@ namespace Kratos
         }
 
         // MLS shape function gradients
-        const array_1d<double,3> alpha = prod(M_inv, p0);
-        const array_1d<double,3> Dalpha_Dx = prod(Dp0_Dx - Vector(prod(alpha,DM_Dx)), M_inv);
-        const array_1d<double,3> Dalpha_Dy = prod(Dp0_Dy - Vector(prod(alpha,DM_Dy)), M_inv);
-        const array_1d<double,3> Dalpha_Dz = prod(Dp0_Dz - Vector(prod(alpha,DM_Dz)), M_inv);
+        const array_1d<double,4> alpha = prod(M_inv, p0);
+        const array_1d<double,4> Dalpha_Dx = prod(Dp0_Dx - Vector(prod(alpha,DM_Dx)), M_inv);
+        const array_1d<double,4> Dalpha_Dy = prod(Dp0_Dy - Vector(prod(alpha,DM_Dy)), M_inv);
+        const array_1d<double,4> Dalpha_Dz = prod(Dp0_Dz - Vector(prod(alpha,DM_Dz)), M_inv);
         for(std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             rDNDX(i_pt,0) = inner_prod(DB_Dx_vect[i_pt], alpha)  + inner_prod(B_vect[i_pt], Dalpha_Dx);
             rDNDX(i_pt,1) = inner_prod(DB_Dy_vect[i_pt], alpha)  + inner_prod(B_vect[i_pt], Dalpha_Dy);
