@@ -44,7 +44,7 @@
                 "inlet_potential": 1.0,
                 "critical_mach": 0.90,
                 "upwind_factor_constant": 1.0,
-                "mach_number_limit":1.73205080756887729353,
+                "mach_number_squared_limit":3.0,
                 "initialize_flow_field": false,
                 "perturbation_field": true
             }
