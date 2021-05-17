@@ -26,7 +26,7 @@ def PostProcess(model_part, output_name):
     gid_output.ExecuteFinalizeSolutionStep()
     gid_output.ExecuteFinalize()
 
-class TestMLSShapeFunctionsUtilities(KratosUnittest.TestCase):
+class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
 
     def setUp(self):
         # Create the test model part
