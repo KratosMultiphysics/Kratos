@@ -51,15 +51,6 @@ namespace Kratos {
         mUnbondedNormalElasticConstant = 2.0 * unbonded_equivalent_young * sqrt_equiv_radius_and_indentation;
         mUnbondedTangentialElasticConstant = 4.0 * unbonded_equivalent_shear * mUnbondedNormalElasticConstant / unbonded_equivalent_young;
 
-        const double& my_mass    = element1->GetMass();
-        const double& other_mass = element2->GetMass();
-
-        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
-
-        const double& my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double& other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
-
         const double& my_bonded_young = element1->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS];
         const double& other_bonded_young = element2->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS];
         const double bonded_equiv_young = 0.5 * (my_bonded_young + other_bonded_young);
