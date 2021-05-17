@@ -39,6 +39,7 @@
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/delaunator_utilities.h"
+#include "utilities/mls_shape_functions_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -309,6 +310,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+
+    // MLS shape functions utility
+    py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
+        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
+        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
+        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
+        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        ;
 }
 
 } // namespace Python.
