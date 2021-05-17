@@ -148,14 +148,15 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         model_part_io = KM.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
-        utility = KM.ApplyFunctionToNodesUtility(model_part.Nodes, function)
-        utility.ApplyFunction(KM.VISCOSITY, 1.0)
-
         current_process_info[KM.TIME] = 0.0
         time = current_process_info[KM.TIME]
         while time < 3.0:
             current_process_info[KM.TIME] = current_process_info[KM.TIME] + 1.0
             time = current_process_info[KM.TIME]
+
+            utility = KM.ApplyFunctionToNodesUtility(model_part.Nodes, function)
+            utility.ApplyFunction(KM.VISCOSITY, time)
+
             if time < 2.0:
                 for node in model_part.Nodes:
                     self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (2.0 * node.Y + node.X), 0.0)
