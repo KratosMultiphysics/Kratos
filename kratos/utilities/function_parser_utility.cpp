@@ -174,29 +174,29 @@ void BasicGenericFunctionUtility::InitializeParser()
                 // Auxiliar string function
                 const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, "==", "=");
                 splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '=');
-                const std::string aux_function = "IsEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                const std::string aux_function = "zIsEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else if (StringUtilities::ContainsPartialString(condition, "<=")) {
                 // Auxiliar string function
                 const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, "<=", "<");
                 splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '<');
-                const std::string aux_function = "IsLessEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                const std::string aux_function = "zIsLessEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else if (StringUtilities::ContainsPartialString(condition, ">=")) {
                 // Auxiliar string function
                 const std::string aux_string = StringUtilities::ReplaceAllSubstrings(condition, ">=", ">");
                 splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '>');
-                const std::string aux_function = "IsGreaterEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                const std::string aux_function = "zIsGreaterEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else if (StringUtilities::ContainsPartialString(condition, "<")) {
                 // Auxiliar string function
                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '<');
-                const std::string aux_function = "IsLess(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                const std::string aux_function = "zIsLess(" + splitted_string[0] + ", " + splitted_string[1] + ")";
                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else if (StringUtilities::ContainsPartialString(condition, ">")) {
                 // Auxiliar string function
                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '>');
-                const std::string aux_function = "IsGreater(" + splitted_string[0] + ", " + splitted_string[1] + ")";
+                const std::string aux_function = "zIsGreater(" + splitted_string[0] + ", " + splitted_string[1] + ")";
                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else {
                 KRATOS_ERROR << "Cannot identify condition: " << condition << std::endl;
