@@ -162,6 +162,13 @@ void BasicGenericFunctionUtility::InitializeParser()
             const std::string condition = splitted_string[0];
             splitted_string = StringUtilities::SplitStringByDelimiter(splitted_string[1], ':');
 
+            // Parsing the functions
+            mpTinyExpr[1] = te_compile(splitted_string[0].c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << splitted_string[0] << std::endl;
+
+            mpTinyExpr[2] = te_compile(splitted_string[1].c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << splitted_string[1] << std::endl;
+
             // Parsing the condition
             if (StringUtilities::ContainsPartialString(condition, "==")) {
                 // Auxiliar string function
@@ -195,12 +202,6 @@ void BasicGenericFunctionUtility::InitializeParser()
                 KRATOS_ERROR << "Cannot identify condition: " << condition << std::endl;
             }
             KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << condition << std::endl;
-
-            mpTinyExpr[1] = te_compile(splitted_string[0].c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << splitted_string[0] << std::endl;
-
-            mpTinyExpr[2] = te_compile(splitted_string[1].c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << splitted_string[1] << std::endl;
         }
     }
 }
