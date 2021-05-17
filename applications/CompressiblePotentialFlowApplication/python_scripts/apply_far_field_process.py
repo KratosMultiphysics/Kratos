@@ -29,6 +29,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
                 "mach_number_limit": 0.94,
+                "mach_number_squared_limit": -1,
                 "critical_mach": 0.99,
                 "upwind_factor_constant": 1.0,
                 "initialize_flow_field": true,
@@ -47,6 +48,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
         self.mach_number_limit = settings["mach_number_limit"].GetDouble()
+        self.mach_number_squared_limit = settings["mach_number_squared_limit"].GetDouble()
         self.critical_mach = settings["critical_mach"].GetDouble()
         self.upwind_factor_constant = settings["upwind_factor_constant"].GetDouble()
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
@@ -66,7 +68,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(KratosCFD.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
+
+        if self.mach_number_squared_limit > 0.0:
+            self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,math.sqrt(self.mach_number_squared_limit))
+            warn_msg = 'Both mach_number_squared_limit and mach_number_limit are defined. Using mach_number_squared_limit = ' + str(self.mach_number_squared_limit)
+            KratosMultiphysics.Logger.PrintWarning('ApplyFarFieldProcess', warn_msg)
+        else:
+            self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
+
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.CRITICAL_MACH,self.critical_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWIND_FACTOR_CONSTANT,self.upwind_factor_constant)
 

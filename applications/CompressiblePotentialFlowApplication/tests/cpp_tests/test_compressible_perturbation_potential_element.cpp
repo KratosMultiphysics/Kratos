@@ -692,9 +692,10 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     ComputeWakeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
+    PrintTestElementInfo(model_part);
+
     KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 
-    PrintTestElementInfo(model_part);
 }
 } // namespace Testing
 } // namespace Kratos
