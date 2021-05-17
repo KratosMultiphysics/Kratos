@@ -153,21 +153,39 @@ void BasicGenericFunctionUtility::InitializeParser()
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
         /* Compile the expression with variables. */
-        if (!StringUtilities::ContainsPartialString(mFunctionBody, "?")) {
+        const bool c_like = StringUtilities::ContainsPartialString(mFunctionBody, "?") ? true : false;
+        const bool python_like = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
+        if (!(c_like || python_like)) {
             mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
             KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << mFunctionBody << std::endl;
         } else { // Ternary operator
             mpTinyExpr.resize(3, nullptr);
-            std::vector<std::string> splitted_string = StringUtilities::SplitStringByDelimiter(mFunctionBody, '?');
-            const std::string condition = splitted_string[0];
-            splitted_string = StringUtilities::SplitStringByDelimiter(splitted_string[1], ':');
+            std::string condition, first_function, second_function;
+
+            // C like ternary operator
+            std::vector<std::string> splitted_string;
+            if (c_like) {
+                splitted_string = StringUtilities::SplitStringByDelimiter(mFunctionBody, '?');
+                condition = splitted_string[0];
+                splitted_string = StringUtilities::SplitStringByDelimiter(splitted_string[1], ':');
+                first_function = splitted_string[0];
+                second_function = splitted_string[1];
+            } else { // Python like ternary operator
+                std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+                first_function = splitted_string[0];
+                aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
+                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+                condition = splitted_string[0];
+                second_function = splitted_string[1];
+            }
 
             // Parsing the functions
-            mpTinyExpr[1] = te_compile(splitted_string[0].c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << splitted_string[0] << std::endl;
+            mpTinyExpr[1] = te_compile(first_function.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[1]) << "Parsing error in function: " << first_function << std::endl;
 
-            mpTinyExpr[2] = te_compile(splitted_string[1].c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << splitted_string[1] << std::endl;
+            mpTinyExpr[2] = te_compile(second_function.c_str(), vars, 7, &err);
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[2]) << "Parsing error in function: " << second_function << std::endl;
 
             // Parsing the condition
             if (StringUtilities::ContainsPartialString(condition, "==")) {
