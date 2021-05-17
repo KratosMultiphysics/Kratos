@@ -73,9 +73,10 @@ public:
     {
         Parameters aitken_default_parameters(R"(
         {
-            "solver_type"       : "Relaxation",
-            "acceleration_type" : "Aitken",
-            "w_0"               : 0.825
+            "solver_type"            : "Relaxation",
+            "acceleration_type"      : "Aitken",
+            "w_0"                    : 0.825,
+            "interface_block_newton" : false
         }
         )");
 

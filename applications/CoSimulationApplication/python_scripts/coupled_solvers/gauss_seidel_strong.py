@@ -16,6 +16,11 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
         super().__init__(settings, models, solver_name)
 
+        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
+
+    def Initialize(self):
+        super().Initialize()
+
         self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
             self.solver_wrappers,
@@ -25,11 +30,6 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             self.settings["convergence_criteria"],
             self.solver_wrappers,
             self.echo_level)
-
-        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
-
-    def Initialize(self):
-        super().Initialize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Initialize()
@@ -98,16 +98,17 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             if is_converged:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
-                self.__CommunicateStateOfConvergence(True)
+                self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
                 return True
 
-            if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
-                self.__CommunicateStateOfConvergence(True) # True because max number of iterations is achieved. Otherwise external solver is stuck in time
+            if k+1 >= self.num_coupling_iterations:
+                if self.echo_level > 0:
+                    cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
                 return False
 
             # if it reaches here it means that the coupling has not converged and this was not the last coupling iteration
-            self.__CommunicateStateOfConvergence(False)
+            self.__CommunicateIfTimeStepNeedsToBeRepeated(True)
 
             # do relaxation only if this iteration is not the last iteration of this timestep
             for conv_acc in self.convergence_accelerators_list:
@@ -139,13 +140,13 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         return this_defaults
 
-    def __CommunicateStateOfConvergence(self, is_converged):
-        # Communicate the state of convergence with external solvers through IO
-        convergence_signal_config = {
-            "type" : "convergence_signal",
-            "is_converged" : is_converged
+    def __CommunicateIfTimeStepNeedsToBeRepeated(self, repeat_time_step):
+        # Communicate if the time step needs to be repeated with external solvers through IO
+        export_config = {
+            "type" : "repeat_time_step",
+            "repeat_time_step" : repeat_time_step
         }
 
         for solver in self.solver_wrappers.values():
-            solver.ExportData(convergence_signal_config)
+            solver.ExportData(export_config)
 

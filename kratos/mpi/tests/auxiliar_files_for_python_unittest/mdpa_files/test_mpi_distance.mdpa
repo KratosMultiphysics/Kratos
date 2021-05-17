@@ -1,0 +1,67 @@
+Begin Properties 0
+
+End Properties
+
+Begin Nodes
+	1	-0.5	-0.5	0
+	2	-0.5	0	0
+	3	-0.5	0.5	0
+	4	0	-0.5	0
+	5	0	0	0
+	6	0	0.5	0
+	7	0.5	-0.5	0
+	8	0.5	0	0
+	9	0.5	0.5	0
+End Nodes
+
+Begin Elements	Element2D3N
+	1	0	1	5	2	
+	2	0	1	4	5	
+	3	0	2	6	3	
+	4	0	2	5	6	
+	5	0	4	8	5	
+	6	0	4	7	8	
+	7	0	5	9	6	
+	8	0	5	8	9	
+End Elements
+
+Begin Conditions	LineCondition2D2N
+	1	0	8	9	
+	2	0	7	8	
+	3	0	3	2	
+	4	0	2	1	
+	5	0	1	4	
+	6	0	4	7	
+	7	0	9	6	
+	8	0	6	3	
+End Conditions
+
+Begin SubModelPart	Skin
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+		6
+		7
+		8
+		9
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+	End SubModelPartConditions
+End SubModelPart	
+

@@ -14,6 +14,7 @@
 
 
 // System includes
+#include <limits>
 
 // External includes
 
@@ -151,7 +152,10 @@ namespace Kratos
 
             // initialize axes
             IndexType axis_index_1, axis_index_2;
-            double min_1, max_1, min_2, max_2;
+            double min_1 = std::numeric_limits<double>::max();
+            double max_1 = std::numeric_limits<double>::lowest();
+            double min_2 = std::numeric_limits<double>::max();
+            double max_2 = std::numeric_limits<double>::lowest();
             GetSpanIndex(rAxis1, axis_index_1, min_1, max_1, std::get<1>(polygon[0])[0]);
             GetSpanIndex(rAxis2, axis_index_2, min_2, max_2, std::get<1>(polygon[0])[1]);
 
