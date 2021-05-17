@@ -98,15 +98,15 @@ namespace Kratos {
         mUnbondedViscoDampingLocalContactForce[2] = 0.0;
 
         if (indentation > 0) {
-            mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
-            mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
-            mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
+            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
+            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
+            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
         }
 
         if (!failure_id) { // Adding bonded and unbonded parts
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] - equiv_visco_damp_coeff_normal * LocalRelVel[2];
+            ViscoDampingLocalContactForce[0] -= equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+            ViscoDampingLocalContactForce[1] -= equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+            ViscoDampingLocalContactForce[2] -= equiv_visco_damp_coeff_normal * LocalRelVel[2];
         }
 
         #ifdef KRATOS_DEBUG
