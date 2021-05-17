@@ -103,7 +103,7 @@ public:
      * @param rDNDX Shape functions gradients container
      */
     template<std::size_t TDim>
-    static void CalculateShapeFunctionsAndGradients(
+    static void KRATOS_API(KRATOS_CORE) CalculateShapeFunctionsAndGradients(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
