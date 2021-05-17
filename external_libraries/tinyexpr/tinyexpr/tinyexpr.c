@@ -150,11 +150,11 @@ static double ncr(double n, double r) {
     return result;
 }
 static double npr(double n, double r) {return ncr(n, r) * fac(r);}
-static bool IsEqual(double a, double b) {return a == b;}
-static bool IsGreater(double a, double b) {return a > b;}
-static bool IsGreaterEqual(double a, double b) {return a >= b;}
-static bool IsLess(double a, double b) {return a < b;}
-static bool IsLessEqual(double a, double b) {return a <= b;}
+static bool IsEqual(double a, double b) {return a == b ? true : false;}
+static bool IsGreater(double a, double b) {return a > b ? true : false;}
+static bool IsGreaterEqual(double a, double b) {return a >= b ? true : false;}
+static bool IsLess(double a, double b) {return a < b ? true : false;}
+static bool IsLessEqual(double a, double b) {return a <= b ? true : false;}
 
 static const te_variable functions[] = {
     /* must be in alphabetical order */
