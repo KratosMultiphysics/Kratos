@@ -123,7 +123,7 @@ double BasicGenericFunctionUtility::CallFunction(
     if (mpTinyExpr.size() == 1) {
       return te_eval(mpTinyExpr[0]);
     } else { // Ternary expression
-      if (te_eval(mpTinyExpr[0]) > 0.0) {
+      if (te_eval(mpTinyExpr[0])) {
           return te_eval(mpTinyExpr[1]);
       } else {
           return te_eval(mpTinyExpr[2]);

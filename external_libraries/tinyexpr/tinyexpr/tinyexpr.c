@@ -41,6 +41,7 @@ For log = natural log uncomment the next line. */
 #include <stdio.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #ifndef NAN
 #define NAN (0.0/0.0)
@@ -149,11 +150,11 @@ static double ncr(double n, double r) {
     return result;
 }
 static double npr(double n, double r) {return ncr(n, r) * fac(r);}
-static double IsEqual(double a, double b) {return a == b ? 1.0 : 0.0;}
-static double IsGreater(double a, double b) {return a > b ? 1.0 : 0.0;}
-static double IsGreaterEqual(double a, double b) {return a >= b ? 1.0 : 0.0;}
-static double IsLess(double a, double b) {return a < b ? 1.0 : 0.0;}
-static double IsLessEqual(double a, double b) {return a <= b ? 1.0 : 0.0;}
+static bool IsEqual(double a, double b) {return a == b;}
+static bool IsGreater(double a, double b) {return a > b;}
+static bool IsGreaterEqual(double a, double b) {return a >= b;}
+static bool IsLess(double a, double b) {return a < b;}
+static bool IsLessEqual(double a, double b) {return a <= b;}
 
 static const te_variable functions[] = {
     /* must be in alphabetical order */
