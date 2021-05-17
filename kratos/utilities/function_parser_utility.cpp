@@ -23,64 +23,6 @@
 namespace Kratos
 {
 
-/**
-  * @brief a is equal to b
-  * @param a First argument
-  * @param b Second argument
-  * @return True if a is equal to b
-  */
-bool IsEqual(const double a, const double b)
-{
-    return a == b;
-}
-
-/**
-  * @brief a is greater than b
-  * @param a First argument
-  * @param b Second argument
-  * @return True if a is greater than b
-  */
-bool IsGreater(const double a, const double b)
-{
-    return a > b;
-}
-
-/**
-  * @brief a is greater equal than b
-  * @param a First argument
-  * @param b Second argument
-  * @return True if a is greater equal than b
-  */
-bool IsGreaterEqual(const double a, const double b)
-{
-    return a >= b;
-}
-
-/**
-  * @brief a is less than b
-  * @param a First argument
-  * @param b Second argument
-  * @return True if a is less than b
-  */
-bool IsLess(const double a, const double b)
-{
-    return a < b;
-}
-
-/**
-  * @brief a is less equal than b
-  * @param a First argument
-  * @param b Second argument
-  * @return True if a is less equal than b
-  */
-bool IsLessEqual(const double a, const double b)
-{
-    return a <= b;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFunctionBody)
     : mFunctionBody(rFunctionBody)
 {
@@ -181,7 +123,7 @@ double BasicGenericFunctionUtility::CallFunction(
     if (mpTinyExpr.size() == 1) {
       return te_eval(mpTinyExpr[0]);
     } else { // Ternary expression
-      if (te_eval(mpTinyExpr[0])) {
+      if (te_eval(mpTinyExpr[0]) > 0.0) {
           return te_eval(mpTinyExpr[1]);
       } else {
           return te_eval(mpTinyExpr[2]);
@@ -222,45 +164,30 @@ void BasicGenericFunctionUtility::InitializeParser()
 
             // Parsing the condition
             if (StringUtilities::ContainsPartialString(condition, "=")) {
-                /* Store variable names and pointers. */
-                const te_variable vars_function[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}, {"IsEqual", (const void *)IsEqual, TE_FUNCTION2}};
-
                 // Auxiliar string function
                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '=');
                 const std::string aux_function = "IsEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
-                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars_function, 7, &err);
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
 //             } else if (StringUtilities::ContainsPartialString(condition, "<=")) {
-//                 /* Store variable names and pointers. */
-//                 const te_variable vars_function[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}, {"IsLessEqual", (const void *)IsLessEqual, TE_FUNCTION2}};
-//
 //                 // Auxiliar string function
 //                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '<=');
 //                 const std::string aux_function = "IsLessEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
-//                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars_function, 7, &err);
+//                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
 //             } else if (StringUtilities::ContainsPartialString(condition, ">=")) {
-//                 /* Store variable names and pointers. */
-//                 const te_variable vars_function[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}, {"IsGreaterEqual", (const void *)IsGreaterEqual, TE_FUNCTION2}};
-//
 //                 // Auxiliar string function
 //                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '>=');
 //                 const std::string aux_function = "IsGreaterEqual(" + splitted_string[0] + ", " + splitted_string[1] + ")";
-//                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars_function, 7, &err);
+//                 mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else if (StringUtilities::ContainsPartialString(condition, "<")) {
-                /* Store variable names and pointers. */
-                const te_variable vars_function[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}, {"IsLess", (const void *)IsLess, TE_FUNCTION2}};
-
                 // Auxiliar string function
                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '<');
                 const std::string aux_function = "IsLess(" + splitted_string[0] + ", " + splitted_string[1] + ")";
-                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars_function, 7, &err);
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else if (StringUtilities::ContainsPartialString(condition, ">")) {
-                /* Store variable names and pointers. */
-                const te_variable vars_function[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}, {"IsGreater", (const void *)IsGreater, TE_FUNCTION2}};
-
                 // Auxiliar string function
                 splitted_string = StringUtilities::SplitStringByDelimiter(condition, '>');
                 const std::string aux_function = "IsGreater(" + splitted_string[0] + ", " + splitted_string[1] + ")";
-                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars_function, 7, &err);
+                mpTinyExpr[0] = te_compile(aux_function.c_str(), vars, 7, &err);
             } else {
                 KRATOS_ERROR << "Cannot identify condition: " << condition << std::endl;
             }
