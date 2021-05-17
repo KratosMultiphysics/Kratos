@@ -38,7 +38,11 @@
 //commented variables are defined in the variables.h and variables.cpp
 
 namespace Kratos
-{  
+{
+  typedef boost::numeric::ublas::bounded_vector<double, 6>    BoundedVector6;
+  typedef boost::numeric::ublas::bounded_matrix<double, 6, 6> BoundedMatrix6;
+  typedef boost::numeric::ublas::bounded_matrix<double, 3, 3> BoundedMatrix3;
+    
   //solution
   KRATOS_DEFINE_VARIABLE( std::string, CONSTITUTIVE_LAW_NAME )
   KRATOS_DEFINE_VARIABLE( bool, IMPLEX )
@@ -128,25 +132,25 @@ namespace Kratos
   // Strain
   //KRATOS_DEFINE_VARIABLE( double, DETERMINANT_F )
   //KRATOS_DEFINE_VARIABLE( Vector, DEFORMATION_GRADIENT);
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, INITIAL_STRAIN_VECTOR )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, INITIAL_STRESS_VECTOR )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, INITIAL_DEFORMATION_GRADIENT_MATRIX )
+  KRATOS_DEFINE_VARIABLE( BoundedVector6, INITIAL_STRAIN_VECTOR )
+  KRATOS_DEFINE_VARIABLE( BoundedVector6, INITIAL_STRESS_VECTOR )
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix3, INITIAL_DEFORMATION_GRADIENT_MATRIX )
 
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, GREEN_LAGRANGE_STRAIN_VECTOR )
+  KRATOS_DEFINE_VARIABLE( BoundedVector6, GREEN_LAGRANGE_STRAIN_VECTOR )
   //KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_TENSOR )
 
   //KRATOS_DEFINE_VARIABLE( Vector, HENCKY_STRAIN_VECTOR);
   //KRATOS_DEFINE_VARIABLE( Matrix, HENCKY_STRAIN_TENSOR);
 
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, BIOT_STRAIN_VECTOR);
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, BIOT_STRAIN_TENSOR);
+  KRATOS_DEFINE_VARIABLE( BoundedVector6, BIOT_STRAIN_VECTOR);
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix3, BIOT_STRAIN_TENSOR);
 
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, ALMANSI_STRAIN_VECTOR )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, ALMANSI_STRAIN_TENSOR )
+  KRATOS_DEFINE_VARIABLE( BoundedVector6, ALMANSI_STRAIN_VECTOR )
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix3, ALMANSI_STRAIN_TENSOR )
 
   // Stress
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, KIRCHHOFF_STRESS_VECTOR )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, KIRCHHOFF_STRESS_TENSOR )
+  KRATOS_DEFINE_VARIABLE( BoundedVector6, KIRCHHOFF_STRESS_VECTOR )
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix3, KIRCHHOFF_STRESS_TENSOR )
   //KRATOS_DEFINE_VARIABLE( Vector, CAUCHY_STRESS_VECTOR )
   //KRATOS_DEFINE_VARIABLE( Matrix, CAUCHY_STRESS_TENSOR )
   //KRATOS_DEFINE_VARIABLE( Vector, PK2_STRESS_VECTOR )
@@ -155,8 +159,8 @@ namespace Kratos
   // Constitutive matrices
 //   KRATOS_DEFINE_VARIABLE( Matrix, LOCAL_CONSTITUTIVE_MATRIX )
 //   KRATOS_DEFINE_VARIABLE( Matrix, CONSTITUTIVE_MATRIX )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 6, 6>, CONSTITUTIVE_MATRIX_PK2 )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 6, 6>, CONSTITUTIVE_MATRIX_KIRCHHOFF )
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix6, CONSTITUTIVE_MATRIX_PK2 )
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix6, CONSTITUTIVE_MATRIX_KIRCHHOFF )
 
   // LMV. temporal place to include Biot's variables
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )
@@ -166,7 +170,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE( double, STRESS_INV_P )
   KRATOS_DEFINE_VARIABLE( double, STRESS_INV_J2 )
   KRATOS_DEFINE_VARIABLE( double, STRESS_INV_THETA )
-  KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, INVERSE_DEFORMATION_GRADIENT )
+  KRATOS_DEFINE_VARIABLE( BoundedMatrix3, INVERSE_DEFORMATION_GRADIENT )
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

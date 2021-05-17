@@ -20,7 +20,6 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
@@ -38,8 +37,9 @@
 namespace Kratos
 {
     //Define Variables by type:
-      using namespace boost::numeric::ublas;
-
+    typedef boost::numeric::ublas::bounded_vector<double, 6>    BoundedVector6;
+    typedef boost::numeric::ublas::bounded_matrix<double, 6, 6> BoundedMatrix6;
+    typedef boost::numeric::ublas::bounded_matrix<double, 3, 3> BoundedMatrix3;
 
     //bools
     KRATOS_DEFINE_VARIABLE(bool, IS_RESTARTED )
@@ -187,7 +187,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, AUX_MESH_VAR )
 
     //for MultiScale application
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, INITIAL_STRAIN )
+    KRATOS_DEFINE_VARIABLE( BoundedVector6, INITIAL_STRAIN )
     KRATOS_DEFINE_VARIABLE( double, COEFFICIENT_THERMAL_EXPANSION )
     KRATOS_DEFINE_VARIABLE( double, CHARACTERISTIC_LENGTH_MULTIPLIER )
 
@@ -358,8 +358,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Vector, INTERNAL_FORCES_VECTOR )
     KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )
 
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, CAUCHY_STRESS_VECTOR )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, PK2_STRESS_VECTOR )
+    KRATOS_DEFINE_VARIABLE( BoundedVector6, CAUCHY_STRESS_VECTOR )
+    KRATOS_DEFINE_VARIABLE( BoundedVector6, PK2_STRESS_VECTOR )
 
     KRATOS_DEFINE_VARIABLE( Vector, RESIDUAL_VECTOR )
 
@@ -389,7 +389,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Vector, NORMAL_STRESS )
     KRATOS_DEFINE_VARIABLE( Vector, TANGENTIAL_STRESS )
     KRATOS_DEFINE_VARIABLE( Vector, STRESSES )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_vector<double, 6>, STRAIN )
+    KRATOS_DEFINE_VARIABLE( BoundedVector6, STRAIN )
 
     KRATOS_DEFINE_VARIABLE( DenseVector<int>, NEIGHBOURS_INDICES )
 
@@ -430,14 +430,14 @@ namespace Kratos
     //matrices
 
     //for General kratos application:
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, GREEN_LAGRANGE_STRAIN_TENSOR )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, PK2_STRESS_TENSOR )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, CAUCHY_STRESS_TENSOR )
+    KRATOS_DEFINE_VARIABLE( BoundedMatrix3, GREEN_LAGRANGE_STRAIN_TENSOR )
+    KRATOS_DEFINE_VARIABLE( BoundedMatrix3, PK2_STRESS_TENSOR )
+    KRATOS_DEFINE_VARIABLE( BoundedMatrix3, CAUCHY_STRESS_TENSOR )
     KRATOS_DEFINE_VARIABLE( Matrix, LOCAL_INERTIA_TENSOR )
     KRATOS_DEFINE_VARIABLE( Matrix, LOCAL_AXES_MATRIX )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 6, 6>, LOCAL_CONSTITUTIVE_MATRIX )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 6, 6>, CONSTITUTIVE_MATRIX )
-    KRATOS_DEFINE_VARIABLE( boost::numeric::ublas::bounded_matrix<double, 3, 3>, DEFORMATION_GRADIENT )
+    KRATOS_DEFINE_VARIABLE( BoundedMatrix6, LOCAL_CONSTITUTIVE_MATRIX )
+    KRATOS_DEFINE_VARIABLE( BoundedMatrix6, CONSTITUTIVE_MATRIX )
+    KRATOS_DEFINE_VARIABLE( BoundedMatrix3, DEFORMATION_GRADIENT )
     KRATOS_DEFINE_VARIABLE( Matrix, MATERIAL_STIFFNESS_MATRIX )
     KRATOS_DEFINE_VARIABLE( Matrix, GEOMETRIC_STIFFNESS_MATRIX )
     KRATOS_DEFINE_VARIABLE( Vector, DETERMINANTS_OF_JACOBIAN_PARENT)
