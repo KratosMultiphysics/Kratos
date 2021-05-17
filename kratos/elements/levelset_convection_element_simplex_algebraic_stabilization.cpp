@@ -24,7 +24,7 @@
 namespace Kratos
 {
     template< unsigned int TDim, unsigned int TNumNodes>
-    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization() 
+    LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::LevelSetConvectionElementSimplexAlgebraicStabilization()
     : LevelSetConvectionElementSimplex<TDim, TNumNodes>::LevelSetConvectionElementSimplex()
     {}
 
@@ -55,6 +55,17 @@ namespace Kratos
     {
         KRATOS_TRY
         return Element::Pointer(new LevelSetConvectionElementSimplexAlgebraicStabilization(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("");
+    }
+
+    template <unsigned int TDim, unsigned int TNumNodes>
+    Element::Pointer LevelSetConvectionElementSimplexAlgebraicStabilization<TDim, TNumNodes>::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Element::Pointer(new LevelSetConvectionElementSimplexAlgebraicStabilization(NewId, pGeom, pProperties));
         KRATOS_CATCH("");
     }
 
@@ -120,14 +131,14 @@ namespace Kratos
 
         const double aux_weight = 1.0/static_cast<double>(TNumNodes);
 
-        phi_mean /= aux_weight;
-        phi_mean_old /= aux_weight;
+        phi_mean *= aux_weight;
+        phi_mean_old *= aux_weight;
 
         array_1d<double,TDim> X_mean, grad_phi_mean;
         for(unsigned int k = 0; k < TDim; k++)
         {
-            grad_phi_mean[k] = grad_phi_mean_tmp[k]/aux_weight;
-            X_mean[k] = X_mean_tmp[k]/aux_weight;
+            grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
+            X_mean[k] = aux_weight*X_mean_tmp[k];
         }
 
         array_1d<double,TDim> grad_phi_diff = prod(trans(DN_DX), phi_old) - grad_phi_mean;
