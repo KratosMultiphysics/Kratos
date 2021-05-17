@@ -94,12 +94,12 @@ namespace Kratos
         // Set the auxiliary arrays for the L2-norm problem minimization
         static constexpr std::size_t BaseSize = TDim + 1;
         std::vector<array_1d<double,BaseSize>> B_vect(n_points);
-        BoundedMatrix<double,BaseSize,BaseSize> M = ZeroMatrix(3,3);
+        BoundedMatrix<double,BaseSize,BaseSize> M = ZeroMatrix(BaseSize,BaseSize);
 
         // Evaluate the L2-norm minimization problem
         array_1d<double,BaseSize> p;
         array_1d<double,3> rad_vect;
-        BoundedMatrix<double,3,3> p_outer_mat;
+        BoundedMatrix<double,BaseSize,BaseSize> p_outer_mat;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             // Set current point data
             const array_1d<double,3>& r_i_pt_coords = row(rPoints, i_pt);
