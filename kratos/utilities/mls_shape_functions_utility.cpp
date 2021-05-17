@@ -44,7 +44,7 @@ namespace Kratos
             noalias(rKernelDerivative) = ZeroVector(TDim);
         } else {
             const double q = rad / h;
-            const double kernel_value = (1.0/(Globals::Pi*h*h)) * std::exp(-1.0*q*q) * (-2.0*q*(1.0/h));
+            const double kernel_value = (std::exp(-std::pow(q,2)) * (-2.0*q/h)) / (Globals::Pi*std::pow(h,2));
             const double rel_kernel_value = kernel_value / rad;
             for (std::size_t d = 0; d < TDim; ++d) {
                 rKernelDerivative[d] = rel_kernel_value * rRadVect[d];
@@ -82,7 +82,6 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        //TODO: Write a more meaningful message.
         KRATOS_ERROR_IF(h < 1.0e-12) << "Reference distance close to zero." << std::endl;
 
         // Set MLS shape functions containers
@@ -93,7 +92,7 @@ namespace Kratos
 
         // Set the auxiliary arrays for the L2-norm problem minimization
         static constexpr std::size_t BaseSize = TDim + 1;
-        std::vector<array_1d<double,BaseSize>> B_vect(n_points);
+        DenseVector<array_1d<double,BaseSize>> B_vect(n_points);
         BoundedMatrix<double,BaseSize,BaseSize> M = ZeroMatrix(BaseSize,BaseSize);
 
         // Evaluate the L2-norm minimization problem
@@ -129,7 +128,7 @@ namespace Kratos
         // MLS shape function
         array_1d<double,BaseSize> aux_prod;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            aux_prod = prod(M_inv, B_vect[i_pt]);
+            noalias(aux_prod) = prod(M_inv, B_vect[i_pt]);
             rN[i_pt] = inner_prod(p0, aux_prod);
         }
 
@@ -137,7 +136,7 @@ namespace Kratos
     }
 
     template<>
-    void MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>(
+    void KRATOS_API(KRATOS_CORE) MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
@@ -146,7 +145,6 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        //TODO: Write a more meaningful message.
         KRATOS_ERROR_IF(h < 1.0e-12) << "Reference distance close to zero." << std::endl;
 
         // Set MLS shape functions containers
@@ -159,9 +157,9 @@ namespace Kratos
         }
 
         // Set the auxiliary arrays for the L2-norm problem minimization
-        std::vector<array_1d<double,3>> B_vect(n_points);
-        std::vector<array_1d<double,3>> DB_Dx_vect(n_points);
-        std::vector<array_1d<double,3>> DB_Dy_vect(n_points);
+        DenseVector<array_1d<double,3>> B_vect(n_points);
+        DenseVector<array_1d<double,3>> DB_Dx_vect(n_points);
+        DenseVector<array_1d<double,3>> DB_Dy_vect(n_points);
 
         BoundedMatrix<double,3,3> M = ZeroMatrix(3,3);
         BoundedMatrix<double,3,3> DM_Dx = ZeroMatrix(3,3);
@@ -187,13 +185,13 @@ namespace Kratos
 
             // Add shape functions data
             noalias(M) += kernel*p_outer_mat;
-            B_vect[i_pt] = kernel * p;
+            noalias(B_vect[i_pt]) = kernel * p;
 
             // Add shape functions gradients data
             noalias(DM_Dx) += w[0]*p_outer_mat;
             noalias(DM_Dy) += w[1]*p_outer_mat;
-            DB_Dx_vect[i_pt] = w[0]*p;
-            DB_Dy_vect[i_pt] = w[1]*p;
+            noalias(DB_Dx_vect[i_pt]) = w[0]*p;
+            noalias(DB_Dy_vect[i_pt]) = w[1]*p;
         }
 
         // Least-Squares problem resolution
@@ -237,7 +235,7 @@ namespace Kratos
     }
 
     template<>
-    void MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>(
+    void KRATOS_API(KRATOS_CORE) MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
@@ -246,7 +244,6 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        //TODO: Write a more meaningful message.
         KRATOS_ERROR_IF(h < 1.0e-12) << "Reference distance close to zero." << std::endl;
 
         // Set MLS shape functions containers
@@ -259,10 +256,10 @@ namespace Kratos
         }
 
         // Set the auxiliary arrays for the L2-norm problem minimization
-        std::vector<array_1d<double,4>> B_vect(n_points);
-        std::vector<array_1d<double,4>> DB_Dx_vect(n_points);
-        std::vector<array_1d<double,4>> DB_Dy_vect(n_points);
-        std::vector<array_1d<double,4>> DB_Dz_vect(n_points);
+        DenseVector<array_1d<double,4>> B_vect(n_points);
+        DenseVector<array_1d<double,4>> DB_Dx_vect(n_points);
+        DenseVector<array_1d<double,4>> DB_Dy_vect(n_points);
+        DenseVector<array_1d<double,4>> DB_Dz_vect(n_points);
 
         BoundedMatrix<double,4,4> M = ZeroMatrix(4,4);
         BoundedMatrix<double,4,4> DM_Dx = ZeroMatrix(4,4);
@@ -333,7 +330,7 @@ namespace Kratos
         // MLS shape function
         array_1d<double,4> aux_prod;
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            aux_prod = prod(M_inv, B_vect[i_pt]);
+            noalias(aux_prod) = prod(M_inv, B_vect[i_pt]);
             rN[i_pt] = inner_prod(p0, aux_prod);
         }
 
