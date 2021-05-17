@@ -508,12 +508,7 @@ namespace Kratos {
                 const double ViscoDampingLocalContactForceModule = sqrt(mUnbondedViscoDampingLocalContactForce[0] * mUnbondedViscoDampingLocalContactForce[0] +
                                                                         mUnbondedViscoDampingLocalContactForce[1] * mUnbondedViscoDampingLocalContactForce[1]);
 
-                const double backup_mUnbondedViscoDampingLocalContactForce_0 = mUnbondedViscoDampingLocalContactForce[0];
-                const double backup_mUnbondedViscoDampingLocalContactForce_1 = mUnbondedViscoDampingLocalContactForce[1];
-
                 if (dot_product >= 0.0) {
-
-
                     if (ActualElasticShearForce > max_admissible_shear_force) {
                         fraction = max_admissible_shear_force / ActualElasticShearForce;
                         UnbondedLocalElasticContactForce[0]      = UnbondedLocalElasticContactForce[0] * fraction;
@@ -526,8 +521,6 @@ namespace Kratos {
                         fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
                         mUnbondedViscoDampingLocalContactForce[0] *= fraction;
                         mUnbondedViscoDampingLocalContactForce[1] *= fraction;
-                        ViscoDampingLocalContactForce[0] -= backup_mUnbondedViscoDampingLocalContactForce_0 - mUnbondedViscoDampingLocalContactForce[0];
-                        ViscoDampingLocalContactForce[1] -= backup_mUnbondedViscoDampingLocalContactForce_1 - mUnbondedViscoDampingLocalContactForce[1];
                     }
                 }
                 else {
@@ -535,8 +528,6 @@ namespace Kratos {
                         fraction = (max_admissible_shear_force + ActualElasticShearForce) / ViscoDampingLocalContactForceModule;
                         mUnbondedViscoDampingLocalContactForce[0] *= fraction;
                         mUnbondedViscoDampingLocalContactForce[1] *= fraction;
-                        ViscoDampingLocalContactForce[0] -= backup_mUnbondedViscoDampingLocalContactForce_0 - mUnbondedViscoDampingLocalContactForce[0];
-                        ViscoDampingLocalContactForce[1] -= backup_mUnbondedViscoDampingLocalContactForce_1 - mUnbondedViscoDampingLocalContactForce[1];
                     }
                     else {
                         fraction = max_admissible_shear_force / ActualElasticShearForce;
@@ -544,10 +535,10 @@ namespace Kratos {
                         UnbondedLocalElasticContactForce[1]      = UnbondedLocalElasticContactForce[1] * fraction;
                         mUnbondedViscoDampingLocalContactForce[0] = 0.0;
                         mUnbondedViscoDampingLocalContactForce[1] = 0.0;
-                        ViscoDampingLocalContactForce[0] -= backup_mUnbondedViscoDampingLocalContactForce_0 - mUnbondedViscoDampingLocalContactForce[0];
-                        ViscoDampingLocalContactForce[1] -= backup_mUnbondedViscoDampingLocalContactForce_1 - mUnbondedViscoDampingLocalContactForce[1];
                     }
                 }
+                ViscoDampingLocalContactForce[0] = mBondedViscoDampingLocalContactForce[0] + mUnbondedViscoDampingLocalContactForce[0];
+                ViscoDampingLocalContactForce[1] = mBondedViscoDampingLocalContactForce[1] + mUnbondedViscoDampingLocalContactForce[1];
                 sliding = true;
             }
         }
@@ -601,11 +592,6 @@ namespace Kratos {
                 tangential_forces_file.close();
             }
         }
-
-        #ifdef KRATOS_DEBUG
-            DemDebugFunctions::CheckIfNan(BondedLocalElasticContactForce, "NAN in Bonded Tangential Force in CalculateViscoDamping");
-            DemDebugFunctions::CheckIfNan(UnbondedLocalElasticContactForce, "NAN in Unbonded Tangential Force in CalculateViscoDamping");
-        #endif
 
         KRATOS_CATCH("")
     }

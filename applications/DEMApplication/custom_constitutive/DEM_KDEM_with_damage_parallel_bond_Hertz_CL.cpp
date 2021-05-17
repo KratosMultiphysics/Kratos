@@ -96,18 +96,26 @@ namespace Kratos {
         mUnbondedViscoDampingLocalContactForce[0] = 0.0;
         mUnbondedViscoDampingLocalContactForce[1] = 0.0;
         mUnbondedViscoDampingLocalContactForce[2] = 0.0;
+        mBondedViscoDampingLocalContactForce[0] = 0.0;
+        mBondedViscoDampingLocalContactForce[1] = 0.0;
+        mBondedViscoDampingLocalContactForce[2] = 0.0;
 
         if (indentation > 0) {
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
-            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
+            mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
+            mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
+            mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
         }
 
         if (!failure_id) { // Adding bonded and unbonded parts
-            ViscoDampingLocalContactForce[0] -= equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] -= equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-            ViscoDampingLocalContactForce[2] -= equiv_visco_damp_coeff_normal * LocalRelVel[2];
+            mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+            mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+            mBondedViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
         }
+
+        ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] + mBondedViscoDampingLocalContactForce[0];
+        ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] + mBondedViscoDampingLocalContactForce[1];
+        ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2] + mBondedViscoDampingLocalContactForce[2];
+
 
         #ifdef KRATOS_DEBUG
             DemDebugFunctions::CheckIfNan(mUnbondedViscoDampingLocalContactForce, "NAN in Viscous Force in CalculateViscoDamping");
@@ -128,7 +136,6 @@ namespace Kratos {
         // calculation of equivalent Young modulus
         double myUnbondedYoung = element1->GetProperties()[YOUNG_MODULUS];
         double otherUnbondedYoung = element2->GetProperties()[YOUNG_MODULUS];
-        double unbonded_equivalent_young = 2.0 * myUnbondedYoung * otherUnbondedYoung / (myUnbondedYoung + otherUnbondedYoung);
         const double bonded_equivalent_young = 0.5 * (element1->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS] + element2->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS]);
 
         const double my_radius = element1->GetRadius();
