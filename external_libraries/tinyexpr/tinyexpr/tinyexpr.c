@@ -41,7 +41,6 @@ For log = natural log uncomment the next line. */
 #include <stdio.h>
 #include <ctype.h>
 #include <limits.h>
-#include <stdbool.h>
 
 #ifndef NAN
 #define NAN (0.0/0.0)
@@ -150,11 +149,11 @@ static double ncr(double n, double r) {
     return result;
 }
 static double npr(double n, double r) {return ncr(n, r) * fac(r);}
-static bool IsEqual(double a, double b) {return a == b ? true : false;}
-static bool IsGreater(double a, double b) {return a > b ? true : false;}
-static bool IsGreaterEqual(double a, double b) {return a >= b ? true : false;}
-static bool IsLess(double a, double b) {return a < b ? true : false;}
-static bool IsLessEqual(double a, double b) {return a <= b ? true : false;}
+static double IsEqual(const double a, const double b) {return a == b ? 1.0 : 0.0;}
+static double IsGreater(const double a, const double b) {return a > b ? 1.0 : 0.0;}
+static double IsGreaterEqual(const double a, const double b) {return a >= b ? 1.0 : 0.0;}
+static double IsLess(const double a, const double b) {return a < b ? 1.0 : 0.0;}
+static double IsLessEqual(const double a, const double b) {return a <= b ? 1.0 : 0.0;}
 
 static const te_variable functions[] = {
     /* must be in alphabetical order */
@@ -230,12 +229,12 @@ static const te_variable *find_lookup(const state *s, const char *name, int len)
 
 
 
-static double add(double a, double b) {return a + b;}
-static double sub(double a, double b) {return a - b;}
-static double mul(double a, double b) {return a * b;}
-static double divide(double a, double b) {return a / b;}
+static double add(const double a, const double b) {return a + b;}
+static double sub(const double a, const double b) {return a - b;}
+static double mul(const double a, const double b) {return a * b;}
+static double divide(const double a, const double b) {return a / b;}
 static double negate(double a) {return -a;}
-static double comma(double a, double b) {(void)a; return b;}
+static double comma(const double a, const double b) {(void)a; return b;}
 
 
 void next_token(state *s) {
