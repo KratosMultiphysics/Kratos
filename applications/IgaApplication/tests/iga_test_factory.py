@@ -79,7 +79,7 @@ class TwoPatchCouplingLagrangeShell3pTest(IgaTestFactory):
 
 class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane"
-    
+
 class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
 
