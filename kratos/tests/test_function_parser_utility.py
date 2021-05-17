@@ -159,10 +159,10 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
 
             if time < 2.0:
                 for node in model_part.Nodes:
-                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (2.0 * node.Y + node.X), 0.0)
+                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (node.Y + 2.0 * node.X), 0.0)
             else:
                 for node in model_part.Nodes:
-                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (node.Y + 2.0 * node.X), 0.0)
+                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (2.0 * node.Y + node.X), 0.0)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
