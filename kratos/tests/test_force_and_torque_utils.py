@@ -14,6 +14,7 @@ def GenerateModelPart(generate_moments=True):
 
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
     if generate_moments:
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT)
@@ -49,7 +50,22 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
 
+        # Bare sum of forces and moments 
         force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
+            model_part,
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.MOMENT
+        )
+
+        self.assertAlmostEqual(force[0], 10.0)
+        self.assertAlmostEqual(force[1], 0.0)
+        self.assertAlmostEqual(force[2], 20.0)
+        self.assertAlmostEqual(moment[0], 0.0)
+        self.assertAlmostEqual(moment[1], 0.0)
+        self.assertAlmostEqual(moment[2], 1.0)
+
+        # Total reaction from the model part
+        force, moment = KratosMultiphysics.ForceAndTorqueUtils.ComputeReactionForceAndTorque(
             model_part,
             reference_point,
             KratosMultiphysics.REACTION,
@@ -69,7 +85,7 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
 
-        force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
+        force, moment = KratosMultiphysics.ForceAndTorqueUtils.ComputeReactionForceAndTorque(
             model_part,
             reference_point,
             KratosMultiphysics.REACTION,
