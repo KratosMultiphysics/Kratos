@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -25,6 +26,7 @@
 #include "solving_strategies/strategies/line_search_strategy.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -79,6 +81,8 @@ public:
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> NRBaseType;
     
     typedef LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
+
+    typedef LineSearchContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>           ClassType;
     
     typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
  
@@ -109,6 +113,26 @@ public:
     typedef std::size_t                                                                   IndexType;
     
     /**
+     * @brief Default constructor
+     */
+    explicit LineSearchContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit LineSearchContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, BaseType::GetDefaultParameters())
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
      * Default constructor 
      * @param rModelPart: The model part of the problem
      * @param pScheme: The integration scheme
@@ -119,7 +143,6 @@ public:
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
      */
-    
     LineSearchContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
@@ -131,15 +154,13 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
     )
-        : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY;
 
-        Parameters DefaultParameters = Parameters(R"(
-        {
-        })" );
+        Parameters default_parameters = this->GetDefaultParameters();
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
@@ -168,15 +189,13 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
     )
-        : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag )
     {
         KRATOS_TRY;
 
-        Parameters DefaultParameters = Parameters(R"(
-        {
-        })" );
+        Parameters default_parameters = this->GetDefaultParameters();
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
@@ -187,7 +206,54 @@ public:
     
     ~LineSearchContactStrategy() override
     = default;
-        
+    
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename StrategyBaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "line_search_contact_strategy"
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "line_search_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -199,6 +265,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "LineSearchContactStrategy";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -219,12 +303,15 @@ protected:
     ///@name Protected Operators
     ///@{
     
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
     /**
      * Performs all the required operations that should be done (for each step) 
      * before solving the solution step.
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
-        
     void InitializeSolutionStep() override
     {
         BaseType::InitializeSolutionStep();
@@ -235,7 +322,6 @@ protected:
     /**
      * Here the database is updated
      */
-     
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -350,24 +436,17 @@ protected:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
+        for(int i = 0; i < num_nodes; ++i)  {
             auto it_node = nodes_array.begin() + i;
     
-            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
-            {
+            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
                 
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {          
-                    #pragma omp atomic
-                    normDisp += b[j] * b[j];
-                }
-                else // Corresponding with contact
-                {
-                    #pragma omp atomic
-                    normLM += b[j] * b[j];
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z)) {          
+                    AtomicAdd(normDisp, b[j] * b[j]);
+                } else { // Corresponding with contact
+                    AtomicAdd(normLM, b[j] * b[j]);
                 }
             }
         }
@@ -420,10 +499,15 @@ protected:
                 Xmax = Xmin; // Should be zero, but otherwise it will stagnate
         }
     }
-    
-    ///@}
-    ///@name Protected Operations
-    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
 
     ///@}
     ///@name Protected  Access

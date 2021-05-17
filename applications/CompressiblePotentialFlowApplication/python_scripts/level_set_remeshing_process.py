@@ -20,6 +20,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "maximum_iterations": 1,
                 "update_coefficient": 0.5,
                 "remeshing_flag": false,
+                "initial_angle_of_attack": 0.0,
                 "ray_casting_tolerance": 1e-9,
                 "moving_parameters":    {
                     "origin"                        : [0.0,0.0,0.0],
@@ -68,7 +69,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["rotation_point"].GetVector())
         else:
             self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["origin"].GetVector())
-        self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.ROTATION_ANGLE, self.moving_parameters["rotation_angle"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.ROTATION_ANGLE, self.moving_parameters["rotation_angle"].GetDouble()+settings["initial_angle_of_attack"].GetDouble())
 
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]

@@ -47,14 +47,15 @@ inline void AtomicAdd(TDataType& target, const TDataType& value)
 /** 
  * @param target variable being atomically updated by doing target += value
  * @param value value being added
- * Specialization for array_1d<double,3>
+ * Specialization for array_1d
  * Note that the update is not really atomic, but rather is done component by component
  */
-inline void AtomicAdd(array_1d<double,3>& target, const array_1d<double,3>& value)
+template <class TDataType, std::size_t ArraySize>
+inline void AtomicAdd(array_1d<TDataType,ArraySize>& target, const array_1d<TDataType,ArraySize>& value)
 {
-    AtomicAdd(target[0], value[0]);
-    AtomicAdd(target[1], value[1]);
-    AtomicAdd(target[2], value[2]);
+    for (std::size_t i=0; i<ArraySize; ++i) {
+        AtomicAdd(target[i], value[i]);
+    }
 }
 
 /** 
@@ -103,14 +104,15 @@ inline void AtomicSub(TDataType& target, const TDataType& value)
 /** 
  * @param target variable being atomically updated by doing target -= value
  * @param value value being subtracted
- * Specialization for array_1d<double,3>
+ * Specialization for array_1d
  * Note that the update is not really atomic, but rather is done component by component
  */
-inline void AtomicSub(array_1d<double,3>& target, const array_1d<double,3>& value)
+template <class TDataType, std::size_t ArraySize>
+inline void AtomicSub(array_1d<TDataType,ArraySize>& target, const array_1d<TDataType,ArraySize>& value)
 {
-    AtomicSub(target[0], value[0]);
-    AtomicSub(target[1], value[1]);
-    AtomicSub(target[2], value[2]);
+    for(std::size_t i=0; i<ArraySize; ++i) {
+        AtomicSub(target[i], value[i]);
+    }
 }
 
 /** 
@@ -156,14 +158,15 @@ inline void AtomicMult(TDataType& target, const TDataType& value)
 
 /** @param target variable being atomically updated by doing target *= value
  * @param value value being multiplied
- * Specialization for array_1d<double,3>
+ * Specialization for array_1d
  * Note that the update is not really atomic, but rather is done component by component
  */
-inline void AtomicMult(array_1d<double,3>& target, const array_1d<double,3>& value)
+template <class TDataType, std::size_t ArraySize>
+inline void AtomicMult(array_1d<TDataType,ArraySize>& target, const array_1d<TDataType,ArraySize>& value)
 {
-    AtomicMult(target[0], value[0]);
-    AtomicMult(target[1], value[1]);
-    AtomicMult(target[2], value[2]);
+    for(std::size_t i=0; i<ArraySize; ++i) {
+        AtomicMult(target[i], value[i]);
+    }
 }
 
 /** @param target vector variable being atomically updated by doing target *= value
@@ -208,14 +211,15 @@ inline void AtomicDiv(TDataType& target, const TDataType& value)
 
 /** @param target variable being atomically updated by doing target *= 1.0/value
  * @param value value being divided
- * Specialization for array_1d<double,3>
+ * Specialization for array_1d
  * Note that the update is not really atomic, but rather is done component by component
  */
-inline void AtomicDiv(array_1d<double,3>& target, const array_1d<double,3>& value)
+template <class TDataType, std::size_t ArraySize>
+inline void AtomicDiv(array_1d<TDataType,ArraySize>& target, const array_1d<TDataType,ArraySize>& value)
 {
-    AtomicDiv(target[0], value[0]);
-    AtomicDiv(target[1], value[1]);
-    AtomicDiv(target[2], value[2]);
+    for(std::size_t i=0; i<ArraySize; ++i) {
+        AtomicDiv(target[i], value[i]);
+    }
 }
 
 /** @param target vector variable being atomically updated by doing target *= 1.0/value
