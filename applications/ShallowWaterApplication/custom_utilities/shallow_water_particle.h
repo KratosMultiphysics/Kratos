@@ -106,17 +106,17 @@ public:
     }
 
     // Returning references
-    float& GetScalar1()
+    double& GetScalar1()
     {
         return this->mScalar1;
     }
 
-    float& GetVector1(const unsigned int i)
+    double& GetVector1(const unsigned int i)
     {
         return this->mVector1[i];
     }
 
-    array_1d<float,3>& GetVector1()
+    array_1d<double,3>& GetVector1()
     {
         return this->mVector1;
     }
@@ -127,8 +127,8 @@ public:
     }
 
 private:
-    float mScalar1;
-    array_1d<float,3> mVector1;
+    double mScalar1;
+    array_1d<double,3> mVector1;
     bool mEraseFlag;
 
 };

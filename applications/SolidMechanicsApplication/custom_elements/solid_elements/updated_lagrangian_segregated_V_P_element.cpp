@@ -159,7 +159,7 @@ void UpdatedLagrangianSegregatedVPElement::SetValuesOnIntegrationPoints( const V
 //************************************************************************************
 
 
-void UpdatedLagrangianSegregatedVPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianSegregatedVPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
                                                                         std::vector<double>& rValues,
                                                                         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -179,7 +179,7 @@ void UpdatedLagrangianSegregatedVPElement::GetValueOnIntegrationPoints( const Va
   }
   else{
 
-    LargeDisplacementSegregatedVPElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementSegregatedVPElement::CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -188,11 +188,11 @@ void UpdatedLagrangianSegregatedVPElement::GetValueOnIntegrationPoints( const Va
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedVPElement::Initialize()
+void UpdatedLagrangianSegregatedVPElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    LargeDisplacementSegregatedVPElement::Initialize();
+    LargeDisplacementSegregatedVPElement::Initialize(rCurrentProcessInfo);
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
@@ -944,7 +944,7 @@ double& UpdatedLagrangianSegregatedVPElement::CalculateVolumeChange( double& rVo
 //************************************************************************************
 //************************************************************************************
 
-int  UpdatedLagrangianSegregatedVPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  UpdatedLagrangianSegregatedVPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   KRATOS_TRY
 
@@ -968,7 +968,7 @@ int  UpdatedLagrangianSegregatedVPElement::Check( const ProcessInfo& rCurrentPro
   for(SizeType i=0; i<this->GetGeometry().size(); ++i)
   {
     // Nodal data
-    Node<3> &rNode = this->GetGeometry()[i];
+    const Node<3> &rNode = this->GetGeometry()[i];
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_VELOCITY,rNode);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_ACCELERATION,rNode);

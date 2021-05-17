@@ -101,11 +101,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::Initialize()
+  void LargeDisplacementBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    BeamElement::Initialize();
+    BeamElement::Initialize(rCurrentProcessInfo);
 
     //------------- REDUCED QUADRATURE INTEGRATION
 
@@ -202,7 +202,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -276,7 +276,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementBeamElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -287,7 +287,7 @@ namespace Kratos
   ////************************************************************************************
   ////************************************************************************************
 
-  void LargeDisplacementBeamElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementBeamElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -300,7 +300,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -629,7 +629,7 @@ namespace Kratos
 
 
   void LargeDisplacementBeamElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-							     ProcessInfo& rCurrentProcessInfo )
+							     const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -1679,7 +1679,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void LargeDisplacementBeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
@@ -1919,7 +1919,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void LargeDisplacementBeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -2339,7 +2339,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -2751,7 +2751,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  LargeDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  LargeDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

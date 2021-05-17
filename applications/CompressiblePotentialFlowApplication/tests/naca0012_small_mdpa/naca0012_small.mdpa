@@ -208,3 +208,15 @@ Begin SubModelPart Body2D_Body // Group Body Auto1Body2D_UpperSurface // Subtree
         18
     End SubModelPartConditions
 End SubModelPart
+
+Begin SubModelPart TrailingEdgeNode
+    Begin SubModelPartNodes
+        13
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart LeadingEdgeNode
+    Begin SubModelPartNodes
+         6
+    End SubModelPartNodes
+End SubModelPart
