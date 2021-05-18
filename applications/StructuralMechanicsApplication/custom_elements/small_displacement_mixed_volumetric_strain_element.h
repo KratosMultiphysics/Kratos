@@ -82,7 +82,7 @@ protected:
         Matrix DN_DX;
         Vector Displacements;
         Vector VolumetricNodalStrains;
-        Vector EquivalentStrain;
+        ConstitutiveLaw::VoigtSizeVectorType EquivalentStrain;
 
         /**
          * The default constructor
