@@ -699,8 +699,26 @@ public:
     {
     }
 
+    virtual void Calculate(const Variable<ConstitutiveLaw::VoigtSizeVectorType >& rVariable,
+                           ConstitutiveLaw::VoigtSizeVectorType& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void Calculate(const Variable<Matrix >& rVariable,
                            Matrix& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void Calculate(const Variable<ConstitutiveLaw::VoigtSizeMatrixType >& rVariable,
+                           ConstitutiveLaw::VoigtSizeMatrixType& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void Calculate(const Variable<ConstitutiveLaw::DeformationGradientMatrixType >& rVariable,
+                           ConstitutiveLaw::DeformationGradientMatrixType& Output,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -750,17 +768,11 @@ public:
     {
     }
 
-    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::StrainVectorType>& rVariable,
-    //                       std::vector<ConstitutiveLaw::StrainVectorType>& rOutput,
-    //                       const ProcessInfo& rCurrentProcessInfo)
-    // {
-    // }
-
-    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::StressVectorType>& rVariable,
-    //                       std::vector<ConstitutiveLaw::StressVectorType>& rOutput,
-    //                       const ProcessInfo& rCurrentProcessInfo)
-    // {
-    // }
+    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+                          std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                           std::vector<Matrix>& rOutput,
@@ -768,17 +780,17 @@ public:
     {
     }
 
-    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
-    //                       std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
-    //                       const ProcessInfo& rCurrentProcessInfo)
-    // {
-    // }
+    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+                          std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
-    // virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
-    //                       std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rOutput,
-    //                       const ProcessInfo& rCurrentProcessInfo)
-    // {
-    // }
+    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+                          std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                          std::vector<ConstitutiveLaw::Pointer>& rOutput,
@@ -833,8 +845,26 @@ public:
     {
     }
 
+    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+                         const std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
                          const std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+                         const std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+                         const std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
