@@ -269,19 +269,6 @@ public:
         ) override;
 
     /**
-     * @brief It calculates the value of a specified variable (Vector case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
      * @brief It calculates the value of a specified variable (VoigtSizeVectorType case)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -290,61 +277,22 @@ public:
      */
     ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<VoigtSizeVectorType>& rThisVariable,
+        const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rThisVariable,
         ConstitutiveLaw::VoigtSizeVectorType& rValue
         ) override;
 
     /**
-     * @brief It calculates the value of a specified variable (VoigtSizeVectorType case)
+     * @brief It calculates the value of a specified variable (VoigtSizeMatrixType case)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(
+    ConstitutiveLaw::VoigtSizeMatrixType& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<VoigtSizeVectorType>& rThisVariable,
-        ConstitutiveLaw::VoigtSizeVectorType& rValue
+        const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rThisVariable,
+        ConstitutiveLaw::VoigtSizeMatrixType& rValue
         ) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Matrix case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    // /**
-    //  * @brief It calculates the value of a specified variable (VoigtSizeMatrixType case)
-    //  * @param rParameterValues the needed parameters for the CL calculation
-    //  * @param rThisVariable the variable to be returned
-    //  * @param rValue a reference to the returned value
-    //  * @return rValue output: the value of the specified variable
-    //  */
-    // ConstitutiveLaw::VoigtSizeMatrixType& CalculateValue(
-    //     ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<VoigtSizeMatrixType>& rThisVariable,
-    //     ConstitutiveLaw::VoigtSizeMatrixType& rValue
-    //     ) override;
-
-    // /**
-    //  * @brief It calculates the value of a specified variable (DeformationGradientMatrixType case)
-    //  * @param rParameterValues the needed parameters for the CL calculation
-    //  * @param rThisVariable the variable to be returned
-    //  * @param rValue a reference to the returned value
-    //  * @return rValue output: the value of the specified variable
-    //  */
-    // ConstitutiveLaw::DeformationGradientMatrixType& CalculateValue(
-    //     ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<DeformationGradientMatrixType>& rThisVariable,
-    //     ConstitutiveLaw::DeformationGradientMatrixType& rValue
-    //     ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -381,7 +329,7 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(VoigtSizeMatrixType& rConstitutiveMatrix);
+    void CheckClearElasticMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix);
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
