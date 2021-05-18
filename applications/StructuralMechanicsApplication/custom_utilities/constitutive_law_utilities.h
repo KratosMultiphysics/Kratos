@@ -22,6 +22,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -71,20 +72,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /// We define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
 
-    /// The matrix type definition
-    typedef Matrix MatrixType;
-
-    /// the vector type definition
-    typedef Vector VectorType;
-
     /// The definition of the bounded vector type
-    typedef array_1d<double, VoigtSize> BoundedVectorType;
+    typedef ConstitutiveLaw::VoigtSizeVectorType BoundedVectorType;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    typedef ConstitutiveLaw::DeformationGradientMatrixType BoundedMatrixType;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+    typedef ConstitutiveLaw::VoigtSizeMatrixType BoundedMatrixVoigtType;
 
     /// Node type definition
     typedef Node<3> NodeType;
@@ -252,7 +247,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input
      * @param rStrainVector The strain vector
      */
-    static Matrix ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector);
+    static BoundedMatrixType ComputeEquivalentSmallDeformationDeformationGradient(const BoundedVectorType& rStrainVector);
 
     /**
      * @brief Calculation of the Green-Lagrange strain vector
@@ -261,8 +256,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rStrainVector The Green-Lagrange strain vector
      */
     static void CalculateGreenLagrangianStrain(
-        const MatrixType& rCauchyTensor,
-        VectorType& rStrainVector
+        const BoundedMatrixType& rCauchyTensor,
+        BoundedVectorType& rStrainVector
         );
 
     /**
@@ -272,8 +267,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rStrainVector The Almansi strain vector
      */
     static void CalculateAlmansiStrain(
-        const MatrixType& rLeftCauchyTensor,
-        VectorType& rStrainVector
+        const BoundedMatrixType& rLeftCauchyTensor,
+        BoundedVectorType& rStrainVector
         );
 
     /**
@@ -283,8 +278,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rStrainVector The Hencky strain vector
      */
     static void CalculateHenckyStrain(
-        const MatrixType& rCauchyTensor,
-        VectorType& rStrainVector
+        const BoundedMatrixType& rCauchyTensor,
+        BoundedVectorType& rStrainVector
         );
 
     /**
@@ -294,8 +289,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rStrainVector The Biot strain vector
      */
     static void CalculateBiotStrain(
-        const MatrixType& rCauchyTensor,
-        VectorType& rStrainVector
+        const BoundedMatrixType& rCauchyTensor,
+        BoundedVectorType& rStrainVector
         );
 
     /**
@@ -306,9 +301,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rUMatrix The pure displacement component
      */
     static void PolarDecomposition(
-        const MatrixType& rFDeformationGradient,
-        MatrixType& rRMatrix,
-        MatrixType& rUMatrix
+        const BoundedMatrixType& rFDeformationGradient,
+        BoundedMatrixType& rRMatrix,
+        BoundedMatrixType& rUMatrix
         );
 
     /**
@@ -345,8 +340,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rProjectionOperator The projection operator
      */
     static void CalculateProjectionOperator(
-        const Vector& rStrainVector,
-        MatrixType& rProjectionOperator
+        const BoundedVectorType& rStrainVector,
+        BoundedMatrixVoigtType& rProjectionOperator
         );
 
     /**
@@ -437,7 +432,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler1(
         const double EulerAngle1,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -446,7 +441,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler2(
         const double EulerAngle2,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -455,7 +450,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      */
     static void CalculateRotationOperatorEuler3(
         const double EulerAngle3,
-        BoundedMatrix<double, 3, 3> &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
@@ -472,7 +467,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const double EulerAngle1, // phi
         const double EulerAngle2, // theta
         const double EulerAngle3, // hi
-        BoundedMatrix<double, 3, 3> &rRotationOperator
+        BoundedMatrixType &rRotationOperator
     );
 
     /**
