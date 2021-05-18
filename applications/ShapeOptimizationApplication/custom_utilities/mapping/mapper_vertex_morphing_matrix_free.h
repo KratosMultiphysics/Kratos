@@ -117,12 +117,9 @@ public:
 
         CreateFilterFunction();
 
-        CreateListOfNodesInOriginModelPart();
-        InitializeMappingVariables();
-        AssignMappingIds();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-
         mIsMappingInitialized = true;
+
+        Update();
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }

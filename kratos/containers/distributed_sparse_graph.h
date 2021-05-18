@@ -85,15 +85,15 @@ public:
 
     /// constructor.
     DistributedSparseGraph(const IndexType LocalSize,
-                           DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator())
-        :
-        mrComm(rComm),
-        mLocalGraph(LocalSize)
+                           DataCommunicator& rComm)
+    :
+      mpComm(&rComm),
+      mLocalGraph(LocalSize)
     {
-        mNonLocalGraphs.resize(mrComm.Size(),false);
-        mNonLocalLocks.resize(mrComm.Size());
+        mNonLocalGraphs.resize(mpComm->Size(),false);
+        mNonLocalLocks.resize(mpComm->Size());
 
-        mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(mrComm,LocalSize);
+        mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(*mpComm,LocalSize);
     }
 
 
@@ -102,7 +102,12 @@ public:
 
     inline const DataCommunicator& GetComm() const
     {
-        return mrComm;
+        return *mpComm;
+    }
+
+    inline const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     inline const DistributedNumbering<IndexType>& GetRowNumbering() const
@@ -252,7 +257,7 @@ public:
             if( !mNonLocalGraphs[id].IsEmpty())
                 send_list.push_back(id);
 
-        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrComm);
+        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, *mpComm);
 
         //sendrecv data
         for(auto color : colors)
@@ -262,7 +267,7 @@ public:
                 //TODO: this can be made nonblocking
 
                 //using serialization
-                //const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
+                //const auto recv_graph = mpComm->SendRecv(mNonLocalGraphs[color], color, color);
                 // for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
                 // {
                 //     auto I = row_it.GetRowIndex();
@@ -271,7 +276,7 @@ public:
 
                 //using native calls
                 auto send_single_vector_repr = mNonLocalGraphs[color].ExportSingleVectorRepresentation();
-                const auto recv_single_vector_repr = mrComm.SendRecv(send_single_vector_repr, color, color);
+                const auto recv_single_vector_repr = mpComm->SendRecv(send_single_vector_repr, color, color);
                 mLocalGraph.AddFromSingleVectorRepresentation(recv_single_vector_repr);
 
             }
@@ -384,7 +389,7 @@ private:
     ///@name Member Variables
     ///@{
     typename DistributedNumbering<IndexType>::UniquePointer mpRowNumbering = nullptr;
-    const DataCommunicator& mrComm;
+    const DataCommunicator* mpComm;
 
     LocalGraphType mLocalGraph;
     DenseVector<NonLocalGraphType> mNonLocalGraphs;

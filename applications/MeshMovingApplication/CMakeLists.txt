@@ -9,6 +9,7 @@ file(GLOB_RECURSE KRATOS_MESH_MOVING_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/mesh_moving_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
 
 ## MeshMoving python interface sources

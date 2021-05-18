@@ -175,13 +175,13 @@ protected:
      * Initialize Variables
      */
     void InitializeConditionVariables (ConditionVariables& rVariables,
-				     const ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(ConditionVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

@@ -72,11 +72,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::Initialize()
+  void GeometricallyExactRodElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    LargeDisplacementBeamEMCElement::Initialize();
+    LargeDisplacementBeamEMCElement::Initialize(rCurrentProcessInfo);
 
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes  = GetGeometry().size();
@@ -145,7 +145,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+  void GeometricallyExactRodElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -558,7 +558,7 @@ namespace Kratos
 
 
   void GeometricallyExactRodElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-							       ProcessInfo& rCurrentProcessInfo )
+							       const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -629,7 +629,7 @@ namespace Kratos
 
 
   void GeometricallyExactRodElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-							     ProcessInfo& rCurrentProcessInfo )
+							     const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -1818,7 +1818,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void GeometricallyExactRodElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
@@ -1910,7 +1910,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void GeometricallyExactRodElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -2120,7 +2120,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  GeometricallyExactRodElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  GeometricallyExactRodElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -2163,5 +2163,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-

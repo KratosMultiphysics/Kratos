@@ -48,7 +48,6 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
         for index, variable_dir in enumerate(["_X", "_Y", "_Z"]):
             variable_component_name = variable_name + variable_dir
             flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + variable_component_name
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
             if not settings["value"][index].IsNull():
                 component_params = KratosMultiphysics.Parameters("{}")
                 component_params.AddValue("model_part_name", settings["model_part_name"])
@@ -57,9 +56,9 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
                 component_params.AddEmptyValue("variable_name").SetString(variable_name + variable_dir)
                 component_params.AddValue("local_axes",settings["local_axes"])
                 self.aux_processes.append( AssignScalarVariableToConditionsProcess(model, component_params) )
-                KratosMultiphysics.VariableUtils().SetFlag(flag_name, True, self.model_part.Conditions)
+                KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), True, self.model_part.Conditions)
             else:
-                KratosMultiphysics.VariableUtils().SetFlag(the_flag, False, self.model_part.Conditions)
+                KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), False, self.model_part.Conditions)
 
     def ExecuteInitialize(self):
         for process in self.aux_processes:

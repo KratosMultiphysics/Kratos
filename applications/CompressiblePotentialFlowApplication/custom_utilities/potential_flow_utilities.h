@@ -182,8 +182,24 @@ void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template <int Dim, int NumNodes>
 void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 
+template<int Dim>
+Vector ComputeKuttaNormal(const double angle);
+
 template <class TContainerType>
 double CalculateArea(TContainerType& rContainer);
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyTerm(const Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+void AddPotentialGradientStabilizationTerm(Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 
