@@ -42,18 +42,24 @@ void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, Num
     }
 }
 
-template <int NumNodes>
-BoundedVector<double,NumNodes> AssignDistancesToElement()
+template <>
+BoundedVector<double,3> AssignDistancesToElement<3>()
 {
-    BoundedVector<double,NumNodes> distances;
-    for(unsigned int i = 0; i < NumNodes; i++){
-        if(i < 1){
-            distances(i) = 1.0;
-        }
-        else{
-            distances(i) = -1.0;
-        }
-    }
+    BoundedVector<double,3> distances;
+    distances(0) = 1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    return distances;
+}
+
+template <>
+BoundedVector<double,4> AssignDistancesToElement<4>()
+{
+    BoundedVector<double,4> distances;
+    distances(0) = -1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    distances(3) = 1.0;
     return distances;
 }
 
