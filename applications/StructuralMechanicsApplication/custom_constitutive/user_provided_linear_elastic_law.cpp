@@ -233,7 +233,8 @@ void UserProvidedLinearElasticLaw<TDim>::CalculateElasticMatrix(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    if (rConstitutiveMatrix.size1() != StrainSize) rConstitutiveMatrix.resize(StrainSize, StrainSize, false)
+    if (rConstitutiveMatrix.size1() != StrainSize) 
+        rConstitutiveMatrix.resize(StrainSize, StrainSize, false);
     noalias(rConstitutiveMatrix) = r_material_properties[ELASTICITY_TENSOR];
 }
 
@@ -248,8 +249,9 @@ void UserProvidedLinearElasticLaw<TDim>::CalculatePK2Stress(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const ConstitutiveLaw::VoigtSizeMatrixType C;
-    if (C.size1() != StrainSize) C.resize(StrainSize, StrainSize, false)
+    ConstitutiveLaw::VoigtSizeMatrixType C;
+    if (C.size1() != StrainSize) C.resize(StrainSize, StrainSize, false);
+
     noalias(C) = r_material_properties[ELASTICITY_TENSOR];
     noalias(rStressVector) = prod(C, rStrainVector);
 }

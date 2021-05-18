@@ -165,7 +165,8 @@ void CableElement3D2N::CalculateOnIntegrationPoints(
 }
 
 void CableElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable, std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) || (rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)){
