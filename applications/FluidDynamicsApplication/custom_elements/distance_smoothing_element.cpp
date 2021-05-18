@@ -292,11 +292,11 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
     //const auto gp_this_elem = Element::WeakPointer( &*this );
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        const auto comparor = GlobalPointerComparor<Element>();
+        const auto comparator = GlobalPointerComparor<Element>();
         std::cout << "Pointers: " << &*(neighbour_elems(i_ne)) << " " << &*gp_this_elem << std::endl;
         std::cout << "IDs: " << neighbour_elems(i_ne)->Id() << " " << gp_this_elem->Id() << std::endl;
         KRATOS_WATCH("HERE_OUT")
-        if (comparor(neighbour_elems(i_ne), gp_this_elem) ){ //neighbour_elems(i_ne) == gp_this_elem ){ //
+        if (comparator(neighbour_elems(i_ne), gp_this_elem) ){ //neighbour_elems(i_ne) == gp_this_elem ){ //
             KRATOS_WATCH("HERE_IN")
             auto outer_face = Line3D2< GeometryType::PointType >(
                                     geometry.pGetPoint(mNode0ID2D[i_ne]),
