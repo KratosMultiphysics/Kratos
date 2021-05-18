@@ -122,19 +122,23 @@ void CableElement3D2N::UpdateInternalForces(
 
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_strain;
+    temp_strain.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_stress;
+    temp_strain.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
-    mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
+    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
     const double normal_force =
         ((temp_stress[0] + prestress) * l * A) / L0;
 
 
     mIsCompressed = false;
-    if ((normal_force < 0.00)&&(std::abs(l-L0)>numerical_limit)) {
+    if ((normal_force < 0.00) && (std::abs(l-L0) > numerical_limit)) {
         mIsCompressed = true;
     }
 
@@ -161,13 +165,13 @@ void CableElement3D2N::CalculateOnIntegrationPoints(
 }
 
 void CableElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable, std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     if ((rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) || (rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)){
         TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
-        if (rOutput[0][0]<0.0){
-            rOutput[0]=ZeroVector(msDimension);
+        if (rOutput[0][0] < 0.0){
+            rOutput[0] = ZeroVector(msDimension);
         }
     }
 }

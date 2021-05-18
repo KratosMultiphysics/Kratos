@@ -225,7 +225,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ElasticIsotropic3D::CalculateValue(
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
-            rValue.resize(GetStrainSize());
+            rValue.resize(GetStrainSize(), false);
         }
         noalias(rValue) = rParameterValues.GetStrainVector();
 
@@ -250,7 +250,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ElasticIsotropic3D::CalculateValue(
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
-            rValue.resize(GetStrainSize());
+            rValue.resize(GetStrainSize(), false);
         }
         noalias(rValue) = rParameterValues.GetStressVector();
 
@@ -261,7 +261,7 @@ ConstitutiveLaw::VoigtSizeVectorType& ElasticIsotropic3D::CalculateValue(
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
             if (rValue.size() != GetStrainSize()) {
-                rValue.resize(GetStrainSize());
+                rValue.resize(GetStrainSize(), false);
             }
             noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
