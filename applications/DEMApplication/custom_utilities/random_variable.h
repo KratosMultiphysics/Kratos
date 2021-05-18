@@ -32,7 +32,9 @@ public:
     /// Destructor
     ~RandomVariable(){};
 
-    virtual double Sample(){return 0.0;};
+    virtual double Sample(){KRATOS_ERROR << "You are calling the 'Sample' function of the abstract class 'RandomVariable'. Please instantiate a specific derived class instead."; return 0.0;};
+
+    virtual double GetMean(){KRATOS_ERROR << "You are calling 'GetMean' function of the abstract class 'RandomVariable'. Please instantiate a specific derived class instead."; return 0.0;};
 
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
     virtual std::string Info() const;
@@ -45,7 +47,7 @@ public:
 
 
 protected:
-
+    virtual void Check(){};
 
 private:
 

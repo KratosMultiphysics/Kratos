@@ -380,6 +380,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<const Parameters, const int>())
         .def("Sample", &PiecewiseLinearRandomVariable::Sample)
         .def("ProbabilityDensity", &PiecewiseLinearRandomVariable::ProbabilityDensity)
+        .def("GetMean", &PiecewiseLinearRandomVariable::GetMean)
         ;
 
     }
