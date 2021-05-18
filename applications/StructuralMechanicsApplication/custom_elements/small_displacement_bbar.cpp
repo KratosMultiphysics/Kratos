@@ -640,8 +640,8 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
 //************************************************************************************
 
 void SmallDisplacementBbar::CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
+        const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -704,7 +704,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size() != strain_size )
                 rOutput[point_number].resize( strain_size, false );
 
-            rOutput[point_number] = this_constitutive_variables.StressVector;
+            noalias(rOutput[point_number]) = this_constitutive_variables.StressVector;
         }
     }
     else if(rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR) {
@@ -747,7 +747,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size() != strain_size)
                 rOutput[point_number].resize( strain_size, false );
 
-            rOutput[point_number] = this_constitutive_variables.StrainVector;
+            noalias(rOutput[point_number]) = this_constitutive_variables.StrainVector;
         }
     }
     else {
@@ -759,48 +759,14 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
 //************************************************************************************
 
 void SmallDisplacementBbar::CalculateOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rOutput,
+        const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+        std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod()).size();
 
-    if (rOutput.size() != number_of_integration_points)
-        rOutput.resize(number_of_integration_points);
-
-    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
-        std::vector<Vector> stress_vector;
-
-        if( rVariable == CAUCHY_STRESS_TENSOR )
-            this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
-        else
-            this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
-
-        // Loop integration points
-        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ ) {
-            if ( rOutput[point_number].size2() != dimension )
-                rOutput[point_number].resize( dimension, dimension, false );
-
-            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
-        }
-    }
-    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
-        std::vector<Vector> strain_vector;
-        if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-            CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
-        else
-            CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
-
-        // Loop integration points
-        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ ) {
-            if ( rOutput[point_number].size2() != dimension )
-                rOutput[point_number].resize( dimension, dimension, false );
-
-            rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
-        }
-    }
-    else if (rVariable == CONSTITUTIVE_MATRIX) {
+    if (rVariable == CONSTITUTIVE_MATRIX) {
         // Create and initialize element variables:
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -842,7 +808,53 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                 rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
 
-            rOutput[point_number] = this_constitutive_variables.D;
+            noalias(rOutput[point_number]) = this_constitutive_variables.D;
+        }
+    }
+}
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementBbar::CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+        std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod()).size();
+
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points);
+
+    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector;
+
+        if( rVariable == CAUCHY_STRESS_TENSOR )
+            this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
+        else
+            this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
+
+        // Loop integration points
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ ) {
+            if ( rOutput[point_number].size2() != dimension )
+                rOutput[point_number].resize( dimension, dimension, false );
+
+            noalias(rOutput[point_number]) = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+        }
+    }
+    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> strain_vector;
+        if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+            CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
+        else
+            CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
+
+        // Loop integration points
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ ) {
+            if ( rOutput[point_number].size2() != dimension )
+                rOutput[point_number].resize( dimension, dimension, false );
+
+            noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
         }
     }
     else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
@@ -875,7 +887,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                 rOutput[point_number].resize( this_kinematic_variables.F.size1() , this_kinematic_variables.F.size2() , false );
 
-            rOutput[point_number] = this_kinematic_variables.F;
+            noalias(rOutput[point_number]) = this_kinematic_variables.F;
         }
     }
     else {

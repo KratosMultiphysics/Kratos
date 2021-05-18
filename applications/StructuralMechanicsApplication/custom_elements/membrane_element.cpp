@@ -306,7 +306,7 @@ void MembraneElement::TransformStrains(ConstitutiveLaw::VoigtSizeVectorType& rSt
 void MembraneElement::AddPreStressPk2(ConstitutiveLaw::VoigtSizeVectorType& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
 
     ConstitutiveLaw::VoigtSizeVectorType pre_stress;
-    pre_stress.resize(3, false)
+    pre_stress.resize(3, false);
     noalias(pre_stress) = ZeroVector(3);
     if (GetProperties().Has(PRESTRESS_VECTOR)){
         noalias(pre_stress) = GetProperties()(PRESTRESS_VECTOR);
