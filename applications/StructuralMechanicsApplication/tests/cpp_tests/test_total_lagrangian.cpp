@@ -106,10 +106,10 @@ namespace Testing
                                              + 3.0*reference_stress[2]*reference_stress[2]
                                             );
 
-            std::vector<Vector> output_strains(1);
+            std::vector<ConstitutiveLaw::VoigtSizeVectorType> output_strains(1);
             p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
 
-            std::vector<Vector> output_stress(1);
+            std::vector<ConstitutiveLaw::VoigtSizeVectorType> output_stress(1);
             p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
 
             std::vector<double> output_von_mises(1);
