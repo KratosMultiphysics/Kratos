@@ -37,6 +37,7 @@ public:
 
     double Sample() override;
     double ProbabilityDensity(const double x);
+    double GetMean() override;
 
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
     std::string Info() const override
@@ -61,6 +62,7 @@ public:
     }
 
 protected:
+    void Check() override;
 
 
 private:
@@ -75,6 +77,9 @@ private:
     /// Assignment operator.
     PiecewiseLinearRandomVariable & operator=(PiecewiseLinearRandomVariable const& rOther);
 
+    double mRelativeClosenessTolerance;
+    double mMean;
+    bool mMeanHasAlreadyBeenCalculated=false;
     std::vector<double> mPDFValues;
     std::vector<double> mPDFBreakpoints;
     std::mt19937 mRandomNumberGenerator;
