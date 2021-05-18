@@ -115,9 +115,9 @@ protected:
      */
     struct ConstitutiveVariables
     {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix D;
+        ConstitutiveLaw::VoigtSizeVectorType StrainVector;
+        ConstitutiveLaw::VoigtSizeVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
 
         /**
          * The default constructor
@@ -125,9 +125,18 @@ protected:
          */
         ConstitutiveVariables(const SizeType StrainSize)
         {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            D = ZeroMatrix(StrainSize, StrainSize);
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize, false);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize, false);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize, false);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 

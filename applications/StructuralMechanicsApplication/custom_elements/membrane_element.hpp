@@ -333,9 +333,9 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      */
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
-      const Matrix& rMaterialTangentModulus,
+      const ConstitutiveLaw::VoigtSizeMatrixType& rMaterialTangentModulus,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const Matrix& rTransformationMatrix);
+      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
 
