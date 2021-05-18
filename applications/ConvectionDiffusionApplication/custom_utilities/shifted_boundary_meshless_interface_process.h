@@ -23,6 +23,7 @@
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "processes/process.h"
+#include "utilities/mls_shape_functions_utility.h"
 
 // Application includes
 
@@ -64,6 +65,8 @@ public:
 
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
 
+    using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&, Matrix&)>;
+
     using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
     ///@}
@@ -103,6 +106,10 @@ public:
         const auto& r_begin_geom = mrModelPart.ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
+        // Get the MLS shape functions function
+        const double mls_kernel_rad = 0.2;
+        auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
+
         // Loop the elements to find the intersected ones
         for (auto& rElement : mrModelPart.Elements()) {
             // Check if the element is split
@@ -112,6 +119,9 @@ public:
             // If the element is negative, it is deactivated to not be assembled
             if (IsSplit(*p_geom)) {
                 // Set the meshless cloud of point support for the MLS
+                Matrix cloud_nodes_coordinates;
+                std::vector<NodeType::Pointer> cloud_nodes;
+                SetSplitElementSupportCloud(*p_geom, cloud_nodes, cloud_nodes_coordinates);
 
                 // Set up the distances vector
                 const auto& r_geom = *p_geom;
@@ -124,7 +134,8 @@ public:
                 Vector pos_int_w;
                 Matrix pos_int_N;
                 std::vector<Vector> pos_int_n;
-                typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX; //TODO: Add a method without the interface gradients
+                typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX;
+                //TODO: Add a method without the interface gradients
                 p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::GI_GAUSS_2);
                 p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::GI_GAUSS_2);
 
@@ -145,6 +156,10 @@ public:
                     // Store the Gauss pt. weight and normal in the database
 
                     // Calculate the MLS shape functions and gradients and save in the database
+                    Vector N_container;
+                    Matrix DN_DX_container;
+                    p_mls_sh_func(cloud_nodes_coordinates, i_g_coords, mls_kernel_rad, N_container, DN_DX_container);
+                    //FIXME: SAVE THE NEW SHAPE FUNCTIONS IN THE ELEMENTAL DATABASE
                 }
             } else if (IsNegative(*p_geom)) {
                 rElement.Set(ACTIVE, false);
@@ -257,7 +272,7 @@ private:
                 n_neg++;
             }
         }
-        return (n_neg != rGeometry.PointsNumber());
+        return (n_neg == rGeometry.PointsNumber());
     }
 
     void SetNodalDistancesVector(
@@ -288,9 +303,23 @@ private:
         }
     }
 
+    MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction()
+    {
+        switch (mrModelPart.GetProcessInfo()[DOMAIN_SIZE]) {
+            case 2:
+                return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
+                    MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>(rPoints, rX, h, rN, rDN_DX);};
+            case 3:
+                return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
+                    MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>(rPoints, rX, h, rN, rDN_DX);};
+            default:
+                KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
+        }
+    }
+
     void SetSplitElementSupportCloud(
         const GeometryType& rSplitGeometry,
-        std::vector<NodeType>& rCloudNodes,
+        std::vector<NodeType::Pointer>& rCloudNodes,
         Matrix& rCloudCoordinates)
     {
         // Find the positive side support cloud of nodes
@@ -317,7 +346,23 @@ private:
         }
 
         // Sort the obtained nodes by id
+        const std::size_t n_cloud_nodes = aux_set.size();
+        rCloudNodes.resize(n_cloud_nodes);
+        std::size_t aux_i = 0;
+        for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+            rCloudNodes[aux_i++] = *it_set;
+        }
+        std::sort(rCloudNodes.begin(), rCloudNodes.end(), [](NodeType::Pointer p1, NodeType::Pointer p2){return (p1->Id() < p2->Id());});
 
+        // Fill the coordinates matrix
+        array_1d<double,3> aux_coord;
+        rCloudCoordinates.resize(n_cloud_nodes, 3);
+        for (std::size_t i_node = 0; i_node < n_cloud_nodes; ++i_node) {
+            noalias(aux_coord) = rCloudNodes[i_node]->Coordinates();
+            rCloudCoordinates(i_node, 0) = aux_coord[0];
+            rCloudCoordinates(i_node, 1) = aux_coord[1];
+            rCloudCoordinates(i_node, 2) = aux_coord[2];
+        }
     }
 
     ///@}

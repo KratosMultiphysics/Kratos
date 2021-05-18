@@ -39,14 +39,30 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Initialize base solver strategy
         super().Initialize()
 
+        # Correct the level set
+        #TODO: Use the FluidDynamicsApplication process
+        tol = 1.0e-5
+        for node in self.GetComputingModelPart().Nodes:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if abs(dist) < tol:
+                if dist < 0.0:
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol)
+                else:
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
+
         # Find the required problem subdomains
         self.__SetInterfaceFlags()
 
         # Calculate the nodal neighbours
-        nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part)
+        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
         nodal_neighbours_process.Execute()
 
         # Create the boundary elements and MLS basis
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "ThermalModelPart"
+        }""")
+        sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
+        sbm_interface_process.Execute()
 
     def __SetInterfaceFlags(self):
         # Initialize the required flags to false
@@ -95,3 +111,38 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
             if not node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
                 n_pos += 1
         return n_pos == len(geometry)
+
+    def _get_element_condition_replace_settings(self):
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size not in (2,3):
+            raise Exception("DOMAIN_SIZE not set")
+
+        # Get element data
+        num_nodes_elements = 0
+        if (len(self.main_model_part.Elements) > 0):
+            for elem in self.main_model_part.Elements:
+                num_nodes_elements = len(elem.GetNodes())
+                break
+        num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+
+        print(element_name)
+
+        # Element checks
+        if num_nodes_elements not in (3,4):
+            raise Exception("Only simplex elements are supported so far.")
+        if element_name != "LaplacianShiftedBoundaryElement":
+            raise Exception("Only \'LaplacianShiftedBoundaryElement\' is supported so far.")
+
+        # Set registering element name
+        name_string = "{0}{1}D{2}N".format(element_name, domain_size, num_nodes_elements)
+        self.settings["element_replace_settings"]["element_name"].SetString(name_string)
+
+        # Set default conditions
+        condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+        if condition_name != "":
+            KratosMultiphysics.Logger.PrintWarning("ConvectionDiffusionStationaryShiftedBoundarySolver", "Ignoring provided condition \'{}\'.".format(condition_name))
+        name_string = "LineCondition2D2N" if domain_size == 2 else "SurfaceCondition3D3N"
+        self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
+
+        return self.settings["element_replace_settings"]
