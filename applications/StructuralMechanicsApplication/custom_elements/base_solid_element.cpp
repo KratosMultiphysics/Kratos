@@ -973,8 +973,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void BaseSolidElement::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -989,7 +989,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     } else {
         if ( rVariable == INSITU_STRESS ) {
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-            Vector strain_vector( strain_size );
+            ConstitutiveLaw::VoigtSizeVectorType strain_vector;
+            if (strain_vector.size() != strain_size) strain_vector.resize(strain_vector, false);
+            noalias(strain_vector) = ZeroVector(strain_size);
 
             for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
                 if ( rOutput[point_number].size() != strain_vector.size() )
@@ -1077,12 +1079,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     }
 }
 
+
 /***********************************************************************************/
 /***********************************************************************************/
 
 void BaseSolidElement::CalculateOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rOutput,
+    const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+    std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1108,7 +1111,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+                noalias(rOutput[point_number]) = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
             }
         }
         else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
@@ -1123,40 +1126,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
-            }
-        } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
-            // Create and initialize element variables:
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-            ConstitutiveVariables this_constitutive_variables(strain_size);
-
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-            // Set constitutive law flags:
-            Flags& ConstitutiveLawOptions=Values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-            Values.SetStrainVector(this_constitutive_variables.StrainVector);
-            Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
-
-            // Reading integration points
-            for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
-
-                if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
-                    rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
-
-                rOutput[point_number] = this_constitutive_variables.D;
+                noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
             }
         } else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
             // Create and initialize element variables:
@@ -1177,7 +1147,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if( rOutput[point_number].size2() != this_kinematic_variables.F.size2() )
                     rOutput[point_number].resize( this_kinematic_variables.F.size1() , this_kinematic_variables.F.size2() , false );
 
-                rOutput[point_number] = this_kinematic_variables.F;
+                noalias(rOutput[point_number]) = this_kinematic_variables.F;
             }
         }  else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
@@ -1185,6 +1155,50 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if ( rVariable == CONSTITUTIVE_MATRIX ) {
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
+
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+            if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
+                rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
+
+            noalias(rOutput[point_number]) = this_constitutive_variables.D;
+        }
+    } 
+}
 /***********************************************************************************/
 /***********************************************************************************/
 

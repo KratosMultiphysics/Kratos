@@ -119,13 +119,13 @@ protected:
         ConstitutiveVariables(const SizeType StrainSize)
         {
             if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
+                StrainVector.resize(StrainSize, false);
 
             if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
+                StressVector.resize(StrainSize, false);
 
             if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
+                D.resize(StrainSize, StrainSize, false);
 
             noalias(StrainVector) = ZeroVector(StrainSize);
             noalias(StressVector) = ZeroVector(StrainSize);
@@ -449,8 +449,8 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
+        const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -461,8 +461,20 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rOutput,
+        const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+        std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a Matrix Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+        std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
