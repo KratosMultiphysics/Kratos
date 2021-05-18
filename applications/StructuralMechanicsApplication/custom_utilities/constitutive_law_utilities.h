@@ -366,7 +366,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rPlasticPotentialDerivative The derivative of the plastic potential
      * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
      */
-    static MatrixType CalculateLinearPlasticDeformationGradientIncrement(
+    static BoundedMatrixType CalculateLinearPlasticDeformationGradientIncrement(
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement
         );
@@ -379,11 +379,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rRe The rotation decomposition of the elastic eformation
      * @note Formula 14.75 in Souza book
      */
-    static MatrixType CalculateExponentialElasticDeformationGradient(
-        const MatrixType& rElasticTrial,
+    static BoundedMatrixType CalculateExponentialElasticDeformationGradient(
+        const BoundedMatrixType& rElasticTrial,
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe
+        const BoundedMatrixType& rRe
         );
 
     /**
@@ -393,11 +393,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
      * @param rRe The rotation decomposition of the elastic eformation
      */
-    static MatrixType CalculateDirectElasticDeformationGradient(
-        const MatrixType& rElasticTrial,
+    static BoundedMatrixType CalculateDirectElasticDeformationGradient(
+        const BoundedMatrixType& rElasticTrial,
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe
+        const BoundedMatrixType& rRe
         );
 
     /**
@@ -407,10 +407,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rRe The rotation decomposition of the elastic eformation
      * @note Formula 14.73 in Souza book
      */
-    static MatrixType CalculateExponentialPlasticDeformationGradientIncrement(
+    static BoundedMatrixType CalculateExponentialPlasticDeformationGradientIncrement(
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe
+        const BoundedMatrixType& rRe
         );
 
     /**
@@ -420,10 +420,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rRe The rotation decomposition of the elastic eformation
      * @note Formula 14.74 in Souza book
      */
-    static MatrixType CalculateDirectPlasticDeformationGradientIncrement(
+    static BoundedMatrixType CalculateDirectPlasticDeformationGradientIncrement(
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe
+        const BoundedMatrixType& rRe
         );
 
     /**
