@@ -814,8 +814,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(  );
 
             //Calculate Cauchy Stresses from the FE solution
-            std::vector<Vector> sigma_FE_solution(number_of_nodes);
-            const Variable<Vector>& r_variable_stress = CAUCHY_STRESS_VECTOR;
+            std::vector<ConstitutiveLaw::VoigtSizeVectorType> sigma_FE_solution(number_of_nodes);
+            const Variable<ConstitutiveLaw::VoigtSizeVectorType>& r_variable_stress = CAUCHY_STRESS_VECTOR;
             CalculateOnIntegrationPoints(r_variable_stress, sigma_FE_solution, rCurrentProcessInfo);
 
             // calculate the determinatn of the Jacobian in the current configuration
@@ -839,7 +839,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                         integration_weight *= this->GetProperties()[THICKNESS];
 
                     // Calculate recovered stresses at integration points
-                    Vector sigma_recovered = ZeroVector(strain_size);
+                    ConstitutiveLaw::VoigtSizeVectorType sigma_recovered;
+                    if (sigma_recovered.size() != strain_size) sigma_recovered.resize(strain_size, false);
+                    noalias(sigma_recovered) = ZeroVector(strain_size);
 
                     // sigma_recovered = sum(N_i * sigma_recovered_i)
                     for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
@@ -850,8 +852,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     }
 
                     // Calculate error_sigma
-                    Vector error_sigma(strain_size);
-                    error_sigma = sigma_recovered - sigma_FE_solution[point_number];
+                    ConstitutiveLaw::VoigtSizeVectorType error_sigma;
+                    if (error_sigma.size() != strain_size) error_sigma.resize(strain_size, false);
+
+                    noalias(error_sigma) = sigma_recovered - sigma_FE_solution[point_number];
 
                     // For debug
                     KRATOS_TRACE("ERROR_INTEGRATION_POINT")
@@ -859,7 +863,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     <<"sigma FE: " << sigma_FE_solution[point_number] << std::endl;
 
                     // Calculate inverse of material matrix
-                    Matrix invD(strain_size,strain_size);
+                    ConstitutiveLaw::VoigtSizeMatrixType invD;
+                    if (invD.size1() != strain_size) invD.resize(strain_size, strain_size, false);
+                    noalias(invD) = ZeroMatrix(strain_size, strain_size);
+
                     double detD;
                     MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
 
@@ -990,7 +997,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         if ( rVariable == INSITU_STRESS ) {
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
             ConstitutiveLaw::VoigtSizeVectorType strain_vector;
-            if (strain_vector.size() != strain_size) strain_vector.resize(strain_vector, false);
+            if (strain_vector.size() != strain_size) strain_vector.resize(strain_size, false);
             noalias(strain_vector) = ZeroVector(strain_size);
 
             for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
@@ -1099,7 +1106,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         GetValueOnConstitutiveLaw(rVariable, rOutput);
     } else {
         if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
-            std::vector<Vector> stress_vector;
+            std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector;
 
             if( rVariable == CAUCHY_STRESS_TENSOR )
                 this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
@@ -1115,7 +1122,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             }
         }
         else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
-            std::vector<Vector> strain_vector;
+            std::vector<ConstitutiveLaw::VoigtSizeVectorType> strain_vector;
             if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
                 CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
             else
@@ -1160,10 +1167,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
 void BaseSolidElement::CalculateOnIntegrationPoints(
     const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
-    std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rValues,
+    std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
     if ( rVariable == CONSTITUTIVE_MATRIX ) {
         // Create and initialize element variables:
         const SizeType number_of_nodes = GetGeometry().size();
