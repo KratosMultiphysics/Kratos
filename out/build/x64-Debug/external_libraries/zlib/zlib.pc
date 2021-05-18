@@ -1,0 +1,13 @@
+prefix=C:/Users/julie/Kratos/out/install/x64-Debug
+exec_prefix=C:/Users/julie/Kratos/out/install/x64-Debug
+libdir=C:/Users/julie/Kratos/out/install/x64-Debug/libs
+sharedlibdir=C:/Users/julie/Kratos/out/install/x64-Debug/libs
+includedir=
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.8
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}
