@@ -274,7 +274,7 @@ namespace Kratos
      * @param rStress The stress
      * @param rTransformedBaseVectors local coordinate system
      */
-    void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
+    void AddPreStressPk2(ConstitutiveLaw::VoigtSizeVectorType& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
 
       /**
      * @brief Calculates 1st derivative of the current covariant metric
@@ -342,7 +342,7 @@ namespace Kratos
      * @param rReferenceStrains the strains in the reference coordinate system
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
+    void TransformStrains(ConstitutiveLaw::VoigtSizeVectorType& rStrains, ConstitutiveLaw::VoigtSizeVectorType& rReferenceStrains, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
       /**
@@ -361,7 +361,7 @@ namespace Kratos
      * @param rLocalReferenceBaseVectors the base coordinate system
      */
     template <class T>
-    void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+    void InPlaneTransformationMatrix(ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
       const T& rLocalReferenceBaseVectors);
 
 
