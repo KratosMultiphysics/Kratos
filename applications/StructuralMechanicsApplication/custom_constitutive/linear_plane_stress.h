@@ -177,7 +177,7 @@ protected:
     * @param C: The constitutive matrix
     * @param rValues Parameters of the constitutive law
     */
-    void CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(ConstitutiveLaw::VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
     * It calculates the stress vector
