@@ -273,19 +273,19 @@ private:
 
     void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
 
-    void CalculateStress(Vector& rStrain,
+    void CalculateStress(onstitutiveLaw::VoigtSizeVectorType& rStrain,
                          std::size_t IntegrationPoint,
-                         Vector& rStress,
+                         onstitutiveLaw::VoigtSizeVectorType& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateStress(Matrix const& rF,
+    void CalculateStress(ConstitutiveLaw::DeformationGradientMatrixType const& rF,
                          std::size_t IntegrationPoint,
-                         Vector& rStress,
+                         onstitutiveLaw::VoigtSizeVectorType& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateStrain(Matrix const& rF,
+    void CalculateStrain(ConstitutiveLaw::DeformationGradientMatrixType const& rF,
                          std::size_t IntegrationPoint,
-                         Vector& rStrain,
+                         onstitutiveLaw::VoigtSizeVectorType& rStrain,
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateShapeSensitivity(ShapeParameter Deriv,

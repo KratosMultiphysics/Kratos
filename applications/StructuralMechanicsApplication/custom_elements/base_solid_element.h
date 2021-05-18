@@ -539,6 +539,42 @@ public:
         ) override;
 
      /**
+      * @brief Set a Vector Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+        const std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
+      * @brief Set a Vector Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+        const std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
+      * @brief Set a Vector Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+        const std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
       * @brief Set a Matrix Value on the Element Constitutive Law
       * @param rVariable The variable we want to set
       * @param rValues The values to set in the integration points

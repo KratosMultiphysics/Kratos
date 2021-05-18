@@ -474,8 +474,8 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void UpdatedLagrangian::CalculateOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+    std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -514,8 +514,8 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    const std::vector<Matrix>& rValues,
+    const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+    const std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {

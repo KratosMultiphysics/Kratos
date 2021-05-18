@@ -399,9 +399,9 @@ void TotalLagrangian::CalculateAxisymmetricF(Matrix const& rJ,
     KRATOS_CATCH("");
 }
 
-void TotalLagrangian::CalculateStress(Vector& rStrain,
+void TotalLagrangian::CalculateStress(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
                                       std::size_t IntegrationPoint,
-                                      Vector& rStress,
+                                      ConstitutiveLaw::VoigtSizeVectorType& rStress,
                                       ProcessInfo const& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -413,13 +413,16 @@ void TotalLagrangian::CalculateStress(Vector& rStrain,
     KRATOS_CATCH("");
 }
 
-void TotalLagrangian::CalculateStress(Matrix const& rF,
+void TotalLagrangian::CalculateStress(ConstitutiveLaw::DeformationGradientMatrixType const& rF,
                                       std::size_t IntegrationPoint,
-                                      Vector& rStress,
+                                      ConstitutiveLaw::VoigtSizeVectorType& rStress,
                                       ProcessInfo const& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    Vector strain(mConstitutiveLawVector[IntegrationPoint]->GetStrainSize());
+    ConstitutiveLaw::VoigtSizeVectorType strain;
+    const SizeType strain_size = mConstitutiveLawVector[IntegrationPoint]->GetStrainSize();
+    if (strain.size() != strain_size) strain.resize(strain_size, false);
+    
     CalculateStrain(rF, *mConstitutiveLawVector[IntegrationPoint], strain, rCurrentProcessInfo);
     ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     cl_params.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS | ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);

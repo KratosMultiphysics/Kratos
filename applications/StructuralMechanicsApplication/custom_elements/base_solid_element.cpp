@@ -1305,6 +1305,60 @@ void BaseSolidElement::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 
 void BaseSolidElement::SetValuesOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+    const std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValuesOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    const std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValuesOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rVariable,
+    const std::vector<ConstitutiveLaw::VoigtSizeMatrixType>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     const std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
