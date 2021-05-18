@@ -50,7 +50,7 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
 
-        # Bare sum of forces and moments 
+        # Bare sum of forces and moments
         force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
             KratosMultiphysics.REACTION,
