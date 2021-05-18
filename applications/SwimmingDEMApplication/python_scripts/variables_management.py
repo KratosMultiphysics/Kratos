@@ -143,6 +143,11 @@ class VariablesManager:
 
         self.nodal_results, self.gauss_points_results = [], []
         self.fluid_parameters = parameters['fluid_parameters']
+        print()
+        print('================================')
+        print(type(self.fluid_parameters))
+        print('================================')
+        print()
         if self.fluid_parameters.Has('sdem_output_processes'):
             gid_output_options = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]

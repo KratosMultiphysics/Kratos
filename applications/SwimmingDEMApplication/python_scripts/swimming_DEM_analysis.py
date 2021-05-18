@@ -95,7 +95,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def SetProjectParameters(self, parameters):
         self.project_parameters = parameters
         self.time_step = self.project_parameters["time_stepping"]["time_step"].GetDouble()
-        self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
+        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
         self.do_print_results = self.project_parameters["do_print_results_option"].GetBool()
         self.fluid_parameters = self.project_parameters['fluid_parameters']
 
@@ -148,7 +148,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         output_time = self.project_parameters["output_interval"].GetDouble()
         self.output_time = int(output_time / self.time_step) * self.time_step
         self.project_parameters["output_interval"].SetDouble(self.output_time)
-
+        
         self.fluid_time_step = self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
 
         if self.fluid_time_step < self.time_step:
