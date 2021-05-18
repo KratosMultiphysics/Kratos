@@ -142,8 +142,8 @@ namespace Kratos {
         const double contact_tau_zero = element->GetFastProperties()->GetContactTauZero();
 
         double sigma = 2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians) / (1.0 + sin(angle_of_internal_friction_in_radians));
-        
-        return sigma; 
+
+        return sigma;
 
         KRATOS_CATCH("")
     }
@@ -190,6 +190,7 @@ namespace Kratos {
         CalculateTangentialForces(OldLocalElasticContactForce,
                 LocalElasticContactForce,
                 LocalElasticExtraContactForce,
+                ViscoDampingLocalContactForce,
                 LocalCoordSystem,
                 LocalDeltDisp,
                 LocalRelVel,
@@ -273,6 +274,7 @@ namespace Kratos {
     void DEM_KDEM::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
+            double ViscoDampingLocalContactForce[3],
             double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
             double LocalRelVel[3],
@@ -401,8 +403,6 @@ namespace Kratos {
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
-
-        AdjustEquivalentYoung(equiv_young, element, neighbor);
 
         const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson));
         const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
@@ -547,7 +547,5 @@ namespace Kratos {
             LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
         }
     }
-
-    void DEM_KDEM::AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) {}
 
 } // namespace Kratos
