@@ -806,8 +806,8 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     }
 }
 
-void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                        std::vector< Vector >& rOutput,
+void MembraneElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeVectorType >& rVariable,
+                        std::vector< ConstitutiveLaw::VoigtSizeVectorType >& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
 {
     // element with two nodes can only represent results at one node
@@ -1136,15 +1136,17 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
 
         array_1d<Vector,2> transformed_base_vectors;
 
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
         double detJ = 0.0;
         rOutput = 0.0; // total strain energy
-        Vector strain_vector = ZeroVector(3);
-        Vector stress_vector = ZeroVector(3);
 
+        ConstitutiveLaw::VoigtSizeVectorType strain_vector; strain_vector.resize(3,false);
+        noalias(strain_vector) = ZeroVector(3);
+        ConstitutiveLaw::VoigtSizeVectorType stress_vector; stress_vector.resize(3,false);
+        noalias(stress_vector) = ZeroVector(3);
 
         ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -1178,7 +1180,8 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
             mConstitutiveLawVector[point_number]->CalculateValue(element_parameters,STRAIN_ENERGY,strain_energy_gp);
 
 
-            Vector pre_stress_vector = ZeroVector(3);
+            ConstitutiveLaw::VoigtSizeVectorType pre_stress_vector; pre_stress_vector.resize(3, false);
+            noalias(pre_stress_vector) = ZeroVector(3);
             AddPreStressPk2(pre_stress_vector,transformed_base_vectors);
 
             // add strain energy from pre_stress -> constant
