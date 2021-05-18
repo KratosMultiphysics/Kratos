@@ -385,8 +385,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
+        const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -397,8 +397,20 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable,
-        std::vector< Matrix >& rOutput,
+        const Variable<ConstitutiveLaw::DeformationGradientMatrixType >& rVariable,
+        std::vector< ConstitutiveLaw::DeformationGradientMatrixType >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a Matrix Variable on the Element Constitutive Law
+     * @param rVariable The internal variables in the element
+     * @param rOutput The matrix solution
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::VoigtSizeMatrixType >& rVariable,
+        std::vector< ConstitutiveLaw::VoigtSizeMatrixType >& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -696,18 +708,18 @@ protected:
         StressMeasureType StressMeasure;
 
         // General variables for large displacement use
-        Matrix ConstitutiveMatrix; /// Constitutive matrix
-        Vector StrainVector;       /// Strain tensor
-        Vector StressVector;       /// Stress tensor
-        Matrix B;                  /// Deformation matrix
-        Matrix F;                  /// Deformation gradient (F) from the reference to the current configuration ( Delta F )
-        Matrix F0;                 /// Deformation gradient (F) in the reference configuration, ( historical F )
-        Matrix FT;                 /// FT = F0 * F  ( total F )
-        double detF;               /// Deformation gradient determinant in the current configuration
-        double detF0;              /// Deformation gradient determinant in the reference configuration
-        double detFT;              /// Deformation gradient determinant in the reference configuration
-        Vector C ;                 /// The Cauchy tensor components
-        double detJ;               /// Volume variation, sqrt(det(C))
+        ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix; /// Constitutive matrix
+        ConstitutiveLaw::VoigtSizeVectorType StrainVector;       /// Strain tensor
+        ConstitutiveLaw::VoigtSizeVectorType StressVector;       /// Stress tensor
+        Matrix B;                                                /// Deformation matrix
+        ConstitutiveLaw::DeformationGradientMatrixType F;        /// Deformation gradient (F) from the reference to the current configuration ( Delta F )
+        ConstitutiveLaw::DeformationGradientMatrixType F0;       /// Deformation gradient (F) in the reference configuration, ( historical F )
+        ConstitutiveLaw::DeformationGradientMatrixType FT;       /// FT = F0 * F  ( total F )
+        double detF;                                             /// Deformation gradient determinant in the current configuration
+        double detF0;                                            /// Deformation gradient determinant in the reference configuration
+        double detFT;                                            /// Deformation gradient determinant in the reference configuration
+        Vector C ;                                               /// The Cauchy tensor components
+        double detJ;                                             /// Volume variation, sqrt(det(C))
 
         // Standard prism shape functions
         Vector  N;

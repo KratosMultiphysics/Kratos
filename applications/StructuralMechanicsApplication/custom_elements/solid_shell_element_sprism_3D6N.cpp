@@ -952,8 +952,8 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1105,8 +1105,69 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
-    const Variable<Matrix >& rVariable,
-    std::vector< Matrix >& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeMatrixType >& rVariable,
+    std::vector< ConstitutiveLaw::VoigtSizeMatrixType >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const IndexType integration_point_number = GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
+
+    if ( rOutput.size() != integration_point_number )
+        rOutput.resize( integration_point_number );
+
+    if ( rVariable == CONSTITUTIVE_MATRIX ) {
+        // Create and initialize element variables:
+        GeneralVariables general_variables;
+        this->InitializeGeneralVariables(general_variables);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags &constitutive_laws_options=Values.GetOptions();
+        constitutive_laws_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        /* Reading integration points */
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+        double& alpha_eas = this->GetValue(ALPHA_EAS);
+
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives this_cartesian_derivatives;
+        this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+
+        /* Calculate common components (B, C) */
+        CommonComponents common_components;
+        common_components.clear();
+        this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+
+            // Compute element kinematics C, F ...
+            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+
+            // Set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(general_variables,Values,point_number);
+
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
+
+            if( rOutput[point_number].size2() != general_variables.ConstitutiveMatrix.size2() ) {
+                rOutput[point_number].resize( general_variables.ConstitutiveMatrix.size1() , general_variables.ConstitutiveMatrix.size2() , false );
+            }
+            rOutput[point_number] = general_variables.ConstitutiveMatrix;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::DeformationGradientMatrixType >& rVariable,
+    std::vector< ConstitutiveLaw::DeformationGradientMatrixType >& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1152,50 +1213,6 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
                 rOutput[point_number].resize(3, 3, false);
 
             rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(StrainVector[point_number]);
-        }
-    } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
-        // Create and initialize element variables:
-        GeneralVariables general_variables;
-        this->InitializeGeneralVariables(general_variables);
-
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-        // Set constitutive law flags:
-        Flags &constitutive_laws_options=Values.GetOptions();
-        constitutive_laws_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-
-        double& alpha_eas = this->GetValue(ALPHA_EAS);
-
-        /* Calculate the cartesian derivatives */
-        CartesianDerivatives this_cartesian_derivatives;
-        this->CalculateCartesianDerivatives(this_cartesian_derivatives);
-
-        /* Calculate common components (B, C) */
-        CommonComponents common_components;
-        common_components.clear();
-        this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
-
-        // Reading integration points
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
-
-            // Compute element kinematics C, F ...
-            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
-
-            // Set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(general_variables,Values,point_number);
-
-            // Call the constitutive law to update material variables
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
-
-            if( rOutput[point_number].size2() != general_variables.ConstitutiveMatrix.size2() ) {
-                rOutput[point_number].resize( general_variables.ConstitutiveMatrix.size1() , general_variables.ConstitutiveMatrix.size2() , false );
-            }
-            rOutput[point_number] = general_variables.ConstitutiveMatrix;
         }
     } else if ( rVariable == DEFORMATION_GRADIENT ) {
         // Create and initialize element variables:

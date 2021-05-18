@@ -344,7 +344,7 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
         column(rOutput,2) = base_3;
     }
     if (rVariable == MEMBRANE_PRESTRESS) {
-        std::vector< Vector > prestress_matrix;
+        std::vector< ConstitutiveLaw::VoigtSizeVectorType > prestress_matrix;
         CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
         const int manual_integraton_points_size(1);
         rOutput = ZeroMatrix(3,manual_integraton_points_size);
@@ -364,7 +364,8 @@ void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOut
 
         // material strain energy
         double strain_energy(0.00);
-        Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+        ConstitutiveLaw::VoigtSizeVectorType strain_vector; strain_vector.resize(mpConstitutiveLaw->GetStrainSize());
+        noalias(strain_vector) = ZeroVector(mpConstitutiveLaw->GetStrainSize());
         strain_vector[0] = CalculateGreenLagrangeStrain();
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Values.SetStrainVector(strain_vector);
@@ -404,8 +405,6 @@ void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOut
         rOutput = inner_prod(dead_load_rhs,current_nodal_displacements);
     }
 }
-
-
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
