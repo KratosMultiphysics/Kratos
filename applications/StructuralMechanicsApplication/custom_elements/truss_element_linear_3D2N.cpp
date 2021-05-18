@@ -152,7 +152,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
         temp_strain = ZeroVector(1);
         ConstitutiveLaw::VoigtSizeVectorType temp_stress; temp_stress.resize(1, false);
         temp_stress = ZeroVector(1);
-        
+
         temp_strain[0] = CalculateLinearStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
@@ -229,8 +229,11 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_strain;
+    ConstitutiveLaw::VoigtSizeVectorType temp_stress;
+    temp_strain.resize(1, false); temp_stress.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1); noalias(temp_stress) = ZeroVector(1);
+    
     temp_strain[0] = CalculateLinearStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
