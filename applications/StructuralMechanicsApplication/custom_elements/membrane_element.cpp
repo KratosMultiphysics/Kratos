@@ -318,7 +318,7 @@ void MembraneElement::AddPreStressPk2(ConstitutiveLaw::VoigtSizeVectorType& rStr
             local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
 
             ConstitutiveLaw::DeformationGradientMatrixType transformation_matrix;
-            transformation_matrix.clear()
+            transformation_matrix.clear();
             InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
             noalias(pre_stress) = prod(transformation_matrix,pre_stress);
 
@@ -411,9 +411,9 @@ void MembraneElement::DerivativeStrainGreenLagrange(ConstitutiveLaw::VoigtSizeVe
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
+void MembraneElement::Derivative2StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
  const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
- const Matrix& rTransformationMatrix)
+ const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     Derivative2CurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,DofS);

@@ -205,7 +205,7 @@ namespace Kratos
      * @param DofR current degree of freedom 1
      * @param DofS current degree of freedom 2
      */
-    void Derivative2CurrentCovariantMetric(Matrix& rMetric,
+    void Derivative2CurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
 
@@ -225,9 +225,9 @@ namespace Kratos
      * @param DofS current degree of freedom 2
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void Derivative2StrainGreenLagrange(Vector& rStrain,
+    void Derivative2StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
-      const Matrix& rTransformationMatrix);
+      const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
 
@@ -239,8 +239,8 @@ namespace Kratos
      * @param rCurrentCovariantBaseVectors current covariant base vectors
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix);
+    void DerivativeStrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
       /**
@@ -250,8 +250,8 @@ namespace Kratos
      * @param rCurrentCoVariantMetric current covariant metric
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-       const Matrix& rTransformationMatrix);
+    void StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain, const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceCoVariantMetric,const ConstitutiveLaw::DeformationGradientMatrixType& rCurrentCoVariantMetric,
+       const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
       /**
      * @brief Calculates the piola-kirchhoff-2 stress
@@ -263,10 +263,13 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      * @param rIntegrationPointNumber current integration point number
      */
-    void MaterialResponse(Vector& rStress,
-      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
-      Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo);
+    void MaterialResponse(ConstitutiveLaw::VoigtSizeVectorType& rStress,
+      const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceContraVariantMetric,
+      const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceCoVariantMetric,
+      const ConstitutiveLaw::DeformationGradientMatrixType& rCurrentCoVariantMetric,
+      const array_1d<Vector,2>& rTransformedBaseVectors, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix,
+      const SizeType& rIntegrationPointNumber, ConstitutiveLaw::VoigtSizeMatrixType& rTangentModulus,
+      const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -283,7 +286,7 @@ namespace Kratos
      * @param DofR current degree of freedom 1
      * @param rCurrentCovariantBaseVectors current covariant base vectors
      */
-    void DerivativeCurrentCovariantMetric(Matrix& rMetric,
+    void DerivativeCurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
 
