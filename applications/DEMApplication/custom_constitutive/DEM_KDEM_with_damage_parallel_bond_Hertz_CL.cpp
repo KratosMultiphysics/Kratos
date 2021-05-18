@@ -80,8 +80,6 @@ namespace Kratos {
         double tension_limit;
 
         // calculation of equivalent Young modulus
-        double myUnbondedYoung = element1->GetProperties()[YOUNG_MODULUS];
-        double otherUnbondedYoung = element2->GetProperties()[YOUNG_MODULUS];
         const double bonded_equivalent_young = 0.5 * (element1->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS] + element2->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS]);
 
         const double my_radius = element1->GetRadius();
