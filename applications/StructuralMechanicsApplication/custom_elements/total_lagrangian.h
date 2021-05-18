@@ -280,12 +280,12 @@ private:
 
     void CalculateStress(ConstitutiveLaw::DeformationGradientMatrixType const& rF,
                          std::size_t IntegrationPoint,
-                         onstitutiveLaw::VoigtSizeVectorType& rStress,
+                         ConstitutiveLaw::VoigtSizeVectorType& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateStrain(ConstitutiveLaw::DeformationGradientMatrixType const& rF,
                          std::size_t IntegrationPoint,
-                         onstitutiveLaw::VoigtSizeVectorType& rStrain,
+                         ConstitutiveLaw::VoigtSizeVectorType& rStrain,
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateShapeSensitivity(ShapeParameter Deriv,

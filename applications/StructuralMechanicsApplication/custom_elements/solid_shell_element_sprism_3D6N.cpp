@@ -1084,7 +1084,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
     }
 
     if ( rOutput.size() != 6 ) {
-        std::vector<Vector> rOutput_aux;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> rOutput_aux;
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
@@ -1179,7 +1179,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
         rOutput.resize( integration_point_number );
 
     if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
-        std::vector<Vector> stress_vector;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector;
         if( rVariable == CAUCHY_STRESS_TENSOR )
             this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
         else
@@ -1196,7 +1196,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR || rVariable == HENCKY_STRAIN_TENSOR) {
-        std::vector<Vector> StrainVector;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> StrainVector;
         if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
         else if ( rVariable == ALMANSI_STRAIN_TENSOR )
@@ -1251,7 +1251,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
     }
 
     if ( rOutput.size() != 6 ) {
-        std::vector<Matrix> rOutput_aux;
+        std::vector<ConstitutiveLaw::DeformationGradientMatrixType> rOutput_aux;
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
@@ -3851,8 +3851,8 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     }
 
     // Compute R
-    Matrix R(3, 3);
-    Matrix U(3, 3);
+    ConstitutiveLaw::DeformationGradientMatrixType R;
+    ConstitutiveLaw::DeformationGradientMatrixType U;
     ConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
 
     /* Calculate F_bar */
