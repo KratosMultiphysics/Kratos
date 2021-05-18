@@ -146,10 +146,10 @@ double& UserProvidedLinearElasticLaw<TDim>::CalculateValue(
 /***********************************************************************************/
 
 template<unsigned int TDim>
-ConstitutiveLaw::VoigtSizeMatrixType& UserProvidedLinearElasticLaw<TDim>::CalculateValue(
+ConstitutiveLaw::VoigtSizeVectorType& UserProvidedLinearElasticLaw<TDim>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rThisVariable,
-    ConstitutiveLaw::VoigtSizeMatrixType& rValue
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rThisVariable,
+    ConstitutiveLaw::VoigtSizeVectorType& rValue
     )
 {
     if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rThisVariable == ALMANSI_STRAIN_VECTOR) {

@@ -433,7 +433,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 }
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable, std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -443,11 +443,14 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         rOutput.resize(integration_points.size());
     }
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-        Vector strain = ZeroVector(msDimension);
+        ConstitutiveLaw::VoigtSizeVectorType strain;
+        if (strain.size() != msDimension) strain.resize(msDimension, false);
+        noalias(strain) = ZeroVector(msDimension);
+
         strain[0] = CalculateGreenLagrangeStrain();
         strain[1] = 0.00;
         strain[2] = 0.00;
-        rOutput[0] = strain;
+        noalias(rOutput[0]) = strain;
     }
 
     if ((rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)) {
@@ -461,15 +464,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         }
 
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
+        ConstitutiveLaw::VoigtSizeVectorType temp_strain;
+        ConstitutiveLaw::VoigtSizeVectorType temp_stress;
+        temp_strain.resize(1, false);
+        temp_stress.resize(1, false);
+
         temp_strain[0] = CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
 
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
         const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         temp_stress[0] += prestress;
