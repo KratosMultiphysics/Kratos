@@ -504,7 +504,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     }
 
     if (rVariable == FORCE) {
-        std::vector<Vector> array_output;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> array_output;
         CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,array_output,rCurrentProcessInfo);
 
         array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
@@ -591,8 +591,11 @@ void TrussElement3D2N::UpdateInternalForces(
     }
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_strain; temp_strain.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_stress; temp_stress.resize(1, false);
+    noalias(temp_stress) = ZeroVector(1);
+
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
@@ -951,8 +954,12 @@ void TrussElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessIn
 {
     KRATOS_TRY;
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+
+    ConstitutiveLaw::VoigtSizeVectorType temp_strain; temp_strain.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_stress; temp_stress.resize(1, false);
+    noalias(temp_stress) = ZeroVector(1);
+
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
@@ -1020,8 +1027,12 @@ void TrussElement3D2N::CalculateLumpedMassVector(
 double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+    SizeType voigt_size = mpConstitutiveLaw->GetStrainSize();
     double tangent_modulus(0.00);
-    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+    ConstitutiveLaw::VoigtSizeVectorType strain_vector;
+    if (strain_vector.size() != voigt_size) strain_vector.resize(voigt_size, false);
+
+    noalias(strain_vector) = ZeroVector(mpConstitutiveLaw->GetStrainSize());
     strain_vector[0] = CalculateGreenLagrangeStrain();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
