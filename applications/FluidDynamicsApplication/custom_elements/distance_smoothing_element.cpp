@@ -311,8 +311,8 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
 
                 Kratos::Vector face_shape_func;
-                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
-                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                GeometryType::CoordinatesArrayType global_coords;
+                GeometryType::CoordinatesArrayType loc_coords;
                 VectorType solid_normal = ZeroVector(num_dim);
 
                 // Get the original geometry shape function and gradients values over the intersection
@@ -459,8 +459,8 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
 
                 Kratos::Vector face_shape_func;
-                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
-                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                GeometryType::CoordinatesArrayType global_coords;
+                GeometryType::CoordinatesArrayType loc_coords;
                 VectorType solid_normal = ZeroVector(num_dim);
 
                 // Get the original geometry shape function and gradients values over the intersection

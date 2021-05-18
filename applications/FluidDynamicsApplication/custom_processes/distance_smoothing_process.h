@@ -89,11 +89,13 @@ public:
     /// Constructor.
     DistanceSmoothingProcess(
         ModelPart& rModelPart,
-        typename TLinearSolver::Pointer p_linear_solver)
+        typename TLinearSolver::Pointer p_linear_solver,
+        const bool AllConditionsAsBoundary = true)
         : Process(),
-      mrModelPart(rModelPart),
-      mrModel(rModelPart.GetModel()),
-      mAuxModelPartName("smoothing_model_part")//mrModelPart.FullName()+"_Smoothing"")
+        mrModelPart(rModelPart),
+        mrModel(rModelPart.GetModel()),
+        mAuxModelPartName("smoothing_model_part"), //mrModelPart.FullName()+"_Smoothing"")
+        mAllConditionsAsBoundary(AllConditionsAsBoundary)
     {
         // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
         CreateAuxModelPart();
@@ -107,11 +109,13 @@ public:
     DistanceSmoothingProcess(
         ModelPart& rModelPart,
         typename TLinearSolver::Pointer p_linear_solver,
-        BuilderSolverPointerType pBuilderAndSolver)
+        BuilderSolverPointerType pBuilderAndSolver,
+        const bool AllConditionsAsBoundary = true)
         : Process(),
         mrModelPart(rModelPart),
         mrModel(rModelPart.GetModel()),
-        mAuxModelPartName("smoothing_model_part")
+        mAuxModelPartName("smoothing_model_part"),
+        mAllConditionsAsBoundary(AllConditionsAsBoundary)
     {
         // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
         CreateAuxModelPart();
@@ -301,6 +305,7 @@ private:
     ModelPart& mrModelPart;
     Model& mrModel;
     std::string mAuxModelPartName;
+    bool mAllConditionsAsBoundary;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -366,6 +371,13 @@ private:
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof<Variable<double> >(DISTANCE, r_smoothing_model_part);
+
+        if (mAllConditionsAsBoundary)
+        {
+            block_for_each(r_smoothing_model_part.Conditions(), [&](Condition& rCondition){
+                rCondition.Set(CONTACT, true);
+            });
+        }
     }
 
     ///@}
