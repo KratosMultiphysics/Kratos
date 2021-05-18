@@ -288,9 +288,16 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
     // Implementing the boundary condition on distance gradient: can be implemented
     // by a custom condition for a more general case
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const auto& gp_this_elem = GlobalPointer<Element>(this);
+    //const auto gp_this_elem = Element::WeakPointer( &*this );
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        if (neighbour_elems[ i_ne ].Id() == this->Id() ){
+        const auto comparor = GlobalPointerComparor<Element>();
+        std::cout << "Pointers: " << &*(neighbour_elems(i_ne)) << " " << &*gp_this_elem << std::endl;
+        std::cout << "IDs: " << neighbour_elems(i_ne)->Id() << " " << gp_this_elem->Id() << std::endl;
+        KRATOS_WATCH("HERE_OUT")
+        if (comparor(neighbour_elems(i_ne), gp_this_elem) ){ //neighbour_elems(i_ne) == gp_this_elem ){ //
+            KRATOS_WATCH("HERE_IN")
             auto outer_face = Line3D2< GeometryType::PointType >(
                                     geometry.pGetPoint(mNode0ID2D[i_ne]),
                                     geometry.pGetPoint(mNode1ID2D[i_ne]));

@@ -19,21 +19,24 @@
 
 // Project includes
 #include "processes/process.h"
+#include "processes/find_elements_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_elemental_neighbours_process.h"
 #include "includes/define.h"
-#include "containers/model.h"
 #include "includes/checks.h"
-#include "spaces/ublas_space.h"
+#include "includes/global_pointer_variables.h"
+#include "containers/model.h"
 #include "modeler/connectivity_preserve_modeler.h"
 #include "utilities/variable_utils.h"
-#include "includes/global_pointer_variables.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/pointer_map_communicator.h"
+#include "spaces/ublas_space.h"
 #include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "utilities/pointer_communicator.h"
-#include "utilities/pointer_map_communicator.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -352,6 +355,16 @@ private:
      */
     void CreateAuxModelPart()
     {
+        KRATOS_WATCH("HERE1")
+        FindGlobalNodalNeighboursProcess nodal_neighbour_process(mrModelPart);// p_new_comm->GetDataCommunicator(), r_smoothing_model_part);
+        //nodal_neighbour_process.Execute();
+
+        KRATOS_WATCH("HERE2")
+        FindElementalNeighboursProcess neighbour_elements_finder(mrModelPart, 2, 3);// r_smoothing_model_part, 10, 10);
+        //neighbour_elements_finder.Execute();
+
+        KRATOS_WATCH("HERE3")
+
         if(mrModel.HasModelPart( mAuxModelPartName ))
             mrModel.DeleteModelPart( mAuxModelPartName );
 
@@ -371,6 +384,33 @@ private:
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof<Variable<double> >(DISTANCE, r_smoothing_model_part);
+
+        // Copy communicator data
+        Communicator& r_base_comm = mrModelPart.GetCommunicator();
+        Communicator::Pointer p_new_comm = r_base_comm.Create();
+
+        p_new_comm->SetNumberOfColors(r_base_comm.GetNumberOfColors());
+        p_new_comm->NeighbourIndices() = r_base_comm.NeighbourIndices();
+        p_new_comm->LocalMesh().SetNodes(r_base_comm.LocalMesh().pNodes());
+        p_new_comm->InterfaceMesh().SetNodes(r_base_comm.InterfaceMesh().pNodes());
+        p_new_comm->GhostMesh().SetNodes(r_base_comm.GhostMesh().pNodes());
+        for (unsigned int i = 0; i < r_base_comm.GetNumberOfColors(); ++i){
+            p_new_comm->pInterfaceMesh(i)->SetNodes(r_base_comm.pInterfaceMesh(i)->pNodes());
+            p_new_comm->pLocalMesh(i)->SetNodes(r_base_comm.pLocalMesh(i)->pNodes());
+            p_new_comm->pGhostMesh(i)->SetNodes(r_base_comm.pGhostMesh(i)->pNodes());
+        }
+
+        r_smoothing_model_part.SetCommunicator(p_new_comm);
+
+        KRATOS_WATCH("HERE1_new")
+        FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_smoothing_model_part);
+        nodal_neighbour_process_new.Execute();
+
+        KRATOS_WATCH("HERE2_new")
+        FindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part, 2, 3);
+        neighbour_elements_finder_new.Execute();
+
+        KRATOS_WATCH("HERE3_new")
 
         if (mAllConditionsAsBoundary)
         {
