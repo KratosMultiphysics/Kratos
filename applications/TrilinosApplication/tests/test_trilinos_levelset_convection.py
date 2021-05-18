@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-from KratosMultiphysics.mpi import distributed_import_model_part_utility
+from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 
@@ -31,43 +31,34 @@ def ConvectionVelocity(x, y, z):
 
 class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
+    @classmethod
+    def GetPartitioningParameters(cls):
+        return KratosMultiphysics.Parameters("""{
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
+                "partition_in_memory" : false
+            },
+            "echo_level" : 0
+        }""")
+
     def setUp(self):
-        self.parameters = """{
-            "echo_level" : 0,
-            "model_import_settings" : {
-                "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("levelset_convection_process_mesh") + """\"
-            }
-        } """
-
-    def tearDown(self):
-        my_pid = self.model_part.GetCommunicator().MyPID()
-
-        # Remove the Metis partitioning files
-        self.model_part.GetCommunicator().GetDataCommunicator().Barrier() # required as all ranks must be done with using the partitioning files
-        KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
-
-        # While compining in debug, in memory partitioner also writes down the mpda in plain text
-        # and needs to be cleaned.
-        KratosUtils.DeleteFileIfExisting("debug_modelpart_" + str(my_pid) + ".mdpa")
-
-    def test_trilinos_levelset_convection(self):
-        current_model = KratosMultiphysics.Model()
-        self.model_part = current_model.CreateModelPart("Main",2)
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main",2)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
+        ReadDistributedModelPart(GetFilePath("levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
 
-        # Import the model part, perform the partitioning and create communicators
-        import_settings = KratosMultiphysics.Parameters(self.parameters)
-        DistributedModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
-        DistributedModelPartImporter.ImportModelPart()
-        DistributedModelPartImporter.CreateCommunicators()
+    def tearDown(self):
+        # Remove the Metis partitioning files
+        KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
+        # next test can only start after all the processes arrived here, otherwise race conditions with deleting the files can occur
+        self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        # Recall to set the buffer size
-        self.model_part.SetBufferSize(2)
-
+    def test_trilinos_levelset_convection(self):
         # Set the initial distance field and the convection velocity
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, BaseDistance(node.X,node.Y,node.Z))
@@ -112,21 +103,6 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.assertAlmostEqual(min_distance,-0.06371359024393104)
 
     def test_trilinos_levelset_convection_BFECC(self):
-        current_model = KratosMultiphysics.Model()
-        self.model_part = current_model.CreateModelPart("Main",2)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-
-        # Import the model part, perform the partitioning and create communicators
-        import_settings = KratosMultiphysics.Parameters(self.parameters)
-        DistributedModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
-        DistributedModelPartImporter.ImportModelPart()
-        DistributedModelPartImporter.CreateCommunicators()
-
-        # Recall to set the buffer size
-        self.model_part.SetBufferSize(2)
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         # Set the initial distance field and the convection velocity
         for node in self.model_part.Nodes:
@@ -163,7 +139,6 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
             "cross_wind_stabilization_factor" : 0.7
         }""")
@@ -213,15 +188,16 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
 class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
 
-    def setUp(self):
-        self.parameters = """{
-            "echo_level" : 0,
-            "model_import_settings" : {
-                "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
+    @classmethod
+    def GetPartitioningParameters(cls):
+        return KratosMultiphysics.Parameters("""{
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : true
-            }
-        } """
+            },
+            "echo_level" : 0
+        }""")
 
 if __name__ == '__main__':
     KratosUnittest.main()

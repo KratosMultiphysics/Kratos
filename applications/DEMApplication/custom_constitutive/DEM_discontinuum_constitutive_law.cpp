@@ -108,7 +108,7 @@ namespace Kratos {
             double equiv_poisson,
             double calculation_area,
             SphericParticle* element1,
-            SphericParticle* element2) {
+            SphericParticle* element2, double indentation) {
 
         KRATOS_TRY
         double equiv_shear = equiv_young / (2.0 * (1.0 + equiv_poisson));
