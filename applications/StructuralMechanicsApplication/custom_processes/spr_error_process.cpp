@@ -29,7 +29,8 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
 {
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mpStressVariable = &const_cast<Variable<Vector>&>(KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString()));
+    mpStressVariable = &const_cast<Variable<ConstitutiveLaw::VoigtSizeVectorType>&>
+        (KratosComponents<Variable<ConstitutiveLaw::VoigtSizeVectorType>>::Get(ThisParameters["stress_vector_variable"].GetString()));
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
 
