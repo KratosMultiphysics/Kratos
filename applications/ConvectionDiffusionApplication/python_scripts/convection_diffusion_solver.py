@@ -8,6 +8,7 @@ import KratosMultiphysics.base_convergence_criteria_factory as convergence_crite
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
+import KratosMultiphysics.ConvectionDiffusionApplication as CD
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -145,6 +146,14 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
         '''
+        # Here it is added velocity and concentration variables for data projection
+        target_model_part.AddNodalSolutionStepVariable(CD.VELOCITY_PROJECTED)
+        target_model_part.AddNodalSolutionStepVariable(CD.CONCENTRATION_PROJECTED)
+        target_model_part.AddNodalSolutionStepVariable(CD.VECTORIAL_STAT_ERROR)
+        target_model_part.AddNodalSolutionStepVariable(CD.SCALAR_STAT_ERROR)
+        target_model_part.AddNodalSolutionStepVariable(CD.VECTORIAL_MESH_ERROR)
+        target_model_part.AddNodalSolutionStepVariable(CD.SCALAR_MESH_ERROR)
+
         convention_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
         density_variable = self.settings["convection_diffusion_variables"]["density_variable"].GetString()
         if (density_variable != ""):

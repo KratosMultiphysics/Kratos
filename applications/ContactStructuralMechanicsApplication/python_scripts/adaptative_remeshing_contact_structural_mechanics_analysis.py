@@ -41,7 +41,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             if project_parameters["solver_settings"]["contact_settings"].Has("fancy_convergence_criterion"):
                 project_parameters["solver_settings"]["contact_settings"]["fancy_convergence_criterion"].SetBool(False)
             else:
-                project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
+                project_parameters["solver_settings"]["contact_settings"].("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
         else:
             project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
         self.process_remesh = False

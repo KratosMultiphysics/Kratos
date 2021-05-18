@@ -26,7 +26,9 @@
 #include "custom_utilities/move_particle_utility.h"
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
-
+#include "custom_utilities/calculate_stationarity_process.h"
+#include "custom_utilities/binbased_interpolation_utility.h"
+#include "custom_utilities/mesh_convergence_error_calculator_utility.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -146,7 +148,37 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 	py::class_<BFECCLimiterConvection<3> > (m,"BFECCLimiterConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
     ;
+    
+    py::class_<CalculateStationarityProcess>(m, "CalculateStationarityProcess")
+    .def(py::init<>())
+    .def("ComputeDofsErrorsCD", &CalculateStationarityProcess::ComputeDofsErrorsCD)
+    .def("GetL2VectorErrorNormCD", &CalculateStationarityProcess::GetL2VectorErrorNormCD)
+    .def("GetL2ScalarErrorNormCD", &CalculateStationarityProcess::GetL2ScalarErrorNormCD)    
+    ;
 
+    py::class_<BinBasedInterpolationUtility<2> > (m, "BinBasedInterpolationUtility2D")
+    .def(py::init<>())
+    .def("InterpolateFromFluidMeshCD", &BinBasedInterpolationUtility<2>::InterpolateFromFluidMeshCD)
+    .def("AddFluidVariable", &BinBasedInterpolationUtility<2>::AddFluidVariable<double>)
+    .def("AddFluidVariable", &BinBasedInterpolationUtility<2>::AddFluidVariable<array_1d<double, 3>>)
+	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <2> ::AddVariablesToImposeProjection<double>)
+	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <2> ::AddVariablesToImposeProjection<array_1d<double, 3>>)
+    ;
+
+    py::class_<BinBasedInterpolationUtility<3> > (m, "BinBasedInterpolationUtility3D")
+    .def(py::init<>())
+    .def("InterpolateFromFluidMeshCD", &BinBasedInterpolationUtility<3>::InterpolateFromFluidMeshCD)
+    .def("AddFluidVariable", &BinBasedInterpolationUtility<3>::AddFluidVariable<double>)
+    .def("AddFluidVariable", &BinBasedInterpolationUtility<3>::AddFluidVariable<array_1d<double, 3>>)
+	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <3> ::AddVariablesToImposeProjection<double>)
+	.def("AddVariablesToImposeProjection", &BinBasedInterpolationUtility <3> ::AddVariablesToImposeProjection<array_1d<double, 3>>)
+    ;
+
+    py::class_<MeshConvergenceErrorCalculator> (m, "MeshConvergenceErrorCalculator")
+    .def(py::init<>())
+    .def("GetL2VectorErrorNorm", &MeshConvergenceErrorCalculator::GetL2VectorErrorNorm)
+    .def("GetL2ScalarErrorNorm", &MeshConvergenceErrorCalculator::GetL2ScalarErrorNorm)
+    ;
 }
 
 }  // namespace Python.
