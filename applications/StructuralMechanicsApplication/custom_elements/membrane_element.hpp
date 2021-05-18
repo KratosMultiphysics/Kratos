@@ -376,10 +376,10 @@ namespace Kratos
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
 
-    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeVectorType >& rVariable,
+        std::vector< ConstitutiveLaw::VoigtSizeVectorType >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+    void DeformationGradient(ConstitutiveLaw::DeformationGradientMatrixType& rDeformationGradient, double& rDetDeformationGradient,
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
 

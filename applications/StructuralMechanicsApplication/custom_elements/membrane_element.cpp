@@ -825,7 +825,9 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
 
     if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-        Vector stress = ZeroVector(3);
+        ConstitutiveLaw::VoigtSizeVectorType stress; stress.resize(3, false);
+        noalias(stress) = ZeroVector(3);
+
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
         array_1d<Vector,2> reference_contravariant_base_vectors;
@@ -861,14 +863,17 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
 
             if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-                    Vector strain_vector = ZeroVector(3);
+                    ConstitutiveLaw::VoigtSizeVectorType strain_vector; strain_vector.resize(3, false);
+                    noalias(strain_vector) = ZeroVector(3);
+
                     StrainGreenLagrange(strain_vector,covariant_metric_reference,
                     covariant_metric_current,inplane_transformation_matrix_material);
                     strain_vector[2] /= 2.0;
                     noalias(rOutput[point_number]) = strain_vector;
             }
             else {
-                Matrix material_tangent_modulus = ZeroMatrix(dimension);
+                ConstitutiveLaw::VoigtSizeMatrixType material_tangent_modulus; material_tangent_modulus.resize(dimension, dimension, false);
+                noalias(material_tangent_modulus) = ZeroMatrix(dimension);
                 MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
                     transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
                     rCurrentProcessInfo);
@@ -892,19 +897,21 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
 
-        Vector stress = ZeroVector(3);
+        ConstitutiveLaw::VoigtSizeVectorType stress; stress.resize(3, false);
+        noalias(stress) = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
         array_1d<Vector,2> reference_contravariant_base_vectors;
 
         array_1d<Vector,2> transformed_base_vectors;
 
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
 
-        Matrix deformation_gradient = ZeroMatrix(2);
+        ConstitutiveLaw::DeformationGradientMatrixType deformation_gradient; deformation_gradient.resize(2,2,false);
+        noalias(deformation_gradient) = ZeroMatrix(2);
         double det_deformation_gradient = 0.0;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
@@ -930,7 +937,9 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
 
-            Matrix material_tangent_modulus = ZeroMatrix(dimension);
+            ConstitutiveLaw::VoigtSizeMatrixType material_tangent_modulus; material_tangent_modulus.resize(dimension, dimension, false);
+            noalias(material_tangent_modulus) = ZeroMatrix(dimension);
+
             MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
                 transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
                 rCurrentProcessInfo);
@@ -938,10 +947,10 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
 
-            Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
-            Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
-            Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
-            Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
+            ConstitutiveLaw::DeformationGradientMatrixType stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
+            ConstitutiveLaw::DeformationGradientMatrixType temp_stress_matrix = prod(deformation_gradient,stress_matrix);
+            ConstitutiveLaw::DeformationGradientMatrixType temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
+            ConstitutiveLaw::DeformationGradientMatrixType cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
             stress = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
 
 
@@ -962,11 +971,12 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 }
 
 
-void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+void MembraneElement::DeformationGradient(ConstitutiveLaw::DeformationGradientMatrixType& rDeformationGradient, double& rDetDeformationGradient,
      const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
 {
-    rDeformationGradient = ZeroMatrix(2);
-    for (SizeType i=0;i<2;++i){
+    rDeformationGradient.resize(2,2,false);
+    noalias(rDeformationGradient) = ZeroMatrix(2);
+    for (SizeType i = 0; i < 2; ++i){
         rDeformationGradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
     }
     rDetDeformationGradient = (rDeformationGradient(0,0)*rDeformationGradient(1,1)) - (rDeformationGradient(0,1)*rDeformationGradient(1,0));
@@ -1098,7 +1108,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         column(rOutput,2) = base_3;
     }
     else if (rVariable == MEMBRANE_PRESTRESS) {
-        std::vector< Vector > prestress_matrix;
+        std::vector< ConstitutiveLaw::VoigtSizeVectorType > prestress_matrix;
         CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
 
