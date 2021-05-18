@@ -188,7 +188,7 @@ double AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateDerivativeP
     double prestress = 0.0;
     if (this->mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
         prestress = this->mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
-    std::vector<Vector> GL_strain;
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType> GL_strain;
     this->mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
     const double GL_strain_X = GL_strain[0][0]; //one Gauss-Point result is enough due to constant strains.
 

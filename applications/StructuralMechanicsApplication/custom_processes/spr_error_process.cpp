@@ -211,7 +211,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     )
 {
     // Triangle and tetrahedra have only one GP by default
-    std::vector<Vector> stress_vector(1);
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
 
     // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size

@@ -83,6 +83,21 @@ void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisCom
     KratosComponents<Variable<Vector> >::Add(Name, ThisComponent);
 }
 
+void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::VoigtSizeVectorType> const& ThisComponent)
+{
+    KratosComponents<Variable<ConstitutiveLaw::VoigtSizeVectorType> >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::VoigtSizeMatrixType> const& ThisComponent)
+{
+    KratosComponents<Variable<ConstitutiveLaw::VoigtSizeMatrixType> >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::DeformationGradientMatrixType> const& ThisComponent)
+{
+    KratosComponents<Variable<ConstitutiveLaw::DeformationGradientMatrixType> >::Add(Name, ThisComponent);
+}
+
 void AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent)
 {
     KratosComponents<Variable<Matrix> >::Add(Name, ThisComponent);
@@ -138,6 +153,9 @@ template class KratosComponents<Variable<array_1d<double, 6> > >;
 template class KratosComponents<Variable<array_1d<double, 9> > >;
 template class KratosComponents<Variable<Quaternion<double> > >;
 template class KratosComponents<Variable<Vector> >;
+template class KratosComponents<Variable<ConstitutiveLaw::VoigtSizeVectorType> >;
+template class KratosComponents<Variable<ConstitutiveLaw::VoigtSizeMatrixType> >;
+template class KratosComponents<Variable<ConstitutiveLaw::DeformationGradientMatrixType> >;
 template class KratosComponents<Variable<Matrix> >;
 template class KratosComponents<Variable<std::string> >;
 template class KratosComponents<Variable<Flags> >;
