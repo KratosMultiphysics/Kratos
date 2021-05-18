@@ -42,7 +42,11 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Find the required problem subdomains
         self.__SetInterfaceFlags()
 
-        # Calculate the MLS basis
+        # Calculate the nodal neighbours
+        nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part)
+        nodal_neighbours_process.Execute()
+
+        # Create the boundary elements and MLS basis
 
     def __SetInterfaceFlags(self):
         # Initialize the required flags to false

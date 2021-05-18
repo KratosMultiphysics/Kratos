@@ -26,7 +26,7 @@
 #include "custom_utilities/move_particle_utility.h"
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
-
+#include "custom_utilities/shifted_boundary_meshless_interface_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -143,6 +143,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
 	py::class_<BFECCLimiterConvection<3> > (m,"BFECCLimiterConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
+    ;
+
+    py::class_<ShiftedBoundaryMeshlessInterfaceProcess, ShiftedBoundaryMeshlessInterfaceProcess::Pointer, Process>(m,"ShiftedBoundaryMeshlessInterfaceProcess")
+        .def(py::init<Model&, Parameters>())
     ;
 
 }
