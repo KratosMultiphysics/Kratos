@@ -408,7 +408,8 @@ void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOut
 
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rOutput,
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -433,7 +434,8 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 }
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable, std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
