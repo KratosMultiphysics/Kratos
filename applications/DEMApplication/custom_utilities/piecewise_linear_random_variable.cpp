@@ -35,9 +35,9 @@ namespace Kratos {
        }
 
        for (std::size_t i = 0; i < mPDFBreakpoints.size() - 1; ++i){
-           const double& x1 = mPDFBreakpoints[i];
            const double& x2 = mPDFBreakpoints[i + 1];
-           if (x >= x1){
+           if (x <= x2){
+               const double& x1 = mPDFBreakpoints[i];
                const double alpha =  (x - x1) / (x2 - x1);
                const double value1 = mPDFValues[i];
                const double value2 = mPDFValues[i + 1];
