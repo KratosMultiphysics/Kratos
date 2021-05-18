@@ -144,6 +144,8 @@ public:
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart)
     {
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
@@ -161,9 +163,9 @@ public:
             KRATOS_WARNING("AdaptiveResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
         }
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
     }
 
     /** Constructor.
@@ -776,24 +778,13 @@ public:
         KRATOS_TRY
         std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
         SparseSpaceType::Clear(mpA);
-        SparseSpaceType::Resize(mA,0,0);
-
         SparseSpaceType::Clear(mpDx);
-        SparseSpaceType::Resize(mDx,0);
-
         SparseSpaceType::Clear(mpb);
-        SparseSpaceType::Resize(mb,0);
-
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
-
 
         KRATOS_CATCH("");
     }

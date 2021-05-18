@@ -115,17 +115,17 @@ public:
     ///@name Operations
     ///@{
     //
-    static MatrixPointerType CreateEmptyMatrixPointer()
+    static MatrixPointerType CreateEmptyMatrixPointer(const DataCommunicator& rComm)
     {
         return MatrixPointerType(nullptr);
     }
 
-    static VectorPointerType CreateEmptyVectorPointer()
+    static VectorPointerType CreateEmptyVectorPointer(const DataCommunicator& rComm)
     {
         return VectorPointerType(nullptr);
     }
 
-    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& Comm)
+    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& Comm) //TODO: unify with the previous ones
     {
         int global_elems = 0;
         Epetra_Map Map(global_elems, 0, Comm);
@@ -302,16 +302,16 @@ public:
         rX.PutScalar(A);
     }
 
-    static void Resize(MatrixType& rA, SizeType m, SizeType n)
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Matrix", "")
+    // static void Resize(MatrixType& rA, SizeType m, SizeType n)
+    // {
+    //     KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Matrix", "")
 
-    }
+    // }
 
-    static void Resize(VectorType& rX, SizeType n)
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
-    }
+    // static void Resize(VectorType& rX, SizeType n)
+    // {
+    //     KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
+    // }
 
     static void Resize(VectorPointerType& pX, SizeType n)
     {

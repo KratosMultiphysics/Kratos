@@ -172,12 +172,12 @@ public:
     ///@name Operations
     ///@{
 
-    static MatrixPointerType CreateEmptyMatrixPointer()
+    static MatrixPointerType CreateEmptyMatrixPointer(const DataCommunicator& rComm)
     {
         return MatrixPointerType(new TMatrixType(0, 0));
     }
 
-    static VectorPointerType CreateEmptyVectorPointer()
+    static VectorPointerType CreateEmptyVectorPointer(const DataCommunicator& rComm)
     {
         return VectorPointerType(new TVectorType(0));
     }
@@ -552,19 +552,9 @@ public:
         std::fill(rX.begin(), rX.end(), A);
     }
 
-    static void Resize(MatrixType& rA, SizeType m, SizeType n)
-    {
-        rA.resize(m, n, false);
-    }
-
     static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
     {
         pA->resize(m, n, false);
-    }
-
-    static void Resize(VectorType& rX, SizeType n)
-    {
-        rX.resize(n, false);
     }
 
     static void Resize(VectorPointerType& pX, SizeType n)
@@ -584,46 +574,46 @@ public:
         pX->resize(0, false);
     }
 
-    template<class TOtherMatrixType>
-    inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
-    {
-        rA.resize(m, false);
-        //            std::fill(rA.begin(), rA.end(), TDataType());
-#ifndef _OPENMP
-        std::fill(rA.begin(), rA.end(), TDataType());
-#else
-        DataType* vals = rA.value_data().begin();
-        #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<static_cast<int>(m); ++i)
-            vals[i] = TDataType();
-#endif
-    }
+//     template<class TOtherMatrixType>
+//     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
+//     {
+//         rA.resize(m, false);
+//         //            std::fill(rA.begin(), rA.end(), TDataType());
+// #ifndef _OPENMP
+//         std::fill(rA.begin(), rA.end(), TDataType());
+// #else
+//         DataType* vals = rA.value_data().begin();
+//         #pragma omp parallel for firstprivate(m)
+//         for(int i=0; i<static_cast<int>(m); ++i)
+//             vals[i] = TDataType();
+// #endif
+//     }
 
-    inline static void ResizeData(compressed_matrix<TDataType>& rA, SizeType m)
-    {
-        rA.value_data().resize(m);
-#ifndef _OPENMP
-        std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
-#else
-        TDataType* vals = rA.value_data().begin();
-        #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<static_cast<int>(m); ++i)
-            vals[i] = TDataType();
-#endif
-    }
+//     inline static void ResizeData(compressed_matrix<TDataType>& rA, SizeType m)
+//     {
+//         rA.value_data().resize(m);
+// #ifndef _OPENMP
+//         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+// #else
+//         TDataType* vals = rA.value_data().begin();
+//         #pragma omp parallel for firstprivate(m)
+//         for(int i=0; i<static_cast<int>(m); ++i)
+//             vals[i] = TDataType();
+// #endif
+//     }
 
-    inline static void ResizeData(VectorType& rX, SizeType m)
-    {
-        rX.resize(m, false);
-#ifndef _OPENMP
-        std::fill(rX.begin(), rX.end(), TDataType());
-#else
-        const int size = rX.size();
-        #pragma omp parallel for firstprivate(size)
-        for(int i=0; i<size; ++i)
-            rX[i] = TDataType();
-#endif
-    }
+//     inline static void ResizeData(VectorType& rX, SizeType m)
+//     {
+//         rX.resize(m, false);
+// #ifndef _OPENMP
+//         std::fill(rX.begin(), rX.end(), TDataType());
+// #else
+//         const int size = rX.size();
+//         #pragma omp parallel for firstprivate(size)
+//         for(int i=0; i<size; ++i)
+//             rX[i] = TDataType();
+// #endif
+//     }
 
     template<class TOtherMatrixType>
     inline static void SetToZero(TOtherMatrixType& rA)
