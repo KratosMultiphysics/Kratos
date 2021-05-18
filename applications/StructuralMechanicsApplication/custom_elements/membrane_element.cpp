@@ -404,10 +404,18 @@ void MembraneElement::DerivativeStrainGreenLagrange(ConstitutiveLaw::VoigtSizeVe
     const array_1d<Vector,2> rCurrentCovariantBaseVectors,
     const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
-    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    ConstitutiveLaw::DeformationGradientMatrixType current_covariant_metric_derivative;
+    current_covariant_metric_derivative.resize(2, 2, false);
+    noalias(current_covariant_metric_derivative) = ZeroMatrix(2);
+
     DerivativeCurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,rCurrentCovariantBaseVectors);
-    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
+    ConstitutiveLaw::DeformationGradientMatrixType strain_matrix_derivative;
+    strain_matrix_derivative.resize(2, 2, false);
+
+    noalias(strain_matrix_derivative) = 0.50 * current_covariant_metric_derivative;
+    ConstitutiveLaw::VoigtSizeVectorType reference_strain;
+    reference_strain.resize(3, false);
+    noalias(reference_strain) = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -415,12 +423,19 @@ void MembraneElement::Derivative2StrainGreenLagrange(ConstitutiveLaw::VoigtSizeV
  const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
  const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
-    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    ConstitutiveLaw::DeformationGradientMatrixType current_covariant_metric_derivative;
+    current_covariant_metric_derivative.resize(2,2,false);
+    noalias(current_covariant_metric_derivative) = ZeroMatrix(2);
     Derivative2CurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,DofS);
 
-    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
+    ConstitutiveLaw::DeformationGradientMatrixType strain_matrix_derivative;
+    strain_matrix_derivative.resize(2,2,false);
 
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
+    noalias(strain_matrix_derivative) = 0.50 * current_covariant_metric_derivative;
+
+    ConstitutiveLaw::VoigtSizeVectorType reference_strain;
+    reference_strain.resize(3, false);
+    noalias(reference_strain) = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -432,26 +447,29 @@ void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vect
     KRATOS_ERROR_IF(rDetJacobi<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
 }
 
-void MembraneElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
+void MembraneElement::DerivativeCurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
     array_1d<Vector,2> derivative_covariant_base_vectors;
     DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors,rShapeFunctionGradientValues,DofR);
 
 
     for (SizeType i=0;i<2;++i){
         for (SizeType j=0;j<2;++j){
-            rMetric(i,j) = inner_prod(derivative_covariant_base_vectors[i],rCurrentCovariantBaseVectors[j]);
+            rMetric(i,j)  = inner_prod(derivative_covariant_base_vectors[i],rCurrentCovariantBaseVectors[j]);
             rMetric(i,j) += inner_prod(derivative_covariant_base_vectors[j],rCurrentCovariantBaseVectors[i]);
         }
     }
 }
 
-void MembraneElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
+void MembraneElement::Derivative2CurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
+
     array_1d<Vector,2> derivative_covariant_base_vectors_dur;
     DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dur,rShapeFunctionGradientValues,DofR);
     array_1d<Vector,2> derivative_covariant_base_vectors_dus;
@@ -503,9 +521,11 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = g2;
 }
 
-void MembraneElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
+void MembraneElement::CovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
+
     for (SizeType i=0;i<2;++i){
         for (SizeType j=0;j<2;++j){
             rMetric(i,j) = inner_prod(rBaseVectorCovariant[i],rBaseVectorCovariant[j]);
@@ -513,9 +533,11 @@ void MembraneElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& 
     }
 }
 
-void MembraneElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric)
+void MembraneElement::ContravariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const Matrix& rCovariantMetric)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
+
     rMetric(0,0) = rCovariantMetric(1,1);
     rMetric(1,1) = rCovariantMetric(0,0);
     rMetric(0,1) = -1.0*rCovariantMetric(1,0);

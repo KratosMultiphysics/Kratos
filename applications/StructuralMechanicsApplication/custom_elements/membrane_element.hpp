@@ -169,7 +169,7 @@ namespace Kratos
      * @param rMetric The metric to be calculated
      * @param rBaseVectorCovariant Covariant base vectors
      */
-    void CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
+    void CovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
 
      /**
      * @brief Calculates the contra variant base vectors
@@ -185,7 +185,7 @@ namespace Kratos
      * @param rMetric The metric to be calculated
      * @param rCovariantMetric Covariant metric
      */
-    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
+    void ContravariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const Matrix& rCovariantMetric);
 
 
       /**
