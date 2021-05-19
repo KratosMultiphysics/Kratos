@@ -164,7 +164,7 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
                     for (std::size_t d = 0; d < n_dim; ++d) {
                         aux_2 = aux_1 * DN_DX_parent(j_node, d) * normal_g(d);
-                        rLeftHandSideMatrix(i_loc_id, j_node) += aux_2;
+                        rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
                         rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
                     }
                 }

@@ -76,22 +76,21 @@ void LaplacianShiftedBoundaryCondition::EquationIdVector(
 {
     KRATOS_TRY
 
-    // // Get unknown variable from convection diffusion settings
-    // const ProcessInfo& r_process_info = rCurrentProcessInfo; // To ensure that Gets are threadsafe
-    // ConvectionDiffusionSettings &r_conv_diff_settings = *(r_process_info[CONVECTION_DIFFUSION_SETTINGS]);
-    // const Variable<double> &r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
+    // Get unknown variable from convection diffusion settings
+    auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
+    const auto& r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
 
-    // // Resize the equation ids. vector
-    // auto &r_geometry = this->GetGeometry();
-    // const unsigned int n_nodes = r_geometry.PointsNumber();
-    // if (rResult.size() != n_nodes) {
-    //     rResult.resize(n_nodes, false);
-    // }
+    // Resize the equation ids. vector
+    const auto &r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    if (rResult.size() != n_nodes) {
+        rResult.resize(n_nodes, false);
+    }
 
-    // // Fill the equation ids. vector from the condition DOFs
-    // for (unsigned int i = 0; i < n_nodes; ++i){
-    //     rResult[i] = r_geometry[i].GetDof(r_unknown_var).EquationId();
-    // }
+    // Fill the equation ids. vector from the condition DOFs
+    for (std::size_t i = 0; i < n_nodes; ++i){
+        rResult[i] = r_geometry[i].GetDof(r_unknown_var).EquationId();
+    }
 
     KRATOS_CATCH("")
 }
@@ -102,22 +101,21 @@ void LaplacianShiftedBoundaryCondition::GetDofList(
 {
     KRATOS_TRY
 
-    // // Get unknown variable from convection diffusion settings
-    // const ProcessInfo &r_process_info = rCurrentProcessInfo; // To ensure that Gets are threadsafe
-    // ConvectionDiffusionSettings &r_conv_diff_settings = *(r_process_info[CONVECTION_DIFFUSION_SETTINGS]);
-    // const Variable<double> &r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
+    // Get unknown variable from convection diffusion settings
+    auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
+    const auto& r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
 
-    // // Resize the DOFs vector
-    // auto &r_geometry = this->GetGeometry();
-    // const unsigned int n_nodes = r_geometry.PointsNumber();
-    // if (rConditionalDofList.size() != n_nodes){
-    //     rConditionalDofList.resize(n_nodes);
-    // }
+    // Resize the DOFs vector
+    const auto &r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    if (rConditionalDofList.size() != n_nodes){
+        rConditionalDofList.resize(n_nodes);
+    }
 
-    // // Fill the DOFs vector from the condition nodes
-    // for (unsigned int i = 0; i < n_nodes; ++i){
-    //     rConditionalDofList[i] = r_geometry[i].pGetDof(r_unknown_var);
-    // }
+    // Fill the DOFs vector from the condition nodes
+    for (std::size_t i = 0; i < n_nodes; ++i){
+        rConditionalDofList[i] = r_geometry[i].pGetDof(r_unknown_var);
+    }
 
     KRATOS_CATCH("")
 }
@@ -129,8 +127,60 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    // Get unknown variable from convection diffusion settings
+    auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
+    const auto& r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
+    const auto& r_diffusivity_var = r_conv_diff_settings.GetDiffusionVariable();
+
+    // Check (and resize) LHS and RHS matrix
+    const auto &r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    if (rRightHandSideVector.size() != n_nodes) {
+        rRightHandSideVector.resize(n_nodes,false);
+    }
+    if (rLeftHandSideMatrix.size1() != n_nodes || rLeftHandSideMatrix.size2() != n_nodes) {
+        rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
+    }
+
+    // Set LHS and RHS to zero
+    noalias(rRightHandSideVector) = ZeroVector(n_nodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(n_nodes,n_nodes);
+
+    //TODO: Make these variable
+    const double gamma = 1000.0;
+    const double h = 0.05;
+
+    // Get meshless geometry data
+    const double w = GetValue(INTEGRATION_WEIGHT);
+    const auto& r_N = GetValue(BDF_COEFFICIENTS);
+    //FIXME: Find variables for these
+    const auto& r_DN_DX = GetValue(LOCAL_AXES_MATRIX);
+    const array_1d<double,3>& r_normal = GetValue(NORMAL);
+
+    // Interpolate conductivity
+    double k = 0.0;
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        k = r_N[i_node] * r_geometry[i_node].FastGetSolutionStepValue(r_diffusivity_var);
+    }
+
+    // Calculate boundary integration point contribution
+    double aux_1;
+    double aux_stab;
+    const double aux_2 = gamma * w / h;
+    const std::size_t n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+            aux_1 = aux_2 * r_N(i_node) * r_N(j_node);
+            const double& r_val = r_geometry[j_node].FastGetSolutionStepValue(r_unknown_var);
+            rLeftHandSideMatrix(i_node, j_node) += aux_2;
+            rRightHandSideVector(i_node) -= aux_1 * r_val;
+            for (std::size_t d = 0; d < n_dim; ++d) {
+                aux_stab = k * r_DN_DX(i_node, d) * r_normal(d) * r_N(j_node);
+                rLeftHandSideMatrix(i_node, j_node) += aux_stab;
+                rRightHandSideVector(i_node) -= aux_stab * r_val;
+            }
+        }
+    }
 
     KRATOS_CATCH("")
 }
@@ -169,6 +219,16 @@ void LaplacianShiftedBoundaryCondition::CalculateRightHandSide(
 
     // Initialize RHS vector
     noalias(rRightHandSideVector) = ZeroVector(n_nodes);
+
+    KRATOS_CATCH("")
+}
+
+int LaplacianShiftedBoundaryCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    // Note that the base check is intentionally not called to avoid calling the base geometry check
+    return 0;
 
     KRATOS_CATCH("")
 }

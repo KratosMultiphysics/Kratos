@@ -36,9 +36,6 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
     def Initialize(self):
-        # Initialize base solver strategy
-        super().Initialize()
-
         # Correct the level set
         #TODO: Use the FluidDynamicsApplication process
         tol = 1.0e-5
@@ -58,11 +55,14 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         nodal_neighbours_process.Execute()
 
         # Create the boundary elements and MLS basis
-        settings = KratosMultiphysics.Parameters("""{
-            "model_part_name" : "ThermalModelPart"
-        }""")
+        settings = KratosMultiphysics.Parameters("""{}""")
+        computing_model_part_name = self.main_model_part.Name + "." + self.GetComputingModelPart().Name
+        settings.AddEmptyValue("model_part_name").SetString(computing_model_part_name)
         sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
         sbm_interface_process.Execute()
+
+        # Initialize base solver strategy
+        super().Initialize()
 
     def __SetInterfaceFlags(self):
         # Initialize the required flags to false

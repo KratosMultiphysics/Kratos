@@ -164,6 +164,8 @@ public:
                     auto p_prop = rElement.pGetProperties();
                     auto p_cond = Kratos::make_intrusive<LaplacianShiftedBoundaryCondition>(++max_cond_id, cloud_nodes);
                     p_cond->SetProperties(p_prop); //TODO: Think if we want properties in these conditions or not
+                    p_cond->Set(ACTIVE, true);
+                    mrModelPart.AddCondition(p_cond);
 
                     // Store the Gauss pt. weight and normal in the database
                     p_cond->SetValue(NORMAL, pos_int_n[i_g]);
@@ -186,7 +188,6 @@ public:
                 rElement.Set(ACTIVE, false);
             }
         }
-
     }
 
     ///@}
