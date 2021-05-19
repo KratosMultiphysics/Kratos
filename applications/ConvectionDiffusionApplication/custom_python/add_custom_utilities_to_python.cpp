@@ -29,13 +29,10 @@
 #include "custom_utilities/calculate_stationarity_process.h"
 #include "custom_utilities/binbased_interpolation_utility.h"
 #include "custom_utilities/mesh_convergence_error_calculator_utility.h"
-// #include "custom_utilities/fields/vector_field.h"
-// #include "custom_utilities/fields/velocity_field.h"
-// #include "custom_utilities/fields/field_utility.h"
-// #include "custom_utilities/fields/sets/space_time_rule.h"
-// #include "custom_utilities/fields/sets/space_time_set.h"
+
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+//#include "custom_utilities/convection_diffusion_settings.h"
 
 namespace Kratos
 {
@@ -70,8 +67,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-
-
     py::class_< PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >>(m,"PureConvectionUtilities2D").def(py::init<	>() )
     .def("ConstructSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
     .def("CalculateProjection",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
@@ -103,6 +98,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BFECCConvection<2> > (m,"BFECCConvection2D")
     .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool >())
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
@@ -111,6 +107,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")
     .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool >())
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
@@ -151,7 +148,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 	py::class_<BFECCLimiterConvection<3> > (m,"BFECCLimiterConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
     ;
-
+    
     py::class_<CalculateStationarityProcess>(m, "CalculateStationarityProcess")
     .def(py::init<>())
     .def("ComputeDofsErrorsCD", &CalculateStationarityProcess::ComputeDofsErrorsCD)

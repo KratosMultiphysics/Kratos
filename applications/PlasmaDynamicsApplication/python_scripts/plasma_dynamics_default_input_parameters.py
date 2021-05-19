@@ -150,7 +150,7 @@ def GetDefaultInputParameters():
         "sdem_output_processes" : {},
         "properties": [{}],
 
-        "fluid_parameters" : {},
+        "fluid_phase_parameters" : {},
 
         "custom_fluid" : {
             "fluid_already_calculated" : false,
@@ -237,7 +237,8 @@ def GetDefaultInputParameters():
             "VECTORIAL_ERROR" : false,
             "VECTORIAL_ERROR_1" : false,
             "VELOCITY_LAPLACIAN_RATE" : false,
-            "MESH_VELOCITY" : false
+            "MESH_VELOCITY" : false,
+            "TEMPERATURE" : false
         }
 
         }""")

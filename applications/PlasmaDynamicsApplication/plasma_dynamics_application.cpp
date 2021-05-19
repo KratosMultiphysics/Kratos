@@ -31,11 +31,7 @@ KratosPlasmaDynamicsApplication::KratosPlasmaDynamicsApplication():KratosApplica
 void KratosPlasmaDynamicsApplication::Register()
 {
   KRATOS_INFO("") << "\n"
-                    << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      \n"
-                    << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      \n"
-                    << "            | |_| | |___| |  | |  __/ (_| | (__|   <       \n"
-                    << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      \n"
-                    << "Importing Application... "<<std::endl;
+                  << "Importing PLASMA DYNAMICS APPLICATION... "<<std::endl;
 
   // std::cout << "Initializing KratosPlasmaDynamicsApplication... " << std::endl;
 

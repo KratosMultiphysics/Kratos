@@ -50,7 +50,37 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
 
 
     def __init__(self, model, parameters = Parameters("{}")):
-        super().__init__(model, parameters)
+        sys.stdout = PlasmaDynamicsLogger()
+        self.StartTimer()
+        self.model = model
+        self.main_path = os.getcwd()
+
+        self.SetProjectParameters(parameters)
+
+        self.vars_man = variables_management.VariablesManager(self.project_parameters)
+
+        self._GetDEMAnalysis().coupling_analysis = weakref.proxy(self)
+
+        self._GetFluidPhaseAnalysis().coupling_analysis = weakref.proxy(self)
+
+        self.procedures = weakref.proxy(self._GetDEMAnalysis().procedures)
+
+        self.report = DP.Report()
+
+        self._GetDEMAnalysis().SetAnalyticFaceWatcher()
+
+        self.fluid_model_part = self._GetFluidPhaseAnalysis().fluid_model_part
+        self.thermal_model_part = self._GetFluidPhaseAnalysis().thermal_model_part
+        self.spheres_model_part = self._GetDEMAnalysis().spheres_model_part
+        self.cluster_model_part = self._GetDEMAnalysis().cluster_model_part
+        self.rigid_face_model_part = self._GetDEMAnalysis().rigid_face_model_part
+        self.dem_inlet_model_part = self._GetDEMAnalysis().dem_inlet_model_part
+        self.vars_man.ConstructListsOfVariables(self.project_parameters)
+
+        super(SwimmingDEMAnalysis, self).__init__(model, self.project_parameters)
+        
+        # super().__init__(model, parameters)
+        # self.thermic_model_part = self._GetFluidPhaseAnalysis().thermic_model_part
 
 
     def SetProjectParameters(self, parameters):
@@ -58,36 +88,41 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
         self.time_step = self.project_parameters["time_stepping"]["time_step"].GetDouble()
         self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
         self.do_print_results = self.project_parameters["do_print_results_option"].GetBool()
-        self.fluid_parameters = self.project_parameters['fluid_parameters']
+        self.fluid_phase_parameters = self.project_parameters['fluid_phase_parameters'] 
+        self.fluid_solver_settings = self.fluid_phase_parameters["solver_settings"]["fluid_solver_settings"]
+        self.thermal_solver_settings = self.fluid_phase_parameters["solver_settings"]["thermal_solver_settings"]
+        
+        
+        # self.project_parameters["fluid_parameters"] = {
+        #     "problem_data"        : self.fluid_phase_parameters["problem_data"],
+        #     "output_processes"    : self.fluid_phase_parameters["output_processes"],               
+        #     "processes"           : self.fluid_phase_parameters["processes"],                
+        #     "solver_settings"     : self.fluid_solver_settings
+        #                                       }
+        
+        # self.fluid_parameters = self.project_parameters["fluid_parameters"]
+        
+        
+        self.fluid_parameters = {
+            "problem_data"        : self.fluid_phase_parameters["problem_data"],
+            "output_processes"    : self.fluid_phase_parameters["output_processes"],               
+            "processes"           : self.fluid_phase_parameters["processes"],                
+            "solver_settings"     : self.fluid_solver_settings
+                                  }
+        # self.project_parameters["fluid_parameters"] = self.fluid_parameters
 
-        # First, read the parameters generated from the interface
         import KratosMultiphysics.PlasmaDynamicsApplication.plasma_dynamics_default_input_parameters as only_plasma_defaults
         import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
 
-        
-        # print('=================================================')
-        # print(self.project_parameters)
-        # print('=================================================')
-
         self.project_parameters.ValidateAndAssignDefaults(only_plasma_defaults.GetDefaultInputParameters())
-        
-        # print('=================================================')
-        # print(self.project_parameters)
-        # print('=================================================')
-        
         self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(dem_defaults.GetDefaultInputParameters())
-
-        # print('=================================================')
-        # print(self.project_parameters)
-        # print('=================================================')
-        
-        # Second, set the default 'beta' parameters (candidates to be moved to the interface)
+   
         self.SetBetaParameters()
-
-
-        # Third, make sure the parameters passed to the different (sub-)analyses is coherent
-        # with the general parameters
+        
         self.ModifyInputParametersForCoherence()
+        
+        
+        
         
            
     # TODO
@@ -107,7 +142,7 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
         self.output_time = int(output_time / self.time_step) * self.time_step
         self.project_parameters["output_interval"].SetDouble(self.output_time)
         
-        self.fluid_time_step = self.fluid_parameters["solver_settings"]["fluid_solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        self.fluid_time_step = self.fluid_solver_settings["time_stepping"]["time_step"].GetDouble()
 
         if self.fluid_time_step < self.time_step:
             error_message = ('The fluid time step (' + str(self.fluid_time_step)
@@ -116,10 +151,12 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
             raise Exception(error_message)
 
         self.fluid_time_step = int(self.fluid_time_step / self.time_step) * self.time_step
-        self.fluid_parameters["solver_settings"]["fluid_solver_settings"]["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
+        self.fluid_solver_settings["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
+        
         self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.time_step)
         translational_scheme_name = self.project_parameters["custom_dem"]["translational_integration_scheme"].GetString()
         self.project_parameters["dem_parameters"]["TranslationalIntegrationScheme"].SetString(translational_scheme_name)
+        
         # The fluid fraction is not projected from DEM (there may not
         # be a DEM part) but is externally imposed instead:
         if self.project_parameters["custom_fluid"]["flow_in_porous_medium_option"].GetBool():
@@ -226,7 +263,7 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions
-        fluid_domain_dimension = self.project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
+        fluid_domain_dimension = self.project_parameters["fluid_phase_parameters"]["solver_settings"]["domain_size"].GetInt()
         self.custom_functions_tool = PDP.FunctionsCalculator(fluid_domain_dimension)
 
         # creating a debug tool
@@ -245,7 +282,7 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
         ##################################################
         self.step = 0
         self.time = self.fluid_parameters["problem_data"]["start_time"].GetDouble()
-        self.fluid_time_step = self._GetFluidAnalysis()._GetSolver()._ComputeDeltaTime()
+        self.fluid_time_step = self._GetFluidPhaseAnalysis()._GetSolver().fluid_solver._ComputeDeltaTime()
         self.time_step = self.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
         self.rigid_face_model_part.ProcessInfo[Kratos.DELTA_TIME] = self.time_step
         self.cluster_model_part.ProcessInfo[Kratos.DELTA_TIME] = self.time_step
@@ -317,9 +354,9 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
 
 
     def FluidInitialize(self):
-        self.fluid_model_part = self._GetFluidAnalysis().fluid_model_part
-        self._GetFluidAnalysis().vars_man = self.vars_man
-        self._GetFluidAnalysis().Initialize()
+        self.fluid_model_part = self._GetFluidPhaseAnalysis().fluid_model_part
+        self._GetFluidPhaseAnalysis().vars_man = self.vars_man
+        self._GetFluidPhaseAnalysis().Initialize()
 
         self.AddExtraProcessInfoVariablesToFluid()
 
@@ -414,7 +451,7 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
 
         self.PerformFinalOperations(self.time)
 
-        self._GetFluidAnalysis().Finalize()
+        self._GetFluidPhaseAnalysis().Finalize()
 
         self.TellFinalSummary(self.time, self.step, self._GetSolver().fluid_step)
 
@@ -426,7 +463,7 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
         return self._disperse_phase_analysis
 
 
-    def _GetFluidAnalysis(self):
+    def _GetFluidPhaseAnalysis(self):
         if not hasattr(self, '_fluid_phase_analysis'):
             import KratosMultiphysics.PlasmaDynamicsApplication.DEM_coupled_fluid_analysis as fluid_analysis
             self._fluid_phase_analysis = fluid_analysis.DEMCoupledFluidAnalysis(self.model, self.project_parameters, self.vars_man)
@@ -439,6 +476,6 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
         return plasma_dynamics_solver.PlasmaDynamicsSolver(self.model,
                                                      self.project_parameters,
                                                      self.GetFieldUtility(),
-                                                     self._GetFluidAnalysis()._GetSolver(),
+                                                     self._GetFluidPhaseAnalysis()._GetSolver(),
                                                      self._GetDEMAnalysis()._GetSolver(),
                                                      self.vars_man)

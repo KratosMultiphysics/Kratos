@@ -8,34 +8,25 @@ class DEMCoupledFluidAnalysis(ConvectionDiffusionAnalysis):
 
     def __init__(self, model, parameters=None, variables_management=None):
         self.model = model
-        self.sdem_project_parameters = parameters
-        self.fluid_parameters = parameters['fluid_parameters']
+        self.fluid_phase_parameters = parameters['fluid_phase_parameters']
         self.vars_man = variables_management
 
-        super().__init__(model, self.fluid_parameters)
+        super().__init__(model, self.fluid_phase_parameters)
 
-        #self.fluid_model_part = self._GetSolver().main_model_part
-        
-        self.fluid_model_part = 
-        self.thermal_model_part = 
-
+        self.fluid_model_part = self._GetSolver().fluid_solver.main_model_part
+        self.thermal_model_part = self._GetSolver().thermal_solver.main_model_part
 
     def Initialize(self):
         self.AddFluidVariablesForPlasmaDynamics()
+        #TODO: self.AddThermicVariablesForPlasmaDynamics()?
         super().Initialize()
-
 
     def AddFluidVariablesForPlasmaDynamics(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
-
-
+        
     def _CreateSolver(self):
-        if (self.fluid_parameters["solver_settings"]["solver_type"].GetString() == "MonolithicDEM"):
-            from KratosMultiphysics.SwimmingDEMApplication.python_solvers_wrapper_fluidDEM import CreateSolver
-            return CreateSolver(self.model, self.fluid_parameters)
-        else:
-            from KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion import CreateSolver
-            return CreateSolver(self.model, self.fluid_parameters)
+        from KratosMultiphysics.ConvectionDiffusionApplication.python_solvers_wrapper_convection_diffusion import CreateSolver
+        return CreateSolver(self.model, self.fluid_phase_parameters)
 
 
 
