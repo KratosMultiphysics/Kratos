@@ -18,6 +18,8 @@
 #include <fstream>
 #include <set>
 #include <typeinfo>
+#include <unordered_set>
+
 
 // External includes
 
@@ -308,6 +310,16 @@ public:
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
+    void ReadSubModelPartElementsAndConditionsIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds) override;
+
+    std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType> &rElementsIds,
+        std::unordered_set<SizeType> &rConditionsIds) override;
+
 
     ///@}
     ///@name Access
@@ -501,6 +513,13 @@ private:
 
     void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    void FillNodalConnectivitiesFromElementBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType> &rElementsIds);
+
+    void FillNodalConnectivitiesFromConditionBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType> &rConditionsIds);
 
     void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
@@ -565,6 +584,7 @@ private:
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
 
+    template<class TValueType>
     void DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                      PartitionIndicesContainerType const& EntitiesPartitions,
                                      std::string BlockName);

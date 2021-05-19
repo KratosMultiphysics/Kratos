@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
@@ -50,7 +49,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # TIME RELATED PARAMETERS
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
 
         for properties in self.model_part.Properties:
             self.ModifyProperties(properties)

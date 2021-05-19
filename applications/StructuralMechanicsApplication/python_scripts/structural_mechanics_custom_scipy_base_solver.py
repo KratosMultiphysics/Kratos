@@ -31,11 +31,11 @@ class CustomScipyBaseSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[CustomScipyBaseSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic"
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -67,11 +67,9 @@ class CustomScipyBaseSolver(MechanicalSolver):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices
         computing_model_part = self.GetComputingModelPart()
         builder_and_solver = self.get_builder_and_solver()
-        linear_solver = self.get_linear_solver()
 
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               eigen_scheme,
-                                                              linear_solver,
                                                               builder_and_solver,
                                                               False,
                                                               False,

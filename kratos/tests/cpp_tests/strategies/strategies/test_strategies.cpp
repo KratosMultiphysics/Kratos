@@ -26,6 +26,7 @@
 
 /* Element include */
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -100,11 +101,15 @@ namespace Kratos
             ModelPart.AddNodalSolutionStepVariable(VELOCITY);
             ModelPart.AddNodalSolutionStepVariable(ACCELERATION);
 
+            Properties::Pointer p_prop = ModelPart.CreateNewProperties(0);
+            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw();
+            p_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
             NodeType::Pointer pnode = ModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             std::vector<NodeType::Pointer> geom(1);
             geom[0] = pnode;
             GeometryType::Pointer pgeom = Kratos::make_shared<GeometryType>(PointerVector<NodeType>{geom});
-            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, ThisResidualType);
+            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, p_prop, ThisResidualType);
             ModelPart.AddElement(pelem);
 
             pnode->AddDof(DISPLACEMENT_X, REACTION_X);

@@ -32,10 +32,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     ModelPart& model_part = model.CreateModelPart("Main",3);
 
     // Variables addition
+    model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
-    model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -50,9 +49,10 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.AddNodalSolutionStepVariable(DIVPROJ);
 
     // Process info creation
-    double delta_time = 0.1;
+    const double delta_time = 0.1;
+    const double sound_velocity = 1.0e+3;
     model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
-    model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+    model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, sound_velocity);
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
     Vector bdf_coefs(3);
     bdf_coefs[0] = 3.0/(2.0*delta_time);
@@ -61,8 +61,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
     // Set the element properties
+    const double rho = 1000.0;
     Properties::Pointer p_properties = model_part.CreateNewProperties(0);
-    p_properties->SetValue(DENSITY, 1000.0);
+    p_properties->SetValue(DENSITY, rho);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
     ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
     p_properties->SetValue(CONSTITUTIVE_LAW, pConsLaw);
@@ -80,13 +81,14 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
-    model_part.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 1, element_nodes, p_properties);
+    model_part.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N", 1, element_nodes, p_properties);
     model_part.CreateNewElement("EmbeddedQSVMSDiscontinuous2D3N", 2, element_nodes, p_properties);
 
-    // Call the elements Initialize()
+    const auto& r_process_info = model_part.GetProcessInfo();
     for (auto &r_elem : model_part.Elements()) {
-        r_elem.Initialize(); // Initialize the element to initialize the constitutive law
-        r_elem.Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
+        r_elem.Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        const auto& r_const_elem = r_elem;
+        r_const_elem.Check(r_process_info); // Otherwise the constitutive law is not seen here
     }
 
     // Define the nodal values
@@ -98,6 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     Element::Pointer p_element = model_part.pGetElement(1);
 
     for(unsigned int i=0; i<3; i++){
+        p_element->GetGeometry()[i].SetValue(SOUND_VELOCITY, sound_velocity); // Required for the weakly compressible instance
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(DENSITY) = rho; // Required for the nodal-based density instances
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -116,35 +120,32 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     Matrix LHS = ZeroMatrix(9,9);
 
     std::vector< std::vector<double> > output_uncut(6);
-    output_uncut[0] = {-0.6361617846,8.819948812,-0.6557582459,67.57989341,174.5435981,0.1308775154,110.444523,215.3506723,0.3748807306}; // EmbeddedSymbolicNavierStokesDiscontinuous
+    output_uncut[0] = {-0.6361617846,8.819948812,-0.6557582459,67.57989341,174.5435981,0.1308775154,110.444523,215.3506723,0.3748807306}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
     output_uncut[1] = {-21.81650306,-40.75920676,-0.6557581669,54.90454836,132.1891487,0.1308774929,90.0369547,179.8200581,0.374880674}; // EmbeddedQSVMSDiscontinuous
     int counter = 0;
 
     // Test Uncut element
-    array_1d<double,3> elem_dist;
-    elem_dist[0] = 1.0;
-    elem_dist[1] = 1.0;
-    elem_dist[2] = 1.0;
+    array_1d<double,3> elem_dist(3, 1.0);
+    array_1d<double,3> elem_edge_dist(3,-1.0);
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
     }
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
 
-        for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_uncut[counter][j], 1e-6);
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, output_uncut[counter], 1e-6);
 
         counter++;
     }
 
     std::vector< std::vector<double> > output_cut(6);
-    output_cut[0] = {18.84223125,59.21540862,-0.4453265312,49.82664899,169.407093,0.3953265312,32.91666657,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
-    output_cut[1] = {3.777844188, 12.07497388, -0.4453264623, 42.19438001, 129.0905425, 0.3953264623, 32.91666657, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
+    output_cut[0] = {18.84223125,59.39337635,-0.4453265312,49.82664899,169.5161544,0.3953265312,32.91666657,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_cut[1] = {3.777844188,12.25294162,-0.4453264623,42.19438001,129.199604,0.3953264623,32.91666657,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test cut element
@@ -153,42 +154,72 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     elem_dist[2] =  0.5;
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
     }
 
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 0.0);
-    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
+    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 0.1);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, false);
-        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
 
-        for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_cut[counter][j], 1e-6);
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, output_cut[counter], 1e-6);
 
         counter++;
     }
 
     std::vector< std::vector<double> > output_slip_cut(6);
-    output_slip_cut[0] = {18.84227218,59.21545054,-0.4453265312,49.82660608,169.407051,0.3953265312,32.91666667,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
-    output_slip_cut[1] = {3.777885122, 12.07501581, -0.4453264623, 42.1943371, 129.0905006, 0.3953264623, 32.91666667, -23.57174638, -0.1}; // EmbeddedQSVMSDiscontinuous
+    output_slip_cut[0] = {18.84227218,59.39341828,-0.4453265312,49.82660608,169.5161125,0.3953265312,32.91666667,-24.94122968,-0.1}; // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_slip_cut[1] = {3.777885122,12.25298355,-0.4453264623,42.1943371,129.199562,0.3953264623,32.91666667,-24.94122968,-0.1}; // EmbeddedQSVMSDiscontinuous
     counter = 0;
 
     // Test slip cut element
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 1.0e+08);
-    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
+    model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 0.1);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); ++i) {
         i->Set(SLIP, true);
-        i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
 
-        for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_slip_cut[counter][j], 1e-6);
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, output_slip_cut[counter], 1e-6);
+
+        counter++;
+    }
+
+    std::vector< std::vector<double> > output_incised(6);
+    output_incised[0] = {-10.02330911,16.21326328,-0.646193458,23.84225308,140.9326145,0.03528444693,93.63200904,252.7354578,0.4609090111};  // EmbeddedWeaklyCompressibleNavierStokesDiscontinuous
+    output_incised[1] = {-33.91609958,-37.55862371,-0.646193379,7.300490992,98.97131258,0.03528442788,71.97887246,205.2539778,0.4609089511}; // EmbeddedQSVMSDiscontinuous
+    counter = 0;
+
+    // Test incised element
+    elem_dist[0] = -0.25;
+    elem_dist[1] =  0.25;
+    elem_dist[2] = -0.25;
+    elem_edge_dist[0] =  0.5;
+    elem_edge_dist[1] = -1.0;
+    elem_edge_dist[2] = -1.0;
+    array_1d<double,3> elem_edge_dist_extra;
+    elem_edge_dist_extra[0] = -1.0;
+    elem_edge_dist_extra[1] = -1.0;
+    elem_edge_dist_extra[2] =  0.5;
+    for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
+        it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
+        it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, elem_edge_dist_extra);
+    }
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        i->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
+
+        KRATOS_CHECK_VECTOR_NEAR(RHS, output_incised[counter], 1e-6);
 
         counter++;
     }

@@ -47,8 +47,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicat
     // Variables addition
     model_part.AddNodalSolutionStepVariable(HEIGHT);
     model_part.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
-    model_part.AddNodalSolutionStepVariable(WATER_SURFACE);
-    model_part.AddNodalSolutionStepVariable(BATHYMETRY);
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(TOPOGRAPHY);
 
     // Process info creation
     const double gravity = 9.81;
@@ -91,14 +91,14 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicat
     ApplyPerturbationFunctionProcess<Variable<double>>(
         model_part,
         sub_model_part.Nodes(),
-        WATER_SURFACE_Z,
+        VELOCITY_Z,
         parameters)();
 
     for (auto& node : model_part.Nodes())
     {
         double x = node.X();
         double exact_value = ((x < 1.0) ? (0.0) : (periodic_function(x)));
-        double value = node.FastGetSolutionStepValue(WATER_SURFACE_Z);
+        double value = node.FastGetSolutionStepValue(VELOCITY_Z);
         KRATOS_CHECK_NEAR(value, exact_value, tolerance);
     }
 }

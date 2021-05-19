@@ -1,14 +1,31 @@
 BOOK: Parts
 
-CONDITION: Body_Part
+CONDITION: Computing_domain
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces elements nodes
-QUESTION: Bathymetry#CB#(From_digital_model,By_function)
+END CONDITION
+
+
+BOOK: Topographic_data
+
+CONDITION: Topography
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces elements nodes
+QUESTION: Source#CB#(From_digital_model,By_function)
 VALUE: From_digital_model
 DEPENDENCIES: (From_digital_model,HIDE,Expression,#CURRENT#)(By_function,RESTORE,Expression,#CURRENT#)
 QUESTION: Expression
-VALUE: 0.0
+VALUE: 0.1*x
+END CONDITION
+
+CONDITION: Bottom_friction
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces elements nodes
+QUESTION: Manning_coefficient
+VALUE: 0.004
 END CONDITION
 
 
@@ -37,27 +54,17 @@ CONDITION: Water_height
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: lines faces nodes
-QUESTION: Water_height
+QUESTION: Value
 VALUE: 0.0
 HELP: Units in IS: m
 QUESTION: Fixed#CB#(true,false)
 VALUE: true
-HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
-DEPENDENCIES: (false,HIDE,Imposed_water_height,Constant)(true,RESTORE,Imposed_water_height,#CURRENT#)
-QUESTION: Imposed_water_height#CB#(Constant,Table_Interpolation)
-VALUE: Constant
-DEPENDENCIES: (Constant,HIDE,Water_Height_Table,#CURRENT#)(Table_Interpolation,RESTORE,Water_Height_Table,#CURRENT#)
-QUESTION: Water_Height_Table(Time,Value)
-VALUE: #N# 2 0.0 0.0
-HELP: If Pressure_Distribution is set to Uniform, Value means Pressure_Value. If Pressure_Distribution is Hydrostatic, Value means Reference_Coordinate.
 END CONDITION
 
-CONDITION: Imposed_flux
+CONDITION: Imposed_flow_rate
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: lines faces nodes
-QUESTION: Variable#CB#(VELOCITY,MOMENTUM)
-VALUE: VELOCITY
 QUESTION: Modulus
 VALUE: 0.0
 HELP: Units in IS: m
@@ -70,26 +77,12 @@ QUESTION: Fixed_Y#CB#(true,false)
 VALUE: false
 END CONDITION
 
-
-BOOK: Source_terms
-
-CONDITION: Bottom_friction
+CONDITION: Nodal_condition
 CONDTYPE: over groups
-CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces elements nodes
-QUESTION: Manning_friction
-VALUE: 0.004
-END CONDITION
-
-CONDITION: Rain_load
-CONDTYPE: over groups
-CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces faces elements nodes
-QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
-VALUE: Constant
-DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)
+CONDMESHTYPE: over nodes
+GROUPALLOW: points nodes
 QUESTION: Value
 VALUE: 0.0
-QUESTION: Table(Time,Value)
-VALUE: #N# 2 0.0 0.0
+QUESTION: Is_fixed#CB#(true,false)
+VALUE: false
 END CONDITION

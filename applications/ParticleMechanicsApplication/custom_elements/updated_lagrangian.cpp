@@ -140,7 +140,7 @@ UpdatedLagrangian::~UpdatedLagrangian()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::Initialize()
+void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1262,15 +1262,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
 
     noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
 
-    //1.-Calculate StiffnessMatrix:
-    MatrixType StiffnessMatrix  = Matrix();
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-    MatrixType MassMatrix  = Matrix();
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
     {
@@ -1291,10 +1283,23 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, cons
         beta = rCurrentProcessInfo[RAYLEIGH_BETA];
     }
 
-    //4.-Compose the Damping Matrix:
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
+    //2.-Calculate StiffnessMatrix:
+    if (std::abs(beta) > 1e-12){
+        MatrixType StiffnessMatrix  = Matrix();
+        this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+        //4.1.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix += beta  * StiffnessMatrix;
+    }
+
+    //3.-Calculate MassMatrix:
+    if (std::abs(alpha) > 1e-12){
+        MatrixType MassMatrix  = Matrix();
+        this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+        //4.2.-Compose the Damping Matrix:
+        //Rayleigh Damping Matrix: alpha*M + beta*K
+        rDampingMatrix  += alpha * MassMatrix;
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1368,9 +1373,9 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const Proc
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetValuesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1391,9 +1396,9 @@ void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1414,9 +1419,9 @@ void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
+void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step ) const
 {
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
@@ -1609,13 +1614,13 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& rVa
 ///@{
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-    std::vector<int>& rValues,
+    const std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1638,7 +1643,7 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVa
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1667,7 +1672,7 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<dou
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -1695,13 +1700,13 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVa
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
     Element::Check(rCurrentProcessInfo);
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
@@ -1727,12 +1732,6 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
 
     KRATOS_ERROR_IF(correct_strain_measure == false ) << "Constitutive law is not compatible with the element type: Large Displacements " << std::endl;
 
-    // Verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-
     // Verify that the dofs exist
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = this->GetGeometry()[i];
@@ -1753,7 +1752,6 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
         // Verify that the constitutive law has the correct dimension
         if ( dimension == 2 )
         {
-            KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
             KRATOS_ERROR_IF_NOT(this->GetProperties().Has( THICKNESS )) << "THICKNESS not provided for element " << this->Id() << std::endl;
         }
         else
@@ -1777,6 +1775,7 @@ void UpdatedLagrangian::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
+    rSerializer.save("MP",mMP);
 }
 
 void UpdatedLagrangian::load( Serializer& rSerializer )
@@ -1785,6 +1784,7 @@ void UpdatedLagrangian::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
+    rSerializer.load("MP",mMP);
 }
 
 

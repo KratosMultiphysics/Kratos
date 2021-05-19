@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/kernel.h"
-#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "testing/distributed_test_case.h"
 
 namespace Kratos {
@@ -59,7 +59,7 @@ std::string DistributedTestCase::Info() const
 void DistributedTestCase::CheckRemoteFailure()
 {
     bool success_on_this_rank = GetResult().IsSucceed();
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     bool global_success = r_comm.AndReduceAll(success_on_this_rank);
     if (success_on_this_rank && !global_success)
     {

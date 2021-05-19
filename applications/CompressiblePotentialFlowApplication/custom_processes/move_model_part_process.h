@@ -81,6 +81,7 @@ private:
     ModelPart& mrModelPart;
     Vector mOrigin;
     Vector mRotationPoint;
+    Vector mRotationAxis;
     double mRotationAngle;
     double mSizingMultiplier;
 

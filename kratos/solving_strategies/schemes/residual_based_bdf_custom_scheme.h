@@ -90,8 +90,6 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -244,9 +242,8 @@ public:
         // Auxiliar fixed value
         bool fixed = false;
 
-        #pragma omp parallel for private(fixed)
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
@@ -272,7 +269,7 @@ public:
 
                 counter++;
             }
-        }
+        });
 
         KRATOS_CATCH("ResidualBasedBDFCustomScheme.InitializeSolutionStep");
     }
@@ -308,9 +305,8 @@ public:
         // Getting first node iterator
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t Index){
+            auto it_node = it_node_begin + Index;
 
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
@@ -326,7 +322,7 @@ public:
             // Updating time derivatives
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
-        }
+        });
 
         KRATOS_CATCH( "" );
     }
@@ -346,15 +342,6 @@ public:
 
         const int err = BDFBaseType::Check(rModelPart);
         if(err!=0) return err;
-
-        // Check for variables keys
-        // Verify that the variables are correctly initialized
-        for ( auto p_var : mDoubleVariable)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mFirstDoubleDerivatives)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mSecondDoubleDerivatives)
-            KRATOS_CHECK_VARIABLE_KEY((*p_var))
 
         // Check that variables are correctly allocated
         for(auto& r_node : rModelPart.Nodes()) {

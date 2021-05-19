@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -6,6 +5,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
+import KratosMultiphysics.DEMApplication.dem_default_input_parameters
+from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
 
 from importlib import import_module
 
@@ -51,7 +52,6 @@ class DEMAnalysisStage(AnalysisStage):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import KratosMultiphysics.DEMApplication.dem_default_input_parameters
         return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
@@ -81,7 +81,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
-        self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
         self.aux = AuxiliaryUtilities()
 
@@ -91,11 +90,7 @@ class DEMAnalysisStage(AnalysisStage):
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFileName()
 
-        [self.post_path,
-        self.data_and_results,
-        self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path),
-                                                              str(self.problem_name),
-                                                              do_print_results=self.do_print_results_option)[:-1]
+        [self.post_path, self.data_and_results, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)[:-1]
 
         # Prepare modelparts
         self.CreateModelParts()
@@ -114,10 +109,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.p_count = self.p_frequency
 
         #self._solver = self._GetSolver()
-        self.SetDt()
         self.SetFinalTime()
         self.AddVariables()
-        super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
+        super().__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -140,39 +134,26 @@ class DEMAnalysisStage(AnalysisStage):
     def IsCountStep(self):
         self.step_count += 1
         if self.step_count == self.p_count:
-           self.p_count += self.p_frequency
-           return True
+            self.p_count += self.p_frequency
+            return True
 
         return False
 
-    def SetAnalyticParticleWatcher(self):
-        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
-        self.particle_watcher = AnalyticParticleWatcher()
+    def SetAnalyticWatchers(self):
+        self.SurfacesAnalyzerClass = analytic_data_procedures.SurfacesAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
-        # is this being used? TODO
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
+        if self.post_normal_impact_velocity_option:
+            self.ParticlesAnalyzerClass = analytic_data_procedures.ParticlesAnalyzerClass(self.analytic_model_part)
 
-
-    def SetAnalyticFaceWatcher(self):
-        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
-        self.face_watcher_dict = dict()
-        self.face_watcher_analysers = dict()
-        for sub_part in self.rigid_face_model_part.SubModelParts:
-            if sub_part[IS_GHOST] == True:
-                name = sub_part.Name
-                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
 
     def MakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
+        self.SurfacesAnalyzerClass.MakeAnalyticsMeasurements()
+
+        if self.post_normal_impact_velocity_option:
+            self.ParticlesAnalyzerClass.MakeAnalyticsMeasurements()
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
-
-    def SetDt(self):
-        self._GetSolver().dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
@@ -241,10 +222,10 @@ class DEMAnalysisStage(AnalysisStage):
             return imported_module
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
-                                                     self.creator_destructor,
-                                                     self.dem_fem_search,
-                                                     self.DEM_parameters,
-                                                     self.procedures)
+                                                    self.creator_destructor,
+                                                    self.dem_fem_search,
+                                                    self.DEM_parameters,
+                                                    self.procedures)
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self._GetSolver(), self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -268,13 +249,14 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.ReadModelParts()
 
-        self.SetAnalyticFaceWatcher()
-
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
                 self.post_normal_impact_velocity_option = True
                 self.FillAnalyticSubModelParts()
+
+        self.SetAnalyticWatchers()
+
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.dem_inlet_model_part, 1, self.rigid_face_model_part, 1)
@@ -314,8 +296,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self._GetSolver().dt)
 
-        super(DEMAnalysisStage, self).Initialize()
+        super().Initialize()
 
+        self.seed = self.DEM_parameters["seed"].GetInt()
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         self.SetInlet()
@@ -454,15 +437,28 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
+        self.ConvertClusterFileNamesFromRelativePathToAbsolutePath()
 
-    def RunAnalytics(self, time, is_time_to_print=True):
-        for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.FaceAnalyzerClass.RemoveOldFile()
+    def ConvertClusterFileNamesFromRelativePathToAbsolutePath(self):
+        for properties in self.cluster_model_part.Properties:
+            if properties.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = properties[CLUSTER_FILE_NAME]
+                properties[CLUSTER_FILE_NAME] = os.path.join(self.main_path, cluster_file_name)
+
+        for submp in self.dem_inlet_model_part.SubModelParts:
+            if submp.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = submp[CLUSTER_FILE_NAME]
+                submp[CLUSTER_FILE_NAME] = os.path.join(self.main_path, cluster_file_name)
+
+    def RunAnalytics(self, time):
+        self.MakeAnalyticsMeasurements()
+        if self.IsTimeToPrintPostProcess():
+            self.SurfacesAnalyzerClass.MakeAnalyticsPipeLine(time)
+
+        if self.post_normal_impact_velocity_option and self.IsTimeToPrintPostProcess():
+            self.ParticlesAnalyzerClass.SetNodalMaxImpactVelocities()
+            self.ParticlesAnalyzerClass.SetNodalMaxFaceImpactVelocities()
+
 
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
@@ -479,14 +475,14 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeSolutionStep(self):
-        super(DEMAnalysisStage, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -521,15 +517,10 @@ class DEMAnalysisStage(AnalysisStage):
             self.KratosPrintInfo(stepinfo)
 
     def FinalizeSolutionStep(self):
-        super(DEMAnalysisStage, self).FinalizeSolutionStep()
-        if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
-                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+        super().FinalizeSolutionStep()
 
         #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
+        self.RunAnalytics(self.time)
 
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -550,21 +541,6 @@ class DEMAnalysisStage(AnalysisStage):
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
 
-    def AfterSolveOperations(self):
-        message = 'Warning!'
-        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 10/31/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
-                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
-
-        #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
-
-
     def BreakSolutionStepsLoop(self):
         return False
 
@@ -582,7 +558,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def Finalize(self):
         self.KratosPrintInfo("Finalizing execution...")
-        super(DEMAnalysisStage, self).Finalize()
+        super().Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
@@ -590,12 +566,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
 
-        self.AdditionalFinalizeOperations()
-
         self.CleanUpOperations()
-
-    def AdditionalFinalizeOperations(self):
-        pass
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)

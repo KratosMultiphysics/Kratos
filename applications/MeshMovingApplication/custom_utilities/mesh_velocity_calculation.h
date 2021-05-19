@@ -25,19 +25,19 @@ namespace Kratos {
 class ModelPart; // forward-declaring to not having to include it here
 namespace MeshVelocityCalculation {
 
-void CalculateMeshVelocities(ModelPart& rModelPart,
+void KRATOS_API(MESH_MOVING_APPLICATION) CalculateMeshVelocities(ModelPart& rModelPart,
                              const TimeDiscretization::BDF1& rBDF);
 
-void CalculateMeshVelocities(ModelPart& rModelPart,
+void KRATOS_API(MESH_MOVING_APPLICATION) CalculateMeshVelocities(ModelPart& rModelPart,
                              const TimeDiscretization::BDF2& rBDF);
 
-void CalculateMeshVelocities(ModelPart& rModelPart,
+void KRATOS_API(MESH_MOVING_APPLICATION) CalculateMeshVelocities(ModelPart& rModelPart,
                              const TimeDiscretization::Newmark& rGenAlpha);
 
-void CalculateMeshVelocities(ModelPart& rModelPart,
+void KRATOS_API(MESH_MOVING_APPLICATION) CalculateMeshVelocities(ModelPart& rModelPart,
                              const TimeDiscretization::Bossak& rGenAlpha);
 
-void CalculateMeshVelocities(ModelPart& rModelPart,
+void KRATOS_API(MESH_MOVING_APPLICATION) CalculateMeshVelocities(ModelPart& rModelPart,
                              const TimeDiscretization::GeneralizedAlpha& rGenAlpha);
 
 } // namespace MeshVelocityCalculation

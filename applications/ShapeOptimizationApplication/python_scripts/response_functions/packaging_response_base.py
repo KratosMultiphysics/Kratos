@@ -32,7 +32,7 @@ class PackagingResponseBase(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
 
-        response_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+        response_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.response_settings = response_settings
         self.model = model
@@ -61,7 +61,7 @@ class PackagingResponseBase(ResponseFunctionInterface):
         self.exponent = 2
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "response_type"         : "UNKNOWN_TYPE",
             "model_part_name"       : "UNKNOWN_NAME",

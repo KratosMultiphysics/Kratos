@@ -1,0 +1,63 @@
+{
+    "problem_data"         : {
+        "echo_level"           : 0,
+        "start_time"           : 0.0,
+        "end_time"             : 1.0,
+        "parallel_type"        : "OpenMP"
+    },
+    "solver_settings"      : {
+        "solver_type"              : "testing.empty_solver_for_testing",
+        "model_part_name"          : "main_model_part",
+        "echo_level"               : 0,
+        "domain_size"              : 2,
+        "gravity"                  : 9.81,
+        "model_import_settings"    : {
+            "input_type"               : "mdpa",
+            "input_filename"           : "model_part"
+        },
+        "time_stepping"            : {
+            "automatic_time_step"      : false,
+            "time_step"                : 1.0
+        }
+    },
+    "output_processes" : {
+        "output_process_list" : [{
+            "python_module"   : "nodes_output_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.output",
+            "Parameters"      : {
+                "model_part_name"         : "main_model_part",
+                "file_name"               : "output_file",
+                "start_point"             : [0.0, 0.4, 0.0],
+                "end_point"               : [0.6, 0.4, 0.0],
+                "output_variables"        : ["TOPOGRAPHY"],
+                "nonhistorical_variables" : [],
+                "printing_times"          : [1]
+            }
+        }]
+    },
+    "processes" : {
+        "initial_conditions_process_list"   : [],
+        "boundary_conditions_process_list"  : [],
+        "topography_process_list"     : [{
+            "python_module"   : "set_topography_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part",
+                "value"           : "z"
+            }
+        }],
+        "check_process_list" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "compare_two_files_check_process",
+            "Parameters"      : {
+                "reference_file_name"   : "nodes_output_process_reference.dat",
+                "output_file_name"      : "output_file_1.0000.dat",
+                "remove_output_file"    : true,
+                "comparison_type"       : "dat_file",
+                "tolerance"             : 1e-6,
+                "relative_tolerance"    : 1e-9,
+                "dimension"             : 2
+            }
+        }]
+    }
+}

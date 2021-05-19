@@ -169,7 +169,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
         Matrix shape_functions;
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
 
-        const auto rGeom = it_elem->GetGeometry();
+        auto& rGeom = it_elem->GetGeometry();
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
 
@@ -200,8 +200,16 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
-                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
+                double& r_dist = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+                if (std::abs(r_dist) < 1.0e-12) {
+                    const double aux_dist = 1.0e-6* rGeom[i].GetValue(NODAL_H);
+                    if (r_dist > 0.0) {
+                        #pragma omp critical
+                        r_dist = aux_dist;
+                    } else {
+                        #pragma omp critical
+                        r_dist = -aux_dist;
+                    }
                 }
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }

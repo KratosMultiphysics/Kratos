@@ -7,10 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
+#include <cmath>
+#include <iomanip>
 
 // External includes
 
@@ -190,7 +192,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
         const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
 
         for (SizeType j=0; j<num_eigenvalues; ++j) {
-            const std::string label = GetLabel(j, eigenvalue_vector[j]);
+            const std::string label = GetLabel(j, num_eigenvalues, eigenvalue_vector[j]);
 
             #pragma omp parallel for
             for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
@@ -205,12 +207,6 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
                 for (auto& r_dof : r_node_dofs) {
                     r_dof->GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,l++);
                 }
-            }
-
-            // Reconstruct the animation on slave-dofs
-            if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
-                ConstraintUtilities::ResetSlaveDofs(mrModelPart);
-                ConstraintUtilities::ApplyConstraints(mrModelPart);
             }
 
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
@@ -240,8 +236,6 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
                 << variable << std::endl;
 
             rRequestedVectorResults.push_back(variable);
-        } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
-            KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
         } else {
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }
@@ -249,12 +243,13 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 }
 
 std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
+                                                    const int NumberOfEigenvalues,
                                                     const double EigenvalueSolution) const
 {
     double label_number;
 
     std::stringstream parser;
-    parser << (NumberOfEigenvalue + 1);
+    parser << std::setfill('0') << std::setw(std::floor(std::log10(NumberOfEigenvalues))+1) << (NumberOfEigenvalue + 1);
     std::string label = parser.str();
 
     const std::string lable_type = mOutputParameters["label_type"].GetString();

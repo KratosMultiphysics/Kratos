@@ -12,7 +12,7 @@
 
 namespace Kratos
 {
-	void BondingSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {
+	void BondingSphericContinuumParticle::UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) {
             KRATOS_TRY
             if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
 

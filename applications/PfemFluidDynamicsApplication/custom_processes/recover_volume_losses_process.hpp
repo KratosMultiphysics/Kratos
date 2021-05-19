@@ -25,7 +25,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -69,7 +68,7 @@ public:
       : mrModelPart(rModelPart),
         mrRemesh(rRemeshingParameters)
   {
-    std::cout << " generate_new_nodes_process_for_homogeneous_mesh CONSTRUCTOR " << std::endl;
+    KRATOS_INFO("RecoverVolumeLossesProcess")<< " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }

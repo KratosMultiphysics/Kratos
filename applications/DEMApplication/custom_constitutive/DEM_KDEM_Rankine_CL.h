@@ -42,8 +42,10 @@ namespace Kratos {
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
+                double ViscoDampingLocalContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
+                double LocalRelVel[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,
@@ -55,8 +57,6 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
 
         virtual bool CheckRequirementsOfStressTensor() override;

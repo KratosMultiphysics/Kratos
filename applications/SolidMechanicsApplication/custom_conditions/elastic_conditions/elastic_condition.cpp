@@ -233,18 +233,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int ElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int ElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = BoundaryCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
     return ErrorCode;
 

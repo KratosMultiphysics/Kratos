@@ -25,7 +25,6 @@
 
 ///VARIABLES used:
 //Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked)
 //          (set)
 //          (modified)
@@ -72,7 +71,7 @@ public:
       : mrModelPart(rModelPart),
         mrRemesh(rRemeshingParameters)
   {
-    KRATOS_INFO("InletManagementProcess") << " inlet_management CONSTRUCTOR ";
+    KRATOS_INFO("InletManagementProcess") << " activated "<< std::endl;
 
     mEchoLevel = EchoLevel;
   }
@@ -247,7 +246,7 @@ private:
     {
 
       Node<3>::Pointer pnode = clonedNodes[i];
-      double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelpart.GetParentModelPart());
+      double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
       double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
       unsigned int id = NodeIdParent + 1; //total model part node size
 

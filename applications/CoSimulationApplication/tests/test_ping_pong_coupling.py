@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -27,11 +28,12 @@ class TestPingPong(KratosUnittest.TestCase):
         self._createTest("ping_pong_test", "cosim_ping_pong_parameters")
         CoSimulationAnalysis(self.cosim_parameters).Run()
 
-        #TODO: temporary figure out how to properly do it.
-        os.remove('ping.log')
-        os.remove('pong.log')
-        os.remove('EMPIRE_datafield_pong_recv_data.dat')
-        os.remove('EMPIRE_datafield_ping_recv_data.dat')
+        DeleteFileIfExisting('ping.log')
+        DeleteFileIfExisting('pong.log')
+        DeleteFileIfExisting('EMPIRE_datafield_pong_send_data.dat')
+        DeleteFileIfExisting('EMPIRE_datafield_ping_send_data.dat')
+        DeleteFileIfExisting('EMPIRE_datafield_pong_recv_data.dat')
+        DeleteFileIfExisting('EMPIRE_datafield_ping_recv_data.dat')
 
 
 

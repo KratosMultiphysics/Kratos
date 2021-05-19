@@ -103,12 +103,14 @@ public:
      * @brief It computes the mean of the normal in the entities and in all the nodes
      * @param rModelPart The model part to compute
      * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
+     * @param ConsiderUnitNormal In order to consider directly the unit normal instead of the area normal multiplied with a coefficient
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
     void CalculateNormals(
         ModelPart& rModelPart,
-        const bool EnforceGenericGeometryAlgorithm = false
+        const bool EnforceGenericGeometryAlgorithm = false,
+        const bool ConsiderUnitNormal = false
         );
 
     /**
@@ -519,7 +521,6 @@ private:
 
     /**
      * @brief Calculates 2D condition area normals shape sensitivity
-     *
      * @param rCondition    Reference to the targe condition
      */
     static void CalculateNormalShapeDerivative2D(
@@ -542,18 +543,32 @@ private:
 
     /**
      * @brief Calculates 3D condition area normals shape sensitivity
-     *
      * @param rCondition    Reference to the targe condition
      */
     static void CalculateNormalShapeDerivative3D(
         ConditionType& rCondition
         );
 
+    /**
+     * @brief This method retrieves the containers
+     * @param  rModelPart The modelpart with the containers to retrieve
+     * @return The corresponding containers
+     * @tparam TContainerType The container type
+     */
     template<class TContainerType>
     TContainerType& GetContainer(ModelPart& rModelPart);
 
+    /**
+     * @brief This method computes the normals considering generic algorithm
+     * @param rModelPart The modelpart with normals to compute
+     * @param ConsiderUnitNormal In order to consider directly the unit normal instead of the area normal multiplied with a coefficient
+     * @tparam TContainerType The container type
+     */
     template<class TContainerType>
-    void CalculateNormalsUsingGenericAlgorithm(ModelPart& rModelPart);
+    void CalculateNormalsUsingGenericAlgorithm(
+        ModelPart& rModelPart,
+        const bool ConsiderUnitNormal = false
+        );
 
     ///@}
     ///@name Private  Access

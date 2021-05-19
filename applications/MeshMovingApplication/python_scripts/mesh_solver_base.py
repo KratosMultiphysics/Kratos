@@ -53,10 +53,12 @@ class MeshSolverBase(PythonSolver):
             self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
             self.__CreateTimeIntegratorHelper()
 
+        self.reinitialize_model_part_each_step = self.settings["reinitialize_model_part_each_step"].GetBool()
+
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type"           : "mesh_solver_base",
             "buffer_size"           : 1,
@@ -88,9 +90,10 @@ class MeshSolverBase(PythonSolver):
             "calculate_mesh_velocity"   : true,
             "mesh_velocity_calculation" : { },
             "superimpose_mesh_disp_with": [],
-            "superimpose_mesh_velocity_with": []
+            "superimpose_mesh_velocity_with": [],
+            "reinitialize_model_part_each_step": false
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Public user interface functions ####

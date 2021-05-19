@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.MeshingApplication as MSH
@@ -11,7 +9,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
     ''' Main script for shallow water simulations '''
 
     def __init__(self, model, project_parameters):
-        super(ShallowWaterMultigridAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
         self.maximum_subgrids = 0
         if self.project_parameters["solver_settings"]["multigrid_settings"].Has("maximum_number_of_subscales"):
@@ -27,7 +25,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
         self._UpdateModelPartNamesInParameters()
 
     def Initialize(self):
-        super(ShallowWaterMultigridAnalysis, self).Initialize()
+        super().Initialize()
         if self.current_subscale < self.maximum_subgrids:
             self.sub_analysis.Initialize()
 

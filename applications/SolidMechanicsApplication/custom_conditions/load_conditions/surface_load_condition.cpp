@@ -336,23 +336,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = LoadCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(NEGATIVE_FACE_PRESSURE_VECTOR);
-
-    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
-
-    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD_VECTOR);
 
     return ErrorCode;
 

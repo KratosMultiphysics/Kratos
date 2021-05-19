@@ -45,8 +45,6 @@ public:
     using GeomtryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
-    static const Variable<double>& GetScalarRateVariable();
-    static const Variable<double>& GetScalarRelaxedRateVariable();
 
     static void Check(
         const GeometryType& rGeometry,
@@ -57,34 +55,37 @@ public:
         return "KOmegaKElementData";
     }
 
-    KElementData(const GeomtryType& rGeometry)
-    : BaseType(rGeometry)
+    KElementData(
+        const GeometryType& rGeometry,
+        const Properties& rProperties,
+        const ProcessInfo& rProcessInfo)
+        : BaseType(rGeometry, rProperties, rProcessInfo)
     {
     }
 
     void CalculateConstants(
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateGaussPointData(
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives,
-        const int Step = 0) override;
+        const int Step = 0);
 
     array_1d<double, 3> CalculateEffectiveVelocity(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
+        const Matrix& rShapeFunctionDerivatives) const;
 
     double CalculateEffectiveKinematicViscosity(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
+        const Matrix& rShapeFunctionDerivatives) const;
 
     double CalculateReactionTerm(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
+        const Matrix& rShapeFunctionDerivatives) const;
 
     double CalculateSourceTerm(
         const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const override;
+        const Matrix& rShapeFunctionDerivatives) const;
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
@@ -96,6 +97,7 @@ protected:
     double mVelocityDivergence;
     double mSigmaK;
     double mBetaStar;
+    double mDensity;
 };
 
 ///@}

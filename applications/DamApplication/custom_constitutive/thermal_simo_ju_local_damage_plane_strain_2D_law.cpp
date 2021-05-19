@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -12,7 +12,7 @@ namespace Kratos
 {
 
 //Default Constructor
-ThermalSimoJuLocalDamagePlaneStrain2DLaw::ThermalSimoJuLocalDamagePlaneStrain2DLaw() : ThermalLocalDamagePlaneStrain2DLaw() 
+ThermalSimoJuLocalDamagePlaneStrain2DLaw::ThermalSimoJuLocalDamagePlaneStrain2DLaw() : ThermalLocalDamagePlaneStrain2DLaw()
 {
     mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialDamageHardeningLaw() );
     mpYieldCriterion = YieldCriterion::Pointer( new SimoJuYieldCriterion(mpHardeningLaw) );
@@ -37,9 +37,9 @@ ThermalSimoJuLocalDamagePlaneStrain2DLaw::~ThermalSimoJuLocalDamagePlaneStrain2D
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalSimoJuLocalDamagePlaneStrain2DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int ThermalSimoJuLocalDamagePlaneStrain2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
-    int ierr = ThermalLocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    int ierr = ThermalLocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
     if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || rMaterialProperties[DAMAGE_THRESHOLD] <= 0.0)
@@ -48,7 +48,7 @@ int ThermalSimoJuLocalDamagePlaneStrain2DLaw::Check(const Properties& rMaterialP
         KRATOS_THROW_ERROR( std::invalid_argument,"STRENGTH_RATIO has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
     if(FRACTURE_ENERGY.Key() == 0 || rMaterialProperties.Has( FRACTURE_ENERGY ) == false || rMaterialProperties[FRACTURE_ENERGY] <= 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"FRACTURE_ENERGY has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    
+
     return ierr;
 }
 

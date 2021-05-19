@@ -156,7 +156,11 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    // ConstitutiveLaw::VoigtSizeMatrixType& GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, ConstitutiveLaw::VoigtSizeMatrixType& rValue) override;
+    // ConstitutiveLaw::DeformationGradientMatrixType& GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, ConstitutiveLaw::DeformationGradientMatrixType& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    // ConstitutiveLaw::StrainVectorType& GetValue(const Variable<StrainVectorType>& rThisVariable, ConstitutiveLaw::StrainVectorType& rValue) override;
+    // ConstitutiveLaw::StressVectorType& GetValue(const Variable<StressVectorType>& rThisVariable, ConstitutiveLaw::StressVectorType& rValue) override;
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
     ///@}
@@ -184,7 +188,7 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculateElasticMatrix(
-        Matrix& C, 
+        ConstitutiveLaw::VoigtSizeMatrixType& C, 
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -195,8 +199,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -207,7 +211,7 @@ protected:
      */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
         ) override;
 
     ///@}

@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import SettingsTypeCheck
 
-class CoSimulationCouplingOperation(object):
+class CoSimulationCouplingOperation:
     """Baseclass for the coupling operations used for CoSimulation
     This class can be used to customize the behavior of the CoSimulation,
     by providing a large interface and access to the solvers/models
@@ -12,7 +12,7 @@ class CoSimulationCouplingOperation(object):
     def __init__(self, settings, parent_coupled_solver_process_info):
         SettingsTypeCheck(settings)
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
         self.process_info = parent_coupled_solver_process_info
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -52,7 +52,7 @@ class CoSimulationCouplingOperation(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "echo_level" : 0

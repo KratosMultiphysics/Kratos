@@ -67,7 +67,7 @@ class AleFluidSolver(PythonSolver):
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver_type"                 : "ale_fluid",
             "start_fluid_solution_time"   : 0.0,
@@ -76,7 +76,7 @@ class AleFluidSolver(PythonSolver):
             "fluid_solver_settings"       : { },
             "mesh_motion_solver_settings" : { }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

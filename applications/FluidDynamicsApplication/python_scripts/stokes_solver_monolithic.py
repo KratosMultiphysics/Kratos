@@ -77,7 +77,7 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
     """
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -123,7 +123,7 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(StokesSolverMonolithic, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(StokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
