@@ -78,94 +78,106 @@ void LaplacianShiftedBoundaryElement::CalculateLocalSystem(
     // Add base Laplacian contribution
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    // Get convection-diffusion data container
-    auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    auto &r_settings = *p_settings;
-    const auto& r_unknown_var = r_settings.GetUnknownVariable();
-    const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
+    // Check if the element belongs to the surrogate interface
+    // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
+    if (Is(INTERFACE)) {
+        // Get convection-diffusion data container
+        auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+        auto &r_settings = *p_settings;
+        const auto& r_unknown_var = r_settings.GetUnknownVariable();
+        const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
-    // Find the surrogate face local id
-    std::size_t sur_bd_id;
-    const auto& r_geom = GetGeometry();
-    const auto r_boundaries = r_geom.GenerateBoundariesEntities();
-    const std::size_t n_bds = r_boundaries.size();
-    const std::size_t n_bd_nodes = r_boundaries[0].PointsNumber();
-    for (std::size_t i_bd = 0; i_bd < n_bds; ++i_bd) {
-        const auto& r_boundary = r_boundaries[i_bd];
-        std::size_t n_flag_nodes = 0;
-        for (const auto& r_node : r_boundary) {
-            if (r_node.Is(BOUNDARY)) {
-                n_flag_nodes++;
+        // Find the surrogate face local id
+        // Note that the BOUNDARY flag is assumed to be set in the surrogate interface nodes
+        std::size_t sur_bd_id;
+        const auto& r_geom = GetGeometry();
+        const auto r_boundaries = r_geom.GenerateBoundariesEntities();
+        const std::size_t n_bds = r_boundaries.size();
+        const std::size_t n_bd_nodes = r_boundaries[0].PointsNumber();
+        for (std::size_t i_bd = 0; i_bd < n_bds; ++i_bd) {
+            const auto& r_boundary = r_boundaries[i_bd];
+            std::size_t n_flag_nodes = 0;
+            for (const auto& r_node : r_boundary) {
+                if (r_node.Is(BOUNDARY)) {
+                    n_flag_nodes++;
+                }
+            }
+            if (n_flag_nodes == n_bd_nodes) {
+                sur_bd_id = i_bd;
+                break;
             }
         }
-        if (n_flag_nodes == n_bd_nodes) {
-            sur_bd_id = i_bd;
-            break;
+
+        // Get the surrogate boundary geometry data
+        const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
+        const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
+        const unsigned int n_dim = r_sur_bd_geom.WorkingSpaceDimension();
+
+        const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(BaseType::GetIntegrationMethod());
+        const auto& DN_De = r_sur_bd_geom.ShapeFunctionsLocalGradients(BaseType::GetIntegrationMethod());
+        const Matrix& N_g = r_sur_bd_geom.ShapeFunctionsValues(BaseType::GetIntegrationMethod());
+        Element::GeometryType::JacobiansType J0;
+        r_sur_bd_geom.Jacobian(J0, BaseType::GetIntegrationMethod());
+
+        // Get the surrogate boundary nodal data
+        DenseVector<double> nodal_unknown(n_bd_points);
+        DenseVector<double> nodal_conductivity(n_bd_points);
+        for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+            nodal_unknown[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_unknown_var);
+            nodal_conductivity[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
         }
-    }
 
-    // Get the surrogate boundary nodal data
-    DenseVector<double> nodal_unknown(n_bd_points);
-    DenseVector<double> nodal_conductivity(n_bd_points);
-    for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; i_bd_node) {
-        nodal_unknown[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_unknown_var);
-        nodal_conductivity[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
-    }
+        // Integrate the surrogate boundary flux
+        double det_J0;
+        Matrix DN_DX(n_bd_points, n_dim);
+        Matrix inv_J0(n_dim, n_dim);
+        DenseVector<double> temp(n_bd_points);
+        DenseVector<double> grad_proj(n_bd_points);
+        Matrix aux_LHS = ZeroMatrix(n_bd_points);
+        DenseVector<double> aux_RHS = ZeroVector(n_bd_points);
+        const std::size_t n_gauss = r_integration_points.size();
+        for(std::size_t i_g = 0; i_g < n_gauss; ++i_g) {
+            // Calculating inverse jacobian and jacobian determinant
+            MathUtils<double>::InvertMatrix(J0[i_g], inv_J0, det_J0);
 
-    // Get the surrogate boundary geometry data
-    const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
-    const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-    const unsigned int dim = r_sur_bd_geom.WorkingSpaceDimension();
+            // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+            noalias(DN_DX) = prod(DN_De[i_g], inv_J0);
 
-    const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(BaseType::GetIntegrationMethod());
-    const auto& DN_De = r_sur_bd_geom.ShapeFunctionsLocalGradients(BaseType::GetIntegrationMethod());
-    const Matrix& N_g = r_sur_bd_geom.ShapeFunctionsValues(BaseType::GetIntegrationMethod());
-    Element::GeometryType::JacobiansType J0;
-    r_sur_bd_geom.Jacobian(J0, BaseType::GetIntegrationMethod());
+            const DenseVector<double> N_i_g = row(N_g, i_g);
+            const double w_i_g = r_integration_points[i_g].Weight() * det_J0;
+            const double k_i_g = inner_prod(N_i_g, nodal_conductivity);
+            const array_1d<double,3> normal_g = r_sur_bd_geom.Normal(r_integration_points[i_g].Coordinates());
 
-    // Integrate the surrogate boundary flux
-    double det_J0;
-    Matrix DN_DX(n_bd_points, dim);
-    Matrix inv_J0(dim, dim);
-    DenseVector temp(n_bd_points);
-    DenseVector grad_proj(n_bd_points);
-    Matrix aux_LHS = ZeroMatrix(n_bd_points);
-    DenseVector aux_RHS = ZeroVector(n_bd_points);
-    const std::size_t n_gauss = r_integration_points.size();
-    for(std::size_t i_point = 0; i_point < n_gauss; ++i_point) {
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[i_point], inv_J0, det_J0);
-
-        // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[i_point], inv_J0);
-
-        const auto N_g = row(N_g, i_point);
-        const double w_g = r_integration_points[i_point].Weight() * det_J0;
-        const double k_g = inner_prod(N_g, nodal_conductivity);
-        const array_1d<double,3> normal_g = r_sur_bd_geom.Normal(r_integration_points[i_point].Coordinates());
-
-        //TODO: THIS CAN BE INCLUDED IN THE ONE BELOW
-        grad_proj = ZeroVector(n_bd_points);
-        for (std::size_t d = 0; d < dim; ++d) {
+            double aux_1;
+            double aux_2;
             for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
-                grad_proj(d) += DN_DX(i_node, dim) * normal_g(dim);
+                aux_1 = w_i_g * k_i_g * N_i_g(i_node);
+                for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
+                    for (std::size_t d = 0; d < n_dim; ++d) {
+                        aux_2 = aux_1 * DN_DX(j_node, d) * normal_g(d);
+                        aux_LHS(i_node, j_node) += aux_2;
+                        aux_RHS(i_node) += aux_2 * nodal_unknown(j_node);
+                    }
+                }
             }
         }
 
-        for (std::size_t i_node = 0; i_node = n_bd_points; ++i_node) {
-            for (std::size_t j_node = 0; j_node = n_bd_points; ++j_node) {
-                aux_LHS(i_node, j_node) += w_g * k_g * N_g(i_node) * grad_proj(j_node);
+        // Do the assembly with the NodesInFace
+        // Note that the first node in the NodesInFace is the node contrary to the face
+        std::size_t i_loc_id;
+        std::size_t j_loc_id;
+        DenseMatrix<unsigned int> nodes_in_faces;
+        r_geom.NodesInFaces(nodes_in_faces);
+        const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+        for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+            i_loc_id = sur_bd_local_ids[i_bd_node + 1];
+            for (std::size_t j_bd_node = 0; j_bd_node < n_bd_points; ++j_bd_node) {
+                j_loc_id = sur_bd_local_ids[j_bd_node + 1];
+                rLeftHandSideMatrix(i_loc_id, j_loc_id) += aux_LHS(i_bd_node, j_bd_node);
             }
+            rRightHandSideVector(i_loc_id) += aux_RHS(i_bd_node);
         }
-        // noalias(rLeftHandSideMatrix) += w_g * k_g * prod(DN_DX, trans(DN_DX)); //
-
-        // // Calculating the local RHS
-        // const double qgauss = inner_prod(N, heat_flux_local);
-
-        // noalias(rRightHandSideVector) += IntToReferenceWeight * qgauss * N;
     }
-
-    // Do the assembly with the NodesInFace
 
     KRATOS_CATCH("")
 }
@@ -201,5 +213,3 @@ int LaplacianShiftedBoundaryElement::Check(const ProcessInfo& rCurrentProcessInf
 }
 
 } // Namespace Kratos
-
-
