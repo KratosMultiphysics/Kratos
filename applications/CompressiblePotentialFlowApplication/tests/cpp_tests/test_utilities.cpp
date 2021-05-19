@@ -43,7 +43,7 @@ void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, Num
 }
 
 template <>
-BoundedVector<double,3> AssignDistancesToElement<3>()
+BoundedVector<double,3> GetDistanceValues<3>()
 {
     BoundedVector<double,3> distances;
     distances(0) = 1.0;
@@ -53,7 +53,7 @@ BoundedVector<double,3> AssignDistancesToElement<3>()
 }
 
 template <>
-BoundedVector<double,4> AssignDistancesToElement<4>()
+BoundedVector<double,4> GetDistanceValues<4>()
 {
     BoundedVector<double,4> distances;
     distances(0) = -1.0;
@@ -61,6 +61,12 @@ BoundedVector<double,4> AssignDistancesToElement<4>()
     distances(2) = -1.0;
     distances(3) = 1.0;
     return distances;
+}
+
+template <int NumNodes>
+BoundedVector<double,NumNodes> AssignDistancesToElement()
+{
+    return GetDistanceValues<NumNodes>();
 }
 
 void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){
@@ -162,12 +168,14 @@ void ComputeWakeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finit
 // 2D
 template void AssignPotentialsToNormalElement<3>(Element& rElement, const std::array<double, 3> rPotential);
 template void AssignPotentialsToWakeElement<3>(Element& rElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential);
+template BoundedVector<double,3> AssignDistancesToElement<3>();
 template void ComputeElementalSensitivities<3>(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical,  const std::array<double, 3> rPotential);
 template void ComputeWakeElementalSensitivities<3>(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 6> rPotential);
 
 // 3D
 template void AssignPotentialsToNormalElement<4>(Element& rElement, const std::array<double, 4> rPotential);
 template void AssignPotentialsToWakeElement<4>(Element& rElement, const array_1d<double, 4>& rDistances, const std::array<double, 8>& rPotential);
+template BoundedVector<double,4> AssignDistancesToElement<4>();
 template void ComputeElementalSensitivities<4>(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical,  const std::array<double, 4> rPotential);
 template void ComputeWakeElementalSensitivities<4>(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 8> rPotential);
 
