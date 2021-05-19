@@ -10,6 +10,9 @@
 
 import time as timer
 import math
+import pandas as pd
+import numpy as np
+from scipy.spatial.distance import pdist, squareform
 import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
@@ -153,9 +156,9 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         startTime = timer.time()
 
         original_ctrlpts = cad_util.GetControlPoints(self.trimming_curve)
-        original_ctrlpts_cpy = cad_util.GetControlPoints(self.trimming_curve)
 
         self.gradient = self.__GetGradients(original_ctrlpts.copy())
+        #self.gradient = self.__DoVMFiltering(self.gradient, original_ctrlpts.copy())
         self.trimming_curve.ctrlpts = original_ctrlpts
 
         Logger.PrintInfo("> Time needed for calculating gradients = ", round(timer.time() - startTime,2), "s")
@@ -215,6 +218,8 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             if points[i][0] < 0.0:
                 points[i][0] = 0.0
             self.trimming_curve.ctrlpts = points
+            self.trimming_curve.evaluate()
+            self.__CreateModelPart()
             cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
             u_val1 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
             points = points_backup ## Reset U
@@ -222,6 +227,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             if points[i][0] > 1.0:
                 points[i][0] = 1.0
             self.trimming_curve.ctrlpts = points
+            self.trimming_curve.evaluate()
             self.__CreateModelPart()
             cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
             u_val2 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
@@ -234,6 +240,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             if points[i][1] < 0.0:
                 points[i][1] = 0.0
             self.trimming_curve.ctrlpts = points
+            self.trimming_curve.evaluate()
             self.__CreateModelPart()
             cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
             v_val1 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
@@ -242,6 +249,7 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
             if points[i][1] > 1.0:
                 points[i][1] = 1.0
             self.trimming_curve.ctrlpts = points
+            self.trimming_curve.evaluate()
             self.__CreateModelPart()
             cad_util.MakeModelPart(self.cad_geom, self.trimming_curve.evalpts, self.evaluation_model_part)
             v_val2 = self.ks_util.CalculateValue(self.evaluation_model_part, StructuralMechanicsApplication.VON_MISES_STRESS, self.rho)
@@ -256,5 +264,56 @@ class DomainDecompositionResponse(ResponseFunctionInterface):
         for i, grad in gradients.items() :
             gradients[i] = [grad[0]/max_norm, grad[1]/max_norm]
 
+        #self.__VisualizeGradients(gradients, points_backup)
         return gradients
+
+    def __DoVMFiltering(self, gradients, points):
+        points_copy = points.copy()
+        radius = 0.15
+        dpd = pd.DataFrame(squareform(pdist(points_copy)))
+        indices = dpd[(0 < dpd) & (dpd < radius)].apply(lambda x: x.dropna().index.tolist())
+        indices = indices.to_dict()
+        new_gradients = gradients.copy()
+
+        for i_ctrl_pt, ctrl_pt_neighbors in indices.items():
+            old_gradient = gradients[i_ctrl_pt]
+            gradient = [0.0, 0.0]
+            if(len(ctrl_pt_neighbors)>0):
+                for neig in ctrl_pt_neighbors:
+                    dist = dpd[i_ctrl_pt][neig]
+                    weight = self.__GetWeight(radius, dist)
+                    gradient[0] = gradient[0] + gradients[neig][0] * weight
+                    gradient[1] = gradient[1] + gradients[neig][1] * weight
+                new_gradients[i_ctrl_pt] = gradient
+
+        return new_gradients
+
+    def __DoAvgFiltering(self, gradients, points):
+        points_copy = points.copy()
+        pass
+
+    def __GetWeight(self, radius, distance):
+        ## Gives the weight with guassian filter
+        if(distance >= radius):
+            return 0.0
+        else:
+            return 1-(distance/radius)
+            #return math.exp(-(distance*distance) / (2 * radius * radius / 9.0))
+
+    def __VisualizeGradients(self, gradients, points):
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+
+        x_pos = [p[0] for p in points]
+        y_pos = [p[1] for p in points]
+        values = gradients.values()
+
+        x_dir = [d[0] for d in gradients.values()]
+        y_dir = [d[1] for d in gradients.values()]
+
+        ax.quiver(x_pos, y_pos, x_dir, y_dir, color='r', width=3e-3)
+
+        plt.show()
 
