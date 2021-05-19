@@ -31,10 +31,6 @@ public:
     PiecewiseLinearRandomVariable(const Parameters rParameters);
     PiecewiseLinearRandomVariable(const Parameters rParameters, const int seed);
 
-
-    /// Destructor
-    ~PiecewiseLinearRandomVariable(){};
-
     double Sample() override;
     double ProbabilityDensity(const double x);
     double GetMean() override;

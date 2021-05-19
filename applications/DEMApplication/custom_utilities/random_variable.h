@@ -30,7 +30,7 @@ public:
     RandomVariable(const Parameters rParameters);
 
     /// Destructor
-    ~RandomVariable(){};
+    virtual ~RandomVariable(){};
 
     virtual double Sample(){KRATOS_ERROR << "You are calling the 'Sample' function of the abstract class 'RandomVariable'. Please instantiate a specific derived class instead."; return 0.0;};
 
