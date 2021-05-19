@@ -1,7 +1,7 @@
 ---
 title: Quaternions in Kratos
 keywords: 
-tags: [C++, Quaternions Tutorial]
+tags: [C++ Quaternions Tutorial]
 sidebar: kratos_sidebar
 summary: 
 ---

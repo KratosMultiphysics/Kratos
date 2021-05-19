@@ -1,7 +1,7 @@
 ---
 title: Python Script  Nodes and Nodal Data
 keywords: 
-tags: [Python-Script-Tutorial:-Nodes-and-Nodal-Data.md]
+tags: [Python Script Tutorial Nodes Nodal Data]
 sidebar: kratos_sidebar
 summary: 
 ---

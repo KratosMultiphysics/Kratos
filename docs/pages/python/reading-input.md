@@ -1,7 +1,7 @@
 ---
 title: Python Script  Reading ModelPart From Input File
 keywords: 
-tags: [Python-Script-Tutorial:-Reading-ModelPart-From-Input-File.md]
+tags: [Python Script Tutorial Reading ModelPart Input File]
 sidebar: kratos_sidebar
 summary: 
 ---

@@ -1,7 +1,7 @@
 ---
 title: Python Script  Generating New Modelparts
 keywords: 
-tags: [Python-Script-Tutorial-Generating-New-Modelparts.md]
+tags: [Python Script Tutorial Generating New Modelpart]
 sidebar: kratos_sidebar
 summary: 
 ---

@@ -1,7 +1,7 @@
 ---
 title: Python Script  Reading ProjectParameters
 keywords: 
-tags: [Python-Script-Tutorial:-Reading-ProjectParameters.md]
+tags: [Python Script Tutorial Reading ProjectParameters Project Parameters]
 sidebar: kratos_sidebar
 summary: 
 ---
