@@ -1,0 +1,50 @@
+I"B<p>In order to write a python script with <em>Kratos</em> the first step would be to <em>“Obtain”</em> the <code class="language-plaintext highlighter-rouge">KratosMultiphysics</code> module and then <em>“add”</em> it as an external module to the <em>Python</em>.</p>
+
+<p>There are two ways to “Obtain” the module:</p>
+
+<ul>
+  <li>Download the latest release of <em>Kratos</em> from Kratos’ <a href="https://github.com/KratosMultiphysics/Kratos/releases">release page</a></li>
+  <li>Getting the <em>Kratos</em> and its <strong>GUI</strong> from <em>GiD</em> internet retrieve.</li>
+</ul>
+
+<p>A simple way would be to add the <code class="language-plaintext highlighter-rouge">KratosMultiphysics</code> module path to the <code class="language-plaintext highlighter-rouge">PYTHONPATH</code> environment variable.</p>
+
+<h1 id="linux">Linux</h1>
+<p>In Linux you can set the python path to the Kratos root directory using <code class="language-plaintext highlighter-rouge">export</code> command in terminal:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">PYTHONPATH</span><span class="o">=</span>/path/to/Kratos
+</code></pre></div></div>
+<h2 id="example">Example:</h2>
+<p>For a release version extracted your home directory</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$HOME</span>/Kratos
+</code></pre></div></div>
+<p>In case of having a GiD installed in <code class="language-plaintext highlighter-rouge">GiDx64/GiD14.0.0</code> subfolder of home:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$HOME</span>/GiDx64/GiD14.0.0/problemtypes/kratos.gid/exec/Kratos
+</code></pre></div></div>
+<h1 id="windows">Windows</h1>
+
+<p>To create the path on <em>Windows 10</em> and having installed <em>Kratos</em> through <em>GiD</em> or either downloaded manually, follow these steps:</p>
+
+<ul>
+  <li>In the search bar type <code class="language-plaintext highlighter-rouge">system</code> and select <code class="language-plaintext highlighter-rouge">System (Control Panel)</code></li>
+  <li>In the left menu, click the <code class="language-plaintext highlighter-rouge">Advanced system settings</code> link.</li>
+  <li>
+    <p>Click Environment Variables Button at the bottom. In the section System Variables, find the <code class="language-plaintext highlighter-rouge">PYTHONPATH</code> and <code class="language-plaintext highlighter-rouge">PYTHONHOME</code> environment variables and select them. Edit both of them. If the <code class="language-plaintext highlighter-rouge">PYTHONHOME</code> or <code class="language-plaintext highlighter-rouge">PYTHONPATH</code> environment variable do not exist, click New and create them.</p>
+
+    <ul>
+      <li>
+        <p>If you have installed <em>Kratos</em> using <em>GiD</em>:
+Go to the <em>GiD</em> folder. For example, it could be in <code class="language-plaintext highlighter-rouge">C:\Program Files\GiD</code>
+Inside the <em>GiD</em> folder, you should follow <code class="language-plaintext highlighter-rouge">\problemtypes\kratos.gid\exec\Kratos</code>. There are many subfolders here and can be confusing. The correct one is just when you can see the <em>KratosMultiphysics</em> folder.
+Copy the current path and paste it as variable name.</p>
+      </li>
+      <li>
+        <p>If you have downloaded yourself or you have compiled <em>Kratos</em> in your own computer, copy the <em>Kratos</em> path, for example <code class="language-plaintext highlighter-rouge">C:\Kratos</code></p>
+      </li>
+    </ul>
+  </li>
+  <li>Click <code class="language-plaintext highlighter-rouge">Accept</code>. Now you can go to the next tutorial.</li>
+</ul>
+
+<p><strong>Next</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Hello-Kratos">Hello Kratos</a></p>
+:ET

@@ -1,0 +1,231 @@
+I"�J<p>In the previous part of the tutorial, we already saw how the <code class="language-plaintext highlighter-rouge">ModelPart</code> is the object containing <code class="language-plaintext highlighter-rouge">Element</code>, <code class="language-plaintext highlighter-rouge">Conditions</code>, <code class="language-plaintext highlighter-rouge">Nodes</code> and <code class="language-plaintext highlighter-rouge">Properties</code>.</p>
+
+<p>A fundamental feature is that it can also hierarchically contain <strong>“SubModelParts”</strong> intended as other <code class="language-plaintext highlighter-rouge">ModelParts</code> which belong to the same parent. This relation can be repeated recursively, so that each “root” <code class="language-plaintext highlighter-rouge">ModelPart</code> can actually own a tree of SubModelParts.</p>
+
+<p>A quite extensive testing can be found <a href="https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/tests/test_model_part.py">here</a></p>
+
+<p>However let’s try to make an example to explain this better.</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="c1">#create a ModelPart root
+</span>        <span class="n">current_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+        <span class="n">model_part</span> <span class="o">=</span> <span class="n">current_model</span><span class="p">.</span><span class="n">CreateModelPart</span><span class="p">(</span><span class="s">"Main"</span><span class="p">)</span>
+
+        <span class="c1">#now create a SubModelPart
+</span>        <span class="n">model_part</span><span class="p">.</span><span class="n">CreateSubModelPart</span><span class="p">(</span><span class="s">"Inlets"</span><span class="p">)</span>
+
+        <span class="c1">#let's output what is there:
+</span>        <span class="k">print</span><span class="p">(</span><span class="n">model_part</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>the output is:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nt">-Main-</span> model part
+        Buffer Size : 1
+        Number of tables : 0
+        Number of sub model parts : 1
+        Current solution step index : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 0
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+
+        <span class="nt">-Inlets-</span> model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Mesh 0 : 
+                Number of Nodes      : 0
+                Number of Properties : 0
+                Number of Elements   : 0
+                Number of Conditions : 0
+</code></pre></div></div>
+
+<p>We could now verify if a given submodelpart exists, or how many SubModelParts exist as</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="n">model_part</span><span class="p">.</span><span class="n">HasSubModelPart</span><span class="p">(</span><span class="s">"Inlets"</span><span class="p">)</span> <span class="c1">#returns True
+</span>        <span class="n">model_part</span><span class="p">.</span><span class="n">NumberOfSubModelParts</span><span class="p">()</span> <span class="c1">#returns 1
+</span>        <span class="n">model_part</span><span class="p">.</span><span class="n">GetSubModelPart</span><span class="p">(</span><span class="s">"Inlets"</span><span class="p">).</span><span class="n">Name</span> <span class="c1">#returns the name --&gt; Inlets
+</span></code></pre></div></div>
+
+<p>Let’s now create some other SubModelParts</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="c1">#on the first level
+</span>        <span class="n">model_part</span><span class="p">.</span><span class="n">CreateSubModelPart</span><span class="p">(</span><span class="s">"Temp"</span><span class="p">)</span>
+        <span class="n">model_part</span><span class="p">.</span><span class="n">CreateSubModelPart</span><span class="p">(</span><span class="s">"Outlet"</span><span class="p">)</span>
+
+        <span class="c1">#on the second level --&gt; "sub-sub modelparts"
+</span>        <span class="n">sub_model_part_1</span> <span class="o">=</span> <span class="n">model_part</span><span class="p">.</span><span class="n">GetSubModelPart</span><span class="p">(</span><span class="s">"Inlets"</span><span class="p">)</span>
+        <span class="n">sub_model_part_1</span><span class="p">.</span><span class="n">CreateSubModelPart</span><span class="p">(</span><span class="s">"Inlet1"</span><span class="p">)</span>
+        <span class="n">sub_model_part_1</span><span class="p">.</span><span class="n">CreateSubModelPart</span><span class="p">(</span><span class="s">"Inlet2"</span><span class="p">)</span>
+
+        <span class="c1">#output
+</span>        <span class="k">print</span><span class="p">(</span><span class="n">model_part</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>to give</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nt">-Main-</span> model part
+        Buffer Size : 1
+        Number of tables : 0
+        Number of sub model parts : 3
+        Current solution step index : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 0
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+
+        <span class="nt">-Outlet-</span> model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Mesh 0 : 
+                Number of Nodes      : 0
+                Number of Properties : 0
+                Number of Elements   : 0
+                Number of Conditions : 0
+        <span class="nt">-Temp-</span> model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Mesh 0 : 
+                Number of Nodes      : 0
+                Number of Properties : 0
+                Number of Elements   : 0
+                Number of Conditions : 0
+        <span class="nt">-Inlets-</span> model part
+            Number of tables : 0
+            Number of sub model parts : 2
+
+            Mesh 0 : 
+                Number of Nodes      : 0
+                Number of Properties : 0
+                Number of Elements   : 0
+                Number of Conditions : 0
+            <span class="nt">-Inlet2-</span> model part
+                Number of tables : 0
+                Number of sub model parts : 0
+
+                Mesh 0 : 
+                    Number of Nodes      : 0
+                    Number of Properties : 0
+                    Number of Elements   : 0
+                    Number of Conditions : 0
+            <span class="nt">-Inlet1-</span> model part
+                Number of tables : 0
+                Number of sub model parts : 0
+
+                Mesh 0 : 
+                    Number of Nodes      : 0
+                    Number of Properties : 0
+                    Number of Elements   : 0
+                    Number of Conditions : 0
+</code></pre></div></div>
+
+<p>Each <code class="language-plaintext highlighter-rouge">ModelPart</code> is only directly aware of its first level siblings. that is</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="n">model_part</span><span class="p">.</span><span class="n">HasSubModelPart</span><span class="p">(</span><span class="s">"Inlet1"</span><span class="p">)</span> <span class="c1">#--&gt; returns False
+</span></code></pre></div></div>
+
+<p>However</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="n">model_part</span><span class="p">.</span><span class="n">GetSubModelPart</span><span class="p">(</span><span class="s">"Inlets"</span><span class="p">).</span><span class="n">HasSubModelPart</span><span class="p">(</span><span class="s">"Inlet1"</span><span class="p">)</span> <span class="c1">#--&gt; returns True
+</span></code></pre></div></div>
+
+<p>Eventually we can loop on all the SubModelParts of a given submodelpart by doing</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">model_part</span><span class="p">.</span><span class="n">SubModelParts</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">part</span><span class="p">.</span><span class="n">Name</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Which would output</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        Outlet
+        Inlets
+        Temp
+</code></pre></div></div>
+
+<h2 id="data-ownership">Data Ownership</h2>
+<p>The parent-son relation is such that <strong>anything that belongs to a given SubModelPart also belongs to the parent ModelPart</strong>.</p>
+
+<p>This implies that the ultimate “owner” of any <code class="language-plaintext highlighter-rouge">Node</code>, <code class="language-plaintext highlighter-rouge">Element</code>, etc, will be the “root” <code class="language-plaintext highlighter-rouge">ModelPart</code>. The consistency of the tree is ensured by the <code class="language-plaintext highlighter-rouge">ModelPart</code> <strong>API</strong>, which provides the tools needed for creating or removing anything any of the contained objects.</p>
+
+<p>As usually let’s try to explain this by examples. We can create a node by doing</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     <span class="n">model_part</span><span class="p">.</span><span class="n">CreateNewNode</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>If we Try to create a new node with the same Id and different coordinates we would get an error</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c1">#model_part.CreateNewNode(1, 0.00,0.00,0.00)  #here an error is thrown
+</span></code></pre></div></div>
+
+<p>However if we try to create a node with the same coordinates twice nothing is actually done (and no error is thrown)</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">model_part</span><span class="p">.</span><span class="n">CreateNewNode</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">)</span> 
+    <span class="k">print</span><span class="p">(</span><span class="n">model_part</span><span class="p">.</span><span class="n">NumberOfNodes</span><span class="p">())</span> <span class="c1">#this still returns 1!!
+</span></code></pre></div></div>
+
+<h1 id="we-can-now-access-the-node-as-needed-for-example">We can now access the node as needed, for example</h1>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">model_part</span><span class="p">.</span><span class="n">GetNode</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="n">Id</span> <span class="c1">#gives 1
+</span>    <span class="n">model_part</span><span class="p">.</span><span class="n">GetNode</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">).</span><span class="n">X</span> <span class="c1">#gives 1.0
+</span></code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">Nodes</code> can be created in every order</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">model_part</span><span class="p">.</span><span class="n">CreateNewNode</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mf">2.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">)</span>
+    <span class="n">model_part</span><span class="p">.</span><span class="n">CreateNewNode</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">2.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We could then loop over all the nodes</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+         <span class="k">print</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">Id</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">X</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">Z</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Or eventually remove nodes one by one by doing</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">model_part</span><span class="p">.</span><span class="n">RemoveNode</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Let’s now see what happens if we add a node to a submodelpart.
+here the node will be both in root <code class="language-plaintext highlighter-rouge">ModelPart</code> and in Inlets, but for example not in “Temp” or “Outlet”</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">inlets_model_part</span> <span class="o">=</span> <span class="n">model_part</span><span class="p">.</span><span class="n">GetSubModelPart</span><span class="p">(</span><span class="s">"Inlets"</span><span class="p">)</span>
+    <span class="n">inlets_model_part</span><span class="p">.</span><span class="n">CreateNewNode</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mf">3.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>If we add to a sub-sub modelpart, it will belong to the root and the parent, but for example not to Inlet1</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">inlet2_model_part</span> <span class="o">=</span> <span class="n">inlets_model_part</span><span class="p">.</span><span class="n">GetSubModelPart</span><span class="p">(</span><span class="s">"Inlet2"</span><span class="p">)</span>
+    <span class="n">inlet2_model_part</span><span class="p">.</span><span class="n">CreateNewNode</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mf">4.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">,</span><span class="mf">0.00</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Multiple nodes can be removed at once (and from all levels) by flagging them</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">Id</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">):</span>
+             <span class="n">node</span><span class="p">.</span><span class="n">Set</span><span class="p">(</span><span class="n">TO_ERASE</span><span class="p">,</span><span class="bp">True</span><span class="p">)</span>   
+    <span class="n">model_part</span><span class="p">.</span><span class="n">RemoveNodesFromAllLevels</span><span class="p">(</span><span class="n">TO_ERASE</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>One could call simply the function <code class="language-plaintext highlighter-rouge">RemoveNodes</code> and remove them from the current level down.</p>
+
+<h1 id="creating-elements-and-conditions">Creating Elements and Conditions</h1>
+<p><code class="language-plaintext highlighter-rouge">Elements</code> and <code class="language-plaintext highlighter-rouge">Conditions</code> can be created from the python interface by providing their connectivity as well as the <code class="language-plaintext highlighter-rouge">Properties</code> to be employed in the creation. The string to be provided is the name by which the element is registered in <em>*Kratos</em>.</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="n">model_part</span><span class="p">.</span><span class="n">AddProperties</span><span class="p">(</span><span class="n">Properties</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">model_part</span><span class="p">.</span><span class="n">CreateNewElement</span><span class="p">(</span><span class="s">"Element2D3N"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">model_part</span><span class="p">.</span><span class="n">GetProperties</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>an error is thrown if i try to create an element with the same Id</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        <span class="c1">#model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
+</span></code></pre></div></div>
+
+<p>An identical interface is provided for Conditions, as well as functions equivalent to the nodes for removing from one level or from all the levels.</p>
+:ET

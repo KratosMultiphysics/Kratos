@@ -1,0 +1,95 @@
+I"�+<p>In this tutorial the access to the nodes stored in a <code class="language-plaintext highlighter-rouge">ModelPart</code> and their nodal data will be described. More information about nodes and nodal data can be found here.</p>
+
+<h1 id="starting">Starting</h1>
+<p>First of all we need to create a python file with following code to import the <em>Kratos</em>, create a <code class="language-plaintext highlighter-rouge">ModelPart</code> and read it from input as described in the here :</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">KratosMultiphysics</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">KratosMultiphysics.FluidDynamicsApplication</span>
+
+<span class="n">this_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<span class="n">fluid_model_part</span> <span class="o">=</span> <span class="n">this_model</span><span class="p">.</span><span class="n">CreateModelPart</span><span class="p">(</span><span class="s">"FluidPart"</span><span class="p">)</span>
+
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">)</span>
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">PRESSURE</span><span class="p">)</span>
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">TEMPERATURE</span><span class="p">)</span>
+
+<span class="n">fluid_model_part_io</span> <span class="o">=</span> <span class="n">ModelPartIO</span><span class="p">(</span><span class="s">"path/to/file/example"</span><span class="p">)</span>
+<span class="n">fluid_model_part_io</span><span class="p">.</span><span class="n">ReadModelPart</span><span class="p">(</span><span class="n">fluid_model_part</span><span class="p">)</span>
+
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">SetBufferSize</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="accessing-nodes">Accessing Nodes</h1>
+<p>The nodes stored in the ModelPart can be accessed using the Nodes parameter:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model_part_nodes</span> <span class="o">=</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span>
+</code></pre></div></div>
+<p>Having access to the nodes make iteration over all nodes very easy. For example to print all nodes in the model part:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Here is a loop over all of the nodes in a model part, which prints the ID for all of the nodes:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">Id</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="node-coordinates">Node Coordinates</h1>
+<p>The coordinates can be accessed by X,Y,Z parameters of the node:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>node_x = node.X
+node_y = node.Y
+node_z = node.Z
+</code></pre></div></div>
+
+<p>Or we can extend the previous example writing also the coordinates of all the nodes in the ModelPart:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">Id</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">X</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">Z</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>This access is very useful in order to classify the nodes due to their position. For example we can extend the previous loop to write node information exclusively on the nodes with positive X</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">X</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">):</span> <span class="c1"># Printing the ID of all of the nodes with positive X
+</span>        <span class="k">print</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">Id</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">X</span><span class="p">,</span> <span class="n">node</span><span class="p">.</span><span class="n">Y</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="nodal-data">Nodal Data</h1>
+<p>The Python interface provides full access to the nodal database. The access to the historical variables is given by <code class="language-plaintext highlighter-rouge">GetSolutionStepValue</code> and <code class="language-plaintext highlighter-rouge">SetSolutionStepValue</code> passing the variable you want:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">node_velocity</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">GetSolutionStepValue</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">)</span> <span class="c1"># node's velocity at the current time step
+</span></code></pre></div></div>
+
+<p>We can write the velocities of all the nodes:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+    <span class="n">node_velocity</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">GetSolutionStepValue</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">)</span> <span class="c1"># node's velocity at the current time step
+</span>    <span class="k">print</span><span class="p">(</span><span class="n">node_velocity</span><span class="p">)</span>
+</code></pre></div></div>
+<p>you can also get a value for n time step ago, where n is the buffer size:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">node_previous_velocity</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">GetSolutionStepValue</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># node's velocity at 1 time step ago 
+</span><span class="n">node_earlier_velocity</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">GetSolutionStepValue</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># node's velocity at 2 time step ago
+</span></code></pre></div></div>
+
+<p>For getting the previous time step velocities of all the nodes:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+   <span class="k">print</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">GetSolutionStepValue</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="c1"># node's velocity at 1 time step ago
+</span></code></pre></div></div>
+
+<p>To set the historical value for a variable in a node we can use the <code class="language-plaintext highlighter-rouge">SetSolutionStepValue</code>. To make an example 
+let’s assume that we want to set the variable <code class="language-plaintext highlighter-rouge">TEMPERATURE</code> to the value of 100.0 on the nodes in our <code class="language-plaintext highlighter-rouge">ModelPart</code>. This is obtained immediately by typing</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Nodes</span><span class="p">:</span>
+    <span class="n">node</span><span class="p">.</span><span class="n">SetSolutionStepValue</span><span class="p">(</span><span class="n">TEMPERATURE</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The command above should be interpreted as: for the node pointed by iterator “it” assign to the variable <code class="language-plaintext highlighter-rouge">TEMPERATURE</code> at the current step (the current step is identified by 0) the value of 100.0.</p>
+
+<p><strong>Next</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-ModelPart-Elements-and-Conditions">ModelPart Elements and Conditions</a><br />
+<strong>Prev</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Writing-Output-File">Writing Output File</a></p>
+:ET

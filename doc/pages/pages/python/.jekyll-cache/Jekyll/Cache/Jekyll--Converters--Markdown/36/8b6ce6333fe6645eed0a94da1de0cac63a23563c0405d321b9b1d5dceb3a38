@@ -1,0 +1,117 @@
+I"'<p>In this tutorial the procedure for writing the mesh and data from a <code class="language-plaintext highlighter-rouge">ModelPart</code> to output files will be described briefly. More information can be found here</p>
+
+<h1 id="starting">Starting</h1>
+<p>First of all we need to create a python file with following code to import the <em>Kratos</em>, create a <code class="language-plaintext highlighter-rouge">ModelPart</code> and read it from input as described in the previous tutorial :</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">KratosMultiphysics</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">KratosMultiphysics.FluidDynamicsApplication</span>
+
+<span class="n">this_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<span class="n">fluid_model_part</span> <span class="o">=</span> <span class="n">this_model</span><span class="p">.</span><span class="n">CreateModelPart</span><span class="p">(</span><span class="s">"FluidPart"</span><span class="p">)</span>
+
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">)</span>
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">PRESSURE</span><span class="p">)</span>
+
+<span class="n">fluid_model_part_io</span> <span class="o">=</span> <span class="n">ModelPartIO</span><span class="p">(</span><span class="s">"path/to/file/example"</span><span class="p">)</span>
+<span class="n">fluid_model_part_io</span><span class="p">.</span><span class="n">ReadModelPart</span><span class="p">(</span><span class="n">fluid_model_part</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="creating-an-instance-of-the-gid-output-utility">Creating an instance of the <em>GiD</em> output utility</h1>
+
+<p>The <code class="language-plaintext highlighter-rouge">GiDOutputProcess</code> helper class can be used to write GiD output from Python. It works mostly as a standard <em>Kratos</em> <code class="language-plaintext highlighter-rouge">Process</code> but it has an extra methods to write the to the output file.</p>
+
+<p>Before we begin, we will need to import the module that defines the <code class="language-plaintext highlighter-rouge">GiDOutputProcess</code> class:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">gid_output_process</span> <span class="kn">import</span> <span class="n">GiDOutputProcess</span>
+</code></pre></div></div>
+
+<p>The GiD output class can be instantiated by passing the <code class="language-plaintext highlighter-rouge">ModelPart</code> you intend to print, the name of the file, and the configuration <code class="language-plaintext highlighter-rouge">Parameters</code> to it. The example <code class="language-plaintext highlighter-rouge">*.json</code> file for this tutorial already contains the required block, so we just need to retrieve it:</p>
+
+<pre><code class="language-Pyhon">gid_output = GiDOutputProcess(
+    fluid_model_part,
+    'FluidModelPart',
+    ProjectParameters["output_configuration"]
+)
+</code></pre>
+
+<p>We can check the settings passed as <code class="language-plaintext highlighter-rouge">Parameters</code> to see a few common configuration options:</p>
+
+<pre><code class="language-Pyhon">print(ProjectParameters["output_configuration"].PrettyPrintJsonString())
+</code></pre>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"result_file_configuration" : {
+    "gidpost_flags"       : {
+        "GiDPostMode"           : "GiD_PostBinary",
+        "WriteDeformedMeshFlag" : "WriteDeformed",
+        "WriteConditionsFlag"   : "WriteConditions",
+        "MultiFileFlag"         : "SingleFile"
+    },
+    "file_label"          : "time",
+    "output_control_type" : "step",
+    "output_frequency"    : 1,
+    "body_output"         : true,
+    "node_output"         : false,
+    "skin_output"         : false,
+    "plane_output"        : [],
+    "nodal_results"       : ["VELOCITY","PRESSURE"],
+    "gauss_point_results" : []
+},
+"point_data_configuration"  : []
+</code></pre></div></div>
+
+<h2 id="output-configuration">Output configuration</h2>
+
+<ul>
+  <li>
+    <p>The <code class="language-plaintext highlighter-rouge">GiDPostMode</code> option controls whether the output will be text-based (<code class="language-plaintext highlighter-rouge">"GiD_PostAscii"</code>) or binary (<code class="language-plaintext highlighter-rouge">"GiD_PostBinary"</code>). The <strong>ASCII</strong> format is only recommended for debugging, where the user needs to manually access and read the output data. In general, the binary format should be preferred as it yields much smaller output files and can be read and written much faster.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">WriteDeformedMeshFlag</code> specifies whether the meshes are written in deformed or undeformed configuration. Setting it to <code class="language-plaintext highlighter-rouge">"WriteDeformedMesh"</code> will cause the meshes to be written in deformed state, while <code class="language-plaintext highlighter-rouge">"WriteUndeformedMesh"</code> causes the meshes to be written in their original configuration.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">WriteConditionsFlag</code> is used to switch between the option to write only the elements of each mesh (option <code class="language-plaintext highlighter-rouge">"WriteElementsOnly"</code>) or to write additionally the Condition objects in the current model part (option <code class="language-plaintext highlighter-rouge">"WriteConditions"</code>).</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">MultiFileFlag</code> determines whether all are written in a single file or to individual files for each time step. If the flag is set to <code class="language-plaintext highlighter-rouge">"SingleFile"</code>, all meshes are written into one file. Note that this is only possible in Binary mode. If instead the flag is set to <code class="language-plaintext highlighter-rouge">"MultipleFiles"</code>, a new file (or, in <strong>ASCII</strong> mode, set of mesh and result files) is generated for each step. If multiple files are used, the names for the files are chosen automatically according to the <code class="language-plaintext highlighter-rouge">file_label</code> option (both <code class="language-plaintext highlighter-rouge">"time"</code> and <code class="language-plaintext highlighter-rouge">"step"</code> based labels are supported).</p>
+  </li>
+</ul>
+
+<h2 id="choosing-output-variables">Choosing output variables</h2>
+
+<p>The configuration also gives us the option to select which results will be printed on the nodes (and integration points) of the mesh. Additional results can be selected by adding the corresponding variable name (as a string argument) to the <code class="language-plaintext highlighter-rouge">nodal_results</code> or <code class="language-plaintext highlighter-rouge">gauss_point_results</code> list arguments.</p>
+
+<blockquote>
+  <p>Note that it is currently not possible to print the same variable both on nodes and on integration points.</p>
+</blockquote>
+
+<h1 id="using-the-gid-output-utility">Using the <em>GiD</em> output utility</h1>
+
+<p>The usage of the <em>GiD</em> output class follows the structure of <code class="language-plaintext highlighter-rouge">Kratos</code> processes, with one exception. The following methods should be called before starting the solution loop:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gid_output</span><span class="p">.</span><span class="n">ExecuteInitialize</span><span class="p">()</span>
+<span class="n">gid_output</span><span class="p">.</span><span class="n">ExecuteBeforeSolutionLoop</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>During the solution loop, one should call, at each time step:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gid_output</span><span class="p">.</span><span class="n">ExecuteInitializeSolutionStep</span><span class="p">()</span>
+
+<span class="c1">## The actual solution goes here
+</span>
+<span class="k">if</span> <span class="n">gid_output</span><span class="p">.</span><span class="n">IsOutputStep</span><span class="p">():</span>
+
+    <span class="c1"># Call ExecuteBeforeOutputStep on any auxiliar processes you have here
+</span>
+    <span class="n">gid_output</span><span class="p">.</span><span class="n">PrintOutput</span><span class="p">()</span>
+
+    <span class="c1"># Call AfterBeforeOutputStep on any auxiliar processes you have here
+</span>
+<span class="n">gid_output</span><span class="p">.</span><span class="n">ExecuteFinalizeSolutionStep</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>Finally, once the solution is done, call</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gid_output</span><span class="p">.</span><span class="n">ExcecuteFinalize</span><span class="p">()</span>
+</code></pre></div></div>
+<p>to close any remaining open files.</p>
+
+<p><strong>Next</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Nodes-and-Nodal-Data">Nodes and Nodal Data</a><br />
+<strong>Prev</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File">Reading ModelPart From Input File</a></p>
+:ET

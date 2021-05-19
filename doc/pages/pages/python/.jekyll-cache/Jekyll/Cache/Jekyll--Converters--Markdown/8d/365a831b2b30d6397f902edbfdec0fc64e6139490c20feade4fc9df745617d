@@ -1,0 +1,26 @@
+I"�<p><code class="language-plaintext highlighter-rouge">ModelParts</code> are the essential data structure to hold <strong>FEM</strong> objects in Kratos.</p>
+
+<p>Since the “physics” of a problem is provided by the <code class="language-plaintext highlighter-rouge">Element</code> and <code class="language-plaintext highlighter-rouge">Condition</code> which implement it, in order to describe a new physical problem one should provide a new <code class="language-plaintext highlighter-rouge">ModelPart</code> describing the connectivity but also made of the relevant element technology.</p>
+
+<p>In <em>Kratos</em>, essentially all of the FEM objects (<code class="language-plaintext highlighter-rouge">Nodes</code>, <code class="language-plaintext highlighter-rouge">Elements</code>, <code class="language-plaintext highlighter-rouge">Conditions</code>, <code class="language-plaintext highlighter-rouge">Properties</code>, <code class="language-plaintext highlighter-rouge">ProcessInfo</code>) are managed by shared pointers, and can hence have multiple owners. This mean in the practice that a given, say, <code class="language-plaintext highlighter-rouge">Node</code> may belong at the same time to multiple ModelParts.</p>
+
+<p>A typical use case is that in which multiple physical problems should be solved on a single discretization of the problem. This is the case for example of the Fluid-Thermal problem that we will describe at the end of the tutorial. <em>Kratos</em> has a special <code class="language-plaintext highlighter-rouge">Modeler</code> named <code class="language-plaintext highlighter-rouge">ConnectivityPreserveModeler</code> that fills a modelpart by preserving the same connectivity as in the source model part while changing the element technology.</p>
+
+<p>The resultant modelpart is a “free standing” root modelpart, completely independent of the original one. Nevertheless it shares:</p>
+<ul>
+  <li>Pointers to the same nodes</li>
+  <li>Same <code class="language-plaintext highlighter-rouge">ProcessInfo</code></li>
+  <li>Same <code class="language-plaintext highlighter-rouge">Properties</code></li>
+  <li>Same <code class="language-plaintext highlighter-rouge">Tables</code>
+as in the source modelpart.</li>
+</ul>
+
+<p>The difference thus lays in the Element type being employed, which substitute in the new modelpart the element of the old modelpart with a new element implementing the desired physics.</p>
+
+<p>The usage of the modeler is as follows:</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     <span class="n">modeler</span> <span class="o">=</span> <span class="n">KratosMultiphysics</span><span class="p">.</span><span class="n">ConnectivityPreserveModeler</span><span class="p">()</span>
+     <span class="n">modeler</span><span class="p">.</span><span class="n">GenerateModelPart</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">main_model_part</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">thermal_model_part</span><span class="p">,</span> <span class="s">"Element2D3N"</span><span class="p">,</span> <span class="s">"Condition2D2N"</span><span class="p">)</span>
+</code></pre></div></div>
+
+:ET

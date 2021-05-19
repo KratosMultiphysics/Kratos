@@ -1,0 +1,19 @@
+I"o<p>The first step in writing a python script for <em>Kratos</em> is importing the KratosMultiphysics as follow:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">KratosMultiphysics</span> <span class="kn">import</span> <span class="o">*</span>
+</code></pre></div></div>
+
+<p>This imports the <em>Kratos</em> and shows a logo of <em>Kratos</em>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> |  /           |             
+ <span class="s1">' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0
+</span></code></pre></div></div>
+
+<p>Now <em>Kratos</em> is ready to use and waiting for you.</p>
+
+<p><strong>Next</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters">Reading ProjectParameters</a><br />
+<strong>Prev</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Getting-Started">Getting Started</a></p>
+:ET

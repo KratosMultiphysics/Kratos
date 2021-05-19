@@ -1,0 +1,30 @@
+I"	<h1 id="basics">Basics</h1>
+<p>This part describes the basic building blocks of Kratos Python scripting in following steps:</p>
+<ul>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Getting-Started">Getting Started</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Hello-Kratos">Hello Kratos</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters">Reading ProjectParameters</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File">Reading ModelPart From Input File</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Writing-Output-File">Writing Output File</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Nodes-and-Nodal-Data">ModelPart Nodes and Nodal Data</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-ModelPart-Elements-and-Conditions">ModelPart Elements and Conditions</a></li>
+</ul>
+
+<h1 id="basic-structure-of-python-layer">Basic Structure of Python layer</h1>
+<ul>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Common-Python-Interface-of-Applications-for-Users">AnalysisStage &amp; Solver class design</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Implementing-thermal-solver">Implementing thermal solver</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Using-processes-to-customize-a-simulation">Using processes to customize a simulation</a></li>
+</ul>
+
+<h1 id="data-management-in-python">Data Management in Python</h1>
+<ul>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/ModelPart-and-SubModelPart">ModelPart and SubModelPart</a></li>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Generating-New-Modelparts">Generating new modelparts</a></li>
+</ul>
+
+<h1 id="coupled-problems-via-python">Coupled problems via Python</h1>
+<ul>
+  <li><a href="https://github.com/KratosMultiphysics/Kratos/wiki/Example:-A-simple-Fluid---Thermal-coupled-solver">Putting all together: A simple Fluid-Thermal coupled solver</a></li>
+</ul>
+:ET

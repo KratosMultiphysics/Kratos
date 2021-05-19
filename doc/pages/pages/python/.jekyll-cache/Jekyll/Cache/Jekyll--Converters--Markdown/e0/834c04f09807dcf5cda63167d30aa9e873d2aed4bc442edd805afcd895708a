@@ -1,0 +1,59 @@
+I"A<p>The elements and conditions are the main extension points of the <em>Kratos</em>. In input script accessing them improves the flexibility in dealing with complex problems.</p>
+
+<h1 id="starting">Starting</h1>
+<p>First of all we need to create a python file with following code to import the <em>Kratos</em>, create a <code class="language-plaintext highlighter-rouge">ModelPart</code> and read it from input as described in the here :</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">KratosMultiphysics</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">KratosMultiphysics.FluidDynamicsApplication</span>
+
+<span class="n">this_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
+<span class="n">fluid_model_part</span> <span class="o">=</span> <span class="n">this_model</span><span class="p">.</span><span class="n">CreateModelPart</span><span class="p">(</span><span class="s">"FluidPart"</span><span class="p">)</span>
+
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">VELOCITY</span><span class="p">)</span>
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">PRESSURE</span><span class="p">)</span>
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">AddNodalSolutionStepVariable</span><span class="p">(</span><span class="n">TEMPERATURE</span><span class="p">)</span>
+
+<span class="n">fluid_model_part_io</span> <span class="o">=</span> <span class="n">ModelPartIO</span><span class="p">(</span><span class="s">"path/to/file/example"</span><span class="p">)</span>
+<span class="n">fluid_model_part_io</span><span class="p">.</span><span class="n">ReadModelPart</span><span class="p">(</span><span class="n">fluid_model_part</span><span class="p">)</span>
+
+<span class="n">fluid_model_part</span><span class="p">.</span><span class="n">SetBufferSize</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="accessing-elements">Accessing <code class="language-plaintext highlighter-rouge">Elements</code></h1>
+<p>The elements stored in the ModelPart can be accessed using the Elements parameter:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model_part_elements</span> <span class="o">=</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Elements</span>
+</code></pre></div></div>
+
+<p>Iteration over all elements in a model part is very similar to the nodes. For example writing the elements in a model part can be done as follow:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Elements</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>and printing the ID for all of the elements:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Elements</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">element</span><span class="p">.</span><span class="n">Id</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="accessing-conditions">Accessing <code class="language-plaintext highlighter-rouge">Conditions</code></h1>
+<p>Conditions parameter of model part provides access to the conditions it stores:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model_part_conditions</span> <span class="o">=</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Conditions</span>
+</code></pre></div></div>
+
+<p>Iteration over conditions is very similar to the elements. In the same way printing conditions is as follow:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Conditions</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>and printing the ID for all of the conditions:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">fluid_model_part</span><span class="p">.</span><span class="n">Conditions</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">condition</span><span class="p">.</span><span class="n">Id</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Prev</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Nodes-and-Nodal-Data">Nodes and Nodal Data</a></p>
+:ET

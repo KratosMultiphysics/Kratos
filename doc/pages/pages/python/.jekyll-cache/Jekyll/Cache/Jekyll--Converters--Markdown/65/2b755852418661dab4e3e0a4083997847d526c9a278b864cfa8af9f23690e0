@@ -1,0 +1,174 @@
+I"q<p>The <em>Kratos</em> <code class="language-plaintext highlighter-rouge">Parameters</code> object is a container based on the well known <em>JavaScript Object Notation</em> (<strong>JSON</strong>) standard. Even though it can contain any type of key-value information, in <em>Kratos</em> it is used to contain configuration settings for solvers, processes or utilities.</p>
+
+<p>In this tutorial, the use of the <strong>JSON</strong> format together with the <em>Kratos</em> <code class="language-plaintext highlighter-rouge">Parameters</code> class is reviewed using a standard <em>Kratos</em> simulation configuration file (<code class="language-plaintext highlighter-rouge">ProjectParameters.json</code>), in this case coming from the  <code class="language-plaintext highlighter-rouge">FluidDynamicsApplication</code>, as example.</p>
+
+<h1 id="setup">Setup</h1>
+<p>First of all we need to create a python file with following code to import the <em>Kratos</em>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">KratosMultiphysics</span> <span class="kn">import</span> <span class="o">*</span>
+</code></pre></div></div>
+
+<h1 id="reading-a-json-file">Reading a <strong>JSON</strong> file</h1>
+<p>In this subsection we will try to parse the <code class="language-plaintext highlighter-rouge">ProjectParameters.json</code> file to construct the <em>Kratos</em> Parameters object. The <code class="language-plaintext highlighter-rouge">ProjectParameters.json</code> file reads as follows</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"problem_data"</span><span class="w">                     </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"problem_name"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="s2">"parameters_tutorial"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"model_part_name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"MainModelPart"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"domain_size"</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"parallel_type"</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="s2">"OpenMP"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"echo_level"</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"start_time"</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"end_time"</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"output_configuration"</span><span class="w">             </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"result_file_configuration"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"gidpost_flags"</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"GiDPostMode"</span><span class="w">           </span><span class="p">:</span><span class="w"> </span><span class="s2">"GiD_PostBinary"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"WriteDeformedMeshFlag"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"WriteDeformed"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"WriteConditionsFlag"</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="s2">"WriteConditions"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"MultiFileFlag"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="s2">"SingleFile"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="nl">"file_label"</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="s2">"time"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"output_control_type"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"step"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"output_frequency"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"body_output"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"node_output"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"skin_output"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"plane_output"</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+            </span><span class="nl">"nodal_results"</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"VELOCITY"</span><span class="p">,</span><span class="s2">"PRESSURE"</span><span class="p">],</span><span class="w">
+            </span><span class="nl">"gauss_point_results"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"point_data_configuration"</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"restart_options"</span><span class="w">                  </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"SaveRestart"</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="s2">"False"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"RestartFrequency"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"LoadRestart"</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="s2">"False"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Restart_Step"</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"solver_settings"</span><span class="w">                  </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"solver_type"</span><span class="w">                 </span><span class="p">:</span><span class="w"> </span><span class="s2">"Monolithic"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"model_import_settings"</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"input_type"</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="s2">"mdpa"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"input_filename"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"parameters_tuto"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"echo_level"</span><span class="w">                  </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"compute_reactions"</span><span class="w">           </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"dynamic_tau"</span><span class="w">                 </span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"oss_switch"</span><span class="w">                  </span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"maximum_iterations"</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"relative_velocity_tolerance"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mf">0.001</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"absolute_velocity_tolerance"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">1e-5</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"relative_pressure_tolerance"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mf">0.001</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"absolute_pressure_tolerance"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">1e-5</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"volume_model_part_name"</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="s2">"Parts_Fluid"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"skin_parts"</span><span class="w">                  </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"AutomaticInlet2D_Inlet"</span><span class="p">,</span><span class="s2">"Outlet2D_Outlet"</span><span class="p">,</span><span class="s2">"NoSlip2D_No_Slip_Walls"</span><span class="p">,</span><span class="s2">"NoSlip2D_No_Slip_Cylinder"</span><span class="p">],</span><span class="w">
+        </span><span class="nl">"no_skin_parts"</span><span class="w">               </span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+        </span><span class="nl">"time_stepping"</span><span class="w">               </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"automatic_time_step"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"time_step"</span><span class="w">           </span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"initial_conditions_process_list"</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nl">"boundary_conditions_process_list"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+        </span><span class="nl">"python_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"apply_inlet_process"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"kratos_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"KratosMultiphysics.FluidDynamicsApplication"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Parameters"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"model_part_name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"AutomaticInlet2D_Inlet"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"variable_name"</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="s2">"VELOCITY"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"modulus"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="s2">"6*y*(1-y)*sin(pi*t*0.5)"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"direction"</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="s2">"automatic_inwards_normal"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"interval"</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},{</span><span class="w">
+        </span><span class="nl">"python_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"apply_inlet_process"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"kratos_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"KratosMultiphysics.FluidDynamicsApplication"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Parameters"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"model_part_name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"AutomaticInlet2D_Inlet"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"variable_name"</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="s2">"VELOCITY"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"modulus"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="s2">"6*y*(1-y)"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"direction"</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="s2">"automatic_inwards_normal"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"interval"</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="s2">"End"</span><span class="p">]</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},{</span><span class="w">
+        </span><span class="nl">"python_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"apply_outlet_process"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"kratos_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"KratosMultiphysics.FluidDynamicsApplication"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Parameters"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"model_part_name"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="s2">"Outlet2D_Outlet"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"variable_name"</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="s2">"PRESSURE"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"constrained"</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"value"</span><span class="w">              </span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"hydrostatic_outlet"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"h_top"</span><span class="w">              </span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},{</span><span class="w">
+        </span><span class="nl">"python_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"apply_noslip_process"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"kratos_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"KratosMultiphysics.FluidDynamicsApplication"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Parameters"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"model_part_name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"NoSlip2D_No_Slip_Walls"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},{</span><span class="w">
+        </span><span class="nl">"python_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"apply_noslip_process"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"kratos_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"KratosMultiphysics.FluidDynamicsApplication"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Parameters"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"model_part_name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"NoSlip2D_No_Slip_Cylinder"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}],</span><span class="w">
+    </span><span class="nl">"gravity"</span><span class="w">                          </span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+        </span><span class="nl">"python_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"assign_vector_by_direction_process"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"kratos_module"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"KratosMultiphysics"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"process_name"</span><span class="w">  </span><span class="p">:</span><span class="w"> </span><span class="s2">"AssignVectorByDirectionProcess"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"Parameters"</span><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"model_part_name"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"Parts_Fluid"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"variable_name"</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="s2">"BODY_FORCE"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"modulus"</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"constrained"</span><span class="w">     </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"direction"</span><span class="w">       </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">-1.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">]</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}],</span><span class="w">
+    </span><span class="nl">"auxiliar_process_list"</span><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>and can be parsed to construct a <em>Kratos</em> Parameters object with the next two lines of code</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">json_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"ProjectParameters.json"</span><span class="p">,</span><span class="s">'r'</span><span class="p">)</span>
+<span class="n">ProjectParameters</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">(</span><span class="n">json_file</span><span class="p">.</span><span class="n">read</span><span class="p">())</span>
+</code></pre></div></div>
+
+<p>To visualize the content of the <em>ProjectParameters</em> we need to make the <em>ProjectParameters</em> printable. This can be done by calling the <strong>PrettyPrintJsonString</strong> method from the <em>ProjectParameters</em> object in this way</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">ProjectParameters</span><span class="p">.</span><span class="n">PrettyPrintJsonString</span><span class="p">())</span>
+</code></pre></div></div>
+
+<h1 id="working-with-the-kratos-parameters">Working with the <em>Kratos</em> Parameters</h1>
+<p>Once we have parsed the <code class="language-plaintext highlighter-rouge">ProjectParameters.json</code> file, we can start to check, get and edit its information. At this point it is interesting to mention that the Parameters works in a similar manner that a common Python dictionary does. For instance we can extract the solver settings required by the Python solvers by doing</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">solver_settings</span> <span class="o">=</span> <span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"solver_settings"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>Similarly, we can do the same operation for a list entry. For instance we can iterate through the entire list of boundary conditions settings as is done below. Note that we have used the method <code class="language-plaintext highlighter-rouge">size</code> to obtain the length of the iterated list.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"boundary_conditions_process_list"</span><span class="p">].</span><span class="n">size</span><span class="p">()):</span>
+    <span class="n">boundary_condition_settings</span> <span class="o">=</span> <span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"boundary_conditions_process_list"</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>Complementary, we can check if any field exists before trying to retrieve its value with the <code class="language-plaintext highlighter-rouge">Has</code> method. This method returns a boolean variable with value <code class="language-plaintext highlighter-rouge">True</code> if the field exists and false otherwise.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ProjectParameters</span><span class="p">.</span><span class="n">Has</span><span class="p">(</span><span class="s">"output_configuration"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>To get or modify the value of any field, the <em>Kratos</em> Parameters incorporates the <code class="language-plaintext highlighter-rouge">Get</code> and <code class="language-plaintext highlighter-rouge">Set</code> methods, which are particularized for all the variable types. Some example of its usage can be found in the lines below.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">end_time</span> <span class="o">=</span> <span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"problem_data"</span><span class="p">][</span><span class="s">"end_time"</span><span class="p">].</span><span class="n">GetDouble</span><span class="p">()</span>
+<span class="n">domain_size</span> <span class="o">=</span> <span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"problem_data"</span><span class="p">][</span><span class="s">"domain_size"</span><span class="p">].</span><span class="n">GetInt</span><span class="p">()</span>
+<span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"problem_data"</span><span class="p">][</span><span class="s">"end_time"</span><span class="p">].</span><span class="n">SetDouble</span><span class="p">(</span><span class="mf">20.0</span><span class="p">)</span>
+<span class="n">ProjectParameters</span><span class="p">[</span><span class="s">"problem_data"</span><span class="p">][</span><span class="s">"model_part_name"</span><span class="p">].</span><span class="n">SetString</span><span class="p">(</span><span class="s">"NewMainModelPart"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Since this is a basic tutorial on the use of the <em>Kratos</em> Parameters object, only the basic features have been described.  For more advanced operations check the <strong>JSON</strong> configuration file tutorial in (<a href="https://github.com/KratosMultiphysics/Kratos/wiki/How-to-write-a-JSON-configuration-file">here</a> )</p>
+
+<p><strong>Next</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File">Reading ModelPart From Input File</a><br />
+<strong>Prev</strong> <a href="https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Hello-Kratos">Hello Kratos</a></p>
+:ET
