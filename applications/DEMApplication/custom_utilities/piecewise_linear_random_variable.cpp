@@ -1,3 +1,6 @@
+// Authors:
+// Guillermo Casas gcasas@cimne-upc.edu
+
 #include "piecewise_linear_random_variable.h"
 #include "includes/checks.h"
 

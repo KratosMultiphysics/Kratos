@@ -1,3 +1,6 @@
+// Authors:
+// Guillermo Casas gcasas@cimne-upc.edu
+
 #include "random_variable.h"
 
 namespace Kratos {
