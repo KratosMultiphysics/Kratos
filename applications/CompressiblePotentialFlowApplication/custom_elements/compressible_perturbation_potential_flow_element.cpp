@@ -525,7 +525,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
     condition_matrix(0,0) = 1.0;
     condition_matrix(1,1) = 0.0;
-    condition_matrix(2,2) = 0.0;
+    condition_matrix(2,2) = 1.0;
 
     auto xzfilter = prod(condition_matrix, trans(data.DN_DX));
 
@@ -704,7 +704,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
     BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
     condition_matrix(0,0) = 1.0;
     condition_matrix(1,1) = 0.0;
-    condition_matrix(2,2) = 0.0;
+    condition_matrix(2,2) = 1.0;
 
     const auto xzfilter = prod(data.DN_DX, condition_matrix);
 
