@@ -83,19 +83,19 @@ void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisCom
     KratosComponents<Variable<Vector> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<BoundedVector6> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_vector<double, 6>> const& ThisComponent)
 {
-    KratosComponents<Variable<BoundedVector6> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<boost::numeric::ublas::bounded_vector<double, 6>> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<BoundedMatrix6> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_matrix<double, 6, 6>> const& ThisComponent)
 {
-    KratosComponents<Variable<BoundedMatrix6> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<boost::numeric::ublas::bounded_matrix<double, 6, 6>> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<BoundedMatrix3> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_matrix<double, 3, 3>> const& ThisComponent)
 {
-    KratosComponents<Variable<BoundedMatrix3> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<boost::numeric::ublas::bounded_matrix<double, 3, 3>> >::Add(Name, ThisComponent);
 }
 
 void AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent)
