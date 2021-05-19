@@ -331,8 +331,9 @@ public:
     /** Returns a reference node corresponding to it's identifier */
     const NodeType& GetNode(IndexType NodeId) const
     {
-        auto i = mpNodes->find(NodeId);
-        KRATOS_ERROR_IF(i == mpNodes->end()) << "Node index not found: " << NodeId << "." << std::endl;
+        const auto& r_nodes = *mpNodes;
+        auto i = r_nodes.find(NodeId);
+        KRATOS_ERROR_IF(i == r_nodes.end()) << "Node index not found: " << NodeId << "." << std::endl;
         return *i;
     }
 
@@ -552,8 +553,9 @@ public:
     /** Returns a reference element corresponding to it's identifier */
     const ElementType& GetElement(IndexType ElementId) const
     {
-        auto i = mpElements->find(ElementId);
-        KRATOS_ERROR_IF(i == mpElements->end()) << "Element index not found: " << ElementId << "." << std::endl;
+        const auto& r_elements = *mpElements;
+        auto i = r_elements.find(ElementId);
+        KRATOS_ERROR_IF(i == r_elements.end()) << "Element index not found: " << ElementId << "." << std::endl;
         return *i;
     }
 
@@ -674,8 +676,9 @@ public:
     /** Returns a reference condition corresponding to it's identifier */
     const ConditionType& GetCondition(IndexType ConditionId) const
     {
-        auto i = mpConditions->find(ConditionId);
-        KRATOS_ERROR_IF(i == mpConditions->end()) << "Condition index not found: " << ConditionId << "." << std::endl;
+        const auto& r_conditions = *mpConditions;
+        auto i = r_conditions.find(ConditionId);
+        KRATOS_ERROR_IF(i == r_conditions.end()) << "Condition index not found: " << ConditionId << "." << std::endl;
         return *i;
     }
 
