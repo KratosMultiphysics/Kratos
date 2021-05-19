@@ -459,7 +459,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
     CalculateBlockLeftHandSideWakeElement(lhs_total, lhs_wake_condition, data, rCurrentProcessInfo);
 
-    GetWakeDistances(data.distances);
+    PotentialFlowUtilities::GetWakeDistances(data.distances);
 
     if (this->Is(STRUCTURE))
     {
