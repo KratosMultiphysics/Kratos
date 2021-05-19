@@ -7,13 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
-//                   Michael Breitenberger
-//                   Riccardo Rossi
-//
 
-#if !defined(KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED )
-#define  KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED
+#if !defined(KRATOS_COUPLING_LAGRANGE_CONDITION_H_INCLUDED )
+#define  KRATOS_COUPLING_LAGRANGE_CONDITION_H_INCLUDED
 
 // System includes
 #include "includes/define.h"
@@ -30,28 +26,21 @@
 namespace Kratos
 {
 
-/// Penalty factor based coupling condition.
+/// Lagrange factor based coupling condition.
 /** This condition can be used to apply continuity between different
-*   discretizations with the penalty approach.
+*   discretizations with the lagrange approach.
 *
 *   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
-*   Eq 15 ff
-*
-*   The condition needs a PENALTY as parameter in the Properties.
-*   The Geometry needs to be of type CouplingMasterSlave and must have
-*   at least one slave geometry.
-*   The continuities can be enabled or disabled with the
-*   FIX_DISPLACEMENT_{dir} flags.
 */
-class PenaltyCouplingCondition
+class CouplingLagrangeCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PenaltyCouplingCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PenaltyCouplingCondition);
+    /// Counted pointer of CouplingLagrangeCondition
+    KRATOS_CLASS_POINTER_DEFINITION(CouplingLagrangeCondition);
 
     /// Size types
     typedef std::size_t SizeType;
@@ -62,14 +51,14 @@ public:
     ///@{
 
     /// Constructor with Id and geometry
-    PenaltyCouplingCondition(
+    CouplingLagrangeCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    PenaltyCouplingCondition(
+    CouplingLagrangeCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -77,12 +66,12 @@ public:
     {};
 
     /// Default constructor
-    PenaltyCouplingCondition()
+    CouplingLagrangeCondition()
         : Condition()
     {};
 
     /// Destructor.
-    virtual ~PenaltyCouplingCondition() = default;
+    virtual ~CouplingLagrangeCondition() = default;
 
     ///@}
     ///@name Life Cycle
@@ -95,7 +84,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<PenaltyCouplingCondition>(
+        return Kratos::make_intrusive<CouplingLagrangeCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -106,7 +95,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive< PenaltyCouplingCondition >(
+        return Kratos::make_intrusive< CouplingLagrangeCondition >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -199,6 +188,10 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+    void DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian);
+
     ///@}
     ///@name Input and output
     ///@{
@@ -207,14 +200,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"PenaltyCouplingCondition\" #" << Id();
+        buffer << "\"CouplingLagrangeCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"PenaltyCouplingCondition\" #" << Id();
+        rOStream << "\"CouplingLagrangeCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -225,6 +218,22 @@ public:
     ///@}
 
 private:
+    ///@name private variables
+    ///@{
+
+    const double shape_function_tolerance = 1e-6;
+
+    ///@}
+    ///@name private operations
+    ///@{
+
+    /* @brief checks all shape functions and
+    *        returns the number of non zero nodes.
+    */
+    SizeType GetNumberOfNonZeroNodesMaster() const;
+    SizeType GetNumberOfNonZeroNodesSlave() const;
+
+
     ///@name Serialization
     ///@{
 
@@ -242,10 +251,10 @@ private:
 
     ///@}
 
-}; // Class PenaltyCouplingCondition
+}; // Class CouplingLagrangeCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_COUPLING_LAGRANGE_CONDITION_H_INCLUDED  defined 
 
 
