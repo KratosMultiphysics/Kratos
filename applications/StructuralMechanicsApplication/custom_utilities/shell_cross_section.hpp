@@ -106,9 +106,9 @@ public:
 
         Flags                mOptions;
 
-        Vector*              mpGeneralizedStrainVector;
-        Vector*              mpGeneralizedStressVector;
-        Matrix*              mpConstitutiveMatrix;
+        ConstitutiveLaw::VoigtSizeVectorType* mpGeneralizedStrainVector;
+        ConstitutiveLaw::VoigtSizeVectorType* mpGeneralizedStressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType* mpConstitutiveMatrix;
 
         double				 mStenbergShearStabilization = 1.0;
         // refer https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
@@ -237,15 +237,15 @@ public:
             mOptions=rOptions;
         };
 
-        void SetGeneralizedStrainVector(Vector& rGeneralizedStrainVector)
+        void SetGeneralizedStrainVector(ConstitutiveLaw::VoigtSizeVectorType& rGeneralizedStrainVector)
         {
             mpGeneralizedStrainVector=&rGeneralizedStrainVector;
         };
-        void SetGeneralizedStressVector(Vector& rGeneralizedStressVector)
+        void SetGeneralizedStressVector(ConstitutiveLaw::VoigtSizeVectorType& rGeneralizedStressVector)
         {
             mpGeneralizedStressVector=&rGeneralizedStressVector;
         };
-        void SetConstitutiveMatrix(Matrix& rConstitutiveMatrix)
+        void SetConstitutiveMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix)
         {
             mpConstitutiveMatrix =&rConstitutiveMatrix;
         };
@@ -284,15 +284,15 @@ public:
             return mOptions;
         };
 
-        Vector& GetGeneralizedStrainVector()
+        ConstitutiveLaw::VoigtSizeVectorType& GetGeneralizedStrainVector()
         {
             return *mpGeneralizedStrainVector;
         };
-        Vector& GetGeneralizedStressVector()
+        ConstitutiveLaw::VoigtSizeVectorType& GetGeneralizedStressVector()
         {
             return *mpGeneralizedStressVector;
         };
-        Matrix& GetConstitutiveMatrix()
+        ConstitutiveLaw::VoigtSizeMatrixType& GetConstitutiveMatrix()
         {
             return *mpConstitutiveMatrix;
         };
@@ -610,17 +610,17 @@ protected:
         double DeterminantF;
         double DeterminantF0;
 
-        Vector StrainVector_2D;
-        Vector StressVector_2D;
-        Matrix ConstitutiveMatrix_2D;
-        Matrix DeformationGradientF_2D;
-        Matrix DeformationGradientF0_2D;
+        ConstitutiveLaw::VoigtSizeVectorType StrainVector_2D;
+        ConstitutiveLaw::VoigtSizeVectorType StressVector_2D;
+        ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix_2D;
+        ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF_2D;
+        ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF0_2D;
 
-        Vector StrainVector_3D;
-        Vector StressVector_3D;
-        Matrix ConstitutiveMatrix_3D;
-        Matrix DeformationGradientF_3D;
-        Matrix DeformationGradientF0_3D;
+        ConstitutiveLaw::VoigtSizeVectorType StrainVector_3D;
+        ConstitutiveLaw::VoigtSizeVectorType StressVector_3D;
+        ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix_3D;
+        ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF_3D;
+        ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF0_3D;
 
         double GYZ;
         double GXZ;

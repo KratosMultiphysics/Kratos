@@ -320,11 +320,11 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     }
 
     // references
-    Vector& generalizedStrainVector = rValues.GetGeneralizedStrainVector();
-    Vector& generalizedStressVector = rValues.GetGeneralizedStressVector();
-    Matrix& constitutiveMatrix = rValues.GetConstitutiveMatrix();
+    ConstitutiveLaw::VoigtSizeVectorType& generalizedStrainVector = rValues.GetGeneralizedStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& generalizedStressVector = rValues.GetGeneralizedStressVector();
+    ConstitutiveLaw::VoigtSizeMatrixType& constitutiveMatrix = rValues.GetConstitutiveMatrix();
 
-    Vector& condensedStressVector   = variables.CondensedStressVector;
+    Vector& condensedStressVector = variables.CondensedStressVector;
     Matrix& H  = variables.H;
     Matrix& L  = variables.L;
     Matrix& LT = variables.LT;
@@ -364,14 +364,14 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     // ************************************* NOW WE ARE IN THE CROSS SECTION COORDINATE SYSTEM *************************************
 
     // initialize vector and matrices to store temporary values
-    Vector generalizedStrainVector_section;
-    Vector generalizedStressVector_section;
-    Matrix constitutiveMatrix_section;
-    Matrix H_section;
-    Matrix L_section;
-    Matrix LT_section;
-    Vector condensedStressVector_section;
-    Vector condensedStrainVector_section;
+    ConstitutiveLaw::VoigtSizeVectorType generalizedStrainVector_section;
+    ConstitutiveLaw::VoigtSizeVectorType generalizedStressVector_section;
+    ConstitutiveLaw::VoigtSizeMatrixType constitutiveMatrix_section;
+    ConstitutiveLaw::VoigtSizeMatrixType H_section;
+    ConstitutiveLaw::VoigtSizeMatrixType L_section;
+    ConstitutiveLaw::VoigtSizeMatrixType LT_section;
+    ConstitutiveLaw::VoigtSizeVectorType condensedStressVector_section;
+    ConstitutiveLaw::VoigtSizeVectorType condensedStrainVector_section;
 
     // initialize iteration data for condensation of out-of-plane strain components
     int    max_iter = 10;
@@ -855,6 +855,7 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
 
     rVariables.DeterminantF = 1.0;
 
+    rVariables.DeformationGradientF_2D.resize(2,2,false);
     rVariables.DeformationGradientF_2D = IdentityMatrix(2);
     rVariables.StrainVector_2D.resize(3, false);
     rVariables.StressVector_2D.resize(3, false);
@@ -940,15 +941,15 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     double h = rPoint.GetWeight();
     double z = rPoint.GetLocation();
 
-    const Vector& generalizedStrainVector = rValues.GetGeneralizedStrainVector();
-    Vector& generalizedStressVector       = rValues.GetGeneralizedStressVector();
-    Matrix& sectionConstitutiveMatrix     = rValues.GetConstitutiveMatrix();
+    const ConstitutiveLaw::VoigtSizeVectorType& generalizedStrainVector = rValues.GetGeneralizedStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& generalizedStressVector       = rValues.GetGeneralizedStressVector();
+    ConstitutiveLaw::VoigtSizeMatrixType& sectionConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
     double stenbergShearStabilization = rValues.GetStenbergShearStabilization();
 
-    Vector& materialStrainVector       = rMaterialValues.GetStrainVector();
-    Vector& materialStressVector       = rMaterialValues.GetStressVector();
-    Matrix& materialConstitutiveMatrix = rMaterialValues.GetConstitutiveMatrix();
+    ConstitutiveLaw::VoigtSizeVectorType& materialStrainVector = rMaterialValues.GetStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& materialStressVector = rMaterialValues.GetStressVector();
+    ConstitutiveLaw::VoigtSizeMatrixType& materialConstitutiveMatrix = rMaterialValues.GetConstitutiveMatrix();
 
     Vector& condensedStressVector = rVariables.CondensedStressVector;
     Matrix& H                     = rVariables.H;
@@ -992,13 +993,13 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     // here we consider F* = R'*F = U -> approx -> I + eps
 
     if (material_strain_size == 3) {
-        Matrix& F = rVariables.DeformationGradientF_2D;
+        ConstitutiveLaw::DeformationGradientMatrixType& F = rVariables.DeformationGradientF_2D;
         F(0, 0) = materialStrainVector(0) + 1.0;
         F(1, 1) = materialStrainVector(1) + 1.0;
         F(0, 1) = F(1, 0) = materialStrainVector(2) * 0.5;
         rVariables.DeterminantF = MathUtils<double>::Det2(F);
     } else { // 6
-        Matrix& F = rVariables.DeformationGradientF_3D;
+        ConstitutiveLaw::DeformationGradientMatrixType& F = rVariables.DeformationGradientF_3D;
         F(0, 0) = materialStrainVector(0) + 1.0; // xx
         F(1, 1) = materialStrainVector(1) + 1.0; // yy
         F(2, 2) = materialStrainVector(2) + 1.0; // zz
@@ -1048,8 +1049,8 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     // compute the section tangent matrix
 
     if (compute_constitutive_tensor) {
-        Matrix& C = materialConstitutiveMatrix;
-        Matrix& D = sectionConstitutiveMatrix;
+        ConstitutiveLaw::VoigtSizeMatrixType& C = materialConstitutiveMatrix;
+        ConstitutiveLaw::VoigtSizeMatrixType& D = sectionConstitutiveMatrix;
 
         if (material_strain_size == 3) { // plane-stress case
             // membrane part

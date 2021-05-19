@@ -463,7 +463,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
     noalias(rUMatrix) = prod(eigen_values_matrix, trans(eigen_vector_matrix));
 
     double aux_det;
-    MatrixType invU(Dimension, Dimension);
+    BoundedMatrixType invU(Dimension, Dimension);
     MathUtils<double>::InvertMatrix(rUMatrix, invU, aux_det);
     noalias(rRMatrix) = prod(rFDeformationGradient, invU);
 }
@@ -844,7 +844,7 @@ ConstitutiveLaw::DeformationGradientMatrixType ConstitutiveLawUtilities<TVoigtSi
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // Define DeltaFp
-    BoundedMatrixType plastic_deformation_gradient_increment;
+    BoundedMatrixType plastic_deformation_gradient_increment, plastic_flow;
     if (plastic_deformation_gradient_increment.size1() != Dimension) {
         plastic_flow.resize(Dimension, Dimension, false);
         plastic_deformation_gradient_increment.resize(Dimension,Dimension,false);
@@ -854,7 +854,7 @@ ConstitutiveLaw::DeformationGradientMatrixType ConstitutiveLawUtilities<TVoigtSi
 
     // Define plastic flow
     noalias(plastic_flow) = PlasticConsistencyFactorIncrement *
-        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, BoundedMatrixType>(rPlasticPotentialDerivative);
 
     // We compute the exponential matrix
     // Decompose matrix
@@ -890,7 +890,8 @@ ConstitutiveLaw::DeformationGradientMatrixType ConstitutiveLawUtilities<TVoigtSi
     BoundedMatrixType plastic_deformation_gradient_increment;
 
     // Define plastic flow
-    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
+        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, BoundedMatrixType>(rPlasticPotentialDerivative);
 
     // Pre and post multiply by Re
     auxiliar_deformation_gradient_increment = prod(plastic_flow, rRe);
@@ -1066,7 +1067,7 @@ void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
     const double c = rEulerOperator(0, 0);
     const double s = rEulerOperator(0, 1);
 
-    rVoigtOperator.resize(3, 3 false);
+    rVoigtOperator.resize(3, 3, false);
     rVoigtOperator.clear();
 
     rVoigtOperator(0, 0) = std::pow(c, 2);
