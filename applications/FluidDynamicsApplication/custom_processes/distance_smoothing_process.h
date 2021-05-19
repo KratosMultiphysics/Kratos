@@ -98,7 +98,8 @@ public:
         mrModelPart(rModelPart),
         mrModel(rModelPart.GetModel()),
         mAuxModelPartName("smoothing_model_part"), //mrModelPart.FullName()+"_Smoothing"")
-        mAllConditionsAsBoundary(AllConditionsAsBoundary)
+        mAllConditionsAsBoundary(AllConditionsAsBoundary),
+        mAuxModelPartIsInitialized(false)
     {
         // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
         CreateAuxModelPart();
@@ -118,7 +119,8 @@ public:
         mrModelPart(rModelPart),
         mrModel(rModelPart.GetModel()),
         mAuxModelPartName("smoothing_model_part"),
-        mAllConditionsAsBoundary(AllConditionsAsBoundary)
+        mAllConditionsAsBoundary(AllConditionsAsBoundary),
+        mAuxModelPartIsInitialized(false)
     {
         // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
         CreateAuxModelPart();
@@ -147,8 +149,7 @@ public:
     /// Destructor.
     ~DistanceSmoothingProcess() override
     {
-        if(mrModel.HasModelPart( mAuxModelPartName ))
-            mrModel.DeleteModelPart( mAuxModelPartName );
+        Clear();
     }
 
     ///@}
@@ -159,7 +160,13 @@ public:
     {
         KRATOS_TRY;
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        if(mAuxModelPartIsInitialized == false){
+            CreateAuxModelPart();
+        }
+
+        auto& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
+
+        block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
                 rNode.Free(DISTANCE);
                 const double distance = rNode.FastGetSolutionStepValue(DISTANCE);
                 rNode.FastGetSolutionStepValue(DISTANCE, 1) = distance;
@@ -167,16 +174,19 @@ public:
 
         mp_solving_strategy->Solve();
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        auto &r_communicator = r_smoothing_model_part.GetCommunicator();
+        r_communicator.SynchronizeCurrentDataToMin(DISTANCE);
+
+        block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
                 rNode.SetValue( DISTANCE, rNode.FastGetSolutionStepValue(DISTANCE)
                     - rNode.FastGetSolutionStepValue(DISTANCE, 1) ); // Corrected distance difference
             });
 
-        auto& r_default_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+        auto& r_data_comm = r_smoothing_model_part.GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
 
-        for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
-            auto it_node = mrModelPart.NodesBegin() + i_node;
+        for (int i_node = 0; i_node < static_cast<int>(r_smoothing_model_part.NumberOfNodes()); ++i_node){
+            auto it_node = r_smoothing_model_part.NodesBegin() + i_node;
             GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
@@ -186,7 +196,7 @@ public:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_data_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
             [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
@@ -209,55 +219,59 @@ public:
             }
         );
 
-        block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-                const auto& x_i = rNode.Coordinates();
+        r_communicator.GetDataCommunicator().Barrier();
 
-                double weight = 0.0;
-                double dist_diff_avg = 0.0;
+        block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
+            const auto& x_i = rNode.Coordinates();
 
-                GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
+            double weight = 0.0;
+            double dist_diff_avg = 0.0;
 
-                for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
-                {
-                    auto& global_pointer = global_pointer_list(j);
-                    const auto x_j = coordinate_proxy.Get(global_pointer);
+            GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
 
-                    if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
+            for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
+            {
+                auto& global_pointer = global_pointer_list(j);
+                const auto x_j = coordinate_proxy.Get(global_pointer);
 
-                        const Vector dx = x_i - x_j;
+                if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
 
-                        const double distance_ij = norm_2(dx);
+                    const Vector dx = x_i - x_j;
 
-    #ifdef KRATOS_DEBUG
-                        KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
-                            << "WARNING: Neighbouring nodes are almost coinciding" << std::endl;
-    #endif
+                    const double distance_ij = norm_2(dx);
 
-                        if (distance_ij > 1.0e-12){
-                            weight += 1.0/distance_ij;
-                            dist_diff_avg += distance_proxy.Get(global_pointer)/distance_ij;
-                        }
+#ifdef KRATOS_DEBUG
+                    KRATOS_WARNING_IF("DistanceSmoothingProcess", distance_ij < 1.0e-12)
+                        << "WARNING: Neighbouring nodes are almost coinciding" << std::endl;
+#endif
+
+                    if (distance_ij > 1.0e-12){
+                        weight += 1.0/distance_ij;
+                        dist_diff_avg += distance_proxy.Get(global_pointer)/distance_ij;
                     }
                 }
+            }
 
-    #ifdef KRATOS_DEBUG
-                KRATOS_WARNING_IF("DistanceSmoothingProcess", weight < 1.0e-12)
-                    << "WARNING: Correction is not done due to a zero weight" <<std::endl;
-    #endif
+#ifdef KRATOS_DEBUG
+            KRATOS_WARNING_IF("DistanceSmoothingProcess", weight < 1.0e-12)
+                << "WARNING: Correction is not done due to a zero weight" <<std::endl;
+#endif
 
-                if (weight > 1.0e-12)
-                    rNode.FastGetSolutionStepValue(DISTANCE) -= dist_diff_avg/weight;
-            });
+            if (weight > 1.0e-12)
+                rNode.FastGetSolutionStepValue(DISTANCE) -= dist_diff_avg/weight;
+        });
+
+        r_communicator.SynchronizeCurrentDataToMin(DISTANCE);
 
         KRATOS_CATCH("");
     }
 
     void Clear() override
     {
-        ModelPart& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
-        r_smoothing_model_part.Nodes().clear();
-        r_smoothing_model_part.Conditions().clear();
-        r_smoothing_model_part.Elements().clear();
+        if(mrModel.HasModelPart( mAuxModelPartName ))
+            mrModel.DeleteModelPart( mAuxModelPartName );
+        mAuxModelPartIsInitialized = false;
+
         mp_solving_strategy->Clear();
     }
 
@@ -309,6 +323,7 @@ private:
     Model& mrModel;
     std::string mAuxModelPartName;
     bool mAllConditionsAsBoundary;
+    bool mAuxModelPartIsInitialized;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -355,23 +370,20 @@ private:
      */
     void CreateAuxModelPart()
     {
-        KRATOS_WATCH("HERE1")
-        FindGlobalNodalNeighboursProcess nodal_neighbour_process(mrModelPart);// p_new_comm->GetDataCommunicator(), r_smoothing_model_part);
-        //nodal_neighbour_process.Execute();
-
-        KRATOS_WATCH("HERE2")
-        FindElementalNeighboursProcess neighbour_elements_finder(mrModelPart, 2, 3);// r_smoothing_model_part, 10, 10);
-        //neighbour_elements_finder.Execute();
-
-        KRATOS_WATCH("HERE3")
+        KRATOS_TRY
 
         if(mrModel.HasModelPart( mAuxModelPartName ))
             mrModel.DeleteModelPart( mAuxModelPartName );
+
+        // Ensure that the nodes have distance as a DOF
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, mrModelPart);
 
         // Generate AuxModelPart
         ModelPart& r_smoothing_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
         Element::Pointer p_smoothing_element = Kratos::make_intrusive<DistanceSmoothingElement<TDim>>();
+
+        r_smoothing_model_part.GetNodalSolutionStepVariablesList() = mrModelPart.GetNodalSolutionStepVariablesList();
 
         ConnectivityPreserveModeler modeler;
         modeler.GenerateModelPart(mrModelPart, r_smoothing_model_part, *p_smoothing_element);
@@ -379,38 +391,14 @@ private:
         const unsigned int buffer_size = r_smoothing_model_part.GetBufferSize();
         KRATOS_ERROR_IF(buffer_size < 2) << "Buffer size should be at least 2" << std::endl;
 
-        // Adding DISTANCE to the solution variables is not needed if it is already a solution variable of the problem
-        r_smoothing_model_part.AddNodalSolutionStepVariable(DISTANCE);
-
-        // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof<Variable<double> >(DISTANCE, r_smoothing_model_part);
-
-        // Copy communicator data
-        Communicator& r_base_comm = mrModelPart.GetCommunicator();
-        Communicator::Pointer p_new_comm = r_base_comm.Create();
-
-        p_new_comm->SetNumberOfColors(r_base_comm.GetNumberOfColors());
-        p_new_comm->NeighbourIndices() = r_base_comm.NeighbourIndices();
-        p_new_comm->LocalMesh().SetNodes(r_base_comm.LocalMesh().pNodes());
-        p_new_comm->InterfaceMesh().SetNodes(r_base_comm.InterfaceMesh().pNodes());
-        p_new_comm->GhostMesh().SetNodes(r_base_comm.GhostMesh().pNodes());
-        for (unsigned int i = 0; i < r_base_comm.GetNumberOfColors(); ++i){
-            p_new_comm->pInterfaceMesh(i)->SetNodes(r_base_comm.pInterfaceMesh(i)->pNodes());
-            p_new_comm->pLocalMesh(i)->SetNodes(r_base_comm.pLocalMesh(i)->pNodes());
-            p_new_comm->pGhostMesh(i)->SetNodes(r_base_comm.pGhostMesh(i)->pNodes());
-        }
-
-        r_smoothing_model_part.SetCommunicator(p_new_comm);
-
-        KRATOS_WATCH("HERE1_new")
         FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_smoothing_model_part);
         nodal_neighbour_process_new.Execute();
 
-        KRATOS_WATCH("HERE2_new")
-        FindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part, 2, 3);
-        neighbour_elements_finder_new.Execute();
+        const unsigned int num_dim = TDim;
+        const unsigned int num_neighbouring_elements = num_dim + 1;
 
-        KRATOS_WATCH("HERE3_new")
+        FindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part, num_dim, num_neighbouring_elements);
+        neighbour_elements_finder_new.Execute();
 
         if (mAllConditionsAsBoundary)
         {
@@ -418,6 +406,10 @@ private:
                 rCondition.Set(CONTACT, true);
             });
         }
+
+        mAuxModelPartIsInitialized = true;
+
+        KRATOS_CATCH("")
     }
 
     ///@}
