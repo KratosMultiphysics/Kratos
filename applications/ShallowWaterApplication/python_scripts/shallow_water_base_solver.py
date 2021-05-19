@@ -55,10 +55,12 @@ class ShallowWaterBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         # Definition of the variables
         gravity = self.settings["gravity"].GetDouble()
+        density = self.settings["density"].GetDouble()
 
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
+        self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, density)
 
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
@@ -135,6 +137,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "model_part_name"          : "main_model_part",
             "domain_size"              : 2,
             "gravity"                  : 9.81,
+            "density"                  : 1000,
             "model_import_settings"    : {
                 "input_type"               : "mdpa",
                 "input_filename"           : "unknown_name"
