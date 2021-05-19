@@ -83,19 +83,19 @@ void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisCom
     KratosComponents<Variable<Vector> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::VoigtSizeVectorType> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Variable<BoundedVector6> const& ThisComponent)
 {
-    KratosComponents<Variable<ConstitutiveLaw::VoigtSizeVectorType> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<BoundedVector6> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::VoigtSizeMatrixType> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Variable<BoundedMatrix6> const& ThisComponent)
 {
-    KratosComponents<Variable<ConstitutiveLaw::VoigtSizeMatrixType> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<BoundedMatrix6> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::DeformationGradientMatrixType> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Variable<BoundedMatrix3> const& ThisComponent)
 {
-    KratosComponents<Variable<ConstitutiveLaw::DeformationGradientMatrixType> >::Add(Name, ThisComponent);
+    KratosComponents<Variable<BoundedMatrix3> >::Add(Name, ThisComponent);
 }
 
 void AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent)
@@ -153,9 +153,9 @@ template class KratosComponents<Variable<array_1d<double, 6> > >;
 template class KratosComponents<Variable<array_1d<double, 9> > >;
 template class KratosComponents<Variable<Quaternion<double> > >;
 template class KratosComponents<Variable<Vector> >;
-template class KratosComponents<Variable<ConstitutiveLaw::VoigtSizeVectorType> >;
-template class KratosComponents<Variable<ConstitutiveLaw::VoigtSizeMatrixType> >;
-template class KratosComponents<Variable<ConstitutiveLaw::DeformationGradientMatrixType> >;
+template class KratosComponents<Variable<BoundedVector6> >;
+template class KratosComponents<Variable<BoundedMatrix6> >;
+template class KratosComponents<Variable<BoundedMatrix3> >;
 template class KratosComponents<Variable<Matrix> >;
 template class KratosComponents<Variable<std::string> >;
 template class KratosComponents<Variable<Flags> >;
