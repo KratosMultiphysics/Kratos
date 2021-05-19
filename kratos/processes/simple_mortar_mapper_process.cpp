@@ -1236,11 +1236,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
                 }
             } else {
@@ -1248,11 +1248,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
                 }
             }
@@ -1271,11 +1271,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
 
                 }
@@ -1284,11 +1284,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
                 }
             }
