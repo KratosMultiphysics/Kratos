@@ -263,31 +263,29 @@ namespace Kratos
             const GeometryType& rElementGeometry,
             const Vector& rShapeFunctionsValues) override;
 
-        /**
-        * to be called at the end of each solution step
-        * (e.g. from Element::FinalizeSolutionStep)
-        * @param rMaterialProperties the Properties instance of the current element
-        * @param rElementGeometry the geometry of the current element
-        * @param rShapeFunctionsValues the shape functions values in the current integration point
-        * @param the current ProcessInfo instance
-        */
-        void FinalizeSolutionStep(
-            const Properties & rProperties,
-            const GeometryType & rGeometry,
-            const Vector & rShapeFunctionsValues,
-            const ProcessInfo & rCurrentProcessInfo) override;
-
         /// Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-        void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
+        void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
         /// material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-        void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
+        void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
         /// material response in terms of Kirchhoff stresses and constitutive tensor
-        void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues) override;
+        void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
         /// material response in terms of Cauchy stresses and constitutive tensor
-        void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
+        void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+        /// Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+        void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
+
+        /// material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+        void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
+
+        /// material response in terms of Kirchhoff stresses and constitutive tensor
+        void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues) override;
+
+        /// material response in terms of Cauchy stresses and constitutive tensor
+        void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
 
         /**
         * This function is designed to be called once to perform all the checks needed

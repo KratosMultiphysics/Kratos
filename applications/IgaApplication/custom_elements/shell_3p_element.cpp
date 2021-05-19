@@ -25,7 +25,7 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void Shell3pElement::Initialize()
+    void Shell3pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -90,20 +90,12 @@ namespace Kratos
 
     void Shell3pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-        // Reading integration points
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-        const auto& N_values = r_geometry.ShapeFunctionsValues();
-
-        // Reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number]->FinalizeSolutionStep(r_properties, r_geometry, row(N_values, point_number), rCurrentProcessInfo);
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
+                constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
         }
     }
 
@@ -242,6 +234,9 @@ namespace Kratos
                 }
             } 
         }
+        else if (mConstitutiveLawVector[0]->Has(rVariable)) {
+            GetValueOnConstitutiveLaw(rVariable, rOutput);
+        }
     }
 
     void Shell3pElement::CalculateOnIntegrationPoints(
@@ -302,6 +297,9 @@ namespace Kratos
                 }
             }
         }
+        else if (mConstitutiveLawVector[0]->Has(rVariable)) {
+            GetValueOnConstitutiveLaw(rVariable, rOutput);
+        }
     }
 
 
@@ -315,11 +313,7 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-<<<<<<< HEAD
-        )
-=======
     ) const
->>>>>>> remotes/origin/core/brep_surface_trimming
     {
         KRATOS_TRY
 
@@ -574,10 +568,6 @@ namespace Kratos
         array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
         noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
-        if (this->Id() == 5) {
-            KRATOS_WATCH(rThisConstitutiveVariablesMembrane.StrainVector);
-            KRATOS_WATCH(rThisConstitutiveVariablesCurvature.StrainVector);
-        }
         // Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.StrainVector); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector); //this is an ouput parameter
@@ -853,25 +843,6 @@ namespace Kratos
                 if (n != m)
                     rLeftHandSideMatrix(m, n) += nm;
             }
-        }
-    }
-
-    void Shell3pElement::CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-
-        const std::size_t number_of_integration_points = integration_points.size();
-        const auto& r_geometry = GetGeometry();
-
-        if (rOutput.size() != number_of_integration_points)
-            rOutput.resize(number_of_integration_points);
-
-        if (mConstitutiveLawVector[0]->Has(rVariable)) {
-            GetValueOnConstitutiveLaw(rVariable, rOutput);
         }
     }
 
@@ -1444,8 +1415,8 @@ namespace Kratos
 
     void Shell3pElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -1468,8 +1439,8 @@ namespace Kratos
 
     void Shell3pElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -1491,7 +1462,7 @@ namespace Kratos
     ///@name Check
     ///@{
 
-    int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int Shell3pElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         // Verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)

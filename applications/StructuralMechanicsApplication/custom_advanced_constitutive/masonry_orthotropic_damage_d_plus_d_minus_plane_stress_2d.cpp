@@ -28,8 +28,8 @@
 #define OPTIMIZE_CHARACTERISTIC_LENGTH
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
 #define MACAULAY(X)  ( X >= 0.0 ? X : 0.0)
-#define PROJECTION_OPERATOR_CERVERA_2003
-//#define PROJECTION_OPERATOR_CERVERA_2017
+//#define PROJECTION_OPERATOR_CERVERA_2003
+#define PROJECTION_OPERATOR_CERVERA_2017
 
 namespace Kratos
 {
@@ -168,27 +168,41 @@ namespace Kratos
             InitializeDamageLaw = true;
         }
     }
-
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::FinalizeSolutionStep(
-        const Properties& rProperties,
-        const GeometryType& rGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::FinalizeMaterialResponsePK1(
+        Parameters& rValues)
+    {
+        FinalizeMaterialResponseCauchy(rValues);
+    }
+    /***********************************************************************************/
+    /***********************************************************************************/
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::FinalizeMaterialResponsePK2(
+        Parameters& rValues)
+    {
+        FinalizeMaterialResponseCauchy(rValues);
+    }
+    /***********************************************************************************/
+    /***********************************************************************************/
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::FinalizeMaterialResponseKirchhoff(
+        Parameters& rValues)
+    {
+        FinalizeMaterialResponseCauchy(rValues);
+    }
+    /***********************************************************************************/
+    /***********************************************************************************/
+    void MasonryOrthotropicDamageDPlusDMinusPlaneStress2DLaw::FinalizeMaterialResponseCauchy(
+        Parameters& rParameters)
     {
         // Begin IMPLEX Integration - Only if switched on
-        if (rProperties.Has(INTEGRATION_IMPLEX))
-        {
-            if (rProperties[INTEGRATION_IMPLEX] != 0) {
-                mThresholdTension = TemporaryImplicitThresholdTension;
-                mThresholdCompression = TemporaryImplicitThresholdTCompression;
+        if (rParameters.GetMaterialProperties()[INTEGRATION_IMPLEX] != 0) {
+            mThresholdTension = TemporaryImplicitThresholdTension;
+            mThresholdCompression = TemporaryImplicitThresholdTCompression;
 
-                // move from n to n-1
-                PreviousThresholdTension = mCurrentThresholdTension;
-                PreviousThresholdCompression = mCurrentThresholdCompression;
-                PreviousDeltaTime = CurrentDeltaTime;
-            }
+            // move from n to n-1
+            PreviousThresholdTension = mCurrentThresholdTension;
+            PreviousThresholdCompression = mCurrentThresholdCompression;
+            PreviousDeltaTime = CurrentDeltaTime;
         }
         // End IMPLEX Integration
 
@@ -249,15 +263,16 @@ namespace Kratos
         // Computation of the Constitutive Tensor
         if (rParameters.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) {
-                this->CalculateTangentTensor(
-                    rParameters,
-                    ElasticityMatrix,
-                    r_strain_vector,
-                    //strain_mapped_isotropic,
-                    r_stress_vector,
-                    //r_predictive_stress_vector,
-                    data,
-                    r_properties[INTEGRATION_IMPLEX]);
+                //this->CalculateTangentTensor(
+                //    rParameters,
+                //    ElasticityMatrix,
+                //    r_strain_vector,
+                //    //strain_mapped_isotropic,
+                //    r_stress_vector,
+                //    //r_predictive_stress_vector,
+                //    data,
+                //    r_properties[INTEGRATION_IMPLEX]);
+                this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
             }
             else {
                 this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
@@ -637,7 +652,7 @@ namespace Kratos
         projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
         projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
 
-        noalias(projection_tensor_tension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
+        noalias(rProjectionTensorTension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
             outer_prod(projection_vector_cross, projection_vector_cross);
 #endif //PROJECTION_OPERATOR_CERVERA_2017
 
