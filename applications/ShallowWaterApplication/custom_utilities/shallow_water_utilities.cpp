@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "shallow_water_application_variables.h"
 #include "shallow_water_utilities.h"
 
 
@@ -317,5 +316,28 @@ double ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<do
 {
     return rNode.GetValue(rVariable);
 }
+
+template<>
+array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ConditionsContainerType>(
+    const double Density,
+    const double Gravity,
+    const double Height,
+    const double Area,
+    const array_1d<double,3>& rNormal)
+{
+    return 0.5 * Density * Gravity * Height * Height * Area * rNormal;
+}
+
+template<>
+array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ElementsContainerType>(
+    const double Density,
+    const double Gravity,
+    const double Height,
+    const double Area,
+    const array_1d<double,3>& rNormal)
+{
+    return -Density * Gravity * Height * Area * rNormal;
+}
+
 
 }  // namespace Kratos.
