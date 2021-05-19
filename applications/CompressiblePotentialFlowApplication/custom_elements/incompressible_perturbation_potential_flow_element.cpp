@@ -582,7 +582,7 @@ BoundedVector<double, 4> IncompressiblePerturbationPotentialFlowElement<3, 4>::C
     // Computing wake normal flux condition
     // Attention: this only works for straight trailing edges
     // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
-    const array_1d<double, 3> wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
     const double wake_normal_condition = inner_prod(wake_normal, rDiff_velocity);
     const array_1d<double, 3> nn = wake_normal * wake_normal_condition;
 
