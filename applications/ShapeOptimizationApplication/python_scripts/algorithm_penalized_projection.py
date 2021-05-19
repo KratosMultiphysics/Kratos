@@ -88,7 +88,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities(self.optimization_settings)
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -167,11 +167,11 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
         constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
-            self.optimization_utilities.ComputeProjectedSearchDirection()
-            self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value)
+            self.optimization_utilities.ComputeProjectedSearchDirection(self.design_surface)
+            self.optimization_utilities.CorrectProjectedSearchDirection(self.design_surface, constraint_value)
         else:
-            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
+            self.optimization_utilities.ComputeSearchDirectionSteepestDescent(self.design_surface)
+        self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
@@ -213,7 +213,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
 # ==============================================================================

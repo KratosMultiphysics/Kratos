@@ -72,28 +72,29 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
-inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+inline double ComputeL2NormScalar(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< double >& variable)
 {
-    return utils.ComputeL2NormOfNodalVariable(variable);
+    return utils.ComputeL2NormOfNodalVariable(rModelPart, variable);
 }
 
-inline double ComputeL2NormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+inline double ComputeL2NormVector(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& variable)
 {
-    return utils.ComputeL2NormOfNodalVariable(variable);
+    return utils.ComputeL2NormOfNodalVariable(rModelPart, variable);
 }
 
-inline double ComputeMaxNormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+inline double ComputeMaxNormScalar(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< double >& variable)
 {
-    return utils.ComputeMaxNormOfNodalVariable(variable);
+    return utils.ComputeMaxNormOfNodalVariable(rModelPart, variable);
 }
 
-inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+inline double ComputeMaxNormVector(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& variable)
 {
-    return utils.ComputeMaxNormOfNodalVariable(variable);
+    return utils.ComputeMaxNormOfNodalVariable(rModelPart, variable);
 }
 
 inline void AssembleMatrixForVariableList(
     OptimizationUtilities& utils,
+    ModelPart& rModelPart,
     Matrix& rMatrix,
     pybind11::list& rVariables)
 {
@@ -103,7 +104,7 @@ inline void AssembleMatrixForVariableList(
     {
         variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
     }
-    return utils.AssembleMatrix(rMatrix, variables_vector);
+    return utils.AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
 
 // ==============================================================================
@@ -163,7 +164,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For performing individual steps of an optimization algorithm
     // ========================================================================
     py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
-        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
