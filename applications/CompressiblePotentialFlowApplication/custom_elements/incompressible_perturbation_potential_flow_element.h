@@ -178,8 +178,6 @@ private:
     ///@name Private Operators
     ///@{
 
-    void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
-
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;

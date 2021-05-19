@@ -296,12 +296,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::PrintData(st
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
-{
-    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -325,8 +319,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationI
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
 {
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Positive part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -374,8 +367,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListKu
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
 {
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Positive part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -459,7 +451,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
     CalculateBlockLeftHandSideWakeElement(lhs_total, lhs_wake_condition, data, rCurrentProcessInfo);
 
-    PotentialFlowUtilities::GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     if (this->Is(STRUCTURE))
     {
@@ -523,7 +515,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
@@ -602,7 +594,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -650,7 +642,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateVol
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -789,8 +781,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePoten
     const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
     const double reference_chord = rCurrentProcessInfo[REFERENCE_CHORD];
 
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     auto r_geometry = GetGeometry();
     for (unsigned int i = 0; i < NumNodes; i++){
