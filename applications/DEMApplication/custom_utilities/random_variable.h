@@ -2,7 +2,6 @@
 // Authors:
 // Guillermo Casas gcasas@cimne-upc.edu
 //
-//README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #ifndef RANDOM_VARIABLE_H
 #define RANDOM_VARIABLE_H
