@@ -57,6 +57,13 @@ namespace Kratos {
                                 double LocalRelVel[3],
                                 double ViscoDampingLocalContactForce[3]) override;
 
+        void CalculateViscoDampingCoeff(double& equiv_visco_damp_coeff_normal,
+                                              double& equiv_visco_damp_coeff_tangential,
+                                              SphericContinuumParticle* element1,
+                                              SphericContinuumParticle* element2,
+                                              const double kn_el,
+                                              const double kt_el) override;
+
         void CalculateViscoDamping(double LocalRelVel[3],
                                          double ViscoDampingLocalContactForce[3],
                                          double indentation,
@@ -80,6 +87,7 @@ namespace Kratos {
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
+            double ViscoDampingLocalContactForce[3],
             double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
             double LocalRelVel[3],
@@ -100,18 +108,19 @@ namespace Kratos {
 
         virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
-        void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) override;
-
         virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
-        double mUnbondedNormalElasticConstant;
-        double mUnbondedTangentialElasticConstant;
-        double mUnbondedViscoDampingLocalContactForce[3];
+        double mUnbondedNormalElasticConstant = 0.0;
+        double mUnbondedTangentialElasticConstant = 0.0;
+        double mUnbondedViscoDampingLocalContactForce[3] = {0.0};
+        double mBondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
-        bool mDebugPrintingOption;
-        double mDamageEnergyCoeff;
+        bool mDebugPrintingOption = false;
+        double mDamageEnergyCoeff = 0.0;
+        double mUnbondedEquivViscoDampCoeffTangential = 0.0;
+        double mUnbondedEquivViscoDampCoeffNormal = 0.0;
 
     private:
 
