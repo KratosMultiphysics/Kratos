@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlow
 import KratosMultiphysics.MeshingApplication as MeshingApplication
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 import math
 import time
 
@@ -54,6 +55,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
         self.model=Model
         self.main_model_part = Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
+        self.domain_size = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         self.skin_model_part_name=settings["skin_model_part_name"].GetString()
 
         '''Remeshing loop parameters'''
@@ -84,9 +86,61 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             self.step += 1
             KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
             self._ExtendDistance()
+
+            gid_output = GiDOutputProcess(self.main_model_part,
+                                        "extended_"+str(self.step),
+                                        KratosMultiphysics.Parameters("""
+                                            {
+                                                "result_file_configuration" : {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "WriteConditionsFlag": "WriteConditions",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "nodal_results" : ["GEOMETRY_DISTANCE", "DISTANCE"],
+                                                    "nodal_nonhistorical_results": ["METRIC_TENSOR_2D","TEMPERATURE"]
+                                                }
+                                            }
+                                            """)
+                                        )
+
+            gid_output.ExecuteInitialize()
+            gid_output.ExecuteBeforeSolutionLoop()
+            gid_output.ExecuteInitializeSolutionStep()
+            gid_output.PrintOutput()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.ExecuteFinalize()
+
             self._RefineMesh()
             self._CalculateDistance()
             self._UpdateParameters()
+
+            gid_output = GiDOutputProcess(self.main_model_part,
+                                        "remeshed_"+str(self.step),
+                                        KratosMultiphysics.Parameters("""
+                                            {
+                                                "result_file_configuration" : {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "WriteConditionsFlag": "WriteConditions",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "nodal_results" : ["GEOMETRY_DISTANCE", "DISTANCE"],
+                                                    "nodal_nonhistorical_results": ["METRIC_TENSOR_2D","TEMPERATURE"]
+                                                }
+                                            }
+                                            """)
+                                        )
+
+            gid_output.ExecuteInitialize()
+            gid_output.ExecuteBeforeSolutionLoop()
+            gid_output.ExecuteInitializeSolutionStep()
+            gid_output.PrintOutput()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.ExecuteFinalize()
+
         self._ModifyFinalDistance()
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
@@ -110,7 +164,12 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def _CalculateDistance(self):
         ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
-        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part,self.ray_casting_tolerance).Execute()
+        if self.domain_size == 2:
+            KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part,self.ray_casting_tolerance).Execute()
+        elif self.domain_size ==3:
+            KratosMultiphysics.CalculateDistanceToSkinProcess3D(self.main_model_part, self.skin_model_part,self.ray_casting_tolerance).Execute()
+        else:
+            raise(Exception("Domain size must be 2 or 3. Given domain size was: "+str(self.domain_size)))
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','CalculateDistance time: ',time.time()-ini_time)
 
     def _ExtendDistance(self):
@@ -118,7 +177,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             remesh the background mesh.'''
         ini_time=time.time()
         # Construct the variational distance calculation process
-        maximum_iterations = 2 #TODO: Make this user-definable
+        maximum_iterations = 3 #TODO: Make this user-definable
 
         ###Defining linear solver to be used by the variational distance process###
         from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
@@ -137,16 +196,60 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         }""")
 
         linear_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
-        variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-            self.main_model_part,
-            linear_solver,
-            maximum_iterations)
+        if self.domain_size == 2:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+                self.main_model_part,
+                linear_solver,
+                maximum_iterations)
+        elif self.domain_size ==3:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+                self.main_model_part,
+                linear_solver,
+                maximum_iterations)
+        else:
+            raise(Exception("Domain size must be 2 or 3. Given domain size was: "+str(self.domain_size)))
+
+
         variational_distance_process.Execute()
 
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Variational distance process time: ',time.time()-ini_time)
 
 
-    def _RefineMesh(self):
+    def _RefineMesh3D(self):
+
+        ''' This function remeshes the main_model_part according to the distance, using the MMG process from the MeshingApplication.
+            In order to perform the refinement, it is needed to calculate the distance gradient, the initial nodal_h and the level_set metric.
+        '''
+        ini_time=time.time()
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+        local_gradient.Execute()
+
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
+        find_nodal_h.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,self.main_model_part.Nodes)
+
+        metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess3D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
+        metric_process.Execute()
+
+        mmg_parameters = KratosMultiphysics.Parameters("""
+        {
+            "discretization_type"              : "STANDARD",
+            "save_external_files"              : false,
+            "preserve_flags"                   : false,
+            "interpolate_nodal_values"         : false,
+            "initialize_entities"              : false,
+            "echo_level"                       : 0
+        }
+        """)
+
+        mmg_process = MeshingApplication.MmgProcess3D(self.main_model_part, mmg_parameters)
+        mmg_process.Execute()
+
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Remesh time: ',time.time()-ini_time)
+
+
+    def _RefineMesh2D(self):
         ''' This function remeshes the main_model_part according to the distance, using the MMG process from the MeshingApplication.
             In order to perform the refinement, it is needed to calculate the distance gradient, the initial nodal_h and the level_set metric.
         '''
@@ -175,6 +278,14 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         mmg_process.Execute()
 
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Remesh time: ',time.time()-ini_time)
+
+    def _RefineMesh(self):
+        if self.domain_size == 2:
+            self._RefineMesh2D()
+        elif self.domain_size ==3:
+            self._RefineMesh3D()
+        else:
+            raise(Exception("Domain size must be 2 or 3. Given domain size was: "+str(self.domain_size)))
 
     def _UpdateParameters(self):
         ''' This process updates remeshing parameters in case more than one iteration is performed'''
