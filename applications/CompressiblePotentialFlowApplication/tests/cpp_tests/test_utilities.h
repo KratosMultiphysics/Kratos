@@ -29,7 +29,7 @@ template <int NumNodes>
 void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, NumNodes>& rDistances, const std::array<double, 2*NumNodes>& rPotential);
 
 template <int NumNodes>
-BoundedVector<double,NumNodes> AssignDistancesToElement();
+array_1d<double,NumNodes> AssignDistancesToElement();
 
 void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical);
 

@@ -43,9 +43,9 @@ void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, Num
 }
 
 template <>
-BoundedVector<double,3> AssignDistancesToElement<3>()
+array_1d<double,3> AssignDistancesToElement<3>()
 {
-    BoundedVector<double,3> distances;
+    array_1d<double,3> distances;
     distances(0) = 1.0;
     distances(1) = -1.0;
     distances(2) = -1.0;
@@ -53,9 +53,9 @@ BoundedVector<double,3> AssignDistancesToElement<3>()
 }
 
 template <>
-BoundedVector<double,4> AssignDistancesToElement<4>()
+array_1d<double,4> AssignDistancesToElement<4>()
 {
-    BoundedVector<double,4> distances;
+    array_1d<double,4> distances;
     distances(0) = -1.0;
     distances(1) = -1.0;
     distances(2) = -1.0;
