@@ -164,7 +164,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For performing individual steps of an optimization algorithm
     // ========================================================================
     py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
-        .def(py::init<Parameters>())
+        .def(py::init<>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -174,7 +174,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
         .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
-        .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------

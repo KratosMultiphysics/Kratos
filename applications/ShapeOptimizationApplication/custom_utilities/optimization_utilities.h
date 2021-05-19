@@ -74,13 +74,9 @@ public:
     ///@{
 
     /// Default constructor.
-    OptimizationUtilities( Parameters optimizationSettings )
-        : mOptimizationSettings( optimizationSettings )
+    OptimizationUtilities()
     {
-        // Initialize member variables for penalized projection
-        std::string algorithm_name = optimizationSettings["optimization_algorithm"]["name"].GetString();
-        if(algorithm_name == "penalized_projection")
-          mCorrectionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
+
     }
 
     /// Destructor.
@@ -101,12 +97,12 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void ComputeControlPointUpdate(ModelPart& rModelPart, const double StepSize)
+    void ComputeControlPointUpdate(ModelPart& rModelPart, const double StepSize, const bool Normalize)
     {
         KRATOS_TRY;
 
         // Normalize if specified
-        if(mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool())
+        if(Normalize)
         {
             const double max_norm_search_dir = ComputeMaxNormOfNodalVariable(rModelPart, SEARCH_DIRECTION);
             if(max_norm_search_dir>1e-10)
@@ -116,7 +112,7 @@ public:
                     search_dir/=max_norm_search_dir;
                 }
             else
-                KRATOS_WARNING("ShapeOpt::ComputeControlPointUpdate") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
+                KRATOS_WARNING("ShapeOpt::ComputeControlPointUpdate") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is omitted!" << std::endl;
         }
 
         // Compute update
@@ -253,34 +249,32 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void CorrectProjectedSearchDirection(ModelPart& rModelPart, double constraint_value )
+    double CorrectProjectedSearchDirection(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, const double CorrectionScaling, const bool IsAdaptive )
     {
-        mConstraintValue = constraint_value;
-
         // Check correction necessary
-        if(mConstraintValue==0)
-         return;
+        if(ConstraintValue==0)
+         return CorrectionScaling;
 
         // Perform correction
-        double correction_factor = ComputeCorrectionFactor(rModelPart);
+        double correction_scaling = CorrectionScaling;
+        double correction_factor = ComputeCorrectionFactor(rModelPart, PrevConstraintValue, ConstraintValue, correction_scaling, IsAdaptive);
     	for (auto & node_i : rModelPart.Nodes())
     	{
-    		array_3d correction_term = correction_factor * mConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
+    		array_3d correction_term = correction_factor * ConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
     		node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
 
-        // Store constraint value for next correction step
-        mPreviousConstraintValue = mConstraintValue;
+        return correction_scaling;
     }
 
     // --------------------------------------------------------------------------
-    double ComputeCorrectionFactor(ModelPart& rModelPart)
+    double ComputeCorrectionFactor(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, double& CorrectionScaling, const bool IsAdaptive)
     {
     	double norm_correction_term = 0.0;
     	double norm_search_direction = 0.0;
     	for (auto & node_i : rModelPart.Nodes())
     	{
-    		array_3d correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
+    		array_3d correction_term = ConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
     		norm_correction_term += inner_prod(correction_term,correction_term);
 
     		array_3d ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
@@ -289,33 +283,27 @@ public:
     	norm_correction_term = std::sqrt(norm_correction_term);
     	norm_search_direction = std::sqrt(norm_search_direction);
 
-        if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
+        if(IsAdaptive)
         {
             // Adapt constraint scaling
 
             // Three cases need to be covered
             // 1) In case we have two subsequently decreasing constraint values --> correction is fine --> leave current correction scaling
             // 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
-            if(mConstraintValue*mPreviousConstraintValue<0.0)
+            if(ConstraintValue*PrevConstraintValue<0.0)
             {
-                mCorrectionScaling *= 0.5;
+                CorrectionScaling *= 0.5;
                 KRATOS_INFO("ShapeOpt") << "Correction scaling needs to decrease...." << std::endl;
             }
             // 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
-            if(std::abs(mConstraintValue)>std::abs(mPreviousConstraintValue) && mConstraintValue*mPreviousConstraintValue>0)
+            if(std::abs(ConstraintValue)>std::abs(PrevConstraintValue) && ConstraintValue*PrevConstraintValue>0)
             {
                 KRATOS_INFO("ShapeOpt") << "Correction scaling needs to increase...." << std::endl;
-                mCorrectionScaling = std::min(mCorrectionScaling*2,1.0);
+                CorrectionScaling = std::min(CorrectionScaling*2,1.0);
             }
         }
 
-    	return mCorrectionScaling * norm_search_direction / norm_correction_term;
-    }
-
-    // --------------------------------------------------------------------------
-    double GetCorrectionScaling() const
-    {
-        return mCorrectionScaling;
+    	return CorrectionScaling * norm_search_direction / norm_correction_term;
     }
 
     /**
@@ -514,10 +502,6 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    Parameters mOptimizationSettings;
-    double mConstraintValue = 0.0;
-    double mPreviousConstraintValue = 0.0;
-    double mCorrectionScaling = 1.0;
 
     ///@}
     ///@name Private Operators
