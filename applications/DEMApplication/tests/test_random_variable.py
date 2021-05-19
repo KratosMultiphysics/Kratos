@@ -17,8 +17,8 @@ class TestRandomVariable(KratosUnittest.TestCase):
         Logger.PrintInfo("DEM", *args)
         Logger.Flush()
 
-    @classmethod
-    def GetMean(cls, pdf_breakpoints, pdf_values):
+    @staticmethod
+    def GetMean(pdf_breakpoints, pdf_values):
         mean = 0.0
         total_area = 0.0
         for i in range(len(pdf_breakpoints[:-1])):
