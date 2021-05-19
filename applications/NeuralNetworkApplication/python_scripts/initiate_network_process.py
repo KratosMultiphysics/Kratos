@@ -35,10 +35,8 @@ class InitiateNetworkProcess(NeuralNetworkProcess):
         # Import layer classes
         module_name = "KratosMultiphysics.NeuralNetworkApplication." + self.layer_type
         class_module = import_module(module_name)
-        layer_class = class_module.Factory(self.layer_parameters)
-
-        # Build layer
-        self.layer = layer_class.Build()
+        self.layer_class = class_module.Factory(self.layer_parameters)
 
     def Initialize(self):
-        return self.layer
+        # Build the class
+        return self.layer_class.Build()

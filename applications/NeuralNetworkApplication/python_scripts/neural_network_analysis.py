@@ -28,6 +28,16 @@ class NeuralNetworkAnalysis(AnalysisStage):
     def Initialize(self):
         # Create list of processes
         self.__CreateListOfProcesses()
+
+        # Preprocessing
+        self.data_in = None
+        self.data_out = None
+        for process in self._GetListOfProcesses():
+            preprocessing_settings = process.Preprocess(self.data_in, self.data_out)
+            if not preprocessing_settings is None:
+                self.data_in = preprocessing_settings[0]
+                self.data_out = preprocessing_settings[1]
+
         if self.problem_type == "train":
             # Initalize the network
             inputs = self._GetListOfProcesses()[0].Initialize()

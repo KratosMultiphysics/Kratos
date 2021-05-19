@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 
 def Factory(settings):
-    if not isinstance(settings, KratosMultiphysics.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a parameters object, encapsulating a json string")
     return NeuralNetworkProcess(settings["parameters"])
 
@@ -33,6 +33,10 @@ class NeuralNetworkProcess(KM.Process):
 
     def ExecuteTuning(self, hypermodel):
         """ Process to act directly during the tuning step. """
+        pass
+    
+    def Preprocess(self, data_in, data_out):
+        """ Process to preprocess the data. """
         pass
 
     def Initialize(self):

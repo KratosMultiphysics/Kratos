@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_layer import NeuralNetworkLayerClass
+import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities as DataLoadingUtilities
 
 from tensorflow.keras import layers
 import numpy as np
@@ -36,40 +37,10 @@ class InputLayer(NeuralNetworkLayerClass):
 
         # Get the input shape from a data input
         self.input_file = settings["data_input"].GetString()
-        test_input_raw =[]
 
-        if self.input_file.endswith(".h5"):
-            with h5py.File(self.input_file,'r') as f:
-                time = "1"
-                time_array = []
-                for variables in f[time]['InputData']['NodalSolutionStepData'].keys():
-                    value = f[time]['InputData']['NodalSolutionStepData'][variables][:]
-                    time_array.append(value)
-                test_input_raw.append(time_array)
-                self.test_input = test_input_raw
-                self.shape = self.test_input[0][0].shape
-        elif self.input_file.endswith(".dat"):
-            with open(self.input_file,'r') as test_input_file:
-                line = test_input_file.readline().strip()
-                test_input_raw.append(list(map(str, line.split())))
-
-            test_input_raw_splits =[]
-            for line in test_input_raw:
-                test_input_raw_splits_line = []
-                for data in line:
-                    if len(data.split(' '))>1:
-                        array = ''.join(data[4:-1])
-                        array_floats = list(map(float,array.split(',',)))
-                        test_input_raw_splits_line.append(array_floats)
-                    else:
-                        array_floats = float(data)
-                        test_input_raw_splits_line.append(array_floats)
-                test_input_raw_splits.append(test_input_raw_splits_line)
-            test_input_raw_splits = np.array(test_input_raw_splits)
-            self.test_input = test_input_raw_splits
-            self.shape = self.test_input[0,:].shape
-        else:
-            raise Exception("Data input format not supported. Supported formats are .dat and .h5")
+        # Input
+        self.input_file = settings["data_input"].GetString()
+        
 
         self.layer_name = settings["layer_name"].GetString()
         if not settings["batch_size"].GetString() == '':
@@ -83,6 +54,16 @@ class InputLayer(NeuralNetworkLayerClass):
         # When called by the add_layer_process, input the parameters in the keras function
 
     def Build(self, hp = None):
+        # Data loading for h5
+        if self.input_file.endswith('.h5'):
+            self.input = DataLoadingUtilities.ImportH5(self.input_file, "InputData")
+        # Data loading for dat
+        elif self.input_file.endswith('.dat'):
+            self.input = DataLoadingUtilities.ImportAscii(self.input_file)
+        # Exception for non-supported formats
+        else:
+            raise Exception("Input data format not supported. Supported formats are .dat and .h5")
+        self.shape = self.input[0,:].shape
         self.layer = layers.Input(shape = self.shape, batch_size = self.batch_size, sparse = self.sparse,ragged=self.ragged,name=self.layer_name)
         return self.layer
 

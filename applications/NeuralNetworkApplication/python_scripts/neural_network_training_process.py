@@ -6,7 +6,7 @@ import numpy as np
 import h5py
 
 def Factory(settings):
-    if not isinstance(settings, KratosMultiphysics.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a parameters object, encapsulating a json string")
     return NeuralNetworkTrainingProcess(settings["parameters"])
 
@@ -19,8 +19,22 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
     """
     def __init__(self, parameters):
         super().__init__()
-        # Input
         self.input_file = parameters["data_input"].GetString()
+        self.output_file = parameters["data_output"].GetString()
+        self.validation = False
+        self.validation_split = 0.0
+        if parameters.Has("val_input"):
+            self.validation = True
+            self.val_input_file = parameters["val_input"].GetString()
+        if parameters.Has("val_output"):
+            self.validation = True
+            self.val_output_file = parameters["val_output"].GetString()
+        if parameters.Has("validation_split"):
+            self.validation_split = parameters["validation_split"].GetDouble()
+
+    def ExecuteBeforeTraining(self):
+        # Input
+        
         # Data loading for h5
         if self.input_file.endswith('.h5'):
             self.test_input = DataLoadingUtilities.ImportH5(self.input_file, "InputData")
@@ -32,7 +46,7 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
             raise Exception("Input data format not supported. Supported formats are .dat and .h5")
 
         # Output
-        self.output_file = parameters["data_output"].GetString()
+        
         # Data loading for h5
         if self.output_file.endswith('.h5'):
             self.test_output = DataLoadingUtilities.ImportH5(self.output_file,"OutputData")
@@ -45,10 +59,8 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
             raise Exception("Output data format not supported. Supported formats are .dat and .h5")
 
         # Validation files
-        self.validation = False
-        if parameters.Has("val_input"):
-            self.validation = True
-            self.val_input_file = parameters["val_input"].GetString()
+        
+        if self.validation:
             # Data loading for h5
             if self.val_input_file.endswith('.h5'):
                 self.val_input = DataLoadingUtilities.ImportH5(self.val_input_file, "InputData")
@@ -58,9 +70,6 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
             # Exception for non-supported formats
             else:
                 raise Exception("Input validation data format not supported. Supported formats are .dat and .h5")
-
-        if parameters.Has("val_output"):
-            self.val_output_file = parameters["val_output"].GetString()
             # Data loading for h5
             if self.val_output_file.endswith('.h5'):
                 self.val_output = DataLoadingUtilities.ImportH5(self.val_output_file, "OutputData")
@@ -69,6 +78,8 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
                 self.val_output = DataLoadingUtilities.ImportAscii(self.val_output_file)
             # Exception for non-supported formats
             else:
-                raise Exception("Input validation data format not supported. Supported formats are .dat and .h5")
+                raise Exception("Output validation data format not supported. Supported formats are .dat and .h5")
+
+        
 
 

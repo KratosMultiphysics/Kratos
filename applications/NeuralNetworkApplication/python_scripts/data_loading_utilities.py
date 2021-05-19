@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import ast
+import json
 
 
 def ImportH5(external_file,category):
@@ -14,7 +15,7 @@ def ImportH5(external_file,category):
                 # time_array.append(value[:])
                 time_array = value[:]
             raw.append(time_array)
-    return np.array(test_input_raw)
+    return np.array(raw)
 
 def ImportAscii(external_file):
     "Import the data of an ascii file generated for neural network training."
@@ -29,7 +30,7 @@ def ImportAscii(external_file):
     for line in raw:
         raw_splits_line = []
         for data in line:
-            if len(data.split(' '))>1:
+            if not isfloat(data.split(' ')[0]):
                 array = ''.join(data[4:-1])
                 array_floats = list(map(float,array.split(',',)))
                 raw_splits_line.append(array_floats)
@@ -47,3 +48,16 @@ def ImportDictionaryFromText(external_file):
         data = file.read()
 
     return ast.literal_eval(data)
+
+def UpdateDictionaryJson(external_file, dump_data):
+    with open(external_file,'w') as f:
+                f.seek(0)
+                json.dump(dump_data,f)
+                f.truncate()
+                
+def isfloat(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False

@@ -32,7 +32,8 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
             history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, 
             validation_data = (self.val_input, self.val_output), shuffle=self.shuffle, callbacks = callbacks_list)
         else:
-            history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=self.shuffle, callbacks = callbacks_list) 
+            history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=self.shuffle,
+            validation_split = self.validation_split, callbacks = callbacks_list) 
         self.reconstructed_model.save(self.model_name)
         if self.training_log:
             with open(self.training_log_file,'w') as f:
