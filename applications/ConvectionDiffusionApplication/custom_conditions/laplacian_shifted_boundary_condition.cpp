@@ -19,16 +19,32 @@ namespace Kratos
 
 // Public Life Cycle //////////////////////////////////////////////////////////
 
-LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(IndexType NewId, Geometry< Node<3> >::Pointer pGeometry):
-    Condition(NewId,pGeometry)
+LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(
+    IndexType NewId,
+    Geometry< Node<3> >::Pointer pGeometry)
+    : Condition(
+        NewId,
+        pGeometry)
 {
 }
 
 LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(
     IndexType NewId,
     Geometry< Node<3> >::Pointer pGeometry,
-    Properties::Pointer pProperties):
-    Condition(NewId,pGeometry,pProperties)
+    Properties::Pointer pProperties)
+    : Condition(
+        NewId,
+        pGeometry,
+        pProperties)
+{
+}
+
+LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(
+    IndexType NewId,
+    const NodesArrayType& ThisNodes)
+    :Condition(
+        NewId,
+        ThisNodes)
 {
 }
 

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "containers/pointer_vector.h"
 #include "includes/define.h"
 #include "includes/key_hash.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
@@ -110,6 +111,13 @@ public:
         const double mls_kernel_rad = 0.2;
         auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
 
+        // Get max condition id
+        std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mrModelPart.Conditions(), [](const Condition& rCondition){return rCondition.Id();});
+
+        //FIXME: This is a temporary solution until we finally decide what to do with the already existent conditions
+        // Deactivate the already existent conditions
+        block_for_each(mrModelPart.Conditions(),[](Condition& rCondition){rCondition.Set(ACTIVE, false);});
+
         // Loop the elements to find the intersected ones
         for (auto& rElement : mrModelPart.Elements()) {
             // Check if the element is split
@@ -120,7 +128,8 @@ public:
             if (IsSplit(*p_geom)) {
                 // Set the meshless cloud of point support for the MLS
                 Matrix cloud_nodes_coordinates;
-                std::vector<NodeType::Pointer> cloud_nodes;
+                PointerVector<NodeType> cloud_nodes;
+                // std::vector<NodeType::Pointer> cloud_nodes;
                 SetSplitElementSupportCloud(*p_geom, cloud_nodes, cloud_nodes_coordinates);
 
                 // Set up the distances vector
@@ -151,17 +160,29 @@ public:
                         noalias(i_g_coords) += i_g_N[i_node] * r_geom[i_node].Coordinates();
                     }
 
-                    // Create a new element with the basis nodes as geometry
+                    // Create a new condition with a geometry made up with the basis nodes
+                    auto p_prop = rElement.pGetProperties();
+                    auto p_cond = Kratos::make_intrusive<LaplacianShiftedBoundaryCondition>(++max_cond_id, cloud_nodes);
+                    p_cond->SetProperties(p_prop); //TODO: Think if we want properties in these conditions or not
 
                     // Store the Gauss pt. weight and normal in the database
+                    p_cond->SetValue(NORMAL, pos_int_n[i_g]);
+                    p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
 
                     // Calculate the MLS shape functions and gradients and save in the database
                     Vector N_container;
                     Matrix DN_DX_container;
                     p_mls_sh_func(cloud_nodes_coordinates, i_g_coords, mls_kernel_rad, N_container, DN_DX_container);
-                    //FIXME: SAVE THE NEW SHAPE FUNCTIONS IN THE ELEMENTAL DATABASE
+                    //FIXME: Find variables for these
+                    p_cond->SetValue(BDF_COEFFICIENTS, N_container);
+                    p_cond->SetValue(LOCAL_AXES_MATRIX, DN_DX_container);
                 }
+
+                // Deactivate the split element to avoid assembling it
+                // Note that the split elements BC is applied by means of the extension operators
+                rElement.Set(ACTIVE, false);
             } else if (IsNegative(*p_geom)) {
+                // Deactivate the negative element to avoid assembling it
                 rElement.Set(ACTIVE, false);
             }
         }
@@ -319,7 +340,7 @@ private:
 
     void SetSplitElementSupportCloud(
         const GeometryType& rSplitGeometry,
-        std::vector<NodeType::Pointer>& rCloudNodes,
+        PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
     {
         // Find the positive side support cloud of nodes
@@ -350,15 +371,15 @@ private:
         rCloudNodes.resize(n_cloud_nodes);
         std::size_t aux_i = 0;
         for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-            rCloudNodes[aux_i++] = *it_set;
+            rCloudNodes(aux_i++) = *it_set;
         }
-        std::sort(rCloudNodes.begin(), rCloudNodes.end(), [](NodeType::Pointer p1, NodeType::Pointer p2){return (p1->Id() < p2->Id());});
+        std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
 
         // Fill the coordinates matrix
         array_1d<double,3> aux_coord;
         rCloudCoordinates.resize(n_cloud_nodes, 3);
         for (std::size_t i_node = 0; i_node < n_cloud_nodes; ++i_node) {
-            noalias(aux_coord) = rCloudNodes[i_node]->Coordinates();
+            noalias(aux_coord) = rCloudNodes[i_node].Coordinates();
             rCloudCoordinates(i_node, 0) = aux_coord[0];
             rCloudCoordinates(i_node, 1) = aux_coord[1];
             rCloudCoordinates(i_node, 2) = aux_coord[2];

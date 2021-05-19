@@ -45,6 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<std::size_t TDim>
 class LaplacianShiftedBoundaryElement : public LaplacianElement
 {
 public:
@@ -55,6 +56,8 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianShiftedBoundaryElement);
 
     typedef LaplacianElement BaseType;
+
+    static constexpr std::size_t TNumNodes = TDim + 1;
 
     ///@}
     ///@name Life Cycle
@@ -260,5 +263,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED  defined
-
-

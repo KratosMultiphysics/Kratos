@@ -238,8 +238,8 @@ private:
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
 
-    const LaplacianShiftedBoundaryElement mLaplacianShiftedBoundary2D3N;
-    const LaplacianShiftedBoundaryElement mLaplacianShiftedBoundary3D4N;
+    const LaplacianShiftedBoundaryElement<2> mLaplacianShiftedBoundary2D3N;
+    const LaplacianShiftedBoundaryElement<3> mLaplacianShiftedBoundary3D4N;
 
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement2D3N;
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement3D4N;

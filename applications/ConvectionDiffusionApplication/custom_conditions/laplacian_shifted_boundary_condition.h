@@ -56,6 +56,10 @@ public:
         Geometry< Node<3> >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
+    LaplacianShiftedBoundaryCondition(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes);
+
     /// Destructor.
     ~LaplacianShiftedBoundaryCondition() override;
 
