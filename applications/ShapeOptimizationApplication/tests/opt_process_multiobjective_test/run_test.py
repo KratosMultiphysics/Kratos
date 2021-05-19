@@ -57,7 +57,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
 # =======================================================================================================
 
 # Create optimizer and perform optimization
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================
