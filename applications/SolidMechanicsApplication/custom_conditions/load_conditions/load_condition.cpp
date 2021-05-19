@@ -234,7 +234,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int LoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int LoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

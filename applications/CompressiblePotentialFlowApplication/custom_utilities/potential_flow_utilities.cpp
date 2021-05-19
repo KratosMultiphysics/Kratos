@@ -13,6 +13,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "fluid_dynamics_application_variables.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {
@@ -155,7 +156,8 @@ double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo)
     //           by Brian Nishida (1996), Section A.2 and Section 2.5
 
     // maximum local squared mach number (user defined, 3.0 used as default)
-    const double max_local_mach_squared = rCurrentProcessInfo[MACH_SQUARED_LIMIT];
+    const double max_local_mach = rCurrentProcessInfo[MACH_LIMIT];
+    const double max_local_mach_squared = max_local_mach * max_local_mach;
 
     // read free stream values
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
@@ -440,7 +442,7 @@ double ComputeLocalSpeedofSoundSquared(
     // make squares of value
     const double free_stream_speed_sound_squared = std::pow(free_stream_speed_sound,2.0);
 
-    // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
+    // computes square of velocity including clamping according to MACH_LIMIT
     const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
 
     // computes square bracket term with clamped velocity squared
@@ -525,7 +527,7 @@ double ComputeLocalMachNumberSquared(
     KRATOS_ERROR_IF(local_speed_of_sound_squared < std::numeric_limits<double>::epsilon())
         << "ComputeLocalMachNumberSquared: local speed of sound squared squared is less than zero." << std::endl;
 
-    // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
+    // computes square of velocity including clamping according to MACH_LIMIT
     const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
 
     return local_velocity_squared / local_speed_of_sound_squared;
@@ -553,7 +555,7 @@ double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(
     KRATOS_ERROR_IF(free_stream_velocity_squared < std::numeric_limits<double>::epsilon())
         << "ComputeDerivativeLocalMachSquaredWRTVelocitySquared: free stream velocity squared squared is less than zero." << std::endl;
 
-    // computes square of velocity including clamping according to MACH_SQUARED_LIMIT
+    // computes square of velocity including clamping according to MACH_LIMIT
     const double local_velocity_squared = ComputeClampedVelocitySquared<Dim, NumNodes>(rVelocity, rCurrentProcessInfo);
 
     KRATOS_ERROR_IF(local_velocity_squared < std::numeric_limits<double>::epsilon())
@@ -894,7 +896,7 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
             number_of_unfulfilled_wake_conditions += 1;
         }
     }
-    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0 && rEchoLevel > 0)
         << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
         << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
 }

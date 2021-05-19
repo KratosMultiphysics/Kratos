@@ -19,6 +19,7 @@
 
 // Project includes
 #include "post_process_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -57,46 +58,38 @@ void PostProcessUtilities::DefineAuxiliaryProperties()
 
 void PostProcessUtilities::AssignDryWetProperties(Flags WetStateFlag)
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-    {
-        auto elem = mrModelPart.ElementsBegin() + i;
-
-        if (elem->Is(WetStateFlag))
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+        if (rElem.Is(WetStateFlag))
         {
-            auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
+            auto search = mDryToWetPropertiesMap.find(rElem.GetProperties().Id());
             if (search != mDryToWetPropertiesMap.end()) // The element was dry
             {
                 IndexType wet_prop_id = search->second;
-                elem->SetProperties(mrModelPart.pGetProperties(wet_prop_id));
+                rElem.SetProperties(mrModelPart.pGetProperties(wet_prop_id));
             }
         }
         else
         {
-            auto search = mWetToDryPropertiesMap.find(elem->GetProperties().Id());
+            auto search = mWetToDryPropertiesMap.find(rElem.GetProperties().Id());
             if (search != mWetToDryPropertiesMap.end()) // The element was wet
             {
                 IndexType dry_prop_id = search->second;
-                elem->SetProperties(mrModelPart.pGetProperties(dry_prop_id));
+                rElem.SetProperties(mrModelPart.pGetProperties(dry_prop_id));
             }
         }
-    }
+    });
 }
 
 void PostProcessUtilities::RestoreDryWetProperties()
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-    {
-        auto elem = mrModelPart.ElementsBegin() + i;
-
-        auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+        auto search = mDryToWetPropertiesMap.find(rElem.GetProperties().Id());
         if (search != mDryToWetPropertiesMap.end()) // The element was dry
         {
             IndexType wet_prop_id = search->second;
-            elem->SetProperties(mrModelPart.pGetProperties(wet_prop_id));
+            rElem.SetProperties(mrModelPart.pGetProperties(wet_prop_id));
         }
-    }
+    });
 }
 
 }  // namespace Kratos.
