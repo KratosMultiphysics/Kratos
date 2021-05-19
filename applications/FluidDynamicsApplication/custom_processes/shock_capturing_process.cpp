@@ -101,17 +101,17 @@ namespace Kratos
         for (const auto& rNode : mrModelPart.Nodes()) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, rNode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rNode)
-            if (mThermalSensor || mThermallyCoupledFormulation) {
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, rNode)
-            }
+            // if (mThermalSensor || mThermallyCoupledFormulation) {
+            //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE, rNode)
+            // }
         }
 
         // Check that the required material properties are in the elemental properties
-        for (const auto& rElement : mrModelPart.Elements()) {
-            const auto& r_prop = rElement.GetProperties();
-            KRATOS_ERROR_IF_NOT(r_prop.Has(SPECIFIC_HEAT)) << "Element " << rElement.Id() << " properties " << r_prop.Id() <<  " has no SPECIFIC_HEAT." << std::endl;
-            KRATOS_ERROR_IF_NOT(r_prop.Has(HEAT_CAPACITY_RATIO)) << "Element " << rElement.Id() << " properties " << r_prop.Id() << " has no HEAT_CAPACITY_RATIO." << std::endl;
-        }
+        // for (const auto& rElement : mrModelPart.Elements()) {
+        //     const auto& r_prop = rElement.GetProperties();
+        //     KRATOS_ERROR_IF_NOT(r_prop.Has(SPECIFIC_HEAT)) << "Element " << rElement.Id() << " properties " << r_prop.Id() <<  " has no SPECIFIC_HEAT." << std::endl;
+        //     KRATOS_ERROR_IF_NOT(r_prop.Has(HEAT_CAPACITY_RATIO)) << "Element " << rElement.Id() << " properties " << r_prop.Id() << " has no HEAT_CAPACITY_RATIO." << std::endl;
+        // }
 
         return err_code;
     }
@@ -144,8 +144,8 @@ namespace Kratos
     {
         // Initialize the values to zero
         block_for_each(mrModelPart.Nodes(), [](Node<3> &rNode) {
-            rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
-            rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
+            // rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) = 0.0;
+            // rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) = 0.0;
             rNode.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = 0.0;
         });
 
@@ -176,8 +176,8 @@ namespace Kratos
         // Nodal smoothing of the shock capturing magnitudes
         block_for_each(mrModelPart.Nodes(), [](Node<3>& rNode) {
             const double nodal_area = rNode.GetValue(NODAL_AREA);
-            rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) /= nodal_area;
-            rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
+            // rNode.GetValue(ARTIFICIAL_CONDUCTIVITY) /= nodal_area;
+            // rNode.GetValue(ARTIFICIAL_BULK_VISCOSITY) /= nodal_area;
             rNode.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) /= nodal_area;
         });
     }
@@ -301,31 +301,31 @@ namespace Kratos
         rVelocityRotational(2) = dvy_dx - dvx_dy;
     }
 
-    template<std::size_t TDim, std::size_t TNumNodes>
-    void ShockCapturingProcess::CalculateTemperatureGradients(
-        const Geometry<Node<3>>& rGeometry,
-        const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
-        const Matrix& rJacobianMatrix,
-        array_1d<double,3>& rTemperatureGradient,
-        array_1d<double,3>& rTemperatureLocalGradient)
-    {
-        // Calculate temperature gradient
-        array_1d<double,3> grad_temp = ZeroVector(3);
-        for (std::size_t j = 0; j < TNumNodes; ++j) {
-            const double& r_temp_j = rGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
-            for (std::size_t i = 0; i < TDim; ++i) {
-                grad_temp(i) += rDN_DX(j,i) * r_temp_j;
-            }
-        }
+    // template<std::size_t TDim, std::size_t TNumNodes>
+    // void ShockCapturingProcess::CalculateTemperatureGradients(
+    //     const Geometry<Node<3>>& rGeometry,
+    //     const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
+    //     const Matrix& rJacobianMatrix,
+    //     array_1d<double,3>& rTemperatureGradient,
+    //     array_1d<double,3>& rTemperatureLocalGradient)
+    // {
+    //     // Calculate temperature gradient
+    //     array_1d<double,3> grad_temp = ZeroVector(3);
+    //     for (std::size_t j = 0; j < TNumNodes; ++j) {
+    //         const double& r_temp_j = rGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
+    //         for (std::size_t i = 0; i < TDim; ++i) {
+    //             grad_temp(i) += rDN_DX(j,i) * r_temp_j;
+    //         }
+    //     }
 
-        // Calculate temperature local gradient
-        rTemperatureLocalGradient = ZeroVector(3);
-        for (unsigned int i = 0; i < TDim; ++i) {
-            for (unsigned int j = 0; j < TDim; ++j) {
-                rTemperatureLocalGradient(i) += rJacobianMatrix(j, i) * grad_temp(j);
-            }
-        }
-    }
+    //     // Calculate temperature local gradient
+    //     rTemperatureLocalGradient = ZeroVector(3);
+    //     for (unsigned int i = 0; i < TDim; ++i) {
+    //         for (unsigned int j = 0; j < TDim; ++j) {
+    //             rTemperatureLocalGradient(i) += rJacobianMatrix(j, i) * grad_temp(j);
+    //         }
+    //     }
+    // }
 
     template<std::size_t TDim, std::size_t TNumNodes>
     void ShockCapturingProcess::CalculateShearSensorValues(
@@ -369,19 +369,19 @@ namespace Kratos
     }
 
     /* Explicit template instantiation ****************************************/
-    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<2,3>(
-        const Geometry<Node<3>>& rGeometry,
-        const BoundedMatrix<double,3,2>& rDN_DX,
-        const Matrix& rJacobianMatrix,
-        array_1d<double,3>& rTemperatureGradient,
-        array_1d<double,3>& rTemperatureLocalGradient);
+    // template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<2,3>(
+    //     const Geometry<Node<3>>& rGeometry,
+    //     const BoundedMatrix<double,3,2>& rDN_DX,
+    //     const Matrix& rJacobianMatrix,
+    //     array_1d<double,3>& rTemperatureGradient,
+    //     array_1d<double,3>& rTemperatureLocalGradient);
 
-    template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<3,4>(
-        const Geometry<Node<3>>& rGeometry,
-        const BoundedMatrix<double,4,3>& rDN_DX,
-        const Matrix& rJacobianMatrix,
-        array_1d<double,3>& rTemperatureGradient,
-        array_1d<double,3>& rTemperatureLocalGradient);
+    // template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateTemperatureGradients<3,4>(
+    //     const Geometry<Node<3>>& rGeometry,
+    //     const BoundedMatrix<double,4,3>& rDN_DX,
+    //     const Matrix& rJacobianMatrix,
+    //     array_1d<double,3>& rTemperatureGradient,
+    //     array_1d<double,3>& rTemperatureLocalGradient);
 
     template void KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingProcess::CalculateShearSensorValues<2,3>(
         const Geometry<Node<3>>& rGeometry,

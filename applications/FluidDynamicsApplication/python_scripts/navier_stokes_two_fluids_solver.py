@@ -214,8 +214,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+
+        self.shock_capturing_settings=KratosMultiphysics.Parameters("""{
+            "model_part_name" : "",
+            "calculate_nodal_area_at_each_step" : false,
+            "shock_sensor" : false,
+            "shear_sensor" : true,
+            "thermal_sensor" : false,
+            "thermally_coupled_formulation" : false
+        }""")
+
+
+        self._GetShockCapturingProcess().ExecuteInitialize() 
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize() #TODO: THINK ABOUT HOW TO PROPERLY CONSTRUCT THIS
+
         # mass_settings = KratosMultiphysics.Parameters( """
         # {
         #     "model_part_name"                    : "FluidModelPart.FluidParts_Boundary-Fluid",
@@ -305,7 +318,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Apply mass conservation process
             # Perform distance correction to prevent ill-conditioned cuts
             self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-
+            self._GetShockCapturingProcess().ExecuteInitializeSolutionStep()
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
 
@@ -344,6 +357,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
             # Prepare distance correction for next step
+            
             self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
             # Finalize the solver current step
@@ -361,7 +375,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Limit the obtained acceleration for the next step
             # self._GetAccelerationLimitationUtility().Execute()
-
+            self._GetShockCapturingProcess().Execute()
     def __PerformLevelSetConvection(self):
         if self._bfecc_convection:
             self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
@@ -517,6 +531,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
         return self._distance_modification_process
 
+        
+    def _GetShockCapturingProcess(self):
+        if not hasattr(self,'_shock_capturing_process'):
+            self._shock_capturing_process=self.__CreateShockCapturingProcess()
+        return self._shock_capturing_process
+
+
     def __CreateAccelerationLimitationUtility(self):
         maximum_multiple_of_g_acceleration_allowed = 5.0
         acceleration_limitation_utility = KratosCFD.AccelerationLimitationUtilities(
@@ -635,7 +656,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process
-
+    
+    def __CreateShockCapturingProcess(self):
+        shock_capturing_process=KratosCFD.ShockCapturingProcess(self.main_model_part,self.shock_capturing_settings)
+        return shock_capturing_process
     def __CreateDistanceModificationProcess(self):
         # Set suitable distance correction settings for free-surface problems
         # Note that the distance modification process is applied to the computing model part

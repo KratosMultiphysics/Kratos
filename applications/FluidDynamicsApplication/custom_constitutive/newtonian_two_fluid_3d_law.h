@@ -106,7 +106,8 @@ protected:
     ///@{
 
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
-
+      void EvaluateInPointShockCapturing(double& rResult,
+        ConstitutiveLaw::Parameters& rParameters) const;
     ///@}
 private:
 
@@ -130,6 +131,8 @@ private:
     void EvaluateInPoint(double& rResult,
         const Variable<double>& rVariable,
         ConstitutiveLaw::Parameters& rParameters) const;
+    
+  
 
     double EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const;
 

@@ -40,7 +40,6 @@ namespace Kratos
 ///@{
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 
@@ -287,7 +286,11 @@ private:
         midpoint_tot_ener = 0.5 * midpoint_rho * inner_prod(r_midpoint_v, r_midpoint_v) + midpoint_p;
         
 
-
+        // Calculate common values
+        const double v_norm_pow = SquaredArrayNorm(r_midpoint_v);
+        // const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
+        // const double c_star = std::sqrt(gamma * (gamma - 1.0) * c_v * stagnation_temp * (2.0 / (gamma + 1.0))); // Critical speed of sound
+        const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star, 2));
 
         // Shock sensor values
         // if (mShockSensor) {
@@ -364,47 +367,37 @@ private:
 
         //     // Shear sensor values
         if (mShearSensor) {
-            // Calculate common values
-            const double v_norm_pow = SquaredArrayNorm(r_midpoint_v);
-            if(v_norm_pow>1.0e-12){
-                // const double stagnation_temp = midpoint_tot_ener / midpoint_rho / c_v;
-                const double c_star = 0; // Critical speed of sound
-                const double ref_mom_norm = midpoint_rho * std::sqrt(v_norm_pow + std::pow(c_star, 2));
-                // Calculate shear sensor values
-                // Calculate Jacobian matrix (non-required for the shock sensor)
-                Matrix mid_pt_jacobian; //FIXME: We should use a bounded matrix in here
-                r_geom.Jacobian(mid_pt_jacobian, 0, GeometryData::GI_GAUSS_1);
-                double r_c;
-                auto& r_local_shear_grad_v = rShockCapturingTLS.VelocityShearLocalGradient;
-                CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
-                BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
-                MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
-                double shear_spect_norm = 0.0;
-                for (unsigned int d = 0; d < eigen_val_mat.size1(); ++d) {
-                    if (eigen_val_mat(d, d) > shear_spect_norm) {
-                        shear_spect_norm = eigen_val_mat(d, d);
-                    }
+            // Calculate shear sensor values
+            double r_c;
+            auto& r_local_shear_grad_v = rShockCapturingTLS.VelocityShearLocalGradient;
+            CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
+            BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
+            MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
+            double shear_spect_norm = 0.0;
+            for (unsigned int d = 0; d < eigen_val_mat.size1(); ++d) {
+                if (eigen_val_mat(d, d) > shear_spect_norm) {
+                    shear_spect_norm = eigen_val_mat(d, d);
                 }
-                shear_spect_norm = std::sqrt(shear_spect_norm);
-
-                // Characteristic element size for the shear sensor
-                const double h_mu = h_ref * metric_tensor_inf;
-
-                // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
-                // const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) * std::pow(r_c, 2));
-                const double isentropic_max_vel = std::sqrt(v_norm_pow );
-                const double s_mu_0 = 1.0;
-                const double s_mu_max = 2.0;
-                const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
-                // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
-                const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
-                rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
-
-                // Calculate elemental artificial dynamic viscosity
-                const double k_mu = 1.0;
-                const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
-                rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
             }
+            shear_spect_norm = std::sqrt(shear_spect_norm);
+
+            // Characteristic element size for the shear sensor
+            const double h_mu = h_ref * metric_tensor_inf;
+
+            // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
+            // const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) * std::pow(r_c, 2));
+            const double isentropic_max_vel = std::sqrt(v_norm_pow );
+            const double s_mu_0 = 1.0;
+            const double s_mu_max = 2.0;
+            const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
+            // const double s_mu_hat = LimitingFunction(s_mu, s_mu_0, s_mu_max);
+            const double s_mu_hat = SmoothedLimitingFunction(s_mu, s_mu_0, s_mu_max);
+            rElement.GetValue(SHEAR_SENSOR) = s_mu_hat;
+
+            // Calculate elemental artificial dynamic viscosity
+            const double k_mu = 1.0;
+            const double elem_mu_star = (k_mu * h_mu / k) * ref_mom_norm * s_mu_hat;
+            rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) = elem_mu_star;
         }
         
 
@@ -412,9 +405,9 @@ private:
     const double aux_weight = r_vol / static_cast<double>(n_nodes);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
         auto &r_node = r_geom[i_node];
-       
+        if (mShockSensor) {AtomicAdd(r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY), aux_weight * rElement.GetValue(ARTIFICIAL_BULK_VISCOSITY));}
         if (mShearSensor) {AtomicAdd(r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), aux_weight * rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY));}
-        
+        if (mShockSensor || mThermalSensor) {AtomicAdd(r_node.GetValue(ARTIFICIAL_CONDUCTIVITY), aux_weight * rElement.GetValue(ARTIFICIAL_CONDUCTIVITY));}
     }
 
 }
