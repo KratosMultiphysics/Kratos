@@ -498,7 +498,7 @@ void IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateBlockLeftHan
     // Computing wake normal condition lhs
     // Attention: this only works for straight trailing edges
     // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
-    const array_1d<double, 3> wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
     const BoundedVector<double, 4> DNn = prod(rData.DN_DX, wake_normal);
     const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn,trans(DNn));
 
