@@ -75,47 +75,53 @@ Here you can find the basic documentation of the project:
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
-<span>
-<img align="center" src="https://github.com/KratosMultiphysics/Examples/raw/master/fluid_dynamics/use_cases/barcelona_wind/resources/BarcelonaVelocityVector.png" width="288">
-  Barcelona Wind Simulation
-</span>
-<br>
+<div class="row">
+    <div class="col-md-12" style="text-align:center;">
+        <img src="https://github.com/KratosMultiphysics/Examples/raw/master/fluid_dynamics/use_cases/barcelona_wind/resources/BarcelonaVelocityVector.png" width="75%">
+        <p>Barcelona Wind Simulation</p>
+    </div>
+</div>
 
 # Contributors
 Organizations contributing to Kratos:
 
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
-</br></br><p>International Center for Numerical Methods in Engineering</p>
-
-</br></br>
-
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
-</br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
-
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
-</br><p>Altair Engineering</p>
-
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
-</br><p>Deltares</p>
+<div class="row">
+    <div class="col-md-6" style="text-align:center;">
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>International Center</span>
+        <br><span>for Numerical Methods in Engineering</span><br>
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>Chair of Structural Analysis</span>
+        <br><span>Technical University of Munich</span><br>
+    </div>
+    <div class="col-md-6" style="text-align:center;">
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>Altair Engineering</span><br>
+        <br>
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>Deltares</span><br>
+        <br>
+    </div>
+</div>
 
 # Our Users
 Some users of the technologies developed in Kratos are:
 
-<span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
-<p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
-</span>
-<span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
-<p>Siemens AG</br>Corporate Technology</p>
-</span>
-<span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
-<p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
-</span>
-
-
-Looking forward to seeing your logo here!
+<div class="row">
+    <div class="col-md-6" style="text-align:center;">
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>Airbus Defence and Space</span>
+        <br><span>Stress Methods & Optimisation Department</span><br>
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>Siemens AG</span>
+        <br><span>Corporate Technology</span><br>
+    </div>
+    <div class="col-md-6" style="text-align:center;">
+        <img src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" style="margin-bottom:15px;max-height:80px;min-height:80px">
+        <br><span>ONERA, The French Aerospace Lab</span>
+        <br><span>Applied Aerodynamics Department</span><br>
+    </div>
+</div>
 
 # Special Thanks To
 In Kratos Core:
