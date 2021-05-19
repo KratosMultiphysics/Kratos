@@ -46,7 +46,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "";
+        rOStream << "PiecewiseLinearRandomVariable";
     }
 
     /// Print object's data.

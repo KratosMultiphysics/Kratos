@@ -14,7 +14,7 @@ namespace Kratos {
     }
     void RandomVariable::PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Flags";
+        rOStream << "Abstract RandomVariable";
     }
     void RandomVariable::PrintData(std::ostream& rOStream) const {}
 }
