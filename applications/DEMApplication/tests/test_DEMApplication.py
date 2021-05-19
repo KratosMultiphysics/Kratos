@@ -57,7 +57,6 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
-    smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
 
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Taylor"))

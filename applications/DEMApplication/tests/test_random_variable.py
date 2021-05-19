@@ -4,9 +4,6 @@ import KratosMultiphysics
 from KratosMultiphysics import Logger
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.DEMApplication.DEM_analysis_stage
-
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 class TestRandomVariable(KratosUnittest.TestCase):
     debug_mode = False
@@ -70,7 +67,6 @@ class TestRandomVariable(KratosUnittest.TestCase):
             random_variable = DEM.PiecewiseLinearRandomVariable(settings, seed)
         else:
             random_variable = DEM.PiecewiseLinearRandomVariable(settings)
-
         mean_expected = TestRandomVariable.GetMean(settings["pdf_breakpoints"].GetVector(), settings["pdf_values"].GetVector())
         mean = random_variable.GetMean()
         self.assertAlmostEqual(mean_expected, mean, None, 'The calculated PDF mean differs from the expected one.')
@@ -102,8 +98,8 @@ class TestRandomVariable(KratosUnittest.TestCase):
                 n_experiments *= 2
             if n_experiments > n_max_experiments:
                 raise ValueError('\nThe requested tolerance (' + '{:.4f}'.format(tolerance) + ')'
-                                 + ' requires a greater number of experiments than the maximum allowed (' + '{:d}'.format(n_max_experiments)
-                                 + ')! Please, increase it (reduce desired precision).')
+                                + ' requires a greater number of experiments than the maximum allowed (' + '{:d}'.format(n_max_experiments)
+                                + ')! Please, increase it (reduce desired precision).')
 
             TestRandomVariable.Say('Sample size', n_experiments)
             TestRandomVariable.Say('Error = ' + '{:.4f}'.format(error), '( tolerance = ' + '{:.4f}'.format(tolerance), ')')
@@ -120,9 +116,6 @@ class TestRandomVariable(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-    if __name__ == "__main__":
-        KratosUnittest.main()
-
-
-
-
+if __name__ == "__main__":
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    KratosUnittest.main()
