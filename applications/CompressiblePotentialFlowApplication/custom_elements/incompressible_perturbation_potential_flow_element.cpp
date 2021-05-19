@@ -491,7 +491,7 @@ void IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateBlockLeftHan
     ComputeLHSGaussPointContribution(rData.vol*free_stream_density, rLhs_total, rData);
 
     // Computing linearized pressure equality condition lhs
-    const array_1d<double, 3> free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
     const BoundedVector<double, 4> DNv = prod(rData.DN_DX, free_stream_velocity_direction);
     const BoundedMatrix<double, 4, 4> pressure_equality_lhs = outer_prod(DNv,trans(DNv));
 
