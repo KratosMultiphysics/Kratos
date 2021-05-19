@@ -1,10 +1,8 @@
 ---
-title: "Kratos"
 keywords: Kratos Main Overview Readme
 tags: []
 sidebar: kratos_sidebar
 permalink: index.html
-summary: This is the overview and the wellcome page of the project.
 ---
 
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
