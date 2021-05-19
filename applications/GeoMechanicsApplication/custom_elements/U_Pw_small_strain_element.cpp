@@ -1080,7 +1080,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
-    this->InitializeNodalVariables( rVariables );
+    this->InitializeNodalDisplacementVariables( rVariables );
+    this->InitializeNodalPorePressureVariables( rVariables );
 
     //Variables computed at each GP
     noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -1600,10 +1601,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
-    InitializeNodalVariables( ElementVariables& rVariables )
+    InitializeNodalPorePressureVariables( ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
+    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeNodalPorePressureVariables") << std::endl;
 
     const GeometryType& Geom = this->GetGeometry();
 
@@ -1613,12 +1614,28 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
+
+    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeNodalPorePressureVariables") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    InitializeNodalDisplacementVariables( ElementVariables& rVariables )
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeNodalDisplacementVariables") << std::endl;
+
+    const GeometryType& Geom = this->GetGeometry();
+
+    //Nodal Variables
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector, Geom, DISPLACEMENT);
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VelocityVector,     Geom, VELOCITY);
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VolumeAcceleration, Geom, VOLUME_ACCELERATION);
 
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
+    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeNodalDisplacementVariables") << std::endl;
     KRATOS_CATCH( "" )
 
 }

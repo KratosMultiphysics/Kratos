@@ -71,7 +71,9 @@ int UPwBaseElement<TDim,TNumNodes>::
         if ( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
             KRATOS_THROW_ERROR(std::invalid_argument,"missing VOLUME_ACCELERATION variable on node ", Geom[i].Id() );
 
-        if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false || Geom[i].HasDofFor( DISPLACEMENT_Y ) == false || Geom[i].HasDofFor( DISPLACEMENT_Z ) == false )
+        if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false ||
+             Geom[i].HasDofFor( DISPLACEMENT_Y ) == false ||
+             Geom[i].HasDofFor( DISPLACEMENT_Z ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", Geom[i].Id() )
         if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", Geom[i].Id() )

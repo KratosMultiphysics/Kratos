@@ -267,7 +267,9 @@ protected:
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
     virtual void CalculateStrain( ElementVariables &rVariables );
 
-    void InitializeNodalVariables( ElementVariables &rVariables );
+    void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
+    void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
+
     void InitializeProperties( ElementVariables &rVariables );
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
