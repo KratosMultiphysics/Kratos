@@ -29,7 +29,7 @@ def Create( model, optimization_settings, external_analyzer=EmptyAnalyzer()):
 # ==============================================================================
 class Optimizer:
     # --------------------------------------------------------------------------
-    def __init__(self, model, optimization_settings, external_analyzer):
+    def __init__(self, model, optimization_settings, external_analyzer=EmptyAnalyzer()):
         self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
 
