@@ -575,7 +575,7 @@ template <>
 BoundedVector<double, 4> IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateRightHandSideWakeCondition(const ElementalData<4, 3>& rData, const ProcessInfo& rCurrentProcessInfo, const array_1d<double, 3>& rDiff_velocity)
 {
     // Computing linearized pressure equality condition
-    const array_1d<double, 3> free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
     const double pressure_equality_condition = inner_prod(free_stream_velocity_direction, rDiff_velocity);
     const array_1d<double, 3> vp = free_stream_velocity_direction * pressure_equality_condition;
 
