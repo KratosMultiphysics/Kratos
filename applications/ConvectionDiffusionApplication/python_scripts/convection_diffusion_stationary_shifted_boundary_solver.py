@@ -38,7 +38,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
     def Initialize(self):
         # Correct the level set
         #TODO: Use the FluidDynamicsApplication process
-        tol = 1.0e-5
+        tol = 1.0e-4
         for node in self.GetComputingModelPart().Nodes:
             dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             if abs(dist) < tol:
@@ -50,9 +50,13 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Find the required problem subdomains
         self.__SetInterfaceFlags()
 
-        # Calculate the nodal neighbours
+        # Calculate the required neighbours
         nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
         nodal_neighbours_process.Execute()
+        avg_num_elements = 10
+        dimensions = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        elemental_neighbours_process = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, dimensions, avg_num_elements)
+        elemental_neighbours_process.Execute()
 
         # Create the boundary elements and MLS basis
         settings = KratosMultiphysics.Parameters("""{}""")
@@ -74,15 +78,17 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Initialize the required flags to false
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, False, self.GetComputingModelPart().Nodes)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, False, self.GetComputingModelPart().Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, False, self.GetComputingModelPart().Elements)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, False, self.GetComputingModelPart().Elements)
 
         # Mark the first layer of positive distance nodes as BOUNDARY
         for element in self.GetComputingModelPart().Elements:
             geometry = element.GetGeometry()
             if self.__IsSplit(geometry):
+                element.Set(KratosMultiphysics.BOUNDARY, True)
                 for node in geometry:
                     dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                    if dist > 0.0:
+                    if not dist < 0.0:
                         node.Set(KratosMultiphysics.BOUNDARY, True)
 
         # Mark the first layer of positive distance elements and their nodes as INTERFACE
@@ -90,13 +96,13 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
             geometry = element.GetGeometry()
             if self.__IsPositive(geometry):
                 # Check if one of the nodes is BOUNDARY
-                is_boundary = False
+                is_surrogate = False
                 for node in geometry:
                     if node.Is(KratosMultiphysics.BOUNDARY):
-                        is_boundary = True
+                        is_surrogate = True
                         break
                 # If BOUNDARY, mark the element and all the nodes as INTERFACE
-                if is_boundary:
+                if is_surrogate:
                     element.Set(KratosMultiphysics.INTERFACE, True)
                     for node in geometry:
                         node.Set(KratosMultiphysics.INTERFACE, True)

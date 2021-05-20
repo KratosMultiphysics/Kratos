@@ -95,77 +95,61 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
         const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
 
         // Find the surrogate face local id
-        // Note that the BOUNDARY flag is assumed to be set in the surrogate interface nodes
-        std::size_t sur_bd_id;
-        const auto& r_geom = GetGeometry();
-        const std::size_t n_nodes = r_geom.PointsNumber();
-        const auto r_boundaries = r_geom.GenerateBoundariesEntities();
-        const std::size_t n_bds = r_boundaries.size();
-        const std::size_t n_bd_nodes = r_boundaries[0].PointsNumber();
-        for (std::size_t i_bd = 0; i_bd < n_bds; ++i_bd) {
-            const auto& r_boundary = r_boundaries[i_bd];
-            std::size_t n_flag_nodes = 0;
-            for (const auto& r_node : r_boundary) {
-                if (r_node.Is(BOUNDARY)) {
-                    n_flag_nodes++;
+        // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
+        const auto sur_bd_ids_vect = GetSurrogateFacesIds();
+        if (sur_bd_ids_vect.size() != 0) {
+            // Get the parent geometry data
+            double dom_size_parent;
+            const auto& r_geom = GetGeometry();
+            array_1d<double, TNumNodes> N_parent;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX_parent;
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            const auto& r_boundaries = r_geom.GenerateBoundariesEntities();
+            DenseMatrix<unsigned int> nodes_in_faces;
+            r_geom.NodesInFaces(nodes_in_faces);
+
+            // Loop the surrogate faces
+            // Note that there is the chance that the surrogate face is not unique
+            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
+                // Get the current surrogate face geometry information
+                const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
+                const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
+                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(BaseType::GetIntegrationMethod());
+                const Matrix& N_g = r_sur_bd_geom.ShapeFunctionsValues(BaseType::GetIntegrationMethod());
+
+                // Get the surrogate boundary nodal data
+                DenseVector<double> nodal_unknown(n_bd_points);
+                DenseVector<double> nodal_conductivity(n_bd_points);
+                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                    nodal_unknown[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_unknown_var);
+                    nodal_conductivity[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
                 }
-            }
-            if (n_flag_nodes == n_bd_nodes) {
-                sur_bd_id = i_bd;
-                break;
-            }
-        }
 
-        // Get the parent geometry data
-        double dom_size_parent;
-        array_1d<double, TNumNodes> N_parent;
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX_parent;
-        GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+                // Integrate the surrogate boundary flux
+                const std::size_t n_gauss = r_integration_points.size();
+                for(std::size_t i_g = 0; i_g < n_gauss; ++i_g) {
+                    // Get surrogate boundary Gauss pt. geometry data
+                    const DenseVector<double> N_i_g = row(N_g, i_g);
+                    const double w_i_g = r_integration_points[i_g].Weight() * r_sur_bd_geom.DeterminantOfJacobian(i_g, BaseType::GetIntegrationMethod());
+                    const double k_i_g = inner_prod(N_i_g, nodal_conductivity);
+                    const array_1d<double,3> normal_g = r_sur_bd_geom.Normal(r_integration_points[i_g].Coordinates());
 
-        // Get the surrogate boundary geometry data
-        const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
-        const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-        const unsigned int n_dim = r_sur_bd_geom.WorkingSpaceDimension();
-
-        const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(BaseType::GetIntegrationMethod());
-        const Matrix& N_g = r_sur_bd_geom.ShapeFunctionsValues(BaseType::GetIntegrationMethod());
-
-        // Get the surrogate boundary NodesInFaces in order to perform the assembly
-        // Note that the first node in the NodesInFace is the node contrary to the face
-        DenseMatrix<unsigned int> nodes_in_faces;
-        r_geom.NodesInFaces(nodes_in_faces);
-        const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-
-        // Get the surrogate boundary nodal data
-        DenseVector<double> nodal_unknown(n_bd_points);
-        DenseVector<double> nodal_conductivity(n_bd_points);
-        for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
-            nodal_unknown[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_unknown_var);
-            nodal_conductivity[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
-        }
-
-        // Integrate the surrogate boundary flux
-        const std::size_t n_gauss = r_integration_points.size();
-        for(std::size_t i_g = 0; i_g < n_gauss; ++i_g) {
-            // Get surrogate boundary Gauss pt. geometry data
-            const DenseVector<double> N_i_g = row(N_g, i_g);
-            const double w_i_g = r_integration_points[i_g].Weight() * r_sur_bd_geom.DeterminantOfJacobian(i_g, BaseType::GetIntegrationMethod());
-            const double k_i_g = inner_prod(N_i_g, nodal_conductivity);
-            const array_1d<double,3> normal_g = r_sur_bd_geom.Normal(r_integration_points[i_g].Coordinates());
-
-            // Add the surrogate boundary flux contribution
-            // Note that the local face ids. are already taken into account in the assembly
-            double aux_1;
-            double aux_2;
-            std::size_t i_loc_id;
-            for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
-                i_loc_id = sur_bd_local_ids[i_node + 1];
-                aux_1 = w_i_g * k_i_g * N_i_g(i_node);
-                for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
-                    for (std::size_t d = 0; d < n_dim; ++d) {
-                        aux_2 = aux_1 * DN_DX_parent(j_node, d) * normal_g(d);
-                        rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
-                        rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
+                    // Add the surrogate boundary flux contribution
+                    // Note that the local face ids. are already taken into account in the assembly
+                    double aux_1;
+                    double aux_2;
+                    std::size_t i_loc_id;
+                    for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
+                        i_loc_id = sur_bd_local_ids[i_node + 1];
+                        aux_1 = w_i_g * k_i_g * N_i_g(i_node);
+                        for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
+                            for (std::size_t d = 0; d < TDim; ++d) {
+                                aux_2 = aux_1 * DN_DX_parent(j_node, d) * normal_g(d);
+                                rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
+                                rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
+                            }
+                        }
                     }
                 }
             }
@@ -206,6 +190,57 @@ int LaplacianShiftedBoundaryElement<TDim>::Check(const ProcessInfo& rCurrentProc
 
     // Base Laplacian element check
     return BaseType::Check(rCurrentProcessInfo);
+}
+
+template<std::size_t TDim>
+std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFacesIds()
+{
+    const auto& r_geom = GetGeometry();
+    const std::size_t n_faces = TDim + 1;
+    const std::size_t n_nodes_in_face = TDim;
+    auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
+    DenseMatrix<unsigned int> nodes_in_faces;
+    r_geom.NodesInFaces(nodes_in_faces);
+
+    // Check the current element faces
+    std::vector<std::size_t> surrogate_faces_ids;
+    for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+        const auto& i_face_loc_ids = row(nodes_in_faces, i_face);
+        // Check that current face is a potential surrogate face
+        std::size_t aux = 0;
+        for (std::size_t i_node = 0; i_node < n_nodes_in_face; ++i_node) {
+            if (r_geom[i_face_loc_ids[i_node + 1]].Is(BOUNDARY)) {
+                ++aux;
+            }
+        }
+        const bool is_boundary = aux == n_nodes_in_face ? true : false;
+
+        // If the current face is a potential surrogate face, check the element neighbours
+        if (is_boundary) {
+            for (auto& r_neigh_elem : r_neigh_elems) {
+                // Check if the neighbour is split or not
+                // Note that the BOUNDARY flag is assumed to be set in the elements cut by the level set
+                if (r_neigh_elem.Is(BOUNDARY)) {
+                    const auto& r_neigh_geom = r_neigh_elem.GetGeometry();
+                    // Get the number of repeated nodes among the current element and the boundary (cut) one
+                    std::size_t n_shared = 0;
+                    for (const auto& r_node : r_geom) {
+                        for (const auto& r_neigh_node : r_neigh_geom) {
+                            if (r_node.Id() == r_neigh_node.Id()) {
+                                ++n_shared;
+                            }
+                        }
+                    }
+                    // Check if the faces ids. are repeated meaning that the current face is surrogate
+                    if (n_shared == n_nodes_in_face) {
+                        surrogate_faces_ids.push_back(i_face);
+                    }
+                }
+            }
+        }
+    }
+
+    return surrogate_faces_ids;
 }
 
 template class LaplacianShiftedBoundaryElement<2>;

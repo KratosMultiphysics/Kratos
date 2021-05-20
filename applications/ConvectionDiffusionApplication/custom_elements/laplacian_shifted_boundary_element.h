@@ -208,6 +208,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    std::vector<std::size_t> GetSurrogateFacesIds();
 
     ///@}
     ///@name Private  Access
