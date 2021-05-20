@@ -13,7 +13,7 @@
 // Application includes
 
 #include "small_displacement_simp_element.hpp"
-#include "compairson_utilities.hpp" ///nicht mehr vorhanden auf momentanem Stand von Kratos --> muss neue Verknüpfung gefunden werden, vorerst wird diese verwendet. Auch soli_mechanics_math_utilities
+#include "comparison_utilities.hpp" ///nicht mehr vorhanden auf momentanem Stand von Kratos --> muss neue Verknüpfung gefunden werden, vorerst wird diese verwendet. Auch soli_mechanics_math_utilities
 #include "topology_optimization_application.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
@@ -99,10 +99,14 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 /*  void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
 		std::vector<double>& rValues,
 		const ProcessInfo& rCurrentProcessInfo ) */
+	
 void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
+
+
+// TODO: if else if with same command. Is this correct? If yes, simplify. 
 
 	// Additional part for post-processing of the topology optimized model part
 	if (rVariable == X_PHYS)
@@ -254,44 +258,6 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 	KRATOS_CATCH( "" )
 } 
  
-
-//************************************************************************************
-//************************************************************************************
-
-
-/*
-void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
-		const ProcessInfo& rCurrentProcessInfo)
-{
-	KRATOS_TRY
-/* 	// Additional part for post-processing of the topology optimized model part
-	if (rVariable == X_PHYS)
-		CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-
-	// From original SmallDisplacementElement
-	else if (rVariable == VON_MISES_STRESS)
-		CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-	else {
-
-		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-		if (rOutput.size() != integration_points.size())
-			rOutput.resize(integration_points.size());
-
-		for ( SizeType ii = 0; ii < integration_points.size(); ii++ )
-      	{
-        rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
-      	}
-
-
-	} 
-
-
-
-	KRATOS_CATCH( "" )
-}*/
-
-
 // =============================================================================================================================================
 // =============================================================================================================================================
 
@@ -321,10 +287,6 @@ void SmallDisplacementSIMPElement::SetElementData(const KinematicVariables& rThi
 
     KRATOS_CATCH( "" )
 }
-
-// =============================================================================================================================================
-// =============================================================================================================================================
-
 
 // =============================================================================================================================================
 // =============================================================================================================================================

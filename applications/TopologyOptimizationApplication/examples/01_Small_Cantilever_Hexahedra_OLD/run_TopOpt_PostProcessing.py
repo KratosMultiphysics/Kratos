@@ -15,7 +15,7 @@ from KratosMultiphysics.TopologyOptimizationApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
 # For GID output
-from gid_output import GiDOutput
+#from gid_output import GiDOutput
 
 ######################################################################################
 ######################################################################################
