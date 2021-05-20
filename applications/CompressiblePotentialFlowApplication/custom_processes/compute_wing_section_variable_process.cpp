@@ -14,6 +14,7 @@
 #include "compute_wing_section_variable_process.h"
 #include "includes/cfd_variables.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -61,31 +62,30 @@ void ComputeWingSectionVariableProcess::Execute()
 {
     KRATOS_TRY;
 
-    for (auto& r_node : mrModelPart.Nodes()) {
-        auto direction = r_node.Coordinates() - mrOrigin;
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    {
+        auto direction = rNode.Coordinates() - mrOrigin;
         double distance = inner_prod(direction, mrVersor);
         if (std::abs(distance) < 1e-9) {
-            r_node.SetValue(DISTANCE, 1e-9);
+            rNode.SetValue(DISTANCE, 1e-9);
         } else {
-            r_node.SetValue(DISTANCE, distance);
+            rNode.SetValue(DISTANCE, distance);
         }
-    }
+    });
+
     IndexType node_index = 0;
 
     for (auto& r_cond : mrModelPart.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
         IndexType n_pos = 0;
         IndexType n_neg = 0;
-
         for (auto& r_node : r_geometry) {
-            auto distance = r_node.GetValue(DISTANCE);
-            if (distance > 0.0) {
+            if (r_node.GetValue(DISTANCE) > 0.0) {
                 n_pos++;
             }
             else {
                 n_neg++;
             }
-
         }
 
         if (n_neg > 0 && n_pos > 0) {
