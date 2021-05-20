@@ -67,6 +67,8 @@ void ComputeWingSectionVariableProcess::Execute()
 {
     KRATOS_TRY;
 
+    ExecuteInitialize();
+
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
     {
         auto direction = rNode.Coordinates() - mrOrigin;
