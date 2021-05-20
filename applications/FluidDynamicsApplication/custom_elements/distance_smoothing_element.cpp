@@ -292,7 +292,7 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
     //const auto gp_this_elem = Element::WeakPointer( &*this );
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        const auto comparator = GlobalPointerComparor<Element>();
+        //const auto comparator = GlobalPointerComparor<Element>();
         //if (comparator(neighbour_elems(i_ne), gp_this_elem) ){ //neighbour_elems(i_ne) == gp_this_elem ){ //
         if(this == neighbour_elems(i_ne).get()){
             auto outer_face = Line3D2< GeometryType::PointType >(
