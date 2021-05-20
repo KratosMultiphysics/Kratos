@@ -13,14 +13,14 @@
 import KratosMultiphysics as KM
 
 # Import logger base classes
-from .value_logger_base import ValueLogger
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_base import ValueLogger
 
 # Import additional libraries
 import csv
-from .custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.custom_timer import Timer
 
 # ==============================================================================
-class ValueLoggerSteepestDescent( ValueLogger ):
+class ValueLoggerPenalizedProjection( ValueLogger ):
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         with open(self.complete_log_file_name, 'w') as csvfile:
@@ -30,7 +30,13 @@ class ValueLoggerSteepestDescent( ValueLogger ):
             row.append("{:>13s}".format("f"))
             row.append("{:>13s}".format("df_abs[%]"))
             row.append("{:>13s}".format("df_rel[%]"))
-            row.append("{:>13s}".format("norm_df"))
+
+            for itr in range(self.constraints.size()):
+                con_type = self.constraints[itr]["type"].GetString()
+                row.append("{:>13s}".format("c"+str(itr+1)+": "+con_type))
+                row.append("{:>13s}".format("c"+str(itr+1)+"_ref"))
+
+            row.append("{:>13s}".format("c_scaling"))
             row.append("{:>13s}".format("step_size"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
@@ -44,6 +50,10 @@ class ValueLoggerSteepestDescent( ValueLogger ):
         KM.Logger.PrintInfo("ShapeOpt", "Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
         KM.Logger.PrintInfo("ShapeOpt", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
 
+        for itr in range(self.constraints.size()):
+            constraint_id = self.constraints[itr]["identifier"].GetString()
+            KM.Logger.PrintInfo("ShapeOpt", "Value of C"+str(itr+1)+" = ", "{:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
+
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
@@ -56,7 +66,12 @@ class ValueLoggerSteepestDescent( ValueLogger ):
             row.append(" {:> .5E}".format(self.history["abs_change_objective"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["rel_change_objective"][self.current_index]))
 
-            row.append(" {:> .5E}".format(self.history["norm_objective_gradient"][self.current_index]))
+            for itr in range(self.constraints.size()):
+                constraint_id = self.constraints[itr]["identifier"].GetString()
+                row.append(" {:> .5E}".format(self.history["response_value"][constraint_id][self.current_index]))
+                row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
+
+            row.append(" {:> .5E}".format(self.history["correction_scaling"][self.current_index]))
             row.append(" {:> .5E}".format(self.history["step_size"][self.current_index]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)

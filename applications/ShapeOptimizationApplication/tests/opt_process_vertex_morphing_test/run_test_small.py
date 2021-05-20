@@ -19,7 +19,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 # Additional imports
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities

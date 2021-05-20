@@ -17,29 +17,27 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from .algorithm_base import OptimizationAlgorithm
-from . import mapper_factory
-from . import data_logger_factory
-from .custom_timer import Timer
-from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
+from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
+from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
+from KratosMultiphysics.ShapeOptimizationApplication.custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
-class AlgorithmSteepestDescent(OptimizationAlgorithm):
+class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = KM.Parameters("""
         {
-            "name"               : "steepest_descent",
-            "max_iterations"     : 100,
-            "relative_tolerance" : 1e-3,
-            "gradient_tolerance" : 1e-5,
+            "name"                    : "penalized_projection",
+            "correction_scaling"      : 1.0,
+            "use_adaptive_correction" : true,
+            "max_iterations"          : 100,
+            "relative_tolerance"      : 1e-3,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 1.0,
-                "estimation_tolerance"       : 0.1,
-                "increase_factor"            : 1.1,
-                "max_increase_factor"        : 10.0
+                "step_size"                  : 1.0
             }
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -60,16 +58,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
 
-        self.previos_objective_value = None
-
+        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
-        self.gradient_tolerance = self.algorithm_settings["gradient_tolerance"].GetDouble()
-        self.line_search_type = self.algorithm_settings["line_search"]["line_search_type"].GetString()
-        self.estimation_tolerance = self.algorithm_settings["line_search"]["estimation_tolerance"].GetDouble()
-        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
-        self.increase_factor = self.algorithm_settings["line_search"]["increase_factor"].GetDouble()
-        self.max_step_size = self.step_size*self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
@@ -77,9 +68,11 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
-            raise RuntimeError("Steepest descent algorithm only supports one objective function!")
-        if self.constraints.size() > 0:
-            raise RuntimeError("Steepest descent algorithm does not allow for any constraints!")
+            raise RuntimeError("Penalized projection algorithm only supports one objective function!")
+        if self.constraints.size() == 0:
+            raise RuntimeError("Penalized projection algorithm requires definition of a constraint!")
+        if self.constraints.size() > 1:
+            raise RuntimeError("Penalized projection algorithm only supports one constraint!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
@@ -105,7 +98,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         for self.optimization_iteration in range(1,self.max_iterations):
             KM.Logger.Print("")
             KM.Logger.Print("===============================================================================")
-            KM.Logger.PrintInfo("ShapeOpt", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
+            KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
             KM.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
@@ -113,9 +106,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.__initializeNewShape()
 
             self.__analyzeShape()
-
-            if self.line_search_type == "adaptive_stepping" and self.optimization_iteration > 1:
-                self.__adjustStepSize()
 
             self.__computeShapeUpdate()
 
@@ -146,76 +136,60 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.communicator.initializeCommunication()
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
+        self.communicator.requestValueOf(self.constraints[0]["identifier"].GetString())
+        self.communicator.requestGradientOf(self.constraints[0]["identifier"].GetString())
 
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
+        conGradientDict = self.communicator.getStandardizedGradient(self.constraints[0]["identifier"].GetString())
+
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
+        WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, KSO.DC1DX)
+
+        if self.objectives[0]["project_gradient_on_surface_normals"].GetBool() or self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
+            self.model_part_controller.ComputeUnitSurfaceNormals()
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-            self.model_part_controller.ComputeUnitSurfaceNormals()
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
+        if self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DC1DX)
+
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
-
-    # --------------------------------------------------------------------------
-    def __adjustStepSize(self):
-        current_a = self.step_size
-
-        # Compare actual and estimated improvement using linear information from the previos step
-        dfda1 = 0.0
-        for node in self.design_surface.Nodes:
-            # The following variables are not yet updated and therefore contain the information from the previos step
-            s1 = node.GetSolutionStepValue(KSO.SEARCH_DIRECTION)
-            dfds1 = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
-            dfda1 += s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
-
-        f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        f1 = self.previos_objective_value
-
-        df_actual = f2 - f1
-        df_estimated = current_a*dfda1
-
-        # Adjust step size if necessary
-        if f2 < f1:
-            estimation_error = (df_actual-df_estimated)/df_actual
-
-            # Increase step size if estimation based on linear extrapolation matches the actual improvement within a specified tolerance
-            if estimation_error < self.estimation_tolerance:
-                new_a = min(current_a*self.increase_factor, self.max_step_size)
-
-            # Leave step size unchanged if a nonliner change in the objective is observed but still a descent direction is obtained
-            else:
-                new_a = current_a
-        else:
-            # Search approximation of optimal step using interpolation
-            a = current_a
-            corrected_step_size = - 0.5 * dfda1 * a**2 / (f2 - f1 - dfda1 * a )
-
-            # Starting from the new design, and assuming an opposite gradient direction, the step size to the approximated optimum behaves reciprocal
-            new_a = current_a-corrected_step_size
-
-        self.step_size = new_a
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
+        self.mapper.InverseMap(KSO.DC1DX, KSO.DC1DX_MAPPED)
 
-        self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
+        constraint_value = self.communicator.getStandardizedValue(self.constraints[0]["identifier"].GetString())
+        if self.__isConstraintActive(constraint_value):
+            self.optimization_utilities.ComputeProjectedSearchDirection()
+            self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value)
+        else:
+            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
         self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
-    def __logCurrentOptimizationStep(self):
-        self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(KSO.DF1DX_MAPPED)
+    def __isConstraintActive(self, constraintValue):
+        if self.constraints[0]["type"].GetString() == "=":
+            return True
+        elif constraintValue > 0:
+            return True
+        else:
+            return False
 
+    # --------------------------------------------------------------------------
+    def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
+        additional_values_to_log["correction_scaling"] = self.optimization_utilities.GetCorrectionScaling()
         additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["norm_objective_gradient"] = self.norm_objective_gradient
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
@@ -223,20 +197,12 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __isAlgorithmConverged(self):
 
         if self.optimization_iteration > 1 :
+
             # Check if maximum iterations were reached
             if self.optimization_iteration == self.max_iterations:
                 KM.Logger.Print("")
                 KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
                 return True
-
-            # Check gradient norm
-            if self.optimization_iteration == 2:
-                self.initial_norm_objective_gradient = self.norm_objective_gradient
-            else:
-                if self.norm_objective_gradient < self.gradient_tolerance*self.initial_norm_objective_gradient:
-                    KM.Logger.Print("")
-                    KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged as gradient norm reached specified tolerance of ",self.gradient_tolerance)
-                    return True
 
             # Check for relative tolerance
             relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]

@@ -19,7 +19,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 # Import logger base classes
-from .design_logger_base import DesignLogger
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerGID( DesignLogger ):

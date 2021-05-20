@@ -17,11 +17,11 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # additional imports
 from .custom_timer import Timer
-from .analyzer_empty import EmptyAnalyzer
-from . import model_part_controller_factory
-from . import analyzer_factory
-from . import communicator_factory
-from . import algorithm_factory
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_empty import EmptyAnalyzer
+from KratosMultiphysics.ShapeOptimizationApplication import model_part_controller_factory
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers import analyzer_factory
+from KratosMultiphysics.ShapeOptimizationApplication import communicator_factory
+from KratosMultiphysics.ShapeOptimizationApplication.algorithms import algorithm_factory
 
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
