@@ -63,7 +63,7 @@ void ComputeWingSectionVariableProcess::Execute()
 
     for (auto& r_node : mrModelPart.Nodes()) {
         auto direction = r_node.Coordinates() - mrOrigin;
-        auto distance = inner_prod(direction, mrVersor);
+        double distance = inner_prod(direction, mrVersor);
         if (std::abs(distance) < 1e-9) {
             r_node.SetValue(DISTANCE, 1e-9);
         } else {
@@ -89,9 +89,17 @@ void ComputeWingSectionVariableProcess::Execute()
         }
 
         if (n_neg > 0 && n_pos > 0) {
-            node_index++;
-            auto p_node = mrSectionModelPart.CreateNewNode(node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
-            p_node->SetValue(PRESSURE_COEFFICIENT, r_cond.GetValue(PRESSURE_COEFFICIENT));
+            auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
+            for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
+                const auto& r_array_var = *mArrayVariablesList[i_var];
+                const auto& r_array_value = r_cond.GetValue(r_array_var);
+                p_node->SetValue(r_array_var, r_array_value);
+            }
+            for (IndexType i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
+                const auto& r_double_var = *mDoubleVariablesList[i_var];
+                const auto& r_double_value = r_cond.GetValue(r_double_var);
+                p_node->SetValue(r_double_var, r_double_value);
+            }
         }
     }
 
