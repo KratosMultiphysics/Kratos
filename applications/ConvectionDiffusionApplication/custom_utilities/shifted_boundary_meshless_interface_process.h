@@ -84,8 +84,18 @@ public:
         Model& rModel,
         Parameters ThisParameters)
         : Process()
-        , mrModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
     {
+        const std::string model_part_name = ThisParameters["model_part_name"].GetString();
+        const std::string boundary_sub_model_part_name = ThisParameters["boundary_sub_model_part_name"].GetString();
+        mpModelPart = &rModel.GetModelPart(model_part_name);
+        if (mpModelPart->HasSubModelPart(boundary_sub_model_part_name)) {
+            mpBoundarySubModelPart = &(mpModelPart->GetSubModelPart(boundary_sub_model_part_name));
+            KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInferfaceProcess", mpBoundarySubModelPart->NumberOfNodes() != 0) << "Provided SBM model part has nodes." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInferfaceProcess", mpBoundarySubModelPart->NumberOfElements() != 0) << "Provided SBM model part has elements." << std::endl;
+            KRATOS_WARNING_IF("ShiftedBoundaryMeshlessInferfaceProcess", mpBoundarySubModelPart->NumberOfConditions() != 0) << "Provided SBM model part has conditions." << std::endl;
+        } else {
+            mpBoundarySubModelPart = &(mpModelPart->CreateSubModelPart(boundary_sub_model_part_name));
+        }
     };
 
     /// Destructor.
@@ -104,7 +114,7 @@ public:
     {
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
-        const auto& r_begin_geom = mrModelPart.ElementsBegin()->GetGeometry();
+        const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
         // Get the MLS shape functions function
@@ -112,14 +122,10 @@ public:
         auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
 
         // Get max condition id
-        std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mrModelPart.Conditions(), [](const Condition& rCondition){return rCondition.Id();});
-
-        //FIXME: This is a temporary solution until we finally decide what to do with the already existent conditions
-        // Deactivate the already existent conditions
-        block_for_each(mrModelPart.Conditions(),[](Condition& rCondition){rCondition.Set(ACTIVE, false);});
+        std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
 
         // Loop the elements to find the intersected ones
-        for (auto& rElement : mrModelPart.Elements()) {
+        for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is split
             const auto p_geom = rElement.pGetGeometry();
 
@@ -165,11 +171,12 @@ public:
                     auto p_cond = Kratos::make_intrusive<LaplacianShiftedBoundaryCondition>(++max_cond_id, cloud_nodes);
                     p_cond->SetProperties(p_prop); //TODO: Think if we want properties in these conditions or not
                     p_cond->Set(ACTIVE, true);
-                    mrModelPart.AddCondition(p_cond);
+                    mpBoundarySubModelPart->AddCondition(p_cond);
 
                     // Store the Gauss pt. weight and normal in the database
                     p_cond->SetValue(NORMAL, pos_int_n[i_g]);
                     p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
+                    p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
 
                     // Calculate the MLS shape functions and gradients and save in the database
                     Vector N_container;
@@ -262,7 +269,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
+    ModelPart* mpBoundarySubModelPart = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -327,7 +335,7 @@ private:
 
     MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction()
     {
-        switch (mrModelPart.GetProcessInfo()[DOMAIN_SIZE]) {
+        switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
             case 2:
                 return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, Matrix& rDN_DX){
                     MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>(rPoints, rX, h, rN, rDN_DX);};

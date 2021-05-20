@@ -56,10 +56,16 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
 
         # Create the boundary elements and MLS basis
         settings = KratosMultiphysics.Parameters("""{}""")
-        computing_model_part_name = self.main_model_part.Name + "." + self.GetComputingModelPart().Name
-        settings.AddEmptyValue("model_part_name").SetString(computing_model_part_name)
+        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
+        settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
         sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
         sbm_interface_process.Execute()
+
+        # Merge the SBM boundary model part with the computational one
+        KratosMultiphysics.SubModelPartConditionsBooleanOperationUtility.Union(
+            self.GetComputingModelPart(),
+            self.model.GetModelPart(self.main_model_part.Name + "." + "shifted_boundary"),
+            self.GetComputingModelPart())
 
         # Initialize base solver strategy
         super().Initialize()
