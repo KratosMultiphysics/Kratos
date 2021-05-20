@@ -28,6 +28,7 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         return RigidBodySolver(input_file_name)
 
     def Initialize(self):
+        super().Initialize()
         self._rigid_body_solver.Initialize()
 
     def OutputSolutionStep(self):
