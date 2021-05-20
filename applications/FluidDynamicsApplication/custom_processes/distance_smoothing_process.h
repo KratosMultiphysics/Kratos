@@ -187,7 +187,7 @@ public:
 
         for (int i_node = 0; i_node < static_cast<int>(r_smoothing_model_part.NumberOfNodes()); ++i_node){
             auto it_node = r_smoothing_model_part.NodesBegin() + i_node;
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            auto& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
