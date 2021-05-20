@@ -15,6 +15,7 @@
 #include "includes/cfd_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -31,6 +32,8 @@ ComputeWingSectionVariableProcess::ComputeWingSectionVariableProcess(
     mrOrigin(rOrigin)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]==3) << "This process works only for 3D!" << std::endl;
 
     KRATOS_ERROR_IF( rVariableStringArray.size() < 1 ) <<
     " ComputeNodalValueProcess: The variables list is empty " << std::endl;
@@ -51,6 +54,8 @@ ComputeWingSectionVariableProcess::ComputeWingSectionVariableProcess(
     mrOrigin(rOrigin)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]==3) << "This process works only for 3D!" << std::endl;
 
     const auto& r_double_var  = KratosComponents<Variable<double>>::Get("PRESSURE_COEFFICIENT");
     mDoubleVariablesList.push_back(&r_double_var);
@@ -77,18 +82,12 @@ void ComputeWingSectionVariableProcess::Execute()
 
     for (auto& r_cond : mrModelPart.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
-        IndexType n_pos = 0;
-        IndexType n_neg = 0;
-        for (auto& r_node : r_geometry) {
-            if (r_node.GetValue(DISTANCE) > 0.0) {
-                n_pos++;
-            }
-            else {
-                n_neg++;
-            }
+        BoundedVector<double, 3> cond_distances;
+        for (IndexType i=0; i < r_geometry.size(); i++) {
+            cond_distances[i]= r_geometry[i].GetValue(DISTANCE);
         }
 
-        if (n_neg > 0 && n_pos > 0) {
+        if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<3,4>(cond_distances)) {
             auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
             for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
                 const auto& r_array_var = *mArrayVariablesList[i_var];
