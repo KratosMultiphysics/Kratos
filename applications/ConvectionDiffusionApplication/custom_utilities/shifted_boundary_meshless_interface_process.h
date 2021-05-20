@@ -24,6 +24,7 @@
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "processes/process.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
 
 // Application includes
@@ -67,6 +68,8 @@ public:
     using ModifiedShapeFunctionsFactoryType = std::function<ModifiedShapeFunctions::UniquePointer(const GeometryType::Pointer, const Vector&)>;
 
     using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&, Matrix&)>;
+
+    using ElementSizeFunctionType = std::function<double(const GeometryType&)>;
 
     using NodesCloudSetType = std::unordered_set<NodeType::Pointer, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
@@ -121,6 +124,10 @@ public:
         const double mls_kernel_rad = 0.2;
         auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
 
+        // Get the element size calculation function
+        // Note that unique geometry in the mesh is assumed
+        auto p_element_size_func = GetElementSizeFunction(r_begin_geom);
+
         // Get max condition id
         std::size_t max_cond_id = block_for_each<MaxReduction<std::size_t>>(mpModelPart->Conditions(), [](const Condition& rCondition){return rCondition.Id();});
 
@@ -154,6 +161,9 @@ public:
                 p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::GI_GAUSS_2);
                 p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::GI_GAUSS_2);
 
+                // Calculate parent element size for the SBM BC imposition
+                const double h = p_element_size_func(*p_geom);
+
                 // Iterate the interface Gauss pts.
                 DenseVector<double> i_g_N;
                 array_1d<double,3> i_g_coords;
@@ -173,7 +183,8 @@ public:
                     p_cond->Set(ACTIVE, true);
                     mpBoundarySubModelPart->AddCondition(p_cond);
 
-                    // Store the Gauss pt. weight and normal in the database
+                    // Store the SBM BC data in the condition database
+                    p_cond->SetValue(ELEMENT_H, h);
                     p_cond->SetValue(NORMAL, pos_int_n[i_g]);
                     p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
                     p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
@@ -344,6 +355,18 @@ private:
                     MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>(rPoints, rX, h, rN, rDN_DX);};
             default:
                 KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
+        }
+    }
+
+    ElementSizeFunctionType GetElementSizeFunction(const GeometryType& rGeometry)
+    {
+        switch (rGeometry.GetGeometryType()) {
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
+            default:
+                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
         }
     }
 

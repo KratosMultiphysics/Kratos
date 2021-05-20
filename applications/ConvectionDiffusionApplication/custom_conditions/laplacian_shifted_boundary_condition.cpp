@@ -146,9 +146,11 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(n_nodes);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(n_nodes,n_nodes);
 
-    //TODO: Make these variable
-    const double gamma = 1000.0;
-    const double h = 0.05;
+
+    // Get BC imposition data
+    const double h = GetValue(ELEMENT_H);
+    const double& r_val = GetValue(r_unknown_var);
+    const double gamma = rCurrentProcessInfo[INITIAL_PENALTY];
 
     // Get meshless geometry data
     const double w = GetValue(INTEGRATION_WEIGHT);
