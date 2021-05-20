@@ -140,15 +140,19 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                     double aux_1;
                     double aux_2;
                     std::size_t i_loc_id;
+                    BoundedVector<double,TDim> j_node_grad;
                     for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         aux_1 = w_i_g * k_i_g * N_i_g(i_node);
                         for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
+                            j_node_grad = row(DN_DX_parent, j_node);
+                            aux_2 = 0.0;
                             for (std::size_t d = 0; d < TDim; ++d) {
-                                aux_2 = aux_1 * DN_DX_parent(j_node, d) * normal_g(d);
-                                rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
-                                rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
+                                aux_2 += j_node_grad(d) * normal_g(d);
                             }
+                            aux_2 *= aux_1;
+                            rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
+                            rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
                         }
                     }
                 }

@@ -169,19 +169,24 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     double aux_stab;
     const double aux_weight = w * gamma / h;
     const double aux_weight_stab = w * k;
-    const std::size_t n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+    DenseVector<double> i_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         aux_1 = aux_weight * r_N(i_node);
+        i_node_grad = row(r_DN_DX, i_node);
+        aux_stab = 0.0;
+        for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
+            aux_stab += i_node_grad(d) * r_normal(d);
+        }
+        aux_stab *= aux_weight_stab;
         for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
             const double& r_val = r_geometry[j_node].FastGetSolutionStepValue(r_unknown_var);
             rLeftHandSideMatrix(i_node, j_node) += aux_1 * r_N[j_node];
-            rRightHandSideVector(i_node) -= aux_1 * (r_N[j_node] * r_val - r_bc_val);
-            for (std::size_t d = 0; d < n_dim; ++d) {
-                aux_stab = aux_weight_stab * r_DN_DX(i_node, d) * r_normal(d);
-                rLeftHandSideMatrix(i_node, j_node) += aux_stab * r_N(j_node);
-                rRightHandSideVector(i_node) -= aux_stab * (r_N(j_node) * r_val - r_bc_val);
-            }
+            rRightHandSideVector(i_node) -= aux_1 * r_N[j_node] * r_val;
+            rLeftHandSideMatrix(i_node, j_node) -= aux_stab * r_N(j_node);
+            rRightHandSideVector(i_node) += aux_stab * r_N(j_node) * r_val;
         }
+        rRightHandSideVector(i_node) += aux_1 * r_bc_val;
+        rRightHandSideVector(i_node) -= aux_stab * r_bc_val;
     }
 
     KRATOS_CATCH("")
