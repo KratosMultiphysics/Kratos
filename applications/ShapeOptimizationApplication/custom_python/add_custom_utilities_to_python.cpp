@@ -72,28 +72,27 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
-inline double ComputeL2NormScalar(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< double >& variable)
+inline double ComputeL2NormScalar(ModelPart& rModelPart, const Variable< double >& variable)
 {
-    return utils.ComputeL2NormOfNodalVariable(rModelPart, variable);
+    return OptimizationUtilities::ComputeL2NormOfNodalVariable(rModelPart, variable);
 }
 
-inline double ComputeL2NormVector(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& variable)
+inline double ComputeL2NormVector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& variable)
 {
-    return utils.ComputeL2NormOfNodalVariable(rModelPart, variable);
+    return OptimizationUtilities::ComputeL2NormOfNodalVariable(rModelPart, variable);
 }
 
-inline double ComputeMaxNormScalar(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< double >& variable)
+inline double ComputeMaxNormScalar( ModelPart& rModelPart, const Variable< double >& variable)
 {
-    return utils.ComputeMaxNormOfNodalVariable(rModelPart, variable);
+    return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, variable);
 }
 
-inline double ComputeMaxNormVector(OptimizationUtilities& utils, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& variable)
+inline double ComputeMaxNormVector(ModelPart& rModelPart, const Variable< array_1d<double, 3> >& variable)
 {
-    return utils.ComputeMaxNormOfNodalVariable(rModelPart, variable);
+    return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, variable);
 }
 
 inline void AssembleMatrixForVariableList(
-    OptimizationUtilities& utils,
     ModelPart& rModelPart,
     Matrix& rMatrix,
     pybind11::list& rVariables)
@@ -104,7 +103,7 @@ inline void AssembleMatrixForVariableList(
     {
         variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
     }
-    return utils.AssembleMatrix(rModelPart, rMatrix, variables_vector);
+    return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
 
 // ==============================================================================
@@ -168,25 +167,25 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
+        .def_static("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
-        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
+        .def_static("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def_static("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
-        .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
-        .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
-        .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
-        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
-        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
-        .def("AssembleVector", &OptimizationUtilities::AssembleVector)
-        .def("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
-        .def("AssembleMatrix", &AssembleMatrixForVariableList)
-        .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
+        .def_static("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def_static("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def_static("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
+        .def_static("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
+        .def_static("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
+        .def_static("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
+        .def_static("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def_static("AssembleMatrix", &AssembleMatrixForVariableList)
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================
