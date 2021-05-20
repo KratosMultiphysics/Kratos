@@ -299,6 +299,22 @@ protected:
 
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
 
+    void AddGradientTerms(
+        LocalMatrixType& rLHS,
+        LocalVectorType& rRHS,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        const double Weight = 1.0);
+
+    void AddSourceTerms(
+        LocalMatrixType& rLHS,
+        LocalVectorType& rRHS,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        const double Weight = 1.0);
+
     virtual double StabilizationParameter(const ElementData& rData) const;
 
     LocalVectorType ToSystemVector(const array_1d<double,3>& rVector) const;

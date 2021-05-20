@@ -19,6 +19,8 @@
 // Project includes
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_friction_laws/manning_law.h"
+#include "custom_utilities/shallow_water_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "wave_element.h"
 
@@ -144,9 +146,83 @@ void WaveElement<TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentP
 {
 }
 
-template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+template<>
+void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
+    if(rLeftHandSideMatrix.size1() != mLocalSize)
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
+
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+
+    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType rhs = ZeroVector(mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, GetGeometry());
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    AddGradientTerms(lhs, rhs, data, N, DN_DX);
+    AddSourceTerms(lhs, rhs, data, N, DN_DX);
+
+    // Substracting the Dirichlet term (since we use a residualbased approach)
+    noalias(rhs) -= prod(lhs, data.unknown);
+
+    lhs *= area;
+    rhs *= area;
+
+    rLeftHandSideMatrix = lhs;
+    rRightHandSideVector = rhs;
+}
+
+template<>
+void WaveElement<4>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rLeftHandSideMatrix.size1() != mLocalSize)
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
+
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+
+    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType rhs = ZeroVector(mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, GetGeometry());
+
+    Matrix N_container;
+    Vector det_j_vec;
+    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+    GetGeometry().ShapeFunctionsIntegrationPointsGradients(DN_DX_container, det_j_vec, GeometryData::GI_GAUSS_2, N_container);
+    BoundedMatrix<double, 4, 2> DN_DX;
+    array_1d<double, 4> N;
+    double area;
+
+    for (IndexType i_gauss = 0; i_gauss < 4; ++i_gauss)
+    {
+        N = row(N_container, i_gauss);
+        double weight;
+
+        AddGradientTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddSourceTerms(lhs, rhs, data, N, DN_DX, weight);
+    }
+
+    // Substracting the Dirichlet term (since we use a residualbased approach)
+    noalias(rhs) -= prod(lhs, data.unknown);
+
+    lhs *= area;
+    rhs *= area;
+
+    rLeftHandSideMatrix = lhs;
+    rRightHandSideVector = rhs;
 }
 
 template<std::size_t TNumNodes>
@@ -166,6 +242,8 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.rel_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
+    rData.p_bottom_friction = Kratos::make_shared<ManningLaw>();
+    rData.p_bottom_friction->Initialize(GetGeometry(), rCurrentProcessInfo);
 }
 
 template<std::size_t TNumNodes>
@@ -194,6 +272,28 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
     rData.height = std::max(0.0, rData.height);
     rData.height *= lumping_factor;
     rData.velocity *= lumping_factor;
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::AddGradientTerms(
+    LocalMatrixType& rLHS,
+    LocalVectorType& rRHS,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX,
+    const double Weight)
+{
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::AddSourceTerms(
+    LocalMatrixType& rLHS,
+    LocalVectorType& rRHS,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX,
+    const double Weight)
+{
 }
 
 template<std::size_t TNumNodes>
