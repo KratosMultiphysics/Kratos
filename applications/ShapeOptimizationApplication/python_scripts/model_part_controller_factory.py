@@ -56,10 +56,10 @@ class ModelPartController:
         self.optimization_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.model_settings["domain_size"].GetInt())
 
         if self.model_settings["mesh_motion"]["apply_mesh_solver"].GetBool():
-            from .mesh_controller_with_solver import MeshControllerWithSolver
+            from KratosMultiphysics.ShapeOptimizationApplication.mesh_controllers.mesh_controller_with_solver import MeshControllerWithSolver
             self.mesh_controller = MeshControllerWithSolver(self.model_settings["mesh_motion"], self.model)
         else:
-            from .mesh_controller_basic_updating import MeshControllerBasicUpdating
+            from KratosMultiphysics.ShapeOptimizationApplication.mesh_controllers.mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)
 
         self.design_surface = None
