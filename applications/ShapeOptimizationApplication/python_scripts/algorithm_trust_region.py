@@ -82,7 +82,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -398,7 +398,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         dX = cm.ScalarVectorProduct(step_length,dX_bar)
 
         WriteListToNodalVariable(dX, self.design_surface, KSO.SHAPE_UPDATE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
         return dX
 
