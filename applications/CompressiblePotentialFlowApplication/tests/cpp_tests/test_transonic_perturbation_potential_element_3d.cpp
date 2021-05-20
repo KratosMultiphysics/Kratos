@@ -82,25 +82,6 @@ void AssignPerturbationPotentialsToTransonicElement3D(Element& rElement, const s
     }
 }
 
-void ComputeElementalSensitivitiesMatrixRowTransonic3D(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
-
-    // Compute pinged LHS and RHS
-    Vector RHS_pinged = ZeroVector(number_of_nodes);
-    Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
-    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
-
-    for(unsigned int k = 0; k < rLHS_original.size2(); k++){
-        // Compute the finite difference estimate of the sensitivity
-        rLHS_finite_diference( k, row) = -(RHS_pinged(k)-rRHS_original(k)) / delta;
-        // Compute the average of the original and pinged analytic sensitivities
-        rLHS_analytical( k, row) = 0.5 * (rLHS_original(k,row) + LHS_pinged(k,row));
-    }
-
-}
-
 void ComputeElementalSensitivitiesTransonic3D(Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 4> rPotential, const std::array<double, 4> rPotentialUpwind){
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -154,7 +135,7 @@ void ComputeElementalSensitivitiesTransonic3D(Matrix& rLHS_finite_diference, Mat
             pUpwindElement->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
         }
 
-        ComputeElementalSensitivitiesMatrixRowTransonic3D(model_part, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
+        PotentialFlowTestUtilities::ComputeElementalSensitivitiesMatrixRow(model_part, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
 
         // Unpinging
         if (i < number_of_nodes) {
