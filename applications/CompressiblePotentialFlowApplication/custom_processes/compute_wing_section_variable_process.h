@@ -107,8 +107,8 @@ private:
 
     ModelPart& mrModelPart; // The main model part
     ModelPart& mrSectionModelPart; // The newly crated section model part
-    const array_1d<double,3>& mrVersor; // The plane normal
-    const array_1d<double,3>& mrOrigin; // A point of the plane
+    array_1d<double,3> mrVersor; // The plane normal
+    array_1d<double,3> mrOrigin; // A point of the plane
     std::vector<const Variable<array_1d<double, 3>>*>    mArrayVariablesList;
     std::vector<const Variable<double>*>                 mDoubleVariablesList;
 
