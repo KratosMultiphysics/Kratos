@@ -274,17 +274,17 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each iteration
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* GETTING METHODS
@@ -293,13 +293,13 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo ) override;
+		    const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo ) override;
+			  const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -332,7 +332,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo ) override;
+			      const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -341,7 +341,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo ) override;
+				const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * this is called during the assembling process in order
@@ -350,7 +350,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-			       ProcessInfo& rCurrentProcessInfo) override;
+			       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -359,7 +359,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-			     ProcessInfo& rCurrentProcessInfo ) override;
+			     const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -368,7 +368,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-				ProcessInfo& rCurrentProcessInfo ) override;
+				const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -385,13 +385,6 @@ public:
 					 const Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    /**
-     * Get on rVariable a double Value
-     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-				     std::vector<double>& rValues,
-				     const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Calculate a double Variable
@@ -411,7 +404,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

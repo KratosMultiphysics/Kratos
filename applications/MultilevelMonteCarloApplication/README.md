@@ -1,6 +1,7 @@
 # Multilevel Monte Carlo Application
 
-MultilevelMonteCarloApplication provides different algorithms, belonging to the Monte Carlo (MC) family, and tools to perform statistical analysis of stochastic problems.
+MultilevelMonteCarloApplication provides different algorithms, belonging to the Monte Carlo (MC) family, to estimate statistics of scalar and field quantities of interest.
+The application is designed for running on distributed and high performance computing systems, exploiting both OpenMP and MPI parallel strategies.
 The application contains several interfaces with external libraries.
 
 ## Getting started
@@ -30,9 +31,6 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
 * Hierarchy update:
     * Deterministic,
     * Adaptive.
-* MC estimator of the expectation of a Quantity of Interest Q <p align="center">
-  <img src="https://render.githubusercontent.com/render/math?math=\mathbb{E}^{MC}[Q]:=\frac{\sum_{i=1}^{N}Q(w^{(i)})}{N}"> .
-</p>
 
 ### Multilevel Monte Carlo
 
@@ -55,7 +53,7 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
 
 ### Continuation Multilevel Monte Carlo
 
-* A set of decreasing tolerances is used and updated on the fly to adaptively estimate the hierarchy.
+* A set of decreasing tolerances is used and updated on the fly to adaptively estimate the hierarchy and run MLMC.
 * Levels of parallelism:
     * Between levels,
     * Between samples,
@@ -132,26 +130,28 @@ in the compilation configuration, in order to compile the `MultilevelMonteCarloA
 ## External Libraries
 
 MultilevelMonteCarloApplication makes use of third part libraries.
-Information about these libraries can be found in their respective pages, which are listed below:
-
-### MMG
-
-[MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries.
-Instructions for installing MMG can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process).
-
-### PyCOMPSs
-
-PyCOMPSs is the Python library required in order to use [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a Python environment.
-By default PyCOMPSs is not required in order to run the application.
-In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS=ON \ `.
-
-Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
-
-To run with `runcompss`, the environment variable `EXAQUTE_BACKEND=pycompss` must be set to use the distributed computing capabilities.
+Information about these libraries can be found in their respective pages, which are listed below.
 
 ### XMC
 
 [XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a Python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the flag `-DUSING_INTERNAL_XMC=OFF \ ` should be added when compiling Kratos.
+
+### PyCOMPSs
+
+PyCOMPSs is the Python library required in order to use task-based programming software [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a Python environment.
+By default PyCOMPSs is not required in order to run the application.
+In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS=ON \ `.
+The current version is able to run several thousands of samples at once exploiting PyCOMPSs in distributed systems, maximizing parallelism and computational efficiency. Optimal strong scalability up to 128 working nodes (6144 CPUs) has been demonstrated.
+
+Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs).
+To run with `runcompss`, the environment variable `EXAQUTE_BACKEND=pycompss` must be set to use the distributed computing capabilities.
+Additionally, running with `runcompss` requires to add to the `PYTHONPATH` the path of the XMC library, that is `/path/to/Kratos/applications/MultilevelMonteCarloApplication/external_libraries/XMC`. You can add the library to the `PYTHONPATH` either in the `.bashrc` file, or directly when running the code using the `runcompss` key `--pythonpath`. We refer to the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs#running-with-pycompss) for details.
+
+### Mmg and ParMmg
+
+[Mmg](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries.
+Instructions for installing Mmg can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-MMG-Process).
+ParMmg is the MPI parallel version of the remeshing library Mmg. Instructions for installing ParMmg can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/%5BUtilities%5D-ParMmg-Process).
 
 ## License
 
@@ -159,12 +159,11 @@ The MultilevelMonteCarloApplication is OPEN SOURCE. The main code and program st
 
 ## Examples
 
-Examples can be found in the [Kratos Multiphysics Examples  repository](https://github.com/KratosMultiphysics/Examples/tree/master/multilevel_monte_carlo).
+Many examples can be found in the [Kratos Multiphysics Examples repository](https://github.com/KratosMultiphysics/Examples/tree/master/multilevel_monte_carlo).
 
 ## Main References
 - Amela, R., Ayoul-Guilmard, Q., Badia, R. M., Ganesh, S., Nobile, F., Rossi, R., & Tosi, R. (2019). ExaQUte XMC. https://doi.org/10.5281/zenodo.3235833
-- Pisaroni, M., Nobile, F., & Leyland, P. (2017). A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics. *Computer Methods in Applied Mechanics and Engineering*, 326, 20–50.
-- Pisaroni, M., Krumscheid, S., & Nobile, F. (2017). Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation. *Retrieved from MATHICSE Technical report 23*.2017.
+- Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
 
 ## Contact
 

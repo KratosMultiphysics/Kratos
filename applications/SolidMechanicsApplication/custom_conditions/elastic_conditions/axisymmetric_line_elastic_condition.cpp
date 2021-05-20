@@ -198,7 +198,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  int AxisymmetricLineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int AxisymmetricLineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
