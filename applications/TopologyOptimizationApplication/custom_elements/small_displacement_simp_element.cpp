@@ -95,9 +95,12 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 //************************************************************************************
 //************************************************************************************
 
- void SmallDisplacementSIMPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+
+/*  void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
 		std::vector<double>& rValues,
-		const ProcessInfo& rCurrentProcessInfo )
+		const ProcessInfo& rCurrentProcessInfo ) */
+void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues,
+		const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
 
@@ -122,6 +125,57 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
       	}
 
 
+	}
+
+	// From original SmallDisplacementElement
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+
+	if (rValues.size() != integration_points.size()) /// Hier eventuell .size() einbauen
+		rValues.resize(integration_points.size(), false);
+
+	if (rVariable == VON_MISES_STRESS) {
+
+		//create and initialize element variables:
+		const SizeType number_of_nodes = GetGeometry().size();
+		const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+		const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+		KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+		ConstitutiveVariables this_constitutive_variables(strain_size);
+
+		//create constitutive law parameters:
+		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+
+		//set constitutive law flags:
+		Flags &ConstitutiveLawOptions = Values.GetOptions();
+		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+		for (unsigned int PointNumber = 0;
+				PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
+			//compute element kinematics B, F, DN_DX ...
+			this->CalculateKinematicVariables( this_kinematic_variables, PointNumber,  this->GetIntegrationMethod());
+			//set general variables to constitutivelaw parameters
+			this->SetElementData(this_kinematic_variables, Values, PointNumber); 
+			//call the constitutive law to update material variables
+			mConstitutiveLawVector[PointNumber]->InitializeMaterialResponse(
+					Values, GetStressMeasure());
+			ComparisonUtilities EquivalentStress;
+			rValues[PointNumber] = EquivalentStress.CalculateVonMises(
+					this_constitutive_variables.StressVector);
+		}
+	} 
+
+	// Additional part for post-processing of the topology optimized model part
+	else if (rVariable == X_PHYS)
+	{
+		for (SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
+			rValues[PointNumber] = this->GetValue(X_PHYS);
+	}
+	else
+	{
+		for (SizeType ii = 0; ii < integration_points.size(); ii++ )
+			rValues[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, rValues[ii]);
 	}
 
 	KRATOS_CATCH( "" )
@@ -205,6 +259,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 //************************************************************************************
 
 
+/*
 void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
 		const ProcessInfo& rCurrentProcessInfo)
 {
@@ -229,61 +284,12 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
       	}
 
 
-	} */
-
-	// From original SmallDisplacementElement
-	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-
-	if (rOutput.size() != integration_points.size()) /// Hier eventuell .size() einbauen
-		rOutput.resize(integration_points.size(), false);
-
-	if (rVariable == VON_MISES_STRESS) {
-
-		//create and initialize element variables:
-		const SizeType number_of_nodes = GetGeometry().size();
-		const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-		const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-		KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-		ConstitutiveVariables this_constitutive_variables(strain_size);
-
-		//create constitutive law parameters:
-		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-
-		//set constitutive law flags:
-		Flags &ConstitutiveLawOptions = Values.GetOptions();
-		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-		for (unsigned int PointNumber = 0;
-				PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-			//compute element kinematics B, F, DN_DX ...
-			this->CalculateKinematicVariables( this_kinematic_variables, PointNumber,  this->GetIntegrationMethod());
-			//set general variables to constitutivelaw parameters
-			this->SetElementData(this_kinematic_variables, Values, PointNumber); 
-			//call the constitutive law to update material variables
-			mConstitutiveLawVector[PointNumber]->InitializeMaterialResponse(
-					Values, GetStressMeasure());
-			ComparisonUtilities EquivalentStress;
-			rOutput[PointNumber] = EquivalentStress.CalculateVonMises(
-					this_constitutive_variables.StressVector);
-		}
 	} 
 
-	// Additional part for post-processing of the topology optimized model part
-	else if (rVariable == X_PHYS)
-	{
-		for (SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
-			rOutput[PointNumber] = this->GetValue(X_PHYS);
-	}
-	else
-	{
-		for (SizeType ii = 0; ii < integration_points.size(); ii++ )
-			rOutput[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
-	}
+
 
 	KRATOS_CATCH( "" )
-}
+}*/
 
 
 // =============================================================================================================================================
