@@ -67,7 +67,7 @@ class PlasmaDynamicsAnalysis(SwimmingDEMAnalysis):
 
         self.report = DP.Report()
 
-        self._GetDEMAnalysis().SetAnalyticFaceWatcher()
+        # self._GetDEMAnalysis().SetAnalyticFaceWatcher()
 
         self.fluid_model_part = self._GetFluidPhaseAnalysis().fluid_model_part
         self.thermal_model_part = self._GetFluidPhaseAnalysis().thermal_model_part
