@@ -146,16 +146,15 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(n_nodes);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(n_nodes,n_nodes);
 
-
     // Get BC imposition data
     const double h = GetValue(ELEMENT_H);
-    const double& r_val = GetValue(r_unknown_var);
+    const double& r_bc_val = GetValue(r_unknown_var);
     const double gamma = rCurrentProcessInfo[INITIAL_PENALTY];
 
     // Get meshless geometry data
     const double w = GetValue(INTEGRATION_WEIGHT);
-    const auto& r_N = GetValue(BDF_COEFFICIENTS);
     //FIXME: Find variables for these
+    const auto& r_N = GetValue(BDF_COEFFICIENTS);
     const auto& r_DN_DX = GetValue(LOCAL_AXES_MATRIX);
     const array_1d<double,3>& r_normal = GetValue(NORMAL);
 
@@ -168,18 +167,19 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     // Calculate boundary integration point contribution
     double aux_1;
     double aux_stab;
-    const double aux_2 = gamma * w / h;
+    const double aux_weight = w * gamma / h;
+    const double aux_weight_stab = w * k;
     const std::size_t n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        aux_1 = aux_weight * r_N(i_node);
         for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
-            aux_1 = aux_2 * r_N(i_node) * r_N(j_node);
             const double& r_val = r_geometry[j_node].FastGetSolutionStepValue(r_unknown_var);
-            rLeftHandSideMatrix(i_node, j_node) += aux_2;
-            rRightHandSideVector(i_node) -= aux_1 * r_val;
+            rLeftHandSideMatrix(i_node, j_node) += aux_1 * r_N[j_node];
+            rRightHandSideVector(i_node) -= aux_1 * (r_N[j_node] * r_val - r_bc_val);
             for (std::size_t d = 0; d < n_dim; ++d) {
-                aux_stab = k * r_DN_DX(i_node, d) * r_normal(d) * r_N(j_node);
-                rLeftHandSideMatrix(i_node, j_node) += aux_stab;
-                rRightHandSideVector(i_node) -= aux_stab * r_val;
+                aux_stab = aux_weight_stab * r_DN_DX(i_node, d) * r_normal(d);
+                rLeftHandSideMatrix(i_node, j_node) += aux_stab * r_N(j_node);
+                rRightHandSideVector(i_node) -= aux_stab * (r_N(j_node) * r_val - r_bc_val);
             }
         }
     }
