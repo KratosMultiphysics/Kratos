@@ -1020,7 +1020,7 @@ public:
     * @param T the output transformation matrix
     * @return
     */
-    inline void GetRotationMatrixForGeneralizedStresses(double radians, Matrix& T)
+    inline void GetRotationMatrixForGeneralizedStresses(double radians, ConstitutiveLaw::VoigtSizeMatrixType& T)
     {
         double c = std::cos(radians);
         double s = std::sin(radians);
@@ -1058,7 +1058,7 @@ public:
     * @param T the output transformation matrix
     * @return
     */
-    inline void GetRotationMatrixForCondensedStresses(double radians, Matrix& T)
+    inline void GetRotationMatrixForCondensedStresses(double radians, ConstitutiveLaw::VoigtSizeMatrixType& T)
     {
         SizeType strain_size = GetCondensedStrainSize();
 
