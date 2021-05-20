@@ -87,7 +87,7 @@ void ComputeWingSectionVariableProcess::Execute()
             cond_distances[i]= r_geometry[i].GetValue(DISTANCE);
         }
 
-        if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<3,3>(cond_distances)) {
+        if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(cond_distances)) {
             auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
             for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
                 const auto& r_array_var = *mArrayVariablesList[i_var];
