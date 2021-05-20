@@ -262,6 +262,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    static constexpr IndexType mLocalSize = 3 * TNumNodes;
 
     ///@}
     ///@name Protected member Variables
@@ -277,33 +278,28 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    struct ElementVariables
+    struct ElementData
     {
         double stab_factor;
         double shock_stab_factor;
         double rel_dry_height;
         double gravity;
-        double dry_height;
-        double damping;
+        double length;
 
         double height;
-        array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
 
         array_1d<double,3> topography;
-        array_1d<double,3> wind;
-        array_1d<double,3> rain;
         LocalVectorType unknown;
-        LocalVectorType mesh_acc;
 
-        FrictionLaw::Pointer pBottomFriction;
-
-        void InitializeData(const ProcessInfo& rCurrentProcessInfo);
-        void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
+        FrictionLaw::Pointer p_bottom_friction;
     };
 
+    void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual double StabilizationParameter(const ElementVariables& rData) const;
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
+
+    virtual double StabilizationParameter(const ElementData& rData) const;
 
     LocalVectorType ToSystemVector(const array_1d<double,3>& rVector) const;
 
