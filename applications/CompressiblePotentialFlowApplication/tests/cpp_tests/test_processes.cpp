@@ -351,7 +351,6 @@ namespace Kratos {
         auto nodal_velocity = r_node.GetValue(VELOCITY);
         KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
         KRATOS_CHECK_NEAR(nodal_velocity[1], 1, 1e-6);
-
         KRATOS_CHECK_NEAR(nodal_velocity[2], 0, 1e-6);
         auto nodal_pressure = r_node.GetValue(PRESSURE_COEFFICIENT);
         KRATOS_CHECK_NEAR(nodal_pressure, 0.98, 1e-6);
