@@ -4,7 +4,7 @@ from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsc
 
 
 def Factory(params, model):
-    if(type(params) != KM.Parameters):
+    if not isinstance(params, KM.Parameters):
         raise Exception('expected input shall be a Parameters object, encapsulating a json string')
     return ComputeBoundaryForceProcess(model, params['Parameters'])
 
@@ -16,6 +16,8 @@ class ComputeBoundaryForceProcess(KM.Process):
     '''
 
     def __init__(self, model, params):
+        '''Constructor of ComputeBoundaryForceProcess.'''
+
         super().__init__()
 
         default_settings = KM.Parameters("""
@@ -41,7 +43,7 @@ class ComputeBoundaryForceProcess(KM.Process):
 
         self.print_to_screen = params['print_to_screen'].GetBool()
         self.write_output_file = params['write_output_file'].GetBool()
-        self.print_format = params["print_format"].GetString()       
+        self.print_format = params["print_format"].GetString()
 
         if (self.model_part_wall.GetCommunicator().MyPID() == 0):
             if (self.write_output_file):
@@ -66,6 +68,8 @@ class ComputeBoundaryForceProcess(KM.Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
+        '''Print the boundary forces to a file or into screen.'''
+
         current_time = self.model_part_wall.ProcessInfo[KM.TIME]
 
         if self.interval.IsInInterval(current_time):
@@ -91,7 +95,7 @@ class ComputeBoundaryForceProcess(KM.Process):
                     self.output_file.write(' '.join(output_values) + '\n')
 
 
-    def _EvaluateGlobalForces(self):  
+    def _EvaluateGlobalForces(self):
         for node in self.model_part_wall.Nodes:
             acceleration = node.GetSolutionStepValue(KM.MESH_ACCELERATION)
             break
@@ -100,7 +104,7 @@ class ComputeBoundaryForceProcess(KM.Process):
         sum_forces = SW.ShallowWaterUtilities().ComputeHydrostaticForces(self.model_part_wall.Conditions, process_info)
         sum_forces += SW.ShallowWaterUtilities().ComputeHydrostaticForces(self.model_part_bottom.Elements, process_info)
 
-        return acceleration, sum_forces                    
+        return acceleration, sum_forces
 
 
     def _GetFileHeader(self):
@@ -109,6 +113,7 @@ class ComputeBoundaryForceProcess(KM.Process):
         return header
 
 
-    def _PrintToScreen(self, result_msg):
+    @staticmethod
+    def _PrintToScreen(result_msg):
         KM.Logger.PrintInfo('ComputeBoundaryForceProcess', 'Global force results - flow- and body-attached:')
         KM.Logger.PrintInfo('ComputeBoundaryForceProcess', 'Current time: ' + result_msg)
