@@ -75,7 +75,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const std::vector<std::string>&>())
         ;
 
-    py::class_<DefineEmbeddedWake3DProcess, DefineEmbeddedWake3DProcess::Pointer, Process >
+    py::class_<DefineEmbeddedWakeProcess3D, DefineEmbeddedWakeProcess3D::Pointer, Process >
         (m, "DefineEmbeddedWakeProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         ;
