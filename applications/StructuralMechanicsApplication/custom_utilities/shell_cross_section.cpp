@@ -320,9 +320,9 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     }
 
     // references
-    ConstitutiveLaw::VoigtSizeVectorType& generalizedStrainVector = rValues.GetGeneralizedStrainVector();
-    ConstitutiveLaw::VoigtSizeVectorType& generalizedStressVector = rValues.GetGeneralizedStressVector();
-    ConstitutiveLaw::VoigtSizeMatrixType& constitutiveMatrix = rValues.GetConstitutiveMatrix();
+    BoundedVector<double,8>& generalizedStrainVector = rValues.GetGeneralizedStrainVector();
+    BoundedVector<double,8>& generalizedStressVector = rValues.GetGeneralizedStressVector();
+    BoundedMatrix<double,8,8>& constitutiveMatrix = rValues.GetConstitutiveMatrix();
 
     Vector& condensedStressVector = variables.CondensedStressVector;
     Matrix& H  = variables.H;
@@ -331,13 +331,13 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
 
     // working matrices to avoid re-allocations when we need to rotate
     // intput and outputs in composite layups
-    Matrix R(strain_size, strain_size);
-    Matrix DRT(strain_size, strain_size);
-    Matrix Rc;
-    Matrix HRcT;
-    Matrix LRcT;
-    Matrix LTRT;
-    Matrix Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
+    ConstitutiveLaw::VoigtSizeMatrixType R(strain_size, strain_size);
+    ConstitutiveLaw::VoigtSizeMatrixType DRT(strain_size, strain_size);
+    ConstitutiveLaw::VoigtSizeMatrixType Rc;
+    ConstitutiveLaw::VoigtSizeMatrixType HRcT;
+    ConstitutiveLaw::VoigtSizeMatrixType LRcT;
+    ConstitutiveLaw::VoigtSizeMatrixType LTRT;
+    ConstitutiveLaw::VoigtSizeMatrixType Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
     if (mNeedsOOPCondensation) {
         Rc.resize(condensed_strain_size, condensed_strain_size, false);
         if (compute_constitutive_tensor) {

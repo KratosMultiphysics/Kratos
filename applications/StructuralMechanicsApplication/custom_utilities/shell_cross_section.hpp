@@ -106,9 +106,9 @@ public:
 
         Flags                mOptions;
 
-        ConstitutiveLaw::VoigtSizeVectorType* mpGeneralizedStrainVector;
-        ConstitutiveLaw::VoigtSizeVectorType* mpGeneralizedStressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType* mpConstitutiveMatrix;
+        BoundedVector<double,8>* mpGeneralizedStrainVector;
+        BoundedVector<double,8>* mpGeneralizedStressVector;
+        BoundedMatrix<double,8,8>* mpConstitutiveMatrix;
 
         double				 mStenbergShearStabilization = 1.0;
         // refer https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
@@ -237,15 +237,15 @@ public:
             mOptions=rOptions;
         };
 
-        void SetGeneralizedStrainVector(ConstitutiveLaw::VoigtSizeVectorType& rGeneralizedStrainVector)
+        void SetGeneralizedStrainVector(BoundedVector<double,8>& rGeneralizedStrainVector)
         {
             mpGeneralizedStrainVector=&rGeneralizedStrainVector;
         };
-        void SetGeneralizedStressVector(ConstitutiveLaw::VoigtSizeVectorType& rGeneralizedStressVector)
+        void SetGeneralizedStressVector(BoundedVector<double,8>& rGeneralizedStressVector)
         {
             mpGeneralizedStressVector=&rGeneralizedStressVector;
         };
-        void SetConstitutiveMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix)
+        void SetConstitutiveMatrix(BoundedMatrix<double,8,8>& rConstitutiveMatrix)
         {
             mpConstitutiveMatrix =&rConstitutiveMatrix;
         };
@@ -284,15 +284,15 @@ public:
             return mOptions;
         };
 
-        ConstitutiveLaw::VoigtSizeVectorType& GetGeneralizedStrainVector()
+        BoundedVector<double,8>& GetGeneralizedStrainVector()
         {
             return *mpGeneralizedStrainVector;
         };
-        ConstitutiveLaw::VoigtSizeVectorType& GetGeneralizedStressVector()
+        BoundedVector<double,8>& GetGeneralizedStressVector()
         {
             return *mpGeneralizedStressVector;
         };
-        ConstitutiveLaw::VoigtSizeMatrixType& GetConstitutiveMatrix()
+        BoundedMatrix<double,8,8>& GetConstitutiveMatrix()
         {
             return *mpConstitutiveMatrix;
         };
@@ -954,7 +954,7 @@ public:
     * @param T the output transformation matrix
     * @return
     */
-    inline void GetRotationMatrixForGeneralizedStrains(double radians, Matrix& T)
+    inline void GetRotationMatrixForGeneralizedStrains(double radians, ConstitutiveLaw::VoigtSizeMatrixType& T)
     {
         double c = std::cos(radians);
         double s = std::sin(radians);
@@ -992,7 +992,7 @@ public:
     * @param T the output transformation matrix
     * @return
     */
-    inline void GetRotationMatrixForCondensedStrains(double radians, Matrix& T)
+    inline void GetRotationMatrixForCondensedStrains(double radians, ConstitutiveLaw::VoigtSizeMatrixType& T)
     {
         SizeType strain_size = GetCondensedStrainSize();
 
