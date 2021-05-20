@@ -59,12 +59,27 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
-        self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
-        self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
-        self.free_stream_velocity[2] = 0.0
+
+        self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        if self.domain_size == 2:
+            # By convention 2D airfoils are in the xy plane
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+            self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
+            self.free_stream_velocity[2] = 0.0
+        else: # self.domain_size == 3
+            # By convention 3D wings and aircrafts:
+            # y axis along the span
+            # z axis pointing upwards
+            # TODO: Add sideslip angle beta
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+            self.free_stream_velocity[1] = 0.0
+            self.free_stream_velocity[2] = round(self.u_inf*math.sin(self.angle_of_attack),8)
+
+        self.free_stream_velocity_direction = self.free_stream_velocity / self.u_inf
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY_DIRECTION,self.free_stream_velocity_direction)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(KratosCFD.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
