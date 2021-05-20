@@ -12,7 +12,7 @@ import csv, os
 try:
     from KratosMultiphysics.ShapeOptimizationApplication.analyzers.custom_analyzer_y import CustomAnalyzer
 except ImportError:
-    from KratosMultiphysics.ShapeOptimizationApplication.tests.remeshing_opt_process_test.custom_analyzer_y import CustomAnalyzer
+    from .custom_analyzer_y import CustomAnalyzer
 
 # =======================================================================================================
 # Perform optimization
