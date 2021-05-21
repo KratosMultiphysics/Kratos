@@ -791,12 +791,12 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(lower_velocity, rCurrentProcessInfo);
     const double density_lower = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
 
-    const BoundedVector<double, TNumNodes>& upper_rhs = - data.vol * density_upper * prod(data.DN_DX, upper_velocity);
-    const BoundedVector<double, TNumNodes>& lower_rhs = - data.vol * density_lower * prod(data.DN_DX, lower_velocity);
+    const BoundedVector<double, TNumNodes> upper_rhs = - data.vol * density_upper * prod(data.DN_DX, upper_velocity);
+    const BoundedVector<double, TNumNodes> lower_rhs = - data.vol * density_lower * prod(data.DN_DX, lower_velocity);
 
     // Compute wake condition rhs
     const array_1d<double, TDim> diff_velocity = upper_velocity - lower_velocity;
-    const BoundedVector<double, TNumNodes>& wake_rhs =
+    const BoundedVector<double, TNumNodes> wake_rhs =
         CalculateRightHandSideWakeConditions(data, rCurrentProcessInfo, diff_velocity);
 
     if (this->Is(STRUCTURE))
