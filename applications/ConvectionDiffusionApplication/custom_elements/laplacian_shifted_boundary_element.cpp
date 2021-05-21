@@ -167,8 +167,68 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLeftHandSide(
     // Add base Laplacian contribution
     BaseType::CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-    // Add the surrogate boundary face contribution
-    //TODO:
+    // Check if the element belongs to the surrogate interface
+    // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
+    if (Is(INTERFACE)) {
+        // Get convection-diffusion data container
+        auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+        auto &r_settings = *p_settings;
+        const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
+
+        // Find the surrogate face local id
+        // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
+        const auto sur_bd_ids_vect = GetSurrogateFacesIds();
+        if (sur_bd_ids_vect.size() != 0) {
+            // Get the parent geometry data
+            double dom_size_parent;
+            const auto& r_geom = GetGeometry();
+            array_1d<double, NumNodes> N_parent;
+            BoundedMatrix<double, NumNodes, TDim> DN_DX_parent;
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            const auto& r_boundaries = r_geom.GenerateBoundariesEntities();
+            DenseMatrix<unsigned int> nodes_in_faces;
+            r_geom.NodesInFaces(nodes_in_faces);
+
+            // Loop the surrogate faces
+            // Note that there is the chance that the surrogate face is not unique
+            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
+                // Get the current surrogate face geometry information
+                const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
+                const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
+                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+                // Get the surrogate boundary average conductivity
+                double k_avg = 0.0;
+                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                    k_avg += r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
+                }
+                k_avg /= n_bd_points;
+
+                // Get the gradient of the node contrary to the surrogate face
+                // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
+                const BoundedVector<double,TDim> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
+
+                // Add the surrogate boundary flux contribution
+                // Note that the local face ids. are already taken into account in the assembly
+                // Note that the integration weight is calculated as TDim * Parent domain size * norm(DN_DX_cont_node)
+                double aux_1;
+                double aux_2;
+                std::size_t i_loc_id;
+                BoundedVector<double,TDim> j_node_grad;
+                const double aux_w_k = TDim * dom_size_parent * k_avg;
+                for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
+                    aux_1 = aux_w_k * r_sur_bd_N(0,i_node);
+                    i_loc_id = sur_bd_local_ids[i_node + 1];
+                    for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                        j_node_grad = row(DN_DX_parent, j_node);
+                        aux_2 = aux_1 * inner_prod(j_node_grad, DN_DX_cont_node);
+                        rLeftHandSideMatrix(i_loc_id, j_node) += aux_2;
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<std::size_t TDim>
@@ -179,8 +239,73 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
     // Add base Laplacian contribution
     BaseType::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
-    // Add the surrogate boundary face contribution
-    //TODO:
+    // Check if the element belongs to the surrogate interface
+    // Note that the INTERFACE flag is assumed to be set in the layer of elements attached to the surrogate interface
+    if (Is(INTERFACE)) {
+        // Get convection-diffusion data container
+        auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+        auto &r_settings = *p_settings;
+        const auto& r_unknown_var = r_settings.GetUnknownVariable();
+        const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();
+
+        // Find the surrogate face local id
+        // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
+        const auto sur_bd_ids_vect = GetSurrogateFacesIds();
+        if (sur_bd_ids_vect.size() != 0) {
+            // Get the parent geometry data
+            double dom_size_parent;
+            const auto& r_geom = GetGeometry();
+            array_1d<double, NumNodes> N_parent;
+            BoundedMatrix<double, NumNodes, TDim> DN_DX_parent;
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            const auto& r_boundaries = r_geom.GenerateBoundariesEntities();
+            DenseMatrix<unsigned int> nodes_in_faces;
+            r_geom.NodesInFaces(nodes_in_faces);
+
+            // Loop the surrogate faces
+            // Note that there is the chance that the surrogate face is not unique
+            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
+                // Get the current surrogate face geometry information
+                const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
+                const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
+                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+
+                // Get the unknowns vector
+                DenseVector<double> nodal_unknown(NumNodes);
+                for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+                    nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
+                }
+
+                // Get the surrogate boundary average conductivity
+                double k_avg = 0.0;
+                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                    k_avg += r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
+                }
+                k_avg /= n_bd_points;
+
+                // Get the gradient of the node contrary to the surrogate face
+                // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
+                const BoundedVector<double,TDim> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
+
+                // Add the surrogate boundary flux contribution
+                // Note that the local face ids. are already taken into account in the assembly
+                // Note that the integration weight is calculated as TDim * Parent domain size * norm(DN_DX_cont_node)
+                double aux_1;
+                std::size_t i_loc_id;
+                BoundedVector<double,TDim> j_node_grad;
+                const double aux_w_k = TDim * dom_size_parent * k_avg;
+                for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
+                    aux_1 = aux_w_k * r_sur_bd_N(0,i_node);
+                    i_loc_id = sur_bd_local_ids[i_node + 1];
+                    for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                        j_node_grad = row(DN_DX_parent, j_node);
+                        rRightHandSideVector(i_loc_id) -= aux_1 * inner_prod(j_node_grad, DN_DX_cont_node) * nodal_unknown(j_node);
+                    }
+                }
+            }
+        }
+    }
 }
 
 template<std::size_t TDim>
@@ -195,48 +320,16 @@ int LaplacianShiftedBoundaryElement<TDim>::Check(const ProcessInfo& rCurrentProc
 template<std::size_t TDim>
 std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFacesIds()
 {
-    const auto& r_geom = GetGeometry();
     const std::size_t n_faces = TDim + 1;
-    const std::size_t n_nodes_in_face = TDim;
     auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
-    DenseMatrix<unsigned int> nodes_in_faces;
-    r_geom.NodesInFaces(nodes_in_faces);
 
     // Check the current element faces
+    // Note that we relly on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-        const auto& i_face_loc_ids = row(nodes_in_faces, i_face);
-        // Check that current face is a potential surrogate face
-        std::size_t aux = 0;
-        for (std::size_t i_node = 0; i_node < n_nodes_in_face; ++i_node) {
-            if (r_geom[i_face_loc_ids[i_node + 1]].Is(BOUNDARY)) {
-                ++aux;
-            }
-        }
-        const bool is_boundary = aux == n_nodes_in_face ? true : false;
-
-        // If the current face is a potential surrogate face, check the element neighbours
-        if (is_boundary) {
-            for (auto& r_neigh_elem : r_neigh_elems) {
-                // Check if the neighbour is split or not
-                // Note that the BOUNDARY flag is assumed to be set in the elements cut by the level set
-                if (r_neigh_elem.Is(BOUNDARY)) {
-                    const auto& r_neigh_geom = r_neigh_elem.GetGeometry();
-                    // Get the number of repeated nodes among the current element and the boundary (cut) one
-                    std::size_t n_shared = 0;
-                    for (const auto& r_node : r_geom) {
-                        for (const auto& r_neigh_node : r_neigh_geom) {
-                            if (r_node.Id() == r_neigh_node.Id()) {
-                                ++n_shared;
-                            }
-                        }
-                    }
-                    // Check if the faces ids. are repeated meaning that the current face is surrogate
-                    if (n_shared == n_nodes_in_face) {
-                        surrogate_faces_ids.push_back(i_face);
-                    }
-                }
-            }
+        auto& r_neigh_elem = r_neigh_elems[i_face];
+        if (r_neigh_elem.Is(BOUNDARY)) {
+            surrogate_faces_ids.push_back(i_face);
         }
     }
 
