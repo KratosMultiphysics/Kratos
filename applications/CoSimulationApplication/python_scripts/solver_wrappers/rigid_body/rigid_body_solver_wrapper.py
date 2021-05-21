@@ -39,24 +39,20 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.ROOT_POINT_DISPLACEMENT_VECTOR], 0)
-        self._rigid_body_solver.SetSolutionStepValue("FORCE",                   self.mp[KMC.FORCE], 0)
-        self._rigid_body_solver.SetSolutionStepValue("MOMENT",                  self.mp[KMC.MOMENT], 0)
+        self._rigid_body_solver.SetSolutionStepValue("FORCE",                   self.mp[KMC.FORCE_VECTOR], 0)
 
         self._rigid_body_solver.SolveSolutionStep()
 
-        self.mp[KMC.DISPLACEMENT_VECTOR]        = self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
-        self.mp[KMC.REACTION_VECTOR]            = self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
-        self.mp[KMC.VOLUME_WEIGHT_VECTOR] = self._rigid_body_solver.GetSolutionStepValue("VOLUME_WEIGHT", 0)
+        self.mp[KMC.DISPLACEMENT_VECTOR] = self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        self.mp[KMC.REACTION_VECTOR]     = self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
 
     def Check(self):
         # making sure only a set of vaiables can be used
         admissible_variables = [
             "ROOT_POINT_DISPLACEMENT_VECTOR",
-            "FORCE",
-            "MOMENT",
+            "FORCE_VECTOR",
             "DISPLACEMENT_VECTOR",
-            "REACTION_VECTOR",
-            "VOLUME_WEIGHT_VECTOR"
+            "REACTION_VECTOR"
         ]
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:
