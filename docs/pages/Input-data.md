@@ -10,7 +10,7 @@ summary:
 
 The current input data consist of one archive with .mdpa extension. The input file is free format and the reading is not depend to the spaces, tabs, endlines etc.
 
-The mesh ordering can be consulted in [here](https://github.com/KratosMultiphysics/Kratos/wiki/Mesh-node-ordering). Remember that the *Kratos* mesh does not contain directly any geometry, but elements and conditions defined by that geometry.
+The mesh ordering can be consulted in [here](pages/Mesh-node-ordering). Remember that the *Kratos* mesh does not contain directly any geometry, but elements and conditions defined by that geometry.
 
 # MDPA file structure format
 

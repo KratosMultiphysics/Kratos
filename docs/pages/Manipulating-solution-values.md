@@ -18,9 +18,9 @@ The equation for the parabolic inlet profile is
 VELOCITY_X = VELOCITY_X * ( (y * y)/(600 * 600) )
 
 ## 1. Introduction
-This tutorial session is intended to illustrate how the Kratos' data structure, when accessed form Python, can be used to manipulate and set custom boundary conditions, solutions over the computational domain in a given problem. The following explanation builds upon the previous sessions of [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management) and [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies).
+This tutorial session is intended to illustrate how the Kratos' data structure, when accessed form Python, can be used to manipulate and set custom boundary conditions, solutions over the computational domain in a given problem. The following explanation builds upon the previous sessions of [Data management](pages/Data-management) and [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies).
 
-Here the CFD problem described in the first tutorial of [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD) is used as the working example. The setup files (mdpa, MainKratos.py and the JSON) of this problem can be downloaded from [here](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/5_manipulating_solution_values). Please extract the zip file and make it ready for the next task. 
+Here the CFD problem described in the first tutorial of [Running an example from GiD](pages/Running-an-example-from-GiD) is used as the working example. The setup files (mdpa, MainKratos.py and the JSON) of this problem can be downloaded from [here](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/5_manipulating_solution_values). Please extract the zip file and make it ready for the next task. 
 
 ## 2. The CFD example
 As the first step of this tutorial, we understand the CFD example problem setup and run the simulation to observe the initial result. The CFD problem setup is illustrated below 
@@ -77,7 +77,7 @@ As illustrated, a no slip condition is applied on the top and bottom walls of th
             }
         }]
 ```
-More information on which processes exists for boundary conditions and how to use them is described in [this](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-Processes-In-the-application-of-BCs) wiki page.
+More information on which processes exists for boundary conditions and how to use them is described in [this](pages/How-to-use-Processes-In-the-application-of-BCs) wiki page.
 Please run the example by using the method described in the previous tutorials. That is by using the `runkratos` executable. Once the simulation is finished we load the result (.bin) file into GiD to view the following result 
 ![Initial_solution](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/initial_solution.gif)
 

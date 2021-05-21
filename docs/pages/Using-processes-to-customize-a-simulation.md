@@ -15,7 +15,7 @@ Kratos offers many ways of customizing the behavior of simulations. One way is t
 Adding a process in a simulation is straight-forward, it has to be added to the list of processes in the `ProjectParameters.json`.
 
 ## Adding processes in the simulation
-In the following it is shown how to add processes from different locations (KratosCore, Kratos-Application or user-defined) to a simulation in `ProjectParameters.json`. Further information can be found [in the description of the AnalysisStage](https://github.com/KratosMultiphysics/Kratos/wiki/Common-Python-Interface-of-Applications-for-Users#analysisstage-usage).
+In the following it is shown how to add processes from different locations (KratosCore, Kratos-Application or user-defined) to a simulation in `ProjectParameters.json`. Further information can be found [in the description of the AnalysisStage](pages/Common-Python-Interface-of-Applications-for-Users#analysisstage-usage).
 
 ~~~js
 "processes" : {

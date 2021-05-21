@@ -22,9 +22,9 @@ permalink: index.html
 
 [DOI]: https://doi.org/10.5281/zenodo.3234644
 
-_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
+_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](Overview)
 
-**Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
+**Kratos** is **free** under BSD-4 [license](pages/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
 
 # Main Features
@@ -52,20 +52,20 @@ Some main modules are:
 Here you can find the basic documentation of the project:
 ## Getting Started
 * Getting Kratos (Last compiled Release)
-    * [Kratos for Linux](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Linux)
-    * [Kratos for Windows](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Windows)
-    // * [Kratos for Mac](https://github.com/KratosMultiphysics/Kratos/wiki/MacOS-install) 
-    * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
+    * [Kratos for Linux](pages/Getting-Kratos-Binaries-for-Linux)
+    * [Kratos for Windows](pages/Getting-Kratos-Binaries-for-Windows)
+    // * [Kratos for Mac](pages/MacOS-install) 
+    * [Kratos for GiD](pages/Getting-Kratos-binaries-(via-GiD))
 * Compiling Kratos
     * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)
 
 ## Tutorials
-* [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD)
-* [Kratos input files and I/O](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO)
-* [Data management](https://github.com/KratosMultiphysics/Kratos/wiki/Data-management)
-* [Solving strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Solving-strategies)
-* [Manipulating solution values](https://github.com/KratosMultiphysics/Kratos/wiki/Manipulating-solution-values)
-* [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
+* [Running an example from GiD](pages/Running-an-example-from-GiD)
+* [Kratos input files and I/O](pages/Kratos-input-files-and-IO)
+* [Data management](pages/Data-management)
+* [Solving strategies](pages/Solving-strategies)
+* [Manipulating solution values](pages/Manipulating-solution-values)
+* [Multiphysics](pages/Multiphysics-example)
 
 ## More documentation
 [Wiki](https://github.com/KratosMultiphysics/Kratos/wiki) -->

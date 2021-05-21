@@ -16,7 +16,7 @@ In the first tutorial you have successfully used Kratos to solve a few simple pr
 These files where created by the GUI and used to directly start the simulation. In this tutorial we will have a closer look at the input files and their content. Also we will use Kratos without GUI but directly from the command line.
 This is a first step in order to customize the input files for Kratos to special use cases as it will be done in the following tutorials and the more flexible usage of Kratos beyond the GUI.
 
-**If you did not follow the [first tutorial](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD), you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO).**
+**If you did not follow the [first tutorial](pages/Running-an-example-from-GiD), you can download the input files for a simple structural mechanics case [here](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/2_Kratos_input_files_and_IO).**
 
 # 2. The Kratos python script
 The main file of a Kratos simulation is a python script. It is responsible to load the required Kratos applications and to call the main Kratos functionalities as desired by the user. 
@@ -74,7 +74,7 @@ The python script is a powerful tool to customize a Kratos simulation, as you wi
 
 
 # 3. The project parameters file
-The settings for a Kratos simulation are stored in a `.json` file. JSON is an open-standard format that uses human-readable text to transmit data objects consisting of attribute–value pairs. Kratos uses a thin wrapper arround this syntax, the `Parameters` object. This section is a short version of a more detailed [description about the JSON syntax](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-write-a-JSON-configuration-file) and a [tutorial on how to read and use it](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters).
+The settings for a Kratos simulation are stored in a `.json` file. JSON is an open-standard format that uses human-readable text to transmit data objects consisting of attribute–value pairs. Kratos uses a thin wrapper arround this syntax, the `Parameters` object. This section is a short version of a more detailed [description about the JSON syntax](pages/How-to-write-a-JSON-configuration-file) and a [tutorial on how to read and use it](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters).
 
 ## 3.1 ProjectParameters.json
 The project parameters file for Kratos is commonly named `ProjectParameters.json`. Let's look at the content of this file for our structural analysis example. It contains four main blocks:
@@ -98,10 +98,10 @@ model_part_file_name = parameters["solver_settings"]["model_import_settings"]["i
 ```
 
 # 4. The Model part file
-The `.mdpa`(**M**o**d**el**Pa**rt) file contains the model information in Kratos specific syntax. It contains blocks for properties, nodes, elements and conditions and initial values. In addition the mesh entities can be grouped into sub model parts. A detailed description of the syntax is given [here](https://github.com/KratosMultiphysics/Kratos/wiki/Input-data).
+The `.mdpa`(**M**o**d**el**Pa**rt) file contains the model information in Kratos specific syntax. It contains blocks for properties, nodes, elements and conditions and initial values. In addition the mesh entities can be grouped into sub model parts. A detailed description of the syntax is given [here](pages/Input-data).
 
 ## 4.1 Read a .mdpa file
-The following exercise is a short version of a more detailed [tutorial](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File).
+The following exercise is a short version of a more detailed [tutorial](pages/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File).
 
 A `ModelPart` has to be created via a `Model` object, which can contain several `ModelParts`. Right after creating the empty `ModelPart`, the variables needed for the following calculations have to be added. The empty `ModelPart` is then filled using the `ModelPartIO` that reads the information from an .mdpa file. In general, the analysis object takes care of these steps, especially because it knows which variables to add.
 
@@ -127,7 +127,7 @@ You could also use the filename that you extracted from the ProjectParameters.js
 _Hint: You can_ ```>>> print(this_model_part)``` _to see its content._ 
 
 # 5. Output
-An extensive example on writing GiD output can be found [here](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Writing-Output-File). In this part of the tutorial you will create a minimal configuration of a VTK output process. 
+An extensive example on writing GiD output can be found [here](pages/Python-Script-Tutorial:-Writing-Output-File). In this part of the tutorial you will create a minimal configuration of a VTK output process. 
 
 The `vtk_output` block in the ProjectParameters.json gives you an impression on the potential settings for the output. Here you will create just a minimal version of it.
 ```python

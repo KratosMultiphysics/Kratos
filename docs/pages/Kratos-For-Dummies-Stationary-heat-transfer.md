@@ -145,7 +145,7 @@ First of all, we recommend to create a temporary branch. In this way, we could e
 $ git checkout -b test-kratos-for-dummies
 ~~~
 
-To begin with we must create a new application. The [How to Create Applications](https://github.com/KratosMultiphysics/Kratos/wiki/Creating-a-base-application) tutorial provide some python scripts to generate a base application. Therefore we'll navigate to the `kratos/python_scripts/application_generator` folder and customize the `laplacian_application_example.py` script. We need to specify the application name, elements and conditions. Note that we have to create a new variable POINT_HEAT_SOURCE, which is not inside the _Kratos_'s kernel.
+To begin with we must create a new application. The [How to Create Applications](pages/Creating-a-base-application) tutorial provide some python scripts to generate a base application. Therefore we'll navigate to the `kratos/python_scripts/application_generator` folder and customize the `laplacian_application_example.py` script. We need to specify the application name, elements and conditions. Note that we have to create a new variable POINT_HEAT_SOURCE, which is not inside the _Kratos_'s kernel.
 
 ~~~py
 # Set the application name and generate Camel, Caps and Low
@@ -185,11 +185,11 @@ Once you've followed all the steps and compiled the application, you should be a
 
 ### Editing the main files of the application and creating elements and conditions 
 
-1. [Tutorial: Editing the main files](https://github.com/KratosMultiphysics/Kratos/wiki/Tutorial:-Editing-the-main-files)
-2. [Tutorial: Creating the Element](https://github.com/KratosMultiphysics/Kratos/wiki/Tutorial:-Creating-the-Element)
-3. [Tutorial: Creating the Conditions](https://github.com/KratosMultiphysics/Kratos/wiki/Tutorial:-Creating-the-Conditions)
-4. [Tutorial: Creating an Utility (optional)](https://github.com/KratosMultiphysics/Kratos/wiki/Tutorial:-Creating-an-Utility). Once you've completed these 3/4 first steps and compiled the kratos you have all the c++ code necessary for your application. So compile the Kratos and the rest of the tasks can be managed using python, which has the advantages mentioned above. So now we proceed with the python scripts required. 
-5. [Tutorial: Creating the Python Solver file](https://github.com/KratosMultiphysics/Kratos/wiki/Tutorial:-Creating-the-Python-Solver-file): After you've finished these 6 steps your new application is ready. what is left is creating the particular files of our problem. 
+1. [Tutorial: Editing the main files](pages/Tutorial:-Editing-the-main-files)
+2. [Tutorial: Creating the Element](pages/Tutorial:-Creating-the-Element)
+3. [Tutorial: Creating the Conditions](pages/Tutorial:-Creating-the-Conditions)
+4. [Tutorial: Creating an Utility (optional)](pages/Tutorial:-Creating-an-Utility). Once you've completed these 3/4 first steps and compiled the kratos you have all the c++ code necessary for your application. So compile the Kratos and the rest of the tasks can be managed using python, which has the advantages mentioned above. So now we proceed with the python scripts required. 
+5. [Tutorial: Creating the Python Solver file](pages/Tutorial:-Creating-the-Python-Solver-file): After you've finished these 6 steps your new application is ready. what is left is creating the particular files of our problem. 
 
 ### Creating a first problem to be solved 
 

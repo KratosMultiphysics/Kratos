@@ -16,14 +16,14 @@ So it just accesses to the public information available via the command `help` o
 
 # List of classes and variables
 
-* [Variables](https://github.com/KratosMultiphysics/Kratos/wiki/Variables)
-* [Flags](https://github.com/KratosMultiphysics/Kratos/wiki/Flags)
-* [Geometries](https://github.com/KratosMultiphysics/Kratos/wiki/Geometry)
-* [Strategies](https://github.com/KratosMultiphysics/Kratos/wiki/Strategies)
-* [Utilities](https://github.com/KratosMultiphysics/Kratos/wiki/Utilities)
-* [Processes](https://github.com/KratosMultiphysics/Kratos/wiki/Processes)
-* [Containers](https://github.com/KratosMultiphysics/Kratos/wiki/Containers)
-* [Linear solvers](https://github.com/KratosMultiphysics/Kratos/wiki/LinearSolvers)
-* [IO](https://github.com/KratosMultiphysics/Kratos/wiki/IO)
-* [Others](https://github.com/KratosMultiphysics/Kratos/wiki/Others)
+* [Variables](pages/Variables)
+* [Flags](pages/Flags)
+* [Geometries](pages/Geometry)
+* [Strategies](pages/Strategies)
+* [Utilities](pages/Utilities)
+* [Processes](pages/Processes)
+* [Containers](pages/Containers)
+* [Linear solvers](pages/LinearSolvers)
+* [IO](pages/IO)
+* [Others](pages/Others)
 

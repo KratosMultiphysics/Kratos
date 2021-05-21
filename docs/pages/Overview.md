@@ -44,7 +44,7 @@ _Kratos_ is **OBJECT ORIENTED**. An integration of disciplines, in the physical 
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Oop.jpg)
 
-_Kratos_ is **OPEN SOURCE**. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The **[BSD](https://github.com/KratosMultiphysics/Kratos/wiki/_new)** (**Berkeley Software Distribution**) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+_Kratos_ is **OPEN SOURCE**. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The **[BSD](pages/_new)** (**Berkeley Software Distribution**) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Manos.jpg)
 

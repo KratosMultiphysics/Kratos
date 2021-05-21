@@ -6,7 +6,7 @@ sidebar: kratos_sidebar
 summary: 
 ---
 
-Kratos provides a data proxy mechanism, based on the use of "GlobalPointers" to simplify communications involving non local data. In order to retrieve information on local and remote nodes, one can follow this wiki page [How to use PointerCommunicator](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-use-PointerCommunicator) to get more information.
+Kratos provides a data proxy mechanism, based on the use of "GlobalPointers" to simplify communications involving non local data. In order to retrieve information on local and remote nodes, one can follow this wiki page [How to use PointerCommunicator](pages/How-to-use-PointerCommunicator) to get more information.
 
 The `GlobalPointerMapCommunicator` is designed to be used in a situation where, it is required to set an `enitity` (could be `Node`, `Element` or `Condition`, etc...) value. This `entity` can be in a local process (which is always the case in serial runs) or local/remote processes (which is the case for distributed runs). So `GlobalPointerMapCommunicator` takes care of the communication burden therefore user does not need to bother whether simulation is run on serial or distributed.
 

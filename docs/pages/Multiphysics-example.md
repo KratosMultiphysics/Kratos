@@ -13,12 +13,12 @@ The main goal is to become familiar with key aspects of multiphysics simulations
 
 The first example will be used in a black-box manner to discuss the most important details related to setting up such cases and the corresponding parameters. The second example depicts how one could create own - so customized - mapping and solvers to further enhance existing capabilities. 
 
-**Suggestion:** as soon as you are here, you should download the [source files](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip) and start running the respective simulations from the command line as explained in [Kratos input files and IO](https://github.com/KratosMultiphysics/Kratos/wiki/Kratos-input-files-and-IO) (section 2.2: _Run Kratos from the command line_) . As there are 2 examples intended to be shown, it would be sufficient if every other person would run one and the remaining participants the other, preferably in groups of two.
+**Suggestion:** as soon as you are here, you should download the [source files](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip) and start running the respective simulations from the command line as explained in [Kratos input files and IO](pages/Kratos-input-files-and-IO) (section 2.2: _Run Kratos from the command line_) . As there are 2 examples intended to be shown, it would be sufficient if every other person would run one and the remaining participants the other, preferably in groups of two.
 * Simulation 1: in `6_multiphysics\FSIBlackboxGeneric\MainKratos.py` 
 * Simulation 2: in `6_multiphysics\FSICustomizedSDoFVortexShedding\MainKratosFSI.py`
 
 ## 1. FSI Black-box generic
-The discussion relies on the examples discussed in [Running an example from GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Running-an-example-from-GiD). Here it was shown how a CFD (section 3) and a CSM (section 4) can be set up and run. Additionally, in section 5 an FSI example was provided which builds upon the CFD and CSM setups.
+The discussion relies on the examples discussed in [Running an example from GiD](pages/Running-an-example-from-GiD). Here it was shown how a CFD (section 3) and a CSM (section 4) can be set up and run. Additionally, in section 5 an FSI example was provided which builds upon the CFD and CSM setups.
 
 <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi1.jpg" width=500px class="center" >
 

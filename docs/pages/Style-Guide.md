@@ -157,7 +157,7 @@ from . import fluid_solver # explicit relative import
 ~~~
 
 ## JSON Configuration File
-The [JSON configuration file](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-write-a-JSON-configuration-file) must follow certain style conventions. These are based on the [Google coding style](https://google.github.io/styleguide/jsoncstyleguide.xml), adapted for Kratos. The following notation is used :
+The [JSON configuration file](pages/How-to-write-a-JSON-configuration-file) must follow certain style conventions. These are based on the [Google coding style](https://google.github.io/styleguide/jsoncstyleguide.xml), adapted for Kratos. The following notation is used :
 
 ~~~json
 A property consists of name and value:

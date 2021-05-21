@@ -65,7 +65,7 @@ private:
     ///@}
 ~~~
 
-As specified in the [Style Guide](https://github.com/KratosMultiphysics/Kratos/wiki/Style-Guide#class-members), all member variables inside a class are identified by a lower case _m_ at the beginning of the name.
+As specified in the [Style Guide](pages/Style-Guide#class-members), all member variables inside a class are identified by a lower case _m_ at the beginning of the name.
 
 ## Source file: my_laplacian_application.cpp 
 

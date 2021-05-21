@@ -7,10 +7,10 @@ summary:
 ---
 
 # Cross debugging (Python and C++) of Kratos under Windows
-The presented development environment allows to cross debug Kratos (Phyton and C++). In addition, it is possible to easily switch between the _Debug_ and _Release_ configuration. Moreover some hints how to bypass common errors in setting up Kratos under Windows (see also [Windows Install](https://github.com/KratosMultiphysics/Kratos/wiki/Windows-Install)) are provided.
+The presented development environment allows to cross debug Kratos (Phyton and C++). In addition, it is possible to easily switch between the _Debug_ and _Release_ configuration. Moreover some hints how to bypass common errors in setting up Kratos under Windows (see also [Windows Install](pages/Windows-Install)) are provided.
 
 ## Required software
-* Visual Studio 2015 (see [Windows Install](https://github.com/KratosMultiphysics/Kratos/wiki/Windows-Install)) for debugging C++
+* Visual Studio 2015 (see [Windows Install](pages/Windows-Install)) for debugging C++
 * Visual Code (https://code.visualstudio.com/) for debugging Python
 
 ### Visual Code
@@ -23,7 +23,7 @@ To allow for fast switching between the _Debug_ and _Release_ configuration it i
 ### Hints
 * Make sure you have compiled the boost library in the _Release_ and _Debug_ modus
 * Make sure the following environment variables are set properly PYTHONPATH=[e.g. C:\Kratos_install], LD_LIBRARY_PATH=[e.g. C:\Kratos_install\libs] and add e.g. C:\Kratos_install and C:\Kratos_install\libs to the variable PATH
-* Make sure you have copied the necessary _Release_ AND _Debug_ .dll files into the Kratos installation folder (see Post Compilation in [Windows Install](https://github.com/KratosMultiphysics/Kratos/wiki/Windows-Install))
+* Make sure you have copied the necessary _Release_ AND _Debug_ .dll files into the Kratos installation folder (see Post Compilation in [Windows Install](pages/Windows-Install))
 
 ## Cross Debugging (Python and C++)
 The first step is to perform one debugging step (Python) in Visual Code (Hint: use "stopOnEntry": true in the launch.json file). This creates a Python process.
