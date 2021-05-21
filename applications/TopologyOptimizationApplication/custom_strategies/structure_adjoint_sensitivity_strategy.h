@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include "../custom_elements/small_displacement_simp_element.hpp"
+#include "../custom_elements/small_displacement_simp_element.h"
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"

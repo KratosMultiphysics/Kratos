@@ -14,7 +14,7 @@
 /* System includes */
 
 /* Project includes */
-#include "solid_mechanics_math_utilities.hpp"
+#include "solid_mechanics_math_utilities.h"
 
 
 namespace Kratos

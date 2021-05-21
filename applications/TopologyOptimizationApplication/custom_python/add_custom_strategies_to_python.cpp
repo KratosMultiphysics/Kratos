@@ -22,7 +22,7 @@
 
 // Schemes
 #include "custom_strategies/structure_adjoint_sensitivity_strategy.h"
-#include "custom_strategies/custom_schemes/residualbased_incrementalupdate_static_simp_scheme.hpp"
+#include "custom_strategies/custom_schemes/residualbased_incrementalupdate_static_simp_scheme.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"

@@ -12,8 +12,8 @@
 
 // Application includes
 
-#include "small_displacement_simp_element.hpp"
-#include "comparison_utilities.hpp" ///nicht mehr vorhanden auf momentanem Stand von Kratos --> muss neue Verknüpfung gefunden werden, vorerst wird diese verwendet. Auch soli_mechanics_math_utilities
+#include "small_displacement_simp_element.h"
+#include "comparison_utilities.h" ///nicht mehr vorhanden auf momentanem Stand von Kratos --> muss neue Verknüpfung gefunden werden, vorerst wird diese verwendet. Auch soli_mechanics_math_utilities
 #include "topology_optimization_application.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
@@ -104,9 +104,6 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 		const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
-
-
-// TODO: if else if with same command. Is this correct? If yes, simplify. 
 
 	// Additional part for post-processing of the topology optimized model part
 	if (rVariable == X_PHYS)
