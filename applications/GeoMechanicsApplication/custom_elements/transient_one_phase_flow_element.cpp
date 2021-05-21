@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_elements/TransientOnePhaseFlowElement.hpp"
+#include "custom_elements/transient_one_phase_flow_element.hpp"
 
 namespace Kratos
 {
@@ -102,16 +102,20 @@ int TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     // Verify properties
     if ( Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_THROW_ERROR( std::invalid_argument,
+            "DENSITY_SOLID does not exist in the material properties or has an invalid value at element", this->Id() )
     if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_THROW_ERROR( std::invalid_argument,
+            "DENSITY_WATER does not exist in the material properties or has an invalid value at element", this->Id() )
 
 
     if ( Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_THROW_ERROR( std::invalid_argument,
+            "BULK_MODULUS_SOLID does not exist in the material properties or has an invalid value at element", this->Id() )
 
     if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"POROSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_THROW_ERROR( std::invalid_argument,
+            "POROSITY does not exist in the material properties or has an invalid value at element", this->Id() )
 
 
     if ( TDim == 2 )
@@ -127,41 +131,47 @@ int TransientOnePhaseFlowElement<TDim,TNumNodes>::
     // Verify specific properties
     if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
-                            "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element",
+                            "BULK_MODULUS_FLUID does not exist in the material properties or has an invalid value at element",
                             this->Id() )
 
     if ( Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
-                            "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element",
+                            "DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element",
                             this->Id() )
 
     if ( Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
-                            "PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element",
+                            "PERMEABILITY_XX does not exist in the material properties or has an invalid value at element",
                             this->Id() )
 
     if ( Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
-                            "PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element",
+                            "PERMEABILITY_YY does not exist in the material properties or has an invalid value at element",
                             this->Id() )
 
     if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
-                            "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element",
+                            "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element",
                             this->Id() )
+
+    if (!Prop.Has( BIOT_COEFFICIENT ))
+        KRATOS_THROW_ERROR( std::invalid_argument,
+                            "BIOT_COEFFICIENT does not exist in the material properties in element",
+                            this->Id() )
+
     if (TDim > 2)
     {
         if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element", this->Id() )
+                                "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element", this->Id() )
 
         if ( Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element", this->Id() )
+                                "PERMEABILITY_YZ does not exist in the material properties or has an invalid value at element", this->Id() )
 
         if ( Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element", this->Id() )
+                                "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element", this->Id() )
     }
 
 
@@ -384,6 +394,8 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -400,9 +412,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
