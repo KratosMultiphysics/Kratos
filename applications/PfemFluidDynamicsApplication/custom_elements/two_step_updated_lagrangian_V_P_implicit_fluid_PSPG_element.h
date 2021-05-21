@@ -306,22 +306,6 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
 
-    void ComputeBoundLHSMatrix(MatrixType &BoundLHSMatrix,
-                               const ShapeFunctionsType &rN,
-                               const double Weight) override;
-
-    void ComputeBoundRHSVector(VectorType &BoundRHSVector,
-                               const ShapeFunctionsType &rN,
-                               const double TimeStep,
-                               const double BoundRHSCoeffAcc,
-                               const double BoundRHSCoeffDev) override;
-
-    void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
-                                       const double TimeStep,
-                                       const double BoundRHSCoeffAcc,
-                                       const double BoundRHSCoeffDev,
-                                       const VectorType SpatialDefRate);
-
     void ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
                                     const ShapeFunctionDerivativesType &rShapeDeriv,
                                     const double Weight) override;
@@ -331,11 +315,6 @@ namespace Kratos
                           const double Density,
                           const double Viscosity,
                           const ProcessInfo &rCurrentProcessInfo);
-
-    void AddStabilizationMatrixLHS(MatrixType &rLeftHandSideMatrix,
-                                   Matrix &BulkAccMatrix,
-                                   const ShapeFunctionsType &rN,
-                                   const double Weight) override;
 
     void AddStabilizationNodalTermsLHS(MatrixType &rLeftHandSideMatrix,
                                        const double Tau,
@@ -350,12 +329,17 @@ namespace Kratos
                                        const ShapeFunctionDerivativesType &rDN_DX,
                                        const SizeType i) override;
 
+    void AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                         const double Tau,
+                                         const double Density,
+                                         const double Weight,
+                                         const ShapeFunctionDerivativesType &rDN_DX,
+                                         const ShapeFunctionsType &rN,
+                                         const SizeType i);
+
     void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                VectorType &rRightHandSideVector,
                                                const ProcessInfo &rCurrentProcessInfo) override;
-
-    void GetPressureAccelerationValues(Vector &rValues,
-                                       const int Step);
 
     ///@}
     ///@name Protected  Access

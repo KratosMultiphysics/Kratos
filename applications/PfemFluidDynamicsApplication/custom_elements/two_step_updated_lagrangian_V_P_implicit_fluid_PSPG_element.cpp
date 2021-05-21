@@ -211,15 +211,9 @@ namespace Kratos
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
-    double maxViscousValueForStabilization = 0.1;
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
-
-    if (DeviatoricCoeff > maxViscousValueForStabilization)
-    {
-      DeviatoricCoeff = maxViscousValueForStabilization;
-    }
 
     double Tau = 0;
     this->CalculateTauPSPG(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
@@ -234,18 +228,9 @@ namespace Kratos
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
       computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
-
+      computeElement = true;
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
-
-        double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
-
-        this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);
-
-        double BoundRHSCoeffAcc = Tau * Density * 2 * GaussWeight / ElemSize;
-        double BoundRHSCoeffDev = Tau * 8.0 * DeviatoricCoeff * GaussWeight / (ElemSize * ElemSize);
-
-        this->ComputeBoundRHSVectorComplete(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev, rElementalVariables.SpatialDefRate);
 
         double StabLaplacianWeight = Tau * GaussWeight;
         this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabLaplacianWeight);
@@ -255,7 +240,10 @@ namespace Kratos
           // RHS contribution
           // Velocity divergence
           rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+
           this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
+
+          this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, N, i);
         }
       }
     }
@@ -272,18 +260,9 @@ namespace Kratos
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
       MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
-      MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes, NumNodes);
       double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
-      double lumpedBulkStabCoeff = lumpedBulkCoeff * Tau * Density / TimeStep;
 
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-      noalias(rLeftHandSideMatrix) += BulkMatrix;
-      noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
-
-      this->GetPressureVelocityValues(PressureValues, 0);
-      noalias(PressureValuesForRHS) += -PressureValues * TimeStep;
-      noalias(BulkMatrix) = ZeroMatrix(NumNodes, NumNodes);
-      this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkStabCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
     }
@@ -326,516 +305,6 @@ namespace Kratos
     }
   }
 
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::ComputeBoundLHSMatrix(Matrix &BoundLHSMatrix,
-                                                                                    const ShapeFunctionsType &rN,
-                                                                                    const double Weight)
-  {
-    GeometryType &rGeom = this->GetGeometry();
-    double coeff = 1.0 / 3.0;
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
-    {
-      if (rGeom[0].IsNot(INLET))
-        BoundLHSMatrix(0, 0) += Weight * coeff;
-      if (rGeom[1].IsNot(INLET))
-        BoundLHSMatrix(1, 1) += Weight * coeff;
-    }
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-      if (rGeom[0].IsNot(INLET))
-        BoundLHSMatrix(0, 0) += Weight * coeff;
-      if (rGeom[2].IsNot(INLET))
-        BoundLHSMatrix(2, 2) += Weight * coeff;
-    }
-    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-      if (rGeom[1].IsNot(INLET))
-        BoundLHSMatrix(1, 1) += Weight * coeff;
-      if (rGeom[2].IsNot(INLET))
-        BoundLHSMatrix(2, 2) += Weight * coeff;
-    }
-    // }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::ComputeBoundLHSMatrix(Matrix &BoundLHSMatrix,
-                                                                                    const ShapeFunctionsType &rN,
-                                                                                    const double Weight)
-  {
-    GeometryType &rGeom = this->GetGeometry();
-    double coeff = 0.25;
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-      if (rGeom[0].IsNot(INLET))
-        BoundLHSMatrix(0, 0) += Weight * coeff;
-      if (rGeom[1].IsNot(INLET))
-        BoundLHSMatrix(1, 1) += Weight * coeff;
-      if (rGeom[2].IsNot(INLET))
-        BoundLHSMatrix(2, 2) += Weight * coeff;
-    }
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-      if (rGeom[0].IsNot(INLET))
-        BoundLHSMatrix(0, 0) += Weight * coeff;
-      if (rGeom[1].IsNot(INLET))
-        BoundLHSMatrix(1, 1) += Weight * coeff;
-      if (rGeom[3].IsNot(INLET))
-        BoundLHSMatrix(3, 3) += Weight * coeff;
-    }
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-      if (rGeom[0].IsNot(INLET))
-        BoundLHSMatrix(0, 0) += Weight * coeff;
-      if (rGeom[2].IsNot(INLET))
-        BoundLHSMatrix(2, 2) += Weight * coeff;
-      if (rGeom[3].IsNot(INLET))
-        BoundLHSMatrix(3, 3) += Weight * coeff;
-    }
-    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-      if (rGeom[1].IsNot(INLET))
-        BoundLHSMatrix(1, 1) += Weight * coeff;
-      if (rGeom[2].IsNot(INLET))
-        BoundLHSMatrix(2, 2) += Weight * coeff;
-      if (rGeom[3].IsNot(INLET))
-        BoundLHSMatrix(3, 3) += Weight * coeff;
-    }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
-                                                                                            const double TimeStep,
-                                                                                            const double BoundRHSCoeffAcc,
-                                                                                            const double BoundRHSCoeffDev,
-                                                                                            const VectorType SpatialDefRate)
-  {
-    GeometryType &rGeom = this->GetGeometry();
-    const double coeff = 1.0 / 3.0;
-    const double timeFactor = 0.5 / TimeStep;
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
-    {
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-
-      this->GetOutwardsUnitNormalForTwoPoints(NormalVector, 0, 1, 2);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(MeanAcc) = 0.5 * (AccA + AccB);
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
-
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-        BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-
-      this->GetOutwardsUnitNormalForTwoPoints(NormalVector, 0, 2, 1);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(MeanAcc) = 0.5 * (AccA + AccB);
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
-
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-        BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-
-    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-
-      this->GetOutwardsUnitNormalForTwoPoints(NormalVector, 1, 2, 0);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(MeanAcc) = 0.5 * (AccA + AccB);
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
-
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
-                                                                                            const double TimeStep,
-                                                                                            const double BoundRHSCoeffAcc,
-                                                                                            const double BoundRHSCoeffDev,
-                                                                                            const VectorType SpatialDefRate)
-  {
-    GeometryType &rGeom = this->GetGeometry();
-    const double coeff = 0.25;
-    const double timeFactor = 0.5 / TimeStep;
-    const double one_third = 1.0 / 3.0;
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> AccC(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-
-      this->GetOutwardsUnitNormalForThreePoints(NormalVector, 0, 1, 2, 3);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(MeanAcc) = (AccA + AccB + AccC) * one_third;
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1] + MeanAcc[2] * NormalVector[2];
-
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> AccC(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-      this->GetOutwardsUnitNormalForThreePoints(NormalVector, 0, 1, 3, 2);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = timeFactor * (rGeom[3].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[3].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(MeanAcc) = (AccA + AccB + AccC) * one_third;
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1] + MeanAcc[2] * NormalVector[2];
-
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[3].IsNot(INLET))
-        BoundRHSVector[3] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> AccC(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-
-      this->GetOutwardsUnitNormalForThreePoints(NormalVector, 0, 2, 3, 1);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = timeFactor * (rGeom[3].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[3].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(MeanAcc) = (AccA + AccB + AccC) * one_third;
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1] + MeanAcc[2] * NormalVector[2];
-
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[3].IsNot(INLET))
-        BoundRHSVector[3] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-
-    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-
-      array_1d<double, 3> AccA(3, 0.0);
-      array_1d<double, 3> AccB(3, 0.0);
-      array_1d<double, 3> AccC(3, 0.0);
-      array_1d<double, 3> MeanAcc(3, 0.0);
-      array_1d<double, 3> NormalVector(3, 0.0);
-
-      this->GetOutwardsUnitNormalForThreePoints(NormalVector, 1, 2, 3, 0);
-
-      double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
-
-      noalias(AccA) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = timeFactor * (rGeom[3].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[3].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION, 1);
-
-      noalias(MeanAcc) = (AccA + AccB + AccC) * one_third;
-
-      const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1] + MeanAcc[2] * NormalVector[2];
-
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-
-      if (rGeom[3].IsNot(INLET))
-        BoundRHSVector[3] += coeff * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
-    }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::ComputeBoundRHSVector(VectorType &BoundRHSVector,
-                                                                                    const ShapeFunctionsType &rN,
-                                                                                    const double TimeStep,
-                                                                                    const double BoundRHSCoeffAcc,
-                                                                                    const double BoundRHSCoeffDev)
-  {
-    GeometryType &rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
-    array_1d<double, 3> AccA(3, 0.0);
-    array_1d<double, 3> AccB(3, 0.0);
-
-    // for (SizeType i = 0; i < (NumNodes-1); i++)
-    //   {
-    // 	for (SizeType j = (i+1); j < NumNodes; j++)
-    // 	  {
-    // 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-    // 	      AccA= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      AccB= 0.5/TimeStep*(rGeom[j].FastGetSolutionStepValue(VELOCITY,0)-rGeom[j].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      const array_1d<double, 3> &NormalA    = rGeom[i].FastGetSolutionStepValue(NORMAL);
-    // 	      const array_1d<double, 3> &NormalB    = rGeom[j].FastGetSolutionStepValue(NORMAL);
-    // 	      double coeff=3.0;
-    // 	      if(rGeom[i].IsNot(INLET)) //to change into moving wall!!!!!
-    // 		BoundRHSVector[i] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) +
-    // 				      BoundRHSCoeffDev)/coeff ;
-    // 	      if(rGeom[j].IsNot(INLET))
-    // 		BoundRHSVector[j] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) +
-    // 				      BoundRHSCoeffDev)/coeff ;
-    // 	    }
-    // 	  }
-
-    //   }
-
-    // for (SizeType i = 0; i < (NumNodes-1); i++)
-    //   {
-    // 	for (SizeType j = (i+1); j < NumNodes; j++)
-    // 	  {
-    // 	    if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE)){
-    // 	      AccA= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      AccB= 0.5/TimeStep*(rGeom[j].FastGetSolutionStepValue(VELOCITY,0)-rGeom[j].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-    // 	      const array_1d<double, 3> &NormalA    = rGeom[i].FastGetSolutionStepValue(NORMAL);
-    // 	      const array_1d<double, 3> &NormalB    = rGeom[j].FastGetSolutionStepValue(NORMAL);
-    // 	      if(rGeom[i].IsNot(INLET))
-    // 		BoundRHSVector[i] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) +
-    // 				      BoundRHSCoeffDev) * rN[i];
-    // 	      if(rGeom[j].IsNot(INLET))
-    // 		BoundRHSVector[j] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) +
-    // 				      BoundRHSCoeffDev) * rN[j] ;
-    // 	    }
-    // 	  }
-
-    //   }
-
-    const double factor = 0.5 / TimeStep;
-    const double one_third = 1.0 / 3.0;
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      // noalias(AccA)=rGeom[0].FastGetSolutionStepValue(ACCELERATION,0);
-      // noalias(AccB)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
-      const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
-        BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1]) + BoundRHSCoeffDev);
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1]) + BoundRHSCoeffDev);
-    }
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1]) + BoundRHSCoeffDev);
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += one_third * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1]) + BoundRHSCoeffDev);
-    }
-    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      const array_1d<double, 3> &NormalA = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1]) + BoundRHSCoeffDev);
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += one_third * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1]) + BoundRHSCoeffDev);
-    }
-  }
-
-  template <>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::ComputeBoundRHSVector(VectorType &BoundRHSVector,
-                                                                                    const ShapeFunctionsType &rN,
-                                                                                    const double TimeStep,
-                                                                                    const double BoundRHSCoeffAcc,
-                                                                                    const double BoundRHSCoeffDev)
-  {
-    GeometryType &rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
-    array_1d<double, 3> AccA(3, 0.0);
-    array_1d<double, 3> AccB(3, 0.0);
-    array_1d<double, 3> AccC(3, 0.0);
-
-    // for (SizeType i = 0; i < (NumNodes-2); i++)
-    //   {
-    // 	for (SizeType j = (i+1); j < (NumNodes-1); j++)
-    // 	  {
-    // 	    for (SizeType k = (j+1); k < NumNodes; k++)
-    // 	      {
-    // 		if(rGeom[i].Is(FREE_SURFACE) && rGeom[j].Is(FREE_SURFACE) && rGeom[k].Is(FREE_SURFACE)){
-    // 		  AccA= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
-    // 		  AccB= 0.5/TimeStep*(rGeom[j].FastGetSolutionStepValue(VELOCITY,0)-rGeom[j].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-    // 		  AccC= 0.5/TimeStep*(rGeom[k].FastGetSolutionStepValue(VELOCITY,0)-rGeom[k].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[k].FastGetSolutionStepValue(ACCELERATION,1);
-
-    // 		  const array_1d<double, 3> &NormalA    = rGeom[i].FastGetSolutionStepValue(NORMAL);
-    // 		  const array_1d<double, 3> &NormalB    = rGeom[j].FastGetSolutionStepValue(NORMAL);
-    // 		  const array_1d<double, 3> &NormalC    = rGeom[k].FastGetSolutionStepValue(NORMAL);
-    // 		  if(rGeom[i].IsNot(INLET))
-    // 		    BoundRHSVector[i] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-    // 					  BoundRHSCoeffDev) * rN[i];
-    // 		  if(rGeom[j].IsNot(INLET))
-    // 		    BoundRHSVector[j] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-    // 					  BoundRHSCoeffDev) * rN[j] ;
-    // 		  if(rGeom[k].IsNot(INLET))
-    // 		    BoundRHSVector[k] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-    // 					  BoundRHSCoeffDev) * rN[k] ;
-    // 		}
-    // 	      }
-    // 	  }
-
-    //   }
-    const double factor = 0.5 / TimeStep;
-
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = factor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalC = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1] + AccA[2] * NormalA[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1] + AccB[2] * NormalB[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc * (AccC[0] * NormalC[0] + AccC[1] * NormalC[1] + AccC[2] * NormalC[2]) +
-                                     BoundRHSCoeffDev);
-    }
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = factor * (rGeom[3].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[3].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION, 1);
-      const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalC = rGeom[3].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1] + AccA[2] * NormalA[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1] + AccB[2] * NormalB[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[3].IsNot(INLET))
-        BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc * (AccC[0] * NormalC[0] + AccC[1] * NormalC[1] + AccC[2] * NormalC[2]) +
-                                     BoundRHSCoeffDev);
-    }
-    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = factor * (rGeom[3].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[3].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION, 1);
-      const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalC = rGeom[3].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET))
-        BoundRHSVector[0] += 0.25 * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1] + AccA[2] * NormalA[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1] + AccB[2] * NormalB[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[3].IsNot(INLET))
-        BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc * (AccC[0] * NormalC[0] + AccC[1] * NormalC[1] + AccC[2] * NormalC[2]) +
-                                     BoundRHSCoeffDev);
-    }
-    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
-    {
-      noalias(AccA) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = factor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccC) = factor * (rGeom[3].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[3].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION, 1);
-      const array_1d<double, 3> &NormalA = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalB = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      const array_1d<double, 3> &NormalC = rGeom[3].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[1].IsNot(INLET))
-        BoundRHSVector[1] += 0.25 * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1] + AccA[2] * NormalA[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[2].IsNot(INLET))
-        BoundRHSVector[2] += 0.25 * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1] + AccB[2] * NormalB[2]) +
-                                     BoundRHSCoeffDev);
-      if (rGeom[3].IsNot(INLET))
-        BoundRHSVector[3] += 0.25 * (BoundRHSCoeffAcc * (AccC[0] * NormalC[0] + AccC[1] * NormalC[1] + AccC[2] * NormalC[2]) +
-                                     BoundRHSCoeffDev);
-    }
-  }
-
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::CalculateTauPSPG(double &Tau,
                                                                                   double ElemSize,
@@ -855,36 +324,13 @@ namespace Kratos
     // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
 
+    Tau = DeltaTime / Density;
+
     const double tolerance = 1.0e-13;
     if (MeanVelocity < tolerance)
     {
       Tau = 0;
     }
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::AddStabilizationMatrixLHS(MatrixType &rLeftHandSideMatrix,
-                                                                                           Matrix &BulkAccMatrix,
-                                                                                           const ShapeFunctionsType &rN,
-                                                                                           const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    if (BulkAccMatrix.size1() != NumNodes)
-      BulkAccMatrix.resize(NumNodes, NumNodes);
-
-    BulkAccMatrix = ZeroMatrix(NumNodes, NumNodes);
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      // LHS contribution
-      for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        double Mij = 0.0;
-        Mij = Weight * rN[i] * rN[j];
-        BulkAccMatrix(i, j) += Mij;
-      }
-    }
-    rLeftHandSideMatrix += BulkAccMatrix;
   }
 
   template <unsigned int TDim>
@@ -945,32 +391,6 @@ namespace Kratos
     { // it must be checked once at the begining only
       array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
-      // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;
-
-      // double posY=(this->GetGeometry()[0].Y() + this->GetGeometry()[1].Y() + this->GetGeometry()[2].Y())/3.0;
-
-      // double coeffX =(12.0-24.0*posY)*pow(posX,4);
-
-      // coeffX += (-24.0+48.0*posY)*pow(posX,3);
-
-      // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
-
-      // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
-
-      // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
-
-      // double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
-
-      // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
-
-      // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
-
-      // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
-
-      // RHSi += - rDN_DX(i,0) * Tau * ( Density * VolumeAcceleration[0]*coeffX );
-
-      // RHSi += - rDN_DX(i,1) * Tau * ( Density * VolumeAcceleration[1]*coeffY );
-
       for (SizeType d = 0; d < TDim; ++d)
       {
         RHSi += -rDN_DX(i, d) * Tau * (Density * VolumeAcceleration[d]);
@@ -979,20 +399,59 @@ namespace Kratos
     rRightHandSideVector[i] += Weight * RHSi;
   }
 
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<TDim>::GetPressureAccelerationValues(Vector &rValues,
-                                                                                               const int Step)
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>::AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                                                                              const double Tau,
+                                                                                              const double Density,
+                                                                                              const double Weight,
+                                                                                              const ShapeFunctionDerivativesType &rDN_DX,
+                                                                                              const ShapeFunctionsType &rN,
+                                                                                              const SizeType i)
   {
-    GeometryType &rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
 
-    if (rValues.size() != NumNodes)
-      rValues.resize(NumNodes);
-
-    for (SizeType i = 0; i < NumNodes; ++i)
+    double RHSi = 0;
+    double timeStep = 0.001;
+    // LHS contribution
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType j = 0; j < NumNodes; ++j)
     {
-      rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE_ACCELERATION, Step);
+      //double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
+      //double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      double termX = rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / timeStep;
+      double termY = rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / timeStep;
+      RHSi += Tau * Density * (termX + termY);
+
+      // termX = rN[i] * rDN_DX(j, 0) * this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0);
+      // termY = rN[i] * rDN_DX(j, 1) * this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0);
+      // // double termX = rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0)) / timeStep;
+      // // double termY = rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0)) / timeStep;
+      // RHSi +=  (termX + termY);
     }
+    rRightHandSideVector[i] +=  - Weight * RHSi;
+  }
+
+  template <>
+  void TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3>::AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                                                                              const double Tau,
+                                                                                              const double Density,
+                                                                                              const double Weight,
+                                                                                              const ShapeFunctionDerivativesType &rDN_DX,
+                                                                                              const ShapeFunctionsType &rN,
+                                                                                              const SizeType i)
+  {
+
+    double RHSi = 0;
+
+    // LHS contribution
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType j = 0; j < NumNodes; ++j)
+    {
+      double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
+      double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      double termZ = rDN_DX(i, 2) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Z, 0);
+      RHSi += Tau * Density * (termX + termY + termZ);
+    }
+    rRightHandSideVector[i] += Weight * RHSi;
   }
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2>;
