@@ -26,12 +26,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PwElement : public UPwSmallStrainElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientOnePhaseFlowElement : public UPwSmallStrainElement<TDim, TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PwElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientOnePhaseFlowElement );
 
     typedef std::size_t IndexType;
     typedef Properties PropertiesType;
@@ -51,23 +51,23 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    PwElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim,TNumNodes>( NewId ) {}
+    TransientOnePhaseFlowElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    PwElement(IndexType NewId,
+    TransientOnePhaseFlowElement(IndexType NewId,
               const NodesArrayType& ThisNodes) : UPwSmallStrainElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    PwElement(IndexType NewId,
+    TransientOnePhaseFlowElement(IndexType NewId,
               GeometryType::Pointer pGeometry) : UPwSmallStrainElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    PwElement(IndexType NewId,
+    TransientOnePhaseFlowElement(IndexType NewId,
               GeometryType::Pointer pGeometry,
               PropertiesType::Pointer pProperties) : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    ~PwElement() override {}
+    ~TransientOnePhaseFlowElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -172,12 +172,12 @@ private:
     }
 
     // Assignment operator.
-    PwElement & operator=(PwElement const& rOther);
+    TransientOnePhaseFlowElement & operator=(TransientOnePhaseFlowElement const& rOther);
 
     // Copy constructor.
-    PwElement(PwElement const& rOther);
+    TransientOnePhaseFlowElement(TransientOnePhaseFlowElement const& rOther);
 
-}; // Class PwElement
+}; // Class TransientOnePhaseFlowElement
 
 } // namespace Kratos
 
