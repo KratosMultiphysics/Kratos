@@ -189,9 +189,11 @@ class RigidBodySolver(object):
             # Loop through all the possible DOFs
             for dof in self.available_dofs:
 
+                # Save output file path for this dof
+                dof_file_name = os.path.join(self.output_file_path, dof + '.dat')
+
                 # If the DOF is active, create the results file and write the headers
                 if dof in self.active_dofs:
-                    dof_file_name = os.path.join(self.output_file_path, dof + '.dat')
                     self.output_file_name[dof] = dof_file_name
                     with open(self.output_file_name[dof], "w") as results_rigid_body:
                         results_rigid_body.write("time"+ " " +
