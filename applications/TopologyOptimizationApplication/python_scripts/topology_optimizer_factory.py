@@ -123,10 +123,8 @@ class SIMPMethod:
         if(self.config.optimization_algorithm == "oc_algorithm"):
            self.start_oc_algorithm()
 
-        if(self.config.optimization_algorithm == "MMA_algorithm"):
+        elif(self.config.optimization_algorithm == "MMA_algorithm"):
            self.start_mma_algorithm()
-
-
         else:
             raise TypeError("Specified optimization_algorithm not implemented!")
 
