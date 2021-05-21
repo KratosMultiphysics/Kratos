@@ -18,6 +18,7 @@
 #include "custom_elements/geo_cable_element_3D2N.hpp"
 #include "includes/define.h"
 #include "geo_mechanics_application_variables.h"
+// This will be used as soon as all structural elements are derived
 // #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
