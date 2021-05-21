@@ -18,7 +18,8 @@
 #include "custom_elements/geo_truss_element_3D2N.hpp"
 #include "includes/define.h"
 #include "geo_mechanics_application_variables.h"
-#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+// #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 GeoTrussElement3D2N::
@@ -107,8 +108,8 @@ void GeoTrussElement3D2N::
 
         temp_internal_stresses += mInternalStressesFinalizedPrevious;
 
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         rOutput[0] = temp_internal_stresses*l/L0;
     }
@@ -140,8 +141,8 @@ void GeoTrussElement3D2N::
             prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
 
         array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
@@ -176,8 +177,8 @@ void GeoTrussElement3D2N::UpdateInternalForces(
 
     CreateTransformationMatrix(transformation_matrix);
 
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;

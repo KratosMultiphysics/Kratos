@@ -18,7 +18,9 @@
 #include "custom_elements/geo_cable_element_3D2N.hpp"
 #include "includes/define.h"
 #include "geo_mechanics_application_variables.h"
-#include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+// #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
+
 #include "includes/checks.h"
 
 namespace Kratos
@@ -112,8 +114,8 @@ void GeoCableElement3D2N::
 
     CreateTransformationMatrix(transformation_matrix);
 
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
