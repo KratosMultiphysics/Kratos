@@ -62,9 +62,17 @@ namespace Kratos
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints();
 
-        // initial determinant of jacobian 
-        Vector determinant_jacobian_vector_initial(integration_points.size());
-        DeterminantOfJacobianInitial(r_geometry_master, determinant_jacobian_vector_initial);
+        // Determine the integration: conservative -> initial; non-conservative -> current
+        Vector determinant_jacobian_vector(integration_points.size());
+        const bool integrate_conservative = GetProperties().Has(INTEGRATE_CONSERVATIVE)
+            ? GetProperties()[INTEGRATE_CONSERVATIVE]
+            : false;
+        if (integrate_conservative) {
+            DeterminantOfJacobianInitial(r_geometry_master, determinant_jacobian_vector);
+        }
+        else {
+            r_geometry_master.DeterminantOfJacobian(determinant_jacobian_vector);
+        }
 
         // non zero node counter for Lagrange Multipliers.
         IndexType counter_n = 0;
@@ -92,7 +100,7 @@ namespace Kratos
             }
 
             // Differential area
-            const double lagrange_integration = integration_points[point_number].Weight() * determinant_jacobian_vector_initial[point_number];
+            const double lagrange_integration = integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
             // loop over Lagrange Multipliers
             for (IndexType i = 0; i < number_of_nodes_master; ++i)
