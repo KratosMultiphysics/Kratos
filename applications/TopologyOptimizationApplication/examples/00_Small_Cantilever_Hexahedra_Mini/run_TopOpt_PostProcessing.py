@@ -13,7 +13,7 @@ import KratosMultiphysics as km
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+#from KratosMultiphysics.ExternalSolversApplication import *
 
 # For GID output
 from KratosMultiphysics.gid_output import GiDOutput
