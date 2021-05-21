@@ -110,11 +110,12 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 
 	// Additional part for post-processing of the topology optimized model part
 	if (rVariable == X_PHYS)
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
+		//CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		;
 	// From original SmallDisplacementElement
 	else if (rVariable == VON_MISES_STRESS)
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		//CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		;
 	else {
 
 		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
