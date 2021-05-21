@@ -73,18 +73,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    OptimizationUtilities()
-    {
-
-    }
-
-    /// Destructor.
-    virtual ~OptimizationUtilities()
-    {
-    }
-
-
     ///@}
     ///@name Operators
     ///@{
@@ -97,7 +85,7 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void ComputeControlPointUpdate(ModelPart& rModelPart, const double StepSize, const bool Normalize)
+    static void ComputeControlPointUpdate(ModelPart& rModelPart, const double StepSize, const bool Normalize)
     {
         KRATOS_TRY;
 
@@ -123,14 +111,14 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void AddFirstVariableToSecondVariable( ModelPart& rModelPart, const Variable<array_3d> &rFirstVariable, const Variable<array_3d> &rSecondVariable )
+    static void AddFirstVariableToSecondVariable( ModelPart& rModelPart, const Variable<array_3d> &rFirstVariable, const Variable<array_3d> &rSecondVariable )
     {
         for (auto & node_i : rModelPart.Nodes())
             noalias(node_i.FastGetSolutionStepValue(rSecondVariable)) += node_i.FastGetSolutionStepValue(rFirstVariable);
     }
 
     // --------------------------------------------------------------------------
-    double ComputeL2NormOfNodalVariable( ModelPart& rModelPart, const Variable<array_3d> &rVariable)
+    static double ComputeL2NormOfNodalVariable( ModelPart& rModelPart, const Variable<array_3d> &rVariable)
     {
         double l2_norm = 0.0;
         for (auto & node_i : rModelPart.Nodes())
@@ -142,7 +130,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeL2NormOfNodalVariable(ModelPart& rModelPart, const Variable<double> &rVariable)
+    static double ComputeL2NormOfNodalVariable(ModelPart& rModelPart, const Variable<double> &rVariable)
     {
         double l2_norm = 0.0;
         for (auto & node_i : rModelPart.Nodes())
@@ -154,7 +142,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeMaxNormOfNodalVariable(ModelPart& rModelPart, const Variable<array_3d> &rVariable)
+    static double ComputeMaxNormOfNodalVariable(ModelPart& rModelPart, const Variable<array_3d> &rVariable)
     {
         double max_norm = 0.0;
         for (auto & node_i : rModelPart.Nodes())
@@ -168,7 +156,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeMaxNormOfNodalVariable(ModelPart& rModelPart, const Variable<double> &rVariable)
+    static double ComputeMaxNormOfNodalVariable(ModelPart& rModelPart, const Variable<double> &rVariable)
     {
         double max_norm = 0.0;
         for (auto & node_i : rModelPart.Nodes())
@@ -184,7 +172,7 @@ public:
     // ==============================================================================
     // For running unconstrained descent methods
     // ==============================================================================
-    void ComputeSearchDirectionSteepestDescent(ModelPart& rModelPart)
+    static void ComputeSearchDirectionSteepestDescent(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -204,7 +192,7 @@ public:
     // ==============================================================================
     // For running penalized projection method
     // ==============================================================================
-    void ComputeProjectedSearchDirection(ModelPart& rModelPart)
+    static void ComputeProjectedSearchDirection(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -249,7 +237,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double CorrectProjectedSearchDirection(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, const double CorrectionScaling, const bool IsAdaptive )
+    static double CorrectProjectedSearchDirection(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, const double CorrectionScaling, const bool IsAdaptive )
     {
         // Check correction necessary
         if(ConstraintValue==0)
@@ -268,7 +256,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double ComputeCorrectionFactor(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, double& CorrectionScaling, const bool IsAdaptive)
+    static double ComputeCorrectionFactor(ModelPart& rModelPart, const double PrevConstraintValue, const double ConstraintValue, double& CorrectionScaling, const bool IsAdaptive)
     {
     	double norm_correction_term = 0.0;
     	double norm_search_direction = 0.0;
@@ -309,7 +297,7 @@ public:
     /**
      * Assemble the values of the nodal vector variable into a vector
      */
-    void AssembleVector( ModelPart& rModelPart,
+    static void AssembleVector( ModelPart& rModelPart,
         Vector& rVector,
         const Variable<array_3d> &rVariable)
     {
@@ -331,7 +319,7 @@ public:
     /**
      * Assigns the values of a vector to the nodal vector variables
      */
-    void AssignVectorToVariable(ModelPart& rModelPart,
+    static void AssignVectorToVariable(ModelPart& rModelPart,
         const Vector& rVector,
         const Variable<array_3d> &rVariable)
     {
@@ -353,10 +341,10 @@ public:
      * Assemble the values of the nodal vector variables into a dense matrix.
      * One column per variable is created.
      */
-    void AssembleMatrix(ModelPart& rModelPart,
+    static void AssembleMatrix(ModelPart& rModelPart,
         Matrix& rMatrix,
         const std::vector<Variable<array_3d>*>& rVariables
-    ) const
+    )
     {
         if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
             rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
@@ -386,7 +374,7 @@ public:
      * In a second step, calculate the restoration move accounting for the current violation of the constraints.
      * Variable naming and implementation based on https://msulaiman.org/onewebmedia/GradProj_2.pdf
      */
-    void CalculateProjectedSearchDirectionAndCorrection(
+    static void CalculateProjectedSearchDirectionAndCorrection(
         Vector& rObjectiveGradient,
         Matrix& rConstraintGradients,
         Vector& rConstraintValues,
@@ -427,23 +415,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "OptimizationUtilities";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "OptimizationUtilities";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
 
 
     ///@}
