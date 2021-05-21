@@ -168,8 +168,9 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
 
-    AddGradientTerms(lhs, rhs, data, N, DN_DX);
-    AddSourceTerms(lhs, rhs, data, N, DN_DX);
+    AddWaveTerms(lhs, rhs, data, N, DN_DX);
+    AddTopographyTerms(lhs, rhs, data, N, DN_DX);
+    AddFrictionTerms(lhs, rhs, data, N, DN_DX);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rhs) -= prod(lhs, data.unknown);
@@ -210,8 +211,9 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         const array_1d<double, 4> N = row(N_container, g);
         const BoundedMatrix<double, 4, 2> DN_DX = DN_DX_container[g];
 
-        AddGradientTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddSourceTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddTopographyTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -292,20 +294,118 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
 }
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::AddGradientTerms(
-    LocalMatrixType& rLHS,
-    LocalVectorType& rRHS,
+void WaveElement<TNumNodes>::AddWaveTerms(
+    LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
     const ElementData& rData,
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX,
     const double Weight)
 {
+    const double h = rData.height;
+    const double g = rData.gravity;
+    const double l = StabilizationParameter(rData);
+
+    for (size_t i = 0; i < TNumNodes; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < TNumNodes; ++j)
+        {
+            const size_t j_block = 3 * j;
+
+            /* First component
+             * A_1 = {{ 0   0   g },
+             *        { 0   0   0 },
+             *        { h   0   0 }}
+             */
+            const double g1_ij = rN[i] * rDN_DX(j,0);
+            rMatrix(i_block,     j_block + 2) += Weight * g1_ij * g;
+            rMatrix(i_block + 2, j_block)     += Weight * g1_ij * h;
+
+            /* Second component
+             * A_2 = {{ 0   0   0 },
+             *        { 0   0   g },
+             *        { 0   h   0 }}
+             */
+            const double g2_ij = rN[i] * rDN_DX(j,0);
+            rMatrix(i_block + 1, j_block + 2) += Weight * g2_ij * g;
+            rMatrix(i_block + 2, j_block + 1) += Weight * g2_ij * h;
+
+            double d_ij;
+            /* Stabilization x-x
+             * l/(gh) * A1*A1
+             */
+            d_ij = rDN_DX(i,0) * rDN_DX(j,0);
+            rMatrix(i_block,     j_block)     += Weight * l * d_ij;
+            rMatrix(i_block + 2, j_block + 2) += Weight * l * d_ij;
+
+            /* Stabilization y-y
+             * l/(gh) * A2*A2
+             */
+            d_ij = rDN_DX(i,1) * rDN_DX(j,1);
+            rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij;
+            rMatrix(i_block + 2, j_block + 2) += Weight * l * d_ij;
+
+            /* Stabilization x-y
+             * l/(gh) * A1*A2
+             */
+            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
+            rMatrix(i_block,     j_block + 1) += Weight * l * d_ij;
+
+            /* Stabilization y-x
+             * l/(gh) * A1*A2
+             */
+            d_ij = rDN_DX(i,1) * rDN_DX(j,0);
+            rMatrix(i_block + 1, j_block)     += Weight * l * d_ij;
+        }
+    }
 }
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::AddSourceTerms(
-    LocalMatrixType& rLHS,
-    LocalVectorType& rRHS,
+void WaveElement<TNumNodes>::AddTopographyTerms(
+    LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX,
+    const double Weight)
+{
+    const double g = rData.gravity;
+    const double l = StabilizationParameter(rData);
+    const auto topography = rData.topography;
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            /* First component */
+            rVector[i_block] -= Weight * rN[i] * rDN_DX(j,0) * g * topography[j];
+
+            /* Second component */
+            rVector[i_block + 1] -= Weight * rN[i] * rDN_DX(j,1) * g * topography[j];
+
+            /* Stabilization x-x
+             * l/(gh) * A1*G1
+             */
+            rVector[i_block + 2] -= Weight * l * rDN_DX(i,0) * rDN_DX(j,0) * topography[j];
+
+            /* Stabilization y-y
+             * l/(gh) * A2*G2
+             */
+            rVector[i_block + 2] -= Weight * l * rDN_DX(i,2) * rDN_DX(j,2) * topography[j];
+
+            /* Stabilization x-y, y-x
+             * A1*G2 = A2*G1 = 0
+             */
+        }
+    }
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::AddFrictionTerms(
+    LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
     const ElementData& rData,
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX,
@@ -316,7 +416,7 @@ void WaveElement<TNumNodes>::AddSourceTerms(
 template<std::size_t TNumNodes>
 double WaveElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
-    return 0.0;
+    return rData.length * rData.stab_factor;
 }
 
 template<std::size_t TNumNodes>

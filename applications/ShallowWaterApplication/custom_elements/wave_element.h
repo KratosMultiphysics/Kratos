@@ -306,17 +306,25 @@ protected:
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DX) const;
 
-    void AddGradientTerms(
-        LocalMatrixType& rLHS,
-        LocalVectorType& rRHS,
+    void AddWaveTerms(
+        LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddSourceTerms(
-        LocalMatrixType& rLHS,
-        LocalVectorType& rRHS,
+    void AddTopographyTerms(
+        LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX,
+        const double Weight = 1.0);
+
+    void AddFrictionTerms(
+        LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,3>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX,
