@@ -47,4 +47,4 @@ Copy the current path and paste it as variable name.
 
 - Click `Accept`. Now you can go to the next tutorial.
 
-**Next** [Hello Kratos](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Hello-Kratos)
+**Next** [Hello Kratos](pages/python/Python-Script-Tutorial:-Hello-Kratos)

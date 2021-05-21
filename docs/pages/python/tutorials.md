@@ -8,23 +8,23 @@ summary:
 
 # Basics
 This part describes the basic building blocks of Kratos Python scripting in following steps:
-* [Getting Started](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Getting-Started)
-* [Hello Kratos](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Hello-Kratos)
-* [Reading ProjectParameters](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters)
-* [Reading ModelPart From Input File](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File)
-* [Writing Output File](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Writing-Output-File)
-* [ModelPart Nodes and Nodal Data](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Nodes-and-Nodal-Data)
-* [ModelPart Elements and Conditions](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-ModelPart-Elements-and-Conditions)
+* [Getting Started](pages/python/getting-started)
+* [Hello Kratos](pages/python/hello-world)
+* [Reading ProjectParameters](pages/python/project-parameters)
+* [Reading ModelPart From Input File](pages/python/reading-input)
+* [Writing Output File](pages/python/writing-output)
+* [ModelPart Nodes and Nodal Data](pages/python/nodes-and-data)
+* [ModelPart Elements and Conditions](pages/python/elems-and-conds)
 
 
 # Basic Structure of Python layer
-* [AnalysisStage & Solver class design](https://github.com/KratosMultiphysics/Kratos/wiki/Common-Python-Interface-of-Applications-for-Users)
-* [Implementing thermal solver](https://github.com/KratosMultiphysics/Kratos/wiki/Implementing-thermal-solver)
-* [Using processes to customize a simulation](https://github.com/KratosMultiphysics/Kratos/wiki/Using-processes-to-customize-a-simulation)
+* [AnalysisStage & Solver class design](pages/Common-Python-Interface-of-Applications-for-Users)
+* [Implementing thermal solver](pages/Implementing-thermal-solver)
+* [Using processes to customize a simulation](pages/Using-processes-to-customize-a-simulation)
 
 # Data Management in Python 
-* [ModelPart and SubModelPart](https://github.com/KratosMultiphysics/Kratos/wiki/ModelPart-and-SubModelPart)
-* [Generating new modelparts](https://github.com/KratosMultiphysics/Kratos/wiki/Generating-New-Modelparts)
+* [ModelPart and SubModelPart](pages/python/modelpart-and-submodelpart)
+* [Generating new modelparts](pages//python/generate-new-modelpart)
 
 # Coupled problems via Python 
-* [Putting all together: A simple Fluid-Thermal coupled solver](https://github.com/KratosMultiphysics/Kratos/wiki/Example:-A-simple-Fluid---Thermal-coupled-solver)
+* [Putting all together: A simple Fluid-Thermal coupled solver](pages/Example:-A-simple-Fluid---Thermal-coupled-solver)

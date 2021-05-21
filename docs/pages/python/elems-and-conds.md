@@ -70,4 +70,4 @@ for condition in fluid_model_part.Conditions:
     print(condition.Id)
 ```
 
-**Prev** [Nodes and Nodal Data](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Nodes-and-Nodal-Data)
+**Prev** [Nodes and Nodal Data](pages/python/Python-Script-Tutorial:-Nodes-and-Nodal-Data)

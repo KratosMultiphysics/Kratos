@@ -24,5 +24,5 @@ _|\_\_|  \__,_|\__|\___/ ____/
 
 Now *Kratos* is ready to use and waiting for you.
 
-**Next** [Reading ProjectParameters](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters)<br>
-**Prev** [Getting Started](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Getting-Started)
+**Next** [Reading ProjectParameters](pages/python/Python-Script-Tutorial:-Reading-ProjectParameters)<br>
+**Prev** [Getting Started](pages/python/Python-Script-Tutorial:-Getting-Started)

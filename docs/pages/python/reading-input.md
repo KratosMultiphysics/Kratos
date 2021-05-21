@@ -55,7 +55,7 @@ fluid_model_part.AddNodalSolutionStepVariable(PRESSURE)
 {: data-lang="Python"}
 
 # Reading ModelPart File
-The input file of the *Kratos* has `.mdpa` (stand for ModelPart) and contains the properties, nodes, elements, conditions and initial values. A convenient way to create this file is to use the interface prepared for *GiD* pre and post processor. [Here](https://github.com/KratosMultiphysics/Kratos/wiki/Input-data) you can find more information about the input file. Here we assume that the `Cylinder.mdpa` input file is already created using *GiD*:
+The input file of the *Kratos* has `.mdpa` (stand for ModelPart) and contains the properties, nodes, elements, conditions and initial values. A convenient way to create this file is to use the interface prepared for *GiD* pre and post processor. [Here]pages/(Input-data) you can find more information about the input file. Here we assume that the `Cylinder.mdpa` input file is already created using *GiD*:
 
 For reading the `.mdpa` file first we have to create a `ModelPartIO` object passing the input file path/name to its constructor:
 
@@ -144,5 +144,5 @@ fluid_model_part.SetBufferSize(2)
 
 This would store the values for two previous steps in addition to the current ones.
 
-**Next** [Writing Output File](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Writing-Output-File)<br>
-**Prev** [Reading ProjectParameters](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ProjectParameters)
+**Next** [Writing Output File](pages/python/Python-Script-Tutorial:-Writing-Output-File)<br>
+**Prev** [Reading ProjectParameters](pages/python/Python-Script-Tutorial:-Reading-ProjectParameters)

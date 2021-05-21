@@ -184,7 +184,7 @@ ProjectParameters["problem_data"]["end_time"].SetDouble(20.0)
 ProjectParameters["problem_data"]["model_part_name"].SetString("NewMainModelPart")
 ```
 
-Since this is a basic tutorial on the use of the *Kratos* Parameters object, only the basic features have been described.  For more advanced operations check the **JSON** configuration file tutorial in ([here](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-write-a-JSON-configuration-file) )
+Since this is a basic tutorial on the use of the *Kratos* Parameters object, only the basic features have been described.  For more advanced operations check the **JSON** configuration file tutorial in ([here]pages/(How-to-write-a-JSON-configuration-file) )
 
-**Next** [Reading ModelPart From Input File](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File)<br>
-**Prev** [Hello Kratos](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Hello-Kratos)
+**Next** [Reading ModelPart From Input File](pages/python/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File)<br>
+**Prev** [Hello Kratos](pages/python/Python-Script-Tutorial:-Hello-Kratos)

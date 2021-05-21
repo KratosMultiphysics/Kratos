@@ -110,5 +110,5 @@ for node in fluid_model_part.Nodes:
 
 The command above should be interpreted as: for the node pointed by iterator "it" assign to the variable `TEMPERATURE` at the current step (the current step is identified by 0) the value of 100.0.
 
-**Next** [ModelPart Elements and Conditions](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-ModelPart-Elements-and-Conditions)<br>
-**Prev** [Writing Output File](https://github.com/KratosMultiphysics/Kratos/wiki/Python-Script-Tutorial:-Writing-Output-File)
+**Next** [ModelPart Elements and Conditions](pages/python/Python-Script-Tutorial:-ModelPart-Elements-and-Conditions)<br>
+**Prev** [Writing Output File](pages/python/Python-Script-Tutorial:-Writing-Output-File)
