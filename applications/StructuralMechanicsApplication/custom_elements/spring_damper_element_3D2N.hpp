@@ -38,7 +38,7 @@ namespace Kratos
 
 /// Concentrated nodal for 3D and 2D points
 
-class SpringDamperElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SpringDamperElement3D2N 
     : public Element
 {
 public:
