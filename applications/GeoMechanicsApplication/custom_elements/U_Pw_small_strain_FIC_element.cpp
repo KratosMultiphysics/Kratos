@@ -466,6 +466,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -502,8 +504,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
         // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,

@@ -235,7 +235,7 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients( ElementVariables& rVariables, const double &BulkModulus );
+    void InitializeBiotCoefficients( ElementVariables& rVariables, const bool &hasBiotCoefficient=false );
 
     virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
 

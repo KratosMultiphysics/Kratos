@@ -918,10 +918,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         this->UpdateElementalVariableStressVector(Variables, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        // calculate Bulk modulus from stiffness matrix
-        // const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        // this->InitializeBiotCoefficients(Variables, BulkModulus);
-
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
                                               Variables.detJ0,
@@ -970,6 +966,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -998,9 +996,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
@@ -1022,7 +1018,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     InitializeBiotCoefficients( ElementVariables& rVariables,
-                               const double &BulkModulus )
+                                const bool &hasBiotCoefficient)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::InitializeBiotCoefficients()") << std::endl;
@@ -1030,7 +1026,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     const PropertiesType& Prop = this->GetProperties();
 
     //Properties variables
-    rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    if (hasBiotCoefficient) {
+        rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
+    }
+    else {
+        // calculate Bulk modulus from stiffness matrix
+        const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
+        rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    }
+
     rVariables.BiotModulusInverse =  (rVariables.BiotCoefficient - Prop[POROSITY])/Prop[BULK_MODULUS_SOLID]
                                    + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
 

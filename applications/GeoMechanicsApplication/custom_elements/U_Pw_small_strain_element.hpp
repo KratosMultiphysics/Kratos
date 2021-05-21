@@ -225,7 +225,7 @@ protected:
     virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables &rVariables,
-                                     const double &BulkModulus );
+                                     const bool &hasBiotCoefficient=false );
 
     void CalculateBMatrix( Matrix &rB,
                            const Matrix &GradNpT );

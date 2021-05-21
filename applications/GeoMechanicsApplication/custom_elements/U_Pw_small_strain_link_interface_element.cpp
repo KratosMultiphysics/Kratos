@@ -394,6 +394,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -436,9 +438,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                           RetentionParameters,
                                           GPoint );
 
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = this->CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
