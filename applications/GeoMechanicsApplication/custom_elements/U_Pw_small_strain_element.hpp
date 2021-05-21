@@ -213,8 +213,8 @@ protected:
                        const bool CalculateStiffnessMatrixFlag,
                        const bool CalculateResidualVectorFlag ) override;
 
-    void InitializeElementVariables( ElementVariables &rVariables,
-                                     const ProcessInfo &CurrentProcessInfo );
+    virtual void InitializeElementVariables( ElementVariables &rVariables,
+                                             const ProcessInfo &CurrentProcessInfo );
 
     void SetConstitutiveParameters(ElementVariables &rVariables,
                                    ConstitutiveLaw::Parameters &rConstitutiveParameters);
@@ -237,9 +237,9 @@ protected:
 
     void CalculateAndAddCouplingMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
     virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
@@ -251,9 +251,9 @@ protected:
 
     void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
     void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
     void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
