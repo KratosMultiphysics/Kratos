@@ -97,7 +97,7 @@ public:
         : Process(),
         mrModelPart(rModelPart),
         mrModel(rModelPart.GetModel()),
-        mAuxModelPartName("smoothing_model_part"), //mrModelPart.FullName()+"_Smoothing"")
+        mAuxModelPartName("smoothing_model_part"),
         mAllConditionsAsBoundary(AllConditionsAsBoundary),
         mAuxModelPartIsInitialized(false)
     {

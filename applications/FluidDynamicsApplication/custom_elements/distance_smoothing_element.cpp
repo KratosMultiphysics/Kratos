@@ -285,15 +285,10 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
         }
     }
 
-    // Implementing the boundary condition on distance gradient: can be implemented
-    // by a custom condition for a more general case
+    // Implementing the boundary condition on distance gradient
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
-    //const auto& gp_this_elem = GlobalPointer<Element>(this);
-    //const auto gp_this_elem = Element::WeakPointer( &*this );
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        //const auto comparator = GlobalPointerComparor<Element>();
-        //if (comparator(neighbour_elems(i_ne), gp_this_elem) ){ //neighbour_elems(i_ne) == gp_this_elem ){ //
         if(this == neighbour_elems(i_ne).get()){
             auto outer_face = Line3D2< GeometryType::PointType >(
                                     geometry.pGetPoint(mNode0ID2D[i_ne]),
@@ -441,7 +436,7 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        if(this == neighbour_elems(i_ne).get()){//if (neighbour_elems[ i_ne ].Id() == this->Id() ){
+        if(this == neighbour_elems(i_ne).get()){
             auto outer_face = Triangle3D3< GeometryType::PointType >(
                                     geometry.pGetPoint(mNode0ID3D[i_ne]),
                                     geometry.pGetPoint(mNode1ID3D[i_ne]),
