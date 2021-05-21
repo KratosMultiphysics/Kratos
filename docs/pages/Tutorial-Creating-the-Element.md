@@ -24,10 +24,10 @@ In our case we will not use the CalculateRightHandSide, but the idea is basicall
 
 The application generator will provide us both header and source templates for the element. The header template contains the standard operations declaration, so we won't need to edit the header. We only need to edit the definition of mandatory operations in the source file:
 
-* [EquationIdVector](pages/Tutorial:-Creating-the-Element#equationidvector)
-* [GetDofList](pages/Tutorial:-Creating-the-Element#getdoflist)
-* [CalculateLocalSystem](pages/Tutorial:-Creating-the-Element#calculatelocalsystem)
-* [Check](pages/Tutorial:-Creating-the-Element#check)
+* [EquationIdVector](Tutorial:-Creating-the-Element#equationidvector)
+* [GetDofList](Tutorial:-Creating-the-Element#getdoflist)
+* [CalculateLocalSystem](Tutorial:-Creating-the-Element#calculatelocalsystem)
+* [Check](Tutorial:-Creating-the-Element#check)
 
 The first lines inlcudes the license and the main authors. Do not forget to include the `geometry_utilities.h` and the `checks.h` files at the beginning of `my_laplacian_element.cpp`:
 

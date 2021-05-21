@@ -144,5 +144,5 @@ fluid_model_part.SetBufferSize(2)
 
 This would store the values for two previous steps in addition to the current ones.
 
-**Next** [Writing Output File](pages/python/Python-Script-Tutorial:-Writing-Output-File)<br>
-**Prev** [Reading ProjectParameters](pages/python/Python-Script-Tutorial:-Reading-ProjectParameters)
+**Next** [Writing Output File](writing-output)<br>
+**Prev** [Reading ProjectParameters](pproject-parameters)

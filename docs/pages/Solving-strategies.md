@@ -18,7 +18,7 @@ This means that **this is the place to do the user-scripting**, which was previo
 
 The big advantage is that the only the functions, which are needed for the user-scripting, will be overridden. This way the if something changes in the baseclass, the changes are automatically used.
 
-More information can be found in the [description of the AnalysisStage](pages/Common-Python-Interface-of-Applications-for-Users#analysisstage).
+More information can be found in the [description of the AnalysisStage](Common-Python-Interface-of-Applications-for-Users#analysisstage).
 
 **The tasks for this part of the tutorial are:**
 * Modifying the thickness of the structure
@@ -28,7 +28,7 @@ More information can be found in the [description of the AnalysisStage](pages/Co
 Start by checking the functions of the [AnalysisStage](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/analysis_stage.py) for suitable places to perform the above tasks.
 
 ## 3. The Processes
-For a description of what a process is and how we are going to use it to write a custom process, please read [this entry in the Wiki](pages/Using-processes-to-customize-a-simulation) first.
+For a description of what a process is and how we are going to use it to write a custom process, please read [this entry in the Wiki](Using-processes-to-customize-a-simulation) first.
 
 As opposed to defining a custom AnalysisStage, another way of printing the reaction-forces is to define a custom process. The link above contains a template for a process defined in python.
 
@@ -37,9 +37,9 @@ As opposed to defining a custom AnalysisStage, another way of printing the react
 * create a custom process for printing the reactions and add it to the simulation.
 
 ## 4. The PythonSolver
-The [`PythonSolver`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/python_solver.py) is used inside the AnalysisStage, it is responsible for solving the "physics" of the problem. A detailed list of functionalities can be found [in the Wiki](pages/Common-Python-Interface-of-Applications-for-Users#pythonsolver).
+The [`PythonSolver`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/python_solver.py) is used inside the AnalysisStage, it is responsible for solving the "physics" of the problem. A detailed list of functionalities can be found [in the Wiki](Common-Python-Interface-of-Applications-for-Users#pythonsolver).
 
-Writing a custom solver is an advanced usecase, which is not covered in this tutorial. An example can be found [in the Wiki](pages/Implementing-thermal-solver).
+Writing a custom solver is an advanced usecase, which is not covered in this tutorial. An example can be found [in the Wiki](Implementing-thermal-solver).
 
 This part of the tutorial aims to modify the settings of the solver, which can be found in `ProjectParametrs.json` under "solver_settings".
 

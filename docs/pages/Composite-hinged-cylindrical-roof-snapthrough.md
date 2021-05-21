@@ -7,7 +7,7 @@ summary:
 ---
 
 ## Problem definition
-In the static geometrically non-linear composite hinged cylindrical roof snapthrough test, the [isotropic hinged cylindrical roof snapthrough](pages/Hinged-cylindrical-roof-snapthrough)
+In the static geometrically non-linear composite hinged cylindrical roof snapthrough test, the [isotropic hinged cylindrical roof snapthrough](Hinged-cylindrical-roof-snapthrough)
 test is identically repeated with an orthotropic laminate material. The composite laminate of total thickness h = 12.7mm is composed of orthotropic laminae with the following properties:
 
 * E_1 = 3.3 GPa

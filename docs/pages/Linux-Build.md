@@ -328,7 +328,7 @@ CMake is the tool used to compile kratos. To install it, the first option is to 
 sudo apt-get install cmake
 ```
 
-:warning: **If there is no other alternative but CMake 2.8 or earlier please refer to [old verions of CMake](pages/Linux-install#old-version-of-cmake)**
+:warning: **If there is no other alternative but CMake 2.8 or earlier please refer to [old verions of CMake](Linux-install#old-version-of-cmake)**
 
 ## Configure
 

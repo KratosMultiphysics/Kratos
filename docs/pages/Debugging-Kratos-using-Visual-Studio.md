@@ -7,10 +7,10 @@ summary:
 ---
 
 # Debugging Kratos using Visual Studio
-As Kratos runs using Python scripts the debugging process using Visual Studio may be a bit different of what a normal user may be used to. You have two different known ways to be able to debug your code: Cross Debugging Python or debugging directly the C++ part. This page will focus in the second option. You can find a dedicated page of the wiki for cross debugging [here](pages/How-to-cross-debug-Kratos-under-Windows).
+As Kratos runs using Python scripts the debugging process using Visual Studio may be a bit different of what a normal user may be used to. You have two different known ways to be able to debug your code: Cross Debugging Python or debugging directly the C++ part. This page will focus in the second option. You can find a dedicated page of the wiki for cross debugging [here](How-to-cross-debug-Kratos-under-Windows).
 
 ## Required software
-* Visual Studio 2015/2017 (see [Windows Install](pages/Windows-Install)) for debugging C++
+* Visual Studio 2015/2017 (see [Windows Install](Windows-Install)) for debugging C++
 * Boost libraries in debug mode.
 
 ## Preparing the environment 

@@ -32,10 +32,10 @@ RHS (node) + = POINT_HEAT_SOURCE (node)
 
 Still, note that the structure of a condition, as well as the one in elements, includes both the RHS and the left hand side matrix (LHS). This gives us flexibility and thus we can incorporate operations that also affect the matrix. Bear in mind that conditions are a class called by the **solver**, so we will edit the mandatory operations:
 
-* [EquationIdVector](pages/Tutorial:-Creating-the-Conditions#equationidvector)
-* [GetDofList](pages/Tutorial:-Creating-the-Conditions#getdoflist)
-* [CalculateLocalSystem](pages/Tutorial:-Creating-the-Conditions#calculatelocalsystem)
-* [Check](pages/Tutorial:-Creating-the-Conditions#check)
+* [EquationIdVector](Tutorial:-Creating-the-Conditions#equationidvector)
+* [GetDofList](Tutorial:-Creating-the-Conditions#getdoflist)
+* [CalculateLocalSystem](Tutorial:-Creating-the-Conditions#calculatelocalsystem)
+* [Check](Tutorial:-Creating-the-Conditions#check)
 
 Just as in the elements, to incorporate this condition we have to create it and register it in Kratos. Once registered, the solver will be the one calling it and assembling the LHS and RHS, so there's no need to call it in the problemtype.
 

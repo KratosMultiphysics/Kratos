@@ -166,7 +166,7 @@ cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
 
 Note that the ```\``` must be the last character in the line. Even an space after it will cause an error! (and the returned message is completely misleading, so be careful with this!!)
 
-Notice that you can also turn on/off parts of the code according to your necessities: [Compilation options](pages/Compilation-options)
+Notice that you can also turn on/off parts of the code according to your necessities: [Compilation options](Compilation-options)
 
 :warning: Cmake requires all definitions in a single line! The line concatenation character ```\``` therefore MUST NOT be followed by any whitespace in the same line as this would prevent the cmake from running the lines below
 

@@ -14,8 +14,8 @@ First we will introduce how to manipulate from scratch in order to understand th
 
 ## Some python manipulations from scratch
 
-- [Generating New Modelparts](pages/ModelPart-and-SubModelPart)
-- [Entities creation from scratch](pages/Entities-creation-from-scratch)
+- [Generating New Modelparts](ModelPart-and-SubModelPart)
+- [Entities creation from scratch](Entities-creation-from-scratch)
 
 ## Considering application case
 
@@ -23,5 +23,5 @@ First we will introduce how to manipulate from scratch in order to understand th
 
 Files for the application case can be found in [link](https://github.com/KratosMultiphysics/Documentation/tree/master/Workshops_files/Kratos_Workshop_2019/Sources/3_data_management)
 
-- [ModelPart entities](pages/ModelPart-entities)
-- [Nodes and Nodal Data](pages/Nodes-and-Nodal-Data)
+- [ModelPart entities](ModelPart-entities)
+- [Nodes and Nodal Data](Nodes-and-Nodal-Data)

@@ -28,7 +28,7 @@ In order to compile it just add:
 
 In your configure file.
 
-You can now jump to the [Basic application tutorial](pages/Kratos-For-Dummies:-Stationary-heat-transfer) or read the details as well.
+You can now jump to the [Basic application tutorial](Kratos-For-Dummies:-Stationary-heat-transfer) or read the details as well.
 
 ## In detail
 

@@ -10,7 +10,7 @@ summary:
 
 ParMMG is the MPI parallel version of the remeshing library MMG. In order to use ParMmg, please checkout the guide on how to install and use MMG first:
 
-[MMG remeshing process install guide](pages/%5BUtilities%5D-MMG-Process)
+[MMG remeshing process install guide](%5BUtilities%5D-MMG-Process)
 
 As of now, ParMMG is separate library that depends on MMG and it therefore requires another installation. ParMmg does not have all functionalities from MMG, but it currently features:
 * 3D volume remeshing of tetrahedras

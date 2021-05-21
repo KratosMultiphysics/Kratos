@@ -7,16 +7,16 @@ summary:
 ---
 
 # Overview
-1. [Introduction](pages/Common-Python-Interface-of-Applications-for-Users#introduction)
-2. [AnalysisStage](pages/Common-Python-Interface-of-Applications-for-Users#analysisstage)
-    1. [AnalysisStage: Overview](pages/Common-Python-Interface-of-Applications-for-Users#analysisstage-overview)
-    2. [AnalysisStage: Responsibilities and provided Functionalities](pages/Common-Python-Interface-of-Applications-for-Users#analysisstage-responsibilities-and-provided-functionalities)
-    3. [AnalysisStage: Usage](pages/Common-Python-Interface-of-Applications-for-Users#analysisstage-usage)
-3. [PythonSolver](pages/Common-Python-Interface-of-Applications-for-Users#pythonsolver)
-    1. [PythonSolver: Overview](pages/Common-Python-Interface-of-Applications-for-Users#pythonsolver-overview)
-    2. [PythonSolver: Responsibilities and provided Functionalities](pages/Common-Python-Interface-of-Applications-for-Users#pythonsolver-responsibilities-and-provided-functionalities)
-    3. [PythonSolver: Usage](pages/Common-Python-Interface-of-Applications-for-Users#pythonsolver-usage)
-4. [Future Outlook](pages/Common-Python-Interface-of-Applications-for-Users#outlook-kratos-project-multi-stage-simulation)
+1. [Introduction](Common-Python-Interface-of-Applications-for-Users#introduction)
+2. [AnalysisStage](Common-Python-Interface-of-Applications-for-Users#analysisstage)
+    1. [AnalysisStage: Overview](Common-Python-Interface-of-Applications-for-Users#analysisstage-overview)
+    2. [AnalysisStage: Responsibilities and provided Functionalities](Common-Python-Interface-of-Applications-for-Users#analysisstage-responsibilities-and-provided-functionalities)
+    3. [AnalysisStage: Usage](Common-Python-Interface-of-Applications-for-Users#analysisstage-usage)
+3. [PythonSolver](Common-Python-Interface-of-Applications-for-Users#pythonsolver)
+    1. [PythonSolver: Overview](Common-Python-Interface-of-Applications-for-Users#pythonsolver-overview)
+    2. [PythonSolver: Responsibilities and provided Functionalities](Common-Python-Interface-of-Applications-for-Users#pythonsolver-responsibilities-and-provided-functionalities)
+    3. [PythonSolver: Usage](Common-Python-Interface-of-Applications-for-Users#pythonsolver-usage)
+4. [Future Outlook](Common-Python-Interface-of-Applications-for-Users#outlook-kratos-project-multi-stage-simulation)
 
 # Introduction
 Solving a problem with Kratos is divided into two Python-objects : The **AnalysisStage** and the **PythonSolver**. 
@@ -60,7 +60,7 @@ In order to use the `AnalysisStage` it has to be constructed with specific objec
 - `KratosMultiphysics.Parameters`: The settings for the simulation. They are expecting that the following settings are present:
     * `problem_data` : general settings for the simulation
     * `solver_settings` : settings for the `PythonSolver`
-    * `processes` : regular processes, e.g. for the boundary conditions. _Note_: also [user-defined processes can be included here](pages/User-defined-python-processes)
+    * `processes` : regular processes, e.g. for the boundary conditions. _Note_: also [user-defined processes can be included here](User-defined-python-processes)
     * `output_processes` : processes that write the output
 
 ~~~

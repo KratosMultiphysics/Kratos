@@ -16,14 +16,14 @@ So it just accesses to the public information available via the command `help` o
 
 # List of classes and variables
 
-* [Variables](pages/Variables)
-* [Flags](pages/Flags)
-* [Geometries](pages/Geometry)
-* [Strategies](pages/Strategies)
-* [Utilities](pages/Utilities)
-* [Processes](pages/Processes)
-* [Containers](pages/Containers)
-* [Linear solvers](pages/LinearSolvers)
-* [IO](pages/IO)
-* [Others](pages/Others)
+* [Variables](Variables)
+* [Flags](Flags)
+* [Geometries](Geometry)
+* [Strategies](Strategies)
+* [Utilities](Utilities)
+* [Processes](Processes)
+* [Containers](Containers)
+* [Linear solvers](LinearSolvers)
+* [IO](IO)
+* [Others](Others)
 

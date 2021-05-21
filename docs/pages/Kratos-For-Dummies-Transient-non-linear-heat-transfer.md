@@ -16,7 +16,7 @@ In order to accommodate the interoperability with other applicatiion in *Kratos*
 
 With all this components we will be able to run our problem in the same way it is designed and planned to be in the standard [*GiD* interface](https://github.com/KratosMultiphysics/GiDInterface). This will help you to integrate your developments into the *Kratos* ecosystem.
 
-Additionally, you can see all the tools, processes, classes, variables, etc... available on the pỳthon interface of the *KratosCore* [here](pages/Kratos-classes-accesible-via-python).
+Additionally, you can see all the tools, processes, classes, variables, etc... available on the pỳthon interface of the *KratosCore* [here](Kratos-classes-accesible-via-python).
 
 # Contents
 
@@ -53,7 +53,7 @@ We have two different alternatives in order to compute the dynamic terms. Some e
 Using the latter it is possible to use the interface of the existing *schemes*. The schemes are "utilities" used to compute the dynamic contributions of the problem. For this reason we will add the dynamic terms to our element.
 
 In the following link the code to be added is presented:
-[Tutorial: Adding dynamic contributions to the element file](pages/Tutorial:-Adding-dynamic-contributions-to-the-element-file)
+[Tutorial: Adding dynamic contributions to the element file](Tutorial:-Adding-dynamic-contributions-to-the-element-file)
 
 ## Updating solver to Non-linear and transient
 
@@ -69,13 +69,13 @@ The base python interface can be found in *Kratos/kratos/python_scripts/python_s
 
 In the following link the complete proposed script can be found.
 
-[Tutorial: Pure diffusion solver derived from main python solver](pages/Tutorial:-Pure-diffusion-solver-derived-from-main-python-solver)
+[Tutorial: Pure diffusion solver derived from main python solver](Tutorial:-Pure-diffusion-solver-derived-from-main-python-solver)
 
 ### Creating a wrapper of convergence criteria
 
 The following wrapper for the convergence criteria is already available in the *Kratos/kratos/python_scripts/base_convergence_criteria_factory.py*. Like we are not considering any additional convergence criteria to the ones available on the framework we can work taking into account just these.
 
-The detail of this implementation can be follow in the [Tutorial: Creating a wrapper of convergence criteria](pages/Tutorial:-Creating-a-wrapper-of-convergence-criteria)
+The detail of this implementation can be follow in the [Tutorial: Creating a wrapper of convergence criteria](Tutorial:-Creating-a-wrapper-of-convergence-criteria)
 
 ### Adding the transient scheme
 
@@ -89,7 +89,7 @@ Finally, with all these components we are ready to integrate them into
 
 This is a crucial step in order to achieve the proper integration of you code with the other applications and reach the objective of integrate your problem and create a multi-physics simulation.
 
-[Tutorial: Analysis stage for pure diffusion problem](pages/Tutorial:-Analysis-stage-for-pure-diffusion-problem)
+[Tutorial: Analysis stage for pure diffusion problem](Tutorial:-Analysis-stage-for-pure-diffusion-problem)
 
 ## Using *.json parameters
 

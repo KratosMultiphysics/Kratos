@@ -120,5 +120,5 @@ gid_output.ExcecuteFinalize()
 ```
 to close any remaining open files.
 
-**Next** [Nodes and Nodal Data](pages/Python-Script-Tutorial:-Nodes-and-Nodal-Data)<br>
-**Prev** [Reading ModelPart From Input File](pages/Python-Script-Tutorial:-Reading-ModelPart-From-Input-File)
+**Next** [Nodes and Nodal Data](nodes-and-data)<br>
+**Prev** [Reading ModelPart From Input File](reading-input)

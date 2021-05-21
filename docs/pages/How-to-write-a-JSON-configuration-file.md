@@ -195,4 +195,4 @@ settings.WriteJsonString()
 ~~~ 
 
 ## Style Conventions for JSON
-Information about style conventions for the JSON file can be found in the [Style Guide](pages/Style-Guide).
+Information about style conventions for the JSON file can be found in the [Style Guide](Style-Guide).
