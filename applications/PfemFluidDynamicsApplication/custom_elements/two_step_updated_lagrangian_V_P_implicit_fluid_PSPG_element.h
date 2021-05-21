@@ -333,6 +333,7 @@ namespace Kratos
                                          const double Tau,
                                          const double Density,
                                          const double Weight,
+                                         const double TimeStep,
                                          const ShapeFunctionDerivativesType &rDN_DX,
                                          const ShapeFunctionsType &rN,
                                          const SizeType i);

@@ -239,11 +239,12 @@ namespace Kratos
         {
           // RHS contribution
           // Velocity divergence
+          
           rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
 
           this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
 
-          this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, N, i);
+          this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, TimeStep, rDN_DX, N, i);
         }
       }
     }
@@ -404,27 +405,26 @@ namespace Kratos
                                                                                               const double Tau,
                                                                                               const double Density,
                                                                                               const double Weight,
+                                                                                              const double TimeStep,
                                                                                               const ShapeFunctionDerivativesType &rDN_DX,
                                                                                               const ShapeFunctionsType &rN,
                                                                                               const SizeType i)
   {
 
     double RHSi = 0;
-    double timeStep = 0.001;
     // LHS contribution
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType j = 0; j < NumNodes; ++j)
     {
-      //double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
-      //double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
-      double termX = rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / timeStep;
-      double termY = rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / timeStep;
+      // double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
+      // double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      double termX = rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / TimeStep;
+      double termY = rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / TimeStep;
       RHSi += Tau * Density * (termX + termY);
 
       // termX = rN[i] * rDN_DX(j, 0) * this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0);
       // termY = rN[i] * rDN_DX(j, 1) * this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0);
-      // // double termX = rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0)) / timeStep;
-      // // double termY = rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0)) / timeStep;
+      
       // RHSi +=  (termX + termY);
     }
     rRightHandSideVector[i] +=  - Weight * RHSi;
@@ -435,12 +435,14 @@ namespace Kratos
                                                                                               const double Tau,
                                                                                               const double Density,
                                                                                               const double Weight,
+                                                                                              const double TimeStep,
                                                                                               const ShapeFunctionDerivativesType &rDN_DX,
                                                                                               const ShapeFunctionsType &rN,
                                                                                               const SizeType i)
   {
 
     double RHSi = 0;
+    //////////////////////////// TO CHEEEEEEEEEEEEEEEEEEEEEEECCCCCCCCCCCCCCCCCCCCKKKKKKKKKKKKKKK///////////////////////
 
     // LHS contribution
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
