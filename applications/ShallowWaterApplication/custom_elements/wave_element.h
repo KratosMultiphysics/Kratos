@@ -65,6 +65,8 @@ public:
 
     typedef BoundedMatrix<double, 3*TNumNodes, 3*TNumNodes> LocalMatrixType;
 
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
     /// Pointer definition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WaveElement);
 
@@ -298,6 +300,11 @@ protected:
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
+
+    void CalculateGeometryData(
+        Vector &rGaussWeights,
+        Matrix &rNContainer,
+        ShapeFunctionsGradientsType &rDN_DX) const;
 
     void AddGradientTerms(
         LocalMatrixType& rLHS,

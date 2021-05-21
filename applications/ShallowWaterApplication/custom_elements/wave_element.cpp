@@ -181,8 +181,8 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     rRightHandSideVector = rhs;
 }
 
-template<>
-void WaveElement<4>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if(rLeftHandSideMatrix.size1() != mLocalSize)
         rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
@@ -198,18 +198,17 @@ void WaveElement<4>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     InitializeData(data, rCurrentProcessInfo);
     GetNodalData(data, GetGeometry());
 
+    Vector weights;
     Matrix N_container;
-    Vector det_j_vec;
-    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
-    GetGeometry().ShapeFunctionsIntegrationPointsGradients(DN_DX_container, det_j_vec, GeometryData::GI_GAUSS_2, N_container);
-    BoundedMatrix<double, 4, 2> DN_DX;
-    array_1d<double, 4> N;
-    double area;
+    ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(weights, N_container, DN_DX_container);
+    const IndexType num_gauss_points = weights.size();
 
-    for (IndexType i_gauss = 0; i_gauss < 4; ++i_gauss)
+    for (IndexType g = 0; g < num_gauss_points; ++g)
     {
-        N = row(N_container, i_gauss);
-        double weight;
+        const double weight = weights[g];
+        const array_1d<double, 4> N = row(N_container, g);
+        const BoundedMatrix<double, 4, 2> DN_DX = DN_DX_container[g];
 
         AddGradientTerms(lhs, rhs, data, N, DN_DX, weight);
         AddSourceTerms(lhs, rhs, data, N, DN_DX, weight);
@@ -217,9 +216,6 @@ void WaveElement<4>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rhs) -= prod(lhs, data.unknown);
-
-    lhs *= area;
-    rhs *= area;
 
     rLeftHandSideMatrix = lhs;
     rRightHandSideVector = rhs;
@@ -272,6 +268,27 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
     rData.height = std::max(0.0, rData.height);
     rData.height *= lumping_factor;
     rData.velocity *= lumping_factor;
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateGeometryData(
+    Vector &rGaussWeights,
+    Matrix &rNContainer,
+    ShapeFunctionsGradientsType &rDN_DXContainer) const
+{
+    Vector det_j_vector;
+    const auto& r_geom = this->GetGeometry();
+    const auto integration_method = r_geom.GetDefaultIntegrationMethod();
+    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method, rNContainer);
+
+    const unsigned int number_of_gauss_points = r_geom.IntegrationPointsNumber(integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
+
+    if (rGaussWeights.size() != number_of_gauss_points)
+        rGaussWeights.resize(number_of_gauss_points, false);
+
+    for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
 }
 
 template<std::size_t TNumNodes>
