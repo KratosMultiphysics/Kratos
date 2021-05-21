@@ -515,7 +515,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         set Groups [GiD_Info conditions Body_Acceleration groups]
         WriteLoadVectorProcess FileVar iGroup $Groups VOLUME_ACCELERATION $TableDict $NumGroups
     } else {
-        puts $FileVar "    \"loads_process_list\":       \[\]"
+        puts $FileVar "    \"loads_process_list\":       \[\],"
     }
 
     ## auxiliar_process_list
