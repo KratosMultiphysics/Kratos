@@ -57,7 +57,7 @@ public:
 
     typedef LaplacianElement BaseType;
 
-    static constexpr std::size_t TNumNodes = TDim + 1;
+    static constexpr std::size_t NumNodes = TDim + 1;
 
     ///@}
     ///@name Life Cycle

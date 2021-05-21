@@ -101,8 +101,8 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
             // Get the parent geometry data
             double dom_size_parent;
             const auto& r_geom = GetGeometry();
-            array_1d<double, TNumNodes> N_parent;
-            BoundedMatrix<double, TNumNodes, TDim> DN_DX_parent;
+            array_1d<double, NumNodes> N_parent;
+            BoundedMatrix<double, NumNodes, TDim> DN_DX_parent;
             GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
             const auto& r_boundaries = r_geom.GenerateBoundariesEntities();
             DenseMatrix<unsigned int> nodes_in_faces;
@@ -115,45 +115,41 @@ void LaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-                const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(BaseType::GetIntegrationMethod());
-                const Matrix& N_g = r_sur_bd_geom.ShapeFunctionsValues(BaseType::GetIntegrationMethod());
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-                // Get the surrogate boundary nodal data
-                DenseVector<double> nodal_unknown(n_bd_points);
-                DenseVector<double> nodal_conductivity(n_bd_points);
-                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
-                    nodal_unknown[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_unknown_var);
-                    nodal_conductivity[i_bd_node] = r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
+                // Get the unknowns vector
+                DenseVector<double> nodal_unknown(NumNodes);
+                for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+                    nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
                 }
 
-                // Integrate the surrogate boundary flux
-                const std::size_t n_gauss = r_integration_points.size();
-                for(std::size_t i_g = 0; i_g < n_gauss; ++i_g) {
-                    // Get surrogate boundary Gauss pt. geometry data
-                    const DenseVector<double> N_i_g = row(N_g, i_g);
-                    const double w_i_g = r_integration_points[i_g].Weight() * r_sur_bd_geom.DeterminantOfJacobian(i_g, BaseType::GetIntegrationMethod());
-                    const double k_i_g = inner_prod(N_i_g, nodal_conductivity);
-                    const array_1d<double,3> normal_g = r_sur_bd_geom.Normal(r_integration_points[i_g].Coordinates());
+                // Get the surrogate boundary average conductivity
+                double k_avg = 0.0;
+                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                    k_avg += r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
+                }
+                k_avg /= n_bd_points;
 
-                    // Add the surrogate boundary flux contribution
-                    // Note that the local face ids. are already taken into account in the assembly
-                    double aux_1;
-                    double aux_2;
-                    std::size_t i_loc_id;
-                    BoundedVector<double,TDim> j_node_grad;
-                    for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
-                        i_loc_id = sur_bd_local_ids[i_node + 1];
-                        aux_1 = w_i_g * k_i_g * N_i_g(i_node);
-                        for (std::size_t j_node = 0; j_node < n_bd_points; ++j_node) {
-                            j_node_grad = row(DN_DX_parent, j_node);
-                            aux_2 = 0.0;
-                            for (std::size_t d = 0; d < TDim; ++d) {
-                                aux_2 += j_node_grad(d) * normal_g(d);
-                            }
-                            aux_2 *= aux_1;
-                            rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
-                            rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
-                        }
+                // Get the gradient of the node contrary to the surrogate face
+                // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
+                const BoundedVector<double,TDim> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
+
+                // Add the surrogate boundary flux contribution
+                // Note that the local face ids. are already taken into account in the assembly
+                // Note that the integration weight is calculated as TDim * Parent domain size * norm(DN_DX_cont_node)
+                double aux_1;
+                double aux_2;
+                std::size_t i_loc_id;
+                BoundedVector<double,TDim> j_node_grad;
+                const double aux_w_k = TDim * dom_size_parent * k_avg;
+                for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
+                    aux_1 = aux_w_k * r_sur_bd_N(0,i_node);
+                    i_loc_id = sur_bd_local_ids[i_node + 1];
+                    for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                        j_node_grad = row(DN_DX_parent, j_node);
+                        aux_2 = aux_1 * inner_prod(j_node_grad, DN_DX_cont_node);
+                        rLeftHandSideMatrix(i_loc_id, j_node) += aux_2;
+                        rRightHandSideVector(i_loc_id) -= aux_2 * nodal_unknown(j_node);
                     }
                 }
             }
