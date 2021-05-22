@@ -159,6 +159,18 @@ private:
     ///@{
 
     /**
+     * @brief This method checks that no name of sub ModelParts is repeated
+     * @param rModelPartsNames The list of ModelParts to check the submodelparts names
+     */
+    void CheckSubModelParts(const std::vector<std::string>& rModelPartsNames);
+
+    /**
+     * @brief This method reorders the Ids of the entities to avoid conflict when combining
+     * @param rModelPartsNames The list of ModelParts to check the submodelparts names
+     */
+    void ReorderIds(const std::vector<std::string>& rModelPartsNames); 
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const;
