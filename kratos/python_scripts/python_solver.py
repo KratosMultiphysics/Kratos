@@ -142,7 +142,7 @@ class PythonSolver:
         KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
-        if (input_type == "mdpa"):
+        if input_type == "mdpa":
             problem_path = os.getcwd()
 
             default_settings = KratosMultiphysics.Parameters("""{
@@ -181,12 +181,12 @@ class PythonSolver:
 
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
 
-        elif (input_type == "rest"):
+        elif input_type == "rest":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
-        elif(input_type == "use_input_model_part"):
+        elif input_type == "use_input_model_part":
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
 
         else:
