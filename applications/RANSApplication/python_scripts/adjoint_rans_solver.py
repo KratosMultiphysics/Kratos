@@ -371,7 +371,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         elif response_type == "norm_square":
             response_function = KratosCFD.VelocityPressureNormSquareResponseFunction(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
-                self.main_model_part)
+                self.main_model_part.GetModel())
         elif response_type == "drag_frequency":
             response_function = drag_frequency_response_function_type(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
