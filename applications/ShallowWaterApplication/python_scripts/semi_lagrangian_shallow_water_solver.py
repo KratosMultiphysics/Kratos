@@ -6,9 +6,9 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.free_surface_shallow_water_solver import FreeSurfaceShallowWaterSolver
 
 def CreateSolver(model, custom_settings):
-    return LagrangianShallowWaterSolver(model, custom_settings)
+    return SemiLagrangianShallowWaterSolver(model, custom_settings)
 
-class LagrangianShallowWaterSolver(FreeSurfaceShallowWaterSolver):
+class SemiLagrangianShallowWaterSolver(FreeSurfaceShallowWaterSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
         self.min_buffer_size = 2

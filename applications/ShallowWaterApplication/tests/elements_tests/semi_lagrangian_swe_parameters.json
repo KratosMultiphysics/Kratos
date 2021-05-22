@@ -6,7 +6,7 @@
         "parallel_type"        : "OpenMP"
     },
     "solver_settings"      : {
-        "solver_type"              : "lagrangian_shallow_water_solver",
+        "solver_type"              : "semi_lagrangian_shallow_water_solver",
         "model_part_name"          : "main_model_part",
         "domain_size"              : 2,
         "gravity"                  : 9.81,
@@ -109,7 +109,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "lagrangian_swe_reference.json",
+                "input_file_name"  : "semi_lagrangian_swe_reference.json",
                 "time_frequency"   : 0.29,
                 "tolerance"        : 1e-5
             }
@@ -122,7 +122,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
-                "output_file_name" : "lagrangian_swe_reference.json",
+                "output_file_name" : "semi_lagrangian_swe_reference.json",
                 "time_frequency"   : 0.29
             }
         },{
@@ -131,7 +131,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "lagrangian_swe_reference.json",
+                "input_file_name"  : "semi_lagrangian_swe_reference.json",
                 "time_frequency"   : 0.29,
                 "tolerance"        : 1e-5
             }

@@ -21,9 +21,9 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
             test = ShallowWaterAnalysis(model, ProjectParameters)
             test.Run()
 
-class TestLagrangianShallowWaterElement(ShallowWaterTestFactory):
+class TestSemiLagrangianShallowWaterElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
-    execution_file = "lagrangian_swe"
+    execution_file = "semi_lagrangian_swe"
 
 class TestShallowWaterElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
