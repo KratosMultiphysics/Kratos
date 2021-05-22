@@ -146,183 +146,6 @@ void WaveElement<TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentP
 {
 }
 
-template<>
-void WaveElement<3>::AddMassTerms(
-    LocalMatrixType& rMatrix,
-    const ElementData& rData,
-    const array_1d<double,3>& rN,
-    const BoundedMatrix<double,3,2>& rDN_DX,
-    const double Weight)
-{
-    const double h = rData.height;
-    const double g = rData.gravity;
-    const double l = StabilizationParameter(rData);
-
-    // Algebraic factor
-    const double one_twelve = 1.0 / 12.0;
-
-    for (size_t i = 0; i < 3; ++i)
-    {
-        const size_t i_block = 3 * i;
-        for (size_t j = 0; j < 3; ++j)
-        {
-            const size_t j_block = 3 * j;
-
-            // Algebraic mass matrix
-            const double n = (i == j) ? 2*one_twelve : one_twelve;
-            rMatrix(i_block,     j_block)     += n;
-            rMatrix(i_block + 1, j_block + 1) += n;
-            rMatrix(i_block + 2, j_block + 2) += n;
-
-            /* Stabilization x
-             * l/(gh) * A1 * N
-             */
-            const double g1_ij = rDN_DX(i,0) * rN[j];
-            rMatrix(i_block,     j_block + 2) += l * g1_ij * h;
-            rMatrix(i_block + 2, j_block)     += l * g1_ij * g;
-
-            /* Stabilization 2
-             * l/(gh) * A2 * N
-             */
-            const double g2_ij = rDN_DX(i,1) * rN[j];
-            rMatrix(i_block + 1, j_block + 2) += l * g2_ij * h;
-            rMatrix(i_block + 2, j_block + 2) += l * g2_ij * g;
-        }
-    }
-}
-
-template<>
-void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rLeftHandSideMatrix.size1() != mLocalSize)
-        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
-
-    if(rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalVectorType rhs = ZeroVector(mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
-
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
-
-    AddWaveTerms(lhs, rhs, data, N, DN_DX);
-    AddTopographyTerms(lhs, rhs, data, N, DN_DX);
-    AddFrictionTerms(lhs, rhs, data, N, DN_DX);
-
-    // Substracting the Dirichlet term (since we use a residualbased approach)
-    noalias(rhs) -= prod(lhs, data.unknown);
-
-    noalias(rLeftHandSideMatrix) = area * lhs;
-    noalias(rRightHandSideVector) = area * rhs;
-}
-
-template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rLeftHandSideMatrix.size1() != mLocalSize)
-        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
-
-    if(rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalVectorType rhs = ZeroVector(mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
-
-    Vector weights;
-    Matrix N_container;
-    ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
-    const IndexType num_gauss_points = weights.size();
-
-    for (IndexType g = 0; g < num_gauss_points; ++g)
-    {
-        const double weight = weights[g];
-        const array_1d<double,TNumNodes> N = row(N_container, g);
-        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
-
-        AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddTopographyTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
-    }
-
-    // Substracting the Dirichlet term (since we use a residualbased approach)
-    noalias(rhs) -= prod(lhs, data.unknown);
-
-    noalias(rLeftHandSideMatrix) = lhs;
-    noalias(rRightHandSideVector) = rhs;
-}
-
-template<>
-void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rMassMatrix.size1() != mLocalSize)
-        rMassMatrix.resize(mLocalSize, mLocalSize, false);
-
-    LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
-
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
-
-    AddMassTerms(mass_matrix, data, N, DN_DX);
-
-    noalias(rMassMatrix) = area * mass_matrix;
-}
-
-template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rMassMatrix.size1() != mLocalSize)
-        rMassMatrix.resize(mLocalSize, mLocalSize, false);
-
-    LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
-
-    Vector weights;
-    Matrix N_container;
-    ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
-    const IndexType num_gauss_points = weights.size();
-
-    for (IndexType g = 0; g < num_gauss_points; ++g)
-    {
-        const double weight = weights[g];
-        const array_1d<double,TNumNodes> N = row(N_container, g);
-        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
-
-        AddMassTerms(mass_matrix, data, N, DN_DX, weight);
-    }
-    noalias(rMassMatrix) = mass_matrix;
-}
-
-template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -503,6 +326,51 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
 {
 }
 
+template<>
+void WaveElement<3>::AddMassTerms(
+    LocalMatrixType& rMatrix,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX,
+    const double Weight)
+{
+    const double h = rData.height;
+    const double g = rData.gravity;
+    const double l = StabilizationParameter(rData);
+
+    // Algebraic factor
+    const double one_twelve = 1.0 / 12.0;
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            const size_t j_block = 3 * j;
+
+            // Algebraic mass matrix
+            const double n = (i == j) ? 2*one_twelve : one_twelve;
+            rMatrix(i_block,     j_block)     += n;
+            rMatrix(i_block + 1, j_block + 1) += n;
+            rMatrix(i_block + 2, j_block + 2) += n;
+
+            /* Stabilization x
+             * l/(gh) * A1 * N
+             */
+            const double g1_ij = rDN_DX(i,0) * rN[j];
+            rMatrix(i_block,     j_block + 2) += l * g1_ij * h;
+            rMatrix(i_block + 2, j_block)     += l * g1_ij * g;
+
+            /* Stabilization 2
+             * l/(gh) * A2 * N
+             */
+            const double g2_ij = rDN_DX(i,1) * rN[j];
+            rMatrix(i_block + 1, j_block + 2) += l * g2_ij * h;
+            rMatrix(i_block + 2, j_block + 2) += l * g2_ij * g;
+        }
+    }
+}
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddMassTerms(
     LocalMatrixType& rMatrix,
@@ -562,6 +430,138 @@ template<std::size_t TNumNodes>
 typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::ToSystemVector(const double& rScalar) const
 {
     return ZeroVector(3*TNumNodes);
+}
+
+template<>
+void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rLeftHandSideMatrix.size1() != mLocalSize)
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
+
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+
+    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType rhs = ZeroVector(mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, GetGeometry());
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    AddWaveTerms(lhs, rhs, data, N, DN_DX);
+    AddTopographyTerms(lhs, rhs, data, N, DN_DX);
+    AddFrictionTerms(lhs, rhs, data, N, DN_DX);
+
+    // Substracting the Dirichlet term (since we use a residualbased approach)
+    noalias(rhs) -= prod(lhs, data.unknown);
+
+    noalias(rLeftHandSideMatrix) = area * lhs;
+    noalias(rRightHandSideVector) = area * rhs;
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rLeftHandSideMatrix.size1() != mLocalSize)
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
+
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+
+    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType rhs = ZeroVector(mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, GetGeometry());
+
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(weights, N_container, DN_DX_container);
+    const IndexType num_gauss_points = weights.size();
+
+    for (IndexType g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
+
+        AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddTopographyTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
+    }
+
+    // Substracting the Dirichlet term (since we use a residualbased approach)
+    noalias(rhs) -= prod(lhs, data.unknown);
+
+    noalias(rLeftHandSideMatrix) = lhs;
+    noalias(rRightHandSideVector) = rhs;
+}
+
+template<>
+void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rMassMatrix.size1() != mLocalSize)
+        rMassMatrix.resize(mLocalSize, mLocalSize, false);
+
+    LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, GetGeometry());
+
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    AddMassTerms(mass_matrix, data, N, DN_DX);
+
+    noalias(rMassMatrix) = area * mass_matrix;
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rMassMatrix.size1() != mLocalSize)
+        rMassMatrix.resize(mLocalSize, mLocalSize, false);
+
+    LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
+
+    // Struct to pass around the data
+    ElementData data;
+    InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, GetGeometry());
+
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(weights, N_container, DN_DX_container);
+    const IndexType num_gauss_points = weights.size();
+
+    for (IndexType g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
+
+        AddMassTerms(mass_matrix, data, N, DN_DX, weight);
+    }
+    noalias(rMassMatrix) = mass_matrix;
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
 }
 
 template class WaveElement<3>;
