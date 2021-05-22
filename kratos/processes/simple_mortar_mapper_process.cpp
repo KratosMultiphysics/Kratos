@@ -810,20 +810,19 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     std::vector<double> norm_bi(variable_size, 0.0);
     double increment_residual_norm = 0.0;
 
-    // Create and initialize condition variables:
-    MortarKinematicVariablesType this_kinematic_variables;
-
-    // Create the mortar operators
-    MortarOperatorType this_mortar_operators;
-
-    // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
-
     // We reset the nodal area
     ResetNodalArea();
 
     // We get the reference area
     const double ref_area = GetReferenceArea();
+
+    struct TLS {
+        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
+        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
+        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
+    };
+    TLS tls;
+    tls.integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
     // Check if the pairs has been created
     CheckAndPerformSearch();
@@ -836,18 +835,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         const auto it_cond_begin = r_conditions_array.begin();
 
         // We map the values from one side to the other
-        #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-        for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = it_cond_begin + i;
-
+        IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+            auto it_cond = it_cond_begin + Index;
             if (it_cond->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), integration_utility);
+                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
             } else {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), integration_utility);
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
             }
-        }
+        });
     } else {
         // Iterate over elements
         auto& r_elements_array = mDestinationModelPart.Elements();
@@ -855,18 +852,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         const auto it_elem_begin = r_elements_array.begin();
 
         // We map the values from one side to the other
-        #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-        for(int i = 0; i < num_elements; ++i) {
-            auto it_elem = it_elem_begin + i;
-
+        IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+            auto it_elem = it_elem_begin + Index;
             if (it_elem->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), integration_utility);
+                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
             } else {
                 IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), integration_utility);
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
             }
-        }
+        });
     }
 
     // In case of discontinous interface we create an inverse mapping
@@ -887,18 +882,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             const auto it_cond_begin = r_conditions_array.begin();
 
             // We map the values from one side to the other
-            #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-            for(int i = 0; i < num_conditions; ++i) {
-                auto it_cond = it_cond_begin + i;
-
+            IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+                auto it_cond = it_cond_begin + Index;
                 if (it_cond->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
                     IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
-            }
+            });
         } else {
             // Iterate over elements
             auto& r_elements_array = mDestinationModelPart.Elements();
@@ -906,18 +899,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             const auto it_elem_begin = r_elements_array.begin();
 
             // We map the values from one side to the other
-            #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-            for(int i = 0; i < num_elements; ++i) {
-                auto it_elem = it_elem_begin + i;
-
+            IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+                auto it_elem = it_elem_begin + Index;
                 if (it_elem->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
                     IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
-            }
+            });
         }
 
         // We remove the not used conditions
@@ -932,7 +923,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
         auto& r_nodes_array = mDestinationModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
-        //const int num_nodes = static_cast<int>(r_nodes_array.size());
 
         // We compute the residual norm
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
@@ -1027,14 +1017,13 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     std::vector<double> norm_Dx0(variable_size, 0.0);
     VectorType Dx(system_size);
 
-    // Create and initialize condition variables:
-    MortarKinematicVariablesType this_kinematic_variables;
-
-    // Create the mortar operators
-    MortarOperatorType this_mortar_operators;
-
-    // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
+    struct TLS {
+        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
+        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
+        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
+    };
+    TLS tls;
+    tls.integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
     // Check if the pairs has been created
     CheckAndPerformSearch();
@@ -1047,18 +1036,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         const auto it_cond_begin = r_conditions_array.begin();
 
         // We map the values from one side to the other
-        #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-        for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = it_cond_begin + i;
-
+        IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+            auto it_cond = it_cond_begin + Index;
             if (it_cond->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), integration_utility);
+                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
             } else {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), integration_utility);
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility);
             }
-        }
+        });
     } else {
         // Iterate over elements
         auto& r_elements_array = mDestinationModelPart.Elements();
@@ -1066,18 +1053,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         const auto it_elem_begin = r_elements_array.begin();
 
         // We map the values from one side to the other
-        #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-        for(int i = 0; i < num_elements; ++i) {
-            auto it_elem = it_elem_begin + i;
-
+        IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+            auto it_elem = it_elem_begin + Index;
             if (it_elem->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), integration_utility);
+                ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
             } else {
                 IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), integration_utility);
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility);
             }
-        }
+        });
     }
 
     // In case of discontinous interface we create an inverse mapping
@@ -1100,17 +1085,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             const auto it_cond_begin = r_conditions_array.begin();
 
             // We map the values from one side to the other
-            #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-            for(int i = 0; i < num_conditions; ++i) {
-                auto it_cond = it_cond_begin + i;
+            IndexPartition<std::size_t>(num_conditions).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+                auto it_cond = it_cond_begin + Index;
                 if (it_cond->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                    PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
                     IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
-            }
+            });
         } else {
             // Iterate over elements
             auto& r_elements_array = mDestinationModelPart.Elements();
@@ -1118,17 +1102,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             const auto it_elem_begin = r_elements_array.begin();
 
             // We map the values from one side to the other
-            #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-            for(int i = 0; i < num_elements; ++i) {
-                auto it_elem = it_elem_begin + i;
+            IndexPartition<std::size_t>(num_elements).for_each(tls, [&](std::size_t Index, TLS& rTLS){
+                auto it_elem = it_elem_begin + Index;
                 if (it_elem->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
-                    PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 } else {
                     IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), rTLS.integration_utility, rTLS.this_kinematic_variables, rTLS.this_mortar_operators, iteration);
                 }
-            }
+            });
         }
 
         // We remove the not used conditions
