@@ -94,11 +94,19 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             self.ExecuteAfterCouplingSolveStep()
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. {:d}/{:d}.".format(iteration + 1, max_iterations))
-            is_converged = self.nu_t_convergence_utility.CheckConvergence()
-            if (is_converged):
+            self.is_converged = self.nu_t_convergence_utility.CheckConvergence()
+            if (self.is_converged):
                 return True
 
-        return True
+        return False
+
+    def IsConverged(self):
+        is_converged = super().IsConverged()
+
+        if hasattr(self, "is_converged"):
+            return is_converged and self.is_converged
+        else:
+            return is_converged
 
     def ExecuteAfterCouplingSolveStep(self):
         super().ExecuteAfterCouplingSolveStep()
