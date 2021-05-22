@@ -178,8 +178,8 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     lhs *= area;
     rhs *= area;
 
-    rLeftHandSideMatrix = lhs;
-    rRightHandSideVector = rhs;
+    noalias(rLeftHandSideMatrix) = lhs;
+    noalias(rRightHandSideVector) = rhs;
 }
 
 template<std::size_t TNumNodes>
@@ -219,8 +219,8 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rhs) -= prod(lhs, data.unknown);
 
-    rLeftHandSideMatrix = lhs;
-    rRightHandSideVector = rhs;
+    noalias(rLeftHandSideMatrix) = lhs;
+    noalias(rRightHandSideVector) = rhs;
 }
 
 template<std::size_t TNumNodes>
