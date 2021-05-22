@@ -16,8 +16,6 @@
 
 // Project includes
 #include "processes/simple_mortar_mapper_process.h"
-#include "utilities/parallel_utilities.h"
-#include "utilities/variable_utils.h"
 
 /* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
@@ -185,7 +183,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
     if (mMappingCoefficient != 1.0) {
         auto& r_nodes_array = mDestinationModelPart.Nodes();
 
-        if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
+        if (mOptions.Is(DESTINATION_IS_HISTORICAL)){
             block_for_each(r_nodes_array, [this](Node<3>& rNode){
                 rNode.FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
@@ -226,9 +224,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 
         if (!search_exists) {
             // We create the variable INDEX_SET
-            block_for_each(r_destination_conditions_array, [INDEX_SET](Condition& rCond){
+            block_for_each(r_destination_conditions_array, [&](Condition& rCond){
                 if(!rCond.Has(INDEX_SET)){
                     rCond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+                }
             });
         }
     } else {
@@ -245,7 +244,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 
         if (!search_exists) {
             // We create the variable INDEX_SET
-            block_for_each(r_destination_elements_array, [INDEX_SET](Element& rElem){
+            block_for_each(r_destination_elements_array, [&](Element& rElem){
                 if(!rElem.Has(INDEX_SET))
                     rElem.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
             });
@@ -353,14 +352,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Rese
 {
     // Iterating over nodes
     auto& r_nodes_array = mDestinationModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
 
     // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-        it_node->SetValue(NODAL_AREA, 0.0);
-    }
+    VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, r_nodes_array);
 }
 
 /***********************************************************************************/
