@@ -226,13 +226,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 
         if (!search_exists) {
             // We create the variable INDEX_SET
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_destination_conditions_array.size()); ++i) {
-                auto it_cond = it_cond_begin + i;
-                if (!it_cond->Has(INDEX_SET)) {
-                    it_cond->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
-                }
-            }
+            block_for_each(r_destination_conditions_array, [INDEX_SET](Condition& rCond){
+                if(!rCond.Has(INDEX_SET)){
+                    rCond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+            });
         }
     } else {
         auto& r_destination_elements_array = mDestinationModelPart.Elements();
@@ -248,12 +245,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 
         if (!search_exists) {
             // We create the variable INDEX_SET
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_destination_elements_array.size()); ++i) {
-                auto it_elem = it_elem_begin + i;
-                if (!it_elem->Has(INDEX_SET))
-                    it_elem->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
-            }
+            block_for_each(r_destination_elements_array, [INDEX_SET](Element& rElem){
+                if(!rElem.Has(INDEX_SET))
+                    rElem.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+            });
         }
     }
 
