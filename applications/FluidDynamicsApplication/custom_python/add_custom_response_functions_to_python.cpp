@@ -9,6 +9,7 @@
 #include "custom_response_functions/drag_frequency_response_function.h"
 #include "custom_response_functions/velocity_pressure_norm_square_response_function.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
+#include "custom_response_functions/residual_response_function.h"
 
 namespace Kratos
 {
@@ -72,6 +73,18 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         VelocityPressureNormSquareResponseFunction::Pointer,
         AdjointResponseFunction>(m,"VelocityPressureNormSquareResponseFunction")
         .def(py::init<Parameters, Model&>());
+
+    py::class_<
+        ResidualResponseFunction<2>,
+        ResidualResponseFunction<2>::Pointer,
+        AdjointResponseFunction>(m,"ResidualResponseFunction2D")
+        .def(py::init<Parameters, ModelPart&>());
+
+    py::class_<
+        ResidualResponseFunction<3>,
+        ResidualResponseFunction<3>::Pointer,
+        AdjointResponseFunction>(m,"ResidualResponseFunction3D")
+        .def(py::init<Parameters, ModelPart&>());
 
 }
 

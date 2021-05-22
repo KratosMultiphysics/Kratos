@@ -97,6 +97,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
 
   # response functions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/drag_frequency_response_function.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/residual_response_function.cpp
 )
 
 ## define python interface sources
