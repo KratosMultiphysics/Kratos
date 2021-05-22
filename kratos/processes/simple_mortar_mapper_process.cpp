@@ -305,10 +305,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
             }
         }
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(point_list_destination.size()); ++i) {
-            point_list_destination[i]->UpdatePoint();
-        }
+        IndexPartition<std::size_t>(point_list_destination.size()).for_each([point_list_destination](std::size_t Index){
+            point_list_destination[Index]->UpdatePoint();
+        });
 
         // Some auxiliar values
         const SizeType allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results
