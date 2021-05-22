@@ -236,7 +236,6 @@ void ResidualResponseFunction<TDim>::CalculateSecondDerivativesGradient(
         const ArrayD& velocity_dot_velocity_gradient = prod(velocity_gradient, velocity);
         const double velocity_magnitude = norm_2(velocity);
         const double inv_velocity_magnitude = (velocity_magnitude > 1e-12) ? 1.0 / velocity_magnitude : 0.0;
-        const Vector& convection_operator = prod(dNdX, velocity);
 
         noalias(gauss_momentum_residual) =
             acceleration + velocity_dot_velocity_gradient +
@@ -333,7 +332,6 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
             const ArrayD& velocity_dot_velocity_gradient = prod(velocity_gradient, velocity);
             const double velocity_magnitude = norm_2(velocity);
             const double inv_velocity_magnitude = (velocity_magnitude > 1e-12) ? 1.0 / velocity_magnitude : 0.0;
-            const Vector& convection_operator = prod(dNdX, velocity);
 
             noalias(gauss_momentum_residual) =
                 acceleration + velocity_dot_velocity_gradient +
