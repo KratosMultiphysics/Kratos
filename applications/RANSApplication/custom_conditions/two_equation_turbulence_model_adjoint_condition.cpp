@@ -241,7 +241,7 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 {
     const auto& r_variables_list = TAdjointConditionData::GetDofVariablesList();
 
-    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 200) {
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 200 && RansCalculationUtilities::IsWallFunctionActive(*this)) {
         // add dofs for the shape sensitivity calculation
         // it is required to add all the nodes corresponding to parent element
         // because, wall distance calculation involves parent nodes.
@@ -485,15 +485,15 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
     KRATOS_TRY
 
     if (rSensitivityVariable == SHAPE_SENSITIVITY) {
-        auto& r_parent_elemnet = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
-        const IndexType coords_size = TDim * r_parent_elemnet.GetGeometry().PointsNumber();
-
-        if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
-            rOutput.resize(coords_size, TConditionLocalSize, false);
-        }
-
-        rOutput.clear();
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+            auto& r_parent_elemnet = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+            const IndexType coords_size = TDim * r_parent_elemnet.GetGeometry().PointsNumber();
+
+            if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+                rOutput.resize(coords_size, TConditionLocalSize, false);
+            }
+
+            rOutput.clear();
             BoundedVector<IndexType, TNumNodes> condition_node_parent_index;
             std::vector<IndexType> parent_only_node_indices;
             ComputeParentElementNodesToConditionNodesMap(
@@ -502,6 +502,14 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
             AddFluidShapeDerivatives(rOutput, r_parent_elemnet, condition_node_parent_index, parent_only_node_indices, rCurrentProcessInfo);
             AddTurbulenceShapeDerivatives(rOutput, r_parent_elemnet, condition_node_parent_index, parent_only_node_indices, rCurrentProcessInfo);
+        } else {
+            constexpr IndexType coords_size = TDim * TNumNodes;
+
+            if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+                rOutput.resize(coords_size, TConditionLocalSize, false);
+            }
+
+            rOutput.clear();
         }
     } else {
         KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
