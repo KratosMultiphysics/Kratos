@@ -21,7 +21,7 @@ class TestResponseFunction(UnitTest.TestCase):
 
         prop = cls.model_part.GetProperties()[0]
         prop[Kratos.DENSITY] = 1.5
-        cls.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], prop)
+        cls.model_part.CreateNewElement("Element2D3N", 1, [2, 3, 1], prop)
 
         cls.model_part.SetBufferSize(1)
 
@@ -100,7 +100,7 @@ class TestResponseFunction(UnitTest.TestCase):
         self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-6, 1e-5)
 
     def testCalculatePartialSensitivity(self):
-        residual_local_size = self.block_size * self.number_of_nodes
+        residual_local_size = self.domain_size * self.number_of_nodes
         delta = 1e-7
 
         response_gradient = Kratos.Vector()
