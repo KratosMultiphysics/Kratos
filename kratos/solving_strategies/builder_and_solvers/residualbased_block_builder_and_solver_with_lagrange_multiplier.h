@@ -528,7 +528,7 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&rb, &b_modified](std::size_t Index){
+            IndexPartition<std::size_t>(static_cast<int>(BaseType::mEquationSystemSize)).for_each([&rb, &b_modified](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
