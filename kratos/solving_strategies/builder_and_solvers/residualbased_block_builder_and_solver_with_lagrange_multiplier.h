@@ -281,7 +281,7 @@ public:
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([this, &rDx](std::size_t Index){
+        IndexPartition<unsigned int>(static_cast<int>(BaseType::mSlaveIds.size())).for_each([this, &rDx](unsigned int Index){
             mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
         });
 
@@ -317,7 +317,7 @@ public:
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([this, &rDx](std::size_t Index){
+        IndexPartition<unsigned int >(static_cast<int>(BaseType::mSlaveIds.size())).for_each([this, &rDx](unsigned int Index){
             mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
         });
 
@@ -431,7 +431,7 @@ public:
         // Filling with ones the LM dofs
         int loop_size = static_cast<int>(system_size) - ndofs;
 
-        IndexPartition<std::size_t>(loop_size).for_each([&ndofs, &scaling_factors](std::size_t Index){
+        IndexPartition<unsigned int>(loop_size).for_each([&ndofs, &scaling_factors](unsigned int Index){
             scaling_factors[ndofs + Index] = 1.0;
         });
 
@@ -464,7 +464,7 @@ public:
             }
         });
 
-        IndexPartition<int>(static_cast<int>(system_size)).for_each([&](int Index){
+        IndexPartition<unsigned int >(static_cast<int>(system_size)).for_each([&](unsigned int Index){
             std::size_t col_begin = Arow_indices[Index];
             std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
@@ -537,7 +537,7 @@ public:
             int start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
-            IndexPartition<std::size_t>(loop_size).for_each([&start_index, &b_modified](std::size_t Index){
+            IndexPartition<unsigned int>(loop_size).for_each([&start_index, &b_modified](unsigned int Index){
                 b_modified[start_index + Index] = 0.0;
             });
 
@@ -605,7 +605,7 @@ public:
             int start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
-            IndexPartition<std::size_t>(loop_size).for_each([&start_index, &b_modified](std::size_t Index){
+            IndexPartition<unsigned int>(loop_size).for_each([&start_index, &b_modified](unsigned int Index){
                 b_modified[start_index + Index] = 0.0;
             });
             rb.resize(total_size_of_system, false);
@@ -1160,12 +1160,12 @@ private:
         noalias(aux_lm_rhs_contribution) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
 
         if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-            IndexPartition<std::size_t>(number_of_slave_dofs).for_each([&](std::size_t Index){
+            IndexPartition<unsigned int>(number_of_slave_dofs).for_each([&](unsigned int Index){
                 rbLM[ndofs + Index] = aux_lm_rhs_contribution[Index];
                 rbLM[ndofs + number_of_slave_dofs + Index] = aux_lm_rhs_contribution[Index];
             });
         } else {
-            IndexPartition<std::size_t>(number_of_slave_dofs).for_each([&rbLM, &aux_lm_rhs_contribution, &ndofs](std::size_t Index){
+            IndexPartition<unsigned int>(number_of_slave_dofs).for_each([&rbLM, &aux_lm_rhs_contribution, &ndofs](unsigned int Index){
                 rbLM[ndofs + Index] = aux_lm_rhs_contribution[Index];
             });
         }
