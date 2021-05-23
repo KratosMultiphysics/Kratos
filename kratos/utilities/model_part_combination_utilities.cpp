@@ -83,10 +83,21 @@ void ModelPartCombinationUtilities::CheckSubModelParts(const std::vector<std::st
 
 void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& rModelPartsNames)
 {
-    // // Interate over the ModelParts
-    // for (auto& r_name : rModelPartsNames) {
-    //     const auto& r_model_part = mrModel.GetModelPart(r_name);
-    // }
+    // Prepare the number of entities in model parts
+    const std::size_t number_of_model_parts = rModelPartsNames.size();
+    std::vector<std::size_t> number_geometries(number_of_model_parts - 1);
+    std::vector<std::size_t> number_nodes(number_of_model_parts - 1);
+    std::vector<std::size_t> number_elements(number_of_model_parts - 1);
+    std::vector<std::size_t> number_conditions(number_of_model_parts - 1);
+
+    // Interate over the ModelParts
+    for (std::size_t i_mp = 0; i_mp < number_of_model_parts - 1; i_mp++) {
+        const auto& r_model_part = mrModel.GetModelPart(rModelPartsNames[i_mp]);
+        number_geometries[i_mp] = r_model_part.NumberOfGeometries();
+        number_nodes[i_mp] = r_model_part.NumberOfNodes();
+        number_elements[i_mp] = r_model_part.NumberOfElements();
+        number_conditions[i_mp] = r_model_part.NumberOfConditions();
+    }
 }
 
 /***********************************************************************************/
