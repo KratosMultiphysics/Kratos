@@ -187,7 +187,7 @@ private:
      */
     void PrivateCombineOfModelParts(
         ModelPart& rCombinedModelPart,
-        const std::vector<std::string>& rModelPartsNames,
+        const std::vector<std::string>& rModelPartsNames
         );
 
     /**
