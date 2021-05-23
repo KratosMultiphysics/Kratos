@@ -105,6 +105,7 @@ private:
 		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		iterator_adaptor& operator++() { map_iterator++; return *this; }
 		iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
+		iterator_adaptor operator+(int Increment) { iterator_adaptor tmp(*this); for(int i = 0; i < Increment; ++i) {operator++();} return tmp; }
 		bool operator==(const iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type& operator*() const { return *(map_iterator->second); }
@@ -121,6 +122,7 @@ private:
 		const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
 		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
+		const_iterator_adaptor operator+(int Increment) { const_iterator_adaptor tmp(*this); for(int i = 0; i < Increment; ++i) {operator++();} return tmp; }
 		bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
 		bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
 		data_type const& operator*() const { return *(map_iterator->second); }
