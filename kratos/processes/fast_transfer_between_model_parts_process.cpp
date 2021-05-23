@@ -104,6 +104,11 @@ void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 
     if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
         mrDestinationModelPart.AddMasterSlaveConstraints(mrOriginModelPart.MasterSlaveConstraintsBegin(),mrOriginModelPart.MasterSlaveConstraintsEnd());
+
+    const SizeType numb_geometries = mrOriginModelPart.NumberOfGeometries();
+
+    if (numb_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES))
+        mrDestinationModelPart.AddGeometries(mrOriginModelPart.GeometriesBegin(),mrOriginModelPart.GeometriesEnd());
 }
 
 /***********************************************************************************/
