@@ -184,12 +184,10 @@ private:
      * @brief This method does the actual combination of modelparts
      * @param rModelPart The resulting model part
      * @param rModelPartsNames The list of ModelParts to check the submodelparts names
-     * @param ReplicateEntities  If the entities are replicated or transfered
      */
     void PrivateCombineOfModelParts(
         ModelPart& rCombinedModelPart,
         const std::vector<std::string>& rModelPartsNames,
-        const bool ReplicateEntities = false
         );
 
     /**

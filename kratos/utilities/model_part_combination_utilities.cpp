@@ -192,8 +192,7 @@ void ModelPartCombinationUtilities::RecursiveAddOfModelPartsToList(
 
 void ModelPartCombinationUtilities::PrivateCombineOfModelParts(
     ModelPart& rCombinedModelPart,
-    const std::vector<std::string>& rModelPartsNames,
-    const bool ReplicateEntities
+    const std::vector<std::string>& rModelPartsNames
     )
 {
 }
