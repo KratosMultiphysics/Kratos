@@ -212,25 +212,33 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
 void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPart)
 {
-    NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    const auto it_node_begin = nodes_array.begin();
-    for(IndexType i = 0; i < nodes_array.size(); ++i)
+    auto& r_nodes_array = rThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
         (it_node_begin + i)->SetId(i + 1);
 
-    ElementsArrayType& element_array = rThisModelPart.Elements();
-    const auto it_elem_begin = element_array.begin();
-    for(IndexType i = 0; i < element_array.size(); ++i)
+    auto& r_element_array = rThisModelPart.Elements();
+    const auto it_elem_begin = r_element_array.begin();
+    for(IndexType i = 0; i < r_element_array.size(); ++i)
         (it_elem_begin + i)->SetId(i + 1);
 
-    ConditionsArrayType& condition_array = rThisModelPart.Conditions();
-    const auto it_cond_begin = condition_array.begin();
-    for(IndexType i = 0; i < condition_array.size(); ++i)
+    auto& r_condition_array = rThisModelPart.Conditions();
+    const auto it_cond_begin = r_condition_array.begin();
+    for(IndexType i = 0; i < r_condition_array.size(); ++i)
         (it_cond_begin + i)->SetId(i + 1);
 
-    MasterSlaveConstraintArrayType& constraint_array = rThisModelPart.MasterSlaveConstraints();
-    const auto it_const_begin = constraint_array.begin();
-    for(IndexType i = 0; i < constraint_array.size(); ++i)
+    auto& r_constraint_array = rThisModelPart.MasterSlaveConstraints();
+    const auto it_const_begin = r_constraint_array.begin();
+    for(IndexType i = 0; i < r_constraint_array.size(); ++i)
         (it_const_begin + i)->SetId(i + 1);
+
+    auto& r_geometries_array = rThisModelPart.Geometries();
+    const auto it_geom_begin = r_geometries_array.begin();
+    for(IndexType i = 0; i < r_geometries_array.size(); ++i) {
+        auto it_geom = it_geom_begin;
+        for (IndexType j = 0; j < i; ++j) it_geom++;
+        it_geom->SetId(i + 1);
+    }
 }
 
 /***********************************************************************************/
@@ -239,17 +247,17 @@ void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPa
 void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 {
     // Reordering ids (necessary for consistency)
-    ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
-    ReorderAllIds(root_model_part);
+    ModelPart& r_root_model_part = mrOriginModelPart.GetRootModelPart();
+    ReorderAllIds(r_root_model_part);
 
     // Getting the auxiliar values
-    const SizeType total_num_nodes = root_model_part.NumberOfNodes();
+    const SizeType total_num_nodes = r_root_model_part.NumberOfNodes();
     const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
-    const SizeType total_num_elements = root_model_part.NumberOfElements();
+    const SizeType total_num_elements = r_root_model_part.NumberOfElements();
     const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
-    const SizeType total_num_conditions = root_model_part.NumberOfConditions();
+    const SizeType total_num_conditions = r_root_model_part.NumberOfConditions();
     const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
-    const SizeType total_num_constraints = root_model_part.NumberOfMasterSlaveConstraints();
+    const SizeType total_num_constraints = r_root_model_part.NumberOfMasterSlaveConstraints();
     const int num_constraints = static_cast<int>(mrOriginModelPart.NumberOfMasterSlaveConstraints());
 
     #pragma omp parallel
@@ -325,17 +333,17 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 {
     // Reordering ids (necessary for consistency)
-    ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
-    ReorderAllIds(root_model_part);
+    ModelPart& r_root_model_part = mrOriginModelPart.GetRootModelPart();
+    ReorderAllIds(r_root_model_part);
 
     // Getting the auxiliar values
-    const SizeType total_num_nodes = root_model_part.NumberOfNodes();
+    const SizeType total_num_nodes = r_root_model_part.NumberOfNodes();
     const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
-    const SizeType total_num_elements = root_model_part.NumberOfElements();
+    const SizeType total_num_elements = r_root_model_part.NumberOfElements();
     const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
-    const SizeType total_num_conditions = root_model_part.NumberOfConditions();
+    const SizeType total_num_conditions = r_root_model_part.NumberOfConditions();
     const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
-    const SizeType total_num_constraints = root_model_part.NumberOfMasterSlaveConstraints();
+    const SizeType total_num_constraints = r_root_model_part.NumberOfMasterSlaveConstraints();
     const int num_constraints = static_cast<int>(mrOriginModelPart.NumberOfMasterSlaveConstraints());
 
     #pragma omp parallel
