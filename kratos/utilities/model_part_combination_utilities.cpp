@@ -49,7 +49,8 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     ReorderIds(model_parts_names);
 
     // Finally we compine the model parts
-    PrivateCombineOfModelParts(r_combined_model_part, model_parts_names);
+    const bool replicate_entities = ThisParameters["replicate_entities"].GetBool();
+    PrivateCombineOfModelParts(r_combined_model_part, model_parts_names, replicate_entities);
 
     // Finally we delete the old model parts
     for (auto& r_name : model_parts_names) {
@@ -191,7 +192,8 @@ void ModelPartCombinationUtilities::RecursiveAddOfModelPartsToList(
 
 void ModelPartCombinationUtilities::PrivateCombineOfModelParts(
     ModelPart& rCombinedModelPart,
-    const std::vector<std::string>& rModelPartsNames
+    const std::vector<std::string>& rModelPartsNames,
+    const bool ReplicateEntities
     )
 {
 }
@@ -205,7 +207,8 @@ const Parameters ModelPartCombinationUtilities::GetDefaultParameters() const
     {
         "model_parts_list"         : [],
         "combined_model_part_name" : "CombinedModelParts",
-        "buffer_size"              : 2
+        "buffer_size"              : 2,
+        "replicate_entities"       : false
     })" );
     return default_parameters;
 }
