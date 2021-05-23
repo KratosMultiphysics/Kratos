@@ -199,26 +199,17 @@ class DataGeneratorProcess(KM.Process):
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             input_value_list=[]
             # Perturbation of the load conditions
-            for condition in self.input_model_part.GetConditions():
-                for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
-                    if type(var) == KM.DoubleVariable:
-                        if self.perturbate :
-                            factor = getattr(np.random, dist)(*params)
-                        else:
-                            factor = 0.0
-                        input_value = op.imul(condition.GetValue(var),(0.0+factor))
-                        for node in self.input_model_part.Nodes:
-                            node.SetSolutionStepValue(var,input_value)
-                            input_value_list.append(input_value+condition.GetValue(var))
-                    else:
-                        if self.perturbate :
-                            factor = getattr(np.random, dist)(*params)
-                        else:
-                            factor = 0.0
-                        input_value = op.imul(condition.GetValue(var),(0.0+factor))
-                        for node in self.input_model_part.Nodes:
-                            node.SetSolutionStepValue(var,input_value)
-                            input_value_list.append(input_value+condition.GetValue(var))
+            for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
+                if self.perturbate :
+                    factor = getattr(np.random, dist)(*params)
+                else:
+                    factor = 0.0
+                for condition in self.input_model_part.GetConditions():
+                    input_value = op.imul(condition.GetValue(var),(0.0+factor))
+                    for node in condition.GetNodes():
+                        node.SetSolutionStepValue(var,input_value)
+                        input_value_list.append(input_value+condition.GetValue(var))
+
             # Writing input file
             if (self.write_output_file):
                 if self.output_format == "ascii":

@@ -28,7 +28,7 @@ class PreprocessingProcess(NeuralNetworkProcess):
             self.input_log_name = settings["input_log_name"].GetString()
         else:
             if self.load_from_log:
-                raise Exception("No input_log_file is specified. Data cannot be loaded.")
+                warnings.warn("No input_log_file is specified. Data cannot be loaded.")
             else:
                 warnings.warn("No input_log_file is specified. The transformation will not be logged.")
 
@@ -36,7 +36,7 @@ class PreprocessingProcess(NeuralNetworkProcess):
             self.output_log_name = settings["output_log_name"].GetString()
         else:
             if self.load_from_log:
-                raise Exception("No output_log_file is specified. Data cannot be loaded.")
+                warnings.warn("No output_log_file is specified. Data cannot be loaded.")
             else:
                 warnings.warn("No output_log_file is specified. The transformation will not be logged.")
 

@@ -1,6 +1,5 @@
-import numpy as np
 import KratosMultiphysics as KM
-from  KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
+from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
 from KratosMultiphysics.NeuralNetworkApplication.centering_process import CenteringProcess
 from KratosMultiphysics.NeuralNetworkApplication.scaling_process import ScalingProcess
 

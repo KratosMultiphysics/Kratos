@@ -1,9 +1,8 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
 import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities as DataLoadingUtilities
-import numpy as np
 import json
-from importlib import import_module
+
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
@@ -16,28 +15,10 @@ class DataReaderProcess(PreprocessingProcess):
         super().__init__(parameters)
         # Input
         self.input_file = parameters["data_input"].GetString()
-        # Data loading for h5
-        if self.input_file.endswith('.h5'):
-            self.input = DataLoadingUtilities.ImportH5(self.input_file, "InputData")
-        # Data loading for dat
-        elif self.input_file.endswith('.dat'):
-            self.input = DataLoadingUtilities.ImportAscii(self.input_file)
-        # Exception for non-supported formats
-        else:
-            raise Exception("Input data format not supported. Supported formats are .dat and .h5")
-
+        self.input = DataLoadingUtilities.ImportDataFromFile(self.input_file, "InputData")
         # Output
         self.output_file = parameters["data_output"].GetString()
-        # Data loading for h5
-        if self.output_file.endswith('.h5'):
-            self.output = DataLoadingUtilities.ImportH5(self.output_file,"OutputData")
-
-        # Data loading for dat
-        elif self.output_file.endswith('.dat'):
-            self.output = DataLoadingUtilities.ImportAscii(self.output_file)
-        # Exception for non-supported formats
-        else:
-            raise Exception("Output data format not supported. Supported formats are .dat and .h5")
+        self.output = DataLoadingUtilities.ImportDataFromFile(self.output_file, "OutputData")
 
     def Preprocess(self, data_in, data_out):
         if not self.load_from_log:
