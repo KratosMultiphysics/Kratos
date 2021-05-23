@@ -1877,8 +1877,7 @@ void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
         std::vector<GeometryType::Pointer> aux;
         aux.reserve(GeometriesIds.size());
         for(std::size_t i=0; i<GeometriesIds.size(); i++) {
-            auto it = p_root_model_part->Geometries().find(GeometriesIds[i]);
-            if(it!=p_root_model_part->GeometriesEnd()) {
+            if(p_root_model_part->HasGeometry(GeometriesIds[i])) {
                 aux.push_back(p_root_model_part->pGetGeometry(GeometriesIds[i]));
             } else {
                 KRATOS_ERROR << "The geometry with Id " << GeometriesIds[i] << " does not exist in the root model part" << std::endl;
