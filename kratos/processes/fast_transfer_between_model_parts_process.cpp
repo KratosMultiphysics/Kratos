@@ -87,7 +87,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 {
     const SizeType num_nodes = mrOriginModelPart.NumberOfNodes();
 
-    if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+    if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
         mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
 
     const SizeType num_elements = mrOriginModelPart.NumberOfElements();
@@ -125,7 +125,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
@@ -172,7 +172,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         // We transfer
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
@@ -240,7 +240,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
@@ -284,7 +284,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
         // We add to the model part
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
@@ -326,7 +326,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
         ConditionsArrayType conditions_buffer_vector;
         MasterSlaveConstraintArrayType constraints_buffer_vector;
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
@@ -378,7 +378,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
         // We add to the model part
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS || mEntity == EntityTransfered::NODESANDGEOMETRIES))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
