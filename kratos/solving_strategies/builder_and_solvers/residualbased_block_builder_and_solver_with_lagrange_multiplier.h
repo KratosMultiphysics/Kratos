@@ -899,11 +899,10 @@ protected:
             const std::size_t slave_size = BaseType::mSlaveIds.size();
 
             // Count the row sizes
-            std::size_t nnz = 0;
-            #pragma omp parallel for reduction(+:nnz)
-            for (int i = 0; i < static_cast<int>(slave_size); ++i) {
-                nnz += indices[BaseType::mSlaveIds[i]].size();
-            }
+            IndexType nnz = 0;
+            nnz = IndexPartition<std::size_t>(slave_size).for_each<SumReduction<IndexType>>([&](std::size_t Index){
+                return indices[BaseType::mSlaveIds[Index]].size();
+            });
 
             BaseType::mT = TSystemMatrixType(slave_size, size_indices, nnz);
             BaseType::mConstantVector.resize(slave_size, false);
