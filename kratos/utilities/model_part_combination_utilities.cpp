@@ -85,18 +85,67 @@ void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& r
 {
     // Prepare the number of entities in model parts
     const std::size_t number_of_model_parts = rModelPartsNames.size();
-    std::vector<std::size_t> number_geometries(number_of_model_parts - 1);
-    std::vector<std::size_t> number_nodes(number_of_model_parts - 1);
-    std::vector<std::size_t> number_elements(number_of_model_parts - 1);
-    std::vector<std::size_t> number_conditions(number_of_model_parts - 1);
+    std::vector<std::size_t> number_geometries(number_of_model_parts, 0);
+    std::vector<std::size_t> number_nodes(number_of_model_parts, 0);
+    std::vector<std::size_t> number_conditions(number_of_model_parts, 0);
+    std::vector<std::size_t> number_elements(number_of_model_parts, 0);
+    std::vector<std::size_t> number_constraints(number_of_model_parts, 0);
 
     // Interate over the ModelParts
     for (std::size_t i_mp = 0; i_mp < number_of_model_parts - 1; i_mp++) {
         const auto& r_model_part = mrModel.GetModelPart(rModelPartsNames[i_mp]);
-        number_geometries[i_mp] = r_model_part.NumberOfGeometries();
-        number_nodes[i_mp] = r_model_part.NumberOfNodes();
-        number_elements[i_mp] = r_model_part.NumberOfElements();
-        number_conditions[i_mp] = r_model_part.NumberOfConditions();
+        number_geometries[i_mp + 1] = number_geometries[i_mp] + r_model_part.NumberOfGeometries();
+        number_nodes[i_mp + 1] = number_nodes[i_mp] + r_model_part.NumberOfNodes();
+        number_elements[i_mp + 1] = number_elements[i_mp] + r_model_part.NumberOfElements();
+        number_conditions[i_mp + 1] = number_conditions[i_mp] + r_model_part.NumberOfConditions();
+        number_constraints[i_mp + 1] = number_constraints[i_mp] + r_model_part.NumberOfMasterSlaveConstraints();
+    }
+
+    // Reorder Ids
+    for (std::size_t i_mp = 0; i_mp < number_of_model_parts; i_mp++) {
+        auto& r_model_part = mrModel.GetModelPart(rModelPartsNames[i_mp]);
+
+        // Iterate over geometries
+        auto& r_geometries_array = r_model_part.Geometries();
+        const auto it_geom_begin = r_geometries_array.begin();
+        const std::size_t geom_initial_index = number_geometries[i_mp];
+        IndexPartition<std::size_t>(r_geometries_array.size()).for_each([&it_geom_begin, &geom_initial_index](std::size_t i){
+            auto it_geom = it_geom_begin;
+            for (std::size_t j = 0; j < i; ++j) ++it_geom;
+            it_geom->SetId(geom_initial_index + i + 1);
+        });
+
+        // Iterate over nodes
+        auto& r_nodes_array = r_model_part.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+        const std::size_t node_initial_index = number_nodes[i_mp];
+        IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&it_node_begin, &node_initial_index](std::size_t i){
+            (it_node_begin + i)->SetId(node_initial_index + i + 1);
+        });
+
+        // Iterate over conditions
+        auto& r_conditions_array = r_model_part.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
+        const std::size_t cond_initial_index = number_conditions[i_mp];
+        IndexPartition<std::size_t>(r_conditions_array.size()).for_each([&it_cond_begin, &cond_initial_index](std::size_t i){
+            (it_cond_begin + i)->SetId(cond_initial_index + i + 1);
+        });
+
+        // Iterate over elements
+        auto& r_elements_array = r_model_part.Elements();
+        const auto it_elem_begin = r_elements_array.begin();
+        const std::size_t elem_initial_index = number_elements[i_mp];
+        IndexPartition<std::size_t>(r_elements_array.size()).for_each([&it_elem_begin, &elem_initial_index](std::size_t i){
+            (it_elem_begin + i)->SetId(elem_initial_index + i + 1);
+        });
+
+        // Iterate over constraints
+        auto& r_constraints_array = r_model_part.MasterSlaveConstraints();
+        const auto it_const_begin = r_constraints_array.begin();
+        const std::size_t const_initial_index = number_constraints[i_mp];
+        IndexPartition<std::size_t>(r_constraints_array.size()).for_each([&it_const_begin, &const_initial_index](std::size_t i){
+            (it_const_begin + i)->SetId(const_initial_index + i + 1);
+        });
     }
 }
 
