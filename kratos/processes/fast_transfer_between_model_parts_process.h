@@ -88,14 +88,16 @@ public:
      * @todo Add intermediate combinations of constraints, conditions and elements
      */
     enum class EntityTransfered {
-        NODES = 0,
-        ELEMENTS = 1,
-        NODESANDELEMENTS = 2,
-        CONDITIONS = 3,
-        NODESANDCONDITIONS = 4,
-        CONSTRAINTS = 5,
+        NODES               = 0,
+        ELEMENTS            = 1,
+        NODESANDELEMENTS    = 2,
+        CONDITIONS          = 3,
+        NODESANDCONDITIONS  = 4,
+        CONSTRAINTS         = 5,
         NODESANDCONSTRAINTS = 6,
-        ALL = 7
+        GEOMETRIES          = 7,
+        NODESANDGEOMETRIES  = 8,
+        ALL                 = 9
     };
 
     ///@}
