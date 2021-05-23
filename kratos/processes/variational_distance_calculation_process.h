@@ -220,7 +220,7 @@ public:
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
-        block_for_each(r_distance_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
             double& fix_flag = rNode.FastGetSolutionStepValue(FLAG_VARIABLE);
 
@@ -244,7 +244,7 @@ public:
             }
         });
 
-        block_for_each(r_distance_model_part.Elements(), [&](Element& rElem){
+        block_for_each(r_distance_model_part.Elements(), [this](Element& rElem){
             array_1d<double,TDim+1> distances;
             auto& geom = rElem.GetGeometry();
 
@@ -317,7 +317,7 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        block_for_each(r_distance_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
             if(!rNode.IsFixed(DISTANCE)){
                 double& d = rNode.FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
@@ -336,7 +336,7 @@ public:
         }
 
         // Unfix the distances
-        block_for_each(r_distance_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
             rNode.Free(DISTANCE);
         });
 
