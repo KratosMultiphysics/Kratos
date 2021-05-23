@@ -50,8 +50,7 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     ReorderIds(model_parts_names);
 
     // Finally we compine the model parts
-    const bool replicate_entities = ThisParameters["replicate_entities"].GetBool();
-    PrivateCombineOfModelParts(r_combined_model_part, model_parts_names, replicate_entities);
+    PrivateCombineOfModelParts(r_combined_model_part, model_parts_names);
 
     // Finally we delete the old model parts
     for (auto& r_name : model_parts_names) {
@@ -208,8 +207,7 @@ const Parameters ModelPartCombinationUtilities::GetDefaultParameters() const
     {
         "model_parts_list"         : [],
         "combined_model_part_name" : "CombinedModelParts",
-        "buffer_size"              : 2,
-        "replicate_entities"       : false
+        "buffer_size"              : 2
     })" );
     return default_parameters;
 }
