@@ -528,11 +528,12 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            IndexPartition<std::size_t>(static_cast<int>(BaseType::mEquationSystemSize)).for_each([&rb, &b_modified](std::size_t Index){
+            int loop_size = static_cast<int>(BaseType::mEquationSystemSize);
+            IndexPartition<std::size_t>(loop_size).for_each([&rb, &b_modified](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
-            int loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
+            loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
             int start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
@@ -595,11 +596,12 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&rb, &b_modified](std::size_t Index){
+            int loop_size = BaseType::mEquationSystemSize;
+            IndexPartition<std::size_t>(loop_size).for_each([&rb, &b_modified](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
-            int loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
+            loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
             int start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
