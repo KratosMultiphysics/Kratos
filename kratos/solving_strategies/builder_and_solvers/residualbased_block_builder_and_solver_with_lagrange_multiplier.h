@@ -281,7 +281,7 @@ public:
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<unsigned int>(static_cast<int>(BaseType::mSlaveIds.size())).for_each([this, &rDx](unsigned int Index){
+        IndexPartition<unsigned int>(static_cast<int>(BaseType::mSlaveIds.size())).for_each([&](unsigned int Index){
             mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
         });
 
@@ -317,7 +317,7 @@ public:
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<unsigned int >(static_cast<int>(BaseType::mSlaveIds.size())).for_each([this, &rDx](unsigned int Index){
+        IndexPartition<unsigned int >(static_cast<int>(BaseType::mSlaveIds.size())).for_each([&](unsigned int Index){
             mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
         });
 
@@ -431,7 +431,7 @@ public:
         // Filling with ones the LM dofs
         int loop_size = static_cast<int>(system_size) - ndofs;
 
-        IndexPartition<unsigned int>(loop_size).for_each([&ndofs, &scaling_factors](unsigned int Index){
+        IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int Index){
             scaling_factors[ndofs + Index] = 1.0;
         });
 
@@ -529,7 +529,7 @@ public:
 
             // Copy the RHS
             int loop_size = static_cast<int>(BaseType::mEquationSystemSize);
-            IndexPartition<std::size_t>(loop_size).for_each([&rb, &b_modified](std::size_t Index){
+            IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
@@ -537,7 +537,7 @@ public:
             int start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
-            IndexPartition<unsigned int>(loop_size).for_each([&start_index, &b_modified](unsigned int Index){
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int Index){
                 b_modified[start_index + Index] = 0.0;
             });
 
@@ -597,7 +597,7 @@ public:
 
             // Copy the RHS
             int loop_size = BaseType::mEquationSystemSize;
-            IndexPartition<std::size_t>(loop_size).for_each([&rb, &b_modified](std::size_t Index){
+            IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
@@ -605,7 +605,7 @@ public:
             int start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
-            IndexPartition<unsigned int>(loop_size).for_each([&start_index, &b_modified](unsigned int Index){
+            IndexPartition<unsigned int>(loop_size).for_each([&](unsigned int Index){
                 b_modified[start_index + Index] = 0.0;
             });
             rb.resize(total_size_of_system, false);
@@ -1147,7 +1147,7 @@ private:
         TSystemVectorType aux_whole_dof_vector(ndofs);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        IndexPartition<std::size_t>(ndofs).for_each([&aux_whole_dof_vector, &it_dof_begin](std::size_t Index){
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
             auto it_dof = it_dof_begin + Index;
             aux_whole_dof_vector[Index] = it_dof->GetSolutionStepValue();
         });
@@ -1165,7 +1165,7 @@ private:
                 rbLM[ndofs + number_of_slave_dofs + Index] = aux_lm_rhs_contribution[Index];
             });
         } else {
-            IndexPartition<unsigned int>(number_of_slave_dofs).for_each([&rbLM, &aux_lm_rhs_contribution, &ndofs](unsigned int Index){
+            IndexPartition<unsigned int>(number_of_slave_dofs).for_each([&](unsigned int Index){
                 rbLM[ndofs + Index] = aux_lm_rhs_contribution[Index];
             });
         }
@@ -1175,7 +1175,7 @@ private:
         SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, -ScaleFactor);
 
         TSparseSpace::Mult(T_transpose_matrix, mLagrangeMultiplierVector, aux_whole_dof_vector);
-        IndexPartition<std::size_t>(ndofs).for_each([&rbLM, &aux_whole_dof_vector](std::size_t Index){
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
             rbLM[Index] = aux_whole_dof_vector[Index];
         });
 
