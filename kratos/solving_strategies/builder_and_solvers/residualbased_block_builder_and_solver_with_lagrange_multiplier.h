@@ -281,10 +281,9 @@ public:
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i) {
-            mLagrangeMultiplierVector[i] += rDx[BaseType::mEquationSystemSize + i];
-        }
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([this, &rDx](std::size_t Index){
+            mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
+        });
 
         KRATOS_CATCH("")
     }
@@ -318,10 +317,9 @@ public:
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mSlaveIds.size()); ++i) {
-            mLagrangeMultiplierVector[i] += rDx[BaseType::mEquationSystemSize + i];
-        }
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([this, &rDx](std::size_t Index){
+            mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
+        });
 
         KRATOS_CATCH("")
     }
@@ -379,24 +377,20 @@ public:
         const auto it_dof_begin = BaseType::mDofSet.begin();
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for
-        for (int k = 0; k<ndofs; k++) {
-            auto it_dof =  it_dof_begin + k;
-
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+            auto it_dof =  it_dof_begin + Index;
             if (it_dof->IsFixed()) {
                 it_dof->GetSolutionStepReactionValue() = -rb[it_dof->EquationId()];
             }
-        }
+        });
 
         // NOTE: The constraints reactions are already computed when solving the dofs
         const int number_slave_dofs = BaseType::mSlaveIds.size();
-        #pragma omp parallel for
-        for (int k = 0; k<number_slave_dofs; k++) {
-            const IndexType equation_id = BaseType::mSlaveIds[k];
+        IndexPartition<std::size_t>(number_slave_dofs).for_each([&](std::size_t Index){
+            const IndexType equation_id = BaseType::mSlaveIds[Index];
             auto it_dof = it_dof_begin + equation_id;
             it_dof->GetSolutionStepReactionValue() = mLagrangeMultiplierVector[mCorrespondanceDofsSlave[equation_id]];
-        }
-
+        });
     }
 
     /**
@@ -537,15 +531,18 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                b_modified[i] = rb[i];
-            }
+            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&rb, &b_modified](std::size_t Index){
+                b_modified[Index] = rb[Index];
+            });
+
+            int loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
+            int start_index = static_cast<int>(BaseType::mEquationSystemSize);
+
             // Fill with zeros
-            #pragma omp parallel for
-            for (int i = static_cast<int>(BaseType::mEquationSystemSize); i < static_cast<int>(total_size_of_system); ++i) {
-                b_modified[i] = 0.0;
-            }
+            IndexPartition<std::size_t>(loop_size).for_each([&start_index, &b_modified](std::size_t Index){
+                b_modified[start_index + Index] = 0.0;
+            });
+
             rb.resize(total_size_of_system, false);
 
             // Compute LM contributions
@@ -601,15 +598,17 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                b_modified[i] = rb[i];
-            }
+            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&rb, &b_modified](std::size_t Index){
+                b_modified[Index] = rb[Index];
+            });
+
+            int loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
+            int start_index = static_cast<int>(BaseType::mEquationSystemSize);
+
             // Fill with zeros
-            #pragma omp parallel for
-            for (int i = static_cast<int>(BaseType::mEquationSystemSize); i < static_cast<int>(total_size_of_system); ++i) {
-                b_modified[i] = 0.0;
-            }
+            IndexPartition<std::size_t>(loop_size).for_each([&start_index, &b_modified](std::size_t Index){
+                b_modified[start_index + Index] = 0.0;
+            });
             rb.resize(total_size_of_system, false);
 
             // Definition of the number of blocks
@@ -924,12 +923,11 @@ protected:
                 Trow_indices[i + 1] = Trow_indices[i] + indices[BaseType::mSlaveIds[i]].size();
             }
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(slave_size); ++i) {
-                const IndexType row_begin = Trow_indices[i];
-                const IndexType row_end = Trow_indices[i + 1];
+            IndexPartition<std::size_t>(slave_size).for_each([&](std::size_t Index){
+                const IndexType row_begin = Trow_indices[Index];
+                const IndexType row_end = Trow_indices[Index + 1];
                 IndexType k = row_begin;
-                const IndexType i_slave = BaseType::mSlaveIds[i];
+                const IndexType i_slave = BaseType::mSlaveIds[Index];
                 for (auto it = indices[i_slave].begin(); it != indices[i_slave].end(); ++it) {
                     Tcol_indices[k] = *it;
                     Tvalues[k] = 0.0;
@@ -939,7 +937,7 @@ protected:
                 indices[i_slave].clear(); //deallocating the memory
 
                 std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-            }
+            });
 
             BaseType::mT.set_filled(slave_size + 1, nnz);
 
@@ -1151,11 +1149,10 @@ private:
         TSystemVectorType aux_whole_dof_vector(ndofs);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for
-        for (int i = 0; i < ndofs; ++i) {
-            auto it_dof = it_dof_begin + i;
-            aux_whole_dof_vector[i] = it_dof->GetSolutionStepValue();
-        }
+        IndexPartition<std::size_t>(ndofs).for_each([&aux_whole_dof_vector, &it_dof_begin](std::size_t Index){
+            auto it_dof = it_dof_begin + Index;
+            aux_whole_dof_vector[Index] = it_dof->GetSolutionStepValue();
+        });
 
         // Compute auxiliar contribution
         TSystemVectorType aux_slave_dof_vector(number_of_slave_dofs);
@@ -1165,16 +1162,14 @@ private:
         noalias(aux_lm_rhs_contribution) = ScaleFactor * (BaseType::mConstantVector -  aux_slave_dof_vector);
 
         if (BaseType::mOptions.Is(DOUBLE_LAGRANGE_MULTIPLIER)) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(number_of_slave_dofs); ++i) {
-                rbLM[ndofs + i] = aux_lm_rhs_contribution[i];
-                rbLM[ndofs + number_of_slave_dofs + i] = aux_lm_rhs_contribution[i];
-            }
+            IndexPartition<std::size_t>(number_of_slave_dofs).for_each([&](std::size_t Index){
+                rbLM[ndofs + Index] = aux_lm_rhs_contribution[Index];
+                rbLM[ndofs + number_of_slave_dofs + Index] = aux_lm_rhs_contribution[Index];
+            });
         } else {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(number_of_slave_dofs); ++i) {
-                rbLM[ndofs + i] = aux_lm_rhs_contribution[i];
-            }
+            IndexPartition<std::size_t>(number_of_slave_dofs).for_each([&rbLM, &aux_lm_rhs_contribution, &ndofs](std::size_t Index){
+                rbLM[ndofs + Index] = aux_lm_rhs_contribution[Index];
+            });
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1182,10 +1177,9 @@ private:
         SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, BaseType::mT, -ScaleFactor);
 
         TSparseSpace::Mult(T_transpose_matrix, mLagrangeMultiplierVector, aux_whole_dof_vector);
-        #pragma omp parallel for
-        for (int i = 0; i < ndofs; ++i) {
-            rbLM[i] = aux_whole_dof_vector[i];
-        }
+        IndexPartition<std::size_t>(ndofs).for_each([&rbLM, &aux_whole_dof_vector](std::size_t Index){
+            rbLM[Index] = aux_whole_dof_vector[Index];
+        });
 
         KRATOS_CATCH("")
     }
