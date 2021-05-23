@@ -181,6 +181,16 @@ private:
         ); 
 
     /**
+     * @brief This method does the actual combination of modelparts
+     * @param rModelPart The resulting model part
+     * @param rModelPartsNames The list of ModelParts to check the submodelparts names
+     */
+    void PrivateCombineOfModelParts(
+        ModelPart& rCombinedModelPart,
+        const std::vector<std::string>& rModelPartsNames
+        );
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const;

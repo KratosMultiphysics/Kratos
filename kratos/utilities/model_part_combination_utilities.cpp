@@ -28,10 +28,10 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
     // Retrieve the new ModelPart name 
-    //const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
+    const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
 
     // Create the new ModelPart
-    //auto& r_combined_model_part = mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
+    auto& r_combined_model_part = mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
 
     // Retrieve the ModelParts to combine
     std::vector<std::string> model_parts_names;
@@ -47,6 +47,9 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
 
     // Reorder Ids before combining model parts
     ReorderIds(model_parts_names);
+
+    // Finally we compine the model parts
+    PrivateCombineOfModelParts(r_combined_model_part, model_parts_names);
 
     // Finally we delete the old model parts
     for (auto& r_name : model_parts_names) {
@@ -181,6 +184,16 @@ void ModelPartCombinationUtilities::RecursiveAddOfModelPartsToList(
         }
     }
     extend_map(rModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ModelPartCombinationUtilities::PrivateCombineOfModelParts(
+    ModelPart& rCombinedModelPart,
+    const std::vector<std::string>& rModelPartsNames
+    )
+{
 }
 
 /***********************************************************************************/
