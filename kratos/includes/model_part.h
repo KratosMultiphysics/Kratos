@@ -1475,13 +1475,13 @@ public:
         for(TIteratorType it = GeometryBegin; it!=GeometriesEnd; it++) {
             auto it_found = p_root_model_part->Geometries().find(it->Id());
             if(it_found == p_root_model_part->GeometriesEnd()) { // Geometry does not exist in the top model part
-                aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
+                aux_root.push_back( it.operator->() );
+                aux.push_back( it.operator->() );
             } else { // If it does exist verify it is the same geometry
                 if(&(*it_found) != &(*it)) { // Check if the pointee coincides
                     KRATOS_ERROR << "Attempting to add a new geometry with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 } else {
-                    aux.push_back( *(it.base()) );
+                    aux.push_back( it.operator->() );
                 }
             }
         }
