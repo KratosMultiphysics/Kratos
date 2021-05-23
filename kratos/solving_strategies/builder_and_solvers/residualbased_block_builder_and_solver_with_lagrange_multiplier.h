@@ -419,20 +419,22 @@ public:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; ++k) {
-            auto it_dof_iterator = it_dof_iterator_begin + k;
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+            auto it_dof_iterator = it_dof_iterator_begin + Index;
             if (it_dof_iterator->IsFixed()) {
-                scaling_factors[k] = 0.0;
+                scaling_factors[Index] = 0.0;
             } else {
-                scaling_factors[k] = 1.0;
+                scaling_factors[Index] = 1.0;
             }
-        }
+        });
+
         // Filling with ones the LM dofs
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = ndofs; k<static_cast<int>(system_size); ++k) {
-            scaling_factors[k] = 1.0;
-        }
+        int loop_size = static_cast<int>(system_size) - ndofs;
+
+        IndexPartition<std::size_t>(loop_size).for_each([&ndofs, &scaling_factors](std::size_t Index){
+            scaling_factors[ndofs + Index];
+        });
+
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -442,50 +444,45 @@ public:
         BaseType::mScaleFactor = this->GetScaleNorm(rModelPart, rA);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel firstprivate(system_size)
-        {
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             std::size_t col_begin = 0, col_end  = 0;
             bool empty = true;
 
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(system_size); ++k) {
-                col_begin = Arow_indices[k];
-                col_end = Arow_indices[k + 1];
-                empty = true;
-                for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if(Avalues[j] != 0.0) {
-                        empty = false;
-                        break;
-                    }
-                }
-
-                if(empty) {
-                    rA(k, k) = BaseType::mScaleFactor;
-                    rb[k] = 0.0;
+            col_begin = Arow_indices[Index];
+            col_end = Arow_indices[Index + 1];
+            empty = true;
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(Avalues[j] != 0.0) {
+                    empty = false;
+                    break;
                 }
             }
-        }
 
-        #pragma omp parallel for firstprivate(system_size)
-        for (int k = 0; k < static_cast<int>(system_size); ++k) {
-            std::size_t col_begin = Arow_indices[k];
-            std::size_t col_end = Arow_indices[k+1];
-            const double k_factor = scaling_factors[k];
+            if(empty) {
+                rA(Index, Index) = BaseType::mScaleFactor;
+                rb[Index] = 0.0;
+            }
+        });
+
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            std::size_t col_begin = Arow_indices[Index];
+            std::size_t col_end = Arow_indices[Index+1];
+            const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (static_cast<int>(Acol_indices[j]) != k )
+                    if (static_cast<int>(Acol_indices[j]) != Index )
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS
-                rb[k] = 0.0;
+                rb[Index] = 0.0;
             } else {
                 // Zero out the column which is associated with the zero'ed row
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if(scaling_factors[ Acol_indices[j] ] == 0 )
                         Avalues[j] = 0.0;
             }
-        }
+        });
     }
 
     /**
