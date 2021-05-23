@@ -63,15 +63,10 @@ public:
 
     // General containers type definitions
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
+    typedef ModelPart::GeometriesMapType                               GeometriesMapType;
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     typedef ModelPart::ElementsContainerType                           ElementsArrayType;
     typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
-
-    // General containers iterators type definitions
-    typedef NodesArrayType::iterator                                  IteratorNodesArrayType;
-    typedef ConditionsArrayType::iterator                        IteratorConditionsArrayType;
-    typedef ElementsArrayType::iterator                            IteratorElementsArrayType;
-    typedef MasterSlaveConstraintArrayType::iterator IteratorMasterSlaveConstraintsArrayType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
