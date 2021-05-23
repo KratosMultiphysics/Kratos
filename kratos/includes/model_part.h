@@ -1461,6 +1461,9 @@ public:
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
+    /// Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+    void AddGeometries(std::vector<IndexType> const& GeometriesIds);
+
     /// Returns the Geometry::Pointer corresponding to the Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
         return mGeometries.pGetGeometry(GeometryId);
