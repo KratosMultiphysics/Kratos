@@ -50,7 +50,11 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     ReorderIds(model_parts_names);
 
     // Finally we compine the model parts
-    PrivateCombineOfModelParts(r_combined_model_part, model_parts_names);
+    for (auto& r_name : model_parts_names) {
+        auto& r_model_part = mrModel.GetModelPart(r_name);
+        
+        RecursiveAddEntities(r_combined_model_part, r_model_part);
+    }
 
     // Finally we delete the old model parts
     for (auto& r_name : model_parts_names) {
@@ -190,11 +194,24 @@ void ModelPartCombinationUtilities::RecursiveAddOfModelPartsToList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ModelPartCombinationUtilities::PrivateCombineOfModelParts(
-    ModelPart& rCombinedModelPart,
-    const std::vector<std::string>& rModelPartsNames
+void ModelPartCombinationUtilities::RecursiveAddEntities(
+    ModelPart& rDestinationModelPart,
+    ModelPart& rOriginModelPart
     )
 {
+    // Lambda to transfer the model parts
+    auto transfer_lambda = [](ModelPart& rDestinationModelPart, ModelPart& rOriginModelPart) {
+        FastTransferBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart).Execute();
+    };
+
+    // Recursively add of ModelParts to the list
+    if (rOriginModelPart.NumberOfSubModelParts() > 0) {
+        for (auto& r_sub_model_part : rOriginModelPart.SubModelParts()) {
+            auto& r_sub_destination_model_part = rDestinationModelPart.CreateSubModelPart(r_sub_model_part.Name());
+            RecursiveAddEntities(r_sub_destination_model_part, r_sub_model_part);
+        }
+    }
+    transfer_lambda(rDestinationModelPart, rOriginModelPart);
 }
 
 /***********************************************************************************/

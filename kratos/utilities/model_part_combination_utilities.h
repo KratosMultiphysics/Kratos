@@ -181,14 +181,14 @@ private:
         ); 
 
     /**
-     * @brief This method does the actual combination of modelparts
-     * @param rModelPart The resulting model part
-     * @param rModelPartsNames The list of ModelParts to check the submodelparts names
+     * @brief This method recursively adds the entities to the destination ModelParts 
+     * @param rDestinationModelPart The destination model part
+     * @param rOriginModelPart The origin model part
      */
-    void PrivateCombineOfModelParts(
-        ModelPart& rCombinedModelPart,
-        const std::vector<std::string>& rModelPartsNames
-        );
+    void RecursiveAddEntities(
+        ModelPart& rDestinationModelPart,
+        ModelPart& rOriginModelPart
+        ); 
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
