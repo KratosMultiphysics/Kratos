@@ -432,7 +432,7 @@ public:
         int loop_size = static_cast<int>(system_size) - ndofs;
 
         IndexPartition<std::size_t>(loop_size).for_each([&ndofs, &scaling_factors](std::size_t Index){
-            scaling_factors[ndofs + Index];
+            scaling_factors[ndofs + Index] = 1.0;
         });
 
 
