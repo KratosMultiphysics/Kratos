@@ -62,10 +62,12 @@ void ModelPartCombinationUtilities::CheckSubModelParts(const std::vector<std::st
     // The list of submodelparts names
     std::unordered_map<std::string, std::size_t> list_of_submodelparts;
 
-    // // Interate over the ModelParts
-    // for (auto& r_name : rModelPartsNames) {
-    //     const auto& r_model_part = mrModel.GetModelPart(r_name);
-    // }
+    // Interate over the ModelParts
+    for (auto& r_name : rModelPartsNames) {
+        auto& r_model_part = mrModel.GetModelPart(r_name);
+
+        RecursiveAddOfModelPartsToList(r_model_part, list_of_submodelparts);
+    }
 
     // Check that the submodelparts are not repeated
     bool check = false;
@@ -147,6 +149,38 @@ void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& r
             (it_const_begin + i)->SetId(const_initial_index + i + 1);
         });
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ModelPartCombinationUtilities::RecursiveAddOfModelPartsToList(
+    ModelPart& rModelPart,
+    std::unordered_map<std::string, std::size_t>& rListModelParts
+    )
+{
+    // Lambda to extend the map of model parts
+    auto extend_map = [&rListModelParts](ModelPart& rModelPart) {
+        // Retrieve submodelpart names
+        std::vector<std::string> sub_model_part_names = rModelPart.GetSubModelPartNames();
+        sub_model_part_names.push_back(rModelPart.Name());
+        for (auto& r_sub_name : sub_model_part_names) {
+            // Check it already exists
+            if (rListModelParts.find(r_sub_name) != rListModelParts.end()) {
+                rListModelParts[r_sub_name] += 1;
+            } else {
+                rListModelParts.insert({r_sub_name, 1});
+            }
+        }
+    };
+
+    // Recursively add of ModelParts to the list
+    if (rModelPart.NumberOfSubModelParts() > 0) {
+        for (auto& r_model_part : rModelPart.SubModelParts()) {
+            RecursiveAddOfModelPartsToList(r_model_part, rListModelParts);
+        }
+    }
+    extend_map(rModelPart);
 }
 
 /***********************************************************************************/

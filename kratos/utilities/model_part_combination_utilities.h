@@ -171,6 +171,16 @@ private:
     void ReorderIds(const std::vector<std::string>& rModelPartsNames); 
 
     /**
+     * @brief This method recursively adds the ModelParts to the list to check that no submodelpart is repeated
+     * @param rModelPart The model part to be added
+     * @param rListModelParts The list of ModelParts
+     */
+    void RecursiveAddOfModelPartsToList(
+        ModelPart& rModelPart,
+        std::unordered_map<std::string, std::size_t>& rListModelParts
+        ); 
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const;
