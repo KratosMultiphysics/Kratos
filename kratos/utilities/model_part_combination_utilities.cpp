@@ -202,6 +202,11 @@ void ModelPartCombinationUtilities::RecursiveAddEntities(
     // Lambda to transfer the model parts
     auto transfer_lambda = [](ModelPart& rDestinationModelPart, ModelPart& rOriginModelPart) {
         FastTransferBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart).Execute();
+        
+        // Copy properties
+        for (auto it_prop = rOriginModelPart.PropertiesBegin(); it_prop < rOriginModelPart.PropertiesEnd(); it_prop++) {
+            rDestinationModelPart.AddProperties(*(it_prop.base()));
+        }
     };
 
     // Recursively add of ModelParts to the list
