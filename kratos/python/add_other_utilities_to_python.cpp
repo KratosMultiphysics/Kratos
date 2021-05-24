@@ -661,7 +661,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     py::class_<ModelPartCombinationUtilities, ModelPartCombinationUtilities::Pointer>(m,"ModelPartCombinationUtilities")
         .def(py::init<Model& >() )
-        .def("CombineModelParts", &ModelPartCombinationUtilities::CombineModelParts)
+        .def("CombineModelParts", [&](ModelPartCombinationUtilities &self, Parameters Param) { return &self.CombineModelParts(Param); }, py::return_value_policy::reference_internal)
     ;
 
 }
