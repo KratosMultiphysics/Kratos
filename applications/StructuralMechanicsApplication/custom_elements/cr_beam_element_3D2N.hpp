@@ -34,7 +34,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElement3D2N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElement3D2N : public Element
 {
 protected:
     //const values

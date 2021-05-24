@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 # Import XMC methods
 from xmc.tools import dynamicImport, mergeTwoListsIntoOne

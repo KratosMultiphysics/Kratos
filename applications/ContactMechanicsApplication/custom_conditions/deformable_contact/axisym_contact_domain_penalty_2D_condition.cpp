@@ -182,7 +182,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRad
 //************************************************************************************
 
 
-void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
+void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
 {
     KRATOS_TRY
 
@@ -230,7 +230,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     //Get Current DeformationGradient
     std::vector<Matrix> DeformationGradientVector(integration_points_number);
     DeformationGradientVector[rPointNumber]=IdentityMatrix(dimension);
-    MasterElement.GetValueOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
+    MasterElement.CalculateOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
     rVariables.F = DeformationGradientVector[rPointNumber];
 
     rVariables.detF = MathUtils<double>::Det(rVariables.F);
@@ -239,7 +239,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     std::vector<Vector> StressVector ( integration_points_number );
     StressVector[rPointNumber]=ZeroVector(voigtsize);
     //MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
-    MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    MasterElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
 
     // ConstitutiveLaw Constitutive;
     // for( unsigned int i=0; i<StressVector.size(); i++)
@@ -255,7 +255,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     //Get Current Strain
     std::vector<Matrix> StrainTensor ( integration_points_number );
     StrainTensor[rPointNumber]=ZeroMatrix(dimension,dimension);
-    MasterElement.GetValueOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR,StrainTensor,rCurrentProcessInfo);
+    MasterElement.CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR,StrainTensor,rCurrentProcessInfo);
     std::vector<Vector> StrainVector ( integration_points_number );
     for(unsigned int i=1; i<integration_points_number; i++)
     {

@@ -22,6 +22,7 @@
 #include "mesh_moving_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos {
@@ -36,7 +37,7 @@ PYBIND11_MODULE(KratosMeshMovingApplication,m) {
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
-
+    AddCustomProcessesToPython(m);
 }
 
 } // namespace Python.
