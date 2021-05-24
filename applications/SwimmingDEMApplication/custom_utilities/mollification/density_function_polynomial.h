@@ -51,6 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 #include <stdlib.h>
 #include "density_function.h"
+#include <cmath>
 
 namespace Kratos
 {
@@ -87,7 +88,7 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
 
     for (unsigned int i = 0; i != distances.size(); ++i){
         double radius_2 = distances[i] * distances[i];
-        double weight = nodal_areas[i] * (m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0);
+        double weight = nodal_areas[i] * (m6 * std::exp(-(radius_2)/2) + m4*radius_2*radius_2 + m6*m2*radius_2 );
         weights[i] = weight;
         sum_of_weights_inv += weight;
     }
@@ -143,17 +144,17 @@ double m0;
 
 double fm6(double r)
 {
-    return  315 / (32 * Globals::Pi * pow(r, 9)) - 3 / pow(r, 5);
+    return 15*(-2*std::pow(mR,2)*std::exp(std::pow(mR,2)) + 6*std::sqrt(2)*std::sqrt(Globals::Pi)*mR*std::exp(3*std::pow(mR,2)/2)*erf(std::sqrt(2)*mR/2) - 9*Globals::Pi*std::exp(2*std::pow(mR,2))*std::pow(erf(std::sqrt(2)*mR/2),2))/(4*std::pow(mR,5)*std::exp(std::pow(mR,2)/2) - 12*std::sqrt(2)*std::sqrt(Globals::Pi)*std::pow(mR,4)*std::exp(std::pow(mR,2))*erf(std::sqrt(2)*mR/2) + 18*Globals::Pi*std::pow(mR,3)*std::exp(3*std::pow(mR,2)/2)*std::pow(erf(std::sqrt(2)*mR/2),2) + 28*std::pow(mR,3)*std::exp(std::pow(mR,2)/2) - 114*std::sqrt(2)*std::sqrt(Globals::Pi)*std::pow(mR,2)*std::exp(std::pow(mR,2))*erf(std::sqrt(2)*mR/2) + 306*Globals::Pi*mR*std::exp(3*std::pow(mR,2)/2)*std::pow(erf(std::sqrt(2)*mR/2),2) - 135*std::sqrt(2)*std::pow(Globals::Pi,(3.0/2.0))*std::exp(2*std::pow(mR,2))*std::pow(erf(std::sqrt(2)*mR/2),3));
 }
 
 double fm4(double r)
 {
-    return  7 / pow(r, 3) - 315 / (16 * Globals::Pi * pow(r, 7));
+    return -15*(std::pow(mR, 2) + 2)*std::exp(std::pow(mR, 2)/2)/(2*std::pow(mR, 4)*(2*std::pow(mR, 3)*std::exp(std::pow(mR, 2)/2) + 14*mR*std::exp(std::pow(mR, 2)/2) - 15*std::sqrt(2)*std::sqrt(Globals::Pi)*std::exp(std::pow(mR, 2))*erf(std::sqrt(2)*mR/2)));
 }
 
 double fm2(double r)
 {
-    return  315 / (32 * Globals::Pi * pow(r, 5)) - 5 / r;
+    return (-std::pow(mR, 4)*std::exp(std::pow(mR, 2)/2) + 3*std::sqrt(2)*std::sqrt(Globals::Pi)*std::pow(mR, 3)*std::exp(std::pow(mR, 2))*erf(std::sqrt(2)*mR/2) - 9*Globals::Pi*std::pow(mR, 2)*std::exp(3*std::pow(mR, 2)/2)*std::pow(erf(std::sqrt(2)*mR/2), 2)/2 - 4*std::pow(mR, 2)*std::exp(std::pow(mR, 2)/2) + 12*std::sqrt(2)*std::sqrt(Globals::Pi)*mR*std::exp(std::pow(mR, 2))*erf(std::sqrt(2)*mR/2) - 18*Globals::Pi*std::exp(3*std::pow(mR, 2)/2)*std::pow(erf(std::sqrt(2)*mR/2), 2))/(std::pow(mR, 2)*(2*std::pow(mR, 2)*std::exp(std::pow(mR, 2)) - 6*std::sqrt(2)*std::sqrt(Globals::Pi)*mR*std::exp(3*std::pow(mR, 2)/2)*erf(std::sqrt(2)*mR/2) + 9*Globals::Pi*std::exp(2*std::pow(mR, 2))*std::pow(erf(std::sqrt(2)*mR/2), 2)));
 }
 
 

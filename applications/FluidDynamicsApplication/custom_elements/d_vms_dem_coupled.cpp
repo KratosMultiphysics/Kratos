@@ -315,22 +315,24 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
             // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
             //double K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]);
-            double K = rData.N[i]*AGradN[j];
+            double V = rData.N[i]*AGradN[j];
 
             // q-p stabilization block (reset result)
             double G = 0;
             for (unsigned int d = 0; d < Dim; d++) {
                 // Stabilization: u*grad(v) * TauOne * u*grad(u) - vh * TauOne/Dt u*grad(u)
                 // The last term comes from vh*d(u_ss)/dt
-                double AA = (AGradN[i] - density * rData.N[i]/dt) * tau_one(d,d) * AGradN[j];
+                double AA = AGradN[i] * tau_one(d,d) * AGradN[j];
 
-                double BA = tau_one(d,d) * divergence_convective * rData.N[i] * AGradN[j];
+                double A = tau_one(d,d) * density * rData.N[i]/dt * AGradN[j];
 
-                LHS(row+d,col+d) += rData.Weight * (K + AA + BA);
+                double BA = 0*tau_one(d,d) * divergence_convective * rData.N[i] * AGradN[j];
+
+                LHS(row+d,col+d) += rData.Weight * (V + AA - A + BA);
                 // Galerkin pressure term: Div(v) * p
                 double P = rData.DN_DX(i,d) * rData.N[j];
 
-                double QAlpha = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
+                double QD = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
 
                 double U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
 
@@ -344,14 +346,14 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 double GAlphaA = tau_one(d,d) * AGradN[j] * fluid_fraction * rData.DN_DX(i,d);
                 // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                 double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
-                double BG = divergence_convective * rData.N[i] * rData.DN_DX(j,d);
+                double BG = 0*divergence_convective * rData.N[i] * rData.DN_DX(j,d);
                 // From vh*d(u_ss)/dt: vh * TauOne/Dt * Grad(p)
-                double VP = tau_one(d,d) * density*rData.N[i]/dt * rData.DN_DX(j,d);
+                double VP = tau_one(d,d) * density * rData.N[i] / dt * rData.DN_DX(j,d);
                 for (unsigned int e = 0; e < Dim; e++){
                     double RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
-                    double VSigma = density/dt * rData.N[i] * rData.N[j] * sigma(d,e);
+                    double VSigma = tau_one(d,d) * density/dt * rData.N[i] * rData.N[j] * sigma(d,e);
                     double ASigma = tau_one(d,d) * AGradN[i] * sigma(d,e) * rData.N[j];
-                    double BSigma = tau_one(d,d) * divergence_convective * rData.N[i] * sigma(d,e) * rData.N[j];
+                    double BSigma = 0*tau_one(d,d) * divergence_convective * rData.N[i] * sigma(d,e) * rData.N[j];
                     double RRSigma = tau_one(d,d) * sigma(d,e) * rData.N[i] * sigma(e,d) * rData.N[j];
                     double RSigmaA = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     double DD = fluid_fraction * tau_two * rData.DN_DX(i,d) * rData.DN_DX(j,e);
@@ -361,7 +363,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     LHS(row+d,col+e) += rData.Weight * (DD + DU + RSigma - VSigma + ASigma + BSigma - RRSigma - RSigmaA);
                 }
 
-                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QAlpha + GAlphaR);
+                LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QD + GAlphaR);
                 LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P - RSigmaG + BG);
 
             }
@@ -380,7 +382,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             // vh * TauOne/Dt * f (from vh*d(uss)/dt
             double VI = tau_one(d,d) * density * rData.N[i] / dt * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             double AF = tau_one(d,d) * AGradN[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
-            double BF = tau_one(d,d) * divergence_convective * rData.N[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+            double BF = 0*tau_one(d,d) * divergence_convective * rData.N[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             double RSigmaF = 0.0;
             for (unsigned int e = 0; e < Dim; ++e){
                 RSigmaF += tau_one(d,d) * sigma(d,e) * rData.N[i] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
@@ -482,13 +484,14 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
                 double UGAlpha = tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.N[j];
                 // u*grad(v) * TauOne * du/dt
                 // v * TauOne/dt * du/dt (from v*d(uss)/dt)
-                double K = tau_one(d,d) * (AGradN[i] - rData.N[i]/dt) * rData.N[j];
-                double BU = tau_one(d,d) * divergence_convective * rData.N[i] * rData.N[j];
+                double AU = tau_one(d,d) * AGradN[i] * rData.N[j];
+                double IU = tau_one(d,d) * rData.N[i]/dt * rData.N[j];
+                double BU = 0*tau_one(d,d) * divergence_convective * rData.N[i] * rData.N[j];
                 for (unsigned int e = 0; e < Dim; ++e){
                     double RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.N[j];
                     rMassMatrix(row+d, col+e) -= W * RSigmaU;
                 }
-                rMassMatrix(row+d,col+d) += W * (K + BU);
+                rMassMatrix(row+d,col+d) += W * (AU - IU + BU);
                 rMassMatrix(row+Dim,col+d) += W * UGAlpha;
             }
         }
@@ -509,8 +512,6 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
     constexpr double c1 = DVMS<TElementData>::mTauC1;
     constexpr double c2 = DVMS<TElementData>::mTauC2;
-    array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
-    const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
@@ -518,11 +519,9 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    double gradient_beta_norm = 0.0;
     double velocity_norm = 0.0;
     double sigma_term = 0.0;
     for (unsigned int d = 0; d < Dim; d++){
-        gradient_beta_norm += fluid_fraction_gradient[d] * fluid_fraction_gradient[d] / std::pow(fluid_fraction, 2);
         velocity_norm += Velocity[d] * Velocity[d];
         for (unsigned int e = d; e < Dim; e++){
             sigma_term += std::pow(sigma(d,e),2);
