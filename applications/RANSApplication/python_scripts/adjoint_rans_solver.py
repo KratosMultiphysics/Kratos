@@ -358,9 +358,11 @@ class AdjointRANSSolver(CoupledRANSSolver):
         if domain_size == 2:
             drag_response_function_type = KratosCFD.DragResponseFunction2D
             drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction2D
+            residual_response_function_type = KratosCFD.ResidualResponseFunction2D
         elif domain_size == 3:
             drag_response_function_type = KratosCFD.DragResponseFunction3D
             drag_frequency_response_function_type = KratosCFD.DragFrequencyResponseFunction3D
+            residual_response_function_type = KratosCFD.ResidualResponseFunction3D
         else:
             raise RuntimeError("Invalid DOMAIN_SIZE: " + str(domain_size))
 
@@ -374,6 +376,10 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 self.main_model_part.GetModel())
         elif response_type == "drag_frequency":
             response_function = drag_frequency_response_function_type(
+                self.adjoint_settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
+        elif response_type == "residual":
+            response_function = residual_response_function_type(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
         else:
