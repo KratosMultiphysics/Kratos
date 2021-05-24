@@ -180,16 +180,11 @@ void ModelPartCombinationUtilities::RecursiveAddOfModelPartsToList(
 {
     // Lambda to extend the map of model parts
     auto extend_map = [&rListModelParts](ModelPart& rModelPart) {
-        // Retrieve submodelpart names
-        std::vector<std::string> sub_model_part_names = rModelPart.GetSubModelPartNames();
-        sub_model_part_names.push_back(rModelPart.Name());
-        for (auto& r_sub_name : sub_model_part_names) {
-            // Check it already exists
-            if (rListModelParts.find(r_sub_name) != rListModelParts.end()) {
-                rListModelParts[r_sub_name] += 1;
-            } else {
-                rListModelParts.insert({r_sub_name, 1});
-            }
+        // Check it already exists
+        if (rListModelParts.find(rModelPart.Name()) != rListModelParts.end()) {
+            rListModelParts[rModelPart.Name()] += 1;
+        } else {
+            rListModelParts.insert({rModelPart.Name(), 1});
         }
     };
 
