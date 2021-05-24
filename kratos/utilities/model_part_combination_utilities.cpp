@@ -54,7 +54,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
     const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
 
     // Create the new ModelPart
-    auto& r_combined_model_part = mrModel.HasModelPart(r_new_model_part_name) ? mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt()) : mrModel.GetModelPart(r_new_model_part_name);
+    auto& r_combined_model_part = mrModel.HasModelPart(r_new_model_part_name) ? mrModel.GetModelPart(r_new_model_part_name) : mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
 
     // Before combine the ModelParts we need to check that the submodelparts are not repeated
     CheckSubModelParts(model_parts_names);
