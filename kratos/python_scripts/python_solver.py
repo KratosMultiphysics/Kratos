@@ -194,16 +194,16 @@ class PythonSolver:
                     "model_parts_list"         : [],
                     "combined_model_part_name" : ""
                 }""")
-                combine_param["combined_model_part_name"].SetString(model_part.Name())
-                filenames_list = model_part_import_settings.GetStringArray()
+                combine_param["combined_model_part_name"].SetString(model_part.Name)
+                filenames_list = model_part_import_settings["input_filename"].GetStringArray()
                 copy_model_part_import_settings = KratosMultiphysics.Parameters(model_part_import_settings)
                 copy_model_part_import_settings.RemoveValue("input_filename")
                 copy_model_part_import_settings.AddString("input_filename", "")
-                for i in input_type:
+                for i in range(len(filenames_list)):
                     aux_name = "AUX_MODELPART" + str(i)
                     combine_param["model_parts_list"].Append(aux_name)
                     aux_model_part = current_model.CreateModelPart(aux_name)
-                    copy_model_part_import_settings["copy_model_part_import_settings"].SetString(filenames_list[i])
+                    copy_model_part_import_settings["input_filename"].SetString(filenames_list[i])
                     self._single_ImportModelPart(aux_model_part, model_part_import_settings, input_type[i].GetString())
                 KratosMultiphysics.ModelPartCombinationUtilities(current_model).CombineModelParts(combine_param)
             else:
@@ -215,16 +215,16 @@ class PythonSolver:
                     "model_parts_list"         : [],
                     "combined_model_part_name" : ""
                 }""")
-                combine_param["combined_model_part_name"].SetString(model_part.Name())
-                filenames_list = model_part_import_settings.GetStringArray()
+                combine_param["combined_model_part_name"].SetString(model_part.Name)
+                filenames_list = model_part_import_settings["input_filename"].GetStringArray()
                 copy_model_part_import_settings = KratosMultiphysics.Parameters(model_part_import_settings)
                 copy_model_part_import_settings.RemoveValue("input_filename")
                 copy_model_part_import_settings.AddString("input_filename", "")
-                for i in input_type:
+                for i in range(len(filenames_list)):
                     aux_name = "AUX_MODELPART" + str(i)
                     combine_param["model_parts_list"].Append(aux_name)
                     aux_model_part = current_model.CreateModelPart(aux_name)
-                    copy_model_part_import_settings["copy_model_part_import_settings"].SetString(filenames_list[i])
+                    copy_model_part_import_settings["input_filename"].SetString(filenames_list[i])
                     self._single_ImportModelPart(aux_model_part, model_part_import_settings, input_type.GetString())
                 KratosMultiphysics.ModelPartCombinationUtilities(current_model).CombineModelParts(combine_param)
             else:
