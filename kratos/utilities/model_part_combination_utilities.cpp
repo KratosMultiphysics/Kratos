@@ -111,6 +111,7 @@ void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& r
     std::vector<std::size_t> number_conditions(number_of_model_parts, 0);
     std::vector<std::size_t> number_elements(number_of_model_parts, 0);
     std::vector<std::size_t> number_constraints(number_of_model_parts, 0);
+    std::vector<std::size_t> number_properties(number_of_model_parts, 0);
 
     // Interate over the ModelParts
     for (std::size_t i_mp = 0; i_mp < number_of_model_parts - 1; i_mp++) {
@@ -120,6 +121,7 @@ void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& r
         number_elements[i_mp + 1] = number_elements[i_mp] + r_model_part.NumberOfElements();
         number_conditions[i_mp + 1] = number_conditions[i_mp] + r_model_part.NumberOfConditions();
         number_constraints[i_mp + 1] = number_constraints[i_mp] + r_model_part.NumberOfMasterSlaveConstraints();
+        number_properties[i_mp + 1] = number_properties[i_mp] + r_model_part.NumberOfProperties();
     }
 
     // Reorder Ids
@@ -166,6 +168,14 @@ void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& r
         const std::size_t const_initial_index = number_constraints[i_mp];
         IndexPartition<std::size_t>(r_constraints_array.size()).for_each([&it_const_begin, &const_initial_index](std::size_t i){
             (it_const_begin + i)->SetId(const_initial_index + i + 1);
+        });
+
+        // Iterate over properties
+        auto& r_properties_array = r_model_part.rProperties();
+        const auto it_prop_begin = r_constraints_array.begin();
+        const std::size_t prop_initial_index = number_properties[i_mp];
+        IndexPartition<std::size_t>(r_properties_array.size()).for_each([&it_prop_begin, &prop_initial_index](std::size_t i){
+            (it_prop_begin + i)->SetId(prop_initial_index + i + 1);
         });
     }
 }
