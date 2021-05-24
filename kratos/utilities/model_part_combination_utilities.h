@@ -91,7 +91,7 @@ public:
      * @brief This method combines the model parts existing in the given Model, according to the provided parameters
      * @param ThisParameters The configuration parameters
      */
-    void CombineModelParts(Parameters ThisParameters = Parameters(R"({})"));
+    ModelPart& CombineModelParts(Parameters ThisParameters = Parameters(R"({})"));
 
     /// Turn back information as a string.
     virtual std::string Info() const

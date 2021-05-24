@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
+ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
 {
     // Ensuring parameters
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
@@ -73,6 +73,8 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     for (auto& r_name : model_parts_names) {
         mrModel.DeleteModelPart(r_name);
     }
+
+    return r_combined_model_part;
 }
 
 /***********************************************************************************/
