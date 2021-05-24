@@ -145,7 +145,8 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;
-    double mScalingFactor;
+    double mMomentumResidualWeight;
+    double mContinuityResidualWeight;
 
     ///@}
 

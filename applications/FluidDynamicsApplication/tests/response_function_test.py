@@ -31,7 +31,8 @@ class TestResponseFunction(UnitTest.TestCase):
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.BODY_FORCE, 0.0, 20.0, 0)
 
         cls.response_function = KratosCFD.ResidualResponseFunction2D(Kratos.Parameters("""{
-            "scaling_factor" : 1e-13
+            "continuity_residual_weight": 15.0,
+            "momentum_residual_weight": 24.0
         }"""),  cls.model_part)
         cls.ref_value = cls.response_function.CalculateValue(cls.model_part)
         cls.element = cls.model_part.GetElement(1)

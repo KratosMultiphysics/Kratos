@@ -46,11 +46,13 @@ ResidualResponseFunction<TDim>::ResidualResponseFunction(
     KRATOS_TRY;
 
     Parameters default_settings(R"({
-        "scaling_factor": 1.0
+        "momentum_residual_weight"  : 1.0,
+        "continuity_residual_weight": 1.0
     })");
 
     Settings.ValidateAndAssignDefaults(default_settings);
-    mScalingFactor = Settings["scaling_factor"].GetDouble();
+    mMomentumResidualWeight = Settings["momentum_residual_weight"].GetDouble();
+    mContinuityResidualWeight = Settings["continuity_residual_weight"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -138,7 +140,6 @@ void ResidualResponseFunction<TDim>::CalculateFirstDerivativesGradient(
         }
 
         const double gauss_momentum_residual_inner_prod = inner_prod(gauss_momentum_residual, gauss_momentum_residual);
-        const double residual_coeff = gauss_momentum_residual_inner_prod * gauss_continuity_residual;
 
         for (IndexType c = 0; c < number_of_nodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
@@ -152,19 +153,19 @@ void ResidualResponseFunction<TDim>::CalculateFirstDerivativesGradient(
                 const double gauss_continuity_residual_derivative = dNdX(c, k);
 
                 // compute derivatives
-                double residual_coeff_derivative = 0.0;
-                residual_coeff_derivative += gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
-                residual_coeff_derivative += gauss_momentum_residual_inner_prod * gauss_continuity_residual_derivative;
+                double value = 0.0;
+                value += gauss_momentum_residual_inner_prod_derivative * mMomentumResidualWeight;
+                value += 2.0 * gauss_continuity_residual * gauss_continuity_residual_derivative * mContinuityResidualWeight;
 
                 // add velocity derivatives
-                rResponseGradient[c * block_size + k] += 2.0 * residual_coeff * residual_coeff_derivative * W * mScalingFactor;
+                rResponseGradient[c * block_size + k] += value * W;
             }
 
             noalias(gauss_momentum_residual_derivative) = row(dNdX, c) / density;
             const double gauss_momentum_residual_inner_prod_derivative = 2.0 * inner_prod(gauss_momentum_residual, gauss_momentum_residual_derivative);
-            const double residual_coeff_derivative = gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
+            const double value = gauss_momentum_residual_inner_prod_derivative * mMomentumResidualWeight;
 
-            rResponseGradient[c * block_size + TDim] += 2.0 * residual_coeff * residual_coeff_derivative * W * mScalingFactor;
+            rResponseGradient[c * block_size + TDim] += value * W;
         }
     }
 
@@ -242,9 +243,6 @@ void ResidualResponseFunction<TDim>::CalculateSecondDerivativesGradient(
             gauss_continuity_residual += velocity_gradient(i, i);
         }
 
-        const double gauss_momentum_residual_inner_prod = inner_prod(gauss_momentum_residual, gauss_momentum_residual);
-        const double residual_coeff = gauss_momentum_residual_inner_prod * gauss_continuity_residual;
-
         for (IndexType c = 0; c < number_of_nodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
                 // compute momentum equation residual derivative
@@ -253,11 +251,7 @@ void ResidualResponseFunction<TDim>::CalculateSecondDerivativesGradient(
                 noalias(gauss_momentum_residual_derivative) = N[c] * identity_vector;
                 const double gauss_momentum_residual_inner_prod_derivative = 2.0 * inner_prod(gauss_momentum_residual, gauss_momentum_residual_derivative);
 
-                // compute derivatives
-                double residual_coeff_derivative = 0.0;
-                residual_coeff_derivative += gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
-
-                rResponseGradient[c * block_size + k] += 2.0 * residual_coeff * residual_coeff_derivative * W * mScalingFactor;
+                rResponseGradient[c * block_size + k] += gauss_momentum_residual_inner_prod_derivative * W * mMomentumResidualWeight;
             }
         }
     }
@@ -339,7 +333,6 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
             }
 
             const double gauss_momentum_residual_inner_prod = inner_prod(gauss_momentum_residual, gauss_momentum_residual);
-            const double residual_coeff = gauss_momentum_residual_inner_prod * gauss_continuity_residual;
 
             Geometry<Point>::JacobiansType J;
             r_geometry.Jacobian(J, integration_method);
@@ -373,18 +366,16 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
                         gauss_continuity_residual_derivative += velocity_gradient_derivative(i, i);
                     }
 
-                    // compute derivatives
-                    double residual_coeff_derivative = 0.0;
-                    residual_coeff_derivative += gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
-                    residual_coeff_derivative += gauss_momentum_residual_inner_prod * gauss_continuity_residual_derivative;
-
                     double value = 0.0;
 
-                    value += 2.0 * residual_coeff * residual_coeff_derivative * W;
-                    value += std::pow(residual_coeff, 2) * weight_deriv;
+                    value += gauss_momentum_residual_inner_prod_derivative * W * mMomentumResidualWeight;
+                    value += gauss_momentum_residual_inner_prod * weight_deriv * mMomentumResidualWeight;
+
+                    value += 2.0 * gauss_continuity_residual * gauss_continuity_residual_derivative * W * mContinuityResidualWeight;
+                    value += std::pow(gauss_continuity_residual, 2) * weight_deriv * mContinuityResidualWeight;
 
                     // add velocity derivatives
-                    rSensitivityGradient[deriv.NodeIndex * TDim + deriv.Direction] += value * mScalingFactor;
+                    rSensitivityGradient[deriv.NodeIndex * TDim + deriv.Direction] += value;
                 }
             }
         }
@@ -462,7 +453,8 @@ double ResidualResponseFunction<TDim>::CalculateValue(ModelPart& rModelPart)
                     gauss_continuity_residual += velocity_gradient(i, i);
                 }
 
-                value += mScalingFactor * std::pow(inner_prod(gauss_momentum_residual, gauss_momentum_residual) * gauss_continuity_residual, 2) * W;
+                value += inner_prod(gauss_momentum_residual, gauss_momentum_residual) * mMomentumResidualWeight * W;
+                value += std::pow(gauss_continuity_residual, 2) * mContinuityResidualWeight * W;
             }
 
             rElement.SetValue(ELEMENT_ERROR, value);
