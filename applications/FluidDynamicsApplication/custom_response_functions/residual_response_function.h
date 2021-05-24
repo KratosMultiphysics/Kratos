@@ -154,6 +154,27 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateStabilizationParameters(
+        double& TauU,
+        double& TauP,
+        const double VelocityMagnitude,
+        const double ElementSize,
+        const double KinematicViscosity,
+        const double TauDynamicMultiplier,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    void CalculateStabilizationParameterDerivatives(
+        double& TauUDerivative,
+        double& TauPDerivative,
+        const double TauU,
+        const double TauP,
+        const double VelocityMagnitude,
+        const double VelocityMagnitudeDerivative,
+        const double ElementSize,
+        const double ElementSizeDerivative,
+        const double KinematicViscosity,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
     void CalculateGeometryData(
         const Element& rElement,
         Vector& rGaussWeights,
