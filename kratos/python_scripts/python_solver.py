@@ -192,9 +192,7 @@ class PythonSolver:
                 current_model = model_part.GetModel()
                 combine_param = KratosMultiphysics.Parameters("""{
                     "model_parts_list"         : [],
-                    "combined_model_part_name" : "",
-                    "buffer_size"              : 2,
-                    "echo_level"               : 0
+                    "combined_model_part_name" : ""
                 }""")
                 combine_param["combined_model_part_name"].SetString(model_part.Name())
                 filenames_list = model_part_import_settings.GetStringArray()
@@ -215,9 +213,7 @@ class PythonSolver:
                 current_model = model_part.GetModel()
                 combine_param = KratosMultiphysics.Parameters("""{
                     "model_parts_list"         : [],
-                    "combined_model_part_name" : "",
-                    "buffer_size"              : 2,
-                    "echo_level"               : 0
+                    "combined_model_part_name" : ""
                 }""")
                 combine_param["combined_model_part_name"].SetString(model_part.Name())
                 filenames_list = model_part_import_settings.GetStringArray()
