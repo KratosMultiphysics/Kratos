@@ -172,7 +172,7 @@ void ModelPartCombinationUtilities::ReorderIds(const std::vector<std::string>& r
 
         // Iterate over properties
         auto& r_properties_array = r_model_part.rProperties();
-        const auto it_prop_begin = r_constraints_array.begin();
+        const auto it_prop_begin = r_properties_array.begin();
         const std::size_t prop_initial_index = number_properties[i_mp];
         IndexPartition<std::size_t>(r_properties_array.size()).for_each([&it_prop_begin, &prop_initial_index](std::size_t i){
             (it_prop_begin + i)->SetId(prop_initial_index + i + 1);
