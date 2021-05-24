@@ -662,7 +662,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     //Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::
-        AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,
+        AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix,
                                                 rVariables.PMatrix);
 
     // KRATOS_INFO("1-TransientOnePhaseFlowElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
@@ -687,7 +687,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
                                  * rVariables.IntegrationCoefficient;
 
     //Distribute permeability block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix, rVariables.PMatrix);
 
     // KRATOS_INFO("1-TransientOnePhaseFlowElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
 
@@ -734,7 +734,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     noalias(rVariables.PVector) = - prod(rVariables.PMatrix, rVariables.PressureVector);
 
     //Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
 
     // KRATOS_INFO("1-TransientOnePhaseFlowElement::CalculateAndAddPermeabilityFlow()") << std::endl;
     KRATOS_CATCH("");
@@ -758,9 +758,32 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
                                  * prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
     //Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,rVariables.PVector);
 
     // KRATOS_INFO("1-TransientOnePhaseFlowElement::CalculateAndAddFluidBodyFlow()") << std::endl;
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    CalculateAndAddCompressibilityFlow( VectorType& rRightHandSideVector,
+                                        ElementVariables& rVariables )
+{
+    KRATOS_TRY;
+    // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddCompressibilityFlow()") << std::endl;
+
+    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
+                                  * rVariables.BiotModulusInverse
+                                  * outer_prod(rVariables.Np,rVariables.Np)
+                                  * rVariables.IntegrationCoefficient;
+
+    noalias(rVariables.PVector) = - prod(rVariables.PMatrix, rVariables.DtPressureVector);
+
+    //Distribute compressibility block vector into elemental vector
+    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+
+    // KRATOS_INFO("1-TransientOnePhaseFlowElement::CalculateAndAddCompressibilityFlow()") << std::endl;
     KRATOS_CATCH("");
 }
 

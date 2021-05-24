@@ -249,7 +249,7 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
     virtual void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
 

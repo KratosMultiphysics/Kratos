@@ -1440,7 +1440,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddCompressibilityFlow( VectorType& rRightHandSideVector,
