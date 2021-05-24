@@ -28,6 +28,9 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     // Ensuring parameters
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
+    // Getting echo level
+    const int echo_level = ThisParameters["echo_level"].GetInt();
+
     // Retrieve the new ModelPart name 
     const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
 
@@ -39,8 +42,16 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     const auto& r_model_parts_names = ThisParameters["model_parts_list"];
 
     // Fill the list
+    KRATOS_INFO_IF("ModelPartCombinationUtilities", echo_level > 0) << "The following ModelParts are going to be merged" << std::endl;
     for (auto& r_name : r_model_parts_names) {
-        model_parts_names.push_back(r_name.GetString());
+        const auto& name = r_name.GetString();
+        model_parts_names.push_back(name);
+
+        // Giving information from current ModelParts
+        if (echo_level > 0) {
+            auto& r_model_part = mrModel.GetModelPart(name);
+            KRATOS_INFO("ModelPartCombinationUtilities") << r_model_part << std::endl;
+        }
     }
 
     // Before combine the ModelParts we need to check that the submodelparts are not repeated
@@ -51,10 +62,10 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
 
     // Finally we compine the model parts
     for (auto& r_name : model_parts_names) {
-        auto& r_model_part = mrModel.GetModelPart(r_name);
-        
+        auto& r_model_part = mrModel.GetModelPart(r_name);   
         RecursiveAddEntities(r_combined_model_part, r_model_part);
     }
+    KRATOS_INFO_IF("ModelPartCombinationUtilities", echo_level > 0) << "The merge resulting in the following ModelPart:\n" <<  r_combined_model_part << std::endl;
 
     // Finally we delete the old model parts
     for (auto& r_name : model_parts_names) {
@@ -228,7 +239,8 @@ const Parameters ModelPartCombinationUtilities::GetDefaultParameters() const
     {
         "model_parts_list"         : [],
         "combined_model_part_name" : "CombinedModelParts",
-        "buffer_size"              : 2
+        "buffer_size"              : 2,
+        "echo_level"               : 0
     })" );
     return default_parameters;
 }
