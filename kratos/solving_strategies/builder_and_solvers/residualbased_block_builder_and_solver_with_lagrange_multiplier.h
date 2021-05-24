@@ -901,8 +901,8 @@ protected:
             const std::size_t slave_size = BaseType::mSlaveIds.size();
 
             // Count the row sizes
-            IndexType nnz = 0;
-            nnz = IndexPartition<std::size_t>(slave_size).for_each<SumReduction<IndexType>>([&](std::size_t Index){
+            std::size_t nnz = 0;
+            nnz = IndexPartition<std::size_t>(slave_size).for_each<SumReduction<std::size_t>>([&](std::size_t Index){
                 return indices[BaseType::mSlaveIds[Index]].size();
             });
 
