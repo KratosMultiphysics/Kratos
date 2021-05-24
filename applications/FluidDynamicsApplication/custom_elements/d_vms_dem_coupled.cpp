@@ -326,9 +326,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 double A = tau_one(d,d) * density * rData.N[i]/dt * AGradN[j];
 
-                double BA = 0*tau_one(d,d) * divergence_convective * rData.N[i] * AGradN[j];
-
-                LHS(row+d,col+d) += rData.Weight * (V + AA - A + BA);
+                LHS(row+d,col+d) += rData.Weight * (V + AA - A);
                 // Galerkin pressure term: Div(v) * p
                 double P = rData.DN_DX(i,d) * rData.N[j];
 
@@ -346,25 +344,23 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 double GAlphaA = tau_one(d,d) * AGradN[j] * fluid_fraction * rData.DN_DX(i,d);
                 // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                 double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
-                double BG = 0*divergence_convective * rData.N[i] * rData.DN_DX(j,d);
                 // From vh*d(u_ss)/dt: vh * TauOne/Dt * Grad(p)
                 double VP = tau_one(d,d) * density * rData.N[i] / dt * rData.DN_DX(j,d);
                 for (unsigned int e = 0; e < Dim; e++){
                     double RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
                     double VSigma = tau_one(d,d) * density/dt * rData.N[i] * rData.N[j] * sigma(d,e);
                     double ASigma = tau_one(d,d) * AGradN[i] * sigma(d,e) * rData.N[j];
-                    double BSigma = 0*tau_one(d,d) * divergence_convective * rData.N[i] * sigma(d,e) * rData.N[j];
                     double RRSigma = tau_one(d,d) * sigma(d,e) * rData.N[i] * sigma(e,d) * rData.N[j];
                     double RSigmaA = tau_one(d,d) * sigma(d,e) * rData.N[i] * AGradN[j];
                     double DD = fluid_fraction * tau_two * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                     double DU = fluid_fraction_gradient[e] * tau_two * rData.DN_DX(i,d) * rData.N[j];
                     GAlphaR += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
                     RSigmaG += tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,e);
-                    LHS(row+d,col+e) += rData.Weight * (DD + DU + RSigma - VSigma + ASigma + BSigma - RRSigma - RSigmaA);
+                    LHS(row+d,col+e) += rData.Weight * (DD + DU + RSigma - VSigma + ASigma - RRSigma - RSigmaA);
                 }
 
                 LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QD + GAlphaR);
-                LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P - RSigmaG + BG);
+                LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P - RSigmaG);
 
             }
 
@@ -382,7 +378,6 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             // vh * TauOne/Dt * f (from vh*d(uss)/dt
             double VI = tau_one(d,d) * density * rData.N[i] / dt * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             double AF = tau_one(d,d) * AGradN[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
-            double BF = 0*tau_one(d,d) * divergence_convective * rData.N[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             double RSigmaF = 0.0;
             for (unsigned int e = 0; e < Dim; ++e){
                 RSigmaF += tau_one(d,d) * sigma(d,e) * rData.N[i] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
@@ -391,7 +386,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
             QAlphaF += tau_one(d,d) * rData.DN_DX(i,d) * fluid_fraction * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             // OSS pressure subscale projection
             double DPhi = rData.DN_DX(i,d) * tau_two * (mass_source - fluid_fraction_rate - MassProj);
-            rLocalRHS[row+d] += rData.Weight * (VF - VI + AF + BF + DPhi - RSigmaF);
+            rLocalRHS[row+d] += rData.Weight * (VF - VI + AF + DPhi - RSigmaF);
         }
         double Q = rData.N[i] * (mass_source - fluid_fraction_rate);
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q); // Grad(q) * TauOne * (Density * BodyForce)
@@ -486,12 +481,11 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
                 // v * TauOne/dt * du/dt (from v*d(uss)/dt)
                 double AU = tau_one(d,d) * AGradN[i] * rData.N[j];
                 double IU = tau_one(d,d) * rData.N[i]/dt * rData.N[j];
-                double BU = 0*tau_one(d,d) * divergence_convective * rData.N[i] * rData.N[j];
                 for (unsigned int e = 0; e < Dim; ++e){
                     double RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.N[j];
                     rMassMatrix(row+d, col+e) -= W * RSigmaU;
                 }
-                rMassMatrix(row+d,col+d) += W * (AU - IU + BU);
+                rMassMatrix(row+d,col+d) += W * (AU - IU);
                 rMassMatrix(row+Dim,col+d) += W * UGAlpha;
             }
         }
