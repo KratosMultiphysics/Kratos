@@ -79,8 +79,6 @@ public:
         Parameters Settings,
         ModelPart& rModelPart);
 
-    ResidualResponseFunction(ModelPart& rModelPart);
-
     /// Destructor.
     ~ResidualResponseFunction() override = default;
 
@@ -147,6 +145,7 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;
+    double mScalingFactor;
 
     ///@}
 

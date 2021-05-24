@@ -45,18 +45,14 @@ ResidualResponseFunction<TDim>::ResidualResponseFunction(
 {
     KRATOS_TRY;
 
-    Parameters default_settings(R"({})");
+    Parameters default_settings(R"({
+        "scaling_factor": 1.0
+    })");
 
     Settings.ValidateAndAssignDefaults(default_settings);
+    mScalingFactor = Settings["scaling_factor"].GetDouble();
 
     KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-ResidualResponseFunction<TDim>::ResidualResponseFunction(
-    ModelPart& rModelPart)
-    : mrModelPart(rModelPart)
-{
 }
 
 template <unsigned int TDim>
@@ -105,34 +101,12 @@ void ResidualResponseFunction<TDim>::CalculateFirstDerivativesGradient(
 
     const auto& r_properties = rAdjointElement.GetProperties();
     const double density = r_properties[DENSITY];
-    const double nu = r_properties[DYNAMIC_VISCOSITY] / density;
 
     const IndexType number_of_gauss_points = Ws.size();
 
     MatrixDD velocity_gradient;
     ArrayD velocity, body_force, acceleration, pressure_gradient, gauss_momentum_residual, gauss_momentum_residual_derivative;
     double gauss_continuity_residual;
-
-    double h;
-    if (TDim == 2) {
-        if (number_of_nodes == 3) {
-            h = ElementSizeCalculator<2, 3>::AverageElementSize(r_geometry);
-        } else if (number_of_nodes == 4) {
-            h = ElementSizeCalculator<2, 4>::AverageElementSize(r_geometry);
-        } else {
-            KRATOS_ERROR << "Unsupported geometry type having "
-                            << number_of_nodes << " nodes in " << TDim << "D.";
-        }
-    } else if (TDim == 3) {
-        if (number_of_nodes == 4) {
-            h = ElementSizeCalculator<3, 4>::AverageElementSize(r_geometry);
-        } else if (number_of_nodes == 8) {
-            h = ElementSizeCalculator<3, 8>::AverageElementSize(r_geometry);
-        } else {
-            KRATOS_ERROR << "Unsupported geometry type having "
-                            << number_of_nodes << " nodes in " << TDim << "D.";
-        }
-    }
 
     // calculate the strong form residual
     for (IndexType g = 0; g < number_of_gauss_points; ++g) {
@@ -152,8 +126,6 @@ void ResidualResponseFunction<TDim>::CalculateFirstDerivativesGradient(
             std::tie(pressure_gradient, PRESSURE));
 
         const ArrayD& velocity_dot_velocity_gradient = prod(velocity_gradient, velocity);
-        const double velocity_magnitude = norm_2(velocity);
-        const double inv_velocity_magnitude = (velocity_magnitude > 1e-12) ? 1.0 / velocity_magnitude : 0.0;
         const Vector& convection_operator = prod(dNdX, velocity);
 
         noalias(gauss_momentum_residual) =
@@ -165,13 +137,8 @@ void ResidualResponseFunction<TDim>::CalculateFirstDerivativesGradient(
             gauss_continuity_residual += velocity_gradient(i, i);
         }
 
-        double tau_u, tau_p;
-        CalculateStabilizationParameters(tau_u, tau_p, velocity_magnitude, h, nu, -1.0, rProcessInfo);
-
         const double gauss_momentum_residual_inner_prod = inner_prod(gauss_momentum_residual, gauss_momentum_residual);
-
-        const double value_1 = std::pow(tau_u, 2) * gauss_momentum_residual_inner_prod;
-        const double value_2 = tau_p * gauss_continuity_residual;
+        const double residual_coeff = gauss_momentum_residual_inner_prod * gauss_continuity_residual;
 
         for (IndexType c = 0; c < number_of_nodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
@@ -184,36 +151,20 @@ void ResidualResponseFunction<TDim>::CalculateFirstDerivativesGradient(
                 // compute continuity equation residual derivative
                 const double gauss_continuity_residual_derivative = dNdX(c, k);
 
-                const double velocity_magnitude_derivative = velocity[k] * N[c] * inv_velocity_magnitude;
-
-                double tau_u_derivative, tau_p_derivative;
-                CalculateStabilizationParameterDerivatives(
-                    tau_u_derivative, tau_p_derivative, tau_u, tau_p, velocity_magnitude,
-                    velocity_magnitude_derivative, h, 0.0, nu, rProcessInfo);
-
-                // derivatives
-                double value_1_derivative = 0.0;
-                value_1_derivative += gauss_momentum_residual_inner_prod_derivative * std::pow(tau_u, 2);
-                value_1_derivative += gauss_momentum_residual_inner_prod * 2.0 * tau_u * tau_u_derivative;
-
-                double value_2_derivative = 0.0;
-                value_2_derivative += gauss_continuity_residual_derivative * tau_p;
-                value_2_derivative += gauss_continuity_residual * tau_p_derivative;
-
-                double value = 0.0;
-                value += 2.0 * value_1 * value_1_derivative;
-                value += 2.0 * value_2 * value_2_derivative;
+                // compute derivatives
+                double residual_coeff_derivative = 0.0;
+                residual_coeff_derivative += gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
+                residual_coeff_derivative += gauss_momentum_residual_inner_prod * gauss_continuity_residual_derivative;
 
                 // add velocity derivatives
-                rResponseGradient[c * block_size + k] += value * W;
+                rResponseGradient[c * block_size + k] += 2.0 * residual_coeff * residual_coeff_derivative * W * mScalingFactor;
             }
 
             noalias(gauss_momentum_residual_derivative) = row(dNdX, c) / density;
             const double gauss_momentum_residual_inner_prod_derivative = 2.0 * inner_prod(gauss_momentum_residual, gauss_momentum_residual_derivative);
-            double value_1_derivative = 0.0;
-            value_1_derivative += gauss_momentum_residual_inner_prod_derivative * std::pow(tau_u, 2);
+            const double residual_coeff_derivative = gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
 
-            rResponseGradient[c * block_size + TDim] += 2.0 * value_1 * value_1_derivative * W;
+            rResponseGradient[c * block_size + TDim] += 2.0 * residual_coeff * residual_coeff_derivative * W * mScalingFactor;
         }
     }
 
@@ -256,28 +207,6 @@ void ResidualResponseFunction<TDim>::CalculateSecondDerivativesGradient(
 
     const auto& r_properties = rAdjointElement.GetProperties();
     const double density = r_properties[DENSITY];
-    const double nu = r_properties[DYNAMIC_VISCOSITY] / density;
-
-    double h;
-    if (TDim == 2) {
-        if (number_of_nodes == 3) {
-            h = ElementSizeCalculator<2, 3>::AverageElementSize(r_geometry);
-        } else if (number_of_nodes == 4) {
-            h = ElementSizeCalculator<2, 4>::AverageElementSize(r_geometry);
-        } else {
-            KRATOS_ERROR << "Unsupported geometry type having "
-                            << number_of_nodes << " nodes in " << TDim << "D.";
-        }
-    } else if (TDim == 3) {
-        if (number_of_nodes == 4) {
-            h = ElementSizeCalculator<3, 4>::AverageElementSize(r_geometry);
-        } else if (number_of_nodes == 8) {
-            h = ElementSizeCalculator<3, 8>::AverageElementSize(r_geometry);
-        } else {
-            KRATOS_ERROR << "Unsupported geometry type having "
-                            << number_of_nodes << " nodes in " << TDim << "D.";
-        }
-    }
 
     const IndexType number_of_gauss_points = Ws.size();
 
@@ -313,12 +242,8 @@ void ResidualResponseFunction<TDim>::CalculateSecondDerivativesGradient(
             gauss_continuity_residual += velocity_gradient(i, i);
         }
 
-        double tau_u, tau_p;
-        CalculateStabilizationParameters(tau_u, tau_p, norm_2(velocity), h, nu, -1.0, rProcessInfo);
-
         const double gauss_momentum_residual_inner_prod = inner_prod(gauss_momentum_residual, gauss_momentum_residual);
-
-        const double value_1 = std::pow(tau_u, 2) * gauss_momentum_residual_inner_prod;
+        const double residual_coeff = gauss_momentum_residual_inner_prod * gauss_continuity_residual;
 
         for (IndexType c = 0; c < number_of_nodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
@@ -328,14 +253,11 @@ void ResidualResponseFunction<TDim>::CalculateSecondDerivativesGradient(
                 noalias(gauss_momentum_residual_derivative) = N[c] * identity_vector;
                 const double gauss_momentum_residual_inner_prod_derivative = 2.0 * inner_prod(gauss_momentum_residual, gauss_momentum_residual_derivative);
 
-                const double value_1_derivative = std::pow(tau_u, 2) * gauss_momentum_residual_inner_prod_derivative;
+                // compute derivatives
+                double residual_coeff_derivative = 0.0;
+                residual_coeff_derivative += gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
 
-                // derivatives
-                double value = 0.0;
-                value += 2.0 * value_1 * value_1_derivative;
-
-                // add velocity derivatives
-                rResponseGradient[c * block_size + k] += value * W;
+                rResponseGradient[c * block_size + k] += 2.0 * residual_coeff * residual_coeff_derivative * W * mScalingFactor;
             }
         }
     }
@@ -381,33 +303,6 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
 
         const auto& r_properties = rAdjointElement.GetProperties();
         const double density = r_properties[DENSITY];
-        const double nu = r_properties[DYNAMIC_VISCOSITY] / density;
-
-        double h;
-        std::function<double(unsigned int, unsigned int, const GeometryType&)> element_size_derivative_method;
-        if (TDim == 2) {
-            if (number_of_nodes == 3) {
-                h = ElementSizeCalculator<2, 3>::AverageElementSize(r_geometry);
-                element_size_derivative_method = &ElementSizeCalculator<2, 3>::AverageElementSizeDerivative;
-            } else if (number_of_nodes == 4) {
-                h = ElementSizeCalculator<2, 4>::AverageElementSize(r_geometry);
-                element_size_derivative_method = &ElementSizeCalculator<2, 4>::AverageElementSizeDerivative;
-            } else {
-                KRATOS_ERROR << "Unsupported geometry type having "
-                                << number_of_nodes << " nodes in " << TDim << "D.";
-            }
-        } else if (TDim == 3) {
-            if (number_of_nodes == 4) {
-                h = ElementSizeCalculator<3, 4>::AverageElementSize(r_geometry);
-                element_size_derivative_method = &ElementSizeCalculator<3, 4>::AverageElementSizeDerivative;
-            } else if (number_of_nodes == 8) {
-                h = ElementSizeCalculator<3, 8>::AverageElementSize(r_geometry);
-                element_size_derivative_method = &ElementSizeCalculator<3, 8>::AverageElementSizeDerivative;
-            } else {
-                KRATOS_ERROR << "Unsupported geometry type having "
-                                << number_of_nodes << " nodes in " << TDim << "D.";
-            }
-        }
 
         const IndexType number_of_gauss_points = Ws.size();
 
@@ -433,7 +328,6 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
                 std::tie(pressure_gradient, PRESSURE));
 
             const ArrayD& velocity_dot_velocity_gradient = prod(velocity_gradient, velocity);
-            const double velocity_magnitude = norm_2(velocity);
 
             noalias(gauss_momentum_residual) =
                 acceleration + velocity_dot_velocity_gradient +
@@ -445,13 +339,7 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
             }
 
             const double gauss_momentum_residual_inner_prod = inner_prod(gauss_momentum_residual, gauss_momentum_residual);
-
-
-            double tau_u, tau_p;
-            CalculateStabilizationParameters(tau_u, tau_p, velocity_magnitude, h, nu, -1.0, rProcessInfo);
-
-            const double value_1 = std::pow(tau_u, 2) * gauss_momentum_residual_inner_prod;
-            const double value_2 = tau_p * gauss_continuity_residual;
+            const double residual_coeff = gauss_momentum_residual_inner_prod * gauss_continuity_residual;
 
             Geometry<Point>::JacobiansType J;
             r_geometry.Jacobian(J, integration_method);
@@ -470,12 +358,6 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
                     geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, dNdX_deriv);
                     const double weight_deriv = detJ_deriv * inv_detJ * W;
 
-                    const double h_derivative = element_size_derivative_method(deriv.NodeIndex, deriv.Direction, r_geometry);
-                    double tau_u_derivative, tau_p_derivative;
-                    CalculateStabilizationParameterDerivatives(
-                        tau_u_derivative, tau_p_derivative, tau_u, tau_p, velocity_magnitude,
-                        0.0, h, h_derivative, nu, rProcessInfo);
-
                     FluidCalculationUtilities::EvaluateGradientInPoint(
                         r_geometry, dNdX_deriv,
                         std::tie(velocity_gradient_derivative, VELOCITY),
@@ -491,24 +373,18 @@ void ResidualResponseFunction<TDim>::CalculatePartialSensitivity(
                         gauss_continuity_residual_derivative += velocity_gradient_derivative(i, i);
                     }
 
-                    // derivatives
-                    double value_1_derivative = 0.0;
-                    value_1_derivative += gauss_momentum_residual_inner_prod_derivative * std::pow(tau_u, 2);
-                    value_1_derivative += gauss_momentum_residual_inner_prod * 2.0 * tau_u * tau_u_derivative;
-
-                    double value_2_derivative = 0.0;
-                    value_2_derivative += gauss_continuity_residual_derivative * tau_p;
-                    value_2_derivative += gauss_continuity_residual * tau_p_derivative;
+                    // compute derivatives
+                    double residual_coeff_derivative = 0.0;
+                    residual_coeff_derivative += gauss_momentum_residual_inner_prod_derivative * gauss_continuity_residual;
+                    residual_coeff_derivative += gauss_momentum_residual_inner_prod * gauss_continuity_residual_derivative;
 
                     double value = 0.0;
 
-                    value += 2.0 * value_1 * value_1_derivative * W;
-                    value += std::pow(value_1, 2) * weight_deriv;
-                    value += 2.0 * value_2 * value_2_derivative * W;
-                    value += std::pow(value_2, 2) * weight_deriv;
+                    value += 2.0 * residual_coeff * residual_coeff_derivative * W;
+                    value += std::pow(residual_coeff, 2) * weight_deriv;
 
                     // add velocity derivatives
-                    rSensitivityGradient[deriv.NodeIndex * TDim + deriv.Direction] += value;
+                    rSensitivityGradient[deriv.NodeIndex * TDim + deriv.Direction] += value * mScalingFactor;
                 }
             }
         }
@@ -547,41 +423,18 @@ double ResidualResponseFunction<TDim>::CalculateValue(ModelPart& rModelPart)
     const double value = block_for_each<SumReduction<double>>(
         mrModelPart.Elements(), TLS(), [&](Element& rElement, TLS& rTLS) {
             const auto& r_geometry = rElement.GetGeometry();
-            const IndexType number_of_nodes = r_geometry.PointsNumber();
             this->CalculateGeometryData(rElement, rTLS.Ws, rTLS.Ns, rTLS.dNdXs);
 
             const auto& r_properties = rElement.GetProperties();
             const double density = r_properties[DENSITY];
-            const double nu = r_properties[DYNAMIC_VISCOSITY] / density;
             const IndexType number_of_gauss_points = rTLS.Ws.size();
 
             MatrixDD velocity_gradient;
             ArrayD velocity, body_force, acceleration, pressure_gradient, gauss_momentum_residual;
             double gauss_continuity_residual;
 
-            double h;
-            if (TDim == 2) {
-                if (number_of_nodes == 3) {
-                    h = ElementSizeCalculator<2, 3>::AverageElementSize(r_geometry);
-                } else if (number_of_nodes == 4) {
-                    h = ElementSizeCalculator<2, 4>::AverageElementSize(r_geometry);
-                } else {
-                    KRATOS_ERROR << "Unsupported geometry type having "
-                                 << number_of_nodes << " nodes in " << TDim << "D.";
-                }
-            } else if (TDim == 3) {
-                if (number_of_nodes == 4) {
-                    h = ElementSizeCalculator<3, 4>::AverageElementSize(r_geometry);
-                } else if (number_of_nodes == 8) {
-                    h = ElementSizeCalculator<3, 8>::AverageElementSize(r_geometry);
-                } else {
-                    KRATOS_ERROR << "Unsupported geometry type having "
-                                 << number_of_nodes << " nodes in " << TDim << "D.";
-                }
-            }
-
             // calculate the strong form residual
-            double value;
+            double value = 0.0;
             for (IndexType g = 0; g < number_of_gauss_points; ++g) {
                 const double W = rTLS.Ws[g];
                 const Vector& N = row(rTLS.Ns, g);
@@ -609,18 +462,11 @@ double ResidualResponseFunction<TDim>::CalculateValue(ModelPart& rModelPart)
                     gauss_continuity_residual += velocity_gradient(i, i);
                 }
 
-                double tau_u, tau_p;
-                CalculateStabilizationParameters(tau_u, tau_p, norm_2(velocity), h, nu, 1.0, mrModelPart.GetProcessInfo());
-
-                // value_1 += std::pow(std::pow(tau_u, 2) * inner_prod(gauss_momentum_residual, gauss_momentum_residual), 2) * W;
-                // value_2 += std::pow(tau_p * gauss_continuity_residual, 2) * W;
-
-                value += std::pow(inner_prod(gauss_momentum_residual, gauss_momentum_residual) * gauss_continuity_residual, 2) * W;
+                value += mScalingFactor * std::pow(inner_prod(gauss_momentum_residual, gauss_momentum_residual) * gauss_continuity_residual, 2) * W;
             }
 
             rElement.SetValue(ELEMENT_ERROR, value);
-
-            return value_1 + value_2;
+            return value;
         });
 
     return mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(value);
