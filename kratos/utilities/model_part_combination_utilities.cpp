@@ -31,12 +31,6 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     // Getting echo level
     const int echo_level = ThisParameters["echo_level"].GetInt();
 
-    // Retrieve the new ModelPart name 
-    const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
-
-    // Create the new ModelPart
-    auto& r_combined_model_part = mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
-
     // Retrieve the ModelParts to combine
     std::vector<std::string> model_parts_names;
     const auto& r_model_parts_names = ThisParameters["model_parts_list"];
@@ -46,13 +40,21 @@ void ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParameters)
     for (auto& r_name : r_model_parts_names) {
         const auto& name = r_name.GetString();
         model_parts_names.push_back(name);
+    }
 
-        // Giving information from current ModelParts
-        if (echo_level > 0) {
-            auto& r_model_part = mrModel.GetModelPart(name);
+    // Giving information from current ModelParts
+    if (echo_level > 0) {
+        for (auto& r_name : model_parts_names) {
+            auto& r_model_part = mrModel.GetModelPart(r_name);
             KRATOS_INFO("ModelPartCombinationUtilities") << r_model_part << std::endl;
         }
     }
+
+    // Retrieve the new ModelPart name 
+    const auto& r_new_model_part_name = ThisParameters["combined_model_part_name"].GetString();
+
+    // Create the new ModelPart
+    auto& r_combined_model_part = mrModel.CreateModelPart(r_new_model_part_name, ThisParameters["buffer_size"].GetInt());
 
     // Before combine the ModelParts we need to check that the submodelparts are not repeated
     CheckSubModelParts(model_parts_names);
