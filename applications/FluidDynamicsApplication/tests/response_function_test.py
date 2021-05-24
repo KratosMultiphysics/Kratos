@@ -30,7 +30,9 @@ class TestResponseFunction(UnitTest.TestCase):
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.PRESSURE, 0.0, 10.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.BODY_FORCE, 0.0, 20.0, 0)
 
-        cls.response_function = KratosCFD.ResidualResponseFunction2D(Kratos.Parameters("""{}"""),  cls.model_part)
+        cls.response_function = KratosCFD.ResidualResponseFunction2D(Kratos.Parameters("""{
+            "scaling_factor" : 1e-13
+        }"""),  cls.model_part)
         cls.ref_value = cls.response_function.CalculateValue(cls.model_part)
         cls.element = cls.model_part.GetElement(1)
         cls.domain_size = 2
@@ -39,7 +41,7 @@ class TestResponseFunction(UnitTest.TestCase):
 
     def testCalculateFirstDerivativesGradient(self):
         residual_local_size = self.block_size * self.number_of_nodes
-        delta = 2e-5
+        delta = 1e-5
 
         response_gradient = Kratos.Vector()
         residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
@@ -71,7 +73,7 @@ class TestResponseFunction(UnitTest.TestCase):
             pressure -= delta
             node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
 
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-6, 1e-5)
+        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-5, 1e-5)
 
     def testCalculateSecondDerivativesGradient(self):
         residual_local_size = self.block_size * self.number_of_nodes
