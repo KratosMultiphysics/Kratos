@@ -218,7 +218,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
     unsigned int index = 0;
 
     if (rElementalDofList.size() != N_DOF)
@@ -253,7 +253,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != N_DOF )
@@ -308,7 +308,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != N_DOF )
@@ -337,7 +337,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
     unsigned int index = 0;
 
     if (rResult.size() != N_DOF)
@@ -371,7 +371,6 @@ void UPwBaseElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     CalculateMassMatrix( MatrixType& rMassMatrix,
@@ -379,7 +378,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resizing mass matrix
     if ( rMassMatrix.size1() != N_DOF )
@@ -435,7 +434,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 
     // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Compute Mass Matrix
     MatrixType MassMatrix(N_DOF, N_DOF);
@@ -475,7 +474,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
@@ -513,7 +512,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
@@ -552,7 +551,7 @@ void UPwBaseElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
@@ -736,6 +735,13 @@ double UPwBaseElement<TDim,TNumNodes>::
     return detJ0;
 
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+unsigned int UPwBaseElement<TDim,TNumNodes>::GetNumberOfDOF() const
+{
+    return TNumNodes * (TDim + 1);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------

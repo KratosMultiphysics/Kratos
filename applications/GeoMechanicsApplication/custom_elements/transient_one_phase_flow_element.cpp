@@ -33,9 +33,160 @@ Element::Pointer TransientOnePhaseFlowElement<TDim,TNumNodes>::Create(IndexType 
 {
     return Element::Pointer( new TransientOnePhaseFlowElement( NewId, pGeom, pProperties ) );
 }
+
+
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void TransientOnePhaseFlowElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    GetDofList( DofsVectorType& rElementalDofList,
+                const ProcessInfo& rCurrentProcessInfo ) const
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+    unsigned int index = 0;
+
+    if (rElementalDofList.size() != N_DOF)
+      rElementalDofList.resize( N_DOF );
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    EquationIdVector(EquationIdVectorType& rResult,
+                     const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+    unsigned int index = 0;
+
+    if (rResult.size() != N_DOF)
+      rResult.resize( N_DOF, false );
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    CalculateMassMatrix( MatrixType& rMassMatrix,
+                         const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    //Resizing mass matrix
+    if ( rMassMatrix.size1() != N_DOF )
+        rMassMatrix.resize( N_DOF, N_DOF, false );
+    noalias( rMassMatrix ) = ZeroMatrix( N_DOF, N_DOF );
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                           const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
+
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    // Compute Damping Matrix
+    if ( rDampingMatrix.size1() != N_DOF )
+        rDampingMatrix.resize( N_DOF, N_DOF, false );
+    noalias( rDampingMatrix ) = ZeroMatrix( N_DOF, N_DOF );
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    GetValuesVector( Vector& rValues, int Step ) const
+{
+    KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    if ( rValues.size() != N_DOF )
+        rValues.resize( N_DOF, false );
+
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        rValues[i] = 0.0;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    GetFirstDerivativesVector( Vector& rValues, int Step ) const
+{
+    KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    if ( rValues.size() != N_DOF )
+        rValues.resize( N_DOF, false );
+
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        rValues[i] = 0.0;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    GetSecondDerivativesVector( Vector& rValues, int Step ) const
+{
+    KRATOS_TRY
+
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    if ( rValues.size() != N_DOF )
+        rValues.resize( N_DOF, false );
+
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        rValues[i] = 0.0;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientOnePhaseFlowElement<TDim,TNumNodes>::
+    Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::Initialize()") << this->Id() << std::endl;
@@ -554,9 +705,6 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddRHS()") << std::endl;
 
-
-    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
-
     this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
@@ -610,7 +758,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     noalias(rVariables.PVector) =  rVariables.DynamicViscosityInverse
                                  * rVariables.FluidDensity
                                  * rVariables.RelativePermeability
-                                 * prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
+                                 * prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
     //Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.PVector);
@@ -640,6 +788,12 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+unsigned int TransientOnePhaseFlowElement<TDim,TNumNodes>::GetNumberOfDOF() const
+{
+    return TNumNodes;
+}
 
 //----------------------------------------------------------------------------------------------------
 

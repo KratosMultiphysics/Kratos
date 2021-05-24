@@ -79,11 +79,10 @@ public:
                              GeometryType::Pointer pGeom,
                              PropertiesType::Pointer pProperties ) const override;
 
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -92,6 +91,24 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetDofList(DofsVectorType& rElementalDofList, 
+                    const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void EquationIdVector( EquationIdVectorType& rResult,
+                           const ProcessInfo& rCurrentProcessInfo ) const override;
+
+    void CalculateMassMatrix( MatrixType& rMassMatrix,
+                              const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateDampingMatrix( MatrixType& rDampingMatrix,
+                                 const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -148,7 +165,7 @@ protected:
     void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables) override;
     void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables) override;
     void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables) override;
-
+    unsigned int GetNumberOfDOF() const override;
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

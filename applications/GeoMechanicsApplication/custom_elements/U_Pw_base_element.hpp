@@ -178,6 +178,7 @@ protected:
                                                       const IndexType& GPoint,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
+    virtual unsigned int GetNumberOfDOF() const;
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
