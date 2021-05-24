@@ -211,7 +211,9 @@ void ModelPartCombinationUtilities::RecursiveAddEntities(
         
         // Copy properties
         for (auto it_prop = rOriginModelPart.PropertiesBegin(); it_prop < rOriginModelPart.PropertiesEnd(); it_prop++) {
-            rDestinationModelPart.AddProperties(*(it_prop.base()));
+            if (!rDestinationModelPart.HasProperties(it_prop->Id())) {
+                rDestinationModelPart.AddProperties(*(it_prop.base()));
+            }
         }
     };
 
