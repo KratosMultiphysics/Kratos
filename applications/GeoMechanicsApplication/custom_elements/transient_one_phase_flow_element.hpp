@@ -40,11 +40,15 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef Element::EquationIdVectorType EquationIdVectorType;
 
     /// The definition of the sizetype
     typedef std::size_t SizeType;
     using UPwSmallStrainElement<TDim,TNumNodes>::mRetentionLawVector;
+    using UPwSmallStrainElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::mIsInitialised;
+    using UPwSmallStrainElement<TDim,TNumNodes>::CalculateRetentionResponse;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
@@ -128,14 +132,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "U-Pw small strain Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "transient one-phase flow Element #" << this->Id() << "\nRetention law: " << mRetentionLawVector[0]->Info();
         return buffer.str();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "U-Pw small strain Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "transient one-phase flow Element #" << this->Id() << "\nRetention law: " << mRetentionLawVector[0]->Info();
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -127,7 +127,6 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
@@ -148,7 +147,6 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
@@ -169,7 +167,6 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
@@ -437,7 +434,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
         rVariable == DERIVATIVE_OF_SATURATION ||
         rVariable == RELATIVE_PERMEABILITY )
     {
-        UPwSmallStrainElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
@@ -467,7 +464,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     if (rVariable == FLUID_FLUX_VECTOR)
     {
-        UPwSmallStrainElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
@@ -499,18 +496,18 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     if (rVariable == PERMEABILITY_MATRIX)
     {
-        UPwSmallStrainElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
-        if ( rOutput.size() != mConstitutiveLawVector.size() )
-            rOutput.resize(mConstitutiveLawVector.size());
+        if ( rOutput.size() != mRetentionLawVector.size() )
+            rOutput.resize(mRetentionLawVector.size());
 
-        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+        for ( unsigned int i = 0;  i < mRetentionLawVector.size(); i++ )
         {
             rOutput[i].resize(TDim,TDim,false);
             noalias(rOutput[i]) = ZeroMatrix(TDim,TDim);
-            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
+            rOutput[i] = mRetentionLawVector[i]->GetValue( rVariable, rOutput[i] );
         }
     }
 
