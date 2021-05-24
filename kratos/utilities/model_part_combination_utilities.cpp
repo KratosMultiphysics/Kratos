@@ -41,6 +41,7 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
         const auto& name = r_name.GetString();
         model_parts_names.push_back(name);
     }
+    KRATOS_ERROR_IF(model_parts_names.size() == 0) << "Empty list of ModelParts" << std::endl;
 
     // Giving information from current ModelParts
     if (echo_level > 0) {
@@ -62,11 +63,21 @@ ModelPart& ModelPartCombinationUtilities::CombineModelParts(Parameters ThisParam
     // Reorder Ids before combining model parts
     ReorderIds(model_parts_names);
 
-    // Finally we compine the model parts
+    // Finally we combine the model parts
     for (auto& r_name : model_parts_names) {
         auto& r_model_part = mrModel.GetModelPart(r_name);   
+
+        // Copy variable list from the first ModelPart
+        for (auto& r_var : r_model_part.GetNodalSolutionStepVariablesList()) {
+            r_combined_model_part.AddNodalSolutionStepVariable(r_var);
+        }
+
         RecursiveAddEntities(r_combined_model_part, r_model_part);
     }
+    // Update database
+    r_combined_model_part.SetNodalSolutionStepVariablesList();
+
+    // Print info
     KRATOS_INFO_IF("ModelPartCombinationUtilities", echo_level > 0) << "The merge resulting in the following ModelPart:\n" <<  r_combined_model_part << std::endl;
 
     // Finally we delete the old model parts
