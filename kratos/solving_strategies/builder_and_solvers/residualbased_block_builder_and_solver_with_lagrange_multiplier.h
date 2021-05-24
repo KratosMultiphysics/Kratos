@@ -464,7 +464,7 @@ public:
             }
         });
 
-        IndexPartition<unsigned int >(static_cast<int>(system_size)).for_each([&](unsigned int Index){
+        IndexPartition<int >(static_cast<int>(system_size)).for_each([&](int Index){
             std::size_t col_begin = Arow_indices[Index];
             std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
