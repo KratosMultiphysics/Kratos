@@ -1,4 +1,3 @@
-# Importing the Kratos Library
 import KratosMultiphysics
 
 
@@ -10,18 +9,14 @@ def Factory(settings, Model):
     return SetInitialStateProcess(Model, settings["Parameters"])
 
 
-# All the processes python processes should be derived from "Process"
-
-
 def param_to_str(param):
-    """Receives a vector and a magnitud, and converts product's components to functions.
+    """Convert input to string type.
 
     Keyword arguments:
-    param -- Kratos parameters object with double or string type inside, also
-    python's int, float, and str types.
+    param -- Accepted types are Parameters double, Parameters string, int, float, str.
 
     Returns:
-    string expression of the input param vector
+    string expression of the input
     """
     if type(param) is KratosMultiphysics.Parameters:
         if param.IsNumber():
@@ -57,8 +52,7 @@ def str_to_function(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
-
-    """This process sets a given value for a certain flag in all the nodes of a submodelpart
+    """This process sets a given value for a certain flag in all the nodes of a submodelpart.
 
     Only the member variables listed below should be accessed directly.
 
