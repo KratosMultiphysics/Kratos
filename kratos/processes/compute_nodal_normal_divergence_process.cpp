@@ -31,8 +31,22 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     {
         Matrix J0, InvJ0, DN_DX;
     };
+    TLSType tls;
 
     // First element iterator
+    const auto it_element_begin = mrModelPart.ElementsBegin();
+
+    // Current domain size
+    const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+    // Initial resize
+    const auto& r_first_element_geometry = it_element_begin->GetGeometry();
+    const std::size_t number_of_nodes_first_element = r_first_element_geometry.PointsNumber();
+    const std::size_t local_space_dimension_first_element = r_first_element_geometry.LocalSpaceDimension();
+    if (tls.DN_DX.size1() != number_of_nodes_first_element || tls.DN_DX.size2() != dimension)
+        tls.DN_DX.resize(number_of_nodes_first_element, dimension);
+    if (tls.J0.size1() != dimension || tls.J0.size2() != local_space_dimension_first_element)
+        tls.J0.resize(dimension, local_space_dimension_first_element);
 
     std::function<array_1d<double,3>(const Node<3>&, const Variable<array_1d<double,3>>&)> get_vector_field;
     if (mNonHistoricalOriginVariable) {
@@ -50,7 +64,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     }
 
     // Iterate over the elements
-    block_for_each(mrModelPart.Elements(), TLSType(), [&](Element& rElem, TLSType& rTls){
+    block_for_each(mrModelPart.Elements(), tls, [&](Element& rElem, TLSType& rTls){
         auto& r_geometry = rElem.GetGeometry();
 
         // Current geometry information
@@ -80,7 +94,9 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 const auto& vector_field = get_vector_field(r_geometry[i_node], *mpOriginVariable);
 
-                divergence += inner_prod( row(rTls.DN_DX, i_node), vector_field );
+                for(std::size_t k=0; k<dimension; ++k) {
+                    divergence += rTls.DN_DX(i_node, k)*vector_field[k];
+                }
             }
 
             const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
@@ -96,6 +112,8 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             }
         }
     });
+
+    SynchronizeDivergenceAndVolume();
 
     PonderateDivergence();
 
@@ -224,6 +242,26 @@ double& ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSetting
     )
 {
     return rThisGeometry[i].GetValue(*mpDivergenceVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::SynchronizeDivergenceAndVolume()
+{
+    mrModelPart.GetCommunicator().AssembleCurrentData(*mpDivergenceVariable);
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAreaVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <>
+void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::SynchronizeDivergenceAndVolume()
+{
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpDivergenceVariable);
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAreaVariable);
 }
 
 /***********************************************************************************/

@@ -85,6 +85,7 @@ namespace Kratos {
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
+                double ViscoDampingLocalContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
                 double LocalRelVel[3],
@@ -136,8 +137,6 @@ namespace Kratos {
                                     double& normal_force,
                                     double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
-
-        virtual void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor);
 
     protected:
 
