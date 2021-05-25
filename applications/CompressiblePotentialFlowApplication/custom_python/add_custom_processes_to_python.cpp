@@ -27,6 +27,7 @@
 #include "custom_processes/compute_nodal_value_process.h"
 #include "custom_processes/define_embedded_wake_process_3d.h"
 #include "custom_processes/compute_nodal_value_process.h"
+#include "custom_processes/compute_wing_section_variable_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -79,6 +80,13 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "DefineEmbeddedWakeProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         ;
+    ;
+
+    py::class_<ComputeWingSectionVariableProcess, ComputeWingSectionVariableProcess::Pointer, Process>
+        (m,"ComputeWingSectionVariableProcess")
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&, const std::vector<std::string>& >())
+    ;
 }
 
 }  // namespace Python.
