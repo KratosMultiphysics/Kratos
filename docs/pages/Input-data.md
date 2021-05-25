@@ -16,7 +16,7 @@ The mesh ordering can be consulted in [here](Mesh-node-ordering). Remember that 
 
 This format contains all ModelPart's data in a minimalistic block form:
 
-```c++
+```cpp
 Begin ModelPartData
   //  VARIABLE_NAME value
 End ModelPartData
@@ -116,7 +116,7 @@ Each block starts with a Begin statement following by the block name and ends wi
 ### Example
 Here is an example of mdpa file:
 
-```c++
+```cpp
 Begin ModelPartData
   //  VARIABLE_NAME value
   AMBIENT_TEMPERATURE 250.00

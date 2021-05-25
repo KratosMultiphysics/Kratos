@@ -40,7 +40,7 @@ The two databases are independent from each other and are **not synchronized**.
 
 The "_Historical Database_" stores the present value of a variable and the value it took in the previews steps. The Number of steps stored depends on the size of `Buffer`. This can be modified by the function `SetBufferSize()` while the present value can be obtained by `GetBufferSize()`. To make an example :
 
-```c++
+```cpp
 model_part.SetBufferSize(3)
 unsigned int model_part.GetBufferSize(); ##now outputs 3
 ```
@@ -49,7 +49,7 @@ Implies storing the current step plus the 2 last steps.
 
 The list of the variables to be stored and the buffer size needs to be known in order to use the "_Historical Database_". This is obtained by providing at the beginning of the analysis the list of all the variables that will be involved in the calculation. to make an example if a given solver will need the variables `TEMPERATURE` and `VELOCITY`, the user should provide **before creating the list of nodes** the two commands.
 
-```c++
+```cpp
 model_part.AddNodalSolutionStepVariable(TEMPERATURE)
 model_part.AddNodalSolutionStepVariable(VELOCITY)
 ```
@@ -65,7 +65,7 @@ Their functionality is identical but they differ in the checks that are performe
 
 The syntax is as follows: 
 
-```c++
+```cpp
   Node<3>::iterator inode = model_part.NodesBegin(); //to make example let's take the first node
   
   //here  we get REFERENCES to the database!!
@@ -92,11 +92,11 @@ The usage of such entities is described elsewhere (..) the important point is he
 
 The access is through the functions `GetValue()` and `SetValue()`. To make an example: 
 
-```c++
+```cpp
   double temperature = inode->GetValue(TEMPERATURE)
 ```
 or
-```c++
+```cpp
   double aaa = 10.0
   inode->SetValue(TEMPERATURE,aaa);
 ```

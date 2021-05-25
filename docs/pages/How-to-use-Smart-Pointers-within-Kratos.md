@@ -21,7 +21,7 @@ The use of an existing pointer does not imply any performance penalty with respe
 
 Within Kratos the great majority of shared_ptrs is stored in vectors, typically in the classes:
 
-```c++
+```cpp
 PointerVector (used as a basis for the "geometry" class)
 PointerVectorSet (NodesContainerType, ElementsContainerType, ConditionsContainerType)
 PointerVectorMap

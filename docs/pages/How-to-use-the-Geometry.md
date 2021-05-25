@@ -32,7 +32,7 @@ The geometry also provides facilities to compute Jacobians, determinants, shape 
 For example to compute the Determinant of the Jacobian AND the shape function derivatives
 at once for all of the gauss points of interest, one can do
 
-```c++
+```cpp
 Vector DetJ;
 ShapeFunctionDerivativesArrayType DN_DX;
 rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,DetJ,GeometryData::GI_GAUSS_2);
@@ -63,7 +63,7 @@ the list of integration points can be queried by
 
 this can be used for example to compute the total area of the element as
 
-```c++
+```cpp
 double area = 0.0;
 for (unsigned int g = 0; g < IntegrationPoints.size(); g++)
     area += DetJ[g] * IntegrationPoints[g].Weight();

@@ -79,7 +79,7 @@ Of course, to do so we'll have to respect the structure for both the element and
 
 Elements and Conditions are both classes in C++ that include a series of subroutines required by the builder and solver. They both share the following structure. An element or condition should contain at least this public methods, in pseudo code: 
 
-```c++
+```cpp
 class mycondition
 
 void CalculateLocalSystem

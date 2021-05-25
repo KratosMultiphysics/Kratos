@@ -44,14 +44,14 @@ that is, as the deformation gradient connecting the original and deformed config
 
 where the initial position X0 is the one obtained by 
 
-```c++ 
+```cpp 
 const array_1d<double,3>& X0 = node->GetInitialPosition()
 ```
 {: data-lang="C++"}
 
 and the deformed one by
 
-```c++ 
+```cpp 
 const array_1d<double,3>& X = node->Coordinates() 
 //must coincide with      X = node->GetInitialPosition() + node.FastGetSolutionStepValue(DISPLACEMENT);
 ```
@@ -64,7 +64,7 @@ shall be computed
 The constitutive law API is based on the use of an auxiliary "Parameters" data structure, designed to encapsulate the data to be passed to the CL and received from it.
 The parameters data structure should be initialized using the following constructor:
 
-```c++ 
+```cpp 
 Parameters(
     const GeometryType& rElementGeometry,
     const Properties& rMaterialProperties,
@@ -79,7 +79,7 @@ The data structure '''does not contain any internal storage''' and should be ini
 Full documentation of the code can be found in the file constitutive_law.h (https://github.com/KratosMultiphysics/Kratos/blob/feature-clean-claw-flags/kratos/includes/constitutive_law.h).
 For ease, the getter interface, ''returning a reference to the encapsulated data'', is reported here
 
-```c++ 
+```cpp 
 GetOptions() // Returns a reference to a flag container, to be employed in passing options to the CL
 GetDeterminantF()   
 GetDeformationGradientF() 
@@ -98,7 +98,7 @@ The "Options" flag represents the fundamental tool in steering the control of th
 
 '''fundamental flags''': these are flags that most users will need to employ in everydays usage
 
-```c++ 
+```cpp 
 USE_ELEMENT_PROVIDED_STRAIN // (only valid in small strain or for rate form 
                             //  note that when employed large strain CLs can not be used)
 COMPUTE_STRESS
@@ -111,7 +111,7 @@ The results of the computations done employing such flags is returned through th
 '''optional flags''':
 these are flags that provide fine tuning in the expected behaviour of the CL. However they are '''strictly optional''', in the sense that '''many constitutive laws may not implement them.'''
 
-```c++ 
+```cpp 
 ISOCHORIC_TENSOR_ONLY      
 VOLUMETRIC_TENSOR_ONLY 
 MECHANICAL_RESPONSE_ONLY
@@ -123,7 +123,7 @@ The element should check if the feature is available (that is, if the CL provide
 
 '''internal flags'''
 These are flags that are useful for computation internally to the CL. '''they should NOT be used by the element'''
-```c++ 
+```cpp 
 INITIALIZE_MATERIAL_RESPONSE
 FINALIZE_MATERIAL_RESPONSE
 ```
@@ -135,7 +135,7 @@ A fundamental feature of the constitutive law is to implement internally the tra
 When a user writes an element he should decide what
 stress measure is desired. The list of available options is provided in the enum:
 
-```c++ 
+```cpp 
 enum StressMeasure
 {
     StressMeasure_PK1,            //stress related to reference configuration non-symmetric
@@ -149,7 +149,7 @@ enum StressMeasure
 at the moment of writing the element the developer should hence query to the constitutive law for the desired stress measure. This is achieved by picking
 one of the functions:
 
-```c++ 
+```cpp 
 CalculateMaterialResponsePK1( parameters )
 CalculateMaterialResponsePK2( parameters )
 CalculateMaterialResponseKirchhoff( parameters )
@@ -161,7 +161,7 @@ the elasticity tensor and the corresponding stresses will be stored in the "para
 
 At the end of a given solution step (typically in the FinalizeSolutionStep function of the element), internal variables should be updated by calling the function
 
-```c++ 
+```cpp 
 FinalizeMaterialResponsePK1( parameters )
 FinalizeMaterialResponsePK2( parameters )
 FinalizeMaterialResponseKirchhoff( parameters )
@@ -171,7 +171,7 @@ FinalizeMaterialResponseCauchy( parameters )
 
 An example of usage of the ConstitutiveLaw from within a total lagrangian element could be as follows:
 
-```c++ 
+```cpp 
 Parameters parameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
 // Here we essentially set the input parameters
@@ -204,7 +204,7 @@ depending on the kinematics chosen.
 ### Option 1 -- Provide strain as input parameter
 This option is chosen by selecting
 
-```c++ 
+```cpp 
 flags.Set(USE_ELEMENT_PROVIDED_STRAIN, true)
 ```
 {: data-lang="C++"}
@@ -216,7 +216,7 @@ The idea in this case is to provide a DeformationGradient '''F''' as an input pa
 
 In the case of small deformation kinematics, is is not customary to define the deformation gradient. For this case (small deformations) one one can construct the deformation gradient given the strain vector as
 
-```c++ 
+```cpp 
 F(0,0) = 1+strain(0);     F(0,1) = 0.5*strain(3); F(0,2) = 0.5*strain(5)
 F(1,0) = 0.5*strain(3);   F(1,1) = 1+strain(1);   F(1,2) = 0.5*strain(4)
 F(2,0) = 0.5*strain(5);   F(2,1) = 0.5*strain(4); F(2,2) = 1+strain(2)
@@ -231,7 +231,7 @@ The Constitutive Law provides extensive facilities to check for compatibility be
 
 The element can ask to the CL for available features (one of the local flags of the CL). for example
 
-```c++ 
+```cpp 
 //getting the struct containing the features
 ConstitutiveLaw::Features LawFeatures = cl->GetLawFeatures(LawFeatures);
 
@@ -246,7 +246,7 @@ unsigned int working_space_dimension = LawFeatures.GetSpaceDimension();
 
 this relies on the CL being called implementing the function "GetLawFeatures", to make an example
 
-```c++   
+```cpp   
 void MyLaw::GetLawFeatures(Features& rFeatures)
 {
     // Set the type of law
@@ -268,7 +268,7 @@ void MyLaw::GetLawFeatures(Features& rFeatures)
 
 additionally each constitutive law provides a '''"Check"''' method, which verifies if the parameters needed are correctly set and if they are in the correct range (for example it may check that the poisson ratio does not exceed 0.5). An example of this could be
      
-```c++  
+```cpp  
 int HyperElasticPlastic3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -295,7 +295,7 @@ int HyperElasticPlastic3DLaw::Check(
 The CL implements pull_back and push_forward mechanism for both the output stress and for the constitutive tensor.
 An exampe of use is the following: let's consider one had a PK2 stress stored in the value PK2_stress_value, and wants to transform it to Cauchy
 
-```c++   
+```cpp   
 Matrix stress_value = //... here let's suppose that as input we have PK2 stress
 stress_value = cl->TransformStresses(
     stress_value, 
@@ -321,7 +321,7 @@ The base class CL also implements the operations needed to do a pull back and pu
 The CL provides a GetValue/SetValue interface which allows setting providing or getting output from the CL.
 It should be noted however that in order to keep the CL object as lightweight an automatic databas was not provided, meaning that the user needs to provide its own storage. To make an example let's consider a damage law which stores the variable "mDamage" as a class variable. It is possible to give access both in reading and in writing to this variable by implementing
 
-```c++   
+```cpp   
 double& GetValue(const Variable<double>& rThisVariable, double& rValue)
 {
     if(rThisVariable == DAMAGE)
@@ -337,7 +337,7 @@ double& GetValue(const Variable<double>& rThisVariable, double& rValue)
 
 or
 
-```c++   
+```cpp   
 void SetValue(const Variable<double>& rVariable,
             const double& rValue,
             const ProcessInfo& rCurrentProcessInfo);
@@ -354,7 +354,7 @@ void SetValue(const Variable<double>& rVariable,
 
 the CL also provides a function "CalculateValue" to allow accessing to variables that need to be calculated on the flight. For example to calculate and get the  STRAIN_ENERGY one may do
 
-```c++      
+```cpp      
 // ... here set the options ... 
 double energy = 0.0
 energy = CalculateValue(rParameterValues, STRAIN_ENERGY, energy);

@@ -11,7 +11,7 @@ The serialization consists of storing the state of an object into a storage form
 The following steps are necessary in order to prepare a class for serialization:
 
 Adding a include for the serializer class:
-```c++
+```cpp
 // Project includes
 #include "includes/serializer.h"
 ```
@@ -19,7 +19,7 @@ Adding a include for the serializer class:
 
 Adding a doxygen statement for documentation of the serialization methods by adding the following comment in the **private** section of the class: (A good option is after the Member Variables section) 
 
-```c++
+```cpp
 private:
 ///@} 
 ///@name Member Variables 
@@ -37,7 +37,7 @@ private:
 
 Making the Serializer a friend of the class by adding a friend statement in the **private** part of the class
 
-```c++
+```cpp
 private:
 ///@} 
 ///@name Member Variables 
@@ -57,7 +57,7 @@ friend class Serializer;
 
 If the class **does not** provide a default constructor (an empty constructor) you have to provide one in the serialization part as follows:
 
-```c++
+```cpp
 private:
 ///@}
 ///@name Serialization
@@ -75,7 +75,7 @@ ClassName() : BaseClassName() { }
 {: data-lang="C++"}
 
 Adding the corresponding declarations to the the `own_application.h`:
-```c++
+```cpp
 ///@}
 ///@name Member Variables
 ///@{
@@ -89,7 +89,7 @@ const OwnConstitutive mOwnConstitutive;
 {: data-lang="C++"}
 
 Finally include the following declarations to the the `own_application.cpp`: 
-```c++
+```cpp
 KratosOwnApplication::KratosOwnApplication(): 
 
 // ...
@@ -101,7 +101,7 @@ mOwnConstitutive();
 {: data-lang="C++"}
 
 And:
-```c++
+```cpp
 void KratosOwnApplication::Register(){
 
 // ...
@@ -116,7 +116,7 @@ Serializer::Register( "OwnConstitutive", mOwnConstitutive );
 A non-polymorphic class is a class that does not belong to any inheritance. In other words it means a class that is not derived from other classes and is not the base for other classes. Making non-polymorphic classes serializable  consists in the following steps: 
 
 The first step is adding the serialization save and load methods as follow:
-```c++
+```cpp
 ///@}
 ///@name Serialization
 ///@{
@@ -138,7 +138,7 @@ virtual void load(Serializer& rSerializer) { }
 
 Now the class is ready for adding the serialization statements in order to serialize its data. There are two overloaded methods of Serializer which are in charge of saving and loading the internal data of the class:
 
-```c++
+```cpp
 Serializer::save(std::string rTag, TDataType const& Data) const
  
 Serializer::load(std::string rTag, TDataType& Data)
@@ -147,7 +147,7 @@ Serializer::load(std::string rTag, TDataType& Data)
 
 Where the Tag string is the tag given to the saved or loaded data. This tag is only for text format and debugging purpose, and actually won't be written in binary format buffers and files. Here is an example of using these methods in a class with two member variables: 
 
-```c++
+```cpp
 ///@} 
 ///@name Member Variables 
 ///@{ 
@@ -194,14 +194,14 @@ Serializing of a polymorphic class is similar to the non-polymorphic one with th
 
 In general it is necessary to call the base class save and load in the derived class. This can be done using the following defined macro:
 
-```c++
+```cpp
 KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType)
 KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType)
 ```
 {: data-lang="C++"}
 
 Here is an example of use for the `TotalLagrangian` element derived from `Element`:
-```c++
+```cpp
 virtual void save(Serializer& rSerializer) const
 {
      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -215,13 +215,13 @@ virtual void load(Serializer& rSerializer)
 {: data-lang="C++"}
 
 The class must be registered in serializer using the Register() method. For elements and conditions the registeration is done via KRATOS_REGISTER_ELEMENT and KRATOS_REGISTER_CONDITION with the name of the class (NOT the given name respect to its geometry). Here is an example: 
-```c++
+```cpp
 KRATOS_REGISTER_ELEMENT( "TotalLagrangian", mTotalLagrangian )
 ```
 {: data-lang="C++"}
 
 This is equivalent to write: 
-```c++
+```cpp
 Serializer::Register("TotalLagrangian", mTotalLagrangian);
 ```
 {: data-lang="C++"}
@@ -231,7 +231,7 @@ The above form can be used to register other polymorphic classes in Kratos if ne
 ## Debugging
 There is a trace option which helps debugging the serialization. The tracing option can be passed as an additional parameter to the constructor. Here is an example: 
 
-```c++
+```cpp
 serializer = Serializer("filename", SERIALIZER_TRACE_ERROR)
 ```
 {: data-lang="C++"}
@@ -256,7 +256,7 @@ with subject    :  In ine 386 the trace tag is not the expected one:
 ## Examples
 As an example we serialize the Isotropic3D class which is derived from ConstitutiveLaw: 
 
-```c++
+```cpp
 class Isotropic3D : public ConstitutiveLaw
 {
 public:
@@ -297,7 +297,7 @@ private:
 
 Now we add the serialization comment block and make Serializer a friend of this class:
 
-```c++
+```cpp
   class Isotropic3D : public ConstitutiveLaw
    {
    public:
@@ -343,7 +343,7 @@ Now we add the serialization comment block and make Serializer a friend of this 
 
 Then add the save and load methods with serializing the base classes
 
-```c++
+```cpp
   class Isotropic3D : public ConstitutiveLaw
    {
    public:
@@ -399,7 +399,7 @@ Then add the save and load methods with serializing the base classes
 
 And finally we load and save all the member variables of this class as follows:
 
-```c++
+```cpp
   class Isotropic3D : public ConstitutiveLaw
    {
    public:

@@ -11,7 +11,7 @@ Kratos provides a data proxy mechanism, based on the use of "GlobalPointers" to 
 The `GlobalPointerMapCommunicator` is designed to be used in a situation where, it is required to set an `enitity` (could be `Node`, `Element` or `Condition`, etc...) value. This `entity` can be in a local process (which is always the case in serial runs) or local/remote processes (which is the case for distributed runs). So `GlobalPointerMapCommunicator` takes care of the communication burden therefore user does not need to bother whether simulation is run on serial or distributed.
 
 To explain the usage, lets take the following example of doing assembly in a serial run where an element value (i.e. `TEMPERATURE`) needs to be distributed among its nodal neighbours.
-```c++
+```cpp
 // first TEMPERATURE variable is set to zero.
 VariableUtils.SetNonHistoricalVariableToZero(TEMPERATURE, model_part.Nodes);
 
@@ -29,7 +29,7 @@ for (auto& r_element : model_part.Elements()) {
 This works in serial run, but in a distributed run, `GlobalPointer`s given by `NODAL_NEIGHBOURS` will belong to either local or a remote processes. Therefore, this may require setting a value in a remote process. Above will give `Segmentaion Fault` error if a given `GlobalPointer` does not belong to the local process. These `GlobalPointer`s may also not belong to `GhostMesh` of the local process. So if the user plans to use `Assembly` methods in the `Communicator`, that will also fail to achieve the expected outcome if used without modifying existing `GhostMesh` (In there you will need to add all the remote nodes present in each of the node's `NODAL_NEIGHBOURS` list to `GhostMesh` which will hinder the performance of normal operations in distributed run). 
 
 So in order retrofit problems in the above mentioned task, and to achieve same outcome in serial or distributed run; One can use the following block of code with `GlobalPointerMapCommunicator`
-```c++
+```cpp
 // first TEMPERATURE variable is set to zero.
 VariableUtils.SetNonHistoricalVariableToZero(TEMPERATURE, model_part.Nodes);
 

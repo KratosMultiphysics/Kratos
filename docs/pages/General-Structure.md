@@ -124,7 +124,7 @@ In the first implementation of Kratos all applications were implemented in Krato
 In the current structure of Kratos each application is created and compiled separately and just uses a standard interface to communicate with the kernel of Kratos. In this way the conflicts are reduced and the compilation time is also minimized. The <tt>Application</tt> class provides the interface for introducing
 an application to the kernel of Kratos. <tt>Kernel</tt> uses the information given by <tt>Application</tt> through this interface to mange its components, configure different part of Kratos, and synchronize the application with other ones. The <tt>Application</tt> class is very simple and consists of registering the new components like: <tt>Variable</tt>s, <tt>Element</tt>s, <tt>Condition</tt>s, etc. defined in application. The following code shows a typical application class definition:
 
-```c++
+```cpp
 // Variables definition
 KRATOS_DEFINE_VARIABLE(int, NEW_INTEGER_VARIABLE )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NEW_3D_VARIABLE);
@@ -145,7 +145,7 @@ class KratosNewApplication : public KratosApplication
 Here <tt>Application</tt> defines its new components and now its
 time to implement the <tt>Register</tt> method:
 
-```c++
+```cpp
 // Creating variables
 KRATOS_CREATE_VARIABLE(NEW_INTEGER_VARIABLE )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENT(NEW_3D_VARIABLE);

@@ -157,14 +157,14 @@ from . import fluid_solver # explicit relative import
 ```
 
 ## JSON Configuration File
-The [JSON configuration file](How-to-write-a-JSON-configuration-file) must follow certain style conventions. These are based on the [Google coding style](https://google.github.io/styleguide/jsoncstyleguide.xml), adapted for Kratos. The following notation is used :
+The [JSON configuration file](How-to-write-a-JSON-configuration-file) must follow certain style conventions. These are based on the [Google coding style](https://google.github.io/styleguide/jsoncstyleguide.xml), adapted for Kratos. The following notation is used:
 
 ```json
-A property consists of name and value:
 {
   "property_name": "property_value"
 }
 ```
+* A property consists of name and value
 * NO comments, use descriptive names
 * The name of the property should be written in lowercase with underscores "_" in between words if necessary
 * Use only double quotes for property names. Same applies if the property value is a string. Other property values such as integers or booleans should not be surrounded by quotes
@@ -190,61 +190,63 @@ Codacy checks the style of the code every time you open a PR. It usually complai
 ## Doxygen 
 
 Commenting for classes consist of a brief description and a detailed one as follow:
-```c++
+```cpp
  /// Brief description.
  /** Detailed description. 
  */
 ```
 which must be placed just befor the class definition. for example in Geometry.h:
-```c++
- ///Geometry base class.
- /** As a base class Geometry has all the common
-     interface of Kratos' geometries. Also it contains array of
-     pointers to its points, reference to shape functions values in
-     all integrations points and also local gradients of shape
-     functions evaluated in all integrations points.
-     
-     Geometry is a template class with just one template parameter: 
-     - TPointType which reperesent the type of the point this geometry
-     type contain and build on.
-     
-     \see Point
-     \see Node
-     \see Formulation
-     \see GeometryAndFormulationElement
-   */
-  template<class TPointType> 
-  class Geometry : public PointerVector<TPointType>
-  {
-    public:
-       ....
-  }
+```cpp
+ /// Geometry base class.
+ /** 
+  As a base class Geometry has all the common
+  interface of Kratos' geometries. Also it contains array of
+  pointers to its points, reference to shape functions values in
+  all integrations points and also local gradients of shape
+  functions evaluated in all integrations points.
+  
+  Geometry is a template class with just one template parameter: 
+  - TPointType which reperesent the type of the point this geometry
+  type contain and build on.
+  
+  \see Point
+  \see Node
+  \see Formulation
+  \see GeometryAndFormulationElement
+*/
+template<class TPointType> 
+class Geometry : public PointerVector<TPointType>
+{
+  public:
+      ....
+}
 ```
 It is very recommended to use the @see command which appears as see also with a link to indicate some related classes.
 
 For methods of the class the same structure can be used but with information about parameters and return value if there is:
-```c++
- /** Jacobian in specific integration point of given integration
-     method. This method calculate jacobian matrix in given
-     integration point of given integration method.
-     
-     \param IntegrationPointIndex index of integration point which jacobians has to
-     be calculated in it.
-     
-     \param ThisMethod integration method which jacobians has to
-     be calculated in its integration points.
-     
-     \return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
-     i \f$ is the given integration point index of given
-     integration method.
-     
-     \see DeterminantOfJacobian
-     \see InverseOfJacobian
-     */
-     virtual Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
-     {
-       ....
-     }
+```cpp
+ /** 
+  Jacobian in specific integration point of given integration
+  method. This method calculate jacobian matrix in given
+  integration point of given integration method.
+  
+  \param IntegrationPointIndex index of integration point which jacobians has to
+  be calculated in it.
+  
+  \param ThisMethod integration method which jacobians has to
+  be calculated in its integration points.
+  
+  \return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
+  i \f$ is the given integration point index of given
+  integration method.
+  
+  \see DeterminantOfJacobian
+  \see InverseOfJacobian
+*/
+virtual Matrix& Jacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+{
+  ....
+}
 ```
 The following commands can be used in documentation of methods and functions:
 
@@ -255,23 +257,24 @@ The following commands can be used in documentation of methods and functions:
 * `\f[ \f]` for creating a centered latex formula
 
 Here is an example:
-```c++
- /** Calculates center of this geometry by a simple averaging algorithm.
-     Each center point component calculated using:
-     \f[
-      c_i = \sum_j^n(x_i^j) / n
-     \f]
- 
-     where \f$ c_i \f$ is component i of center point and \f$
-     X_i^j \f$ is component i of j'th point of geometry and n is
-     number of the points in this geometry.
- 
-     @return PointType which is the calculated center of this geometry.
- */
- virtual PointType Center() const
- {
-   ...
-  }
+```cpp
+/** 
+  Calculates center of this geometry by a simple averaging algorithm.
+  Each center point component calculated using:
+  \f[
+  c_i = \sum_j^n(x_i^j) / n
+  \f]
+
+  where \f$ c_i \f$ is component i of center point and \f$
+  X_i^j \f$ is component i of j'th point of geometry and n is
+  number of the points in this geometry.
+
+  @return PointType which is the calculated center of this geometry.
+*/
+virtual PointType Center() const
+{
+  ...
+}
 ```
 A quick reference to the doxygen commands can be found [here](http://www.digilife.be/quickreferences/QRC/Doxygen%20Quick%20Reference.pdf)
 

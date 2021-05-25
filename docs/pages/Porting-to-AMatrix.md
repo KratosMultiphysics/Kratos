@@ -70,7 +70,7 @@ In file included from /home/jcotela/Kratos/kratos/includes/ublas_interface.h:35,
 ```
 
 If this happens, declare your local MatrixType using the complete type name:
-```c++
+```cpp
 namespace Kratos
 {
     namespace Internals
@@ -88,11 +88,11 @@ namespace Kratos
 Keep in mind that the SparseSpace type used as template argument to define strategies and builder and solvers still uses ublas types. This means that you will probably need to update the `add_whatever_to_python.cpp` files in your application.
 
 If you have a type definition that looks like
-```c++
+```cpp
 typedef UblasSpace<double, CompressedMatrix, Vector > SparseSpaceType;
 ```
 keep in mind that the `Vector` type has been redefined in AMatrix, so you need to point back to the ublas type:
-```c++
+```cpp
 typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
 ```
 Note that this may require adding an include for `"boost/numeric/ublas/matrix.hpp"`.

@@ -15,7 +15,7 @@ The logging system in Kratos has 3 important parts:
 
 ## Sending a Message in C++
 The simplest way to send a message is to use predefined macros:
-```c++
+```cpp
 KRATOS_INFO("Some label") << "Some message with value: " << 3.14 << " with more message";
 ```
 This example sends a message with `INFO` severity and `STATUS` category. There are macros for each severity level:
@@ -34,7 +34,7 @@ Apart from severity each message has a category which can be:
 
 
 One can change the category by passing it to the message: 
-```c++
+```cpp
 KRATOS_INFO("Number of Iterations") << number_of_iterations << LoggerMessage::Category::STATISTICS;
 ```
 
@@ -54,7 +54,7 @@ The standard output, prints the label alongside the message
   - `KRATOS_CHECK_POINT("Some Label")`
 
 **Example**:
-```c++
+```cpp
 KRATOS_INFO("Example") << "Hello World." << std::endl;
 ```
 Output:
@@ -70,7 +70,7 @@ Prints the message only if condition is evaluated to true
   - `KRATOS_WARNING_IF("Some Label", condition)`
 
 **Example**:
-```c++
+```cpp
 for(std::size i = 0; i < 4; i++) {
     KRATOS_INFO_IF("Example", i % 2) << "Iter: " << i << std::endl;
 }
@@ -89,7 +89,7 @@ Prints the message only once
   - `KRATOS_WARNING_ONCE("Some Label")`
 
 **Example**:
-```c++
+```cpp
 for(std::size i = 0; i < 4; i++) {
     KRATOS_INFO_ONCE("Example") << "Iter: " << i << std::endl;
 }
@@ -107,7 +107,7 @@ Prints the message the first N times
   - `KRATOS_WARNING_FIRST_N("Some Label", count)`
 
 **Example**:
-```c++
+```cpp
 for(std::size i = 0; i < 4; i++) {
     KRATOS_FIRST_N("Example", 2) << "Iter: " << i << std::endl;
 }
@@ -175,7 +175,7 @@ KM.Logger.AddOutput(file_logger)
 ## Writing a Logger Output
 Creating a custom output is relatively easy by deriving a new output class from `LoggerOutput `class. The following code shows a sample implementation for an output which reports only the warnings in a csv format:
 
-```c++
+```cpp
 class WarningCSVOutput : public LoggerOutput{
 public:
   WarningCSVOutput(std::ostream& rOutputStream) : LoggerOutput(rOutputStream){}
@@ -190,7 +190,7 @@ public:
 ``` 
 To add your output to the Logging system one should use the `Logger::AddOutput` method:
 
-```c++
+```cpp
 WarningCSVOutput warning_csv_output(output_file);
 Logger::AddOutput(warning_csv_output);
 ```

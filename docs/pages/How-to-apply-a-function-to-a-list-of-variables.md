@@ -14,7 +14,7 @@ This pattern is implemented in Kratos and variables accepting a functional which
 
 In order to see better the details, let's create a class that sets the nodal values in a model part to one. First of all I should create a class derived from the `VariablesListVisitorBase`:
 
-```c++
+```cpp
 class SetModelPartVariableToOne : public VariablesListVisitorBase
 {
     ModelPart& mrModelPart;
@@ -24,7 +24,7 @@ class SetModelPartVariableToOne : public VariablesListVisitorBase
 ```
 As you can see, we take the modelpart we want to act over in the constructor. Now we should implemente the `Visit` methods:
 
- ```c++
+ ```cpp
 class SetModelPartVariableToOneVisitor : public VariablesListVisitorBase
 {
     ModelPart& mrModelPart;
@@ -74,7 +74,7 @@ You may observe that the real implementation is in the two template private meth
 
 Now to use this one may simply call the VariablesList::ApplyVisitor method of an existing VariablesList (like the one of the modelpart):
 
-```c++
+```cpp
 SetModelPartVariableToOneVisitor set_to_one_visitor(model_part);
 my_variables_list.ApplyVisitor(set_to_one_visitor);
 ```
@@ -82,7 +82,7 @@ my_variables_list.ApplyVisitor(set_to_one_visitor);
 or we may make a container of pointers to the VariableData on the fly:
 
 
-```c++
+```cpp
 VariablesList::VariablesContainerType my_variables_list{&TEMPERATURE, &VELOCITY, &DISPLACEMENT_X, &DISPLACEMENT_Z};
 SetModelPartVariableToOneVisitor set_to_one_visitor(model_part);
 set_to_one_visitor.VisitVariables(my_variables_list);
