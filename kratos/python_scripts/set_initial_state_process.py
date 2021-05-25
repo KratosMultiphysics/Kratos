@@ -14,16 +14,15 @@ def param_to_str(param):
 
     Keyword arguments:
     param -- Accepted types are Parameters double, Parameters string, int, float, str.
-
     Returns:
     string expression of the input
     """
-    if type(param) is KratosMultiphysics.Parameters:
+    if isinstance(param, KratosMultiphysics.Parameters):
         if param.IsNumber():
             sparam = str(param.GetDouble())
         elif param.IsString():
             sparam = param.GetString()
-    elif type(param) in [int, float, str]:
+    elif isinstance(param, (int, float, str)):
         sparam = str(param)
     else:
         msg = "SetInitialStateProcess: Value must be scalar or string"
@@ -33,7 +32,6 @@ def param_to_str(param):
 
 def str_to_function(expr):
     """Convert text to a mathematical function.
-
     Input string must be a valid mathematical expression (e.g."1.2", "3.4 + t",
     "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
     where 't' will be later evaluated as the current simulation time.
@@ -52,6 +50,7 @@ def str_to_function(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
+
     """This process sets a given value for a certain flag in all the nodes of a submodelpart.
 
     Only the member variables listed below should be accessed directly.
