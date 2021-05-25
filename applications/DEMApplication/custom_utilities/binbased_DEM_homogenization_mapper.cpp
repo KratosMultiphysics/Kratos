@@ -178,16 +178,16 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculatePorosityProje
 
         for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_homogenization_model_part, k); i_node != this->GetNodePartitionEnd(r_homogenization_model_part, k); ++i_node){
             double& volume_solid_fraction = i_node->FastGetSolutionStepValue(VOLUME_SOLID_FRACTION);
-
+            double& porosity_projected = i_node->FastGetSolutionStepValue(POROSITY_PROJECTED);
+            
             double nodalHomogenizationVolume = i_node->FastGetSolutionStepValue(NODAL_AREA);
                 if (nodalHomogenizationVolume < 1.0e-15){
-                    double porosity_projected = 1.0;
+                    porosity_projected = 1.0;
                 }
 
                 else {
-                    double porosity_projected = 1.0 - volume_solid_fraction / nodalHomogenizationVolume;
+                    porosity_projected = 1.0 - volume_solid_fraction / nodalHomogenizationVolume;
                 }
-            
         }
     }
 }

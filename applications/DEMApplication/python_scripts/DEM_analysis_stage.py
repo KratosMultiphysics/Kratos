@@ -327,6 +327,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.projected_homogenization_vars += [MASS_SOLID_FRACTION]
         self.projected_homogenization_vars += [VELOCITY_PROJECTED]
         self.projected_homogenization_vars += [NODAL_AREA]
+        self.projected_homogenization_vars += [POROSITY_PROJECTED]
         self.time_filtered_vars = []
         self.time_filtered_vars += [TIME_AVERAGED_ARRAY_3]
         self.time_filtered_vars += [TIME_AVERAGED_DOUBLE]

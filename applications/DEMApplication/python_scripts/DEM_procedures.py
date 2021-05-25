@@ -597,7 +597,8 @@ class Procedures(object):
 
         model_part.AddNodalSolutionStepVariable(VELOCITY_PROJECTED)
         model_part.AddNodalSolutionStepVariable(VOLUME_SOLID_FRACTION)
-
+        model_part.AddNodalSolutionStepVariable(MASS_SOLID_FRACTION)
+        model_part.AddNodalSolutionStepVariable(POROSITY_PROJECTED)
 
     def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, dem_inlet_model_part, rigid_face_model_part):
         pass
@@ -1362,7 +1363,7 @@ class DEMIo(object):
         self.rigid_body_variables = []
         self.contact_variables = []
         self.multifilelists = []
-        self.homogenization_variables = [VELOCITY_PROJECTED]
+        self.homogenization_variables = [VELOCITY_PROJECTED, POROSITY_PROJECTED]
 
         # Reading Post options from DEM_parameters
         self.PostDisplacement = self.DEM_parameters["PostDisplacement"].GetBool()
