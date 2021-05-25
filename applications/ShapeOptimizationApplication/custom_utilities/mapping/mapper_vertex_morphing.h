@@ -117,16 +117,9 @@ public:
         KRATOS_INFO("ShapeOpt") << "Starting initialization of mapper..." << std::endl;
 
         CreateFilterFunction();
-
-        CreateListOfNodesInOriginModelPart();
-        InitializeMappingVariables();
-        AssignMappingIds();
-
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-        ComputeMappingMatrix();
-
         mIsMappingInitialized = true;
+
+        Update();
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -319,8 +312,6 @@ public:
         InitializeMappingVariables();
         AssignMappingIds();
 
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
         ComputeMappingMatrix();
 
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -478,7 +469,7 @@ private:
         mValuesDestination[0] = ZeroVector(destination_node_number);
         mValuesDestination[1] = ZeroVector(destination_node_number);
         mValuesDestination[2] = ZeroVector(destination_node_number);
-        
+
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
     }
 
@@ -503,6 +494,9 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
+        InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 

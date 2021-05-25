@@ -15,14 +15,13 @@
 // System includes
 
 // External includes
-#include "custom_conditions/penalty_coupling_condition.h"
 
 // Project includes
+#include "custom_conditions/coupling_penalty_condition.h"
 
 namespace Kratos
 {
-
-    void PenaltyCouplingCondition::CalculateAll(
+    void CouplingPenaltyCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -57,6 +56,11 @@ namespace Kratos
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints();
+
+        // initial determinant of jacobian 
+        Vector determinant_jacobian_vector_initial(integration_points.size());
+        DeterminantOfJacobianInitial(r_geometry_master, determinant_jacobian_vector_initial);
+
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
@@ -64,7 +68,7 @@ namespace Kratos
 
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes_master; i++)
+            for (IndexType i = 0; i < number_of_nodes_master; ++i)
             {
                 IndexType index = 3 * i;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
@@ -75,9 +79,9 @@ namespace Kratos
                     H(2, index + 2) = N_master(point_number, i);
             }
 
-            for (IndexType i = 0; i < number_of_nodes_slave; i++)
+            for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
-                IndexType index = 3 * i + number_of_nodes_master;
+                IndexType index = 3 * (i + number_of_nodes_master);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                     H(0, index) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
@@ -87,18 +91,16 @@ namespace Kratos
             }
 
             // Differential area
-            const double integration_weight = integration_points[point_number].Weight();
-            const double determinat_jacobian = r_geometry_master.DeterminantOfJacobian(point_number);
+            const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector_initial[point_number];
 
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H)
-                    * integration_weight * determinat_jacobian * penalty;
+                noalias(rLeftHandSideMatrix) += prod(trans(H), H) * penalty_integration;
             }
             if (CalculateResidualVectorFlag) {
 
                 Vector u(mat_size);
-                for (IndexType i = 0; i < number_of_nodes_master; i++)
+                for (IndexType i = 0; i < number_of_nodes_master; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
                     IndexType index = 3 * i;
@@ -106,24 +108,69 @@ namespace Kratos
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
-                for (IndexType i = 0; i < number_of_nodes_slave; i++)
+                for (IndexType i = 0; i < number_of_nodes_slave; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    IndexType index = 3 * i + number_of_nodes_master;
+                    IndexType index = 3 * (i + number_of_nodes_master);
                     u[index]     = disp[0];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
 
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
-                    * integration_weight * determinat_jacobian * penalty;
+                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * penalty_integration;
             }
         }
 
         KRATOS_CATCH("")
     }
 
-    void PenaltyCouplingCondition::EquationIdVector(
+    void CouplingPenaltyCondition::DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian)
+    {
+        const IndexType nb_integration_points = rGeometry.IntegrationPointsNumber();
+        if (rDeterminantOfJacobian.size() != nb_integration_points) {
+            rDeterminantOfJacobian.resize(nb_integration_points, false);
+        }
+
+        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const SizeType nb_nodes = rGeometry.PointsNumber();
+
+        Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
+        for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
+        {
+            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[pnt];
+            J.clear();
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        J(k, m) += value * r_DN_De(i, m);
+                    }
+                }
+            }
+
+            //Compute the tangent and  the normal to the boundary vector
+            array_1d<double, 3> local_tangent;
+            GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangent);
+
+            array_1d<double, 3> a_1 = column(J, 0);
+            array_1d<double, 3> a_2 = column(J, 1);
+
+            rDeterminantOfJacobian[pnt] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
+        }
+    }
+
+    int CouplingPenaltyCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
+            << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyCondition" << std::endl;
+        return 0;
+    }
+
+    void CouplingPenaltyCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -147,7 +194,7 @@ namespace Kratos
         }
 
         for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
-            const IndexType index = i * 3 + number_of_nodes_master;
+            const IndexType index = 3 * (i + number_of_nodes_master);
             const auto& r_node = r_geometry_slave[i];
             rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
@@ -157,7 +204,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void PenaltyCouplingCondition::GetDofList(
+    void CouplingPenaltyCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const
     {

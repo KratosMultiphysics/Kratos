@@ -221,6 +221,7 @@ namespace Kratos {
             CalculateTangentialForces(OldLocalElasticContactForce,
                                     LocalElasticContactForce,
                                     LocalElasticExtraContactForce,
+									ViscoDampingLocalContactForce,
                                     LocalCoordSystem,
                                     LocalDeltDisp,
 									LocalRelVel,
