@@ -166,12 +166,14 @@ void BasicGenericFunctionUtility::InitializeParser()
             std::vector<std::string> splitted_string;
             if (c_like) {
                 splitted_string = StringUtilities::SplitStringByDelimiter(mFunctionBody, '?');
+                KRATOS_ERROR_I(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
                 condition = splitted_string[0];
                 splitted_string = StringUtilities::SplitStringByDelimiter(splitted_string[1], ':');
                 first_function = splitted_string[0];
                 second_function = splitted_string[1];
             } else { // Python like ternary operator
                 std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
+                KRATOS_ERROR_I(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
                 splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
                 first_function = splitted_string[0];
                 aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
