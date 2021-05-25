@@ -26,12 +26,15 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientOnePhaseFlowElement : public UPwSmallStrainElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientOnePhaseFlowElement :
+    public UPwSmallStrainElement<TDim, TNumNodes>
 {
 
 public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientOnePhaseFlowElement );
+
+    typedef UPwSmallStrainElement<TDim, TNumNodes> BaseType;
 
     typedef std::size_t IndexType;
     typedef Properties PropertiesType;
@@ -45,30 +48,30 @@ public:
 
     /// The definition of the sizetype
     typedef std::size_t SizeType;
-    using UPwSmallStrainElement<TDim,TNumNodes>::mRetentionLawVector;
-    using UPwSmallStrainElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    using UPwSmallStrainElement<TDim,TNumNodes>::mIsInitialised;
-    using UPwSmallStrainElement<TDim,TNumNodes>::CalculateRetentionResponse;
+    using BaseType::mRetentionLawVector;
+    using BaseType::mConstitutiveLawVector;
+    using BaseType::mIsInitialised;
+    using BaseType::CalculateRetentionResponse;
 
-    typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
+    typedef typename BaseType::ElementVariables ElementVariables;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    TransientOnePhaseFlowElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim,TNumNodes>( NewId ) {}
+    TransientOnePhaseFlowElement(IndexType NewId = 0) : BaseType( NewId ) {}
 
     /// Constructor using an array of nodes
     TransientOnePhaseFlowElement(IndexType NewId,
-              const NodesArrayType& ThisNodes) : UPwSmallStrainElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+              const NodesArrayType& ThisNodes) : BaseType(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
     TransientOnePhaseFlowElement(IndexType NewId,
-              GeometryType::Pointer pGeometry) : UPwSmallStrainElement<TDim,TNumNodes>(NewId, pGeometry) {}
+              GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry) {}
 
     /// Constructor using Properties
     TransientOnePhaseFlowElement(IndexType NewId,
               GeometryType::Pointer pGeometry,
-              PropertiesType::Pointer pProperties) : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+              PropertiesType::Pointer pProperties) : BaseType( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
     ~TransientOnePhaseFlowElement() override {}

@@ -434,7 +434,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
         rVariable == DERIVATIVE_OF_SATURATION ||
         rVariable == RELATIVE_PERMEABILITY )
     {
-        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
@@ -464,7 +464,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     if (rVariable == FLUID_FLUX_VECTOR)
     {
-        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
@@ -496,7 +496,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     if (rVariable == PERMEABILITY_MATRIX)
     {
-        UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
     else
     {
