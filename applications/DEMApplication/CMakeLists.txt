@@ -98,6 +98,9 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_checker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/automatic_dt_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_generalized_2d_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/piecewise_linear_random_variable.cpp
+
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
