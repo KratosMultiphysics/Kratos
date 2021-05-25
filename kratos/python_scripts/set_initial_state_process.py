@@ -121,7 +121,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         ncols = aux_matrix[0].size()
         self.imposed_deformation_gradient = KratosMultiphysics.Matrix(nrows, ncols)
 
-
     def ExecuteInitializeSolutionStep(self):
         """This method is executed in order to initialize the current step
 
@@ -151,13 +150,13 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             nr_cols = len(self.deformation_functions[0])
             for r in range(nr_rows):
                 for c in range(nr_cols):
-                    self.imposed_deformation_gradient[r, c] =  \
-                        self.deformation_functions[r][c].CallFunction(
-                            0, 0, 0, current_time, 0, 0, 0
-                        )
+                    self.imposed_deformation_gradient[
+                        r, c
+                    ] = self.deformation_functions[r][c].CallFunction(
+                        0, 0, 0, current_time, 0, 0, 0
+                    )
 
             self.SetInitialState()
-
 
     def SetInitialState(self):
         """This method creates the c++ process and sets each entity
