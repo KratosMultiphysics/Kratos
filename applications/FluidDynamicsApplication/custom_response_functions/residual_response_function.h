@@ -86,6 +86,8 @@ public:
     ///@name Operations
     ///@{
 
+    void InitializeSolutionStep() override;
+
     void CalculateGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
@@ -147,6 +149,7 @@ protected:
     ModelPart& mrModelPart;
     double mMomentumResidualWeight;
     double mContinuityResidualWeight;
+    bool mIsElementErrorSaved;
 
     ///@}
 

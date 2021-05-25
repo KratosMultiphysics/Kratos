@@ -47,12 +47,30 @@ ResidualResponseFunction<TDim>::ResidualResponseFunction(
 
     Parameters default_settings(R"({
         "momentum_residual_weight"  : 1.0,
-        "continuity_residual_weight": 1.0
+        "continuity_residual_weight": 1.0,
+        "save_element_error"        : false
     })");
 
     Settings.ValidateAndAssignDefaults(default_settings);
     mMomentumResidualWeight = Settings["momentum_residual_weight"].GetDouble();
     mContinuityResidualWeight = Settings["continuity_residual_weight"].GetDouble();
+    mIsElementErrorSaved = Settings["save_element_error"].GetBool();
+
+    KRATOS_INFO("ResidualResponseFunction")
+        << "Created ResidualResponseFunction with momentum_residual_weight = " << mMomentumResidualWeight
+        << ", and continuity_residual_weight = " << mContinuityResidualWeight << ".\n";
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim>
+void ResidualResponseFunction<TDim>::InitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (mIsElementErrorSaved) {
+        this->CalculateValue(mrModelPart);
+    }
 
     KRATOS_CATCH("");
 }
