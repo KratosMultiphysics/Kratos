@@ -206,12 +206,6 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    DampingFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
-    {
-        return Kratos::shared_ptr<DampingFunction>(new DampingFunction(damping_type, damping_radius));
-    }
-
-    // --------------------------------------------------------------------------
     void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
