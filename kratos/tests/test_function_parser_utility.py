@@ -165,13 +165,8 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
                     self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (2.0 * node.Y + node.X), 0.0)
 
     def test_ApplyFunctionToNodesUtilityTimeEvolutionPythonTernary(self):
-        parameters = KM.Parameters ("""{
-            "origin" : [0,0,0],
-            "axes"   : [[0,1,0],[1,0,0],[0,0,1]]
-
-        }""")
-
-        function = KM.GenericFunctionUtility("x+2*y if t<2.0 else 2*x+y", parameters)
+        parameters = KM.Parameters ("""{}""")
+        function = KM.GenericFunctionUtility("1.5*(0.5*(1-cos(0.5*pi*t))*2.0)*(4.0/0.1681)*y*(0.41-y) if t<2.0 else 1.5*(2.0)*(4.0/0.1681)*y*(0.41-y)", parameters)
 
         this_model = KM.Model()
         model_part = this_model.CreateModelPart("Main", 2)
@@ -196,10 +191,10 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
 
             if time < 2.0:
                 for node in model_part.Nodes:
-                    self.assertAlmostEqual(node.GetSolutionStepValue(KM.VISCOSITY), node.Y + 2.0 * node.X)
+                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (1.5*(0.5*(1-math.cos(0.5*math.pi*time))*2.0)*(4.0/0.1681)*node.Y*(0.41-node.Y)), 0.0)
             else:
                 for node in model_part.Nodes:
-                    self.assertAlmostEqual(node.GetSolutionStepValue(KM.VISCOSITY), 2.0 * node.Y + node.X)
+                    self.assertAlmostEqual(node.GetSolutionStepValue(KM.VISCOSITY), 1.5*(2.0)*(4.0/0.1681)*node.Y*(0.41-node.Y))
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
