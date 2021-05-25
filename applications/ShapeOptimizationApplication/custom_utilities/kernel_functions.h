@@ -72,7 +72,7 @@ class KernelFunction
      * @param Radius The radius of the kernel function.
      * @return Shared pointer to the kernel function.
      */
-    static KernelFunction::Pointer New(const std::string FunctionType, const double Radius);
+    static KernelFunction::UniquePointer New(const std::string FunctionType, const double Radius);
 
     /**
      * @brief Computes the weight of point J with the function center as point I.

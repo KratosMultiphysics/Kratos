@@ -25,18 +25,18 @@
 
 namespace Kratos {
 
-KernelFunction::Pointer KernelFunction::New(const std::string FunctionType, const double Radius)
+KernelFunction::UniquePointer KernelFunction::New(const std::string FunctionType, const double Radius)
     {
         if(FunctionType.compare("linear"))
-            return Kratos::make_shared<LinearKernelFunction>(Radius);
+            return Kratos::make_unique<LinearKernelFunction>(Radius);
         else if (FunctionType.compare("cosine"))
-            return Kratos::make_shared<CosineKernelFunction>(Radius);
+            return Kratos::make_unique<CosineKernelFunction>(Radius);
         else if (FunctionType.compare("quartic"))
-            return Kratos::make_shared<QuarticKernelFunction>(Radius);
+            return Kratos::make_unique<QuarticKernelFunction>(Radius);
         else if (FunctionType.compare("gaussian"))
-            return Kratos::make_shared<GaussianKernelFunction>(Radius);
+            return Kratos::make_unique<GaussianKernelFunction>(Radius);
         else if (FunctionType.compare("constant"))
-            return Kratos::make_shared<ConstantKernelFunction>(Radius);
+            return Kratos::make_unique<ConstantKernelFunction>(Radius);
         else
             KRATOS_ERROR<<"Unknown kernel function of type : "<<FunctionType<<std::endl;
     }
