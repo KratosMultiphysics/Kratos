@@ -27,6 +27,7 @@
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
+#include "custom_utilities/kernel_functions.h"
 #include "shape_optimization_application.h"
 #include "damping_function.h"
 
@@ -166,7 +167,7 @@ public:
             std::string dampingFunctionType = mDampingSettings["damping_regions"][regionNumber]["damping_function_type"].GetString();
             double dampingRadius = mDampingSettings["damping_regions"][regionNumber]["damping_radius"].GetDouble();
 
-            DampingFunction::Pointer mpDampingFunction = CreateDampingFunction( dampingFunctionType, dampingRadius );
+            auto p_damping_function = KernelFunction::New(dampingFunctionType, dampingRadius);
 
             // Loop over all nodes in specified damping sub-model part
             for(auto& node_i : dampingRegion.Nodes())
@@ -186,7 +187,7 @@ public:
                 for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
                 {
                     ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                    double dampingFactor = mpDampingFunction->compute_damping_factor( currentDampingNode.Coordinates(), neighbor_node.Coordinates());
+                    double dampingFactor = 1 - p_damping_function->ComputeWeight( currentDampingNode.Coordinates(), neighbor_node.Coordinates());
 
                     // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node.
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
