@@ -72,21 +72,7 @@ class KernelFunction
      * @param Radius The radius of the kernel function.
      * @return Shared pointer to the kernel function.
      */
-    static KernelFunction::Pointer New(const std::string FunctionType, const double Radius)
-    {
-        if(FunctionType.compare("linear"))
-            return Kratos::make_shared<LinearKernelFunction>(Radius);
-        else if (FunctionType.compare("cosine"))
-            return Kratos::make_shared<CosineKernelFunction>(Radius);
-        else if (FunctionType.compare("quartic"))
-            return Kratos::make_shared<QuarticKernelFunction>(Radius);
-        else if (FunctionType.compare("gaussian"))
-            return Kratos::make_shared<GaussianKernelFunction>(Radius);
-        else if (FunctionType.compare("constant"))
-            return Kratos::make_shared<ConstantKernelFunction>(Radius);
-        else
-            KRATOS_ERROR<<"Unknown kernel function of type : "<<FunctionType<<std::endl;
-    }
+    static KernelFunction::Pointer New(const std::string FunctionType, const double Radius);
 
     /**
      * @brief Computes the weight of point J with the function center as point I.
