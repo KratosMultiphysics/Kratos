@@ -554,6 +554,16 @@ protected:
         KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
     }
 
+    virtual MatrixPointerType pGetOldJacobianDecompositionMatixQU()
+    {
+        KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
+    }
+
+    virtual MatrixPointerType pGetOldJacobianDecompositionMatixSigmaV()
+    {
+        KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
+    }
+
     ///@}
 private:
     ///@name Static Member Variables

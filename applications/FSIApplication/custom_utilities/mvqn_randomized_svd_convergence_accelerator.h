@@ -163,6 +163,10 @@ public:
         mpOldJacQU = mpJacQU;
         mpOldJacSigmaV = mpJacSigmaV;
 
+        // Clear the current step Jacobian decomposition pointers
+        mpJacQU = nullptr;
+        mpJacSigmaV = nullptr;
+
         KRATOS_CATCH( "" );
     }
 
@@ -215,8 +219,8 @@ protected:
         BaseType::AppendCurrentIterationInformation(rResidualVector, rIterationGuess);
 
         // If the complete Jacobian is required for the IBQN equations calculate it
-        if (BaseType::IsUsedInBlockNewtonEquations()) {
-        // if (BaseType::IsUsedInBlockNewtonEquations() && BaseType::GetConvergenceAcceleratorIteration() > 0) {
+        // Note that this is only done after the first iteration since the observation matrices are empty at the first one
+        if (BaseType::IsUsedInBlockNewtonEquations() && BaseType::GetConvergenceAcceleratorIteration() != 0) {
             CalculateInverseJacobianSVD();
         }
     }
@@ -385,6 +389,16 @@ protected:
         return mpJacSigmaV;
     }
 
+    MatrixPointerType pGetOldJacobianDecompositionMatixQU() override
+    {
+        return mpOldJacQU;
+    }
+
+    MatrixPointerType pGetOldJacobianDecompositionMatixSigmaV() override
+    {
+        return mpOldJacSigmaV;
+    }
+
     ///@}
 private:
     ///@name Static Member Variables
@@ -419,6 +433,7 @@ private:
         mCurrentNumberOfModes = mUserNumberOfModes;
 
         // Check if the user-defined number of modes exceeds the iteration number
+        //TODO: CHECK WITH THE COLUMNS IN CASE WE DID CUTOFF!!!!
         const SizeType n_it = BaseType::GetConvergenceAcceleratorIteration();
         if (mLimitModesToIterations && n_it < mCurrentNumberOfModes) {
             mCurrentNumberOfModes = n_it;
