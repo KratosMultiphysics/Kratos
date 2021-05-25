@@ -35,39 +35,39 @@ Copy it to a folder of your choice. In the following we are using `~/compiled_li
 
 Extract the files by the command: 
 
-~~~sh
- tar -xf scotch_6.0.4.tar.gz
-~~~
+```sh
+tar -xf scotch_6.0.4.tar.gz
+```
 
 Navigate into the source directory by: 
 
-~~~sh
+```sh
 cd scotch_6.0.4/src
-~~~
+```
 
 Copy the correct **Makefile.inc** for the version of your system to the source directory. Ín the case of the *Ubuntu* versions mentioned above it is the **Makefile.inc.x86-64_pc_linux2**:  (**NOTE**: if you want to use shared libraries **.so** you will copy the **Makefile.inc.x86-64_pc_linux2.shlib**)
 
-~~~sh
+```sh
 cp ./Make.inc/Makefile.inc.x86-64_pc_linux2 Makefile.inc
-~~~
+```
 
 Add -fPIC to CFLAGS in **Makefile.inc** for shared libraries. Optional libraries may be installed (see scotch_6.0.4/INSTALL.txt): 
 
-~~~sh
+```sh
 sudo apt-get install flex bison zlib1g-dev
-~~~
+```
 
 Now *Scotch* can be compiled by (we are still in the `/src` directory): 
 
-~~~sh
+```sh
 make scotch
-~~~
+```
 
 And can be installed by: 
 
-~~~sh
+```sh
 make prefix=~/path-to-local-scotch-install-dir install
-~~~
+```
 
 ## Compile the PaStiX library (shared memory parallelism)
 
@@ -77,25 +77,25 @@ Copy it to a folder of your choice. In the following we are using `~/compiled_li
 
 Extract the files by the command: 
 
-~~~sh 
+```sh 
 tar -xf pastix_5.2.3.tar.bz2
-~~~
+```
 
 Navigate into the source directory by: 
 
-~~~sh
+```sh
 cd pastix_5.2.3/src
-~~~
+```
 
 The different config files can be found in the config folder. You have to copy the one fitting to your system to the `/src` folder. In the case of the systems mentioned above it ist the **LINUX-GNU.in** file. Copy it to the source directory as **config.in** by: 
 
-~~~sh
+```sh
 cp ./config/LINUX-GNU.in config.in
-~~~
+```
 
 You have to edit the following blocks of the **config.in** file: 
 
-~~~sh
+```sh
 ###################################################################                               
 #                  SETTING INSTALL DIRECTORIES                    #                               
 ###################################################################                               
@@ -103,9 +103,9 @@ ROOT          = ${HOME}/path-to-local-pastix-install-dir
 INCLUDEDIR    = ${ROOT}/include
 LIBDIR        = ${ROOT}/lib
 BINDIR        = ${ROOT}/bin
-~~~
+```
 
-~~~sh
+```sh
 ###################################################################                             
 #                  SHARED LIBRARY GENERATION                      #                             
 ###################################################################                             
@@ -115,9 +115,9 @@ SHARED_FLAGS =  -shared -Wl,-soname,__SO_NAME__
 CCFDEB       := ${CCFDEB} -fPIC
 CCFOPT       := ${CCFOPT} -fPIC
 CFPROG       := ${CFPROG} -fPIC
-~~~
+```
 
-~~~sh
+```sh
 ###################################################################
 #                          MPI/THREADS                            #
 ###################################################################
@@ -130,9 +130,9 @@ MPCXXPROG   = $(CXXPROG)
 ...some code...
 #CCPASTIX   := $(CCPASTIX) -DCUDA_SM_VERSION=20
 #NVCCOPT    := $(NVCCOPT) -arch sm_20
-~~~
+```
 
-~~~sh
+```sh
 ###################################################################                             
 #                      GRAPH PARTITIONING                         #                             
 ###################################################################
@@ -147,9 +147,9 @@ EXTRALIB   := $(EXTRALIB) -L$(SCOTCH_LIB) -lscotch -lscotcherrexit
 #EXTRALIB   := $(EXTRALIB) -L$(SCOTCH_LIB) -lptscotch -lscotch -lptscotcherrexit
 #else
 #EXTRALIB   := $(EXTRALIB) -L$(SCOTCH_LIB) -lptscotch -lptscotcherrexit
-~~~
+```
 
-~~~sh
+```sh
 ###################################################################
 #                Portable Hardware Locality                       #
 ###################################################################
@@ -160,31 +160,31 @@ EXTRALIB   := $(EXTRALIB) -L$(SCOTCH_LIB) -lscotch -lscotcherrexit
 #HWLOC_LIB  = $(HWLOC_HOME)/lib
 #CCPASTIX   := $(CCPASTIX) -I$(HWLOC_INC) -DWITH_HWLOC
 #EXTRALIB   := $(EXTRALIB) -L$(HWLOC_LIB) -lhwloc
-~~~
+```
 
 **NOTE**: In order to compile the shared libraries **.so** instead of the static ones with `-fPIC` as above, you will need to modify:
 
 Now you can compile the *PaStiX* library (we are still in the /src directory): 
 
-~~~sh
+```sh
 make SCOTCH_HOME=~/path-to-local-scotch-install-dir
-~~~
+```
 
 You can install it to the directory defined in the config.in file by: 
 
-~~~sh
+```sh
 make SCOTCH_HOME=~/path-to-local-scotch-install-dir install
-~~~
+```
 
 ## Compile the Kratos with PaStiX (shared memory parallelism)
 
 Finally we can compile the Kratos with the *PaStiX* library. In order to do this, you have to add the following lines to you ' configure.sh` file: 
 
-~~~sh
+```sh
 -DINCLUDE_PASTIX=ON                                       \
 -DPASTIX_INSTALL_DIR="/path/to/your/pastix/installation" \ (e.g. "~/software/pastix_5.2.3-install/install") 
 -DSCOTCH_INSTALL_DIR="~/path-to-local-scotch-install-dir/lib" \ (e.g. "~/software/scotch_6.0.4-install/lib")
-~~~
+```
 
 **NOTE**: Remember to add the shared libraries to your runtime path.
 
@@ -192,7 +192,7 @@ Finally we can compile the Kratos with the *PaStiX* library. In order to do this
 
 You can now use the direct and iterative *PaStiX* solver by adding the following block to your **ProjectParameters.json** file: 
 
-~~~json
+```json
 "solver_type": "PastixSolver",
 "solution_method": "Direct",
 "tolerance": 0.000001,
@@ -204,7 +204,7 @@ You can now use the direct and iterative *PaStiX* solver by adding the following
 "scaling": false,
 "block_size": 1,
 "use_block_matrices_if_possible": true
-~~~
+```
 
 ## Additional hints
 
@@ -218,32 +218,32 @@ First we go the OpenBLAS [webpage](http://www.openblas.net/) webpage, and downlo
 
 Extract the files by the command: 
 
-~~~sh
+```sh
  tar -xf v0.2.19.tar.gz
-~~~
+```
 
 We can download it too using git:
 
-~~~sh
+```sh
 git clone https://github.com/xianyi/OpenBLAS.git
-~~~
+```
 
 Now we go the folder:
 
-~~~sh
+```sh
 cd OpenBLAS
-~~~
+```
 
 And we compile the library using the following command (`make install` might require `sudo`)
 
-~~~sh
+```sh
 make -j8  USE_THREAD=0 OPENBLAS_NUM_THREADS=1
 make install
-~~~
+```
 
 We just need to modify the `config.in` and we recompile PasTiX again: 
 
-~~~sh
+```sh
 ###################################################################
 #                              BLAS                               #
 ###################################################################
@@ -261,4 +261,4 @@ BLASLIB  = -L${BLAS_HOME} -lopenblas
 #BLASLIB  = -L$(BLAS_HOME) -lmkl_intel -lmkl_sequential -lmkl_core
 #----  Acml    ----
 #BLASLIB  = -L$(BLAS_HOME) -lacml
-~~~
+```

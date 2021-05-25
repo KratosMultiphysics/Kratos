@@ -12,7 +12,7 @@ The following tutorial will explain how to **implement a `Solver` from scratch**
 
 The solver as any element of *Kratos* requires to import the corresponding libraries and applications. Like out objective on mind is to create a thermal problem, we will import the base `KratosMultiphysics` library as well as the `ConvectionDiffusionApplication`. For importing files from the filesystem we will import `os` *python* library, which will be helpful.
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
@@ -23,20 +23,20 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionA
 
 # Other imports
 import os
-~~~ 
+``` 
 
 # Constructing the solver
 
 We will create a `Solver`, following was is done in other applications `Solver`, for the sake of consistency, so in first place we define the function `CreateSolver`, which is common among all the solvers and therefore it is necessary to be called that way. This function will use as input a `Model` and configuration `Parameters`:
 
-~~~py
+```py
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionSolver(model, custom_settings)
-~~~
+```
 
 As we see this function call a class called `ConvectionDiffusionSolver`, so we need to define our solver in first place, for that we define the constructor or `__init__` function:
 
-~~~py
+```py
 class ConvectionDiffusionSolver(object):
     """The base class for convection-diffusion solvers.
     This class provides functions for importing and exporting models,
@@ -84,7 +84,7 @@ class ConvectionDiffusionSolver(object):
         model_part_name = self.settings["model_part_name"].GetString()
         self.main_model_part = self.model[model_part_name]
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Construction finished")
-~~~
+```
 
 First we define the default `Parameters`, which will overwrite the not define configurations of our `custom_settings`, this is done with the `ValidateAndAssignDefaults` method. We define the `main_model_part` as a part of the solver, using the `self` to define it as an instance attribute.
 
@@ -98,7 +98,7 @@ The `AddVariables` is the liable on adding the nodal historical variables to the
 
 We add the variables corresponding to the standard thermal convection-diffusion problem. We will need to add this variables to the `CONVECTION_DIFFUSION_SETTINGS` (this is something specific of the `ConvectionDiffusionAplication`, and is done in order to solve different types convection diffusion problems).
 
-~~~py
+```py
 def AddVariables(self):
     ''' Add nodal solution step variables ( later add to CONVECTION_DIFFUSION_SETTINGS)
     '''
@@ -115,32 +115,32 @@ def AddVariables(self):
     self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
 
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
-~~~
+```
 
 ## Add DoFs
 
 In this case we add to the nodes the degrees of freedom corresponding to the problems we want to solve, in our case only the `TEMPERATURE`.
 
-~~~py
+```py
 def AddDofs(self):
     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX, self.main_model_part)
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "DOF's ADDED")
-~~~
+```
 
 We the `VariableUtils` class, which allows us to do this operation in parallel, in case we want to use the methods available directly on the `Node` class we can do:
 
-~~~py
+```py
 def AddDofs(self):
     for node in self.main_model_part.Nodes:
         node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)          
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "DOF's ADDED")  
-~~~
+```
 
 ## Read external file (`*.mdpa` file)
 
 We read the `*.mdpa` file for that we use the class `ModelPartIO`, which is the class in charge of managing the write/read procedures.
 
-~~~py
+```py
 def ReadModelPart(self):
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Reading model part.")
     problem_path = os.getcwd()
@@ -149,7 +149,7 @@ def ReadModelPart(self):
     KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
     KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished reading model part.")
-~~~
+```
 
 ## Prepare model part
 
@@ -159,7 +159,7 @@ We mean for *dummy* ` Condition` and `Element` that only contain a geometry and 
 
 First we define the reading of the properties of the problem. We use the  `read_materials_process` defined on the core of *Kratos*.
 
-~~~py
+```py
 def _execute_after_reading(self):
     """Import materials. """
     materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -175,11 +175,11 @@ def _execute_after_reading(self):
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were successfully imported.")
     else:
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were not imported.")
-~~~
+```
 
 In the case of the convection diffusion problems, the properties are not read from the `Property` but directly from the nodal values, so we create a method in order to copy this properties into the nodes of the mesh:
 
-~~~py
+```py
 def _assign_nodally_properties(self):
     # We transfer the values of the con.diff variables to the nodes
     with open(self.settings["material_import_settings"]["materials_filename"].GetString(), 'r') as parameter_file:
@@ -198,11 +198,11 @@ def _assign_nodally_properties(self):
                     KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
                 else:
                     raise ValueError("Type of value is not available")
-~~~
+```
 
 We define the `Parameters` necessaries for the replace the `Element`/`Condition`, which depend on the configuration parameters, and the geometry of the problem (2D/3D, triangle, quadrilaterals, etc...). We will use the class `ReplaceElementsAndConditionsProcess` to replace these elements and conditions.
 
-~~~py
+```py
 def _get_element_condition_replace_settings(self):
     num_nodes_elements = 0
     if (len(self.main_model_part.Elements) > 0):
@@ -232,11 +232,11 @@ def _get_element_condition_replace_settings(self):
         raise Exception("DOMAIN_SIZE not set")
 
     return self.settings["element_replace_settings"]
-~~~
+```
 
 Fill the buffer is as easy as:
 
-~~~py
+```py
 def _set_and_fill_buffer(self):
     """Prepare nodal solution step data containers and time step information. """
     # Set the buffer size for the nodal solution steps data. Existing nodal
@@ -257,11 +257,11 @@ def _set_and_fill_buffer(self):
         time = time + delta_time
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
         self.main_model_part.CloneTimeStep(time)
-~~~
+```
 
 Finally, now that we have all the tools to prepare the model part we can define the method:
 
-~~~py
+```py
 def PrepareModelPartForSolver(self):
         
     # Check and prepare computing model part and import constitutive laws.
@@ -274,14 +274,14 @@ def PrepareModelPartForSolver(self):
     self._set_and_fill_buffer()
     
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
-~~~
+```
 
 ## Initialize method
 
 In order to initialize the solver we need to create the strategy, which will be *Newton-Raphson* in our case
 . Additionally we will define the `CONVECTION_DIFFUSION_SETTINGS` which can be used by the elements and conditions from the application.
 
-~~~py
+```py
 def Initialize(self):
     """Perform initialization after adding nodal variables and dofs to the main model part. """
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Initializing ...")
@@ -319,13 +319,13 @@ def Initialize(self):
     if self.settings["clear_storage"].GetBool():
         self.conv_diff_strategy.Clear()
     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished initialization.")
-~~~
+```
 
 ## Solving methods
 
 The `Solver` as well as the strategy, has the same solving steps as the strategies (*Newton-Rapshon* and so on), this methods are `InitializeSolutionStep`, `Predict`, `SolveSolutionStep` and `FinalizeSolutionStep`, which can be call all together in only one method `Solve`.
 
-~~~ py 
+``` py 
 def Solve(self):
     if self.settings["clear_storage"].GetBool():
         self.conv_diff_strategy.Clear()
@@ -343,13 +343,13 @@ def SolveSolutionStep(self):
 
 def FinalizeSolutionStep(self):
     self.conv_diff_strategy.FinalizeSolutionStep()
-~~~
+```
 
 # Final script
 
 Our thermal solver will be like the following:
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
@@ -596,4 +596,4 @@ class ConvectionDiffusionSolver(object):
 
     def FinalizeSolutionStep(self):
         self.conv_diff_strategy.FinalizeSolutionStep()
-~~~
+```

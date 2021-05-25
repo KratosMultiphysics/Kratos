@@ -10,7 +10,7 @@ Kratos provides a data proxy mechanism, based on the use of "GlobalPointers" to 
 To understand the mechanism, let's consider a local loop to take the average of neighbours nodes for each node.
 In serial it looks something like
 
-~~~cpp
+```cpp
 for(auto& node : model_part.Nodes) {
     double Tavg = 0;
     const auto& neighbours = node.GetValue(NODAL_NEIGHBOURS);
@@ -18,14 +18,14 @@ for(auto& node : model_part.Nodes) {
          Tavg += neighb.FastGetSolutionStepValue(TEMPERATURE);
     node.SetValue(AVERAGE_TEMPERATURE, Tavg/(neigbours.size());
 }
-~~~
+```
 {: data-lang="C++"}
 
 this loop is obviously not possible in mpi. (we do not have all the neighbours on a given process unless we add a lot of ghost nodes)
 
 Let's now consider we use global pointers instead of weak_pointers for the neighbours. IN THE SERIAL CASE the previous loop would look very similar, something like
 
-~~~cpp
+```cpp
 for(auto& node : model_part.Nodes) {
     double Tavg = 0;
     const auto& global_pointers_to_neighbours = node.GetValue(GP_NODAL_NEIGHBOURS);
@@ -33,7 +33,7 @@ for(auto& node : model_part.Nodes) {
          Tavg += gp->FastGetSolutionStepValue(TEMPERATURE);
     node.SetValue(AVERAGE_TEMPERATURE, Tavg/(global_pointers_to_neighbours.size());
 }
-~~~
+```
 {: data-lang="C++"}
 
 Since global pointers are pointers that are only valid in the memory space of the owner processor
@@ -41,7 +41,7 @@ this works ok in SMP (on a single process), but still fails in mpi, since the gl
 
 In order to retrofit this problem, the former code should be modified to
 
-~~~cpp
+```cpp
 // First of all collect all the neighbours into a list
 GlobalPointerVector< Node<3 > > gp_list;
 
@@ -67,7 +67,7 @@ for(auto& node : model_part.Nodes) {
          Tavg += result_proxy.Get(gp); // Here we get the result of the application of the function onto gp. This is so BOTH for LOCAL GPs and for REMOTE GPs
     node.SetValue(AVERAGE_TEMPERATURE, Tavg/(global_pointers_to_neighbours.size());
 }
-~~~
+```
 {: data-lang="C++"}
 
 The code is of course a little more verbose, nevertheless all the communication is hidden in the Apply function (and in the constructor), and the use if still more or less similar to the original serial code.
@@ -76,7 +76,7 @@ Aside of this, the code can be made to be still efficient in serial. The point h
 This also means that additional storage can be avoided completely in the serial case.
 In the practice this means that we can further optimize the code to have no overhead in the serial case as follows:
 
-~~~cpp
+```cpp
 // Now create the pointer communicator --> NOTHING IS ACTUALLY DONE IN THE SERIAL CASE!
 GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator, 
     [&](){ //NOTE THAT THIS FUNCTOR WILL ONLY BE EXECUTED IN MPI MODE, it has no overhead in serial!!
@@ -102,7 +102,7 @@ for(auto& node : model_part.Nodes) {
          Tavg += result_proxy.Get(gp); // Here we get the result of the application of the function onto gp. This is so BOTH for LOCAL GPs and for REMOTE GPs
     node.SetValue(AVERAGE_TEMPERATURE, Tavg/(global_pointers_to_neighbours.size());
 }
-~~~
+```
 {: data-lang="C++"}
 
 with such modification the code is almost as fast in serial as the original code, the only overhead being that a function call by function pointer is done on every global pointer

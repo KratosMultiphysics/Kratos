@@ -12,7 +12,7 @@ The RomApplication expects a basis matrix $$ \color{Black}\bold{ {\Phi} } $$ $$ 
 
 The RomApplication expects this basis in the form of a JSON file with saved as RomParameters.json which should be located in the same folder as the MainKratos.py and should be in the following format:
 
-~~~json
+```json
 {
   "rom_settings": {
     "nodal_unknowns": [
@@ -73,7 +73,7 @@ The RomApplication expects this basis in the form of a JSON file with saved as R
   }
 }
 
-~~~ 
+``` 
 
 
 you can find examples of these files [here](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/RomApplication/tests)

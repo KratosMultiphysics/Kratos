@@ -63,7 +63,7 @@ In order to use the `AnalysisStage` it has to be constructed with specific objec
     * `processes` : regular processes, e.g. for the boundary conditions. _Note_: also [user-defined processes can be included here](User-defined-python-processes)
     * `output_processes` : processes that write the output
 
-~~~
+```
 {
 "problem_data" : {
     "echo_level"    : 0
@@ -95,7 +95,7 @@ settings for the PythonSolver
     list of Kratos Output Processes
     ]
 }
-~~~
+```
 ***
 Objects deriving from the `AnalysisStage` have to implement the `_CreateSolver` function which creates and returns the specific `PythonSolver`
 
@@ -135,14 +135,14 @@ In order to use the `PythonSolver` it has to be constructed with specific object
 - `KratosMultiphysics.Parameters`: The settings for the `PythonSolver`. They are expecting that the following settings are present:
     * `echo_level` : echo_level for printing informations
     * `model_import_settings` : settings for importing the modelpart
-~~~
+```
 {
 "echo_level" : 0,
 "model_import_settings" : {
     "input_type"     : "mdpa" # or "rest"
     "input_filename" : "input_file_name"
 }
-~~~
+```
 For importing the ModelPart it can also be necessary (depending on the details of the solver) to pass the name of the ModelPart such that it can interact correctly with the Model
 
 # Outlook (Kratos-Project, Multi-Stage Simulation)
@@ -155,7 +155,7 @@ The `Model` as container of `ModelPart`s plays an important role here, since it 
 This is how data can be passed from one Stage to the next, i.e. if the `ModelPart` is the same then it will also contain e.g. the nodal-results from previous stages which can be reused then.
 
 This could look like this:
-~~~py
+```py
 import KratosMultiphysics
 # if needed import the apps containing the stage
 
@@ -171,4 +171,4 @@ list_of_stages = [stage_1, stage_2, stage_3]
 
 for stage in list_of_stages:
     stage.Run()
-~~~
+```

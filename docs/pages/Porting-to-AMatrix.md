@@ -12,9 +12,9 @@ This page provides a list of common changes for migration from ublas to AMatrix
 
 In  order to compile AMatrix with Kratos add the following to your `configure.sh`:
 
-~~~sh
+```sh
 -DAMATRIX_DIR="/your_kratos_location/Kratos/external_libraries/a_matrix/" \
-~~~
+```
 
 ## Using Kratos vector and matrix aliases
 It is recommended to use Kratos vector and matrix aliases instead of ones define by ublas:

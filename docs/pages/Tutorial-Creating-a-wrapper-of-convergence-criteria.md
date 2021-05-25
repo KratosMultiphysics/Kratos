@@ -9,7 +9,7 @@ summary:
 # Overview
 
 # Creating a factory
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
@@ -57,13 +57,13 @@ class ConvergenceCriteriaFactory(object):
             err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
             err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
             raise Exception(err_msg)
-~~~
+```
 
 Now if we want to integrate it into the solver, we just need to add the following to the solver:
 
-~~~py
+```py
 def _create_convergence_criterion(self):
         import base_convergence_criteria_factory as convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
         return convergence_criterion.convergence_criterion
-~~~
+```

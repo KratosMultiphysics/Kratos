@@ -79,14 +79,14 @@ Of course, to do so we'll have to respect the structure for both the element and
 
 Elements and Conditions are both classes in C++ that include a series of subroutines required by the builder and solver. They both share the following structure. An element or condition should contain at least this public methods, in pseudo code: 
 
-~~~c
+```c++
 class mycondition
 
 void CalculateLocalSystem
 void CalculateRightHandSide
 void EquationIdVector
 void GetDofList
-~~~
+```
 
 ### Python Scripts 
 
@@ -106,7 +106,7 @@ In this sense, the python scripts do the following tasks:
 
 Our application will be located inside the `applications` folder. Each of these subdirectories will contain the specific C++ or python code needed for our application. Note that if you want to use a new strategy or solver, then you have to create other typical customization directories or files such as `/custom_strategies`, etc... 
 
-~~~
+```
 /Kratos
     /applications
         /PureDiffusionApplication
@@ -122,16 +122,16 @@ Our application will be located inside the `applications` folder. Each of these 
             my_laplacian_application_variables.h and .cpp
             MyLaplacianApplication.py
             CMakeLists.txt
-~~~
+```
 
 The application will be executed to solve an specific problem defined in few files outside Kratos:
 
-~~~
+```
 /SpecificProblem
     MainKratos.py
     specific_problem.mdpa
     ProjectParameters.json
-~~~
+```
 
 Now you should have an idea of the components we will need in our code. So hands at work with C++ and Python.
 
@@ -141,13 +141,13 @@ Now you should have an idea of the components we will need in our code. So hands
 
 First of all, we recommend to create a temporary branch. In this way, we could easily revert the changes we make. Just open the terminal and type:
 
-~~~sh
+```sh
 $ git checkout -b test-kratos-for-dummies
-~~~
+```
 
 To begin with we must create a new application. The [How to Create Applications](Creating-a-base-application) tutorial provide some python scripts to generate a base application. Therefore we'll navigate to the `kratos/python_scripts/application_generator` folder and customize the `laplacian_application_example.py` script. We need to specify the application name, elements and conditions. Note that we have to create a new variable POINT_HEAT_SOURCE, which is not inside the _Kratos_'s kernel.
 
-~~~py
+```py
 # Set the application name and generate Camel, Caps and Low
 appNameCamel = "MyLaplacian"
 
@@ -173,13 +173,13 @@ debugApp.AddConditions([
     .AddDofs(['TEMPERATURE'])
     .AddFlags([])
 ])
-~~~
+```
 
 The python script will create a new application with the basic components. In order to compile the application, we need to add it in the `configure.sh`file:
 
-~~~sh
+```sh
 add_app ${KRATOS_APP_DIR}/MyLaplacianApplication
-~~~
+```
 
 Once you've followed all the steps and compiled the application, you should be able to import your newly created application, although it is not able to do anything for the moment. 
 
@@ -210,7 +210,7 @@ with CONDUCTIVY=10.0, we'll fix the TEMPERATURE=100.0 in node 1 and we'll add a 
 with this information, the model part file looks like this: 
 
 **example.mdpa**
-~~~c
+```c
 Begin ModelPartData
 //  nothing here
 End ModelPartData
@@ -243,11 +243,11 @@ End NodalData
 Begin Conditions PointSourceCondition
 1 1 3     //pos1:condition ID(irrelevant) ; pos2:cond Property ( = 1 in this case) ; pos3:node to apply the condition. if it was a line condition, then we would have 4 numbers instead of 3, just like elements              
 End Conditions
-~~~
+```
 our ProjectParameters.json file:
 
 **ProjectParameters.json**
-~~~py
+```py
 {
 	"model_import_settings"        : {
 		"input_type"          : "mdpa",
@@ -266,12 +266,12 @@ our ProjectParameters.json file:
 			"solver_type"     : "skyline_lu_factorization"
 	}
 }
-~~~
+```
 
 and our python file: 
 
 **example.py**
-~~~py
+```py
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 def Wait():
@@ -342,15 +342,15 @@ try:
 	calc_mean.Execute()
 except:
 	pass
-~~~
+```
 
 #### Launching and viewing the postprocess file 
 
 Once you have both files, you must open a console, go the directory where you created both files and type: 
 
-~~~sh
+```sh
 python example.py
-~~~
+```
 
 This launches the script you've created and several files are created after it has finished. The ones we are interested in are **output.res** and **output.msh** (results and mesh respectively). They are ASCII files so you can view them using the text editor you prefer. Alternatively, you can open the **.res** with *GiD* to visualize them. The result should look like this: 
 

@@ -10,7 +10,7 @@ The purpose of this file is to act as an interface between your problem's script
 
 ## pure_diffusion_solver.py  
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
@@ -110,4 +110,4 @@ class PureDiffusionSolver(object):
     def Solve(self):
         # Solve equations on mesh
         (self.solver).Solve()
-~~~
+```

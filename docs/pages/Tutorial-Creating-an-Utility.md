@@ -14,7 +14,7 @@ Utilities are useful tools to perform arbitrary actions. Furthermore, it is poss
 
 To begin with we have to tell Kratos that we have an Utility. Doing so is straightforward since we only need to edit the file **custom_python/add_custom_utilities_to_python.cpp** , including the source of our utility and some lines that serve as an interfase between the **C++** functions and python. Once you've done this Kratos knows you have a new utility and the functions you've declared in this file can be called directly from python. Have in mind that in the constructor you must write the input arguments, while in all the other functions you just type the name of them. 
 
-~~~c
+```cpp
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -57,11 +57,11 @@ using namespace pybind11;
 
 } // Namespace Kratos
 
-~~~
+```
 
 ## Creating custom_utilities/calculate_mean_temp.h
 
-~~~cpp
+```cpp
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
@@ -149,6 +149,6 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_CALCUALTE_MEAN_TEMP_UTILITY_INCLUDED  defined
-~~~
+```
 
 And that's it, this is all you need, to use it you must first call the constructor and then execute it. 

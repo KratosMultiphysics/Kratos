@@ -144,27 +144,27 @@ The following style convetion, which (mostly) follows PEP8, is recommended:
 Kratos follows the [PEP8 Style Guide](https://www.python.org/dev/peps/pep-0008/#imports) for importing python modules (see also [the discussion in Kratos](https://github.com/KratosMultiphysics/Kratos/issues/5402)):
 
 **Absolute imports** are the recommended way to import python modules in Kratos. This means that the imports should be done by using the full path, e.g.:
-~~~py
+```py
 import KratosMultiphysics.FluidDynamicsApplication.vms_solver as vms_solver
 from KratosMultiphysics.FluidDynamicsApplication import vms_solver
-~~~
+```
 The other - **not promoted** - way for imports are **explicit relative imports**, e.g.:
-~~~py
+```py
 # in vms_sovler.py:
 from KratosMultiphysics.FluidDynamicsApplication import fluid_solver # absolute import
 # OR:
 from . import fluid_solver # explicit relative import
-~~~
+```
 
 ## JSON Configuration File
 The [JSON configuration file](How-to-write-a-JSON-configuration-file) must follow certain style conventions. These are based on the [Google coding style](https://google.github.io/styleguide/jsoncstyleguide.xml), adapted for Kratos. The following notation is used :
 
-~~~json
+```json
 A property consists of name and value:
 {
   "property_name": "property_value"
 }
-~~~
+```
 * NO comments, use descriptive names
 * The name of the property should be written in lowercase with underscores "_" in between words if necessary
 * Use only double quotes for property names. Same applies if the property value is a string. Other property values such as integers or booleans should not be surrounded by quotes

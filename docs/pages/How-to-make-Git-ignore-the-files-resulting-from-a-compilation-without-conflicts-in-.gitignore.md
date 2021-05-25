@@ -8,36 +8,36 @@ summary:
 
 Go to your _Kratos_ folder:
 
-~~~sh
+```sh
 cd kratos
-~~~ 
+``` 
 
 And edit the file _.git/info/exclude_ (NOTE: You can use your favourite editor, not necessarily Emacs):
 
-~~~sh
+```sh
 emacs .git/info/exclude
-~~~ 
+``` 
 
 Add the following lines inside the file: 
 
-~~~sh
+```sh
 KratosMultiphysics/
 applications/python_scripts/ 
 libpython2.7.so.1.0
 runkratos
 libs/
-~~~ 
+``` 
 
 Note that some files will change according to your Python version. Feel free to add to this list every folder that you want to ignore.
 
 Close the text editor and run the following command: 
 
-~~~sh
+```sh
 git update-index
-~~~ 
+``` 
 
 The folders and files that you added to the file .git/info/exclude should not appear when typing:
 
-~~~sh
+```sh
 git status
-~~~  
+```  

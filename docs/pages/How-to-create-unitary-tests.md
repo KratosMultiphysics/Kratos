@@ -48,18 +48,18 @@ Kratos unittest are executed using the `run_tests.py` script located in the `kra
 
 Usage is the following: 
 
-~~~sh
+```sh
 python run_tests.py
-~~~
+```
 
 you can specify the following options: 
 
-~~~sh
+```sh
 -l,--level:        Select the suit. Values: "All", "Nightly", "Small"(default)
 -v,--verbosity:    Select the verbosity level of the output. Values: 0, 1 (default) , 2
 -a,--applications: List of applications to run separated by ":". For example "-a KratosKore:IncompressibleFluidApplication"
                    All applications compiled are run by default.
-~~~
+```
 
 ## Basic structure
 
@@ -74,15 +74,15 @@ Tests are organized in suites. Suites are a collection of tests that will be run
 
 All applications should implement those packages as they can be automatically run, for example in the `Nightly` runs. In order to add tests you should create at least a couple of files, one to define the tests and one to define the suites: 
 
-~~~sh
+```sh
 "application/tests/test_NAME_OF_OUR_APPLICATION.py"
-~~~
+```
 
 for example: 
 
-~~~sh
+```sh
 kratos/applications/example_application/tests/test_example_application.py
-~~~
+```
 
 ## General structure
 
@@ -94,7 +94,7 @@ This file will define the suites to run the tests. We define three different lev
 
 In order to add a test to some of these suites, one can do it as shown in this example: 
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division
 
 # import Kratos
@@ -149,13 +149,13 @@ def AssembleTestSuites():
 # The main function executes the tests
 if __name__ == '__main__':
     KratosUnittest.runTests(AssembleTestSuites())
-~~~
+```
 
 ## Structure for examples
 
 Examples are cases that test your code/application, but are more complex than the unitary tests, take longer and involve many functionalities. A typical example is a Finite Element calculation of few time steps and a few elements. In order to compute some examples (the examples that used to be located in the folder `test_examples`) some additional considerations must to be taken into account. These considerations can be observed in the following example that is located in the StructuralMechanicsApplication/tests. In order to compute a dynamic test (_Bossak_ and _Newmark_) and a patch test (with bending and membrane behaviours), the following files has been considered, first the main file, which will be the one launched. 
 
-~~~py
+```py
 # import Kratos
 import KratosMultiphysics 
 import KratosMultiphysics.ExternalSolversApplication 
@@ -253,7 +253,7 @@ def AssambleTestSuites():
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssambleTestSuites())
-~~~
+```
 
 The following can be added as commentary to clarify what the script is doing:
 
@@ -262,7 +262,7 @@ The following can be added as commentary to clarify what the script is doing:
 
 The following corresponds to the script that contains the test examples: 
 
-~~~ py
+``` py
 import os
 
 # Import Kratos
@@ -351,11 +351,11 @@ class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
 
-~~~
+```
 
 This file calls the main file, which is very similar to the one used by the GiD's problem type: 
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
@@ -479,11 +479,11 @@ class Kratos_Execute_Test:
 
         for process in self.list_of_processes:
             process.ExecuteFinalize()
-~~~
+```
 
 The main is always the same, just the processes from the project parameters inside the `.json` are changed, look for example the `.json` that corresponds to the Bossak dynamic test: 
 
-~~~json
+```json
 {
     "problem_data"             : {
         "problem_name"    : "dynamic_test",
@@ -609,13 +609,13 @@ The main is always the same, just the processes from the project parameters insi
     }
 }
 
-~~~
+```
 
 In the previous example the tests can be checked both analitycally with `check_analytic_results_process` or numerically with `check_json_results_process` (for that check you need to generate first the `.json` results file with the `print_output_process`).
 
 For some specific problems, where the common processes are not enough to define your test, you can define a local process, like the following one, where the displacement is imposed in the boundary and after solving the displacements they are checked in all the domain with 'AssertAlmostEqual': 
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
    # Importing the Kratos Library
    from KratosMultiphysics import *
@@ -677,7 +677,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
    
        def ExecuteFinalize(self):
            pass
-~~~
+```
 
 This specifics results can be found in the StructuralMechanicsApplication tests folder.
 
@@ -706,7 +706,7 @@ One way to solve this problem is to skip tests that require different applicatio
 
 When we define our test case, we use a `KratosMultiphysics.kratos_utilities.CheckIfApplicationsAvailable` to import other applications. Note that this is only necessary if functionalities from the other applications are directly used. If they are implicitly used (i.e. though json-input) then it is not necessary to import the other applications.
 
-~~~py
+```py
 import KratosMultiphysics
 from KratosMultiphysics import kratos_utilities
 
@@ -714,34 +714,34 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
     from KratosMultiphysics import FluidDynamicsApplication
     from KratosMultiphysics import StructuralMechanicsApplication
 from KratosMultiphysics import FSIApplication
-~~~
+```
 
 This will allow the script to run even if the applications are not available. Note that code execution will still fail if we try to use anything from a missing application.
 
 Next, when we define a test that needs something from the external applications, we specify that it should be skipped if either the Structural Mechanics Application or the Fluid Dynamics Application are not available. This can be done using the `skipIfApplicationsNotAvailable` decorator:
 
-~~~py
+```py
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
 class FSIProblemEmulatorTest(FSIProblemEmulatorTestFactory):
     # Define the test as normal
-~~~
+```
 
 The same can be done with using `KratosUnittest.skipTestIfApplicationsNotAvailable`:
 
-~~~py
+```py
 class FSIProblemEmulatorTest(FSIProblemEmulatorTestFactory):
     def test_FSI_problem(self):
         self.skipTestIfApplicationsNotAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
         # Define the test as normal
-~~~
+```
 
 Now, if we try to run the tests but we have not compiled one of the extra applications, the test will be skipped. If we set the verbosity level to `2`, the test script will tell us why it was skipped.
 
-~~~
+```
 $ python run_tests.py -v 2 -a 'FSIApplication'
 ...
 test_execution (SmallTests.FSIProblemEmulatorTest) ... skipped 'Required Applications are missing: "StructuralMechanicsApplication", "FluidDynamicsApplication"'
-~~~
+```
 
 Note that, if the test uses auxiliary python script files, the `import` statement for the extra applications should be placed in a `try`/`except` block in these files too, otherwise it will produce a runtime error.
 
@@ -751,13 +751,13 @@ Note that, if the test uses auxiliary python script files, the `import` statemen
 
 First remember to add the following to your `configure.sh`:
 
-~~~sh
+```sh
 -DKRATOS_BUILD_TESTING=ON                                                                                   \
-~~~
+```
 
 For the tests defined in C++ it is necessary to call the `Tester` from `KratosMultiPhysics`. Usage is the following: 
 
-~~~py
+```py
 from KratosMultiphysics import *
 
 # If you want to run tests defined in an application, import it here.
@@ -769,7 +769,7 @@ Tester.RunAllTestCases() #Test all cases
 Tester.RunTestSuite("Suite_name_here") #Test a whole suite
 
 Tester.RunTestCases("Test_name_here") #Test a specific case
-~~~
+```
 
 But can consult the functioning of the C++ cases looking at the [code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python/add_testing_to_python.cpp). In general the main arguments are:
 
@@ -800,7 +800,7 @@ So a separate `stdout` and `stderr` are created for every rank of the execution 
 
 In order to add a test to some of these suites, one can do it as shown in this example: 
 
-~~~c
+```c
 // System includes
 
 // External includes
@@ -819,11 +819,11 @@ namespace Testing {
 	}
 }
 } // namespace Kratos.
-~~~
+```
 
 This was the simplest example, tests with more complexity can be created, as the following one:
 
-~~~c
+```c
 // System includes
 #include <limits>
 
@@ -879,21 +879,21 @@ namespace Kratos
         }
     } // namespace Testing
 }  // namespace Kratos.
-~~~
+```
 
 Remember to add the following to the CmakeLists.txt of 
 
-~~~sh
+```sh
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
 	file(GLOB_RECURSE KRATOS_NAME_YOUR_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-~~~
+```
 
 You need to add your `KRATOS_NAME_YOUR_APPLICATION_TESTING_SOURCES` to your library, for example:
 
-~~~sh
+```sh
 add_library(KratosYourApplicationApplication SHARED ${KRATOS_NAME_YOUR_APPLICATION_SOURCES} ${KRATOS_NAME_YOUR_APPLICATION_TESTING_SOURCES})
-~~~
+```
 
 It is recommended to put the tests files in a folder called `cpp_tests` inside the tests folder in order to follow the same structure as the **Core** and the **CoreApplications**.
 

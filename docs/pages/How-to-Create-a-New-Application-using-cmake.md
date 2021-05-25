@@ -60,28 +60,28 @@ In order to understand what is done by the automatic script, we should consider 
 
 If your new application name is newname you have firstly to change the name of the following files: 
 
-~~~sh
- test_application.h    ----> newname_application.h
- test_application.cpp    ----> newname_application.cpp
- test_python_application.cpp    ----> newname_python_application.cpp
-~~~
+```sh
+test_application.h    ----> newname_application.h
+test_application.cpp    ----> newname_application.cpp
+test_python_application.cpp    ----> newname_python_application.cpp
+```
 
 Then you have to look inside the following files: test_application.h test_application.cpp test_python_application.cpp and perform the following substitutions: 
 
-~~~sh
- KRATOS_TEST_APPLICATION_H_INCLUDED    ----> KRATOS_NEWNAME_APPLICATION_H_INCLUDED
- KratosTestApplication    ----> KratosNewNameApplication
- include test_application.h    ----> #include newname_application.h
-~~~
+```sh
+KRATOS_TEST_APPLICATION_H_INCLUDED    ----> KRATOS_NEWNAME_APPLICATION_H_INCLUDED
+KratosTestApplication    ----> KratosNewNameApplication
+include test_application.h    ----> #include newname_application.h
+```
 
 and in the CMakeLists.txt 
 
-~~~sh
- KRATOS_TEST_APPLICATION_SOURCES   ----> #KRATOS_NEWNAME_APPLICATION_SOURCES
- test_application.cpp    ----> newname_application.cpp
- test_python_application.cpp    ----> newname_python_application.cpp
- TestApplication.py    ----> NewNameApplication.py
-~~~
+```sh
+KRATOS_TEST_APPLICATION_SOURCES   ----> #KRATOS_NEWNAME_APPLICATION_SOURCES
+test_application.cpp    ----> newname_application.cpp
+test_python_application.cpp    ----> newname_python_application.cpp
+TestApplication.py    ----> NewNameApplication.py
+```
 
 ## Editing other files to include the test application 
 
@@ -89,17 +89,17 @@ and in the CMakeLists.txt
 
 To begin with me must include the folder we have just created so that it can be compiled: in the first line, next to the other messages we add: 
 
-~~~sh
- message("TEST_APPLICATION.....................${TEST_APPLICATION}")
-~~~
+```sh
+message("TEST_APPLICATION.....................${TEST_APPLICATION}")
+```
 
 and scrolling a bit below we add the new directory: 
 
-~~~sh
- if(${TEST_APPLICATION} MATCHES ON)
-   add_subdirectory(test_application)
- endif(${TEST_APPLICATION} MATCHES ON)
-~~~
+```sh
+if(${TEST_APPLICATION} MATCHES ON)
+  add_subdirectory(test_application)
+endif(${TEST_APPLICATION} MATCHES ON)
+```
 
 ### cmake_build/configure.sh (configure.bat in Windows)
 
@@ -107,9 +107,9 @@ Finally you have to edit your .sh file (the one that was example_configure.sh.do
 
 to do so, simply add the line:
 
-~~~sh
- -DTEST_APPLICATION=ON		\
-~~~
+```sh
+-DTEST_APPLICATION=ON		\
+```
 
 among the other applications and you are ready. The new application should be compiled.
 
@@ -119,9 +119,9 @@ among the other applications and you are ready. The new application should be co
 
 To do so, if the Kratos path was set correctly, you only need to import KratosMultyphisics and then the test app: 
 
-~~~sh
- #including kratos path
- from KratosMultiphysics import *
- from KratosMultiphysics.TestApplication import *
- #and any other apps that you need to help solving your problem
-~~~
+```sh
+# Including kratos path
+from KratosMultiphysics import *
+from KratosMultiphysics.TestApplication import *
+# And any other apps that you need to help solving your problem
+```

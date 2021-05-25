@@ -112,10 +112,10 @@ This object is used to determine whether the strain/stress tensor is in elastic 
 
 The general definition of the yield surface class is as follows:
 
-~~~cpp
+```cpp
 template<class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerYieldSurface
-~~~
+```
 
 As explained before, the Plasticity constitutive Law could use one yield surface and a different plastic potential surface (so-called non-associative plasticity) so we had to develop a strategy to allow different YS-PP combinations without repeating code. This was done again, by including the PP as a template for the Yield Surface.
 
@@ -123,10 +123,10 @@ As explained before, the Plasticity constitutive Law could use one yield surface
 
 This object is used to compute the derivatives of the Plastic potential surfaces in order to calculate the direction of the plastic strain. The general definition of the  **PP** is:
 
-~~~cpp
+```cpp
 template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
-~~~
+```
 
 There are several classical plastic potential surfaces available:
 
@@ -167,20 +167,20 @@ Since there are several options to be used for **YS** and **PP** and taking into
 
 The more general file is called `generic_small_strain_isotropic_plasticity.cpp` and the main method is _CalculateMaterialResponseCauchy_ as follows:
 
-~~~cpp
+```cpp
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-~~~
+```
 
 As can be seen in the previous figure, the Constitutive Law has a template named "TConstLawIntegratorType" which is the object that integrates the stress in order to return to the admissible stress level according to a certain yield stress.
 
 ### Constitutive Law Integrator
 Inside this _Integrator_ the return mapping loop is performed. Since there are several procedures to do that, it was necessary to include the Integrator as a template. Currently we have implemented the so called _Backward Euler Return Mapping_.
 
-~~~cpp
+```cpp
 template<class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
-~~~
+```
 
 As can be seen in the previous figure, the `ConstitutiveLawIntegratorPlasticity` has a template regarding the Yield Surface object. This was done in order to allow to use any kind of yield surface according to the preferences of the users.
 
@@ -200,7 +200,7 @@ The crucial difference between the discretisation of the large strain problem an
 
 This Constitutive law has some checks in order to verify that all the parameters are provided but, very briefly, we are going to describe those parameters in order to perform a calculation. The generic StructuralMaterials.json has the following structure:
 
-~~~json
+```json
 {
         "model_part_name" : "Parts_Shell",
         "properties_id"   : 1,
@@ -224,7 +224,7 @@ This Constitutive law has some checks in order to verify that all the parameters
             "Tables"           : {}
         }
     }
-~~~
+```
 
 The parameters needed for the plasticity (neglecting the young modulus and poisson ratio) are (use International System):
 * _yield_surface_ : Defines the yield surface to use
@@ -250,7 +250,7 @@ The structure of the damage constitutive law is analogous to the plasticity case
 
 The general StructuralMaterials.json have the following structure:
 
-~~~json
+```json
 {
         "model_part_name" : "Parts_Shell",
         "properties_id"   : 1,
@@ -272,7 +272,7 @@ The general StructuralMaterials.json have the following structure:
             "Tables"           : {}
         }
 }
-~~~
+```
 
 The parameters are the following (use International System):
 * _yield_surface_ : Defines the yield surface to use
@@ -301,16 +301,16 @@ In order to guarantee flexibility, we have designed an structure capable of comb
 
 The implementation is described below (`generic_small_strain_d_plus_d_minus_damage.cpp`):
 
-~~~cpp
+```cpp
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainDplusDminusDamage
-~~~
+```
 
 ## How to use it?
 
 The general `StructuralMaterials.json` has the following form:
 
-~~~json
+```json
 {
         "model_part_name" : "Parts_Shell",
         "properties_id"   : 1,
@@ -333,7 +333,7 @@ The general `StructuralMaterials.json` has the following form:
             "Tables"           : {}
         }
 }
-~~~
+```
 
 The parameters required for this model have been explained previously and the way of combining yield surfaces is by calling the already registered combinations of them. For instance, in this example the name of the law is `SmallStrainDplusDminusDamageModifiedMohrCoulombVonMises3D` so it means that we are using a *d+d-* damage model using a *Modified Mohr Coulomb* yield surface for tension and *Von Mises* for compression. In this way we define the combinations by typing as "name":
 
@@ -369,7 +369,7 @@ And the general behaviour of the model can be seen in the picture below [1]:
 
 The general `StructuralMaterials.json` have the following structure:
 
-~~~json
+```json
 {
         "model_part_name" : "Parts_Shell",
         "properties_id"   : 1,
@@ -387,7 +387,7 @@ The general `StructuralMaterials.json` have the following structure:
             "Tables"           : {}
         }
 }
-~~~
+```
 
 The parameters are the following:
 * `DELAY_TIME`: Defines the initial slope of the curve (see previous figure)
@@ -407,7 +407,7 @@ And the general behaviour of the model can be seen in the picture below [1]:
 
 The general `StructuralMaterials.json` have the following structure:
 
-~~~json
+```json
 {
         "model_part_name" : "Parts_Shell",
         "properties_id"   : 1,
@@ -424,7 +424,7 @@ The general `StructuralMaterials.json` have the following structure:
             "Tables"           : {}
         }
 }
-~~~
+```
 
 The parameters are the following:
 * `DELAY_TIME`: Defines the initial slope of the curve (see previous figure)

@@ -14,7 +14,7 @@ Given a basis matrix <a href="https://www.codecogs.com/eqnedit.php?latex=\color{
 
 The RomApplication will load this basis matrix in the form of a JSON file, which should be in the following format:
 
-~~~json
+```json
 
 kkk
-~~~ 
+``` 

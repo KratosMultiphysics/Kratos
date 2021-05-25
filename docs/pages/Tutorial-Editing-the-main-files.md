@@ -14,7 +14,7 @@ In the main files of our application: my_laplacian_application.h and my_laplacia
 
 The first lines are just the typical legal issues related to the Kratos license. Just add your name as the main author of this application.
 
-~~~c
+```cpp
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -26,31 +26,31 @@ The first lines are just the typical legal issues related to the Kratos license.
 //
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
-~~~
+```
 
 In order to avoid class redefinition, you have to define a label for your application definition, as follows: 
 
-~~~c
+```cpp
 #if !defined(KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED )
 #define KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED
-~~~
+```
 
 the `#endif` is at the end of the code (the rest of the lines must be included between these ones): 
 
-~~~c
+```cpp
 #endif // KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED defined
-~~~
+```
 
 We will need to add the "include" files, such as the element and condition:
 
-~~~c
+```cpp
 #include "custom_elements/my_laplacian_element.h"
 #include "custom_conditions/point_source_condition.h"
-~~~
+```
 
 The class `MyLaplacianApplication` definition comes inside the _Kratos_ namespace. Then, you will need to declare the element and conditions as private member variables:
 
-~~~c
+```cpp
 private:
     ///@name Static Member Variables
     ///@{
@@ -63,7 +63,7 @@ private:
     const PointSourceCondition mPointSourceCondition;
 
     ///@}
-~~~
+```
 
 As specified in the [Style Guide](Style-Guide#class-members), all member variables inside a class are identified by a lower case _m_ at the beginning of the name.
 
@@ -71,7 +71,7 @@ As specified in the [Style Guide](Style-Guide#class-members), all member variabl
 
 First of all, remember to customize the header and add the include files. The elements initialization will need the geometries headers:
 
-~~~c
+```cpp
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -94,11 +94,11 @@ First of all, remember to customize the header and add the include files. The el
 #include "geometries/point_2d.h"
 #include "my_laplacian_application.h"
 #include "my_laplacian_application_variables.h"
-~~~
+```
 
 The implementation file includes the initialization of the element and conditions inside the constructor, and then, registering them:
 
-~~~c
+```cpp
 namespace Kratos {
 
 KratosMyLaplacianApplication::KratosMyLaplacianApplication():
@@ -120,7 +120,7 @@ void KratosMyLaplacianApplication::Register() {
 
 }
 }  // namespace Kratos.
-~~~
+```
 
 ## Variables files
 We only need to create `POINT_HEAT_SOURCE` variable since the other variables needed in this app are already included in the kernel  (`CONDUCTIVITY` and `TEMPERATURE`). The application generator has carried out the next tasks:
@@ -138,7 +138,7 @@ Finally, we will need to add the new sources to the cmake file (only the .cpp ar
 
 This is currently done automatically with the commands. Check that you have these lines in your CMakeLists.txt. 
 
-~~~txt
+```txt
 ## MyLaplacian Core sources
 file(GLOB_RECURSE KRATOS_MY_LAPLACIAN_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/my_laplacian_application.cpp
@@ -148,4 +148,4 @@ file(GLOB_RECURSE KRATOS_MY_LAPLACIAN_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
-~~~
+```

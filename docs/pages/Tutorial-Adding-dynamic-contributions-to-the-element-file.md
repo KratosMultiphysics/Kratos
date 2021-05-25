@@ -16,21 +16,21 @@ There is no second term derivative for the temperature, so the corresponding "ma
 
 We need to add to `my_laplacian_element.h`:
 
-~~~cpp
-    /**
-      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix The elemental mass matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
-~~~
+```cpp
+/**
+ * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+ * @param rMassMatrix The elemental mass matrix
+ * @param rCurrentProcessInfo The current process info instance
+ */
+void CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    ProcessInfo& rCurrentProcessInfo 
+    ) override;
+```
 
 Then we will add the following to our `my_laplacian_element.cpp`, this is a trivial code with the code already computed on the base class `element.h` it will be enough, we are doing this for consistency.
 
-~~~cpp
+```cpp
 void MyLaplacianElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo
@@ -46,7 +46,7 @@ void MyLaplacianElement::CalculateMassMatrix(
 
     KRATOS_CATCH("");
 }
-~~~
+```
 
 # "Damping" matrix
 
@@ -54,22 +54,21 @@ This "damping matrix" will be computed similar to a regular mass matrix, but usi
 
 We need to add to `my_laplacian_element.h`:
 
-~~~cpp
-    /**
-      * @brief This is called during the assembling process in order to calculate the elemental damping matrix
-      * @param rDampingMatrix The elemental damping matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo 
-        ) override;
-
-~~~
+```cpp
+/**
+ * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+ * @param rDampingMatrix The elemental damping matrix
+ * @param rCurrentProcessInfo The current process info instance
+ */
+void CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo 
+    ) override;
+```
 
 Now we can add the following to `my_laplacian_element.cpp`:
 
-~~~cpp
+```cpp
 void MyLaplacianElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo
@@ -135,4 +134,4 @@ void MyLaplacianElement::CalculateDampingMatrix(
 
     KRATOS_CATCH("");
 }
-~~~
+```

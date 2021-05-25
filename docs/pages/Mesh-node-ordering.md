@@ -18,17 +18,17 @@ Additionally everything related with geometry implementation can be directly con
 
 ## Line 
 
-~~~html
+```html
 Line2D2/                   Line2D3/   
 Line3D2:                   Line3D3:   
                                                 
 0----------1 --> u      0-----2----1
 
-~~~
+```
 
 ## Triangle
 
-~~~html
+```html
 Triangle2D3/               Triangle2D6/     
 Triangle3D3:               Triangle3D6:     
 
@@ -43,11 +43,11 @@ v
 |        `\             |        `\          
 0----------1 --> u      0-----3----1   
              
-~~~
+```
 
 ## Quadrilateral
 
-~~~html
+```html
 Quadrilateral2D4/      Quadrilateral2D8/       Quadrilateral2D9/
 Quadrilateral3D4:      Quadrilateral3D8:       Quadrilateral3D9:
 
@@ -61,11 +61,11 @@ Quadrilateral3D4:      Quadrilateral3D8:       Quadrilateral3D9:
 |           |          |           |           |           | 
 |           |          |           |           |           | 
 0-----------1          0-----4-----1           0-----4-----1 
-~~~
+```
 
 ## Tetrahedra
 
-~~~html
+```html
 Tetrahedra3D4:                          Tetrahedra3D10:
 
                    v
@@ -86,11 +86,11 @@ Tetrahedra3D4:                          Tetrahedra3D10:
              `3                                    `1        
                 `\.
                    ` w
-~~~
+```
 
 ## Hexahedron
 
-~~~html
+```html
 Hexahedron3D8:         Hexahedron3D20:       Hexahedron3D27:
 
        v
@@ -105,11 +105,11 @@ Hexahedron3D8:         Hexahedron3D20:       Hexahedron3D27:
   \ |     \  \ |         12 |        13|        12 |  21    13| 
    \|      w  \|           \|         \|          \|         \| 
     4----------5            4----16----5           4----16----5 
-~~~
+```
 
 ## Prism
 
-~~~html
+```html
 Prism3D6:                      Prism3D15:              
 
            w
@@ -131,6 +131,6 @@ u   |    ,/ `\    |    v    |    ,/ `\    |
     |,/         `\|         |,/         `\|       
     1-------------2         1------7------2        
 
-~~~
+```
 
 

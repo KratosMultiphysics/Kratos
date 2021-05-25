@@ -29,7 +29,7 @@ In computing, [JSON](https://en.wikipedia.org/wiki/JSON) is an open-standard for
 
 The typical structure of a JSON file is like the following: 
 
-~~~json
+```json
 {
     "problem_data"             : {
         "problem_name"    : "minimal_structure",
@@ -130,7 +130,7 @@ The typical structure of a JSON file is like the following:
         }]
     }
 }
-~~~
+```
 
 You can check your JSON file usin a JSON validator, [like](http://jsonlint.com/) .
 
@@ -138,16 +138,16 @@ Such text shall be read to an ``input_string`` which is then parsed and stored w
 
 this is done in python as:
 
-~~~py 
+```py
 input_string = open("ProjectParameters.json",'r').read()
 settings = Parameters( input_string )
-~~~ 
+``` 
 
 The settings object now behaves effectively as a combination of lists and dictionaries, for example one can obtain the name of the problem to be solved as 
 
-~~~py
+```py
  name = settings["problem_data"]["problem_name"].GetString()
-~~~
+```
 
 An important aspect of this is that the user is expected to ask specifically for the type to be provided For the case at hand (the name) one is asking for the item ``settings["problem_data"]["problem_name"]`` to be provided as a string by calling the ``GetString()`` method. 
 
@@ -171,28 +171,28 @@ In the case of an array item the function ``size()`` is provided, and the differ
 
 New values can be added to the ``settings`` by doing:
 
-~~~py
+```py
 settings.AddEmptyValue("item_name")
 settings["item_name"].SetDouble(1.0) #this would set the new item to the value of 1.0
-~~~ 
+``` 
 
 Entire parameter lists can be addeded by the function:
 
-~~~py
+```py
 settings.AddValue("subparameter_name", other_parameters_object)
-~~~ 
+``` 
 
 At any point one can obtain a formatted echo of the ``settings`` by doing:
 
-~~~py
+```py
 print(settings.PrettyPrintJsonString())
-~~~ 
+``` 
 
 A compact version, without any extra character (useful for example for serialization) can be obtained by doing:
 
-~~~py
+```py
 settings.WriteJsonString()
-~~~ 
+``` 
 
 ## Style Conventions for JSON
 Information about style conventions for the JSON file can be found in the [Style Guide](Style-Guide).

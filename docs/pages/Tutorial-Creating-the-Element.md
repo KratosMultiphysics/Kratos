@@ -31,7 +31,7 @@ The application generator will provide us both header and source templates for t
 
 The first lines inlcudes the license and the main authors. Do not forget to include the `geometry_utilities.h` and the `checks.h` files at the beginning of `my_laplacian_element.cpp`:
 
-~~~c
+```cpp
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -56,12 +56,12 @@ The first lines inlcudes the license and the main authors. Do not forget to incl
 #include "includes/variables.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_elements/my_laplacian_element.h"
-~~~
+```
 
 
 ### EquationIdVector
 
-~~~c
+```cpp
 /**
  * this determines the elemental equation ID vector for all elemental DOFs
  * @param rResult: the elemental equation ID vector
@@ -75,12 +75,12 @@ void MyLaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const P
   for (unsigned int i=0;i<number_of_nodes;i++)
       rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
 }
-~~~
+```
 
 
 ### GetDofList
 
-~~~c
+```cpp
 /**
  * determines the elemental list of DOFs
  * @param ElementalDofList: the list of DOFs
@@ -94,12 +94,12 @@ void MyLaplacianElement::GetDofList(DofsVectorType& rElementalDofList, const Pro
   for (unsigned int i=0;i<number_of_nodes;i++)
     rElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
 }
-~~~
+```
 
 
 ### CalculateLocalSystem
 
-~~~c
+```cpp
 /**
  * this is called during the assembling process in order
  * to calculate all elemental contributions to the global system
@@ -153,12 +153,12 @@ void MyLaplacianElement::CalculateLocalSystem(
 
     KRATOS_CATCH("");
 }
-~~~
+```
 
 
 ### Check
 
-~~~c
+```cpp
 /**
  * This method provides the place to perform checks on the completeness of the input
  * and the compatibility with the problem options as well as the contitutive laws selected
@@ -192,4 +192,4 @@ int MyLaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const {
 
       KRATOS_CATCH("");
 }
-~~~
+```

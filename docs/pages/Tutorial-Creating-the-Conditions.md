@@ -26,9 +26,9 @@ The process of creating a custom condition is similar to creating an element, an
 
 `POINT_HEAT_SOURCE` is our variable containing the external thermal loads to our problem. KRATOS will call the condition and assign it node by node to the system of equations. Since this is standard load, we only have to add the contribution to the right hand side (RHS) without any calculation. In pseudo code, our task is simply: 
 
-~~~c
+```cpp
 RHS (node) + = POINT_HEAT_SOURCE (node)
-~~~
+```
 
 Still, note that the structure of a condition, as well as the one in elements, includes both the RHS and the left hand side matrix (LHS). This gives us flexibility and thus we can incorporate operations that also affect the matrix. Bear in mind that conditions are a class called by the **solver**, so we will edit the mandatory operations:
 
@@ -41,7 +41,7 @@ Just as in the elements, to incorporate this condition we have to create it and 
 
 Here are the first lines of `point_source_condition.cpp`:
 
-~~~c
+```cpp
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -66,12 +66,12 @@ Here are the first lines of `point_source_condition.cpp`:
 #include "includes/checks.h"
 #include "includes/variables.h"
 #include "custom_conditions/point_source_condition.h"
-~~~
+```
 
 
 ### EquationIdVector
 
-~~~c
+```cpp
 /**
  * this determines the condition equation ID vector for all conditional
  * DOFs
@@ -87,11 +87,11 @@ void PointSourceCondition::EquationIdVector(EquationIdVectorType& rResult, const
     for (unsigned int i = 0; i < number_of_nodes; i++)
         rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
 }
-~~~	
+```	
 
 ### GetDofList
 
-~~~c
+```cpp
 /**
  * determines the condition equation list of DOFs
  * @param ConditionDofList: the list of DOFs
@@ -106,11 +106,11 @@ void PointSourceCondition::GetDofList(DofsVectorType& rConditionDofList, const P
     for (unsigned int i = 0; i < number_of_nodes; i++)
         rConditionDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
 }
-~~~
+```
 
 ### CalculateLocalSystem
 
-~~~c
+```cpp
 /**
  * this is called during the assembling process in order
  * to calculate all condition contributions to the global system
@@ -136,11 +136,11 @@ void PointSourceCondition::CalculateLocalSystem(
     rRightHandSideVector[0] = load;
     KRATOS_CATCH("")
 }
-~~~
+```
 
 ### Check
 
-~~~c
+```cpp
 /**
  * This method provides the place to perform checks on the completeness of the input
  * and the compatibility with the problem options as well as the contitutive laws selected
@@ -175,4 +175,4 @@ int PointSourceCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     KRATOS_CATCH("");
 }
-~~~
+```

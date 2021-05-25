@@ -21,7 +21,7 @@ Following that very same structure we just need to define the following methods:
 
 # Code 
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing Kratos
@@ -129,6 +129,6 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     simulation = PoissonAnalysis(model, parameters)
     simulation.Run()
-~~~
+```
 
 We save the file to the folder python_scripts with the name `poisson_analysis`.

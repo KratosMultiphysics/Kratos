@@ -14,48 +14,48 @@ Here we introduce the basics to create and access to model parts and submodelpar
 
 First of all we need to create a python file with following code to import the `KratosMultiphysics`.
 
-~~~python
+```python
 import KratosMultiphysics
-~~~
+```
 
 ## Create Model
 
 Then we need to create the `Model`, which will be the resposible to manage the different `ModelPart`s that we will create.
 
-~~~python
+```python
 this_model = KratosMultiphysics.Model()
-~~~
+```
 
 ## Create ModelPart
 
 Now we can create a `ModelPart`. The `ModelPart` is the object containing `Element`, `Conditions`, `Nodes` and `Properties`. For now we create the *Main* model part, which will store the successive submodelparts.
 
-~~~python
+```python
 main_model_part = this_model.CreateModelPart("Main")
-~~~
+```
 
 We can create a new model part with a certain *buffer size* using the following (we need to delete the model part to avoid errors):
 
-~~~python
+```python
 this_model.DeleteModelPart("Main")
 main_model_part = this_model.CreateModelPart("Main", 2)
-~~~
+```
 
 We can now execute different operations with the `Model`:
 
-~~~python
+```python
 print(this_model.HasModelPart("Main")) # It will return True
 print(this_model.GetModelPartNames()) # It will return ['Main']
 main_model_part_again = this_model.GetModelPart("Main") # Getting again
-~~~
+```
 
 Let's output what is there:
 
-~~~python
+```python
 print(main_model_part)
-~~~
+```
 
-~~~sh
+```sh
 -Main- model part
     Buffer Size : 2
     Number of tables : 0
@@ -68,11 +68,11 @@ print(main_model_part)
         Number of Elements    : 0
         Number of Conditions  : 0
         Number of Constraints : 0
-~~~
+```
 
 Some other operations we can do are:
 
-~~~python
+```python
 print(main_model_part.NumberOfNodes()) # It will return 0
 print(main_model_part.NumberOfElements()) # It will return 0
 print(main_model_part.NumberOfConditions()) # It will return 0
@@ -81,23 +81,23 @@ print(main_model_part.NumberOfProperties()) # It will return 0
 print(main_model_part.NumberOfMeshes()) # It will return 1
 print(main_model_part.GetBufferSize()) # It will return 2
 main_model_part.SetBufferSize(3) # Set the buffer size to 3 instead of 2
-~~~
+```
 
 ## Create sub ModelPart
 
 A fundamental feature is that it can also hierarchically contain *SubModelParts* intended as other `ModelParts` which belong to the same parent. This relation can be repeated recursively, so that each "root" `ModelPart` can actually own a tree of SubModelParts. We can create a submodelpart with the following:
 
-~~~python
+```python
 bc_model_part = main_model_part.CreateSubModelPart("BC")
-~~~
+```
 
 Let's output what is there:
 
-~~~python
+```python
 print(main_model_part)
-~~~
+```
 
-~~~sh
+```sh
 -Main- model part
     Buffer Size : 3
     Number of tables : 0
@@ -122,15 +122,15 @@ print(main_model_part)
             Number of Conditions  : 0
             Number of Constraints : 0
 
-~~~
+```
 
 Now we can do several operations with this:
 
-~~~python
+```python
 print(main_model_part.HasSubModelPart("BC")) #returns True
 print(main_model_part.NumberOfSubModelParts()) #returns 1
 print(main_model_part.GetSubModelPart("BC").Name) #returns the name --> BC
-~~~
+```
 
 ## Data Ownership
 

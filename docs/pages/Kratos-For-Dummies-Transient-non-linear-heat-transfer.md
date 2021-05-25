@@ -97,7 +97,7 @@ Once everything has been packed into the designed workflow, using analysis and s
 
 Now our main python script will contain only the following:
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
@@ -118,5 +118,5 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     simulation = PoissonAnalysis(model,parameters)
     simulation.Run()
-~~~
+```
 

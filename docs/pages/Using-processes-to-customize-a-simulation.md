@@ -17,7 +17,7 @@ Adding a process in a simulation is straight-forward, it has to be added to the 
 ## Adding processes in the simulation
 In the following it is shown how to add processes from different locations (KratosCore, Kratos-Application or user-defined) to a simulation in `ProjectParameters.json`. Further information can be found [in the description of the AnalysisStage](Common-Python-Interface-of-Applications-for-Users#analysisstage-usage).
 
-~~~js
+```js
 "processes" : {
     "from_kratos_core" : [{
         "python_module" : "assign_vector_variable_process",
@@ -40,7 +40,7 @@ In the following it is shown how to add processes from different locations (Krat
         }
     }]
 }
-~~~
+```
 
 
 _Note_: In order for the user-defined process to work, it has to be available on the `PYTHONPATH` of the system. This can e.g. be the current working directory.
@@ -52,7 +52,7 @@ Following is an example containing the functions a python-process can implement.
 In order to see where the functions are being called, one can check the [AnalysisStage](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/analysis_stage.py). 
 
 Since most applications have adapted the AnalysisStage from the KratosCore, it is very easy to use a different application, one does not have to re-learn how the things are working.
-~~~py
+```py
 import KratosMultiphysics as KM
 
 def Factory(settings, model):
@@ -162,5 +162,5 @@ class DummyPythonProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         pass
-~~~
+```
 _Note_: Unused functions can be deleted, it is not necessary to have an empty implementation.

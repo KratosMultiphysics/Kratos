@@ -18,9 +18,9 @@ summary:
 # Overview
 MultiFreedom Constraints (**MFC**) are functional equations that connect two or more degrees of freedom components:
 
-~~~
- F(nodal degree of freedom)  = prescribed value
-~~~
+```
+F(nodal degree of freedom)  = prescribed value
+```
 
 An **MFC** of this form is called multipoint or multinode (**MPC**) if it involves *DoF* components at different nodes. The constraint is called *linear* if all displacement components appear linearly on the left-hand-side, and *nonlinear* otherwise.
 
@@ -50,15 +50,15 @@ We will use a very simple structure example in order to explain how the formulat
 Now let us specify a multifreedom constraint that states that nodes 2 and 6 are to move by the same
 amount:
 
-~~~
+```
 u2 = u6
-~~~
+```
 
 Passing all node displacements to the right hand side gives the canonical form:
 
-~~~
+```
 u2-u6=0
-~~~
+```
 
 Constraintconditionsofthistypearesometimescalled rigid links becausetheycanbemechanically
 interpreted as forcing node points 2 and 6 to move together as if they were tied by a rigid member.
@@ -99,7 +99,7 @@ Additionally to this, in order to consider the **MPC** into ths system assembly 
 
 The *MasterSlaveConstraint* are part of the *Mesh* class, so they are stored in the [*ModelPart*](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/includes/model_part.h) as the elements and conditions do. Then the *ModelPart* has an interface to access and create them. Particularly the methods `CreateNewMasterSlaveConstraint` are of interest, there are three options:
 
-~~~cpp
+```cpp
 MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(
 	const std::string& ConstraintName,
 	IndexType Id, 
@@ -130,11 +130,11 @@ MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(
 	double Weight,
 	double Constant,
 	IndexType ThisIndex = 0);
-~~~
+```
 
 This can be seen in a simple example:
 
-~~~py
+```py
 import KratosMultiphysics
 
 # Define a Model
@@ -181,7 +181,7 @@ strategy.Solve()
 print(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X))
 
 assert mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X) == mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-~~~
+```
 
 **IMPORTANT: The slaves nodes must have the flag SLAVE set to true**
 
@@ -248,23 +248,23 @@ by
 
 You should change:
 
-~~~py
+```py
         "contact_settings"                : {
             "mortar_type" : "ALMContactFrictionlessComponents"
         },
-~~~
+```
 
 by 
 
-~~~py
+```py
         "mpc_contact_settings"                : {
             "contact_type"                   : "MeshTying"
         }
-~~~
+```
 
 and replace 
 
-~~~py
+```py
 {
             "python_module" : "alm_contact_process",
             "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
@@ -280,10 +280,10 @@ and replace
                 "contact_type"        : "FrictionlessComponents"
             }
         }
-~~~
+```
 
 by 
-~~~py
+```py
         "contact_process_list"     : [{
             "python_module" : "mpc_contact_process",
             "kratos_module" : "ContactStructuralMechanicsApplication",
@@ -300,7 +300,7 @@ by
                 "reaction_check_stiffness_factor" : 2.0e-3
             }
         }
-~~~
+```
 
 ## Final result
 In our case we applied a body force over the whole volume, obtaining the following deformed shape:

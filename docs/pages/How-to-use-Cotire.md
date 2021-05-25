@@ -69,7 +69,7 @@ cores).
 
 For example in the case of the StructuralMechanicsAplication we have:
 
-~~~cmake
+```cmake
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosStructuralMechanicsApplication ****")
@@ -148,7 +148,7 @@ install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )
-~~~
+```
 
 # CCache?
 

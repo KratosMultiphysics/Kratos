@@ -50,40 +50,40 @@ The installation of the library is fortunately quite straightforward thanks to t
 	* Here you can see the `mmg` folder, but it is empty. You have the `README.txt`, where the installation is explained, and the build folder, where the `configure.sh` script can be found.
 	* Go to a folder of your chose to install the library (for example `~/src`) (make sure you have installed `git` first):
 
-~~~sh
+```sh
 git clone https://github.com/MmgTools/mmg.git
-~~~
+```
 
 * Then copy the `build` folder from the old `mmg` folder to the new `mmg` folder. Go to the build folder and execute:
 
 Linux
-~~~sh
+```sh
 sh configure.sh
-~~~
+```
 Windows
 (Command prompt)
-~~~cmd
+```cmd
 configure.bat
-~~~
+```
 Windows
 (Powershell)
-~~~cmd
+```cmd
 ./configure.bat
-~~~
+```
 
 * Once the compilation is done go to the main *Kratos* folder and go to your `scripts` folder. Here you modify the `configure.sh` or `configure.bat` adding the following lines (modify the `kratos_dir` for your current *Kratos* installation directory): 
 
-~~~sh
+```sh
 -DINCLUDE_MMG=ON                                                     \
 -DMMG_ROOT="/path/to/src/mmg/build"                                         \
-~~~
+```
 
 It will be assumed that the libraries folder is under `/path/to/srtc/mmg/build/lib`. In case your libraries are not detected automatically, you can specify the path by using:
-~~~sh
+```sh
 -DINCLUDE_MMG=ON                                                    \
 -DMMG_BUILDDIR="/path/to/src/mmg/build"                             \
 -DMMG_LIBDIR="/path/to/custom/mmg/lib"                              \
-~~~
+```
 
 
    **In Windows, it is possible that the build  folder was written in your C://Program Files/ folder**
@@ -91,13 +91,13 @@ It will be assumed that the libraries folder is under `/path/to/srtc/mmg/build/l
    Further information and possible errors are covered in [this README.](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MeshingApplication/custom_external_libraries/mmg/README.md)
 * After that recompile Kratos using again:
 Linux
-~~~sh
+```sh
 sh Kratos/scripts/configure.sh
-~~~
+```
 Windows
-~~~bat
+```bat
 Kratos/scripts/configure.sh
-~~~
+```
 
 Once Kratos is compiled, you will have to tell the OS where to find the libraries. You can do that by executing this command.
 
@@ -127,9 +127,9 @@ Or set them permanently using the **Edit the system environment variables option
 
 Go to the folder tests in the `MeshingApplication` and run:
 
-~~~sh
+```sh
 python3 test_MeshingApplication.py
-~~~
+```
 
 You should get an OK, if you don't get an OK there is something wrong:
 
@@ -145,7 +145,7 @@ You should get an OK, if you don't get an OK there is something wrong:
 
 Taking for example the following [mesh](https://github.com/KratosMultiphysics/Examples/tree/master/mmg_remeshing_examples/use_cases/coarse_sphere), and using the following python script (included in the previous compressed file) it is possible to re-mesh a very coarsed mesh of a sphere into a fine an anisotropic sphere.
     
-~~~py
+```py
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
@@ -225,11 +225,11 @@ gid_output.ExecuteInitializeSolutionStep()
 gid_output.PrintOutput()
 gid_output.ExecuteFinalizeSolutionStep()
 gid_output.ExecuteFinalize()   
-~~~
+```
 
 The metric can be calculated by hand if you prefer, for example to get the same result than the previous script:
 
-~~~py
+```py
 # We import the libraies
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
@@ -322,7 +322,7 @@ gid_output.ExecuteInitializeSolutionStep()
 gid_output.PrintOutput()
 gid_output.ExecuteFinalizeSolutionStep()
 gid_output.ExecuteFinalize()   
-~~~
+```
 
 ![](https://github.com/KratosMultiphysics/Examples/raw/master/mmg_remeshing_examples/use_cases/coarse_sphere/data/solution.png) 
 
@@ -330,7 +330,7 @@ gid_output.ExecuteFinalize()
 
 As said before, the re-meshing is based in a process structure, in this case the 'MainKratos.py' files must be modified (you can take as reference one present in the next section). The parameters that define this process are the following ones:
 
-~~~json
+```json
 ## Settings string in json format
 default_parameters = KratosMultiphysics.Parameters("""
 {
@@ -427,7 +427,7 @@ default_parameters = KratosMultiphysics.Parameters("""
             "echo_level"                       : 3
 }
 """)
-~~~
+```
 
 The meaning of each of the parameters is the following one:
 

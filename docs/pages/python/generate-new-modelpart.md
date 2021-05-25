@@ -25,10 +25,10 @@ The difference thus lays in the Element type being employed, which substitute in
 
 The usage of the modeler is as follows:
 
-~~~py
-     modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-     modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, "Element2D3N", "Condition2D2N")
-~~~
+```py
+modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, "Element2D3N", "Condition2D2N")
+```
 
 
 

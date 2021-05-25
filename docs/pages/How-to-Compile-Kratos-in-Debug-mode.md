@@ -32,9 +32,9 @@ Should you need more information, in Linux you can also add the compilation flag
 
 To select a build type in Linux, add the following line to your configure script:
 
-~~~sh
-   -DCMAKE_BUILD_TYPE=<build_mode>     \
-~~~
+```sh
+-DCMAKE_BUILD_TYPE=<build_mode>     \
+```
 
 replacing `<build_mode>` with one of `Release`, `RelWithDebInfo`, `Debug` or `FullDebug` (capitalization matters!).
 
@@ -50,23 +50,23 @@ If you compile Kratos using a mode other than `Release`, you should be able to s
 
 You will notice that switching from one build mode to another takes long, since the entire code base has to be re-complied in the new mode. A solution to this problem is to use different build folders to compile the code in each mode. When you download kratos, it contains a `cmake_build` folder for compilation. You might want to create a different folder, for instance `cmake_build_debug`, to compile in debug mode. You can do so from the main Kratos folder: 
 
-~~~sh
-   mkdir cmake_build_debug
-   cp cmake_build/configure.sh cmake_build_debug/configure_debug.sh
-~~~
+```sh
+mkdir cmake_build_debug
+cp cmake_build/configure.sh cmake_build_debug/configure_debug.sh
+```
 
 Then, **edit** 'configure_debug.sh' by setting the **build mode** with: 
 
-~~~sh
-   -DCMAKE_BUILD_TYPE=Debug     \
-~~~
+```sh
+-DCMAKE_BUILD_TYPE=Debug     \
+```
 
 Now you can compile the debug version from the new folder, while keeping the intermediate files of the release build intact: 
 
-~~~sh
-   cd cmake_build_debug
-   sh configure_debug.sh
-~~~
+```sh
+cd cmake_build_debug
+sh configure_debug.sh
+```
 
 and both versions will coexist.
 

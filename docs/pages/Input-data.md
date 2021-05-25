@@ -284,10 +284,10 @@ If you want to import your mesh from a different code, there is an initial suppo
 
 Let's say we want to import an VTK mesh.
 
-~~~py
+```py
 import meshio
 mesh = meshio.read("test.vtk")
 meshio.write("test.mdpa", mesh)
-~~~
+```
 
 Additionally, due to the support of *meshio* it is possible to create a mesh using [pygmsh](https://github.com/nschloe/pygmsh). Check the link for examples.

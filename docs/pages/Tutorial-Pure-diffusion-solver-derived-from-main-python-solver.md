@@ -12,7 +12,7 @@ TODO: Finish me
 
 # Derived solver
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
@@ -460,11 +460,11 @@ class PureDiffusionSolver(PythonSolver):
                                         self.settings["reform_dofs_at_each_step"].GetBool(),
                                         self.settings["move_mesh_flag"].GetBool())
 
-~~~
+```
 
 # Check and prepare model part
 
-~~~py
+```py
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
@@ -516,4 +516,4 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             transfer_process.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("Computing model part:", computational_model_part)
-~~~
+```
