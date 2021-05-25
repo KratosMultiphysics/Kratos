@@ -13,34 +13,47 @@ def Factory(settings, Model):
 # All the processes python processes should be derived from "Process"
 
 
-def components_to_functions(vect):
-    """Receives a vector and converts its components to functions. Components can be
-    numbers or strings with valid function expressions (e.g. [0.0, "1.2", "3.4 + t"]).
-    It returns a vector whose components are the generated functions from the original
-    arguments (e.g. [f(0), f(1.2), f(3.4+t)]), where 't' will be later evaluated as the
-    current simulation time.
+def param_to_str(param):
+    """Receives a vector and a magnitud, and converts product's components to functions.
 
     Keyword arguments:
-    vect -- Kratos parameters array containing numbers or strings with valid functions
+    param -- Kratos parameters object with double or string type inside, also
+    python's int, float, and str types.
 
     Returns:
-    vector with functions rendered from the input's components
+    string expression of the input param vector
     """
-    v = []
-    for c in vect:
-        if c.IsNumber():
-            s = str(c.GetDouble())
-        elif c.IsString():
-            s = c.GetString()
-        else:
-            msg = "SetInitialStateProcess: Vector component must be scalar or string"
-            raise Exception(msg)
-        function = KratosMultiphysics.GenericFunctionUtility(s)
-        if function.DependsOnSpace():
-            msg = "SetInitialStateProcess: 'x', 'y' and 'z' variables not supported yet"
-            raise Exception(msg)
-        v.append(function)
-    return v
+    if type(param) is KratosMultiphysics.Parameters:
+        if param.IsNumber():
+            sparam = str(param.GetDouble())
+        elif param.IsString():
+            sparam = param.GetString()
+    elif type(param) in [int, float, str]:
+        sparam = str(param)
+    else:
+        msg = "SetInitialStateProcess: Value must be scalar or string"
+        raise Exception(msg)
+    return sparam
+
+
+def str_to_function(expr):
+    """Convert text to a mathematical function.
+
+    Input string must be a valid mathematical expression (e.g."1.2", "3.4 + t",
+    "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
+    where 't' will be later evaluated as the current simulation time.
+
+    Keyword arguments:
+    expr -- strings with valid expression
+
+    Returns:
+    Generated functions rendered from the input
+    """
+    function = KratosMultiphysics.GenericFunctionUtility(expr)
+    if function.DependsOnSpace():
+        msg = "SetInitialStateProcess: 'x', 'y' and 'z' variables not supported yet"
+        raise Exception(msg)
+    return function
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
@@ -72,9 +85,11 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "dimension"       : 3,
-            "imposed_strain"  : ["0*t","0*t","0*t",0,0,0,0],
+            "imposed_strain_magnitude": "1.0",
+            "imposed_strain"  : ["0","0","0",0,0,0],
+            "imposed_stress_magnitude": "1.0",
             "imposed_stress"  : [0,0,0,0,0,0],
-            "imposed_deformation_gradient"  : [[1,0,0],[0,1,0],[0,0,1]],
+            "imposed_deformation_gradient": [[1,0,0],[0,1,0],[0,0,1]],
             "interval"        : [0.0, 1e30]
         }
         """
@@ -88,12 +103,16 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.dimension = settings["dimension"].GetInt()
 
         # init strain
-        self.strain_functions = components_to_functions(settings["imposed_strain"])
+        m = param_to_str(settings["imposed_strain_magnitude"])
+        v = [param_to_str(x) for x in settings["imposed_strain"]]
+        self.strain_functions = [str_to_function("{}*{}".format(m, x)) for x in v]
         nr_comps = len(self.strain_functions)
         self.imposed_strain = KratosMultiphysics.Vector(nr_comps)
 
         # init stress
-        self.stress_functions = components_to_functions(settings["imposed_stress"])
+        m = param_to_str(settings["imposed_stress_magnitude"])
+        v = [param_to_str(x) for x in settings["imposed_stress"]]
+        self.stress_functions = [str_to_function("{}*{}".format(m, x)) for x in v]
         nr_comps = len(self.stress_functions)
         self.imposed_stress = KratosMultiphysics.Vector(nr_comps)
 
@@ -101,7 +120,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         aux_matrix = settings["imposed_deformation_gradient"]
         self.deformation_functions = []
         for row in aux_matrix:
-            aux_vector = components_to_functions(row)
+            v = [param_to_str(x) for x in row]
+            aux_vector = [str_to_function(x) for x in v]
             self.deformation_functions.append(aux_vector)
         nrows = aux_matrix.size()
         ncols = aux_matrix[0].size()
