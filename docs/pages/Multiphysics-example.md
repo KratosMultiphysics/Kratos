@@ -13,16 +13,16 @@ The main goal is to become familiar with key aspects of multiphysics simulations
 
 The first example will be used in a black-box manner to discuss the most important details related to setting up such cases and the corresponding parameters. The second example depicts how one could create own - so customized - mapping and solvers to further enhance existing capabilities. 
 
-**Suggestion:** as soon as you are here, you should download the [source files](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip) and start running the respective simulations from the command line as explained in [Kratos input files and IO](Kratos-input-files-and-IO) (section 2.2: _Run Kratos from the command line_) . As there are 2 examples intended to be shown, it would be sufficient if every other person would run one and the remaining participants the other, preferably in groups of two.
+**Suggestion:** as soon as you are here, you should download the [source files](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip) and start running the respective simulations from the command line as explained in [Kratos input files and IO](Kratos-input-files-and-IO) (section 2.2: _Run Kratos from the command line_) . As there are 2 examples intended to be shown, it would be sufficient if every other person would run one and the remaining participants the other, preferably in groups of two.
 * Simulation 1: in `6_multiphysics\FSIBlackboxGeneric\MainKratos.py` 
 * Simulation 2: in `6_multiphysics\FSICustomizedSDoFVortexShedding\MainKratosFSI.py`
 
 ## 1. FSI Black-box generic
 The discussion relies on the examples discussed in [Running an example from GiD](Running-an-example-from-GiD). Here it was shown how a CFD (section 3) and a CSM (section 4) can be set up and run. Additionally, in section 5 an FSI example was provided which builds upon the CFD and CSM setups.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi1.jpg" width=500px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi1.jpg" width=500px class="center" >
 
-For this you should download and refer to the input files for [the respective case](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip).
+For this you should download and refer to the input files for [the respective case](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Workshops_files/Kratos_Workshop_2019/Sources/6_multiphysics/6_multiphysics.zip).
 
 The main components of this certain multiphysics case - an FSI simulation - are:
 * the CFD "simulation": model part `KratosWorkshop2019_high_rise_building_FSI_Fluid.mdpa` and respective settings` "structure_solver_settings"`
@@ -44,11 +44,11 @@ As it can be observed that there are more settings blocks, as additional compone
 
 * the **solver type**: when referring to multiphysics simulations, one generally tries to deal with a complex problem, which can be solved in various manners: either _monolithic_ (which leads to one large system to be solved) or _partitioned_ (which implies splitting up the problem into dedicated fields, dealing with these separately and ensuring proper data transfer and convergence
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi2.jpg" width=550px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi2.jpg" width=550px class="center" >
    
 * the **coupling scheme**: here a _Dirichlet-Neumann_-type coupling is used, which specifies which values are affected by the mapping, more precisely for this case: the CFD simulation results in fluid forces on the respective structure interface, these forces being transferred (mapped) onto the structure and serving as the right hand side (RHS - or force vector), so as a Neumann boundary condition for the CSM; the CSM solve results in the deformation of the structural model, the deformations from the boundary to the fluid are transferred (mapped) onto the CFD domain, these deformations serving affecting the left hand side (LHS - or the vector of primary variables) for the pseudo-structural problem (refer to the next point of the _mesh solver_), constituting a Dirichlet boundary condition
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi3.jpg" width=650px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi3.jpg" width=650px class="center" >
 
 * the **mesh solver** and its settings: this builds upon the existing parts of the CFD (see the provided `"model_part_name"`) and is responsible for deforming the CFD mesh in order to consistently match the deformations on the interface of the fluid to the structure, which is done using a pseudo-structural formulation (hinted by the naming of the `"solver_type"`), as the mesh deformations are solved as if this was a structural mechanics problem with prescribed deformations on the respective boundary
 ```json
@@ -98,10 +98,10 @@ where _ALE_ stands for the _Arbitrary-Lagrangian-Eulerian_ formulation.
 Once the simulation is done, the (mesh) displacement results should be viewed.
 
 For the CFD partition it looks like this:
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi4.jpg" width=750px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi4.jpg" width=750px class="center" >
 
 For the CSM partition:
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi5.jpg" width=750px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi5.jpg" width=750px class="center" >
 
 One can observe that the deformation of the two domains is consistent. This suggests the proper choice of settings for convergence. This example uses the capabilities of KratosMultiphysics as a black-box. The problem definition setup can be done, for e.g. in GiD. After the creation of the model parts and the initial settings, the user might want or need to change settings in the parameters file to re-run.
 
@@ -109,10 +109,10 @@ One can observe that the deformation of the two domains is consistent. This sugg
 This example is chosen to show how one could additionally use own - custom python scripts to achieve coupling. The underlying CFD case is that of a rectangular cylinder in constant flow. Harmonic forces arise perpendicular to the flow due to vortex shedding. A single-degree-of-freedom (SDoF) structural model is chosen as the custom CSM solver. 
 
 The CFD case results - vortex shedding results can be seen:
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi6.jpg" width=750px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi6.jpg" width=750px class="center" >
 
 For this problem, the SDoF solver is chosen to model the rigid body displacement of the square perpendicular to the flow direction, which leads to the following setup for the FSI:
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi7.jpg" width=500px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi7.jpg" width=500px class="center" >
 
 The necessary parameters files are:
 * `ProjectParametersCFD.json` : contains all necessary information to setup and run the CFD simulation, as well as the additional mesh moving prerequisites
@@ -307,10 +307,10 @@ file_writer.CloseFile()
 ```
 
 The results for the CFD domain with mesh moving - _(mesh) displacement y_ of the upper left corner of the square (opening `MainModelPart.post.bin` in GiD):
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi8.jpg" width=750px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi8.jpg" width=750px class="center" >
 
 The results for the CSM solver plotted with python (using the provided `plot_displacement_results.py`) from the resulting ascii file `sdof_csm_displacement_y.dat`:
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/fsi9.jpg" width=750px class="center" >
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/fsi9.jpg" width=750px class="center" >
 
 The goal of the second example is to show you how you could take one or more existing applications from KratosMultiphysics and coupling these in a customized manner, also including own solver, both carried out in the python layer.
 

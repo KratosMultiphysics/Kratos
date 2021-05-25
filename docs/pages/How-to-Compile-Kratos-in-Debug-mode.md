@@ -40,11 +40,11 @@ replacing `<build_mode>` with one of `Release`, `RelWithDebInfo`, `Debug` or `Fu
 
 In Visual Studio, you can select the build mode from the `Solution configurations` menu, as shown in the image:
 
-![Build mode selection in Visual Studio](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How_to_Compile_Kratos_in_Debug_mode/build_modes_win.png)
+![Build mode selection in Visual Studio](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How_to_Compile_Kratos_in_Debug_mode/build_modes_win.png)
 
 If you compile Kratos using a mode other than `Release`, you should be able to see the build mode next to the Kratos version when importing Kratos in Python:
 
-![Running in debug mode](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How_to_Compile_Kratos_in_Debug_mode/fulldebug_mode.png)
+![Running in debug mode](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How_to_Compile_Kratos_in_Debug_mode/fulldebug_mode.png)
 
 ## Keeping both a Release and a Debug version of Kratos at the same time
 

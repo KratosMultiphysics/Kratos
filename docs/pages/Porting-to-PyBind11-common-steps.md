@@ -56,7 +56,7 @@ becomes
 
 One last important remark is to update the CMakeLists.txt
 
-![Change 3](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Porting-to-PyBind11---common-steps/change_3.png?raw=true)
+![Change 3](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Porting-to-PyBind11---common-steps/change_3.png?raw=true)
 
 ## Internal references in python
 When references are to be used

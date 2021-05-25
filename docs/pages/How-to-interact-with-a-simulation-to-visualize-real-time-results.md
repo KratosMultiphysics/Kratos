@@ -210,8 +210,8 @@ Press the STOP button to call the Finalize method and finish the simulation.
 ![demo]
 
 
-[bunny]:https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How_to_interact_with_a_simulation_to_visualize_results_in_real_time/BunnyWithBC.png
+[bunny]:https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How_to_interact_with_a_simulation_to_visualize_results_in_real_time/BunnyWithBC.png
 
-[demo]:https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How_to_interact_with_a_simulation_to_visualize_results_in_real_time/Demo.gif
+[demo]:https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How_to_interact_with_a_simulation_to_visualize_results_in_real_time/Demo.gif
 
 

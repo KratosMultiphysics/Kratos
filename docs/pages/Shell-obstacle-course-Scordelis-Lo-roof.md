@@ -9,7 +9,7 @@ summary:
 ## Problem definition
 The linear static Scordelis-Lo roof test considers a section of cylindrical shell fixed by rigid diaphragms at it's axial ends subject to a pseudo-gravity distributed load of a magnitude 90. Isotropic material properties are as per the figure below. Due to symmetry, only a quarter of the shell is modeled. 
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_lo_problem_setup.PNG" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_lo_problem_setup.PNG" width="600">
 
 _Problem definition [2]_
 
@@ -18,19 +18,19 @@ The key result is the vertical displacement of the lateral side at the midpoint,
 ## Results
 The following Z-displacement contour of the Kratos thin quad element (mesh = 192 elements) is provided for context.
 
-![Scordelis Lo displacement contour.](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_lo_contour.png)
+![Scordelis Lo displacement contour.](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_lo_contour.png)
 
 _Scordelis-Lo roof results: Z-displacement contour of Kratos thin quad element_
 
 The results of the test for the thin and thick triangle Kratos shell elements are presented below.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_structured_tri_results_kratos.png" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_structured_tri_results_kratos.png" width="600">
 
 _Scordelis-Lo roof results: triangle elements_
 
 The results of the test for the thin and thick quadrilateral Kratos shell elements are presented below.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_structured_quad_results_kratos.png" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Shell_obstacle_course_scordelis_lo_roof/scordelis_structured_quad_results_kratos.png" width="600">
 
 _Scordelis-Lo roof results: quadrilateral elements_
 

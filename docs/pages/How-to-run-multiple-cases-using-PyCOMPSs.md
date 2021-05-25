@@ -133,7 +133,7 @@ where <img src="https://render.githubusercontent.com/render/math?math=\Omega=[0,
 
 In this problem we have a heat flux that varies following a beta distribution, but it is also possible to define a list of values for the heat flux and at each iteration to use one of them.
 
-We report [here](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How-to-run-multiple-cases-using-PyCOMPSs/launch-multiple-simulations-pycompss.py) the python file containing the `SimulationScenario` (the `AnalysisStage` of the problem), the main and the functions needed to run the tutorial.
+We report [here](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How-to-run-multiple-cases-using-PyCOMPSs/launch-multiple-simulations-pycompss.py) the python file containing the `SimulationScenario` (the `AnalysisStage` of the problem), the main and the functions needed to run the tutorial.
 
 We want to highlight that in the `SimulationScenario` class we added the `EvaluateQuantityOfInterest(self)` function with respect to the `AnalysisStage` base class. This function computes the QoI, given the results of the analysis. In addition, we see `ModifyInitialProperties(self)` modifies the property `KratosMultiphysics.HEAT_FLUX` of our PDE.
 
@@ -236,4 +236,4 @@ and
 
 Another important observation is that not all Kratos objects can be used as PyCOMPSs inputs, e.g., `KratosMultiphysics.Model` and `KratosMultiphysics.Parameters` classes cannot. To overcome this issue, we exploit the `KratosMultiphysics.StreamSerializer` class, which can serialize all the Kratos classes, and this class can be used as input in a task. In our problem, the function taking care of the serialization is `SerializeModelParameters_Task`.
 
-[graph]: https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How-to-run-multiple-cases-using-PyCOMPSs/complete_graph.png
+[graph]: https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How-to-run-multiple-cases-using-PyCOMPSs/complete_graph.png

@@ -191,43 +191,43 @@ In this section a brief tutorial of "How To" create an example is explained.
 In order to generate the required input data files we use the geometry pre and post processor GiD (https://www.gidhome.com/download/official-versions). Additionally we need to download the KratosMultiphysics GiD interface (https://github.com/KratosMultiphysics/GiDInterface - > download .zip).
 Once we open the GiD software we must load the Kratos problem type by:
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto1.png)
 
 And then select the StructuralMechanicsApplication as:
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto2.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto2.png)
 
 And then we select 3D for this particular case:
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto3.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto3.png)
 
 Then a new menu will appear on the left with all the available options. In order to create MPC contact problems you should switch the Kratos Problemtype to _Developer Mode_ in `Kratos->Kratos Preferences`.
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto4.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto4.png)
 
 ## Creating a problem
 Now we have generated an arbitrary geometry like the one below.
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto5.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto5.png)
 
 It is **Very important** to check the initial orientation of the normal of the surfaces (lines in 2D). This can be done by `Utilities->Swap Normals->Surfaces->Select`. One has to ensure that **all the normals point outwards** the bodies like in the folowing picture.
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto6.PNG)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto6.PNG)
 
 Next we assign the material properties to each of the bodies (we recommend to assign separately the mat props to each body in order to see them separately in the post-process) as:
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto7.PNG)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto7.PNG)
 
 Then we must apply the Boundary conditions (in thiscase we fix the tips of the beam) as:
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto8.PNG)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto8.PNG)
 
 And the **MASTER-SLAVE CONDITIONS**. The assignation of this Master-Slave conditions is mandatory to detect the contact between the potential contact surfaces of the bodies. We should assign one surface of the body 1 as MASTER and the corresponding contacting body (or body 2) the slave flag.
 In our case, we have assigned as master the contact surfaces o the grey body and as slave the ones of the blue body.
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto9.PNG)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto9.PNG)
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/tuto10.PNG)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/tuto10.PNG)
 
 Afterwards we could apply several loading conditions with the _Loads_ folder. Once we have finished assigning loads, we generate the mesh (**we strongly recommend to generate Structured meshes**) and create the input data files for kratos by `Kratos->Write Calculation Files`. Several files will be generated in your problem folder:
 
@@ -305,11 +305,11 @@ by
 ## Final result
 In our case we applied a body force over the whole volume, obtaining the following deformed shape:
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MPC_wiki/post.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/MPC_wiki/post.png)
 
 # References
-[1] "MultiFreedom Constraint I " by C. Felippa. [Link](https://github.com/KratosMultiphysics/Documentation/blob/master/Resources_files/Colorado%20IFEM%20course/IFEM.Ch08.pdf)
+[1] "MultiFreedom Constraint I " by C. Felippa. [Link](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Resources_files/Colorado%20IFEM%20course/IFEM.Ch08.pdf)
 
-[2] "MultiFreedom Constraint II " by C. Felippa. [Link](https://github.com/KratosMultiphysics/Documentation/blob/master/Resources_files/Colorado%20IFEM%20course/IFEM.Ch09.pdf)
+[2] "MultiFreedom Constraint II " by C. Felippa. [Link](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Resources_files/Colorado%20IFEM%20course/IFEM.Ch09.pdf)
 
 [3] "Multi-Point Constraints". [Link](https://mashayekhi.iut.ac.ir/sites/mashayekhi.iut.ac.ir/files//files_course/lesson_16.pdf)

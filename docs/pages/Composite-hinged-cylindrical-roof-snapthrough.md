@@ -22,13 +22,13 @@ The key result is the vertical point displacement under the point load P in the 
 ## Results
 The following deformation (exaggerated) animation of the Kratos thin quad element (mesh = 256 elements) is provided for context.
 
-![Composite hinged cylindrical roof snapthrough animation](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Composite_hinged_cylindrical_roof_snapthrough/hinged_cylindrical_roof_animation.gif)
+![Composite hinged cylindrical roof snapthrough animation](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Composite_hinged_cylindrical_roof_snapthrough/hinged_cylindrical_roof_animation.gif)
 
 _Composite hinged cylindrical roof snapthrough: Deformation of Kratos thin quad element_
 
 The results of the test for the thin quadrilateral and thick triangle Kratos shell elements are presented below.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Composite_hinged_cylindrical_roof_snapthrough/Load_displacement_curve_composite_hinged_cylindrical_roof.png" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Composite_hinged_cylindrical_roof_snapthrough/Load_displacement_curve_composite_hinged_cylindrical_roof.png" width="600">
 
 _Composite hinged cylindrical roof snapthrough results: thin quadrilateral and thick triangle elements_
 

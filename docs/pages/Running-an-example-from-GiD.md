@@ -28,7 +28,7 @@ After doing this, you can follow the steps that appear below to **introduce your
 Once GiD has been already installed, Kratos Multiphysics can be obtained using GiD internet retrieve tool. To do that, search for `Data` tab in the top toolbar and click on **`Data` &rightarrow; `Problem type` &rightarrow; `Internet retrieve...`**. In the pop-up window select **Kratos 7.0.1** and click on **Retrieve module** to start the download. 
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/internet_retrieve.png" alt="Internet retrieve" title="Internet retrieve"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/internet_retrieve.png" alt="Internet retrieve" title="Internet retrieve"/>
 </p>
 
 Once it is finished, you will have the Kratos Multiphysics GiD GUI together with a pre-compiled version of the current release, which allows to run the cases directly from the GUI.
@@ -38,13 +38,13 @@ Once it is finished, you will have the Kratos Multiphysics GiD GUI together with
 To set a CFD problem we firstly need to load the Kratos GiD GUI. This is done by doing the previous sequence of commands **`Data` &rightarrow; `Problem type` &rightarrow; `Kratos` in the top toolbar**. Then the Kratos application market will appear in where the **Fluid** application must be selected.
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/application_market.png" alt="Application market" title="Application market"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/application_market.png" alt="Application market" title="Application market"/>
 </p>
 
 After this, the fluid dynamics application market will appear. Among all the fluid related applications in Kratos, we will select the standard body-fitted Navier-Stokes CFD application by clicking on the **Fluid** button again.
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/application_market_fluid.png" alt="Fluid application market" title="Fluid application market"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/application_market_fluid.png" alt="Fluid application market" title="Fluid application market"/>
 </p>
 
 Finally we select the domain size by clicking on the **2D** icon.
@@ -53,18 +53,18 @@ Finally we select the domain size by clicking on the **2D** icon.
 Now that we are in the 2D CFD interface we can load the predefined high-rise building example. To do that, it is only needed to **click on the button highlighted in image below ** to automatically generate the case. 
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example_button.png" alt="High-rise building example button" title="High rise building example button"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example_button.png" alt="High-rise building example button" title="High rise building example button"/>
 </p>
 
 The problem consists in a channel emulating the surroundings of the building placement. A constant inlet velocity of 25 m/s is applied along the left edge. The top and bottom walls are considered to be slip while the building walls are considered to be stick. The pressure is fixed to zero along the right edge.
 
-(this case can be also retrieved from this [link](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/1_running_an_example_from_GID/1_running_an_example_from_GID.zip))
+(this case can be also retrieved from this [link](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Workshops_files/Kratos_Workshop_2019/Sources/1_running_an_example_from_GID/1_running_an_example_from_GID.zip))
 
 ### 3.3. Main features of the GUI
 After loading the case, the interface will look as the image below.
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example.png" alt="High-rise building example" title="High rise building example"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example.png" alt="High-rise building example" title="High rise building example"/>
 </p>
 
 The most important features in the previous image are:
@@ -104,7 +104,7 @@ The terminal output can be check by clicking the **i button** below the rocket (
 Once the simulation is finished, a new pop-up window reporting it will appear. We can directly access to the post-process by clicking on either the `Postprocess` button of such pop-up window or the rainbow button in the top right part of the screen (see the image below).
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/go_to_postprocess.png" alt="Go to postprocess" title="Go to postprocess"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/go_to_postprocess.png" alt="Go to postprocess" title="Go to postprocess"/>
 </p>
 
 The image below highlights the basic tools of the postprocess environment:
@@ -114,7 +114,7 @@ The image below highlights the basic tools of the postprocess environment:
 * Animation
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/postprocess.png" alt="postprocess" title="postprocess"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/postprocess.png" alt="postprocess" title="postprocess"/>
 </p>
 
 ## 4. Set a Structural Mechanics problem
@@ -125,27 +125,27 @@ Among the all the structural mechanics predefined examples, we can **select the 
 The image below depicts the appearance of the Structural GUI after loading the high-rise building example. It can be noted that the structure of the GUI is the same as the Fluid one (strategy settings, parts settings, interval settings ,...) but with the particularities associated to the resolution of a CSM problem.
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example_2.png" alt="High-rise building example 2" title="High rise building example 2"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example_2.png" alt="High-rise building example 2" title="High rise building example 2"/>
 </p>
 
 As it can be observed the problem to solve consists in a steel cantilever beam, which intends to simulate the building. The beam its clamped along its inferior edge and an horizontal load of 50 N is applied in the rest of the edges to emulate the wind effect.
 
 The simulation can be meshed, launched and postprocessed by following the same steps explained in the previous section.
 
-(this case can be also retrieved from this [link](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/1_running_an_example_from_GID/1_running_an_example_from_GID.zip))
+(this case can be also retrieved from this [link](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Workshops_files/Kratos_Workshop_2019/Sources/1_running_an_example_from_GID/1_running_an_example_from_GID.zip))
 
 ## 5. Set a Fluid-Structure Interaction problem
 Finally, we can couple the physics of both problems by using the Kratos FSI GUI. Therefore, by following the previously explained steps the prepared example can be loaded, meshed and run. Once the it is loaded, the GiD window will look as the image below.
 
 <p align="center">
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example_3.png" alt="High-rise building example 3" title="High rise building example 3"/>
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/running_an_example_from_GiD/high_rise_building_example_3.png" alt="High-rise building example 3" title="High rise building example 3"/>
 </p>
 
 Due to the coupled nature of the posed problem, it is important to point out some minor aspects:
 * The interface is thought as the union of the CFD and the CSM interfaces plus a coupling section. This is always the case for all the Kratos coupled problems GUIs.
 * Since the structure and the fluid meshes will be written in different geometry input files, one needs to duplicate the interface lines since the fluid and the structure need to be independent geometrical entities. Besides it is also needed to assign them to the interface condition in the BCs section of fluid and structure.
 
-(this case can be also retrieved from this [link](https://github.com/KratosMultiphysics/Documentation/blob/master/Workshops_files/Kratos_Workshop_2019/Sources/1_running_an_example_from_GID/1_running_an_example_from_GID.zip))
+(this case can be also retrieved from this [link](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Workshops_files/Kratos_Workshop_2019/Sources/1_running_an_example_from_GID/1_running_an_example_from_GID.zip))
 
 ## 6. Conclusion
 In this tutorial it is explained how to generate some simple simulation cases by using the Kratos GUI. For the sake of simplicity and to serve as a base for the upcoming exercises, only the automatically generated examples have been used. To create specific geometries and to customize the mesh settings we refer to the [GiD user manuals](https://www.gidhome.com/support/gid-manuals/). Furthermore, it is important to mention that there are more predefined examples besides these ones, both in the presented applications as well as in the rest of available ones.

@@ -16,8 +16,8 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 Organizations contributing to Kratos: 
 <table>
 <tr>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/CIMNE_logo.png" width="128"></td>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/TUM_Logo.png" width="128"></td>
+  <td><img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Logos/CIMNE_logo.png" width="128"></td>
+  <td><img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Logos/TUM_Logo.png" width="128"></td>
 </tr>
 <tr>
   <td>International Center for Numerical Methods in Engineering</td>
@@ -33,9 +33,9 @@ Some users of the technologies developed in Kratos are:
 
 <table>
 <tr>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/AIRBUS_logo.png" width="128"></td>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/siemens_logo.png" width="128"></td>
-  <td><img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/onera_logo.png" width="128"></td>
+  <td><img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Logos/AIRBUS_logo.png" width="128"></td>
+  <td><img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Logos/siemens_logo.png" width="128"></td>
+  <td><img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Logos/onera_logo.png" width="128"></td>
 </tr>
 <tr>
   <td>Airbus Defence and Space<br>Stress Methods & Optimisation Department</td>

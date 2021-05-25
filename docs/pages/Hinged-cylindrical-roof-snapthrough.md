@@ -9,7 +9,7 @@ summary:
 ## Problem definition
 The problem considered is the static geometrically non-linear snap-through of a hinged cylindrical roof under a central point load P = 3000 according to [1]. As per the diagram below, the roof geometry is defined with the parameters: L = 254, R = 2540, theta = 0.1 rad and h = 12.7. The isotropic material is defined by a Young's modulus of E = 3102.75 and Poisson's ratio of ν = 0.3.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/hinged_cylindrical_roof_setup.png" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/hinged_cylindrical_roof_setup.png" width="600">
 
 _Problem definition [1]_
 
@@ -18,19 +18,19 @@ The key result is the vertical point displacement under the point load P in the 
 ## Results
 The following deformation (exaggerated) animation of the Kratos thick quad element (mesh = 256 elements) is provided for context.
 
-![Hinged roof snapthrough animation](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/hinged_cylindrical_roof_deformation.gif)
+![Hinged roof snapthrough animation](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/hinged_cylindrical_roof_deformation.gif)
 
 _Hinged cylindrical roof snapthrough: Deformation of Kratos thick quad element_
 
 The results of the test for the thin and thick triangle Kratos shell elements (mesh  = 800 elements) are presented below.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/Load_displacement_curve_hinged_cylindrical_roof_tri.png" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/Load_displacement_curve_hinged_cylindrical_roof_tri.png" width="600">
 
 _Hinged cylindrical roof snapthrough results: triangle elements_
 
 The results of the test for the thin and thick quadrilateral Kratos shell elements (mesh  = 256 elements) are presented below.
 
-<img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/Load_displacement_curve_hinged_cylindrical_roof_quads.png" width="600">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/Hinged_cylindrical_roof_snapthrough/Load_displacement_curve_hinged_cylindrical_roof_quads.png" width="600">
 
 _Hinged cylindrical roof snapthrough results: quadrilateral elements_
 

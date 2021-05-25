@@ -89,4 +89,4 @@ Draw a chart with the files for a ROM and an HROM simulation
 
 
 
-[basis]:https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/How_to_interact_with_a_simulation_to_visualize_results_in_real_time/Basis.jpg
+[basis]:https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/How_to_interact_with_a_simulation_to_visualize_results_in_real_time/Basis.jpg

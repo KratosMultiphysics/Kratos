@@ -16,15 +16,15 @@ This is a 2D FSI simulation of the Mok benchmark test. It consists in a 2D conve
 ## Case Specification
 The problem geometry as well as the boundary conditions are sketched below. 
 
-![Mok benchmark geometry.](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_benchmark_geometry.png)
+![Mok benchmark geometry.](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_benchmark_geometry.png)
 
 Regarding the inlet velocity, the next parabolic profile is imposed
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_inlet_formula_1.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_inlet_formula_1.png)
 
 in where the time dependent reference velocity is defined as
 
-![](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_inlet_formula_2.png)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_inlet_formula_2.png)
 
 A Newtonian constitutive law is considered in the fluid domain. The fluid characteristic parameters are:
 * Density (&rho;): 956 _Kg/m<sup>3</sup>_
@@ -40,9 +40,9 @@ The time step is 0.1 seconds, while the total simulation time is 25.0 seconds.
 ## Results
 The problem stated above has been solved with a structured mesh with 4x100 divisions composed by linear quadrilateral total Lagrangian elements in the structural domain. In the fluid domain, a mesh composed by around 7000 linear triangular elements has been used. The obtained velocity and pressure fields, together with the deformed geometry, are shown below. Besides, some comparisons with the reference solutions are depicted as well. 
 
-![Obtained velocity field (t = 25.0).](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_velocity_field.png)
-![Obtained pressure field (t = 25.0).](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_pressure_field.png)
-![Point A horizontal displacement comparison.](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_ux_A.png)
+![Obtained velocity field (t = 25.0).](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_velocity_field.png)
+![Obtained pressure field (t = 25.0).](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_pressure_field.png)
+![Point A horizontal displacement comparison.](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Application_cases/2D_mok_benchmark/Mok_ux_A.png)
 
 ## References
 D.P. Mok. Partitionierte Lösungsansätze in der Strukturdynamik und der Fluid−Struktur−Interaktion. PhD thesis: Institut für Baustatik, Universität Stuttgart, 2001. [https://www.ibb.uni-stuttgart.de/publikationen/fulltext_new/2001/mok_1-2001.pdf](https://www.ibb.uni-stuttgart.de/publikationen/fulltext_new/2001/mok_1-2001.pdf)

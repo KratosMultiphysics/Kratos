@@ -25,7 +25,7 @@ Here the CFD problem described in the first tutorial of [Running an example from
 ## 2. The CFD example
 As the first step of this tutorial, we understand the CFD example problem setup and run the simulation to observe the initial result. The CFD problem setup is illustrated below 
 
-![CFD problem](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/problem_setup.png)
+![CFD problem](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/problem_setup.png)
 
 
 As illustrated, a no slip condition is applied on the top and bottom walls of the 2D fluid domain. A uniform and constant velocity inlet is applied on the left hand side and a pressure outlet (0 pressure) is applied on the right hand side of the domain. These boundary condition are defined in the ProjectParameters.json. The following lines from the ProjectPrameters.json reflect the same 
@@ -79,7 +79,7 @@ As illustrated, a no slip condition is applied on the top and bottom walls of th
 ```
 More information on which processes exists for boundary conditions and how to use them is described in [this](How-to-use-Processes-In-the-application-of-BCs) wiki page.
 Please run the example by using the method described in the previous tutorials. That is by using the `runkratos` executable. Once the simulation is finished we load the result (.bin) file into GiD to view the following result 
-![Initial_solution](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/initial_solution.gif)
+![Initial_solution](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/initial_solution.gif)
 
 
 ## 3. The MainKratos.py Script
@@ -168,4 +168,4 @@ Since the inlet boundary condition is changing every time step, the magnitude is
 
 Once the simulation is done with this modification, we see the following profile on the inlet of the domain 
 
-![parabolic_inlet](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/vector_parabolic.png)
+![parabolic_inlet](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/vector_parabolic.png)
