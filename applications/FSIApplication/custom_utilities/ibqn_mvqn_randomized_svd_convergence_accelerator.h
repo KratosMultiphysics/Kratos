@@ -156,6 +156,20 @@ public:
         auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatixSigmaV();
         auto p_uncorrected_displacement_vector = BaseType::pGetUncorrectedDisplacementVector();
 
+        //FIXME:
+        KRATOS_WATCH(p_inv_jac_QU_left)
+        KRATOS_WATCH(p_inv_jac_SigmaV_left)
+        KRATOS_WATCH(p_inv_jac_QU_right)
+        KRATOS_WATCH(p_inv_jac_SigmaV_right)
+
+        if (p_inv_jac_QU_left == nullptr && p_inv_jac_SigmaV_left == nullptr) {
+            p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixQU();
+            p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixSigmaV();
+            p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixQU();
+            p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixSigmaV();
+        }
+        //FIXME:
+
         // Set the residual of the update problem to be solved
         VectorType aux_RHS = rForceOutputVector - rIterationGuess;
         if (p_inv_jac_QU_left != nullptr && p_inv_jac_SigmaV_left != nullptr) {
@@ -169,19 +183,10 @@ public:
             TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
 
             if (p_inv_jac_QU_right != nullptr && p_inv_jac_SigmaV_right != nullptr) {
-                // Calculate auxiliary intermediate small matrices
-                // MatrixType aux_C = ZeroMatrix(n_modes, n_modes);
-                // IndexPartition<std::size_t>(n_modes).for_each(
-                //     VectorType(n_modes),
-                //     [&aux_C, &p_inv_jac_SigmaV_left, &p_inv_jac_QU_right, &n_modes](std::size_t Col, VectorType& rAuxColumnTLS)
-                // {
-                //     TDenseSpace::GetColumn(Col, *p_inv_jac_QU_right, rAuxColumnTLS);
-                //     for (std::size_t row = 0; row < n_modes; ++row) {
-                //         aux_C(row,Col) = TDenseSpace::RowDot(row, *p_inv_jac_SigmaV_left, rAuxColumnTLS);
-                //     }
-                // });
+
                 MatrixType aux_C;
-                CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_left, *p_inv_jac_QU_right, aux_C);
+                const bool is_extended = CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_left, *p_inv_jac_QU_right, aux_C);
+                KRATOS_ERROR_IF(is_extended) << "Auxiliary matrix C is not expected to be extended in \'SolveInterfaceBlockQuasiNewtonLeftUpdate\'." << std::endl;
 
                 // Calculate the correction with the Woodbury matrix identity
                 ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_left, *p_inv_jac_SigmaV_right, aux_C, aux_RHS, rLeftCorrection);
@@ -191,6 +196,13 @@ public:
             }
         } else {
             //TODO: I THINK THIS CAN BE REMOVED
+            KRATOS_WATCH("NO POINTERS LEFT")
+            KRATOS_WATCH("NO POINTERS LEFT")
+            KRATOS_WATCH("NO POINTERS LEFT")
+            KRATOS_WATCH("NO POINTERS LEFT")
+            KRATOS_WATCH("NO POINTERS LEFT")
+            KRATOS_WATCH("NO POINTERS LEFT")
+            KRATOS_WATCH("NO POINTERS LEFT")
             KRATOS_WATCH("NO POINTERS LEFT")
             rLeftCorrection = aux_RHS;
         }
@@ -213,6 +225,20 @@ public:
         auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatixSigmaV();
         auto p_uncorrected_force_vector = BaseType::pGetUncorrectedForceVector();
 
+        //FIXME:
+        KRATOS_WATCH(p_inv_jac_QU_left)
+        KRATOS_WATCH(p_inv_jac_SigmaV_left)
+        KRATOS_WATCH(p_inv_jac_QU_right)
+        KRATOS_WATCH(p_inv_jac_SigmaV_right)
+
+        if (p_inv_jac_QU_right == nullptr && p_inv_jac_SigmaV_right == nullptr) {
+            p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixQU();
+            p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixSigmaV();
+            p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixQU();
+            p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixSigmaV();
+        }
+        //FIXME:
+
         // Set the residual of the update problem to be solved
         VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
         if (p_inv_jac_QU_right != nullptr && p_inv_jac_SigmaV_right != nullptr) {
@@ -225,15 +251,8 @@ public:
             TSparseSpace::Mult(*p_inv_jac_QU_right, aux_vect, aux_right_onto_left);
             TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
 
-            //TODO:DELETE AFTER DEBUGGING
-            auto aux_jacobian = prod(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_right);
-            //TODO:DELETE AFTER DEBUGGING
-
             // Calculate auxiliary intermediate small matrices
             if (p_inv_jac_QU_left != nullptr && p_inv_jac_SigmaV_left != nullptr) {
-
-                auto jac_left = prod(*p_inv_jac_QU_left, *p_inv_jac_SigmaV_left);
-                auto jac_right = prod(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_right);
 
                 MatrixType aux_C;
                 const bool is_extended = CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_right, *p_inv_jac_QU_left, aux_C);
@@ -263,6 +282,17 @@ public:
             }
         } else {
             //TODO: I THINK THIS CAN BE REMOVED
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
+            KRATOS_WATCH("NO POINTERS RIGHT")
             KRATOS_WATCH("NO POINTERS RIGHT")
             rRightCorrection = aux_RHS;
         }
