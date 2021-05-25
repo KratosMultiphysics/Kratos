@@ -161,7 +161,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for schedule(guided, 512)
+            #pragma omp for
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
@@ -275,7 +275,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for schedule(guided, 512)
+            #pragma omp for
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
@@ -368,7 +368,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for schedule(guided, 512)
+            #pragma omp for
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
