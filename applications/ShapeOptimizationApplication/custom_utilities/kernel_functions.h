@@ -72,7 +72,7 @@ class KernelFunction
      * @param Radius The radius of the kernel function.
      * @return Shared pointer to the kernel function.
      */
-    static KernelFunction::Pointer New(const string FunctionType, const double Radius)
+    static KernelFunction::Pointer New(const std::string FunctionType, const double Radius)
     {
         if(FunctionType.compare("linear"))
             return Kratos::make_shared<LinearKernelFunction>(Radius);
@@ -100,13 +100,13 @@ class KernelFunction
      * @brief Function to get the radius of the current filter.
      * @return Radius of the filter function.
      */
-    virtual inline double GetRadius() const {return mRadius}
+    virtual inline double GetRadius() const {return mRadius;}
 
     /**
      * @brief Function to set the radius of the current filter.
      * @param Radius of the filter function.
      */
-    virtual inline void GetRadius(const double NewRadius) {mRadius = NewRadius}
+    virtual inline void GetRadius(const double NewRadius) {mRadius = NewRadius;}
     ///@}
 
     ///@name Input and output
@@ -127,7 +127,7 @@ class KernelFunction
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const
     {
-        PrintInfo(rOstream);
+        PrintInfo(rOStream);
     }
     ///@}
   protected:
@@ -141,11 +141,10 @@ class KernelFunction
      */
     double GetSquaredScalarDistance(const array_3d iCoord, const array_3d jCoord) const
     {
-        array_3d dist_vector = i_coord - j_coord;
+        array_3d dist_vector = iCoord - jCoord;
         return dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2];
     }
     ///@}
-  private:
     ///@name Member Variables
     ///@{
     double mRadius;
@@ -203,7 +202,7 @@ class CosineKernelFunction : public KernelFunction
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override
     {
-        PrintInfo(rOstream);
+        PrintInfo(rOStream);
     }
     ///@}
 }; // Class CosineKernelFunction
@@ -259,7 +258,7 @@ class LinearKernelFunction : public KernelFunction
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override
     {
-        PrintInfo(rOstream);
+        PrintInfo(rOStream);
     }
     ///@}
 }; // Class CosineKernelFunction
@@ -316,7 +315,7 @@ class QuarticKernelFunction : public KernelFunction
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override
     {
-        PrintInfo(rOstream);
+        PrintInfo(rOStream);
     }
     ///@}
 }; // Class QuarticKernelFunction
@@ -373,7 +372,7 @@ class GaussianKernelFunction : public KernelFunction
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override
     {
-        PrintInfo(rOstream);
+        PrintInfo(rOStream);
     }
     ///@}
 }; // Class GaussianKernelFunction
@@ -404,7 +403,6 @@ class ConstantKernelFunction : public KernelFunction
     double ComputeWeight(const array_3d iCoord, const array_3d jCoord) const override
     {
         const double distance = sqrt(GetSquaredScalarDistance(iCoord, jCoord));
-        const double ratio = distance/mRadius;
         // Compute weight
         const double weight = (distance < mRadius) ? 1.0 : 0.0;
 
@@ -430,7 +428,7 @@ class ConstantKernelFunction : public KernelFunction
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override
     {
-        PrintInfo(rOstream);
+        PrintInfo(rOStream);
     }
     ///@}
 }; // Class ConstantKernelFunction
