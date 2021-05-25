@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -452,6 +452,8 @@ void KratosConstitutiveLawsApplication::Register()
 
     //Faituge variables
     KRATOS_REGISTER_VARIABLE(HIGH_CYCLE_FATIGUE_COEFFICIENTS)
+    KRATOS_REGISTER_VARIABLE(STRESS_LIMITS)
+    KRATOS_REGISTER_VARIABLE(HARDENING_PARAMETERS)
     KRATOS_REGISTER_VARIABLE(FATIGUE_REDUCTION_FACTOR)
 
     KRATOS_REGISTER_VARIABLE(LOCAL_NUMBER_OF_CYCLES)
@@ -516,7 +518,6 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_PLASTIC_STRAIN)
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_TENSOR)
-    KRATOS_REGISTER_VARIABLE(HARDENING_MODULI_VECTOR)
     KRATOS_REGISTER_VARIABLE(MULTI_LINEAR_ELASTICITY_MODULI)
     KRATOS_REGISTER_VARIABLE(MULTI_LINEAR_ELASTICITY_STRAINS)
 
