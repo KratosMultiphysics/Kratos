@@ -1,7 +1,9 @@
+"""Process for setting an initial state (strain, stress, deformation radient)."""
 import KratosMultiphysics
 
 
 def Factory(settings, Model):
+    """Create process."""
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
@@ -32,6 +34,7 @@ def param_to_str(param):
 
 def str_to_function(expr):
     """Convert text to a mathematical function.
+
     Input string must be a valid mathematical expression (e.g."1.2", "3.4 + t",
     "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
     where 't' will be later evaluated as the current simulation time.
@@ -50,7 +53,6 @@ def str_to_function(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
-
     """This process sets a given value for a certain flag in all the nodes of a submodelpart.
 
     Only the member variables listed below should be accessed directly.
@@ -61,7 +63,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
     """
 
     def __init__(self, Model, settings):
-        """The default constructor of the class
+        """Initialize the class.
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -121,7 +123,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.imposed_deformation_gradient = KratosMultiphysics.Matrix(nrows, ncols)
 
     def ExecuteInitializeSolutionStep(self):
-        """This method is executed in order to initialize the current step
+        """Initialize the current step.
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -158,7 +160,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             self.SetInitialState()
 
     def SetInitialState(self):
-        """This method creates the c++ process and sets each entity
+        """Create the c++ process and sets each entity.
 
         Keyword arguments:
         self -- It signifies an instance of a class.
