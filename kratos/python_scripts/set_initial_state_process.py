@@ -12,14 +12,7 @@ def Factory(settings, Model):
 
 
 def __ParamToStr(param):
-    """
-    Convert input to string type.
-
-    Keyword arguments:
-    param -- Accepted types are Parameters double, Parameters string, int, float, str.
-    Returns:
-    string expression of the input
-    """
+    """Convert input to string type."""
     if isinstance(param, KratosMultiphysics.Parameters):
         if param.IsNumber():
             sparam = str(param.GetDouble())
@@ -66,13 +59,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
     """
 
     def __init__(self, Model, settings):
-        """Initialize the class.
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        Model -- the container of the different model parts.
-        settings -- Kratos parameters containing solver settings.
-        """
+        """Initialize the class."""
         KratosMultiphysics.Process.__init__(self)
 
         # The value can be a double or a string (function)
@@ -126,11 +113,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.imposed_deformation_gradient = KratosMultiphysics.Matrix(nrows, ncols)
 
     def ExecuteInitializeSolutionStep(self):
-        """Initialize the current step.
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
+        """Initialize the current step."""
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if self.interval.IsInInterval(current_time):
@@ -161,11 +144,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             self.SetInitialState()
 
     def SetInitialState(self):
-        """Create the c++ process and sets each entity.
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
+        """Create the c++ process and sets each entity."""
         if self.dimension == 3:
             KratosMultiphysics.SetInitialStateProcess3D(
                 self.model_part,
