@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.json_output_process import JsonOutputProcess
