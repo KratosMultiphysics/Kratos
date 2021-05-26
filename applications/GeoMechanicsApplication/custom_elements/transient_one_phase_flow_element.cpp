@@ -428,11 +428,12 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateOnIntegrationPoints()") << std::endl;
 
-    if (rVariable == DEGREE_OF_SATURATION ||
-        rVariable == EFFECTIVE_SATURATION ||
-        rVariable == BISHOP_COEFICIENT ||
+    if (rVariable == DEGREE_OF_SATURATION     ||
+        rVariable == EFFECTIVE_SATURATION     ||
+        rVariable == BISHOP_COEFICIENT        ||
         rVariable == DERIVATIVE_OF_SATURATION ||
-        rVariable == RELATIVE_PERMEABILITY )
+        rVariable == RELATIVE_PERMEABILITY    ||
+        rVariable == HYDRAULIC_HEAD)
     {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -591,7 +592,6 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     this->InitializeProperties( rVariables );
 
     //ProcessInfo variables
-    rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
     rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
@@ -663,7 +663,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     //Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::
         AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix,
-                                                rVariables.PMatrix);
+                                             rVariables.PMatrix);
 
     // KRATOS_INFO("1-TransientOnePhaseFlowElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
 

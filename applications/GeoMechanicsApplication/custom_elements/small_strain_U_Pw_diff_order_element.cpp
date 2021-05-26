@@ -1121,11 +1121,14 @@ void SmallStrainUPwDiffOrderElement::
                 mRetentionLawVector[PointNumber]->CalculateRelativePermeability(RetentionParameters);
 
             Vector GradPressureTerm(Dim);
-            noalias(GradPressureTerm)  =   prod(trans(Variables.DNp_DX), Variables.PressureVector);
-            noalias(GradPressureTerm) += - GetProperties()[DENSITY_WATER]*BodyAcceleration;
+            noalias(GradPressureTerm)  =  prod(trans(Variables.DNp_DX), Variables.PressureVector);
+            noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR 
+                                        * GetProperties()[DENSITY_WATER]
+                                        * BodyAcceleration;
 
             Vector AuxFluidFlux = ZeroVector(Dim);
-            AuxFluidFlux = - Variables.DynamicViscosityInverse
+            AuxFluidFlux =   PORE_PRESSURE_SIGN_FACTOR 
+                           * Variables.DynamicViscosityInverse
                            * RelativePermeability
                            * prod(Variables.IntrinsicPermeability, GradPressureTerm );
 

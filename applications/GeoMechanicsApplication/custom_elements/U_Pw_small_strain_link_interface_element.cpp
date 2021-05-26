@@ -96,7 +96,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
-            noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+            noalias(LocalFluidFlux) =  PORE_PRESSURE_SIGN_FACTOR
+                                     * DynamicViscosityInverse
+                                     * prod(LocalPermeabilityMatrix,GradPressureTerm);
 
             noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
 

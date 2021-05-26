@@ -582,6 +582,56 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
     }
+    else if (rVariable == HYDRAULIC_HEAD)
+    {
+        const double NumericalLimit = std::numeric_limits<double>::epsilon();
+        const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+
+        //Defining the shape functions, the jacobian and the shape functions local gradients Containers
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+
+        //Defining necessary variables
+        array_1d<double,TNumNodes> NodalHydraulicHead;
+        for (unsigned int node=0; node < TNumNodes; ++node)
+        {
+            array_1d<double,3> NodeVolumeAcceleration;
+            noalias(NodeVolumeAcceleration) = Geom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
+            const double g = norm_2(NodeVolumeAcceleration);
+            if (g > NumericalLimit)
+            {
+                const double FluidWeight = g * Prop[DENSITY_WATER];
+
+                array_1d<double,3> NodeCoordinates;
+                noalias(NodeCoordinates) = Geom[node].Coordinates();
+                array_1d<double,3> NodeVolumeAccelerationUnitVector;
+                noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
+
+                const double WaterPressure = Geom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+                NodalHydraulicHead[node] =- inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
+                                          - PORE_PRESSURE_SIGN_FACTOR  * WaterPressure / FluidWeight;
+            }
+            else
+            {
+                NodalHydraulicHead[node] = 0.0;
+            }
+        }
+
+        if ( rOutput.size() != NumGPoints )
+            rOutput.resize(NumGPoints);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            double HydraulicHead = 0.0;
+            for (unsigned int node = 0; node < TNumNodes; ++node)
+                HydraulicHead += NContainer(GPoint, node) * NodalHydraulicHead[node];
+
+            rOutput[GPoint] = HydraulicHead;
+
+        }
+    }
     else
     {
         if ( rOutput.size() != mConstitutiveLawVector.size() )
@@ -657,10 +707,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             double RelativePermeability = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
 
-            noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
-            noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
+            noalias(GradPressureTerm) =  prod(trans(GradNpT),PressureVector);
+            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
-            noalias(FluidFlux) = - DynamicViscosityInverse
+            noalias(FluidFlux) =   PORE_PRESSURE_SIGN_FACTOR 
+                                 * DynamicViscosityInverse
                                  * RelativePermeability
                                  * prod(PermeabilityMatrix,GradPressureTerm);
 

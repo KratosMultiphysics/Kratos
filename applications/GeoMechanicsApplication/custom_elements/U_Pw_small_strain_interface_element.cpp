@@ -921,7 +921,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                         * Variables.FluidDensity
                                         * Variables.BodyAcceleration;
 
-            noalias(LocalFluidFlux) = - Variables.DynamicViscosityInverse
+            noalias(LocalFluidFlux) =   PORE_PRESSURE_SIGN_FACTOR 
+                                      * Variables.DynamicViscosityInverse
                                       * Variables.RelativePermeability  
                                       * prod(Variables.LocalPermeabilityMatrix, GradPressureTerm);
 
