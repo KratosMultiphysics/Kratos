@@ -34,6 +34,11 @@ class RigidBodySolver(object):
             'rotation_x', 'rotation_y', 'rotation_z']
         self.system_size = len(self.available_dofs)
 
+        # How many dofs are linear (displacement/force) and how many are angular (rotation/moment)?
+        # TODO: For future implementation of a 2D version. It will only be needed to change self.available_dofs
+        self.linear_size = np.ceil(self.system_size/2)
+        self.angular_size = np.floor(self.system_size/2)
+
         # Check that the activated dofs are not repeated and are among the available ones
         self.active_dofs = input_check._CheckActiveDofs(parameters, self.available_dofs)
 
@@ -371,18 +376,18 @@ class RigidBodySolver(object):
 
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
 
+        # Check that the input's size matches the system's size
+        if len(values) != self.system_size:
+            msg = 'The variable "' + identifier + '" does not have the '
+            msg += 'right size. It has size ' + str(len(values))
+            msg += ' but it should be of size ' + str(self.system_size)
+            raise Exception(msg)
+
         # Check that the selected buffer value is OK
         input_check._CheckBufferId(buffer_idx,identifier)
 
-        # "MOMENT" ids 0, 1, 2 correspond to ids 3, 4, 5
-        # in the external load variable
-        # TODO: Check how to adpt this to other available DOFs
-        # Maybe a 2D case
+        # Loop through input active DOFs saving the values
         for index, value in enumerate(values):
-            if identifier == "MOMENT":
-                index += 3
-            
-            # Only input active DOFs data to avoid problems later
             if self.available_dofs[index] in self.active_dofs:
                 if identifier == "DISPLACEMENT":
                     self.x[index, buffer_idx] = value
@@ -390,12 +395,13 @@ class RigidBodySolver(object):
                     self.v[index, buffer_idx] = value
                 elif identifier == "ACCELERATION":
                     self.a[index, buffer_idx] = value
-                elif identifier in ["FORCE","MOMENT","RESULTANT"]:
+                elif identifier == "FORCE":
                     self.external_load[index] = value
                 elif identifier == "ROOT_POINT_DISPLACEMENT":
                     self.external_root_point_displ[index] = value
                 else:
                     raise Exception("Identifier is unknown!")
+
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
 
@@ -416,8 +422,6 @@ class RigidBodySolver(object):
                     output[index] = self.a[index, buffer_idx]
                 elif identifier == "REACTION":
                     output[index] = self.CalculateReaction(buffer_idx=buffer_idx)[index]
-                elif identifier == "VOLUME_WEIGHT":
-                    output[index] = self.CalculateSelfWeight()[index]
                 else:
                     raise Exception("Identifier is unknown!")
 
