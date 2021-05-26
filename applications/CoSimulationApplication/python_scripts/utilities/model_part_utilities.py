@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
-from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
+from KratosMultiphysics.CoSimulationApplication import CouplingInterfaceData
 
 def AllocateHistoricalVariablesFromCouplingDataSettings(data_settings_list, model, solver_name):
     '''This function allocates historical variables for the Modelparts
