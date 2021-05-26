@@ -22,10 +22,17 @@
 namespace Kratos
 {
 
+struct ComputeWingSectionVariableProcessSettings
+{
+    // Defining clearer options
+    constexpr static bool EmbeddedRun = false;
+    constexpr static bool BodyFittedRun = true;
+};
+
 ///@name Kratos Classes
 ///@{
 
-
+template<bool TRunType>
 class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputeWingSectionVariableProcess
     : public Process
 {
