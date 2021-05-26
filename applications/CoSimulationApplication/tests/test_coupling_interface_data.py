@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
+from KratosMultiphysics.CoSimulationApplication import CouplingInterfaceData
 
 # The expected definitions are here to make the handling of the
 # multiline-stings easier (no need to deal with indentation)
