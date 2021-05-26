@@ -16,7 +16,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # additional imports
-from .custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_empty import EmptyAnalyzer
 from KratosMultiphysics.ShapeOptimizationApplication import model_part_controller_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers import analyzer_factory

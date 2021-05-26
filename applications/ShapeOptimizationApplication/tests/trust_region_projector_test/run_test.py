@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 # Additional imports
 from KratosMultiphysics.KratosUnittest import TestCase
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_trust_region import Projector
-from KratosMultiphysics.ShapeOptimizationApplication.custom_math import PerformBisectioning
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_math import PerformBisectioning
 import csv
 
 # =======================================================================================================

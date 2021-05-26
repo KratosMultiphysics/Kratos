@@ -16,7 +16,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_base i
 
 # Import additional libraries
 import csv
-from KratosMultiphysics.ShapeOptimizationApplication.custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerTrustRegion( ValueLogger ):

@@ -20,8 +20,8 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
-from KratosMultiphysics.ShapeOptimizationApplication.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
 class AlgorithmPenalizedProjection(OptimizationAlgorithm):
