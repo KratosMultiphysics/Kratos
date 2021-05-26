@@ -14,7 +14,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "spaces/ublas_space.h"
 
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -27,6 +26,13 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     pybind11::class_<CouplingInterfaceData, CouplingInterfaceData::Pointer>(m, "CouplingInterfaceData")
+        // .def(py::init<ModelPart&>())
+        .def("GetData", &CouplingInterfaceData::GetData)
+        .def("SetData", &CouplingInterfaceData::SetData)
+        .def("GetModelPart", [](CouplingInterfaceData& self) -> ModelPart& {return self.GetModelPart();}, pybind11::return_value_policy::reference_internal)
+        .def("IsDistributed", &CouplingInterfaceData::IsDistributed)
+        .def("Size", &CouplingInterfaceData::Size)
+        .def("__str__", PrintObject<CouplingInterfaceData>)
         ;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;

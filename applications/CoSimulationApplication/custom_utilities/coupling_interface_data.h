@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 
 namespace Kratos
@@ -83,11 +84,21 @@ public:
     ///@name Access
     ///@{
 
+    void GetData() const;
+
+    void SetData();
+
+    ModelPart& GetModelPart();
+
+    ModelPart& GetModelPart() const;
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    bool IsDistributed() const;
+
+    std::size_t Size() const;
 
     ///@}
     ///@name Input and output
@@ -101,7 +112,6 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
-
 
     ///@}
     ///@name Friends
