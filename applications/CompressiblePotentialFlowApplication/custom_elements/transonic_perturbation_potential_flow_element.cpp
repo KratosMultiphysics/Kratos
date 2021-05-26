@@ -1049,7 +1049,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssignLeftHandS
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
         if (r_geometry[i].GetValue(TRAILING_EDGE)) {
-            for (unsigned int j = 0; j < TNumNodes; ++j){
+            for (unsigned int j = 0; j < TNumNodes; ++j) {
                 rLeftHandSideMatrix(i, j) = lhs_positive(i, j);
                 rLeftHandSideMatrix(i + TNumNodes, j + TNumNodes) = lhs_negative(i, j);
             }
