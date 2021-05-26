@@ -16,11 +16,14 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "custom_utilities/potential_flow_utilities.h"
+#include "compressible_potential_flow_application_variables.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos
 {
 
-ComputeWingSectionVariableProcess::ComputeWingSectionVariableProcess(
+template<bool TRunType>
+ComputeWingSectionVariableProcess<TRunType>::ComputeWingSectionVariableProcess(
     ModelPart& rModelPart,
     ModelPart& rSectionModelPart,
     const array_1d<double,3>& rVersor,
@@ -43,7 +46,8 @@ ComputeWingSectionVariableProcess::ComputeWingSectionVariableProcess(
     KRATOS_CATCH("")
 }
 
-ComputeWingSectionVariableProcess::ComputeWingSectionVariableProcess(
+template<bool TRunType>
+ComputeWingSectionVariableProcess<TRunType>::ComputeWingSectionVariableProcess(
     ModelPart& rModelPart,
     ModelPart& rSectionModelPart,
     const array_1d<double,3>& rVersor,
@@ -63,22 +67,12 @@ ComputeWingSectionVariableProcess::ComputeWingSectionVariableProcess(
     KRATOS_CATCH("")
 }
 
-void ComputeWingSectionVariableProcess::Execute()
+template<>
+void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>::Execute()
 {
     KRATOS_TRY;
 
     ExecuteInitialize();
-
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
-    {
-        auto direction = rNode.Coordinates() - mrOrigin;
-        double distance = inner_prod(direction, mrVersor);
-        if (std::abs(distance) < 1e-9) {
-            rNode.SetValue(DISTANCE, 1e-9);
-        } else {
-            rNode.SetValue(DISTANCE, distance);
-        }
-    });
 
     IndexType node_index = 0;
 
@@ -91,23 +85,65 @@ void ComputeWingSectionVariableProcess::Execute()
 
         if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(cond_distances)) {
             auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
-            for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
-                const auto& r_array_var = *mArrayVariablesList[i_var];
-                const auto& r_array_value = r_cond.GetValue(r_array_var);
-                p_node->SetValue(r_array_var, r_array_value);
-            }
-            for (IndexType i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
-                const auto& r_double_var = *mDoubleVariablesList[i_var];
-                const auto& r_double_value = r_cond.GetValue(r_double_var);
-                p_node->SetValue(r_double_var, r_double_value);
-            }
+            AssignNodalVariablesFromContainer(p_node, r_cond);
         }
     }
 
     KRATOS_CATCH("")
 }
 
-void ComputeWingSectionVariableProcess::ExecuteInitialize()
+template<>
+void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun>::Execute()
+{
+    KRATOS_TRY;
+
+    ExecuteInitialize();
+
+    IndexType node_index = 0;
+
+    for (auto& r_elem : mrModelPart.Elements()) {
+        auto& r_geometry = r_elem.GetGeometry();
+
+        BoundedVector<double, 4> geometry_distances;
+        for(unsigned int i_node = 0; i_node<r_geometry.size(); i_node++){
+            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        }
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<3,4>(geometry_distances);
+        KRATOS_WATCH(is_embedded)
+
+        BoundedVector<double, 4> elem_section_distances;
+        for (IndexType i=0; i < r_geometry.size(); i++) {
+            elem_section_distances[i]= r_geometry[i].GetValue(DISTANCE);
+        }
+
+        const bool is_section = PotentialFlowUtilities::CheckIfElementIsCutByDistance<3,4>(elem_section_distances);
+
+        if (is_embedded && is_section && r_elem.Is(ACTIVE)){
+            Tetrahedra3D4ModifiedShapeFunctions modified_shape_functions(r_elem.pGetGeometry(), geometry_distances);
+            Matrix interface_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType interface_sh_func_grad;
+            Vector interface_weights;
+
+            modified_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(interface_sh_func,
+                                                                                    interface_sh_func_grad,
+                                                                                    interface_weights,
+                                                                                    GeometryData::GI_GAUSS_1);
+            BoundedVector<double, 3> interface_gauss_point = ZeroVector(3);
+            for (IndexType i_node=0; i_node<interface_sh_func.size2(); i_node++) {
+                interface_gauss_point[0] += interface_sh_func(0, i_node)*r_geometry[i_node].X();
+                interface_gauss_point[1] += interface_sh_func(0, i_node)*r_geometry[i_node].Y();
+                interface_gauss_point[2] += interface_sh_func(0, i_node)*r_geometry[i_node].Z();
+            }
+            auto p_node = mrSectionModelPart.CreateNewNode(++node_index,  interface_gauss_point[0],  interface_gauss_point[1], interface_gauss_point[2]);
+            AssignNodalVariablesFromContainer(p_node, r_elem);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<bool TRunType>
+void ComputeWingSectionVariableProcess<TRunType>::ExecuteInitialize()
 {
     auto& r_nodes = mrModelPart.Nodes();
 
@@ -123,9 +159,22 @@ void ComputeWingSectionVariableProcess::ExecuteInitialize()
         const auto& r_double_var = *mDoubleVariablesList[i_var];
         VariableUtils().SetNonHistoricalVariable(r_double_var, 0.0, r_nodes);
     }
+
+    // Compute distance to section defined by the plane
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    {
+        auto direction = rNode.Coordinates() - mrOrigin;
+        double distance = inner_prod(direction, mrVersor);
+        if (std::abs(distance) < 1e-9) {
+            rNode.SetValue(DISTANCE, 1e-9);
+        } else {
+            rNode.SetValue(DISTANCE, distance);
+        }
+    });
 }
 
-void ComputeWingSectionVariableProcess::StoreVariableList(const std::vector<std::string>& rVariableStringArray)
+template<bool TRunType>
+void ComputeWingSectionVariableProcess<TRunType>::StoreVariableList(const std::vector<std::string>& rVariableStringArray)
 {
     // Storing variable list
     for (IndexType i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
@@ -143,4 +192,24 @@ void ComputeWingSectionVariableProcess::StoreVariableList(const std::vector<std:
     }
 
 }
+
+template<bool TRunType>
+void ComputeWingSectionVariableProcess<TRunType>::AssignNodalVariablesFromContainer(
+                                                    ModelPart::NodeType::Pointer pNode,
+                                                    GeometricalObject rContainer)
+{
+    for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
+        const auto& r_array_var = *mArrayVariablesList[i_var];
+        const auto& r_array_value = rContainer.GetValue(r_array_var);
+        pNode->SetValue(r_array_var, r_array_value);
+    }
+    for (IndexType i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
+        const auto& r_double_var = *mDoubleVariablesList[i_var];
+        const auto& r_double_value = rContainer.GetValue(r_double_var);
+        pNode->SetValue(r_double_var, r_double_value);
+    }
+}
+
+template class ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>;
+template class ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun>;
 } /* namespace Kratos.*/

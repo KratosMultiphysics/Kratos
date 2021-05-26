@@ -402,7 +402,7 @@ namespace Kratos {
       Vector versor(3, 0.0);
       versor(1) = 1.0;
 
-      ComputeWingSectionVariableProcess ComputeWingSectionVariableProcessDefault(
+      ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun> ComputeWingSectionVariableProcessDefault(
                                       model_part,
                                       section_model_part_1,
                                       versor,
@@ -414,7 +414,87 @@ namespace Kratos {
 
       const std::vector<std::string> variable_array = {"VELOCITY","PRESSURE_COEFFICIENT"};
       ModelPart& section_model_part_2 = this_model.CreateModelPart("section_2", 3);
-      ComputeWingSectionVariableProcess ComputeWingSectionVariableProcessWithArray(
+      ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun> ComputeWingSectionVariableProcessWithArray(
+                                      model_part,
+                                      section_model_part_2,
+                                      versor,
+                                      origin,
+                                      variable_array);
+      ComputeWingSectionVariableProcessWithArray.Execute();
+
+      auto& r_node_section_2 = section_model_part_2.GetNode(1);
+      KRATOS_CHECK_NEAR(r_node_section_2.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
+      KRATOS_CHECK_VECTOR_NEAR(r_node_section_2.GetValue(VELOCITY), velocity, 1e-6);
+    }
+
+
+    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedWingSectionVariableProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      // Create model_part
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+      model_part.GetProcessInfo()[DOMAIN_SIZE] = 3;
+
+      // Set model_part properties
+      BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+      free_stream_velocity(0) = 10.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+      // Variables addition
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
+
+      // Set the element properties
+      model_part.CreateNewProperties(0);
+      Properties::Pointer p_prop = model_part.pGetProperties(0);
+
+      // Geometry creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+      model_part.CreateNewNode(4, 1.0, 1.0, 1.0);
+      std::vector<ModelPart::IndexType> elem_nodes{ 1, 2, 3, 4};
+      model_part.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement3D4N", 1, elem_nodes, p_prop);
+
+      auto& r_element = model_part.GetElement(1);
+      r_element.Set(ACTIVE);
+      auto& r_geometry = r_element.GetGeometry();
+
+      r_element.SetValue(PRESSURE_COEFFICIENT, 0.5);
+
+      Vector velocity(3);
+      velocity(0) = 1.0;
+      velocity(1) = 2.0;
+      velocity(2) = 3.0;
+      r_element.SetValue(VELOCITY, velocity);
+
+      std::array<double, 4> geometry_distances = {1.0,1.0,1.0,-1.0};
+      for (IndexType i=0; i<r_geometry.size(); i++) {
+        r_geometry[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = geometry_distances[i];
+      }
+
+      ModelPart& section_model_part_1 = this_model.CreateModelPart("section_1", 3);
+
+      Vector origin(3, 0.0);
+      origin(0) = 1.0/3.0;
+      origin(1) = 1.0/3.0;
+
+      Vector versor(3, 0.0);
+      versor(1) = 1.0;
+
+      ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun> ComputeWingSectionVariableProcessDefault(
+                                      model_part,
+                                      section_model_part_1,
+                                      versor,
+                                      origin);
+      ComputeWingSectionVariableProcessDefault.Execute();
+
+      auto& r_node_section_1 = section_model_part_1.GetNode(1);
+      KRATOS_CHECK_NEAR(r_node_section_1.GetValue(PRESSURE_COEFFICIENT), 0.5, 1e-6);
+
+      const std::vector<std::string> variable_array = {"VELOCITY","PRESSURE_COEFFICIENT"};
+      ModelPart& section_model_part_2 = this_model.CreateModelPart("section_2", 3);
+      ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun> ComputeWingSectionVariableProcessWithArray(
                                       model_part,
                                       section_model_part_2,
                                       versor,
