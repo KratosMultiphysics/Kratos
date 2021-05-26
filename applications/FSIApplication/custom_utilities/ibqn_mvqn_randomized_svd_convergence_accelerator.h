@@ -206,6 +206,43 @@ public:
             KRATOS_WATCH("NO POINTERS LEFT")
             rLeftCorrection = aux_RHS;
         }
+
+        // // Set the residual of the update problem to be solved
+        // VectorType aux_RHS = rForceOutputVector - rIterationGuess;
+        // if (p_inv_jac_QU_left != nullptr && p_inv_jac_SigmaV_left != nullptr) {
+        //     const std::size_t n_dofs = TDenseSpace::Size(*p_uncorrected_displacement_vector);
+        //     const std::size_t n_modes = TDenseSpace::Size1(*p_inv_jac_SigmaV_left);
+        //     VectorType aux_vect(n_modes);
+        //     VectorType aux_left_onto_right(n_dofs);
+        //     VectorType displacement_iteration_update = *p_uncorrected_displacement_vector - rDisplacementInputVector;
+        //     TSparseSpace::Mult(*p_inv_jac_SigmaV_left, displacement_iteration_update, aux_vect);
+        //     TSparseSpace::Mult(*p_inv_jac_QU_left, aux_vect, aux_left_onto_right);
+        //     TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_left_onto_right);
+
+        //     if (p_inv_jac_QU_right != nullptr && p_inv_jac_SigmaV_right != nullptr) {
+
+        //         MatrixType aux_C;
+        //         const bool is_extended = CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_left, *p_inv_jac_QU_right, aux_C);
+        //         KRATOS_ERROR_IF(is_extended) << "Auxiliary matrix C is not expected to be extended in \'SolveInterfaceBlockQuasiNewtonLeftUpdate\'." << std::endl;
+
+        //         // Calculate the correction with the Woodbury matrix identity
+        //         ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_left, *p_inv_jac_SigmaV_right, aux_C, aux_RHS, rLeftCorrection);
+
+        //     } else {
+        //         rLeftCorrection = aux_RHS;
+        //     }
+        // } else {
+        //     //TODO: I THINK THIS CAN BE REMOVED
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     KRATOS_WATCH("NO POINTERS LEFT")
+        //     rLeftCorrection = aux_RHS;
+        // }
     }
 
     void SolveInterfaceBlockQuasiNewtonRightUpdate(
@@ -225,22 +262,15 @@ public:
         auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatixSigmaV();
         auto p_uncorrected_force_vector = BaseType::pGetUncorrectedForceVector();
 
-        //FIXME:
-        KRATOS_WATCH(p_inv_jac_QU_left)
-        KRATOS_WATCH(p_inv_jac_SigmaV_left)
-        KRATOS_WATCH(p_inv_jac_QU_right)
-        KRATOS_WATCH(p_inv_jac_SigmaV_right)
-
+        // If the decomposition has not been done yet (1st nonlinear iteration) use the previous step Jacobian decompositions
         if (p_inv_jac_QU_right == nullptr && p_inv_jac_SigmaV_right == nullptr) {
             p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixQU();
             p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixSigmaV();
             p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixQU();
             p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixSigmaV();
         }
-        //FIXME:
 
         // Set the residual of the update problem to be solved
-        VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
         if (p_inv_jac_QU_right != nullptr && p_inv_jac_SigmaV_right != nullptr) {
             const std::size_t n_dofs = TDenseSpace::Size(*p_uncorrected_force_vector);
             const std::size_t n_modes_right = TDenseSpace::Size1(*p_inv_jac_SigmaV_right);
@@ -249,6 +279,7 @@ public:
             VectorType force_iteration_update = *p_uncorrected_force_vector - rForceInputVector;
             TSparseSpace::Mult(*p_inv_jac_SigmaV_right, force_iteration_update, aux_vect);
             TSparseSpace::Mult(*p_inv_jac_QU_right, aux_vect, aux_right_onto_left);
+            VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
             TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
 
             // Calculate auxiliary intermediate small matrices
@@ -258,44 +289,105 @@ public:
                 const bool is_extended = CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_right, *p_inv_jac_QU_left, aux_C);
 
                 if (is_extended) {
-                    // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
                     const std::size_t n_modes_left = TDenseSpace::Size1(*p_inv_jac_SigmaV_left);
-                    MatrixType extended_inv_jac_SigmaV_left = ZeroMatrix(n_modes_left + 1, n_dofs);
-                    IndexPartition<std::size_t>(n_dofs).for_each(
-                        [&extended_inv_jac_SigmaV_left, &p_inv_jac_SigmaV_left, &n_modes_left](std::size_t Col){
-                            const auto& r_inv_jac_SigmaV_left = *p_inv_jac_SigmaV_left;
-                            for (std::size_t row = 0; row < n_modes_left; ++row)
-                            extended_inv_jac_SigmaV_left(row, Col) = r_inv_jac_SigmaV_left(row, Col);
-                        }
-                    );
+                    if (n_modes_right == n_modes_left + 1) {
+                        // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
+                        MatrixType extended_inv_jac_SigmaV_left = ZeroMatrix(n_modes_left + 1, n_dofs);
+                        IndexPartition<std::size_t>(n_dofs).for_each(
+                            [&extended_inv_jac_SigmaV_left, &p_inv_jac_SigmaV_left, &n_modes_left](std::size_t Col){
+                                const auto& r_inv_jac_SigmaV_left = *p_inv_jac_SigmaV_left;
+                                for (std::size_t row = 0; row < n_modes_left; ++row)
+                                extended_inv_jac_SigmaV_left(row, Col) = r_inv_jac_SigmaV_left(row, Col);
+                            }
+                        );
 
-                    // Calculate the correction with the Woodbury matrix identity
-                    ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, extended_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
+                        // Calculate the correction with the Woodbury matrix identity
+                        ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, extended_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
+
+                    } else if (n_modes_right < n_modes_left && n_modes_right == 1) {
+                        // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
+                        MatrixType extended_inv_jac_QU_right = ZeroMatrix(n_dofs, n_modes_left);
+
+                        IndexPartition<std::size_t>(n_dofs).for_each(
+                            [&extended_inv_jac_QU_right, &p_inv_jac_QU_right, &n_modes_left](std::size_t Rol) {
+                                const auto &r_inv_jac_QU_right = *p_inv_jac_QU_right;
+                                for (std::size_t col = 0; col < n_modes_left; ++col)
+                                    extended_inv_jac_QU_right(Row, col) = r_inv_jac_QU_right(Rol, col);
+                            });
+
+                        // Calculate the correction with the Woodbury matrix identity
+                        ApplyWoodburyMatrixIdentity(extended_inv_jac_QU_right, *p_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
+
+                    }
                 } else {
+                    //FIXME: I THINK WE SHOULD THROW AN ERROR IN HERE -> WE ALWAYS NEED TO EXTEND IN RIGHT
                     // Calculate the correction with the Woodbury matrix identity
                     // Note that in here no extension of the left side matrix is done. This happens when the previous step SVD is used (first iteration)
                     ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
                 }
-
             } else {
                 rRightCorrection = aux_RHS;
             }
         } else {
-            //TODO: I THINK THIS CAN BE REMOVED
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            KRATOS_WATCH("NO POINTERS RIGHT")
-            rRightCorrection = aux_RHS;
+            KRATOS_ERROR << "Calling \'SolveInterfaceBlockQuasiNewtonRightUpdate\' with no Jacobian decomposition available." << std::endl;
         }
+        // // Set the residual of the update problem to be solved
+        // VectorType aux_RHS = rDisplacementOutputVector - rIterationGuess;
+        // if (p_inv_jac_QU_right != nullptr && p_inv_jac_SigmaV_right != nullptr) {
+        //     const std::size_t n_dofs = TDenseSpace::Size(*p_uncorrected_force_vector);
+        //     const std::size_t n_modes_right = TDenseSpace::Size1(*p_inv_jac_SigmaV_right);
+        //     VectorType aux_vect(n_modes_right);
+        //     VectorType aux_right_onto_left(n_dofs);
+        //     VectorType force_iteration_update = *p_uncorrected_force_vector - rForceInputVector;
+        //     TSparseSpace::Mult(*p_inv_jac_SigmaV_right, force_iteration_update, aux_vect);
+        //     TSparseSpace::Mult(*p_inv_jac_QU_right, aux_vect, aux_right_onto_left);
+        //     TSparseSpace::UnaliasedAdd(aux_RHS, 1.0, aux_right_onto_left);
+
+        //     // Calculate auxiliary intermediate small matrices
+        //     if (p_inv_jac_QU_left != nullptr && p_inv_jac_SigmaV_left != nullptr) {
+
+        //         MatrixType aux_C;
+        //         const bool is_extended = CalculateAuxiliaryMatrixC(*p_inv_jac_SigmaV_right, *p_inv_jac_QU_left, aux_C);
+
+        //         if (is_extended) {
+        //             // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
+        //             const std::size_t n_modes_left = TDenseSpace::Size1(*p_inv_jac_SigmaV_left);
+        //             MatrixType extended_inv_jac_SigmaV_left = ZeroMatrix(n_modes_left + 1, n_dofs);
+        //             IndexPartition<std::size_t>(n_dofs).for_each(
+        //                 [&extended_inv_jac_SigmaV_left, &p_inv_jac_SigmaV_left, &n_modes_left](std::size_t Col){
+        //                     const auto& r_inv_jac_SigmaV_left = *p_inv_jac_SigmaV_left;
+        //                     for (std::size_t row = 0; row < n_modes_left; ++row)
+        //                     extended_inv_jac_SigmaV_left(row, Col) = r_inv_jac_SigmaV_left(row, Col);
+        //                 }
+        //             );
+
+        //             // Calculate the correction with the Woodbury matrix identity
+        //             ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, extended_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
+        //         } else {
+        //             // Calculate the correction with the Woodbury matrix identity
+        //             // Note that in here no extension of the left side matrix is done. This happens when the previous step SVD is used (first iteration)
+        //             ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, *p_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
+        //         }
+
+        //     } else {
+        //         rRightCorrection = aux_RHS;
+        //     }
+        // } else {
+        //     //TODO: I THINK THIS CAN BE REMOVED
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     KRATOS_WATCH("NO POINTERS RIGHT")
+        //     rRightCorrection = aux_RHS;
+        // }
     }
 
     ///@}
@@ -342,7 +434,7 @@ private:
     /**
      * @brief Calculates the auxiliary matrix C
      * This method calculates the auxiliary matrix C required for the application of the Woodbury matrix identity
-     * Note that if the resultant matrix is not squared, it adds a zero column with a one in the bottom right corner
+     * Note that if the resultant matrix is not squared, it adds a zero columns with ones in the diagonal
      * @param rA Horizontal-shaped input matrix
      * @param rB Vertical-shaped input matrix
      * @param rC Squared output matrix
@@ -368,10 +460,19 @@ private:
         bool is_extended = false;
         if (n_row_A != n_col_B) {
             if (n_row_A == n_col_B + 1) {
+                // This case always happens when updating displacements as no force observation has been done yet
                 is_extended = true;
                 rC = ZeroMatrix(n_row_A, n_col_B +1);
                 IndexPartition<std::size_t>(n_col_B).for_each(VectorType(n_dofs), matrix_A_B_product);
                 rC(n_row_A - 1, n_col_B) = 1.0;
+            } else if (n_row_A < n_col_B && n_row_A == 1) {
+                // This case happens in the second displacement update since we have displacement observation but the previous force Jacobian is used
+                is_extended = true;
+                rC = ZeroMatrix(n_col_B, n_col_B);
+                IndexPartition<std::size_t>(n_col_B).for_each(VectorType(n_dofs), matrix_A_B_product);
+                for (std::size_t i_row = 1; i_row < n_col_B; ++i_row) {
+                    rC(i_row, i_row) = 1.0;
+                }
             } else {
                 KRATOS_ERROR << "Auxiliary matrix C for Woodbury matrix identity cannot be computed." << std::endl;
             }
