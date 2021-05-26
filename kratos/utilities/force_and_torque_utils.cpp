@@ -19,6 +19,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -30,17 +31,9 @@ array_1d<double,3> ForceAndTorqueUtils::SumForce(
 {
     KRATOS_TRY
 
-    array_1d<double,3> force = block_for_each<SumReduction<array_1d<double,3>>>(
-        rModelPart.GetCommunicator().LocalMesh().Nodes(),
-        [&rForceVariable](const Node<3>& rNode) -> array_1d<double,3>
-        {
-            return rNode.GetSolutionStepValue(rForceVariable);
-        }
-    );
-
-    force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(force);
-
-    return force;
+    return VariableUtils().SumHistoricalVariable<array_1d<double,3>>(
+        rForceVariable,
+        rModelPart);
 
     KRATOS_CATCH("")
 }

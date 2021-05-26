@@ -38,6 +38,7 @@ public:
     /** Sum forces on all nodes
      *  @param rModelPart model part containing all nodes to perform the sum on
      *  @param rForceVariable nodal force variable to be summed up (example: REACTION)
+     *  @note this function is identical to @ref{VariableUtils::SumHistoricalVariable} and calls it internally
      */
     static array_1d<double,3> SumForce(
         const ModelPart& rModelPart,
