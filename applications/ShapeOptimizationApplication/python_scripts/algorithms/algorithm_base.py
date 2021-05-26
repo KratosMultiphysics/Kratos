@@ -11,7 +11,9 @@
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
+from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger
 
 # ==============================================================================
 class OptimizationAlgorithm:
@@ -38,6 +40,9 @@ class OptimizationAlgorithm:
 
         self._CreateMappers(self.optimization_settings["design_variables"])
 
+        self.data_logger = data_logger.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
+        self.data_logger.InitializeDataLogging()
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
         raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> RunOptimizationLoop << .")
@@ -45,6 +50,7 @@ class OptimizationAlgorithm:
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
         self.analyzer.FinalizeAfterOptimizationLoop()
+        self.data_logger.FinalizeDataLogging()
 
     # --------------------------------------------------------------------------
     def _CreateMappers(self, mappers_settings):
@@ -57,5 +63,10 @@ class OptimizationAlgorithm:
             mapper.Initialize()
             self.mappers[design_surface_name] = mapper
 
+    # --------------------------------------------------------------------------
+    def _initializeNewShape(self):
+        self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
+        self.model_part_controller.SetReferenceMeshToMesh()
 
 # ==============================================================================

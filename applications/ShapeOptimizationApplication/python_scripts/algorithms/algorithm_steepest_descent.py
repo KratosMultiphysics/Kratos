@@ -19,7 +19,6 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
-from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 from KratosMultiphysics.ShapeOptimizationApplication import OptimizationUtilities as optimization_utilities
@@ -47,7 +46,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             }
         }""")
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
-        self.optimization_settings = optimization_settings
 
         self.data_logger = None
         self.norm_objective_gradient = 0.0
@@ -76,13 +74,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             raise RuntimeError("Steepest descent algorithm does not allow for any constraints!")
 
     # --------------------------------------------------------------------------
-    def InitializeOptimizationLoop(self):
-        super().InitializeOptimizationLoop()
-
-        self.data_logger = data_logger.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
-        self.data_logger.InitializeDataLogging()
-
-    # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
         timer.StartTimer()
@@ -95,7 +86,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             timer.StartNewLap()
 
-            self.__initializeNewShape()
+            self._initializeNewShape()
 
             self.__analyzeShape()
 
@@ -114,18 +105,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 break
             else:
                 self.__determineAbsoluteChanges()
-
-    # --------------------------------------------------------------------------
-    def FinalizeOptimizationLoop(self):
-        super().FinalizeOptimizationLoop()
-        self.data_logger.FinalizeDataLogging()
-
-
-    # --------------------------------------------------------------------------
-    def __initializeNewShape(self):
-        self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
-        self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
