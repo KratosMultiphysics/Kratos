@@ -18,7 +18,7 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 # additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_empty import EmptyAnalyzer
-from KratosMultiphysics.ShapeOptimizationApplication import model_part_controller_factory
+from KratosMultiphysics.ShapeOptimizationApplication import model_part_controller
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers import analyzer_factory
 from KratosMultiphysics.ShapeOptimizationApplication import communicator_factory
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms import algorithm_factory
@@ -37,7 +37,7 @@ class Optimizer:
         self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
 
-        self.model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+        self.model_part_controller = model_part_controller.Create(optimization_settings["model_settings"], model)
         self.analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, self.model_part_controller, external_analyzer)
         self.communicator = communicator_factory.CreateCommunicator(optimization_settings)
 

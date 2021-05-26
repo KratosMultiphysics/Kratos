@@ -16,7 +16,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # ==============================================================================
-def CreateController(model_settings, model):
+def Create(model_settings, model):
     return ModelPartController(model_settings, model)
 
 # ==============================================================================
