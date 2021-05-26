@@ -23,13 +23,17 @@ from . import analyzer_factory
 from . import communicator_factory
 from . import algorithm_factory
 
+## Purely for backward compatibility, should be removed soon.
+def CreateOptimizer(optimization_settings,model,external_analyzer=EmptyAnalyzer()):
+    return Optimizer(model, optimization_settings, external_analyzer)
+
 def Create( model, optimization_settings, external_analyzer=EmptyAnalyzer()):
     return Optimizer(model, optimization_settings, external_analyzer)
 
 # ==============================================================================
 class Optimizer:
     # --------------------------------------------------------------------------
-    def __init__(self, model, optimization_settings, external_analyzer):
+    def __init__(self, model, optimization_settings, external_analyzer=EmptyAnalyzer()):
         self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
 
