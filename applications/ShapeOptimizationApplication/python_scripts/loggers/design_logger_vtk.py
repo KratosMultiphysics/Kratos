@@ -72,7 +72,7 @@ class DesignLoggerVTK( DesignLogger ):
 
             vtk_parameters["output_path"].SetString(self.output_settings["output_directory"].GetString())
 
-        vtk_ios[name] = VtkOutputProcess(self.model, vtk_parameters)
+            vtk_ios[name] = VtkOutputProcess(self.model, vtk_parameters)
 
         return vtk_ios
 
