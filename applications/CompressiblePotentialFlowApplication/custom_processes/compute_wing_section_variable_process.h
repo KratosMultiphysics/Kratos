@@ -132,6 +132,16 @@ private:
     */
     void StoreVariableList(const std::vector<std::string>& rVariableStringArray);
 
+        /**
+     * @brief Assigns the variables in the mArrayVariablesList and mDoubleVariablesList
+     * lists in rContainer to the pNode.
+     * @param pNode Pointer to the newly created node in the wing section
+     * @param rContainer Reference to the source container from which variables are retrieved
+    */
+
+    void AssignNodalVariablesFromContainer(ModelPart::NodeType::Pointer pNode,
+                                        GeometricalObject rContainer);
+
     /// Assignment operator.
     ComputeWingSectionVariableProcess& operator=(ComputeWingSectionVariableProcess const& rOther);
 

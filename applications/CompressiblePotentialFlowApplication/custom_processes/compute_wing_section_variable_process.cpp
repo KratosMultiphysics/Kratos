@@ -17,6 +17,7 @@
 #include "utilities/parallel_utilities.h"
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -84,16 +85,7 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
 
         if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(cond_distances)) {
             auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
-            for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
-                const auto& r_array_var = *mArrayVariablesList[i_var];
-                const auto& r_array_value = r_cond.GetValue(r_array_var);
-                p_node->SetValue(r_array_var, r_array_value);
-            }
-            for (IndexType i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
-                const auto& r_double_var = *mDoubleVariablesList[i_var];
-                const auto& r_double_value = r_cond.GetValue(r_double_var);
-                p_node->SetValue(r_double_var, r_double_value);
-            }
+            AssignNodalVariablesFromContainer(p_node, r_cond);
         }
     }
 
@@ -143,16 +135,7 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
                 interface_gauss_point[2] += interface_sh_func(0, i_node)*r_geometry[i_node].Z();
             }
             auto p_node = mrSectionModelPart.CreateNewNode(++node_index,  interface_gauss_point[0],  interface_gauss_point[1], interface_gauss_point[2]);
-            for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
-                const auto& r_array_var = *mArrayVariablesList[i_var];
-                const auto& r_array_value = r_elem.GetValue(r_array_var);
-                p_node->SetValue(r_array_var, r_array_value);
-            }
-            for (IndexType i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
-                const auto& r_double_var = *mDoubleVariablesList[i_var];
-                const auto& r_double_value = r_elem.GetValue(r_double_var);
-                p_node->SetValue(r_double_var, r_double_value);
-            }
+            AssignNodalVariablesFromContainer(p_node, r_elem);
         }
     }
 
@@ -208,6 +191,23 @@ void ComputeWingSectionVariableProcess<TRunType>::StoreVariableList(const std::v
         }
     }
 
+}
+
+template<bool TRunType>
+void ComputeWingSectionVariableProcess<TRunType>::AssignNodalVariablesFromContainer(
+                                                    ModelPart::NodeType::Pointer pNode,
+                                                    GeometricalObject rContainer)
+{
+    for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
+        const auto& r_array_var = *mArrayVariablesList[i_var];
+        const auto& r_array_value = rContainer.GetValue(r_array_var);
+        pNode->SetValue(r_array_var, r_array_value);
+    }
+    for (IndexType i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
+        const auto& r_double_var = *mDoubleVariablesList[i_var];
+        const auto& r_double_value = rContainer.GetValue(r_double_var);
+        pNode->SetValue(r_double_var, r_double_value);
+    }
 }
 
 template class ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>;
