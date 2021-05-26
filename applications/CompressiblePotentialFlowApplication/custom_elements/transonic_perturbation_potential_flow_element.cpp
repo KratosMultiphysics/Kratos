@@ -957,7 +957,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         if (PartitionsSign[i] > 0)
         {
             noalias(lhs_positive) += Volumes[i] * upper_density * prod(data.DN_DX, trans(data.DN_DX));
-            if( upper_local_velocity_squared < max_velocity_squared){
+            if(upper_local_velocity_squared < max_velocity_squared) {
                 noalias(lhs_positive) += Volumes[i] * 2 * upper_DrhoDu2 * outer_prod(upper_DNV, trans(upper_DNV));
             }
 
