@@ -965,7 +965,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         else
         {
             noalias(lhs_negative) += Volumes[i] * lower_density * prod(data.DN_DX, trans(data.DN_DX));
-            if( lower_local_velocity_squared < max_velocity_squared){
+            if(lower_local_velocity_squared < max_velocity_squared) {
                 noalias(lhs_negative) += Volumes[i] * 2 * lower_DrhoDu2 * outer_prod(lower_DNV, trans(lower_DNV));
             }
         }
