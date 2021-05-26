@@ -170,9 +170,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
             normalize = self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool()
-            for name, design_surface in self.design_surfaces.items():
-                optimization_utilities.ComputeSearchDirectionSteepestDescent(design_surface)
-                optimization_utilities.ComputeControlPointUpdate(design_surface, self.step_size, normalize)
+            design_surface = self.design_surfaces[name]
+            optimization_utilities.ComputeSearchDirectionSteepestDescent(design_surface)
+            optimization_utilities.ComputeControlPointUpdate(design_surface, self.step_size, normalize)
 
             mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
             self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
