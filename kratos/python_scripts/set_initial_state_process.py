@@ -11,7 +11,7 @@ def Factory(settings, Model):
     return SetInitialStateProcess(Model, settings["Parameters"])
 
 
-def param_to_str(param):
+def __ParamToStr(param):
     """
     Convert input to string type.
 
@@ -33,7 +33,7 @@ def param_to_str(param):
     return sparam
 
 
-def str_to_function(expr):
+def __StrToFunction(expr):
     """
     Convert text to a mathematical function.
 
@@ -83,9 +83,9 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
             "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "dimension"       : 3,
-            "imposed_strain_magnitude": "1.0",
+            "imposed_strain_multiplier": "1.0",
             "imposed_strain"  : ["0","0","0",0,0,0],
-            "imposed_stress_magnitude": "1.0",
+            "imposed_stress_multiplier": "1.0",
             "imposed_stress"  : [0,0,0,0,0,0],
             "imposed_deformation_gradient": [[1,0,0],[0,1,0],[0,0,1]],
             "interval"        : [0.0, 1e30]
@@ -101,16 +101,16 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.dimension = settings["dimension"].GetInt()
 
         # init strain
-        m = param_to_str(settings["imposed_strain_magnitude"])
-        v = [param_to_str(x) for x in settings["imposed_strain"]]
-        self.strain_functions = [str_to_function("{}*{}".format(m, x)) for x in v]
+        m = __ParamToStr(settings["imposed_strain_multiplier"])
+        v = [__ParamToStr(x) for x in settings["imposed_strain"]]
+        self.strain_functions = [__StrToFunction("{}*{}".format(m, x)) for x in v]
         nr_comps = len(self.strain_functions)
         self.imposed_strain = KratosMultiphysics.Vector(nr_comps)
 
         # init stress
-        m = param_to_str(settings["imposed_stress_magnitude"])
-        v = [param_to_str(x) for x in settings["imposed_stress"]]
-        self.stress_functions = [str_to_function("{}*{}".format(m, x)) for x in v]
+        m = __ParamToStr(settings["imposed_stress_multiplier"])
+        v = [__ParamToStr(x) for x in settings["imposed_stress"]]
+        self.stress_functions = [__StrToFunction("{}*{}".format(m, x)) for x in v]
         nr_comps = len(self.stress_functions)
         self.imposed_stress = KratosMultiphysics.Vector(nr_comps)
 
@@ -118,8 +118,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         aux_matrix = settings["imposed_deformation_gradient"]
         self.deformation_functions = []
         for row in aux_matrix:
-            v = [param_to_str(x) for x in row]
-            aux_vector = [str_to_function(x) for x in v]
+            v = [__ParamToStr(x) for x in row]
+            aux_vector = [__StrToFunction(x) for x in v]
             self.deformation_functions.append(aux_vector)
         nrows = aux_matrix.size()
         ncols = aux_matrix[0].size()
@@ -156,9 +156,7 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
                 for c in range(nr_cols):
                     self.imposed_deformation_gradient[
                         r, c
-                    ] = self.deformation_functions[r][c].CallFunction(
-                        0, 0, 0, current_time, 0, 0, 0
-                    )
+                    ] = self.deformation_functions[r][c].CallFunction(0, 0, 0, current_time, 0, 0, 0)
 
             self.SetInitialState()
 
