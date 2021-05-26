@@ -41,8 +41,7 @@ class Optimizer:
         self.analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, self.model_part_controller, external_analyzer)
         self.communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
-        if not optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-            raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+        self.__CheckDesignVariableTypes()
 
         self.__AddVariablesToBeUsedByAllAlgorithms()
         self.__AddVariablesToBeUsedByDesignVariables()
@@ -77,12 +76,16 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
     def __AddVariablesToBeUsedByDesignVariables(self):
-        if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
-            self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
-                model_part = self.model_part_controller.GetOptimizationModelPart()
-                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
-                model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
-                model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+        add_in_plane_variables = False
+        for settings in self.optimization_settings["design_variables"]:
+            if settings["filter"].Has("in_plane_morphing") and \
+                settings["filter"]["in_plane_morphing"].GetBool():
+                add_in_plane_variables = True
+        if add_in_plane_variables :
+            model_part = self.model_part_controller.GetOptimizationModelPart()
+            model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
+            model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
+            model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
 
     # --------------------------------------------------------------------------
     def Optimize(self):
@@ -122,7 +125,7 @@ class Optimizer:
             "model_settings" : { },
             "objectives" : [ ],
             "constraints" : [ ],
-            "design_variables" : { },
+            "design_variables" : [],
             "optimization_algorithm" : { },
             "output" : { }
         }""")
@@ -132,6 +135,12 @@ class Optimizer:
                 raise RuntimeError("Optimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
 
         optimization_settings.ValidateAndAssignDefaults(default_settings)
+        model_settings = optimization_settings["model_settings"]
+        model_settings.AddEmptyValue("design_surfaces")
+        design_surface_names = []
+        for design_variable in optimization_settings["design_variables"]:
+            design_surface_names.append(design_variable["model_part_name"].GetString())
+        optimization_settings["model_settings"]["design_surfaces"].SetStringArray(design_surface_names)
 
     # ------------------------------------------------------------------------------
     def _ValidateObjectiveSettingsRecursively(self, objective_settings):
@@ -169,3 +178,8 @@ class Optimizer:
         }""")
         for itr in range(constraint_settings.size()):
             constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
+
+    def __CheckDesignVariableTypes(self):
+        for settings in self.optimization_settings["design_variables"]:
+            if not settings["type"].GetString() == "vertex_morphing":
+                raise NameError("The following type of design variables are not supported by the optimizer : " + settings["type"].GetString())
