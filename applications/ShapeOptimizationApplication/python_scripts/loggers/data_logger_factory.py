@@ -19,15 +19,15 @@ import KratosMultiphysics as KM
 import shutil
 import os
 
-from .design_logger_gid import DesignLoggerGID
-from .design_logger_unv import DesignLoggerUNV
-from .design_logger_vtk import DesignLoggerVTK
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.design_logger_gid import DesignLoggerGID
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.design_logger_unv import DesignLoggerUNV
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.design_logger_vtk import DesignLoggerVTK
 
-from .value_logger_steepest_descent import ValueLoggerSteepestDescent
-from .value_logger_penalized_projection import ValueLoggerPenalizedProjection
-from .value_logger_trust_region import ValueLoggerTrustRegion
-from .value_logger_bead_optimization import ValueLoggerBeadOptimization
-from .value_logger_gradient_projection import ValueLoggerGradientProjection
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_steepest_descent import ValueLoggerSteepestDescent
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_penalized_projection import ValueLoggerPenalizedProjection
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_trust_region import ValueLoggerTrustRegion
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_bead_optimization import ValueLoggerBeadOptimization
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_gradient_projection import ValueLoggerGradientProjection
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
