@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-  class MembraneElement
+  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MembraneElement
     : public Element
   {
   public:

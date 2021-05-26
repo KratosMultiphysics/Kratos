@@ -13,11 +13,11 @@
 import KratosMultiphysics as KM
 
 # Import logger base classes
-from .value_logger_base import ValueLogger
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.value_logger_base import ValueLogger
 
 # Import additional libraries
 import csv
-from .custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerPenalizedProjection( ValueLogger ):
