@@ -16,12 +16,12 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from .algorithm_base import OptimizationAlgorithm
-from . import mapper_factory
-from . import data_logger_factory
-from . import custom_math as cm
-from .custom_timer import Timer
-from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
+from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
+from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
+from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
 import copy
 
 # ==============================================================================
@@ -82,7 +82,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -398,7 +398,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         dX = cm.ScalarVectorProduct(step_length,dX_bar)
 
         WriteListToNodalVariable(dX, self.design_surface, KSO.SHAPE_UPDATE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
         return dX
 

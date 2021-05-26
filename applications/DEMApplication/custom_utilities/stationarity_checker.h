@@ -14,15 +14,19 @@ namespace Kratos {
         public:
 
         KRATOS_CLASS_POINTER_DEFINITION(StationarityChecker);
-        
+
         StationarityChecker();
-                
+
         virtual ~StationarityChecker();
-        
+
         bool CheckIfItsTimeToChangeGravity(ModelPart& rSpheresModelPart,
                                        const double velocity_threshold_for_gravity_change,
                                        const double min_time_between_changes,
                                        const double max_time_between_changes);
+
+        bool CheckIfVariableIsNullInModelPart(const ModelPart& rSpheresModelPart,
+                                    const Variable<double>& var,
+                                    const double& tolerance);
 
         virtual std::string Info() const;
 
@@ -31,7 +35,7 @@ namespace Kratos {
         virtual void PrintData(std::ostream& rOStream) const;
 
         double mPreviousChangeTime;
-        
+
         protected:
 
         private:
