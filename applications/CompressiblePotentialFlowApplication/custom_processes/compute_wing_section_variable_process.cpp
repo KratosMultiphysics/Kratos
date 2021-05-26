@@ -73,17 +73,6 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
 
     ExecuteInitialize();
 
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
-    {
-        auto direction = rNode.Coordinates() - mrOrigin;
-        double distance = inner_prod(direction, mrVersor);
-        if (std::abs(distance) < 1e-9) {
-            rNode.SetValue(DISTANCE, 1e-9);
-        } else {
-            rNode.SetValue(DISTANCE, distance);
-        }
-    });
-
     IndexType node_index = 0;
 
     for (auto& r_cond : mrModelPart.Conditions()) {
@@ -117,17 +106,6 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
     KRATOS_TRY;
 
     ExecuteInitialize();
-
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
-    {
-        auto direction = rNode.Coordinates() - mrOrigin;
-        double distance = inner_prod(direction, mrVersor);
-        if (std::abs(distance) < 1e-9) {
-            rNode.SetValue(DISTANCE, 1e-9);
-        } else {
-            rNode.SetValue(DISTANCE, distance);
-        }
-    });
 
     IndexType node_index = 0;
 
@@ -183,6 +161,18 @@ void ComputeWingSectionVariableProcess<TRunType>::ExecuteInitialize()
         const auto& r_double_var = *mDoubleVariablesList[i_var];
         VariableUtils().SetNonHistoricalVariable(r_double_var, 0.0, r_nodes);
     }
+
+    // Compute distance to section defined by the plane
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    {
+        auto direction = rNode.Coordinates() - mrOrigin;
+        double distance = inner_prod(direction, mrVersor);
+        if (std::abs(distance) < 1e-9) {
+            rNode.SetValue(DISTANCE, 1e-9);
+        } else {
+            rNode.SetValue(DISTANCE, distance);
+        }
+    });
 }
 
 template<bool TRunType>
