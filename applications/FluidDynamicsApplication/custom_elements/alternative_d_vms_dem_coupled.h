@@ -245,6 +245,11 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
+    void AddViscousTerm(
+        const TElementData& rData,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS) override;
+
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
