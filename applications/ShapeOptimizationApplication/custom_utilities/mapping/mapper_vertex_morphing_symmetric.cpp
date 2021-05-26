@@ -25,7 +25,7 @@
 #include "utilities/parallel_utilities.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 #include "symmetry_base.h"
 #include "symmetry_plane.h"
 #include "symmetry_revolution.h"
@@ -324,7 +324,7 @@ void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        const double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
+        const double weight = mpFilterFunction->ComputeWeight( destination_node.Coordinates(), neighbor_node.Coordinates() );
 
         list_of_weights[neighbor_itr] = weight;
         sum_of_weights += weight;

@@ -46,7 +46,7 @@ parameters["optimization_settings"]["output"]["design_output_mode"].SetString("w
 
 model = KM.Model()
 
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================
