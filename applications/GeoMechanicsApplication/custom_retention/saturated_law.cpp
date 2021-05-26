@@ -181,7 +181,7 @@ void SaturatedLaw::
 
 //-------------------------------------------------------------------------------------------------
 int SaturatedLaw::Check(const Properties& rMaterialProperties,
-                           const ProcessInfo& rCurrentProcessInfo)
+                        const ProcessInfo& rCurrentProcessInfo)
 {
     if (rMaterialProperties.Has(SATURATED_SATURATION))
     {
