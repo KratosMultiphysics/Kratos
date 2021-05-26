@@ -21,7 +21,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 
 namespace Kratos
@@ -65,10 +66,11 @@ public:
     ///@{
 
     /// Default constructor.
-    CouplingInterfaceData();
-
-    /// Destructor.
-    virtual ~CouplingInterfaceData();
+    CouplingInterfaceData(
+        Parameters Settings,
+        Model& rModel,
+        const std::string& rName="default",
+        const std::string& rSolverName="default_solver");
 
     ///@}
     ///@name Operators
@@ -78,6 +80,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    static Parameters GetDefaultParameters();
 
 
     ///@}
@@ -100,18 +104,24 @@ public:
 
     std::size_t Size() const;
 
+    std::size_t GetBufferSize() const;
+
+    std::string Name() const;
+
+    std::string SolverName() const;
+
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
     ///@}
     ///@name Friends
@@ -166,6 +176,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPart* mpModelpart;
 
     ///@}
     ///@name Private Operators

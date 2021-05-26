@@ -26,13 +26,26 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     pybind11::class_<CouplingInterfaceData, CouplingInterfaceData::Pointer>(m, "CouplingInterfaceData")
-        // .def(py::init<ModelPart&>())
+        .def(pybind11::init<Parameters, Model&>())
+        .def(pybind11::init<Parameters, Model&, const std::string&>())
+        .def(pybind11::init<Parameters, Model&, const std::string&, const std::string&>())
+        .def_static("GetDefaultParameters", &CouplingInterfaceData::GetDefaultParameters)
         .def("GetData", &CouplingInterfaceData::GetData)
         .def("SetData", &CouplingInterfaceData::SetData)
         .def("GetModelPart", [](CouplingInterfaceData& self) -> ModelPart& {return self.GetModelPart();}, pybind11::return_value_policy::reference_internal)
         .def("IsDistributed", &CouplingInterfaceData::IsDistributed)
         .def("Size", &CouplingInterfaceData::Size)
+        .def("Name", &CouplingInterfaceData::Name)
+        .def("SolverName", &CouplingInterfaceData::SolverName)
         .def("__str__", PrintObject<CouplingInterfaceData>)
+        .def_property_readonly("name", [](CouplingInterfaceData& self){
+            KRATOS_WARNING("CouplingInterfaceData") << "Using \"name\" is deprecated, please use \"Name()\" instead!" << std::endl;
+            return self.Name();
+        })
+        .def_property_readonly("solver_name", [](CouplingInterfaceData& self){
+            KRATOS_WARNING("CouplingInterfaceData") << "Using \"solver_name\" is deprecated, please use \"SolverName()\" instead!" << std::endl;
+            return self.Name();
+        })
         ;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
