@@ -127,7 +127,22 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
         const bool is_section = PotentialFlowUtilities::CheckIfElementIsCutByDistance<3,4>(elem_section_distances);
 
         if (is_embedded && is_section && r_elem.Is(ACTIVE)){
-            auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
+            Tetrahedra3D4ModifiedShapeFunctions modified_shape_functions(r_elem.pGetGeometry(), geometry_distances);
+            Matrix interface_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType interface_sh_func_grad;
+            Vector interface_weights;
+
+            modified_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(interface_sh_func,
+                                                                                    interface_sh_func_grad,
+                                                                                    interface_weights,
+                                                                                    GeometryData::GI_GAUSS_1);
+            BoundedVector<double, 3> interface_gauss_point = ZeroVector(3);
+            for (IndexType i_node=0; i_node<interface_sh_func.size2(); i_node++) {
+                interface_gauss_point[0] += interface_sh_func(0, i_node)*r_geometry[i_node].X();
+                interface_gauss_point[1] += interface_sh_func(0, i_node)*r_geometry[i_node].Y();
+                interface_gauss_point[2] += interface_sh_func(0, i_node)*r_geometry[i_node].Z();
+            }
+            auto p_node = mrSectionModelPart.CreateNewNode(++node_index,  interface_gauss_point[0],  interface_gauss_point[1], interface_gauss_point[2]);
             for (IndexType i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
                 const auto& r_array_var = *mArrayVariablesList[i_var];
                 const auto& r_array_value = r_elem.GetValue(r_array_var);
