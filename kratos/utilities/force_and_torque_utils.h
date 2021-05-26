@@ -54,13 +54,13 @@ public:
         const Variable<array_1d<double,3>>& rForceVariable,
         const Variable<array_1d<double,3>>& rTorqueVariable);
 
-    /** Total reaction force and moment exerted by the model part
+    /** Reduce total force and moment exerted by the model part on a reference point
      *  @param rModelPart model part containing all nodes to perform the sum on
      *  @param rReferencePoint reference point for computing moments
      *  @param rForceVariable nodal force variable to be summed up (example: REACTION)
      *  @param rTorqueVariable nodal torque variable to be summed up (example: MOMENT)
      */
-    static std::array<array_1d<double,3>,2> ComputeReactionForceAndTorque(
+    static std::array<array_1d<double,3>,2> ComputeEquivalentForceAndTorque(
         const ModelPart& rModelPart,
         const array_1d<double,3>& rReferencePoint,
         const Variable<array_1d<double,3>>& rForceVariable,

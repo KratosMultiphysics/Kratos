@@ -80,7 +80,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::SumForceAndTorque(
 }
 
 
-std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeReactionForceAndTorque(
+std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndTorque(
     const ModelPart& rModelPart,
     const array_1d<double,3>& rReferencePoint,
     const Variable<array_1d<double,3>>& rForceVariable,

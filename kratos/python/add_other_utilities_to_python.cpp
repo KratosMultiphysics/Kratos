@@ -651,7 +651,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def_static("SumForce", &ForceAndTorqueUtils::SumForce)
         .def_static("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
-        .def_static("ComputeReactionForceAndTorque", &ForceAndTorqueUtils::ComputeReactionForceAndTorque)
+        .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
         ;
 
     AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(

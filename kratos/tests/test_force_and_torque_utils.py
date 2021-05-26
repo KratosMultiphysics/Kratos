@@ -54,8 +54,7 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         force, moment = KratosMultiphysics.ForceAndTorqueUtils.SumForceAndTorque(
             model_part,
             KratosMultiphysics.REACTION,
-            KratosMultiphysics.MOMENT
-        )
+            KratosMultiphysics.MOMENT)
 
         self.assertAlmostEqual(force[0], 10.0)
         self.assertAlmostEqual(force[1], 0.0)
@@ -65,7 +64,7 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         self.assertAlmostEqual(moment[2], 1.0)
 
         # Total reaction from the model part
-        force, moment = KratosMultiphysics.ForceAndTorqueUtils.ComputeReactionForceAndTorque(
+        force, moment = KratosMultiphysics.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
             model_part,
             reference_point,
             KratosMultiphysics.REACTION,
@@ -85,12 +84,11 @@ class TestForceAndTorqueUtils(KratosUnittest.TestCase):
         Array3 = KratosMultiphysics.Array3
         reference_point = Array3([0.0, 0.0, 0.0])
 
-        force, moment = KratosMultiphysics.ForceAndTorqueUtils.ComputeReactionForceAndTorque(
+        force, moment = KratosMultiphysics.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
             model_part,
             reference_point,
             KratosMultiphysics.REACTION,
-            KratosMultiphysics.MOMENT
-        )
+            KratosMultiphysics.MOMENT)
 
         self.assertAlmostEqual(force[0], 10.0)
         self.assertAlmostEqual(force[1], 0.0)
