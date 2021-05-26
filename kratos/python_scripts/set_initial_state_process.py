@@ -12,7 +12,8 @@ def Factory(settings, Model):
 
 
 def param_to_str(param):
-    """Convert input to string type.
+    """
+    Convert input to string type.
 
     Keyword arguments:
     param -- Accepted types are Parameters double, Parameters string, int, float, str.
@@ -33,7 +34,8 @@ def param_to_str(param):
 
 
 def str_to_function(expr):
-    """Convert text to a mathematical function.
+    """
+    Convert text to a mathematical function.
 
     Input string must be a valid mathematical expression (e.g."1.2", "3.4 + t",
     "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
@@ -53,7 +55,8 @@ def str_to_function(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
-    """This process sets a given value for a certain flag in all the nodes of a submodelpart.
+    """
+    This process sets a given value for a certain flag in all the nodes of a submodelpart.
 
     Only the member variables listed below should be accessed directly.
 
