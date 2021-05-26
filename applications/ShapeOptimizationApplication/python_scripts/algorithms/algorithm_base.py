@@ -33,7 +33,10 @@ class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> InitializeOptimizationLoop << .")
+        self.model_part_controller.Initialize()
+        self.analyzer.InitializeBeforeOptimizationLoop()
+
+        self._CreateMappers(self.optimization_settings["design_variables"])
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
@@ -41,16 +44,16 @@ class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> FinalizeOptimizationLoop << .")
+        self.analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def _CreateMappers(self, mappers_settings):
         for settings in mappers_settings:
-            design_surface_name = settings["design_surface_name"].GetString()
+            design_surface_name = settings["model_part_name"].GetString()
             design_surface = self.design_surfaces[design_surface_name]
-            settings.RemoveValue("design_surface_name")
+            settings.RemoveValue("model_part_name")
 
-            mapper = mapper_factory.CreateMapper(design_surface, design_surface, settings)
+            mapper = mapper_factory.CreateMapper(design_surface, design_surface, settings["filter"])
             mapper.Initialize()
             self.mappers[design_surface_name] = mapper
 
