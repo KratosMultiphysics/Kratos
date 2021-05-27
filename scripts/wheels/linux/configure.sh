@@ -40,6 +40,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+-DCMAKE_INSTALL_PREFIX=$2                                                \
 -DUSE_MPI=OFF                                                          \
 -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc               \
 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
