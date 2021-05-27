@@ -23,8 +23,10 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "spatial_containers/spatial_containers.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 
 namespace Kratos
@@ -69,6 +71,12 @@ public:
 
     typedef Node<3> NodeType;
 
+    typedef Geometry<NodeType> GeometryType;
+
+    typedef BinBasedFastPointLocator<2>::ResultIteratorType ResultIteratorType;
+
+    typedef BinBasedFastPointLocator<2>::ResultContainerType ResultContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -76,10 +84,10 @@ public:
     /**
     * @brief Constructor
     */
-    MoveMeshUtility(ModelPart& rLagrangianModelPart, ModelPart& rEulerianModelPart) :
-        mrLagrangianModelPart(rLagrangianModelPart),
-        mrEulerianModelPart(rEulerianModelPart)
-    {}
+    MoveMeshUtility(
+        ModelPart& rLagrangianModelPart,
+        ModelPart& rEulerianModelPart,
+        Parameters ThisParameters);
 
     /**
     * @brief Destructor
@@ -99,11 +107,7 @@ public:
 
     void MoveMesh();
 
-    template<class TDataType>
-    void MapToEulerian(const Variable<TDataType>& rVariable);
-
-    template<class TDataType>
-    void MapToLagrangian(const Variable<TDataType>& rVariable);
+    void MapResults();
 
     ///@}
     ///@name Access
@@ -153,6 +157,16 @@ private:
     ModelPart& mrLagrangianModelPart;
     ModelPart& mrEulerianModelPart;
 
+    BinBasedFastPointLocator<2> mLagrangianSearchStructure;
+    BinBasedFastPointLocator<2> mEulerianSearchStructure;
+    int mMaxResults;
+
+    std::vector<const Variable<double>*> mScalarVariablesToLagrangian;
+    std::vector<const Variable<array_1d<double,3>>*> mVectorVariablesToLagrangian;
+
+    std::vector<const Variable<double>*> mScalarVariablesToEulerian;
+    std::vector<const Variable<array_1d<double,3>>*> mVectorVariablesToEulerian;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -162,7 +176,35 @@ private:
     ///@name Private Operations
     ///@{
 
-    void MoveNode(NodeType& rNode);
+    const Parameters GetDefaultParameters() const;
+
+    template<class TDataType>
+    void FillVariablesList(std::vector<const Variable<TDataType>*>& rVariablesList, const Parameters VariablesNames);
+
+    bool MoveNode(
+        NodeType& rNode,
+        double Dt,
+        Vector& rN,
+        Element::Pointer pElement,
+        ResultIteratorType& rResultBegin);
+
+    void MapToLagrangian(
+        NodeType& rNode,
+        const Vector& rN,
+        const Element::Pointer pElement);
+
+    void MapToEulerian(
+        NodeType& rNode,
+        const Vector& rN,
+        const Element::Pointer pElement,
+        const bool IsFound);
+
+    template<class TDataType>
+    void InterpolateVariable(
+        NodeType& rNode,
+        const Vector& rN,
+        const GeometryType& rGeometry,
+        const Variable<TDataType>& rVariable);
 
     ///@}
     ///@name Private  Access
