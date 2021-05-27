@@ -16,7 +16,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 # Additional imports
-from .design_logger_base import DesignLogger
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.design_logger_base import DesignLogger
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 # ==============================================================================
