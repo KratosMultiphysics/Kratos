@@ -293,6 +293,7 @@ class MaterialTest():
         h = self.height
         d = self.diameter
         eps = 3.0 #2.0
+        zmin = -0.0002687005
 
         for element in self.spheres_model_part.Elements:
 
@@ -306,7 +307,7 @@ class MaterialTest():
             if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-            if (z <= eps * r) or (z >= (h - eps * r)):
+            if (z <= zmin + eps * r) or (z >= zmin + (h - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
         self.Procedures.KratosPrintInfo("Finished computing the skin of the BTS specimen..." + "\n")
