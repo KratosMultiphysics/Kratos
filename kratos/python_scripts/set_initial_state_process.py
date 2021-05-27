@@ -15,10 +15,14 @@ def __ParamToStr(param):
     """
     Convert input to string type.
 
-    Keyword arguments:
+    Keyword arguments
+    -----------------
     param -- Accepted types are Parameters double, Parameters string, int, float, str.
-    Returns:
+
+    Returns
+    -------
     string expression of the input
+
     """
     if isinstance(param, KratosMultiphysics.Parameters):
         if param.IsNumber():
@@ -41,11 +45,14 @@ def __StrToFunction(expr):
     "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
     where 't' will be later evaluated as the current simulation time.
 
-    Keyword arguments:
+    Keyword arguments
+    -----------------
     expr -- strings with valid expression
 
-    Returns:
-    Generated functions rendered from the input
+    Returns
+    -------
+    generated functions rendered from the input
+
     """
     function = KratosMultiphysics.GenericFunctionUtility(expr)
     if function.DependsOnSpace():
@@ -55,8 +62,9 @@ def __StrToFunction(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
+
     """
-    This process sets a given value for a certain flag in all the nodes of a submodelpart.
+    Set a given value for a certain flag in all the nodes of a submodelpart.
 
     Only the member variables listed below should be accessed directly.
 
