@@ -12,7 +12,14 @@ def Factory(settings, Model):
 
 
 def __ParamToStr(param):
-    """Convert input to string type."""
+    """
+    Convert input to string type.
+
+    Keyword arguments:
+    param -- Accepted types are Parameters double, Parameters string, int, float, str.
+    Returns:
+    string expression of the input
+    """
     if isinstance(param, KratosMultiphysics.Parameters):
         if param.IsNumber():
             sparam = str(param.GetDouble())
