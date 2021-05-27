@@ -371,16 +371,13 @@ public:
         // Refresh RHS to have the correct reactions
         BaseType::BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
         // First iterator
         const auto it_dof_begin = BaseType::mDofSet.begin();
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
-            auto it_dof =  it_dof_begin + Index;
-            if (it_dof->IsFixed()) {
-                it_dof->GetSolutionStepReactionValue() = -rb[it_dof->EquationId()];
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            if (rDof.IsFixed()) {
+                rDof.GetSolutionStepReactionValue() = -rb[rDof.EquationId()];
             }
         });
 
@@ -464,14 +461,14 @@ public:
             }
         });
 
-        IndexPartition<std::size_t>(static_cast<int>(system_size)).for_each([&](std::size_t Index){
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             std::size_t col_begin = Arow_indices[Index];
             std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (static_cast<int>(Acol_indices[j]) != Index )
+                    if (Acol_indices[j] != Index )
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS
