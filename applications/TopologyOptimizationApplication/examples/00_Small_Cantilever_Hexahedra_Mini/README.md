@@ -1,3 +1,44 @@
+# 00 - Small Cantilever Hexadedral - Mini
+[description]
+modeled by Philipp Hofer.
+
+## Model parameters
+
+### Unit system used
+[unit system]
+
+### Geometry
+[geometrical description]
+
+
+### Material
+Steel
+
+Young's modulus: 
+
+Poison's ratio:
+
+Density:
+
+### Solver settings
+Solution type: static analysis 
+
+### Model details
+Number of nodes: 6408
+
+Number of elements: 4800
+
+Element type: Small displacement volume - hexahedron
+
+### Figures
+[Problem]
+
+[Optimal topology]
+
+[Smoothed]
+
+
+### Notes
 geändert:
 
 1.	runn_TopOpt.py:
