@@ -1156,14 +1156,6 @@ public:
             const double max_diag = GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
-            /* #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
-                const IndexType slave_equation_id = mSlaveIds[i];
-                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    rA(slave_equation_id, slave_equation_id) = max_diag;
-                    rb[slave_equation_id] = 0.0;
-                }
-            } */
             IndexPartition<std::size_t>(static_cast<int>(mSlaveIds.size())).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
