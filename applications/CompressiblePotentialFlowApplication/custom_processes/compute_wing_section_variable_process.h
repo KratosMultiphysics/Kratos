@@ -24,7 +24,6 @@ namespace Kratos
 
 struct ComputeWingSectionVariableProcessSettings
 {
-    // Defining clearer options
     constexpr static bool EmbeddedRun = false;
     constexpr static bool BodyFittedRun = true;
 };
@@ -132,7 +131,7 @@ private:
     */
     void StoreVariableList(const std::vector<std::string>& rVariableStringArray);
 
-        /**
+     /**
      * @brief Assigns the variables in the mArrayVariablesList and mDoubleVariablesList
      * lists in rContainer to the pNode.
      * @param pNode Pointer to the newly created node in the wing section
