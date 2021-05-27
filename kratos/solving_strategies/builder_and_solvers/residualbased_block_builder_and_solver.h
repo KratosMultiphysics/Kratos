@@ -592,11 +592,8 @@ public:
         // but we store the prediction increment in dx_prediction.
         // The goal is that the stiffness is computed with the
         // converged configuration at the end of the previous step.
-        const auto it_dof_begin = BaseType::mDofSet.begin();
-        IndexPartition<std::size_t>(static_cast<int>(BaseType::mDofSet.size())).for_each([&](std::size_t Index){
-            auto it_dof = it_dof_begin + Index;
-            //NOTE: this is initialzed to - the value of dx prediction
-            dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            dx_prediction[rDof.EquationId()] = -(rDof.GetSolutionStepValue() - rDof.GetSolutionStepValue(1));
         });
 
         // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
@@ -695,14 +692,11 @@ public:
 
         BuildRHSNoDirichlet(pScheme,rModelPart,b);
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + Index;
-            const std::size_t i = dof_iterator->EquationId();
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            const std::size_t i = rDof.EquationId();
 
-            if (dof_iterator->IsFixed())
+            if (rDof.IsFixed())
                 b[i] = 0.0;
         });
 
@@ -983,14 +977,10 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, rModelPart, b);
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + Index;
-
-            const int i = (dof_iterator)->EquationId();
-            (dof_iterator)->GetSolutionStepReactionValue() = -b[i];
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            const int i = rDof.EquationId();
+            rDof.GetSolutionStepReactionValue() = -b[i];
         });
     }
 
@@ -1061,14 +1051,14 @@ public:
             }
         }
 
-        IndexPartition<int >(static_cast<int>(system_size)).for_each([&](int Index){
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             std::size_t col_begin = Arow_indices[Index];
             std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (static_cast<int>(Acol_indices[j]) != Index )
+                    if (Acol_indices[j] != Index )
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS
@@ -1108,7 +1098,7 @@ public:
             TSparseSpace::Copy(b_modified, rb);
 
             // Apply diagonal values on slaves
-            IndexPartition<std::size_t>(static_cast<int>(mSlaveIds.size())).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                     rb[slave_equation_id] = 0.0;
@@ -1156,7 +1146,7 @@ public:
             const double max_diag = GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
-            IndexPartition<std::size_t>(static_cast<int>(mSlaveIds.size())).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                     rA(slave_equation_id, slave_equation_id) = max_diag;
@@ -1442,7 +1432,7 @@ protected:
             for (int i = 0; i < static_cast<int>(mT.size1()); i++)
                 Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
 
-            IndexPartition<std::size_t>(static_cast<int>(mT.size1())).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(mT.size1()).for_each([&](std::size_t Index){
                 const IndexType row_begin = Trow_indices[Index];
                 const IndexType row_end = Trow_indices[Index + 1];
                 IndexType k = row_begin;
@@ -1553,15 +1543,7 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
@@ -1569,15 +1551,14 @@ protected:
 
         std::vector<std::unordered_set<std::size_t> > indices(equation_size);
 
-        IndexPartition<std::size_t>(equation_size).for_each([&indices](std::size_t Index){
-            indices[Index].reserve(40);
+        block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
+            rIndices.reserve(40);
         });
 
         Element::EquationIdVectorType ids(3, 0);
 
-        IndexPartition<std::size_t>(nelements).for_each(ids, [&](std::size_t Index, Element::EquationIdVectorType& rIds){
-            typename ElementsContainerType::iterator i_element = el_begin + Index;
-            pScheme->EquationId(*i_element, rIds, CurrentProcessInfo);
+        block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIds){
+            pScheme->EquationId(rElem, rIds, CurrentProcessInfo);
             for (std::size_t i = 0; i < rIds.size(); i++) {
                 lock_array[rIds[i]].lock();
                 auto& row_indices = indices[rIds[i]];
@@ -1586,9 +1567,8 @@ protected:
             }
         });
 
-        IndexPartition<std::size_t>(nconditions).for_each(ids, [&](std::size_t Index, Element::EquationIdVectorType& rIds){
-            typename ConditionsArrayType::iterator i_condition = cond_begin + Index;
-            pScheme->EquationId(*i_condition, rIds, CurrentProcessInfo);
+        block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIds){
+            pScheme->EquationId(rCond, rIds, CurrentProcessInfo);
             for (std::size_t i = 0; i < rIds.size(); i++) {
                 lock_array[rIds[i]].lock();
                 auto& row_indices = indices[rIds[i]];
@@ -1607,12 +1587,8 @@ protected:
             tls.slave_ids.resize(3,0);
             tls.master_ids.resize(3,0);
 
-            const int nmasterSlaveConstraints = rModelPart.MasterSlaveConstraints().size();
-            const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
-
-            IndexPartition<std::size_t>(nmasterSlaveConstraints).for_each(tls, [&](std::size_t Index, TLS& rTls){
-                auto i_const = const_begin + Index;
-                i_const->EquationIdVector(rTls.slave_ids, rTls.master_ids, CurrentProcessInfo);
+            block_for_each(rModelPart.MasterSlaveConstraints(), tls, [&](MasterSlaveConstraint& rConst, TLS& rTls){
+                rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, CurrentProcessInfo);
 
                 for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
                     lock_array[rTls.slave_ids[i]].lock();
@@ -1628,6 +1604,7 @@ protected:
                     lock_array[rTls.master_ids[i]].unlock();
                 }
             });
+
         }
 
         //destroy locks
@@ -1651,7 +1628,7 @@ protected:
             Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
         }
 
-        IndexPartition<int>(static_cast<int>(A.size1())).for_each([&](int Index){
+        IndexPartition<std::size_t>(A.size1()).for_each([&](std::size_t Index){
             const unsigned int row_begin = Arow_indices[Index];
             const unsigned int row_end = Arow_indices[Index+1];
             unsigned int k = row_begin;
