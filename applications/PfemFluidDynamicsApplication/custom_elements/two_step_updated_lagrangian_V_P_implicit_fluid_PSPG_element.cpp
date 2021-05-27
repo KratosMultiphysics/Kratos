@@ -323,7 +323,7 @@ namespace Kratos
     this->CalcMeanVelocity(MeanVelocity, 0);
 
     // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
-    Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
+    // Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
 
     Tau = DeltaTime / Density;
 
@@ -416,18 +416,17 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType j = 0; j < NumNodes; ++j)
     {
-      // double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
-      // double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
-      double termX = rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / TimeStep;
-      double termY = rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / TimeStep;
-      RHSi += Tau * Density * (termX + termY);
 
-      // termX = rN[i] * rDN_DX(j, 0) * this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0);
-      // termY = rN[i] * rDN_DX(j, 1) * this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0);
-      
-      // RHSi +=  (termX + termY);
+      double acc_X = this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X,0);
+      double acc_Y = this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y,0);
+      // double acc_X = (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,1)) / TimeStep;
+      // double acc_Y = (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,1)) / TimeStep;
+
+      RHSi += Tau * Density * (rDN_DX(i, 0) * rN[j] * acc_X + rDN_DX(i, 1) * rN[j] * acc_Y);
+
+      // RHSi +=  rN[i] *(rDN_DX(j, 0)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) + rDN_DX(j, 1)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0));
     }
-    rRightHandSideVector[i] +=  - Weight * RHSi;
+    rRightHandSideVector[i] += +Weight * RHSi;
   }
 
   template <>
