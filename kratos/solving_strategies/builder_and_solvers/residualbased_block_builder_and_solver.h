@@ -1156,14 +1156,21 @@ public:
             const double max_diag = GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
-            #pragma omp parallel for
+            /* #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
                 const IndexType slave_equation_id = mSlaveIds[i];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                     rA(slave_equation_id, slave_equation_id) = max_diag;
                     rb[slave_equation_id] = 0.0;
                 }
-            }
+            } */
+            IndexPartition<std::size_t>(static_cast<int>(mSlaveIds.size())).for_each([&](std::size_t Index){
+                const IndexType slave_equation_id = mSlaveIds[Index];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    rA(slave_equation_id, slave_equation_id) = max_diag;
+                    rb[slave_equation_id] = 0.0;
+                }
+            });
         }
 
         KRATOS_CATCH("")
@@ -1569,10 +1576,7 @@ protected:
         std::vector< LockObject > lock_array(equation_size);
 
         std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-        /* #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
-            indices[iii].reserve(40);
-        } */
+
         IndexPartition<std::size_t>(equation_size).for_each([&indices](std::size_t Index){
             indices[Index].reserve(40);
         });
@@ -1655,22 +1659,21 @@ protected:
             Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(A.size1()); i++) {
-            const unsigned int row_begin = Arow_indices[i];
-            const unsigned int row_end = Arow_indices[i+1];
+        IndexPartition<int>(static_cast<int>(A.size1())).for_each([&](int Index){
+            const unsigned int row_begin = Arow_indices[Index];
+            const unsigned int row_end = Arow_indices[Index+1];
             unsigned int k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); it++) {
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); it++) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 k++;
             }
 
-            indices[i].clear(); //deallocating the memory
+            indices[Index].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
 
-        }
+        });
 
         A.set_filled(indices.size()+1, nnz);
 
