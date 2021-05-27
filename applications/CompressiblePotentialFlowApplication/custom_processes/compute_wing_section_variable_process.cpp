@@ -109,7 +109,6 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
             geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<3,4>(geometry_distances);
-        KRATOS_WATCH(is_embedded)
 
         BoundedVector<double, 4> elem_section_distances;
         for (IndexType i=0; i < r_geometry.size(); i++) {
