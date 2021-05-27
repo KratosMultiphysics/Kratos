@@ -99,7 +99,7 @@ namespace Kratos
             }
 
             // Differential area
-            const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector_initial[point_number];
+            const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
