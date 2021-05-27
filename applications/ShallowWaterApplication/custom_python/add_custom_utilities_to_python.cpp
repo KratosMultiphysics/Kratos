@@ -24,6 +24,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/move_mesh_utility.h"
 
 
 namespace Kratos
@@ -110,6 +111,13 @@ namespace Python
         .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
+        ;
+
+    py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("check", &MoveMeshUtility::Check)
+        .def("MoveMesh", &MoveMeshUtility::MoveMesh)
+        .def("MapResults", &MoveMeshUtility::MapResults)
         ;
 
   }
