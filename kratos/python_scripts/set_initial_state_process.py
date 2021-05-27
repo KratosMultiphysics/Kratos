@@ -11,9 +11,8 @@ def Factory(settings, Model):
     return SetInitialStateProcess(Model, settings["Parameters"])
 
 
-def __ParamToStr(param):
-    """
-    Convert input to string type.
+def _ParamToStr(param):
+    """Convert input to string type.
 
     Keyword arguments
     -----------------
@@ -37,7 +36,7 @@ def __ParamToStr(param):
     return sparam
 
 
-def __StrToFunction(expr):
+def _StrToFunction(expr):
     """
     Convert text to a mathematical function.
 
@@ -62,7 +61,6 @@ def __StrToFunction(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
-
     """
     Set a given value for a certain flag in all the nodes of a submodelpart.
 
@@ -103,16 +101,16 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         self.dimension = settings["dimension"].GetInt()
 
         # init strain
-        m = __ParamToStr(settings["imposed_strain_multiplier"])
-        v = [__ParamToStr(x) for x in settings["imposed_strain"]]
-        self.strain_functions = [__StrToFunction("{}*{}".format(m, x)) for x in v]
+        m = _ParamToStr(settings["imposed_strain_multiplier"])
+        v = [_ParamToStr(x) for x in settings["imposed_strain"]]
+        self.strain_functions = [_StrToFunction("{}*{}".format(m, x)) for x in v]
         nr_comps = len(self.strain_functions)
         self.imposed_strain = KratosMultiphysics.Vector(nr_comps)
 
         # init stress
-        m = __ParamToStr(settings["imposed_stress_multiplier"])
-        v = [__ParamToStr(x) for x in settings["imposed_stress"]]
-        self.stress_functions = [__StrToFunction("{}*{}".format(m, x)) for x in v]
+        m = _ParamToStr(settings["imposed_stress_multiplier"])
+        v = [_ParamToStr(x) for x in settings["imposed_stress"]]
+        self.stress_functions = [_StrToFunction("{}*{}".format(m, x)) for x in v]
         nr_comps = len(self.stress_functions)
         self.imposed_stress = KratosMultiphysics.Vector(nr_comps)
 
@@ -120,8 +118,8 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
         aux_matrix = settings["imposed_deformation_gradient"]
         self.deformation_functions = []
         for row in aux_matrix:
-            v = [__ParamToStr(x) for x in row]
-            aux_vector = [__StrToFunction(x) for x in v]
+            v = [_ParamToStr(x) for x in row]
+            aux_vector = [_StrToFunction(x) for x in v]
             self.deformation_functions.append(aux_vector)
         nrows = aux_matrix.size()
         ncols = aux_matrix[0].size()
