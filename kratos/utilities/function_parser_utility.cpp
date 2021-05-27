@@ -142,6 +142,7 @@ void BasicGenericFunctionUtility::InitializeParser()
 
         /* Compile the expression with variables. */
         mpTinyExpr = te_compile(mFunctionBody.c_str(), vars, 7, &err);
+        KRATOS_ERROR_IF_NOT(mpTinyExpr) << "Parsing error in function: " << mFunctionBody << std::endl;
     }
 }
 
