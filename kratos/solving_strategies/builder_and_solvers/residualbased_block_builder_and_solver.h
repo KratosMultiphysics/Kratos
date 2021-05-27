@@ -593,12 +593,11 @@ public:
         // The goal is that the stiffness is computed with the
         // converged configuration at the end of the previous step.
         const auto it_dof_begin = BaseType::mDofSet.begin();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
+        IndexPartition<std::size_t>(static_cast<int>(BaseType::mDofSet.size())).for_each([&](std::size_t Index){
+            auto it_dof = it_dof_begin + Index;
             //NOTE: this is initialzed to - the value of dx prediction
             dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
-        }
+        });
 
         // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
@@ -699,15 +698,13 @@ public:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++)
-        {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + Index;
             const std::size_t i = dof_iterator->EquationId();
 
             if (dof_iterator->IsFixed())
                 b[i] = 0.0;
-        }
+        });
 
         Timer::Stop("BuildRHS");
 
@@ -853,12 +850,10 @@ public:
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
         int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int i = 0; i < static_cast<int>(ndofs); i++) {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
-            dof_iterator->SetEquationId(i);
-
-        }
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + Index;
+            dof_iterator->SetEquationId(Index);
+        });
     }
 
     //**************************************************************************
@@ -991,13 +986,12 @@ public:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++) {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + Index;
 
             const int i = (dof_iterator)->EquationId();
             (dof_iterator)->GetSolutionStepReactionValue() = -b[i];
-        }
+        });
     }
 
     /**
@@ -1026,15 +1020,14 @@ public:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++) {
-            auto it_dof_iterator = it_dof_iterator_begin + k;
+        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+            auto it_dof_iterator = it_dof_iterator_begin + Index;
             if (it_dof_iterator->IsFixed()) {
-                scaling_factors[k] = 0.0;
+                scaling_factors[Index] = 0.0;
             } else {
-                scaling_factors[k] = 1.0;
+                scaling_factors[Index] = 1.0;
             }
-        }
+        });
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1068,26 +1061,25 @@ public:
             }
         }
 
-        #pragma omp parallel for firstprivate(system_size)
-        for (int k = 0; k < static_cast<int>(system_size); ++k) {
-            std::size_t col_begin = Arow_indices[k];
-            std::size_t col_end = Arow_indices[k+1];
-            const double k_factor = scaling_factors[k];
+        IndexPartition<int >(static_cast<int>(system_size)).for_each([&](int Index){
+            std::size_t col_begin = Arow_indices[Index];
+            std::size_t col_end = Arow_indices[Index+1];
+            const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (static_cast<int>(Acol_indices[j]) != k )
+                    if (static_cast<int>(Acol_indices[j]) != Index )
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS
-                rb[k] = 0.0;
+                rb[Index] = 0.0;
             } else {
                 // Zero out the column which is associated with the zero'ed row
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if(scaling_factors[ Acol_indices[j] ] == 0 )
                         Avalues[j] = 0.0;
             }
-        }
+        });
     }
 
     /**
@@ -1116,13 +1108,12 @@ public:
             TSparseSpace::Copy(b_modified, rb);
 
             // Apply diagonal values on slaves
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
-                const IndexType slave_equation_id = mSlaveIds[i];
+            IndexPartition<std::size_t>(static_cast<int>(mSlaveIds.size())).for_each([&](std::size_t Index){
+                const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                     rb[slave_equation_id] = 0.0;
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("")
