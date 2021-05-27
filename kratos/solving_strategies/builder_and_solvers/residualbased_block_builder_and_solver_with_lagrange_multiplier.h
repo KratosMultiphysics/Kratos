@@ -281,7 +281,7 @@ public:
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<std::size_t>(static_cast<int>(BaseType::mSlaveIds.size())).for_each([&](std::size_t Index){
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&](std::size_t Index){
             mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
         });
 
@@ -317,7 +317,7 @@ public:
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<std::size_t>(static_cast<int>(BaseType::mSlaveIds.size())).for_each([&](std::size_t Index){
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&](std::size_t Index){
             mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
         });
 
@@ -382,8 +382,7 @@ public:
         });
 
         // NOTE: The constraints reactions are already computed when solving the dofs
-        const int number_slave_dofs = BaseType::mSlaveIds.size();
-        IndexPartition<std::size_t>(number_slave_dofs).for_each([&](std::size_t Index){
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&](std::size_t Index){
             const IndexType equation_id = BaseType::mSlaveIds[Index];
             auto it_dof = it_dof_begin + equation_id;
             it_dof->GetSolutionStepReactionValue() = mLagrangeMultiplierVector[mCorrespondanceDofsSlave[equation_id]];
@@ -525,13 +524,12 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            int loop_size = static_cast<int>(BaseType::mEquationSystemSize);
-            IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
-            loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
-            int start_index = static_cast<int>(BaseType::mEquationSystemSize);
+            auto loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
+            auto start_index = static_cast<int>(BaseType::mEquationSystemSize);
 
             // Fill with zeros
             IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
@@ -593,13 +591,12 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            int loop_size = BaseType::mEquationSystemSize;
-            IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
-            loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
-            int start_index = static_cast<int>(BaseType::mEquationSystemSize);
+            auto loop_size = static_cast<int>(total_size_of_system) - static_cast<int>(BaseType::mEquationSystemSize);
+            auto start_index = BaseType::mEquationSystemSize;
 
             // Fill with zeros
             IndexPartition<std::size_t>(loop_size).for_each([&](std::size_t Index){
