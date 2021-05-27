@@ -16,107 +16,39 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # additional imports
-from .custom_timer import Timer
-from .analyzer_empty import EmptyAnalyzer
-from . import model_part_controller_factory
-from . import analyzer_factory
-from . import communicator_factory
-from . import algorithm_factory
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_empty import EmptyAnalyzer
+from KratosMultiphysics.ShapeOptimizationApplication import model_part_controller_factory
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers import analyzer_factory
+from KratosMultiphysics.ShapeOptimizationApplication import communicator_factory
+from KratosMultiphysics.ShapeOptimizationApplication.algorithms import algorithm_factory
+
+## Purely for backward compatibility, should be removed soon.
+def CreateOptimizer(optimization_settings,model,external_analyzer=EmptyAnalyzer()):
+    return Optimizer(model, optimization_settings, external_analyzer)
+
+def Create( model, optimization_settings, external_analyzer=EmptyAnalyzer()):
+    return Optimizer(model, optimization_settings, external_analyzer)
 
 # ==============================================================================
-def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
-
-    _ValidateSettings(optimization_settings)
-
-    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
-
-    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
-
-    communicator = communicator_factory.CreateCommunicator(optimization_settings)
-
-    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        optimizer =  VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
-    else:
-        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
-
-    return optimizer
-
-# ------------------------------------------------------------------------------
-def _ValidateSettings(optimization_settings):
-    _ValidateTopLevelSettings(optimization_settings)
-    _ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
-    _ValidateConstraintSettings(optimization_settings["constraints"])
-
-# ------------------------------------------------------------------------------
-def _ValidateTopLevelSettings(optimization_settings):
-    default_settings = KM.Parameters("""
-    {
-        "model_settings" : { },
-        "objectives" : [ ],
-        "constraints" : [ ],
-        "design_variables" : { },
-        "optimization_algorithm" : { },
-        "output" : { }
-    }""")
-
-    for key in default_settings.keys():
-        if not optimization_settings.Has(key):
-            raise RuntimeError("CreateOptimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
-
-    optimization_settings.ValidateAndAssignDefaults(default_settings)
-
-# ------------------------------------------------------------------------------
-def _ValidateObjectiveSettingsRecursively(objective_settings):
-    default_settings = KM.Parameters("""
-    {
-        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
-        "type"                                : "minimization",
-        "scaling_factor"                      : 1.0,
-        "analyzer"                            : "external",
-        "response_settings"                   : {},
-        "is_combined"                         : false,
-        "combination_type"                    : "sum",
-        "combined_responses"                  : [],
-        "weight"                              : 1.0,
-        "project_gradient_on_surface_normals" : false
-    }""")
-    for itr in range(objective_settings.size()):
-        objective_settings[itr].ValidateAndAssignDefaults(default_settings)
-
-        if objective_settings[itr]["is_combined"].GetBool():
-            _ValidateObjectiveSettingsRecursively(objective_settings[itr]["combined_responses"])
-
-# ------------------------------------------------------------------------------
-def _ValidateConstraintSettings(constraint_settings):
-    default_settings = KM.Parameters("""
-    {
-        "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
-        "type"                                : "<",
-        "scaling_factor"                      : 1.0,
-        "reference"                           : "initial_value",
-        "reference_value"                     : 1.0,
-        "analyzer"                            : "external",
-        "response_settings"                   : {},
-        "project_gradient_on_surface_normals" : false
-    }""")
-    for itr in range(constraint_settings.size()):
-        constraint_settings[itr].ValidateAndAssignDefaults(default_settings)
-
-
-# ==============================================================================
-class VertexMorphingMethod:
+class Optimizer:
     # --------------------------------------------------------------------------
-    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
+    def __init__(self, model, optimization_settings, external_analyzer=EmptyAnalyzer()):
+        self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
-        self.model_part_controller = model_part_controller
-        self.analyzer = analyzer
-        self.communicator = communicator
 
-        self.__AddVariablesToBeUsedByAllAglorithms()
+        self.model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
+        self.analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, self.model_part_controller, external_analyzer)
+        self.communicator = communicator_factory.CreateCommunicator(optimization_settings)
+
+        if not optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+            raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
+
+        self.__AddVariablesToBeUsedByAllAlgorithms()
         self.__AddVariablesToBeUsedByDesignVariables()
 
     # --------------------------------------------------------------------------
-    def __AddVariablesToBeUsedByAllAglorithms(self):
+    def __AddVariablesToBeUsedByAllAlgorithms(self):
         model_part = self.model_part_controller.GetOptimizationModelPart()
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
@@ -175,4 +107,65 @@ class VertexMorphingMethod:
         KM.Logger.PrintInfo("ShapeOpt", "Finished optimization")
         KM.Logger.Print("===============================================================================\n")
 
-# ==============================================================================
+    # ==============================================================================
+    # ------------------------------------------------------------------------------
+    # ==============================================================================
+    def _ValidateSettings(self, optimization_settings):
+        self._ValidateTopLevelSettings(optimization_settings)
+        self._ValidateObjectiveSettingsRecursively(optimization_settings["objectives"])
+        self._ValidateConstraintSettings(optimization_settings["constraints"])
+
+    # ------------------------------------------------------------------------------
+    def _ValidateTopLevelSettings(self, optimization_settings):
+        default_settings = KM.Parameters("""
+        {
+            "model_settings" : { },
+            "objectives" : [ ],
+            "constraints" : [ ],
+            "design_variables" : { },
+            "optimization_algorithm" : { },
+            "output" : { }
+        }""")
+
+        for key in default_settings.keys():
+            if not optimization_settings.Has(key):
+                raise RuntimeError("Optimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
+
+        optimization_settings.ValidateAndAssignDefaults(default_settings)
+
+    # ------------------------------------------------------------------------------
+    def _ValidateObjectiveSettingsRecursively(self, objective_settings):
+        default_settings = KM.Parameters("""
+        {
+            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+            "type"                                : "minimization",
+            "scaling_factor"                      : 1.0,
+            "analyzer"                            : "external",
+            "response_settings"                   : {},
+            "is_combined"                         : false,
+            "combination_type"                    : "sum",
+            "combined_responses"                  : [],
+            "weight"                              : 1.0,
+            "project_gradient_on_surface_normals" : false
+        }""")
+        for itr in range(objective_settings.size()):
+            objective_settings[itr].ValidateAndAssignDefaults(default_settings)
+
+            if objective_settings[itr]["is_combined"].GetBool():
+                self._ValidateObjectiveSettingsRecursively(objective_settings[itr]["combined_responses"])
+
+    # ------------------------------------------------------------------------------
+    def _ValidateConstraintSettings(self, constraint_settings):
+        default_settings = KM.Parameters("""
+        {
+            "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
+            "type"                                : "<",
+            "scaling_factor"                      : 1.0,
+            "reference"                           : "initial_value",
+            "reference_value"                     : 1.0,
+            "analyzer"                            : "external",
+            "response_settings"                   : {},
+            "project_gradient_on_surface_normals" : false
+        }""")
+        for itr in range(constraint_settings.size()):
+            constraint_settings[itr].ValidateAndAssignDefaults(default_settings)

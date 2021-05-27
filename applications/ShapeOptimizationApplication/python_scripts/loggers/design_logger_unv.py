@@ -16,7 +16,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Import logger base classes
-from .design_logger_base import DesignLogger
+from KratosMultiphysics.ShapeOptimizationApplication.loggers.design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerUNV( DesignLogger ):
