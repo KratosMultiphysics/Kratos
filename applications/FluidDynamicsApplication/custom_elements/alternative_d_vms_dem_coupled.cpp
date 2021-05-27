@@ -118,6 +118,29 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
     #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void AlternativeDVMSDEMCoupled<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
+{
+    const GeometryType& r_geometry = this->GetGeometry();
+
+    if (rValues.size() != LocalSize)
+        rValues.resize(LocalSize,false);
+
+    unsigned int Index = 0;
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        const auto& r_fluid_fraction = r_geometry[i].FastGetSolutionStepValue(FLUID_FRACTION);
+        const array_1d<double,3>& r_velocities = r_geometry[i].FastGetSolutionStepValue(VELOCITY,Step);
+
+        for (unsigned int d = 0; d < Dim; d++)
+            rValues[Index++] = r_fluid_fraction * r_velocities[d];
+        rValues[Index++] = r_geometry[i].FastGetSolutionStepValue(PRESSURE,Step);
+    }
+}
+
 template <class TElementData>
 void AlternativeDVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
