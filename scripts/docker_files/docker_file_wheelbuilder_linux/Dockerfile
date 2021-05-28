@@ -8,9 +8,9 @@ RUN mkdir -p /workspace/scripts; \
 	mkdir -p /workspace/kratos
 
 RUN mkdir /workspace/boost; \
-	wget -P /workspace/boost https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz; \
-	tar -C /workspace/boost -xzf /workspace/boost/boost_1_76_0.tar.gz; \
-	rm /workspace/boost/boost_1_76_0.tar.gz
+	wget -P /workspace/boost https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.tar.bz2; \
+	tar -C /workspace/boost -xzf /workspace/boost/boost_1_71_0.tar.gz; \
+	rm /workspace/boost/boost_1_71_0.tar.gz
 
 RUN mkdir /workspace/cmake; \
 	wget -P /workspace/cmake https://github.com/Kitware/CMake/releases/download/v3.15.3/cmake-3.15.3-Linux-x86_64.tar.gz; \

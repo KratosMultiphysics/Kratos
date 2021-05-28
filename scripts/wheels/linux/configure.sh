@@ -46,7 +46,7 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
--DBOOST_ROOT="/workspace/boost/boost_1_76_0"                           \
+-DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
 -DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
 -DINSTALL_RUNKRATOS=OFF
