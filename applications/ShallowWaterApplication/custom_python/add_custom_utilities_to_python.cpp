@@ -63,7 +63,6 @@ namespace Python
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
-        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::NodesContainerType>)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ElementsContainerType>)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ConditionsContainerType>)
