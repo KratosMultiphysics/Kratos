@@ -64,14 +64,30 @@ public:
     /// Pointer definition of MeshMovingModeler
     KRATOS_CLASS_POINTER_DEFINITION(MeshMovingModeler);
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG(TO_COPY);
+
+    typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    MeshMovingModeler() {}
+    /**
+     * @brief Default constructor
+     */
+    MeshMovingModeler();
 
-    /// Destructor.
+    /**
+     * @brief Constructor
+     */
+    MeshMovingModeler(Model& rModel, Parameters ModelerParameters = Parameters());
+
+    /**
+     * @brief Destructor
+     */
     virtual ~MeshMovingModeler() = default;
 
     ///@}
@@ -115,7 +131,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << Info();}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -127,52 +146,14 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
+    Model* mpModel;
+    std::string mFixedModelPartName;
+    std::string mMovingModelPartName;
+    Parameters mParameters;
 
     ///@}
     ///@name Private Operators
@@ -183,27 +164,7 @@ private:
     ///@name Private Operations
     ///@{
 
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    MeshMovingModeler& operator=(MeshMovingModeler const& rOther);
-
-    /// Copy constructor.
-    MeshMovingModeler(MeshMovingModeler const& rOther);
-
+    const Parameters GetDefaultParameters() const;
 
     ///@}
 
