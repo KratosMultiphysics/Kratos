@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("36" "37" "38" "39" "310")
+PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
 export KRATOS_VERSION="9.0.0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -129,7 +129,7 @@ do
     echo starting build for python${PYTHON_VERSION}
 
 	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
-    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/py_$PYTHON
+    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_$PYTHON
 
     build_interface $PYTHON_LOCATION $PREFIX_LOCATION
 	
