@@ -122,34 +122,34 @@ echo starting core build
 build_core python3.6 ${KRATOS_ROOT}/bin/core
 echo finished core build
 
-# for PYTHON_VERSION in  "${PYTHONS[@]}"
-# do
-#     PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
-#     export PYTHON=${PYTHON_TMP#cp}
-#     echo starting build for python${PYTHON_VERSION}
+for PYTHON_VERSION in  "${PYTHONS[@]}"
+do
+    PYTHON_TMP=$(ls /opt/python | grep $PYTHON_VERSION | cut -d "-" -f 2)
+    export PYTHON=${PYTHON_TMP#cp}
+    echo starting build for python${PYTHON_VERSION}
 
-# 	  PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
-#     PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/py_$PYTHON
+	  PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
+    PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/py_$PYTHON
 
-#     build_interface $PYTHON_LOCATION $PREFIX_LOCATION
+    build_interface $PYTHON_LOCATION $PREFIX_LOCATION
 	
-# 	cd $KRATOS_ROOT
-# 	export HASH=$(git show -s --format=%h) #used in version number
-# 	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
-# 	echo $LD_LIBRARY_PATH
+	cd $KRATOS_ROOT
+	export HASH=$(git show -s --format=%h) # Used in version number
+	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
+	echo $LD_LIBRARY_PATH
 
-#     build_core_wheel $PREFIX_LOCATION
+    build_core_wheel $PREFIX_LOCATION
 
-#     for APPLICATION in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications)
-#     do
-#         build_application_wheel $APPLICATION
-#     done
+    for APPLICATION in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications)
+    do
+        build_application_wheel $APPLICATION
+    done
 
-#     build_kratos_all_wheel $PREFIX_LOCATION
+    build_kratos_all_wheel $PREFIX_LOCATION
 
-# 	echo finished build for python${PYTHON_VERSION}
+	echo finished build for python${PYTHON_VERSION}
 
-# 	export LD_LIBRARY_PATH=$BASE_LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH=$BASE_LD_LIBRARY_PATH
 
-# done
+done
 
