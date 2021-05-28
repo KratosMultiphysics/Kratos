@@ -28,7 +28,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddModelerToPython(pybind11::module& m)
+void  AddCustomModelersToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
