@@ -65,10 +65,17 @@ void MeshMovingModeler::SetupModelPart()
     moving_model_part.SetProcessInfo(fixed_model_part.pGetProcessInfo());
 
     // Nodes
+    std::size_t step_data_size = fixed_model_part.GetNodalSolutionStepDataSize();
     for (auto& r_node : fixed_model_part.Nodes())
     {
         if (r_node.Is(TO_COPY)) {
-            moving_model_part.CreateNewNode(r_node.Id(), r_node);
+            auto p_new_node = moving_model_part.CreateNewNode(r_node.Id(), r_node);
+
+            double* new_node_data = p_new_node->SolutionStepData().Data(0);
+            double* fixed_node_data = r_node.SolutionStepData().Data(0);
+
+            for (std::size_t variable = 0; variable < step_data_size; variable++)
+                new_node_data[variable] = fixed_node_data[variable];
         }
     }
 
