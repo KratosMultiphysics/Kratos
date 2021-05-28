@@ -119,7 +119,7 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo starting core build
-build_core /bin/python3.6 ${KRATOS_ROOT}/bin/core
+build_core python3.6 ${KRATOS_ROOT}/bin/core
 echo finished core build
 
 # for PYTHON_VERSION in  "${PYTHONS[@]}"
@@ -128,7 +128,7 @@ echo finished core build
 #     export PYTHON=${PYTHON_TMP#cp}
 #     echo starting build for python${PYTHON_VERSION}
 
-# 	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
+# 	  PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
 #     PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/py_$PYTHON
 
 #     build_interface $PYTHON_LOCATION $PREFIX_LOCATION
