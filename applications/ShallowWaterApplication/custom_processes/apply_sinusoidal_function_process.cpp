@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "utilities/parallel_utilities.h"
 #include "apply_sinusoidal_function_process.h"
 
 
@@ -67,28 +68,22 @@ void ApplySinusoidalFunctionProcess<TVarType>::ExecuteInitializeSolutionStep()
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
     double smooth = 2 * std::atan(time / mSmoothTime) / M_PI;
     double value = smooth * Function(time);
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
-    {
-        auto it_node = mrModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(mrVariable) = value;
-    }
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(mrVariable) = value;
+    });
 }
 
 
 template<>
-void ApplySinusoidalFunctionProcess<Variable< array_1d<double, 3> > >::ExecuteInitializeSolutionStep()
+void ApplySinusoidalFunctionProcess<Variable<array_1d<double, 3>>>::ExecuteInitializeSolutionStep()
 {
     double time = mrModelPart.GetProcessInfo().GetValue(TIME);
     double smooth = 2 * std::atan(time / mSmoothTime) / M_PI;
     double modulus = smooth * Function(time);
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
-    {
-        auto it_node = mrModelPart.NodesBegin() + i;
-        array_1d<double, 3> direction = it_node->FastGetSolutionStepValue(NORMAL);
-        it_node->FastGetSolutionStepValue(mrVariable) = -modulus * direction;
-    }
+    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+        array_1d<double, 3> direction = rNode.FastGetSolutionStepValue(NORMAL);
+        noalias(rNode.FastGetSolutionStepValue(mrVariable)) = -modulus * direction;
+    });
 }
 
 

@@ -368,7 +368,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 //************************************************************************************
 
 
-void ContactDomainLM2DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
+void ContactDomainLM2DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
 {
     //Initilialize Tau for the stabilization
     double alpha_stab = 0.1;
@@ -445,7 +445,7 @@ void ContactDomainLM2DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
 //********************************CALCULATE EXPLICIT MULTIPLIERS**********************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -666,7 +666,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
     double EffectiveGapT = ReferenceGapT;
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
 
 

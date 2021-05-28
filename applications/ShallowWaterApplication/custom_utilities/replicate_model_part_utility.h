@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -60,7 +61,10 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
-    typedef Geometry<Node<3>>::PointsArrayType NodesArrayType;
+
+    typedef Node<3> NodeType;
+
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
 
     /// Pointer definition of ReplicateModelPartUtility
     KRATOS_CLASS_POINTER_DEFINITION(ReplicateModelPartUtility);
@@ -95,13 +99,10 @@ public:
     template<class TVarType>
     void TransferVariable(const TVarType& rVariable)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-        {
-            const auto it_node = mrOriginModelPart.NodesBegin() + i;
-            const auto dest_node = mReplicatedNodesMap[it_node->Id()];
-            dest_node->FastGetSolutionStepValue(rVariable) = it_node->FastGetSolutionStepValue(rVariable);
-        }
+        block_for_each(mrOriginModelPart.Nodes(), [&](NodeType& rNode){
+            const auto dest_node = mReplicatedNodesMap[rNode.Id()];
+            dest_node->FastGetSolutionStepValue(rVariable) = rNode.FastGetSolutionStepValue(rVariable);
+        });
     }
 
     /**
@@ -110,13 +111,10 @@ public:
     template<class TVarType>
     void TransferNonHistoricalVariable(const TVarType& rVariable)
     {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
-        {
-            const auto it_node = mrOriginModelPart.NodesBegin() + i;
-            const auto dest_node = mReplicatedNodesMap[it_node->Id()];
-            dest_node->SetValue(rVariable, it_node->GetValue(rVariable));
-        }
+        block_for_each(mrOriginModelPart.Nodes(), [&](NodeType& rNode){
+            const auto dest_node = mReplicatedNodesMap[rNode.Id()];
+            dest_node->SetValue(rVariable, rNode.GetValue(rVariable));
+        });
     }
 
     ///@}
