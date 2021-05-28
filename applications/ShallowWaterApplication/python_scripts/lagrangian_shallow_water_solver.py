@@ -4,6 +4,7 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 
 ## Import base class file
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
+from KratosMultiphysics.ShallowWaterApplication.wave_solver import WaveSolver
 
 def CreateSolver(model, custom_settings):
     return LagrangianShallowWaterSolver(model, custom_settings)
@@ -11,41 +12,71 @@ def CreateSolver(model, custom_settings):
 class LagrangianShallowWaterSolver(ShallowWaterBaseSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
-        self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
-        self.element_name = "WaveElement"
-        self.condition_name = "LineCondition"
+        self.min_buffer_size = 1
+        self.mesh_solver = WaveSolver(self.model, self.settings["mesh_solver_settings"])
 
-    def AddDofs(self):
-        KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
-        KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.main_model_part)
-        KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
-        KM.Logger.PrintInfo(self.__class__.__name__, "Shallow water primitive DOFs added correctly.")
+        eulerian_model_part = self.main_model_part
+        lagrangian_model_part = self.mesh_solver.main_model_part
+        self.mesh_moving = SW.MoveMeshUtility(lagrangian_model_part, eulerian_model_part, self.settings["mesh_moving_settings"])
 
     def AddVariables(self):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
+        self.mesh_solver.AddVariables()
+
+    def ImportModelPart(self):
+        pass
+
+    def PrepareModelPart(self):
+        self.mesh_solver.PrepareModelPart()
+
+    def AddDofs(self):
+        self.mesh_solver.AddDofs()
+
+    def AdvanceInTime(self, current_time):
+        return self.mesh_solver.AdvanceInTime(current_time)
+
+    def GetComputingModelPart(self):
+        return self.mesh_solver.GetComputingModelPart()
 
     def Initialize(self):
-        super().Initialize()
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
+        self.mesh_moving.Initialize()
+        self.mesh_solver.Initialize()
 
     def InitializeSolutionStep(self):
-        super().InitializeSolutionStep()
+        self.mesh_moving.MoveMesh()
+        self.mesh_solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.mesh_solver.Predict()
+
+    def SolveSolutionStep(self):
+        self.mesh_solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
+        self.mesh_solver.FinalizeSolutionStep()
+        self.mesh_moving.MapResults()
 
-    def _CreateScheme(self):
-        order = self.settings["time_integration_order"].GetInt()
-        time_scheme = SW.VelocityHeightResidualBasedBDFScheme(order)
-        return time_scheme
+    def Finalize(self):
+        self.mesh_solver.Finalize()
+
+    def Check(self):
+        self.mesh_solver.Check()
+        self.mesh_moving.Check()
+
+    def Clear(self):
+        self.mesh_solver.Clear()
 
     @classmethod
     def GetDefaultParameters(cls):
-        default_settings = KM.Parameters("""{
-            "time_integration_order"     : 2,
-            "stabilization_factor"       : 0.01
+        default_settings = KM.Parameters("""
+        {
+            "solver_type"              : "shallow_water_base_solver",
+            "model_part_name"          : "eulerian_model_part",
+            "domain_size"              : 2,
+            "echo_level"               : 0,
+            "mesh_solver_settings"     : {},
+            "mesh_moving_settings"     : {}
         }""")
-        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
