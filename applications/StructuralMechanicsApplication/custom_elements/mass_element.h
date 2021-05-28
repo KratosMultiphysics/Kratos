@@ -83,8 +83,6 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    MassElement & operator=(MassElement const& rOther);
 
     ///@}
     ///@name Operations

@@ -27,23 +27,6 @@
 namespace Kratos
 {
 
-///@name Kratos Classes
-///@{
-
-///@}
-///@name Operators
-///@{
-
-/// Assignment operator.
-MassElement & MassElement::operator=(MassElement const& rOther)
-{
-    BaseType::operator=(rOther);
-    Flags::operator =(rOther);
-    // mpProperties = rOther.mpProperties;
-    return *this;
-}
-
-///@}
 ///@name Operations
 ///@{
 
