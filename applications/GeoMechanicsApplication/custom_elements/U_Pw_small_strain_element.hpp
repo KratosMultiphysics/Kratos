@@ -260,7 +260,9 @@ protected:
     void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
     void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
 
-    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
+    double CalculateBiotCoefficient( const ElementVariables &rVariables,
+                                     const bool &hasBiotCoefficient) const;
 
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );

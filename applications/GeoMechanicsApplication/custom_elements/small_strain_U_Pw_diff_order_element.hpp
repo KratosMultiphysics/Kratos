@@ -279,7 +279,9 @@ protected:
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
+    double CalculateBiotCoefficient( const ElementVariables &rVariables,
+                                     const bool &hasBiotCoefficient) const;
 
     void CalculateBMatrix( Matrix& rB,
                            const Matrix& DNu_DX );

@@ -1241,6 +1241,8 @@ void SmallStrainUPwDiffOrderElement::
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
 
+        const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
         //Loop over integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
@@ -1258,8 +1260,7 @@ void SmallStrainUPwDiffOrderElement::
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
             UpdateStressVector(Variables, PointNumber);
 
-            const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-            Variables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+            Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
@@ -1520,7 +1521,8 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-double SmallStrainUPwDiffOrderElement::CalculateBulkModulus(const Matrix &ConstitutiveMatrix)
+double SmallStrainUPwDiffOrderElement::
+    CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBulkModulus") << std::endl;
@@ -1668,9 +1670,34 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables( ElementVariables&
 
 }
 
+//----------------------------------------------------------------------------------------
+double SmallStrainUPwDiffOrderElement::
+    CalculateBiotCoefficient( const ElementVariables& rVariables,
+                              const bool &hasBiotCoefficient) const
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
+
+    const PropertiesType& Prop = this->GetProperties();
+
+    //Properties variables
+    if (hasBiotCoefficient) {
+        return Prop[BIOT_COEFFICIENT];
+    }
+    else {
+        // calculate Bulk modulus from stiffness matrix
+        const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
+        return 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    }
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    InitializeBiotCoefficients( ElementVariables& rVariables,
+    InitializeBiotCoefficients( ElementVariables &rVariables,
                                 const bool &hasBiotCoefficient )
 {
     KRATOS_TRY
@@ -1678,14 +1705,7 @@ void SmallStrainUPwDiffOrderElement::
 
     const PropertiesType& Prop = this->GetProperties();
 
-    if (hasBiotCoefficient) {
-        rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
-    }
-    else {
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
-        rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
-    }
+    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables, hasBiotCoefficient);
 
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY])
                                    / Prop[BULK_MODULUS_SOLID] 
