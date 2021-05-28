@@ -5,7 +5,7 @@ export KRATOS_VERSION="9.0.0"
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
 WHEEL_ROOT="/workspace/wheel"
-WHEEL_OUT="/workspace/out"
+WHEEL_OUT="/data_swap_guest"
 CORE_LIB_DIR="/workspace/coreLibs"
 
 setup_wheel_dir () {
@@ -34,7 +34,7 @@ build_core_wheel () {
     mkdir $CORE_LIB_DIR
     unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics/.libs/*' -d $CORE_LIB_DIR
     
-    cp wheelhouse/* $WHEEL_OUT
+    cp wheelhouse/* ${WHEEL_OUT}/
     cd
     rm -r $WHEEL_ROOT
 }
@@ -48,7 +48,7 @@ build_application_wheel () {
     auditwheel repair *.whl
     
     optimize_wheel
-    cp ${WHEEL_ROOT}/dist/wheelhouse/* ${WHEEL_OUT}
+    cp ${WHEEL_ROOT}/dist/wheelhouse/* ${WHEEL_OUT}/
     
     cd
     rm -r $WHEEL_ROOT
@@ -60,7 +60,7 @@ build_kratos_all_wheel () {
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
     cd ${WHEEL_ROOT}
     $PYTHON_LOCATION setup.py bdist_wheel
-    cp dist/* ${WHEEL_OUT}
+    cp dist/* ${WHEEL_OUT}/
 
     cd
     rm -r $WHEEL_ROOT
