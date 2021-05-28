@@ -36,6 +36,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mCouplingNitscheCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
@@ -66,6 +68,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadMomentDirector5pCondition", mLoadMomentDirector5pCondition)
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
 
