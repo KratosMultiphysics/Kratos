@@ -89,7 +89,7 @@ optimize_wheel(){
 
 build_core () {
 	cd $KRATOS_ROOT
-	git clean -ffxd
+	# git clean -ffxd
 
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
@@ -103,7 +103,7 @@ build_core () {
 
 build_interface () {
     cd $KRATOS_ROOT
-	git clean -ffxd
+	# git clean -ffxd
 
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
