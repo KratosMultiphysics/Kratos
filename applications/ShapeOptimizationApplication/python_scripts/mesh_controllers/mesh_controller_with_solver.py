@@ -17,7 +17,7 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 import time as timer
-from KratosMultiphysics.ShapeOptimizationApplication.mesh_controller_base import MeshController
+from KratosMultiphysics.ShapeOptimizationApplication.mesh_controllers.mesh_controller_base import MeshController
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 try:

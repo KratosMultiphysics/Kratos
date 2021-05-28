@@ -1866,6 +1866,36 @@ void ModelPart::AddGeometry(
     mGeometries.AddGeometry(pNewGeometry);
 }
 
+/** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+ */
+void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) { // Does nothing if we are on the top model part
+        // Obtain from the root model part the corresponding list of geomnetries
+        ModelPart* p_root_model_part = &this->GetRootModelPart();
+        std::vector<GeometryType::Pointer> aux;
+        aux.reserve(GeometriesIds.size());
+        for(auto& r_id : GeometriesIds) {
+            auto it_found = p_root_model_part->Geometries().find(r_id);
+            if(it_found != p_root_model_part->GeometriesEnd()) {
+                aux.push_back( it_found.operator->() );
+            } else {
+                KRATOS_ERROR << "The geometry with Id " << r_id << " does not exist in the root model part" << std::endl;
+            }
+        }
+
+        ModelPart* p_current_part = this;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto& p_geom : aux) {
+                p_current_part->AddGeometry(p_geom);
+            }
+
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+    }
+    KRATOS_CATCH("");
+}
 
 /// Removes a geometry by id.
 void ModelPart::RemoveGeometry(

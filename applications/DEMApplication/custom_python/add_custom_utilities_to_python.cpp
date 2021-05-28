@@ -364,6 +364,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
         .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
+        .def("CheckIfVariableIsNullInModelPart", &StationarityChecker::CheckIfVariableIsNullInModelPart)
         ;
 
     py::class_<MultiaxialControlModuleGeneralized2DUtilities, MultiaxialControlModuleGeneralized2DUtilities::Pointer>(m, "MultiaxialControlModuleGeneralized2DUtilities")
