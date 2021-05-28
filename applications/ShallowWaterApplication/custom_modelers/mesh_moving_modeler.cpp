@@ -35,14 +35,13 @@ MeshMovingModeler::MeshMovingModeler(Model& rModel, Parameters ModelerParameters
 {
     ModelerParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     mParameters = ModelerParameters;
-    mFixedModelPartName = mParameters["fixed_model_part_name"].GetString();
-    mMovingModelPartName = mParameters["moving_model_part_name"].GetString();
 }
 
 void MeshMovingModeler::SetupGeometryModel()
 {
-    ModelPart& fixed_model_part = mpModel->CreateModelPart(mFixedModelPartName);
-    std::string input_file_name = mParameters["input_file_name"].GetString();
+    auto input_file_name = mParameters["input_file_name"].GetString();
+    auto fixed_model_part_name = mParameters["fixed_model_part_name"].GetString();
+    ModelPart& fixed_model_part = mpModel->GetModelPart(fixed_model_part_name);
     Flags io_options = IO::READ;
     if (mParameters["skip_timer"].GetBool())
         io_options = IO::SKIP_TIMER | io_options;
@@ -56,10 +55,15 @@ void MeshMovingModeler::PrepareGeometryModel()
 
 void MeshMovingModeler::SetupModelPart()
 {
-    ModelPart& fixed_model_part = mpModel->GetModelPart(mFixedModelPartName);
-    ModelPart& moving_model_part = mpModel->CreateModelPart(mMovingModelPartName);
+    auto fixed_model_part_name = mParameters["fixed_model_part_name"].GetString();
+    auto moving_model_part_name = mParameters["moving_model_part_name"].GetString();
+    ModelPart& fixed_model_part = mpModel->GetModelPart(fixed_model_part_name);
+    ModelPart& moving_model_part = mpModel->GetModelPart(moving_model_part_name);
     const double relative_dry_height = mParameters["relative_dry_height"].GetDouble();
     ShallowWaterUtilities().IdentifyWetDomain(fixed_model_part, TO_COPY, relative_dry_height);
+
+    // Both model parts share the same ProcessInfo
+    moving_model_part.SetProcessInfo(fixed_model_part.pGetProcessInfo());
 
     // Nodes
     ModelPart::NodesContainerType aux_array_with_node_pointers;
@@ -119,7 +123,7 @@ void MeshMovingModeler::SetupModelPart()
 const Parameters MeshMovingModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
-        "input_filename"                             : "",
+        "input_file_name"                            : "",
         "fixed_model_part_name"                      : "eulerian",
         "moving_model_part_name"                     : "lagrangian",
         "skip_timer"                                 : true,

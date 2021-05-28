@@ -115,6 +115,7 @@ namespace Python
     py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("check", &MoveMeshUtility::Check)
+        .def("Initialize", &MoveMeshUtility::Initialize)
         .def("MoveMesh", &MoveMeshUtility::MoveMesh)
         .def("MapResults", &MoveMeshUtility::MapResults)
         ;

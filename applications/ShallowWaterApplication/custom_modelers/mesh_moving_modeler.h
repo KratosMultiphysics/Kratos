@@ -90,6 +90,14 @@ public:
      */
     virtual ~MeshMovingModeler() = default;
 
+    /**
+     * @brief Creates the Modeler Pointer
+     */
+    Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
+    {
+        return Kratos::make_shared<MeshMovingModeler>(rModel, ModelParameters);
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -151,8 +159,6 @@ private:
     ///@{
 
     Model* mpModel;
-    std::string mFixedModelPartName;
-    std::string mMovingModelPartName;
     Parameters mParameters;
 
     ///@}

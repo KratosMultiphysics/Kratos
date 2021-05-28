@@ -105,6 +105,8 @@ public:
     
     int Check();
 
+    void Initialize();
+
     void MoveMesh();
 
     void MapResults();

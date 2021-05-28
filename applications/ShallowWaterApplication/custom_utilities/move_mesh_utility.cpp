@@ -35,8 +35,6 @@ MoveMeshUtility::MoveMeshUtility(
 {
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     mMaxResults = ThisParameters["maximum_results"].GetDouble();
-    mLagrangianSearchStructure.UpdateSearchDatabase();
-    mEulerianSearchStructure.UpdateSearchDatabase();
 
     FillVariablesList(mScalarVariablesToLagrangian, ThisParameters["map_variables_to_lagrangian"]);
     FillVariablesList(mVectorVariablesToLagrangian, ThisParameters["map_variables_to_lagrangian"]);
@@ -49,7 +47,7 @@ const Parameters MoveMeshUtility::GetDefaultParameters() const
     const Parameters default_parameters = Parameters(R"({
         "map_variables_to_lagrangian" : ["TOPOGRAPHY","MANNING"],
         "map_variables_to_eulerian"   : ["HEIGHT","VELOCITY"],
-        "max_results"                 : 10000
+        "maximum_results"             : 10000
     })" );
     return default_parameters;
 }
@@ -58,6 +56,11 @@ int MoveMeshUtility::Check()
 {
     KRATOS_ERROR_IF(mrEulerianModelPart.NumberOfNodes() == 0) << "Move mesh utility: The Eulerian model part is empty\n" << mrEulerianModelPart << std::endl;
     return 0;
+}
+
+void MoveMeshUtility::Initialize()
+{
+    mEulerianSearchStructure.UpdateSearchDatabase();
 }
 
 void MoveMeshUtility::MoveMesh()
