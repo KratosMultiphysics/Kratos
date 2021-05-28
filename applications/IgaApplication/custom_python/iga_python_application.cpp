@@ -21,6 +21,7 @@
 #include "iga_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -85,6 +86,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomStrategiesToPython(m);
 }
 
 } // namespace Python
