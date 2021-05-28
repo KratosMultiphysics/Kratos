@@ -393,6 +393,7 @@ private:
                 // Shear sensor (detect velocity gradients that are larger than possible with the grid resolution)
                 // const double isentropic_max_vel = std::sqrt(v_norm_pow + (2.0 / (gamma - 1.0)) * std::pow(r_c, 2));
                 const double isentropic_max_vel = std::sqrt(v_norm_pow );
+                // const double isentropic_max_vel =std::sqrt(midpoint_tot_ener/(midpoint_rho*0.5) );
                 const double s_mu_0 = 1.0;
                 const double s_mu_max = 2.0;
                 const double s_mu = h_ref * shear_spect_norm / isentropic_max_vel / k;
@@ -414,10 +415,18 @@ private:
         auto &r_node = r_geom[i_node];
        
         if (mShearSensor) {AtomicAdd(r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY), aux_weight * rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY));}
-        
+        if (rElement.Id()==467){
+            // KRATOS_WATCH(rElement.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY))
+            // for (unsigned int i = 0; i < 3; i++){
+            //     KRATOS_WATCH(rElement.GetGeometry()[i].Id())
+            //     KRATOS_WATCH(rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY))
+            //     KRATOS_WATCH(rElement.GetGeometry()[i].FastGetSolutionStepValue(PRESSURE))
+            // }
+                
     }
 
 }
+    }
 
     
 

@@ -72,7 +72,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "move_mesh_flag": false,
             "formulation": {
                 "dynamic_tau": 1.0,
-                "surface_tension": false
+                "surface_tension": true
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10,
@@ -225,7 +225,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         }""")
 
 
-        self._GetShockCapturingProcess().ExecuteInitialize() 
+        # self._GetShockCapturingProcess().ExecuteInitialize() 
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize() #TODO: THINK ABOUT HOW TO PROPERLY CONSTRUCT THIS
 
@@ -257,14 +257,23 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
              # velocity predict before levelset process
-            if not len(self.velocity_proyection_slope) == 0:
-                i = 0
-                for node in  self.main_model_part.Nodes:               
-                    velocity_n= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1) 
-                    delta_time= self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-                    velocity_n__1= velocity_n+self.velocity_proyection_slope[i]*delta_time
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity_n__1)
-                    i+=1
+            # if not len(self.velocity_proyection_slope) == 0:
+            #     i = 0
+            #     for node in  self.main_model_part.Nodes:               
+            #         velocity_n= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1) 
+            #         delta_time= self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            #         velocity_n__1= velocity_n+self.velocity_proyection_slope[i]*delta_time
+            #         # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity_n__1)
+            #         i+=1
+            #         if not node.IsFixed(KratosMultiphysics.VELOCITY_X):
+            #             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,velocity_n__1[0])
+            #         if not node.IsFixed(KratosMultiphysics.VELOCITY_Y):
+            #             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,velocity_n__1[1])
+            #         if not node.IsFixed(KratosMultiphysics.VELOCITY_Z):
+            #             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,velocity_n__1[2])
+                    
+                    
+                    
 
             # Perform the level-set convection according to the previous step velocity
             self.__PerformLevelSetConvection()
@@ -318,7 +327,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Apply mass conservation process
             # Perform distance correction to prevent ill-conditioned cuts
             self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-            self._GetShockCapturingProcess().ExecuteInitializeSolutionStep()
+            # self._GetShockCapturingProcess().ExecuteInitializeSolutionStep()
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
 
@@ -335,47 +344,51 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     # print("current delta",node.GetSolutionStepValue(KratosMultiphysics.DELTA_TIME))
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
+        time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]/self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        redistance=200
+        simulationtime=1
+        residual=time%redistance
+        if residual==0:
+            if self._TimeBufferIsInitialized():
+                # Recompute the distance field according to the new level-set position
+                if (self._reinitialization_type == "variational"):
+                    self._GetDistanceReinitializationProcess().Execute()
+                elif (self._reinitialization_type == "parallel"):
+                    adjusting_parameter = 0.05
+                    layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
+                    max_distance = 1.0 # use this parameter to define the redistancing range
+                    # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
+                    self._GetDistanceReinitializationProcess().CalculateDistances(
+                        self.main_model_part,
+                        self._levelset_variable,
+                        KratosMultiphysics.NODAL_AREA,
+                        layers,
+                        max_distance,
+                        self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-        if self._TimeBufferIsInitialized():
-            # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                if (self._reinitialization_type != "none"):
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+                # Prepare distance correction for next step
+                
+                self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
-            # Prepare distance correction for next step
+                # Finalize the solver current step
+                self._GetSolutionStrategy().FinalizeSolutionStep()
+                #CHANGING BDF1   
+        # delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        # self.velocity_proyection_slope=[]
+        # for node in self.main_model_part.Nodes:
+        #     velocity_n_1= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+        #     velocity_n= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) 
             
-            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
-
-            # Finalize the solver current step
-            self._GetSolutionStrategy().FinalizeSolutionStep()
-            #CHANGING BDF1   
-        delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        self.velocity_proyection_slope=[]
-        for node in self.main_model_part.Nodes:
-            velocity_n_1= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
-            velocity_n= node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) 
-            
-            self.velocity_proyection_slope.append((velocity_n-velocity_n_1)/delta_time)
+        #     self.velocity_proyection_slope.append((velocity_n-velocity_n_1)/delta_time)
     
-
+        #     print("llega aqui sin problema")
 
             # Limit the obtained acceleration for the next step
             # self._GetAccelerationLimitationUtility().Execute()
-            self._GetShockCapturingProcess().Execute()
+            # self._GetShockCapturingProcess().Execute()
     def __PerformLevelSetConvection(self):
         if self._bfecc_convection:
             self._GetLevelsetGradientProcess().Execute() #Level-set gradient is needed for the limiter
