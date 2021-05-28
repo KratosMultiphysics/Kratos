@@ -119,7 +119,7 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo starting core build
-build_core /bin/python ${$KRATOS_ROOT}/bin/core
+build_core /bin/python ${KRATOS_ROOT}/bin/core
 echo finished core build
 
 # for PYTHON_VERSION in  "${PYTHONS[@]}"
@@ -135,7 +135,7 @@ echo finished core build
 	
 # 	cd $KRATOS_ROOT
 # 	export HASH=$(git show -s --format=%h) #used in version number
-# 	export LD_LIBRARY_PATH=${$PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
+# 	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
 # 	echo $LD_LIBRARY_PATH
 
 #     build_core_wheel $PREFIX_LOCATION
