@@ -9,6 +9,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
+import KratosMultiphysics.DEMApplication.dem_default_input_parameters
+from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
 
 from importlib import import_module
 
