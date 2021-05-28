@@ -273,6 +273,7 @@ int MassElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (const auto& r_node : GetGeometry()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node);
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node);
