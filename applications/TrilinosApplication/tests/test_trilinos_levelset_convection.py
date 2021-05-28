@@ -84,7 +84,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "element_type" : "LevelSetConvectionElementSimplex"
+            "element_type" : "levelset_convection_supg"
         }""")
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
@@ -141,7 +141,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : true,
-            "element_type" : "LevelSetConvectionElementSimplex"
+            "element_type" : "levelset_convection_supg"
         }""")
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
