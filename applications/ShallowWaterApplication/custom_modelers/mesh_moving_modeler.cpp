@@ -33,8 +33,7 @@ MeshMovingModeler::MeshMovingModeler(Model& rModel, Parameters ModelerParameters
     : Modeler(rModel, ModelerParameters)
     , mpModel(&rModel)
 {
-    ModelerParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-    mParameters = ModelerParameters;
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 }
 
 void MeshMovingModeler::SetupGeometryModel()
@@ -66,15 +65,12 @@ void MeshMovingModeler::SetupModelPart()
     moving_model_part.SetProcessInfo(fixed_model_part.pGetProcessInfo());
 
     // Nodes
-    ModelPart::NodesContainerType aux_array_with_node_pointers;
     for (auto& r_node : fixed_model_part.Nodes())
     {
         if (r_node.Is(TO_COPY)) {
-            auto new_node = r_node.Clone();
-            aux_array_with_node_pointers.push_back(new_node);
+            moving_model_part.CreateNewNode(r_node.Id(), r_node);
         }
     }
-    moving_model_part.AddNodes(aux_array_with_node_pointers.begin(), aux_array_with_node_pointers.end());
 
     // Properties
     for (auto& r_prop : fixed_model_part.rProperties())

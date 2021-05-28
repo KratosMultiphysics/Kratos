@@ -159,7 +159,6 @@ private:
     ///@{
 
     Model* mpModel;
-    Parameters mParameters;
 
     ///@}
     ///@name Private Operators

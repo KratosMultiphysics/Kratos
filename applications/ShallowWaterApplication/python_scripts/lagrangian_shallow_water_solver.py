@@ -75,6 +75,7 @@ class LagrangianShallowWaterSolver(ShallowWaterBaseSolver):
             "solver_type"              : "shallow_water_base_solver",
             "model_part_name"          : "eulerian_model_part",
             "domain_size"              : 2,
+            "gravity"                  : 9.81,
             "echo_level"               : 0,
             "mesh_solver_settings"     : {},
             "mesh_moving_settings"     : {}

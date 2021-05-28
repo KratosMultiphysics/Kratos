@@ -30,8 +30,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         else:
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
-        domain_size = self.settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
+        self._SetProcessInfo()
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
@@ -53,13 +52,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        # Definition of the variables
-        gravity = self.settings["gravity"].GetDouble()
-
-        # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
-        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
-
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
@@ -126,6 +118,13 @@ class ShallowWaterBaseSolver(PythonSolver):
     def _CreateEstimateDeltaTimeUtility(self):
         # The c++ utility manages all the time step settings
         return SW.EstimateTimeStepUtility(self.GetComputingModelPart(), self.settings["time_stepping"])
+
+    def _SetProcessInfo(self):
+        gravity = self.settings["gravity"].GetDouble()
+        domain_size = self.settings["domain_size"].GetInt()
+        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
+        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
+        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
 
     @classmethod
     def GetDefaultParameters(cls):
