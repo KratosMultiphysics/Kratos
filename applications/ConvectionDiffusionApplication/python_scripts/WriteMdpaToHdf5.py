@@ -50,9 +50,10 @@ class WriteConvergenceNodalErrorToHdf5:
      
         with h5py.File(self.file_name, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID','VELOCITY_NODAL_ERROR', 'CONCENTRATION_NODAL_ERROR', 'VELOCITY_ERROR', 'CONCENTRATION_ERROR'],
-                            data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.vectorial_error, self.scalar_error, self.velocity_error, self.concentration_error])
-
+                            # names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID','VELOCITY_NODAL_ERROR', 'CONCENTRATION_NODAL_ERROR', 'VELOCITY_ERROR', 'CONCENTRATION_ERROR'],
+                            # data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.vectorial_error, self.scalar_error, self.velocity_error, self.concentration_error])
+                            names = ['COORDINATES','VELOCITIES','TEMPERATURES','ID', 'VELOCITY_ERROR', 'CONCENTRATION_ERROR'],
+                            data = [self.coordinates, self.velocities, self.temperatures, self.node_id, self.velocity_error, self.concentration_error])
     def WriteDataToFile(self, file_or_group, names, data):
         if self.group_name in file_or_group:
             file_or_group['/'].__delitem__(self.group_name)
@@ -62,10 +63,12 @@ class WriteConvergenceNodalErrorToHdf5:
         self.sub_group.attrs['element_size'] = str(self.element_size)
         self.sub_group.attrs['n_elements'] = str(len(self.model_part_fluid.Elements))
         self.sub_group.attrs['time'] = str(self.model_part_fluid.ProcessInfo[Kratos.TIME])
-        for name, datum in zip(names, data):
-            if name in file_or_group:
-                file_or_group.__delitem__(name)
-        for name, datum in zip(names, data):
-            self.sub_group.create_dataset(name = name, data = datum)
+        self.sub_group.attrs['step'] = str(self.model_part_fluid.ProcessInfo[Kratos.STEP])
+        if self.model_part_fluid.ProcessInfo[Kratos.STEP] % 10 == 1:
+            for name, datum in zip(names, data):
+                if name in file_or_group:
+                    file_or_group.__delitem__(name)
+            for name, datum in zip(names, data):
+                self.sub_group.create_dataset(name = name, data = datum)
         file_or_group.close()
 
