@@ -9,104 +9,95 @@ import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 class FluidCoupledDEMAnalysis(DEMAnalysis):
 
-    def __init__(self, model, project_parameters):
-        
-        self.plasma_dynamics_parameters = project_parameters
+    def __init__(self, model, project_parameters):       
+        self.parameters = project_parameters
         super().__init__(model, project_parameters['dem_parameters'])
 
-
-    # TODO
-    # Change here the SolverStrategy of the application
-    def SetSolverStrategy(self):
-        import KratosMultiphysics.SwimmingDEMApplication.swimming_sphere_strategy as SolverStrategy
-        return SolverStrategy
-
-    def _CreateSolver(self):
-        def SetSolverStrategy():
-            strategy_file_name = self.plasma_dynamics_parameters['dem_parameters']['solver_settings']['strategy'].GetString()
-            imported_module = import_module("KratosMultiphysics.SwimmingDEMApplication" + "." + strategy_file_name)
-            return imported_module
-
-        return SetSolverStrategy().SwimmingStrategy(self.all_model_parts,
+        
+    def _CreateSolver(self):      
+        self.strategy_file_name = self.parameters['dem_parameters']['solver_settings']['strategy'].GetString()
+        if self.strategy_file_name == 'swimming_sphere_strategy': 
+            SolverStrategy = import_module("KratosMultiphysics.SwimmingDEMApplication" + "." + self.strategy_file_name)
+            return SolverStrategy.SwimmingStrategy(self.all_model_parts,
+                                                   self.creator_destructor,
+                                                   self.dem_fem_search,
+                                                   self.parameters,
+                                                   self.procedures)    
+        else:
+            SolverStrategy = import_module("KratosMultiphysics.PlasmaDynamicsApplication" + "." + self.strategy_file_name)
+            if self.strategy_file_name == 'plasma_sphere_strategy':       
+                return SolverStrategy.PlasmaStrategy(self.all_model_parts,
+                                                     self.creator_destructor,
+                                                     self.dem_fem_search,
+                                                     self.parameters,
+                                                     self.procedures)
+            elif self.strategy_file_name == 'blood_sphere_strategy':       
+                return SolverStrategy.BloodStrategy(self.all_model_parts,
                                                     self.creator_destructor,
                                                     self.dem_fem_search,
-                                                    self.plasma_dynamics_parameters,
+                                                    self.parameters,
                                                     self.procedures)
 
-
-    # TODO
-    # Add here the translational schemes adapted to the application
     def SelectTranslationalScheme(self):
         translational_scheme = DEMAnalysis.SelectTranslationalScheme(self)
         translational_scheme_name = self.project_parameters["TranslationalIntegrationScheme"].GetString()
 
         if translational_scheme is None:
-            if translational_scheme_name == 'Hybrid_Bashforth':
-                return SDEM.HybridBashforthScheme()
-            elif translational_scheme_name == "TerminalVelocityScheme":
-                return SDEM.TerminalVelocityScheme()
+
+            if translational_scheme_name == 'Forward_Euler':
+                return DEM.ForwardEulerScheme()
+            elif translational_scheme_name == "Symplectic_Euler":
+                return DEM.SymplecticEulerScheme()
+            elif translational_scheme_name == "Taylor_Scheme":
+                return DEM.TaylorScheme()
+            elif translational_scheme_name == "Velocity_Verlet":
+                return DEM.VelocityVerletScheme()
             else:
                 return None
         else:
             return translational_scheme
 
-
-    # TODO
-    # Add here the rotational schemes adapted to the application
-    # (they can come from SDEM)
     def SelectRotationalScheme(self):
         rotational_scheme = DEMAnalysis.SelectRotationalScheme(self)
-        translational_scheme_name = self.project_parameters["TranslationalIntegrationScheme"].GetString()
         rotational_scheme_name = self.project_parameters["RotationalIntegrationScheme"].GetString()
 
         if rotational_scheme is None:
             if rotational_scheme_name == 'Direct_Integration':
-                if translational_scheme_name == 'Hybrid_Bashforth':
-                    return SDEM.HybridBashforthScheme()
-                elif translational_scheme_name == 'TerminalVelocityScheme':
-                    return SDEM.TerminalVelocityScheme()
+                return self.SelectTranslationalScheme()
             elif rotational_scheme_name == 'Runge_Kutta':
-                return SDEM.RungeKuttaScheme()
+                return DEM.RungeKuttaScheme()
             elif rotational_scheme_name == 'Quaternion_Integration':
-                return SDEM.QuaternionIntegrationScheme()
+                return DEM.QuaternionIntegrationScheme()
             else:
                 return None
         else:
             return rotational_scheme
 
 
-    def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        super().ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
-
-
-    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        self.coupling_analysis.ReadDispersePhaseModelParts()
-
-
     def GetParticleHistoryWatcher(self):
-        watcher_type = self.plasma_dynamics_parameters["full_particle_history_watcher"].GetString()
-
+        watcher_type = self.parameters["full_particle_history_watcher"].GetString()
         if watcher_type == 'Empty':
             return None
         elif watcher_type == 'ParticlesHistoryWatcher':
             return DEM.ParticlesHistoryWatcher()
 
+    def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        super().ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
+
+    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        self.coupling_analysis.ReadDispersePhaseModelParts()
 
     def IsTimeToPrintPostProcess(self):
         return self.analytic_data_counter.Tick()
 
-
     def SetGraphicalOutput(self):
         pass
-
 
     def GraphicalOutputInitialize(self):
         pass
 
-
     def PrintResultsForGid(self, time):
         pass
-
 
     def GraphicalOutputFinalize(self):
         pass

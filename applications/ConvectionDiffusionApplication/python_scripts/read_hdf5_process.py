@@ -38,9 +38,10 @@ class ReadHdf5Process(Kratos.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.parameters = settings
         self.problem_name = self.parameters["file_name"].GetString()
+        self.reference_mdpa_name = str(os.getcwd() + '' + self.parameters["reference_model_part_name"].GetString())
         self.destination_model_part = Model[settings["model_part_name"].GetString()]
         self.u_characteristic = settings["error_projection_parameters"]["u_characteristic"].GetDouble()
-        self.domain_size = self.parameters["domain_size"].GetValue()
+        self.domain_size = self.parameters["domain_size"].GetInt()
         for element in self.destination_model_part.Elements:
             rho = element.Properties.GetValue(Kratos.DENSITY)
             break
@@ -76,7 +77,8 @@ class ReadHdf5Process(Kratos.Process):
         model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         model_part.AddNodalSolutionStepVariable(Kratos.TEMPERATURE)
 
-        mdpa_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        # mdpa_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        mdpa_name = self.reference_mdpa_name
         model_part_io_exactMesh = Kratos.ModelPartIO(mdpa_name)
         model_part_io_exactMesh.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
@@ -85,7 +87,8 @@ class ReadHdf5Process(Kratos.Process):
 
     def GetFieldDataFile(self, model):
         import h5py
-        file_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        # file_name = '/home/aitor/Escritorio/Norouzi_mesh_1.gid/Norouzi_mesh_1'
+        file_name = self.reference_mdpa_name
         self.hf = h5py.File(file_name+".hdf5", 'r')
         group_names = list(self.hf.keys())
         self.velocities = self.hf[str(self.destination_model_part.ProcessInfo[Kratos.STEP])+'/VELOCITIES']
