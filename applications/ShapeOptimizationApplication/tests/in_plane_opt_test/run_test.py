@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
@@ -32,7 +32,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
             communicator.reportGradient("x_squared_sum", gradient)
 
 # Create optimizer and perform optimization
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================

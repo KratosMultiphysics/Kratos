@@ -1,6 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.StatisticsApplication as STATS
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 # Other imports
 import h5py
@@ -24,7 +24,9 @@ class ConvergenceOutputProcess(KM.Process):
                 "printing_times"             : [],
                 "analysis_label"             : "label",
                 "analysis_attributes"        : {},
-                "convergence_variables_list" : []
+                "convergence_variables_list" : [],
+                "low_corner"                 : [],
+                "high_corner"                : []
             }
             """
             )
@@ -42,6 +44,11 @@ class ConvergenceOutputProcess(KM.Process):
         # Initialize output control variables
         self.printing_times = self.settings["printing_times"].GetVector()
         self.is_printed = [False] * len(self.printing_times)
+
+        if self.settings["low_corner"].GetVector().Size() == 0:
+            self.integrate_over_all_the_domain = True
+        else:
+            self.integrate_over_all_the_domain = False
 
     def ExecuteBeforeSolutionLoop(self):
         self.dset = self._GetDataset()
@@ -63,6 +70,21 @@ class ConvergenceOutputProcess(KM.Process):
         for variable in self.variables:
             if not isinstance(variable, KM.DoubleVariable):
                 raise Exception("This process is expecting only double or component variables")
+        
+        low_corner = self.settings["low_corner"].GetVector()
+        high_corner = self.settings["high_corner"].GetVector()
+        if not low_corner.Size() == high_corner.Size():
+            raise Exception("The low and high corners does not have the same dimension")
+
+        if low_corner.Size() == 0:
+            pass
+        elif low_corner.Size() == 2:
+            self.settings["low_corner"].Append(0.0)
+            self.settings["high_corner"].Append(0.0)
+        elif low_corner.Size() == 3:
+            pass
+        else:
+            raise Exception("The corners must be specified with 2 or 3 coordinates")
 
     def _WriteAttributes(self, dset):
         for key, param in self.settings["analysis_attributes"].items():
@@ -140,8 +162,15 @@ class ConvergenceOutputProcess(KM.Process):
             self.model_part.ProcessInfo[KM.TIME],
             elapsed_time]
 
+        if not self.integrate_over_all_the_domain:
+            low_corner = KM.Point(self.settings["low_corner"].GetVector())
+            high_corner = KM.Point(self.settings["high_corner"].GetVector())
+
         for variable in self.variables:
-            value = STATS.SpatialMethods.NonHistorical.Nodes.ValueMethods.RootMeanSquare(self.model_part, variable)
+            if self.integrate_over_all_the_domain:
+                value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable)
+            else:
+                value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable, low_corner, high_corner)
             case_data.append(value)
 
         case_idx = self.dset.len()

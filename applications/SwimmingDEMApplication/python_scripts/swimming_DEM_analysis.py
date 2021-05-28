@@ -77,8 +77,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.report = DP.Report()
 
-        self._GetDEMAnalysis().SetAnalyticFaceWatcher()
-
         # defining member variables for the model_parts (for convenience)
         self.fluid_model_part = self._GetFluidAnalysis().fluid_model_part
         self.spheres_model_part = self._GetDEMAnalysis().spheres_model_part
@@ -559,13 +557,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self._GetDEMAnalysis().DEM_inlet = self.DEM_inlet
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self._GetDEMAnalysis().creator_destructor)
 
+    # Not used
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = DEM.AnalyticParticleWatcher()
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(
+        self.particle_watcher_analyser = analytic_data_procedures.ParticlesAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)
 
+    # Not used
     def ProcessAnalyticData(self):
         self._GetDEMAnalysis().WriteAnalyticDataToFileAndClear()
 

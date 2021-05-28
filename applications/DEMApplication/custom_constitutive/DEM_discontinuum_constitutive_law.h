@@ -52,7 +52,7 @@ namespace Kratos {
                 double equiv_poisson,
                 double calculation_area,
                 SphericParticle* element1,
-                SphericParticle* element2);
+                SphericParticle* element2, double indentation);
 
 
         virtual void CalculateElasticEnergy(double& normal_elastic_energy,
