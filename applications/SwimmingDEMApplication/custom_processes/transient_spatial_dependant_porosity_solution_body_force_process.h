@@ -101,6 +101,7 @@ public:
     double                                       mReynoldsNumber;
     double                                      mDamKohlerNumber;
     bool                                      mInitialConditions;
+    bool                                 mAlternativeFormulation;
     ///@}
 
     ///@name Operators
