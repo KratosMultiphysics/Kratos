@@ -278,7 +278,7 @@ public:
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "element_type" : "LevelSetConvectionElementSimplex",
+            "element_type" : "levelset_convection_supg",
             "element_settings" : {}
         })");
 
@@ -342,7 +342,7 @@ protected:
 
     bool mIsBfecc;
 
-    bool mHighOrderLimiter;
+    bool mIncludeAntiDiffusivityTerms;
 
     bool mEvaluateLimiter;
 
@@ -365,6 +365,8 @@ protected:
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     std::string mAuxModelPartName;
+
+    std::string mConvectionElementType;
 
     const Element* mpConvectionFactoryElement = nullptr;
 
@@ -496,11 +498,13 @@ protected:
      */
     void InitializeDistanceModelPartDatabases()
     {
-        // If required, initialzie the limiter elemental and nodal databases
+        // If required, initialize the limiter elemental and nodal databases
         if (mEvaluateLimiter) {
-            block_for_each(mpDistanceModelPart->Elements(), [&](Element &rElement) {rElement.SetValue(LIMITER_COEFFICIENT, 0.0);});
+            if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
+                block_for_each(mpDistanceModelPart->Elements(), [&](Element &rElement) {rElement.SetValue(LIMITER_COEFFICIENT, 0.0);});
+            }
 
-            if (mHighOrderLimiter){
+            if (mIncludeAntiDiffusivityTerms){
                 block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
             }
         }
@@ -663,13 +667,13 @@ protected:
                 mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
             }
 
-            if (mHighOrderLimiter){
+            if (mIncludeAntiDiffusivityTerms){
                 it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, power_elemental_limiter));
             }
         }
         );
 
-        if (mHighOrderLimiter){
+        if (mIncludeAntiDiffusivityTerms){
             block_for_each(mpDistanceModelPart->Elements(), [&](Element& rElement){
                 const auto& r_geometry = rElement.GetGeometry();
                 double elemental_limiter = 1.0;
@@ -767,7 +771,8 @@ private:
         std::string element_type = ThisParameters["element_type"].GetString();
         const auto element_list = GetConvectionElementsList();
         KRATOS_ERROR_IF(std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) << "Specified \'" << element_type << "\' is not in the available elements list." << std::endl;
-        std::string element_register_name = element_type + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        mConvectionElementType = GetConvectionElementName(element_type);
+        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
 
         // Convection related settings
@@ -781,8 +786,8 @@ private:
         mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
 
         // Limiter related settings
-        mHighOrderLimiter = ThisParameters["element_settings"].Has("high_order_limiter") ? ThisParameters["element_settings"]["high_order_limiter"].GetBool() : false;
-        mEvaluateLimiter = (mIsBfecc || mHighOrderLimiter) ? true : false;
+        mIncludeAntiDiffusivityTerms = ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
+        mEvaluateLimiter = (mIsBfecc || mIncludeAntiDiffusivityTerms) ? true : false;
     }
 
     /**
@@ -793,10 +798,25 @@ private:
     const virtual inline std::vector<std::string> GetConvectionElementsList()
     {
         std::vector<std::string> elements_list = {
-            "LevelSetConvectionElementSimplex",
-            "LevelSetConvectionElementSimplexAlgebraicStabilization"
+            "levelset_convection_supg",
+            "levelset_convection_algebraic_stabilization"
         };
         return elements_list;
+    }
+
+    /**
+     * @brief Get the Convection Element Name object
+     * This method maps the user-defined element name to the Kratos class name
+     * @param InputName User-defined element name
+     * @return const std::string Kratos convection element class name
+     */
+    const virtual std::string GetConvectionElementName(std::string InputName)
+    {
+        const std::map<std::string, std::string> elements_name_map {
+            {"levelset_convection_supg","LevelSetConvectionElementSimplex"},
+            {"levelset_convection_algebraic_stabilization", "LevelSetConvectionElementSimplexAlgebraicStabilization"}
+        };
+        return elements_name_map.at(InputName);
     }
 
     /**
@@ -808,15 +828,15 @@ private:
     const virtual Parameters GetConvectionElementDefaultParameters(const std::string ElementType)
     {
         Parameters default_parameters;
-        if (ElementType == "LevelSetConvectionElementSimplex") {
+        if (ElementType == "levelset_convection_supg") {
             default_parameters = Parameters(R"({
                 "dynamic_tau" : 0.0,
                 "cross_wind_stabilization_factor" : 0.7,
                 "requires_distance_gradient" : false
             })");
-        } else if (ElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
+        } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
-                "high_order_limiter" : false,
+                "include_anti_diffusivity_terms" : false,
                 "requires_distance_gradient" : true
             })");
         } else {
@@ -835,9 +855,8 @@ private:
     const virtual std::function<void(ModelPart&)> GetFillProcessInfoFunction()
     {
         std::function<void(ModelPart&)> fill_process_info_function;
-        const auto element_type = mLevelSetConvectionSettings["element_type"].GetString();
 
-        if (element_type == "LevelSetConvectionElementSimplex") {
+        if (mConvectionElementType == "LevelSetConvectionElementSimplex") {
             fill_process_info_function = [this](ModelPart &rModelPart) {
                 auto &r_process_info = rModelPart.GetProcessInfo();
                 // If not present, set the DYNAMIC_TAU

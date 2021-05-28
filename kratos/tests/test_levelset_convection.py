@@ -59,7 +59,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "element_type" : "LevelSetConvectionElementSimplex"
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             model_part,
@@ -112,7 +112,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : true,
-            "element_type" : "LevelSetConvectionElementSimplex"
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             model_part,
@@ -189,9 +189,9 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "element_type" : "LevelSetConvectionElementSimplexAlgebraicStabilization",
+            "element_type" : "levelset_convection_algebraic_stabilization",
             "element_settings" : {
-                "high_order_limiter" : true
+                "include_anti_diffusivity_terms" : true
             }
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
