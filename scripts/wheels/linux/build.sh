@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHONS=("35" "36" "37" "38" "39")
+PYTHONS=("36" "37" "38" "39" "310")
 export KRATOS_VERSION="9.0.0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
@@ -119,7 +119,7 @@ build_interface () {
 # Core can be build independently of the python version.
 # Install path should be useless here.
 echo starting core build
-build_core /bin/python ${KRATOS_ROOT}/bin/core
+build_core /bin/python3.6 ${KRATOS_ROOT}/bin/core
 echo finished core build
 
 # for PYTHON_VERSION in  "${PYTHONS[@]}"
