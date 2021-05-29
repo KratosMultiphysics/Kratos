@@ -44,7 +44,7 @@ namespace Kratos
  * Implements a Axisymmetric Kinematic Linear definition for structural analysis.
  */
 
-class AxisymSmallDisplacement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymSmallDisplacement
     : public SmallDisplacement
 {
 public:

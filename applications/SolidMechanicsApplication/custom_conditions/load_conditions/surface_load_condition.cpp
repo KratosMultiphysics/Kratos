@@ -336,7 +336,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int SurfaceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

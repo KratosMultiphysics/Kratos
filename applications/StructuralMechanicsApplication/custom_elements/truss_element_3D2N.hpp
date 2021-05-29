@@ -33,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class TrussElement3D2N : public Element
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElement3D2N : public Element
     {
     protected:
         //const values
