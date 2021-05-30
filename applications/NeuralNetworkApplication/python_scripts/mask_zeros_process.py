@@ -34,9 +34,13 @@ class MaskZerosProcess(PreprocessingProcess):
             for variable in dimension_variables:
                 if all(abs(data_in[i,variable]) < 1e-13 for i in dataset_length):
                     masking_variables.append(variable)
+            try:
+                mask_parameters.AddEmptyValue("input_log_name")
+                mask_parameters["input_log_name"].SetString(self.input_log_name)
+            except AttributeError:
+                print("No input_log_name defined.")
+                mask_parameters.RemoveValue("input_log_name")
 
-            mask_parameters.AddEmptyValue("input_log_name")
-            mask_parameters["input_log_name"].SetString(self.input_log_name)
         # Setup for output
         elif self.objective == 'output':
             dimension_variables = range(len(data_out[0]))
@@ -46,8 +50,12 @@ class MaskZerosProcess(PreprocessingProcess):
             for variable in dimension_variables:
                 if all(abs(data_out[i,variable]) < 1e-13 for i in dataset_length):
                     masking_variables.append(variable)
-            mask_parameters.AddEmptyValue("output_log_name")
-            mask_parameters["output_log_name"].SetString(self.output_log_name)
+            try:
+                mask_parameters.AddEmptyValue("output_log_name")
+                mask_parameters["output_log_name"].SetString(self.output_log_name)
+            except AttributeError:
+                    print("No output_log_name defined.")
+                    mask_parameters.RemoveValue("output_log_name")
         else:
             raise Exception("Masking objective not supported. Supported objectives are input and output")
 

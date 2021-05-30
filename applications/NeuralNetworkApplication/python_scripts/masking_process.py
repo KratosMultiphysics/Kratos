@@ -28,38 +28,45 @@ class MaskingProcess(PreprocessingProcess):
 
         # Check if masking is in the input
         if self.objective == "input": 
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            # Mask from log
-            if self.load_from_log:
+            try:
                 
-                if "masking" in input_log:
-                    masking_ids = input_log["masking"]
+                # Mask from log
+                if self.load_from_log:
+                    input_log = ImportDictionaryFromText(self.input_log_name)
+                    if "masking" in input_log:
+                        masking_ids = input_log["masking"]
+                    else:
+                        raise Exception("No masking parameters in the input log file.")
+                # Mask from JSON
                 else:
-                    raise Exception("No masking parameters in the input log file.")
-            # Mask from JSON
-            else:
-                masking_ids = list(map(round, KratosVectorToList(self.variable_ids)))
-                input_log.update({'masking': masking_ids})
-                UpdateDictionaryJson(self.input_log_name, input_log)
-            
+                    masking_ids = list(map(round, KratosVectorToList(self.variable_ids)))
+                    input_log = ImportDictionaryFromText(self.input_log_name)
+                    input_log.update({'masking': masking_ids})
+                    UpdateDictionaryJson(self.input_log_name, input_log)
+            except AttributeError:
+                print("Input not logged")
+
             data_in = np.delete(data_in, masking_ids, 1)
 
         # Check if masking is in the output
         elif self.objective == "output": 
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            # Mask from log
-            if self.load_from_log:
+            try:
                 
-                if "masking" in output_log:
-                    masking_ids = output_log["masking"]
+                # Mask from log
+                if self.load_from_log:
+                    output_log = ImportDictionaryFromText(self.output_log_name)
+                    if "masking" in output_log:
+                        masking_ids = output_log["masking"]
+                    else:
+                        raise Exception("No masking parameters in the output log file.")
+                # Mask from JSON
                 else:
-                    raise Exception("No masking parameters in the output log file.")
-            # Mask from JSON
-            else:
-                masking_ids = list(map(round, KratosVectorToList(self.variable_ids)))
-                output_log.update({'masking': masking_ids})
-                UpdateDictionaryJson(self.output_log_name, output_log)
-
+                    masking_ids = list(map(round, KratosVectorToList(self.variable_ids)))
+                    output_log = ImportDictionaryFromText(self.output_log_name)
+                    output_log.update({'masking': masking_ids})
+                    UpdateDictionaryJson(self.output_log_name, output_log)
+            except AttributeError:
+                print("Output not logged")
             data_out = np.delete(data_out, masking_ids, 1)
      
         else:

@@ -54,16 +54,10 @@ class InputLayer(NeuralNetworkLayerClass):
         # When called by the add_layer_process, input the parameters in the keras function
 
     def Build(self, hp = None):
-        # Data loading for h5
-        if self.input_file.endswith('.h5'):
-            self.input = DataLoadingUtilities.ImportH5(self.input_file, "InputData")
-        # Data loading for dat
-        elif self.input_file.endswith('.dat'):
-            self.input = DataLoadingUtilities.ImportAscii(self.input_file)
-        # Exception for non-supported formats
-        else:
-            raise Exception("Input data format not supported. Supported formats are .dat and .h5")
+    
+        self.input = DataLoadingUtilities.ImportDataFromFile(self.input_file, "InputData")
         self.shape = self.input[0,:].shape
         self.layer = layers.Input(shape = self.shape, batch_size = self.batch_size, sparse = self.sparse,ragged=self.ragged,name=self.layer_name)
+        
         return self.layer
 

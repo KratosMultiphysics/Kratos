@@ -202,13 +202,16 @@ class DataGeneratorProcess(KM.Process):
             for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
                 if self.perturbate :
                     factor = getattr(np.random, dist)(*params)
+                    for condition in self.input_model_part.GetConditions():
+                        input_value = op.imul(condition.GetValue(var),(0.0+factor))
+                        for node in condition.GetNodes():
+                            node.SetSolutionStepValue(var,input_value)
+                            input_value_list.append(input_value+condition.GetValue(var))
                 else:
-                    factor = 0.0
-                for condition in self.input_model_part.GetConditions():
-                    input_value = op.imul(condition.GetValue(var),(0.0+factor))
-                    for node in condition.GetNodes():
-                        node.SetSolutionStepValue(var,input_value)
-                        input_value_list.append(input_value+condition.GetValue(var))
+                    for condition in self.input_model_part.GetConditions():
+                        for node in condition.GetNodes():
+                            input_value_list.append(condition.GetValue(var))
+
 
             # Writing input file
             if (self.write_output_file):

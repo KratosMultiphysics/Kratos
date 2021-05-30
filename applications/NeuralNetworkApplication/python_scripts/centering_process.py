@@ -31,9 +31,13 @@ class CenteringProcess(PreprocessingProcess):
        
 
     def Preprocess(self, data_in, data_out):
-        
-        input_log = ImportDictionaryFromText(self.input_log_name)
-        output_log = ImportDictionaryFromText(self.output_log_name)
+        try:
+            input_log = ImportDictionaryFromText(self.input_log_name)
+            output_log = ImportDictionaryFromText(self.output_log_name)
+        except AttributeError:
+            print("No logging.")
+            input_log = {}
+            output_log = {}
 
         # Centering from the mean
         if self.center == "mean":
@@ -65,7 +69,10 @@ class CenteringProcess(PreprocessingProcess):
 
         # Updating the file log
         if not self.load_from_log:
-            UpdateDictionaryJson(self.input_log_name, input_log)
-            UpdateDictionaryJson(self.output_log_name, output_log)
+            try:
+                UpdateDictionaryJson(self.input_log_name, input_log)
+                UpdateDictionaryJson(self.output_log_name, output_log)
+            except AttributeError:
+                pass
 
         return [data_in, data_out]
