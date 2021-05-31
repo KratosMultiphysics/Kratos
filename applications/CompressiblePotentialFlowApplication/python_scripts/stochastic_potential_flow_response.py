@@ -6,6 +6,7 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_an
 import time as timer
 
 # Import Kratos, XMC, PyCOMPSs API
+KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 import KratosMultiphysics.MultilevelMonteCarloApplication
 import xmc
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
@@ -36,7 +37,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
 
-        primal_parameters = self._CheckParameters(primal_parameters)
+        primal_parameters = _CheckParameters(primal_parameters)
         if primal_parameters.Has("adjoint_parameters_path"):
             primal_parameters["adjoint_parameters_path"].SetString(self.response_settings["adjoint_settings"].GetString())
         else:
@@ -50,7 +51,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool()
 
         # Create the adjoint solver
-        adjoint_parameters = self._CheckParameters(self._GetAdjointParameters())
+        adjoint_parameters = _CheckParameters(self._GetAdjointParameters())
         adjoint_model = KratosMultiphysics.Model()
         self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
 
@@ -211,3 +212,155 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             adjoint_parameters = Parameters( parameter_file.read() )
 
         return adjoint_parameters
+
+class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
+    def __init__(self,input_model,input_parameters,sample):
+        self.sample = sample
+        self.mapping = False
+        self.adjoint_parameters_path =input_parameters["adjoint_parameters_path"].GetString()
+        super(SimulationScenario,self).__init__(input_model,input_parameters)
+
+    def Finalize(self):
+
+        super().Finalize()
+        aoa = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].GetDouble()
+        mach = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].GetDouble()
+        self.primal_model_part = self._GetSolver().main_model_part
+
+
+        with open(self.adjoint_parameters_path,'r') as parameter_file:
+            adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
+        # Create the adjoint solver
+        adjoint_parameters = _CheckParameters(adjoint_parameters)
+        adjoint_model = KratosMultiphysics.Model()
+
+        adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
+        adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(aoa)
+        self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
+
+        self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
+
+        self.adjoint_analysis.Initialize()
+        self.adjoint_model_part = self.adjoint_analysis._GetSolver().main_model_part
+
+        self._SynchronizeAdjointFromPrimal()
+
+        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
+        self.response_function.InitializeSolutionStep()
+        # synchronize the modelparts
+        self.adjoint_analysis.RunSolutionLoop()
+
+    """
+    function introducing the stochasticity in the right hand side
+    input:  self: an instance of the class
+    """
+    def ModifyInitialProperties(self):
+        '''Introduce here the stochasticity in the Mach number and the angle of attack'''
+        Mach = self.sample[1]
+        alpha =  self.sample[2]
+        if Mach < 0.1:
+            Mach = 0.1
+        elif Mach > 0.4:
+            Mach = 0.4
+        if alpha > 0.1:
+            alpha = 0.1
+        # self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(Mach)
+        # self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(0.2)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(0.0)
+        super(SimulationScenario,self).ModifyInitialProperties()
+
+
+    """
+    function evaluating the QoI of the problem: lift coefficient
+    input:  self: an instance of the class
+    """
+    def EvaluateQuantityOfInterest(self):
+        qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
+        print("[SCREENING] Lift Coefficient: ",qoi_list[0])
+
+        # pressure_coefficient = []
+        # if (self.mapping is not True):
+        #     for node in self._GetSolver().main_model_part.GetSubModelPart("Body2D_Body").Nodes:
+        #         pressure_coefficient.append(node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT))
+        # elif (self.mapping is True):
+        #     for node in self.mapping_reference_model.GetModelPart("model.Body2D_Body").Nodes:
+        #         pressure_coefficient.append(node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT))
+        # qoi_list.append(pressure_coefficient)
+
+        shape_sensitivity = []
+        if (self.mapping is not True):
+            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart("Body2D_Body").Nodes:
+                # shape_sensitivity.append(node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
+                this_shape = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+                shape_sensitivity.extend(this_shape)
+
+        elif (self.mapping is True):
+            raise(Exception(("Mapping not contemplated yet for shape sensitivity")))
+        qoi_list.append(shape_sensitivity)
+        print("[SCREENING] Total number of QoI:",len(qoi_list))
+        print("[SCREENING] Total number of shape:",len(qoi_list[1]))
+        print("[SCREENING] Total number of exampleshape:",qoi_list[1][0])
+        return qoi_list
+
+    """
+    function mapping the pressure field on reference model
+    input:  self: an instance of the class
+    """
+    def MappingAndEvaluateQuantityOfInterest(self):
+        print("[SCREENING] Start Mapping")
+        # map from current model part of interest to reference model part
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "Body2D_Body",
+            "interface_submodel_part_destination": "Body2D_Body",
+            "echo_level" : 0
+            }""")
+        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart("model"),mapping_parameters)
+        mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
+            KratosMultiphysics.PRESSURE_COEFFICIENT,        \
+            KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+        print("[SCREENING] End Mapping")
+        # evaluate qoi
+        print("[SCREENING] Start evaluating QoI")
+        qoi_list = self.EvaluateQuantityOfInterest()
+        print("[SCREENING] End evaluating QoI")
+        return qoi_list
+
+
+
+
+    def _SynchronizeAdjointFromPrimal(self):
+
+        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        # TODO this should happen automatically
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
+
+        variable_utils = KratosMultiphysics.VariableUtils()
+        for variable in self.primal_state_variables:
+            variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
+
+def _CheckParameters(parameters):
+    if not parameters["solver_settings"].Has("reform_dofs_at_each_step") or not parameters["solver_settings"]["reform_dofs_at_each_step"].GetBool():
+        if not parameters["solver_settings"].Has("reform_dofs_at_each_step"):
+            parameters["solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
+        parameters["solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
+        wrn_msg = 'This solver requires the setting reform the dofs at each step in optimization.'
+        wrn_msg += 'The solver setting has been set to True'
+    for subproc_keys, subproc_values in parameters["processes"].items():
+        for process  in subproc_values:
+            if "wake" in process["python_module"].GetString():
+                if not process["Parameters"].Has("compute_wake_at_each_step") or not process["Parameters"]["compute_wake_at_each_step"].GetBool():
+                    if not process["Parameters"].Has("compute_wake_at_each_step"):
+                        process["Parameters"].AddEmptyValue("compute_wake_at_each_step")
+                process["Parameters"]["compute_wake_at_each_step"].SetBool(True)
+    return parameters
