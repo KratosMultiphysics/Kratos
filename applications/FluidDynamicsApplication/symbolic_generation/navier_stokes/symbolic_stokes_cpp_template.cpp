@@ -270,6 +270,7 @@ void SymbolicStokes<TElementData>::Calculate(
         data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
+        const auto &constitutive_law = this->GetConstitutiveLaw();
         rOutput = constitutive_law->GetValue(rVariable, rOutput);
     }
 
