@@ -9,11 +9,13 @@ print(timer.ctime())
 #### TIME MONITORING END ####
 
 #import kratos core and applications
-import KratosMultiphysics as km
+#import KratosMultiphysics as km 
+"""
+TODO remove import *!
+"""
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
-#from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.LinearSolversApplication import *
 
 # For GID output
@@ -34,7 +36,7 @@ GiDWriteParticlesFlag = False
 GiDMultiFileFlag = "Single"
        
 # Read optimized model part from restart file
-current_model = km.Model()
+current_model = Model()
 optimized_model_part = current_model.CreateModelPart("optimized_model_part")
 optimized_model_part.AddNodalSolutionStepVariable(NORMAL)
 restart_file_name = "/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/01_Small_Cantilever_Hexahedra_Klein/Small_Cantilever_Restart_File_15"
