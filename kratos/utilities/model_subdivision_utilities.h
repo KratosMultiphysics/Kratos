@@ -32,7 +32,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief Utility for populating sub model parts
  */
-class ModelSubdivisionUtilities
+class KRATOS_API(KRATOS_CORE) ModelSubdivisionUtilities
 {
 public:
     /** Sort nodes in a model part depending on their location within a stack of slabs
