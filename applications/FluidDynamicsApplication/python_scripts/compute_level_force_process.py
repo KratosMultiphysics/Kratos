@@ -7,30 +7,28 @@ import pathlib
 
 
 class ComputeLevelForceProcess(KratosMultiphysics.Process):
-    """
-    Reduce nodal reaction forces and torques on stacked slab domains.
-
-    A region of space between 'bottom_point' and 'top_point' is subdivided into 'number_of_slabs'
-    parallel slabs. Then, nodes from the specified model part are sorted into sub model parts
-    based on which slab they are located in. Finally, for each sub model part, the reaction forces
-    are summed up, and their torque (plus MOMENT if applicable) is reduced to 'moment_reference_point'.
-    The reduced values are written to output files for each sub model part.
-
-    Default parameters:
-    {
-        "moment_reference_point" : [0.0, 0.0, 0.0],
-        "bottom_point" : [0.0, 0.0, 0.0],
-        "top_point" : [0.0, 0.0, 0.0],
-        "number_of_slabs" : 1,
-        "open_domain" : false,
-        "time_domain" : [0.0, 1e100],
-        "output_name_stub" : "slab_"
-    }
-    """
     def __init__(self, modelPart: KratosMultiphysics.ModelPart, parameters: KratosMultiphysics.Parameters):
+        """Reduce nodal reaction forces and torques on stacked slab domains.
+        A region of space between 'bottom_point' and 'top_point' is subdivided into 'number_of_slabs'
+        parallel slabs. Then, nodes from the specified model part are sorted into sub model parts
+        based on which slab they are located in. Finally, for each sub model part, the reaction forces
+        are summed up, and their torque (plus MOMENT if applicable) is reduced to 'moment_reference_point'.
+        The reduced values are written to output files for each sub model part.
+
+        Default parameters:
+        {
+            "moment_reference_point" : [0.0, 0.0, 0.0],
+            "bottom_point" : [0.0, 0.0, 0.0],
+            "top_point" : [0.0, 0.0, 0.0],
+            "number_of_slabs" : 1,
+            "open_domain" : false,
+            "time_domain" : [0.0, 1e100],
+            "output_name_stub" : "slab_"
+        }"""
+
         super().__init__()
         self.model_part = modelPart
-        
+
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.moment_reference_point = parameters["moment_reference_point"].GetVector()
         self.bottom_point = parameters["bottom_point"].GetVector()
@@ -85,7 +83,8 @@ class ComputeLevelForceProcess(KratosMultiphysics.Process):
                 output_file.close()
 
 
-    def GetDefaultParameters(self):
+    @staticmethod
+    def GetDefaultParameters():
         return KratosMultiphysics.Parameters("""
         {
             "moment_reference_point" : [0.0, 0.0, 0.0],
@@ -101,7 +100,7 @@ class ComputeLevelForceProcess(KratosMultiphysics.Process):
 
     @staticmethod
     def ParseOutput(fileName: pathlib.Path):
-        """Get output values from a file written by this process (temporary implementation)"""
+        """Get output values from a file written by this process (temporary implementation)."""
 
         def ParseList(line: str):
             begin = line.index('(') + 1

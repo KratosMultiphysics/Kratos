@@ -3,7 +3,6 @@ import numpy
 
 # Kratos imports
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.FluidDynamicsApplication.compute_level_force_process import ComputeLevelForceProcess
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtils
@@ -55,19 +54,29 @@ class ComputeLevelForceProcessTest(UnitTest.TestCase):
         self.assertAlmostEqual(force[0], 7.2)
         self.assertAlmostEqual(force[1], -36.0)
         self.assertAlmostEqual(force[2], 36.0)
+        self.assertAlmostEqual(torque[0], 52.8)
+        self.assertAlmostEqual(torque[1], 0.84)
+        self.assertAlmostEqual(torque[2], -8.04)
 
         force, torque = ComputeLevelForceProcess.ParseOutput(GetFilePath("test_compute_level_force_process_1.dat"))
         self.assertAlmostEqual(force[0], 14.4)
         self.assertAlmostEqual(force[1], -18.0)
         self.assertAlmostEqual(force[2], 18.0)
+        self.assertAlmostEqual(torque[0], 26.4)
+        self.assertAlmostEqual(torque[1], 1.68)
+        self.assertAlmostEqual(torque[2], -16.08)
 
         force, torque = ComputeLevelForceProcess.ParseOutput(GetFilePath("test_compute_level_force_process_2.dat"))
         self.assertAlmostEqual(force[0], 50.4)
         self.assertAlmostEqual(force[1], -36.0)
         self.assertAlmostEqual(force[2], 36.0)
+        self.assertAlmostEqual(torque[0], 52.8)
+        self.assertAlmostEqual(torque[1], 5.88)
+        self.assertAlmostEqual(torque[2], -56.28)
 
 
-    def tearDown(self):
+    @classmethod
+    def tearDown(cls):
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_compute_level_force_process_0.dat"))
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_compute_level_force_process_1.dat"))
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_compute_level_force_process_2.dat"))
