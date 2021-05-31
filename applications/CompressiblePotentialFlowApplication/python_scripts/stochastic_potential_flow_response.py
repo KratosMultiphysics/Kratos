@@ -266,19 +266,9 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
         print("[SCREENING] Lift Coefficient: ",qoi_list[0])
 
-        # pressure_coefficient = []
-        # if (self.mapping is not True):
-        #     for node in self._GetSolver().main_model_part.GetSubModelPart("Body2D_Body").Nodes:
-        #         pressure_coefficient.append(node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT))
-        # elif (self.mapping is True):
-        #     for node in self.mapping_reference_model.GetModelPart("model.Body2D_Body").Nodes:
-        #         pressure_coefficient.append(node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT))
-        # qoi_list.append(pressure_coefficient)
-
         shape_sensitivity = []
         if (self.mapping is not True):
             for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
-                # shape_sensitivity.append(node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
                 this_shape = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
                 shape_sensitivity.extend(this_shape)
 
