@@ -58,6 +58,7 @@
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/force_and_torque_utils.h"
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
+#include "utilities/model_subdivision_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -666,6 +667,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
         m, "SubModelPartConstraintsBooleanOperationUtility");
 
+    py::class_<ModelSubdivisionUtilities>(m, "ModelSubdivisionUtilities")
+        .def_static("SortNodesBySlabs", &ModelSubdivisionUtilities::SortNodesBySlabs)
+        ;
 }
 
 } // namespace Python.
