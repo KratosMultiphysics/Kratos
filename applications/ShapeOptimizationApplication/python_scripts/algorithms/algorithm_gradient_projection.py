@@ -148,73 +148,81 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        for name, mapper in self.mappers.items():
+        for mapper in self.mappers.values():
             mapper.Update()
             mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
-            for constraint in self.constraints:
-                con_id = constraint["identifier"].GetString()
-                gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
-                mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
-                mapper.InverseMap(gradient_variable, mapped_gradient_variable)
+        for constraint in self.constraints:
+            con_id = constraint["identifier"].GetString()
+            gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
+            mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
+            mapper.InverseMap(gradient_variable, mapped_gradient_variable)
 
-            self.__computeControlPointUpdate()
+        self.__computeControlPointUpdate()
 
+        for mapper in self.mappers.values():
             mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-            self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
         g_a, g_a_variables = self.__getActiveConstraints()
-
-        for name, design_surface in self.design_surfaces.items():
-            KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
-            nabla_f = KM.Vector()
-            s = KM.Vector()
-            optimization_utilities.AssembleVector(design_surface, nabla_f, KSO.DF1DX_MAPPED)
-
-            if len(g_a) == 0:
-                KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+        if len(g_a) == 0:
+            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+            for design_surface in self.design_surfaces.values():
+                s = KM.Vector()
                 s = nabla_f * (-1.0)
                 s *= self.step_size / s.norm_inf()
                 optimization_utilities.AssignVectorToVariable(design_surface, s, KSO.SEARCH_DIRECTION)
                 optimization_utilities.AssignVectorToVariable(design_surface, [0.0]*len(s), KSO.CORRECTION)
                 optimization_utilities.AssignVectorToVariable(design_surface, s, KSO.CONTROL_POINT_UPDATE)
-                return
+            return
 
+        nabla_f = KM.Vector()
+        for design_surface in self.design_surfaces.values():
+            KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
+            s = KM.Vector()
+            optimization_utilities.AssembleVector(design_surface, nabla_f, KSO.DF1DX_MAPPED, True)
 
             KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
             N = KM.Matrix()
-            optimization_utilities.AssembleMatrix(design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+            optimization_utilities.AssembleMatrix(design_surface, N, g_a_variables, True)  # TODO check if gradients are 0.0! - in cpp
 
-            settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
-            solver = dense_linear_solver_factory.ConstructSolver(settings)
+        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
+        solver = dense_linear_solver_factory.ConstructSolver(settings)
 
-            KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
-            c = KM.Vector()
-            optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
-                nabla_f,
-                N,
-                g_a,
-                solver,
-                s,
-                c)
+        KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
+        c = KM.Vector()
+        optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
+            nabla_f,
+            N,
+            g_a,
+            solver,
+            s,
+            c)
 
-            if c.norm_inf() != 0.0:
-                if c.norm_inf() <= self.max_correction_share * self.step_size:
-                    delta = self.step_size - c.norm_inf()
-                    s *= delta/s.norm_inf()
-                else:
-                    KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                    c *= self.max_correction_share * self.step_size / c.norm_inf()
-                    s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+        if c.norm_inf() != 0.0:
+            if c.norm_inf() <= self.max_correction_share * self.step_size:
+                delta = self.step_size - c.norm_inf()
+                s *= delta/s.norm_inf()
             else:
-                s *= self.step_size / s.norm_inf()
+                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
+                c *= self.max_correction_share * self.step_size / c.norm_inf()
+                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+        else:
+            s *= self.step_size / s.norm_inf()
 
-            optimization_utilities.AssignVectorToVariable(design_surface, s, KSO.SEARCH_DIRECTION)
-            optimization_utilities.AssignVectorToVariable(design_surface, c, KSO.CORRECTION)
-            optimization_utilities.AssignVectorToVariable(design_surface, s+c, KSO.CONTROL_POINT_UPDATE)
+        previous_end = 0
+        for design_surface in self.design_surfaces.values():
+            initial_index = previous_end
+            final_index = initial_index + design_surface.NumberOfNodes()*3
+            previous_end = final_index
+
+            optimization_utilities.AssignVectorToVariable(design_surface, s[initial_index, final_index], KSO.SEARCH_DIRECTION)
+            optimization_utilities.AssignVectorToVariable(design_surface, c[initial_index, final_index], KSO.CORRECTION)
+            optimization_utilities.AssignVectorToVariable(design_surface, (s+c)[initial_index, final_index], KSO.CONTROL_POINT_UPDATE)
 
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
