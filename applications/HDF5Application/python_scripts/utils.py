@@ -16,7 +16,7 @@ from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
 
 
 def IsDistributed():
-    return KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed()
+    return KratosMultiphysics.Testing.GetDefaultDataCommunicator().IsDistributed()
 
 
 def CreateOperationSettings(operation_type, user_settings):
