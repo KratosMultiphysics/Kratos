@@ -270,24 +270,6 @@ void SymbolicStokes<TElementData>::Calculate(
         data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
-        // Add limits to the strain, and recompute stress if required
-        const auto &constitutive_law = this->GetConstitutiveLaw();
-        auto strain = data.StrainRate;
-        const double gamma_dot = std::sqrt(2.0 * (strain[0] * strain[0] + strain[1] * strain[1] + strain[2] * strain[2]) + strain[3] * strain[3] + strain[4] * strain[4] + strain[5] * strain[5]);
-        double gamma_dot_from_constitutive_law = constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
-        double ratio = fabs(gamma_dot_from_constitutive_law / gamma_dot);
-        if (ratio < 0.99999 && ratio > 1e-20) {
-            strain *= ratio;
-            auto &r_values = data.ConstitutiveLawValues;
-            Flags &ConstitutiveLawOptions = r_values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-            r_values.SetShapeFunctionsValues(data_N);
-            r_values.SetStrainVector(strain);
-            Vector stress(strain.size());
-            r_values.SetStressVector(stress);
-            constitutive_law->CalculateMaterialResponseCauchy(r_values);
-        }
         rOutput = constitutive_law->GetValue(rVariable, rOutput);
     }
 
