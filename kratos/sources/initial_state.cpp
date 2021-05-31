@@ -30,6 +30,7 @@ namespace Kratos
 
     /// Only defining Dimension constructor.
     InitialState::InitialState(const SizeType Dimension)
+        : mReferenceCounter(0)
     {
         const SizeType voigt_size = (Dimension == 3) ? 6 : 3;
         mInitialStressVector.resize(voigt_size, false);
@@ -45,6 +46,7 @@ namespace Kratos
     InitialState::InitialState(const Vector& rInitialStrainVector,
                     const Vector& rInitialStressVector,
                     const Matrix& rInitialDeformationGradientMatrix)
+        : mReferenceCounter(0)
     {
         const SizeType voigt_size = rInitialStrainVector.size();
         const SizeType dimension  = rInitialDeformationGradientMatrix.size1();
@@ -63,6 +65,7 @@ namespace Kratos
     // Selective constructor for vectors
     InitialState::InitialState(const Vector& rImposingEntity,
                     const InitialImposingType InitialImposition)
+        : mReferenceCounter(0)
     {
         const SizeType voigt_size = rImposingEntity.size();
         const SizeType dimension = (voigt_size == 6) ? 3 : 2;
@@ -85,6 +88,7 @@ namespace Kratos
     // Selective constructor for vectors (E, S)
     InitialState::InitialState(const Vector& rInitialStrainVector,
                     const Vector& rInitialStressVector)
+        : mReferenceCounter(0)
     {
         const SizeType voigt_size_1 = rInitialStrainVector.size();
         const SizeType voigt_size_2 = rInitialStressVector.size();
@@ -102,6 +106,7 @@ namespace Kratos
 
     // Selective constructor for Deformation Gradient only
     InitialState::InitialState(const Matrix& rInitialDeformationGradientMatrix)
+        : mReferenceCounter(0)
     {
         const SizeType dimension = rInitialDeformationGradientMatrix.size1();
         const SizeType voigt_size = (dimension == 3) ? 6 : 3;
