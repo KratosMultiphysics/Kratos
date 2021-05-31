@@ -129,16 +129,16 @@ class _FilenameGetterWithDirectoryInitialization(object):
 
     def Get(self, model_part=None):
         file_name = self.filename_getter.Get(model_part)
-        self._InitializeDirectory(file_name)
+        self._InitializeDirectory(file_name, model_part.GetCommunicator().GetDataCommunicator())
         return file_name
 
     @staticmethod
-    def _InitializeDirectory(file_name):
+    def _InitializeDirectory(file_name, data_comm):
         dirname = os.path.dirname(file_name)
         if dirname != '' and not os.path.exists(dirname):
-            if KratosMultiphysics.Testing.GetDefaultDataCommunicator().Rank() == 0:
+            if data_comm.Rank() == 0:
                 os.makedirs(dirname)
-            KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
+            data_comm.Barrier()
 
 
 def Create(settings):
