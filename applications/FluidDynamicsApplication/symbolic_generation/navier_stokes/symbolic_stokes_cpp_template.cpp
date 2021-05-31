@@ -212,11 +212,12 @@ void SymbolicStokes<TElementData>::Calculate(
         data.Initialize(*this, rCurrentProcessInfo);
         rOutput = 0.0;
         // Shape functions
-        const GeometryType &r_geometry = this->GetGeometry();
+        const auto &r_geometry = this->GetGeometry();
+
         const unsigned int num_nodes = r_geometry.PointsNumber();
         Vector data_N(num_nodes);
         for (unsigned int i = 0; i < num_nodes; i++) {
-            data_N[i] = 1.0 / (double)num_nodes;
+            data_N[i] = 1.0 / num_nodes;
         }
         data.N = data_N;
         // Shape functions gradients
@@ -228,11 +229,11 @@ void SymbolicStokes<TElementData>::Calculate(
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
         // Add limits to the strain, and recompute stress if required
-        const auto &constitutive_law = this->GetConstitutiveLaw();
+        const auto &p_constitutive_law = this->GetConstitutiveLaw();
         auto strain = data.StrainRate;
-        const double gamma_dot = std::sqrt(2.0 * (strain[0] * strain[0] + strain[1] * strain[1] + strain[2] * strain[2]) + strain[3] * strain[3] + strain[4] * strain[4] + strain[5] * strain[5]);
-        double gamma_dot_from_constitutive_law = constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
-        double ratio = fabs(gamma_dot_from_constitutive_law / gamma_dot);
+        const double gamma_dot = std::sqrt(2.0 * (std::pow(strain[0],2.0) + std::pow(strain[1],2.0) + std::pow(strain[2],2.0)) + std::pow(strain[3],2.0) + std::pow(strain[4],2.0) + std::pow(strain[5],2.0));
+        double gamma_dot_from_constitutive_law = p_constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
+        double ratio = std::abs(gamma_dot_from_constitutive_law / gamma_dot);
         if (ratio < 0.99999 && ratio > 1e-20) {
             strain *= ratio;
             auto &r_values = data.ConstitutiveLawValues;
@@ -243,7 +244,7 @@ void SymbolicStokes<TElementData>::Calculate(
             r_values.SetStrainVector(strain);
             Vector stress(strain.size());
             r_values.SetStressVector(stress); //this is an ouput parameter
-            constitutive_law->CalculateMaterialResponseCauchy(r_values);
+            p_constitutive_law->CalculateMaterialResponseCauchy(r_values);
             rOutput = inner_prod(stress, strain);
         }
         else {
@@ -255,11 +256,11 @@ void SymbolicStokes<TElementData>::Calculate(
         data.Initialize(*this, rCurrentProcessInfo);
         rOutput = 0.0;
         // Shape functions
-        const GeometryType &r_geometry = this->GetGeometry();
+        const auto &r_geometry = this->GetGeometry();
         const unsigned int num_nodes = r_geometry.PointsNumber();
         Vector data_N(num_nodes);
         for (unsigned int i = 0; i < num_nodes; i++) {
-            data_N[i] = 1.0 / (double)num_nodes;
+            data_N[i] = 1.0 / num_nodes;
         }
         data.N = data_N;
         // Shape function gradients
@@ -270,8 +271,8 @@ void SymbolicStokes<TElementData>::Calculate(
         data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
-        const auto &constitutive_law = this->GetConstitutiveLaw();
-        rOutput = constitutive_law->GetValue(rVariable, rOutput);
+        const auto &p_constitutive_law = this->GetConstitutiveLaw();
+        rOutput = p_constitutive_law->GetValue(rVariable, rOutput);
     }
 
     KRATOS_CATCH("")
