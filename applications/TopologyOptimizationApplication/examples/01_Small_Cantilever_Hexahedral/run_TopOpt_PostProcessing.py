@@ -2,8 +2,6 @@
 import time as timer
 print(timer.ctime())
 
-#### TIME MONITORING END ####
-
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
@@ -14,7 +12,6 @@ from KratosMultiphysics.LinearSolversApplication import *
 from KratosMultiphysics.gid_output import GiDOutput
 
 print("checkpoint 0\n"+"-"*50)
-
 
 # GiD output settings
 nodal_results=[]

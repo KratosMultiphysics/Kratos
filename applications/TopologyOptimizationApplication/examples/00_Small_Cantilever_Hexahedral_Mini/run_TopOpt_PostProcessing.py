@@ -1,18 +1,10 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-#### TIME MONITORING START ####
-
 # time control starts
 import time as timer
 print(timer.ctime())
 
-#### TIME MONITORING END ####
 
 #import kratos core and applications
-#import KratosMultiphysics as km 
-"""
-TODO remove import *!
-"""
+#TODO remove import *!
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
@@ -20,10 +12,6 @@ from KratosMultiphysics.LinearSolversApplication import *
 
 # For GID output
 from KratosMultiphysics.gid_output import GiDOutput
-
-######################################################################################
-######################################################################################
-######################################################################################
 
 # GiD output settings
 nodal_results=[]
