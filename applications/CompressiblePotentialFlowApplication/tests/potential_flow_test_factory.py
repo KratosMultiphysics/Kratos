@@ -206,6 +206,13 @@ class PotentialFlowTests(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(work_folder, __file__):
             __import__(work_folder+".run_test")
 
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        work_folder = "stochastic_body_fitted_opt"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
+
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
         solution_element_id_list = []
