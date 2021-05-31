@@ -33,6 +33,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.identifier = identifier
         self.response_settings = response_settings
         self.xmc_settings_path = response_settings["xmc_settings"].GetString()
+        self.design_surface_sub_model_part_name = response_settings["design_surface_sub_model_part_name"].GetString()
         # Create the primal solver
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
@@ -42,6 +43,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             primal_parameters["adjoint_parameters_path"].SetString(self.response_settings["adjoint_settings"].GetString())
         else:
             primal_parameters.AddString("adjoint_parameters_path", self.response_settings["adjoint_settings"].GetString())
+        if primal_parameters.Has("design_surface_sub_model_part_name"):
+            primal_parameters["design_surface_sub_model_part_name"].SetString(self.design_surface_sub_model_part_name)
+        else:
+            primal_parameters.AddString("design_surface_sub_model_part_name", self.design_surface_sub_model_part_name)
         open(self.response_settings["primal_settings"].GetString(), 'w').write(primal_parameters.PrettyPrintJsonString())
 
         self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
@@ -83,8 +88,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # save shape sensitivity
         qoi_counter = 1
         member = 0
-        for node in self.adjoint_model_part.GetSubModelPart("Body2D_Body").Nodes:
-            # for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
+        for node in self.adjoint_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
             shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
             for idim in range(3):
                 self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
@@ -189,24 +193,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         else:
             self.xmc_analysis.runXMC()
 
-    def _CheckParameters(self, parameters):
-        if not parameters["solver_settings"].Has("reform_dofs_at_each_step") or not parameters["solver_settings"]["reform_dofs_at_each_step"].GetBool():
-            if not parameters["solver_settings"].Has("reform_dofs_at_each_step"):
-                parameters["solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
-            parameters["solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
-            wrn_msg = 'This solver requires the setting reform the dofs at each step in optimization.'
-            wrn_msg += 'The solver setting has been set to True'
-            Logger.PrintWarning(self._GetLabel(), wrn_msg)
-        for subproc_keys, subproc_values in parameters["processes"].items():
-            for process  in subproc_values:
-                if "wake" in process["python_module"].GetString():
-                    if not process["Parameters"].Has("compute_wake_at_each_step") or not process["Parameters"]["compute_wake_at_each_step"].GetBool():
-                        if not process["Parameters"].Has("compute_wake_at_each_step"):
-                            process["Parameters"].AddEmptyValue("compute_wake_at_each_step")
-                    process["Parameters"]["compute_wake_at_each_step"].SetBool(True)
-        return parameters
-
-
     def _GetAdjointParameters(self):
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
             adjoint_parameters = Parameters( parameter_file.read() )
@@ -218,6 +204,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.sample = sample
         self.mapping = False
         self.adjoint_parameters_path =input_parameters["adjoint_parameters_path"].GetString()
+        self.design_surface_sub_model_part_name = input_parameters["design_surface_sub_model_part_name"].GetString()
         super(SimulationScenario,self).__init__(input_model,input_parameters)
 
     def Finalize(self):
@@ -290,7 +277,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
         shape_sensitivity = []
         if (self.mapping is not True):
-            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart("Body2D_Body").Nodes:
+            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
                 # shape_sensitivity.append(node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
                 this_shape = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
                 shape_sensitivity.extend(this_shape)
@@ -312,15 +299,16 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         # map from current model part of interest to reference model part
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "Body2D_Body",
-            "interface_submodel_part_destination": "Body2D_Body",
             "echo_level" : 0
             }""")
+        mapping_parameters.AddString("interface_sub_model_part_origin", self.design_surface_sub_model_part_name)
+        mapping_parameters.AddString("interface_submodel_part_destination", self.design_surface_sub_model_part_name)
         mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart("model"),mapping_parameters)
         mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
             KratosMultiphysics.PRESSURE_COEFFICIENT,        \
             KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
             KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+        mapper.Map(KratosMultiphysics.SHAPE_SENSITIVITY, KratosMultiphysics.SHAPE_SENSITIVITY)
         print("[SCREENING] End Mapping")
         # evaluate qoi
         print("[SCREENING] Start evaluating QoI")
