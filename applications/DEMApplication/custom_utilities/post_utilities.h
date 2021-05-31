@@ -334,18 +334,17 @@ namespace Kratos {
             ElementsArrayType& pParticleElements = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
             array_1d<double,3> particle_forces;
             const array_1d<double,3>& gravity = r_process_info[GRAVITY];
-            //double total_force = 0.0;
-
 
             double total_force = block_for_each<MaxReduction<double>>(pParticleElements, [&](ModelPart::ElementType& rParticleElement) -> double {
                 Element::GeometryType& geom = rParticleElement.GetGeometry();
                 double local_force = 0.0;
-                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) &&
-                    geom[0].IsNot(DEMFlags::FIXED_VEL_Y) &&
-                    geom[0].IsNot(DEMFlags::FIXED_VEL_Z)){
+                const auto& n0 = geom[0];
+                if (n0.IsNot(DEMFlags::FIXED_VEL_X) &&
+                    n0.IsNot(DEMFlags::FIXED_VEL_Y) &&
+                    n0.IsNot(DEMFlags::FIXED_VEL_Z)){
 
-                    particle_forces  = geom[0].FastGetSolutionStepValue(TOTAL_FORCES);
-                    double mass = geom[0].FastGetSolutionStepValue(NODAL_MASS);
+                    particle_forces  = n0.FastGetSolutionStepValue(TOTAL_FORCES);
+                    double mass = n0.FastGetSolutionStepValue(NODAL_MASS);
                     particle_forces[0] += mass * gravity[0];
                     particle_forces[1] += mass * gravity[1];
                     particle_forces[2] += mass * gravity[2];
