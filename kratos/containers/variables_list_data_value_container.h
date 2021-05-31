@@ -28,7 +28,6 @@
 #include "containers/variables_list.h"
 #include "includes/global_variables.h"
 
-
 namespace Kratos
 {
 
@@ -96,13 +95,12 @@ public:
         // Setting the current position at the begining of data
         mpCurrentPosition = mpData;
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
             BlockType* position = Position(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 i_variable->AssignZero(position + i * size);
+            }
         }
     }
 
@@ -120,14 +118,11 @@ public:
         // Setting the current position with relative source container offset
         mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
             SizeType offset = LocalOffset(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
-            {
-                SizeType total_offset =  offset + i * size;
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
+                const SizeType total_offset =  offset + i * size;
                 i_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
             }
         }
@@ -147,13 +142,12 @@ public:
         // Setting the current position at the begining of data
         mpCurrentPosition = mpData;
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin() ; i_variable != mpVariablesList->end() ; i_variable++) {
             BlockType*  position = Position(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 i_variable->AssignZero(position + i * size);
+            }
         }
     }
 
@@ -171,25 +165,21 @@ public:
         // Setting the current position at the begining of data
         mpCurrentPosition = mpData;
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
-            SizeType offset = LocalOffset(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
-            {
-                SizeType total_offset =  offset + i * size;
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
+            const SizeType offset = LocalOffset(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
+                const SizeType total_offset =  offset + i * size;
                 i_variable->Copy(ThisData + total_offset, mpData + total_offset);
             }
         }
     }
 
     /// Destructor.
-    virtual ~VariablesListDataValueContainer()
+    ~VariablesListDataValueContainer()
     {
         Clear();
     }
-
 
     ///@}
     ///@name Operators
@@ -247,27 +237,20 @@ public:
     /// Assignment operator.
     VariablesListDataValueContainer& operator=(const VariablesListDataValueContainer& rOther)
     {
-        if(rOther.mpVariablesList == 0)
+        if(rOther.mpVariablesList == 0) {
             Clear();
-        else if((mpVariablesList == rOther.mpVariablesList) &&
-                (mQueueSize == rOther.mQueueSize))
-        {
+        } else if((mpVariablesList == rOther.mpVariablesList) && (mQueueSize == rOther.mQueueSize)) {
             mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
 
-            SizeType size = mpVariablesList->DataSize();
-            for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                    i_variable != mpVariablesList->end() ; i_variable++)
-            {
+            const SizeType size = mpVariablesList->DataSize();
+            for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
                 SizeType offset = LocalOffset(*i_variable);
-                for(SizeType i = 0 ; i < mQueueSize ; i++)
-                {
-                    SizeType total_offset =  offset + i * size;
+                for(SizeType i = 0 ; i < mQueueSize ; i++) {
+                    const SizeType total_offset =  offset + i * size;
                     i_variable->Assign(rOther.mpData + total_offset, mpData + total_offset);
                 }
             }
-        }
-        else
-        {
+        } else {
             DestructAllElements();
 
             mQueueSize = rOther.mQueueSize;
@@ -277,14 +260,11 @@ public:
 
             mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
 
-            SizeType size = mpVariablesList->DataSize();
-            for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                    i_variable != mpVariablesList->end() ; i_variable++)
-            {
-                SizeType offset = LocalOffset(*i_variable);
-                for(SizeType i = 0 ; i < mQueueSize ; i++)
-                {
-                    SizeType total_offset =  offset + i * size;
+            const SizeType size = mpVariablesList->DataSize();
+            for(auto i_variable = mpVariablesList->begin() ; i_variable != mpVariablesList->end() ; i_variable++) {
+                const SizeType offset = LocalOffset(*i_variable);
+                for(SizeType i = 0 ; i < mQueueSize ; i++) {
+                    const SizeType total_offset =  offset + i * size;
                     i_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
                 }
             }
@@ -471,8 +451,6 @@ public:
         return *mpVariablesList;
     }
 
-
-
     void SetVariablesList(VariablesList::Pointer pVariablesList)
     {
         DestructAllElements();
@@ -486,13 +464,12 @@ public:
 
         mpCurrentPosition = mpData;
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
             BlockType*  position = Position(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 i_variable->AssignZero(position + i * size);
+            }
         }
     }
 
@@ -511,13 +488,12 @@ public:
 
         mpCurrentPosition = mpData;
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
             BlockType*  position = Position(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 i_variable->AssignZero(position + i * size);
+            }
         }
     }
 
@@ -529,13 +505,12 @@ public:
         if(!mpVariablesList)
             return;
 
-         if(mQueueSize > NewSize) // if new size is smaller
-        {
+         if(mQueueSize > NewSize) { // if new size is smaller
             // Destructing elements out of the new size
             for(SizeType i = NewSize ; i < mQueueSize ; i++)
                 DestructElements(i);
 
-            SizeType size = mpVariablesList->DataSize();
+            const SizeType size = mpVariablesList->DataSize();
 
             //allocating memory
             BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
@@ -556,17 +531,15 @@ public:
             // updating the current position
             mpCurrentPosition = mpData;
 
-        }
-        else
-        {
+        } else {
             // Calculating the difference of new and old sizes
-            SizeType difference = NewSize - mQueueSize;
+            const SizeType difference = NewSize - mQueueSize;
 
             //keeping the old queue size
-            SizeType old_size = mQueueSize;
+            const SizeType old_size = mQueueSize;
 
             // Getting the relative offset of current position
-            SizeType current_offset = mpCurrentPosition - mpData;
+            const SizeType current_offset = mpCurrentPosition - mpData;
 
             //Updating the queue size
             mQueueSize = NewSize;
@@ -584,12 +557,11 @@ public:
             memmove(mpCurrentPosition + difference * size, mpCurrentPosition, region_size * sizeof(BlockType));
 
             // Assigning zero to the added elements
-            for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                    i_variable != mpVariablesList->end() ; i_variable++)
-            {
+            for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
                 BlockType*  position = mpCurrentPosition + LocalOffset(*i_variable);
-                for(SizeType i = 0 ; i < difference ; i++)
+                for(SizeType i = 0 ; i < difference ; i++) {
                     i_variable->AssignZero(position + i * size);
+                }
             }
 
             //moving the current position to the moved place
@@ -618,7 +590,7 @@ public:
 // 		mQueueSize = NewSize;
 // 		Reallocate();
 // 		SizeType size = mpVariablesList->DataSize();
-// 		for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+// 		for(auto i_variable = mpVariablesList->begin() ;
 // 		    i_variable != mpVariablesList->end() ; i_variable++)
 // 		{
 // 		    SizeType  offset = LocalOffset(*i_variable);
@@ -646,11 +618,7 @@ public:
 
     BlockType* Data(VariableData const & rThisVariable)
     {
-        #ifdef KRATOS_DEBUG
-        if ( !mpVariablesList->Has(rThisVariable) ) {
-            KRATOS_ERROR << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
-        }
-        #endif
+        KRATOS_DEBUG_ERROR_IF(!mpVariablesList->Has(rThisVariable)) << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
         return Position(rThisVariable);
     }
 
@@ -684,8 +652,7 @@ public:
 
     void CloneFront()
     {
-        if(mQueueSize == 0)
-        {
+        if(mQueueSize == 0) {
             Resize(1);
             return;
         }
@@ -704,8 +671,7 @@ public:
 
     void PushFront()
     {
-        if(mQueueSize == 0)
-        {
+        if(mQueueSize == 0) {
             Resize(1);
             return;
         }
@@ -725,18 +691,18 @@ public:
     void AssignZero()
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-            i_variable->AssignZero(mpCurrentPosition + LocalOffset(*i_variable));
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
+            i_variable->AssignZero(mpCurrentPosition + LocalOffset(*i_variable)); 
+        }
     }
 
     void AssignZero(SizeType QueueIndex)
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         BlockType* position = Position(QueueIndex);
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
             i_variable->AssignZero(position + LocalOffset(*i_variable));
+        }
     }
 
     ///@}
@@ -764,29 +730,26 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return std::string("variables list data value container");
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "variables list data value container";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         if(!mpVariablesList)
             rOStream << "No varaibles list is assigned yet." << std::endl;
 
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
             rOStream <<"    ";
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
-            {
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 rOStream << i << ": ";
                 i_variable->Print(Position(*i_variable, i), rOStream);
                 rOStream << "  ";
@@ -888,9 +851,9 @@ private:
         if(mpData == 0)
             return;
         BlockType* position = Position(ThisIndex);
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
+        for(auto i_variable = mpVariablesList->begin() ; i_variable != mpVariablesList->end() ; i_variable++) {
             i_variable->Destruct(position + LocalOffset(*i_variable));
+        }
     }
 
 
@@ -902,13 +865,12 @@ private:
         if(mpData == 0)
             return;
 
-        SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
+        const SizeType size = mpVariablesList->DataSize();
+        for(auto i_variable = mpVariablesList->begin() ; i_variable != mpVariablesList->end() ; i_variable++) {
             BlockType*  position = mpData + LocalOffset(*i_variable);
-            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            for(SizeType i = 0 ; i < mQueueSize ; i++) {
                 i_variable->Destruct(position + i * size);
+            }
         }
     }
 
@@ -916,10 +878,8 @@ private:
     void AssignData(BlockType* Source, BlockType* Destination)
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-                i_variable != mpVariablesList->end() ; i_variable++)
-        {
-            SizeType offset = LocalOffset(*i_variable);
+        for(auto i_variable = mpVariablesList->begin(); i_variable != mpVariablesList->end() ; i_variable++) {
+            const SizeType offset = LocalOffset(*i_variable);
             i_variable->Assign(Source + offset, Destination + offset);
         }
     }
@@ -953,7 +913,7 @@ private:
     inline BlockType* Position(SizeType ThisIndex) const
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        SizeType total_size = TotalSize();
+        const SizeType total_size = TotalSize();
         BlockType* position = mpCurrentPosition + ThisIndex * mpVariablesList->DataSize();
         return (position < mpData + total_size) ? position : position - total_size;
     }
@@ -964,7 +924,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const
     {
         KRATOS_ERROR_IF(!mpVariablesList) << "Cannot save a container with no variables list assigned" << std::endl;
         KRATOS_ERROR_IF(mpData == 0) << "Cannot save an empty variables list container" << std::endl;
@@ -978,7 +938,7 @@ private:
 
 
         SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+        for(auto i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
         {
             BlockType*  position = mpData + LocalOffset(*i_variable);
@@ -990,7 +950,7 @@ private:
         }
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer)
     {
         rSerializer.load("Variables List", mpVariablesList);
         rSerializer.load("QueueSize", mQueueSize);
@@ -1008,7 +968,7 @@ private:
             AssignZero(i);
 
         SizeType size = mpVariablesList->DataSize();
-        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+        for(auto i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
         {
             BlockType*  position = mpData + LocalOffset(*i_variable);
