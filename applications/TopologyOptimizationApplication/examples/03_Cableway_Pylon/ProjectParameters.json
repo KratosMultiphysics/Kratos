@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "AerialLiftPylon",
+        "problem_name"    : "CablewayPylon",
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
@@ -16,7 +16,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_disp","PointLoad3D_load"],
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "AerialLiftPylon"
+            "input_filename" : "CablewayPylon"
         },
         "material_import_settings"           : {
             "materials_filename" : "StructuralMaterials.json"

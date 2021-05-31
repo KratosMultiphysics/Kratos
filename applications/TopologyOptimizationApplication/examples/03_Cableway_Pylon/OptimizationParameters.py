@@ -38,7 +38,7 @@ q_max = 2 # Recomended: 2
 # OPTIMIZATION ALGORITHM
 #========================================================================================
     
-optimization_algorithm = "MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
+optimization_algorithm = "oc_algorithm"  #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
 # options: "oc_algorithm"
     
 # General convergence criterions
@@ -69,8 +69,8 @@ constraints = { "volume_fraction": {"type": "eq", "grad": "provided"} }
 #========================================================================================
 
 # General output
-restart_input_file      = "AerialLiftPylon.mdpa"
-restart_output_file     = "AerialLiftPylon_Restart_File.mdpa"
+restart_input_file      = "CablewayPylon.mdpa"
+restart_output_file     = "CablewayPylon_Restart_File.mdpa"
 restart_write_frequency = 10 #iterations
 
 # GiD simulation output file name

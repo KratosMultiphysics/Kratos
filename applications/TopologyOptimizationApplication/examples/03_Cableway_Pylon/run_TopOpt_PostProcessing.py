@@ -13,7 +13,7 @@ import KratosMultiphysics as km
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.LinearSolversApplication import *
 
 # For GID output
 from KratosMultiphysics.gid_output import GiDOutput
@@ -36,7 +36,7 @@ GiDMultiFileFlag = "Single"
 current_model = km.Model()
 optimized_model_part = current_model.CreateModelPart("optimized_model_part")
 optimized_model_part.AddNodalSolutionStepVariable(NORMAL)
-restart_file_name = "/home/philipp/opt/kratosDev/applications/TopologyOptimizationApplication/examples/Seilbahnmast/Seilbahnmast_Restart_File_84"
+restart_file_name = "Cableway_Pylon_Restart_File_84"
 model_part_io = ModelPartIO(restart_file_name)
 model_part_io.ReadModelPart(optimized_model_part)
 

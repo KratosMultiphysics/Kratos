@@ -12,7 +12,7 @@ print(timer.ctime())
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.LinearSolversApplication import *
 
 # For GID output
 from gid_output import GiDOutput
