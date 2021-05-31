@@ -34,6 +34,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.response_settings = response_settings
         self.xmc_settings_path = response_settings["xmc_settings"].GetString()
         self.design_surface_sub_model_part_name = response_settings["design_surface_sub_model_part_name"].GetString()
+        self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
         # Create the primal solver
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
@@ -70,7 +71,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
     def InitializeSolutionStep(self):
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
-        KratosMultiphysics.ModelPartIO('current_design', KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.primal_model_part)
+        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.primal_model_part)
 
         self._RunXMC()
 
@@ -305,9 +306,6 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         qoi_list = self.EvaluateQuantityOfInterest()
         print("[SCREENING] End evaluating QoI")
         return qoi_list
-
-
-
 
     def _SynchronizeAdjointFromPrimal(self):
 
