@@ -38,7 +38,7 @@ class ReadHdf5Process(Kratos.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.parameters = settings
         self.problem_name = self.parameters["file_name"].GetString()
-        self.reference_mdpa_name = str(os.getcwd() + '' + self.parameters["reference_model_part_name"].GetString())
+        self.reference_mdpa_name = str(os.getcwd() + '/' + self.parameters["reference_model_part_name"].GetString())
         self.destination_model_part = Model[settings["model_part_name"].GetString()]
         self.u_characteristic = settings["error_projection_parameters"]["u_characteristic"].GetDouble()
         self.domain_size = self.parameters["domain_size"].GetInt()
