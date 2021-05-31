@@ -228,7 +228,7 @@ void SymbolicStokes<TElementData>::Calculate(
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
         // Add limits to the strain, and recompute stress if required
-        auto &constitutive_law = this->GetConstitutiveLaw();
+        const auto &constitutive_law = this->GetConstitutiveLaw();
         auto strain = data.StrainRate;
         const double gamma_dot = std::sqrt(2.0 * (strain[0] * strain[0] + strain[1] * strain[1] + strain[2] * strain[2]) + strain[3] * strain[3] + strain[4] * strain[4] + strain[5] * strain[5]);
         double gamma_dot_from_constitutive_law = constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
@@ -271,7 +271,7 @@ void SymbolicStokes<TElementData>::Calculate(
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
         // Add limits to the strain, and recompute stress if required
-        auto &constitutive_law = this->GetConstitutiveLaw();
+        const auto &constitutive_law = this->GetConstitutiveLaw();
         auto strain = data.StrainRate;
         const double gamma_dot = std::sqrt(2.0 * (strain[0] * strain[0] + strain[1] * strain[1] + strain[2] * strain[2]) + strain[3] * strain[3] + strain[4] * strain[4] + strain[5] * strain[5]);
         double gamma_dot_from_constitutive_law = constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
