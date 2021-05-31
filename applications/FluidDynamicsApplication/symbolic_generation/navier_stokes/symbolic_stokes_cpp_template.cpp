@@ -274,6 +274,9 @@ void SymbolicStokes<TElementData>::Calculate(
         const auto &p_constitutive_law = this->GetConstitutiveLaw();
         rOutput = p_constitutive_law->GetValue(rVariable, rOutput);
     }
+    else {
+        this->Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }
