@@ -59,7 +59,7 @@ namespace Kratos
 * @author Pooyan Dadvand
 * @author Riccardo Rossi
 */
-class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer
+class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer final
 {
 public:
     ///@name Type Definitions
