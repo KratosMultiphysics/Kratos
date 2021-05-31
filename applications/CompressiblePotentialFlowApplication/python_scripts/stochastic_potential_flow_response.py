@@ -31,11 +31,17 @@ class AdjointResponseFunction(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
         self.response_settings = response_settings
+        self.xmc_settings_path = response_settings["xmc_settings"].GetString()
         # Create the primal solver
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
 
         primal_parameters = self._CheckParameters(primal_parameters)
+        if primal_parameters.Has("adjoint_parameters_path"):
+            primal_parameters["adjoint_parameters_path"].SetString(self.response_settings["adjoint_settings"].GetString())
+        else:
+            primal_parameters.AddString("adjoint_parameters_path", self.response_settings["adjoint_settings"].GetString())
+        open(self.response_settings["primal_settings"].GetString(), 'w').write(primal_parameters.PrettyPrintJsonString())
 
         self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
 
@@ -58,8 +64,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
     def InitializeSolutionStep(self):
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
-        this_path = "/media/kratos105a/datos/branch_cases/20210511_bodyfitted_optimization_stochastic"
-        KratosMultiphysics.ModelPartIO(this_path+'/current_design', KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.primal_model_part)
+        KratosMultiphysics.ModelPartIO('current_design', KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.primal_model_part)
 
         self._RunXMC()
 
@@ -120,10 +125,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         return "Adjoint" + type_labels[response_type]  +"Response"
 
     def _RunXMC(self):
-        parametersPath = "/media/kratos105a/datos/branch_cases/20210511_bodyfitted_optimization_stochastic/parameters_xmc_asynchronous_mc_potentialFlow.json"
-
         # read parameters
-        with open(parametersPath,'r') as parameter_file:
+        with open(self.xmc_settings_path,'r') as parameter_file:
                 parameters = json.load(parameter_file)
 
         # SolverWrapper
