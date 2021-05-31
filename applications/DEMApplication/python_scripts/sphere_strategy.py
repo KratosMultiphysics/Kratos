@@ -44,7 +44,7 @@ class ExplicitStrategy():
         if not "ComputeReactionsInFixedParticles" in DEM_parameters.keys():
             self.compute_reactions_in_fixed_particles_option = 0
         else:
-            self.compute_reactions_in_fixed_particles_option = DEM_parameters["ComputeReactionsOnFixedParticlesOption"].GetBool()
+            self.compute_reactions_in_fixed_particles_option = DEM_parameters["compute_reactions_on_fixed_particles"].GetBool()
 
         if "PostStressStrainOption" in DEM_parameters.keys() and DEM_parameters["PostStressStrainOption"].GetBool():
             self.compute_stress_tensor_option = 1
