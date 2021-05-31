@@ -212,7 +212,8 @@ void SymbolicStokes<TElementData>::Calculate(
         data.Initialize(*this, rCurrentProcessInfo);
         rOutput = 0.0;
         // Shape functions
-        const GeometryType &r_geometry = this->GetGeometry();
+        const auto &r_geometry = this->GetGeometry();
+
         const unsigned int num_nodes = r_geometry.PointsNumber();
         Vector data_N(num_nodes);
         for (unsigned int i = 0; i < num_nodes; i++) {
