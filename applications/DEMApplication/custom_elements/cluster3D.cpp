@@ -59,7 +59,9 @@ namespace Kratos {
 
         RigidBodyElement3D::Initialize(r_process_info);
 
-        const double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
+        auto& central_node = GetGeometry()[0];
+
+        const double cl = central_node.FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
 
 	    KRATOS_ERROR_IF_NOT(GetProperties().Has(CLUSTER_INFORMATION))<<"Something went wrong. Properties do not contain CLUSTER_INFORMATION.";
         const ClusterInformation& cl_info = GetProperties()[CLUSTER_INFORMATION];
@@ -89,32 +91,32 @@ namespace Kratos {
         const double cluster_volume = reference_volume * scaling_factor*scaling_factor*scaling_factor;
         const double cluster_mass = particle_density * cluster_volume;
 
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
-        GetGeometry()[0].FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
-        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
+        central_node.FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        central_node.FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
+        central_node.FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
 
         const double squared_scaling_factor_times_density = scaling_factor * scaling_factor * particle_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
 
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3> base_principal_moments_of_inertia = central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
 
-        Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
+        Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3> angular_momentum;
         double LocalTensor[3][3];
         double GlobalTensor[3][3];
         GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+        noalias(central_node.FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
 
         array_1d<double, 3> local_angular_velocity;
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
+        noalias(central_node.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
 
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy) {
