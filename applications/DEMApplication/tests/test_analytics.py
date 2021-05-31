@@ -62,11 +62,11 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
             self.CheckTotalNumberOfCrossingParticles()
 
-        self.FaceAnalyzerClass.RemoveOldFile()
+        self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -92,13 +92,13 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:  # or IsCountStep()
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
 
             if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
                 self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+            self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py

@@ -151,7 +151,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/15_elements_small_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [2, 4, 9, 13, 15]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [1, 10, 14]
@@ -165,7 +165,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [1, 2, 3, 4, 5, 6]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
@@ -179,7 +179,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [2, 4, 8, 16, 17, 19, 20]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
@@ -193,11 +193,18 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7331131286069874, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7228720706323188, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.734548229630418, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06493669400120756, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7241685913941622, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7312296375421161, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008607693464186337, 0.0, 1e-9)
+
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        work_folder = "body_fitted_opt"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
 
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
@@ -216,7 +223,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             for i in range(len(reference_element_id_list)):
                 self._check_results(solution_element_id_list[i], reference_element_id_list[i], 0.0, 1e-9)
 
-    def _runTest(self,settings_file_name):
+    def _runTest(self,settings_file_name, initialize_only = False):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
             settings = KratosMultiphysics.Parameters(settings_file.read())
@@ -294,7 +301,10 @@ class PotentialFlowTests(UnitTest.TestCase):
                 }'''))
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
-        potential_flow_analysis.Run()
+        potential_flow_analysis.Initialize()
+        if not initialize_only:
+            potential_flow_analysis.RunSolutionLoop()
+            potential_flow_analysis.Finalize()
         self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
 
     def _check_results(self, result, reference, rel_tol, abs_tol):

@@ -24,6 +24,7 @@ import test_forces_and_moments
 import test_history_dependent_CLs
 import test_clusters
 import test_DEM_schemes
+import test_random_variable
 
 def AssembleTestSuites():
 
@@ -71,6 +72,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Taylor"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
+    smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

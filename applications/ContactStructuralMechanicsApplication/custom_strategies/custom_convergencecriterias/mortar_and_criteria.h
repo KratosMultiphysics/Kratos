@@ -72,19 +72,20 @@ public:
     /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
 
-    /// The base class definition (and it subclasses)
+    /// The base class definition
     typedef And_Criteria< TSparseSpace, TDenseSpace >                           BaseType;
-    typedef typename BaseType::TDataType                                       TDataType;
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
 
-    /// The sparse space used (and it subclasses)
-    typedef TSparseSpace                                                 SparseSpaceType;
-    typedef typename TSparseSpace::MatrixType                           SparseMatrixType;
-    typedef typename TSparseSpace::VectorType                           SparseVectorType;
-    typedef typename TDenseSpace::MatrixType                             DenseMatrixType;
-    typedef typename TDenseSpace::VectorType                             DenseVectorType;
+    /// The definition of the current class
+    typedef MortarAndConvergenceCriteria< TSparseSpace, TDenseSpace >          ClassType;
+
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType                               DofsArrayType;
+
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
 
     /// The table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
@@ -98,6 +99,26 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor.
+     */
+    explicit MortarAndConvergenceCriteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit MortarAndConvergenceCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /**
      * Constructor.
@@ -134,6 +155,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename ConvergenceCriteriaBaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criteria that need to be called after getting the solution
@@ -270,9 +304,32 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart,rDofSet, rA, rDx, rb);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "mortar_and_criteria",
+            "print_convergence_criterion" : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "mortar_and_criteria";
+    }
 
     ///@}
     ///@name Access
@@ -281,6 +338,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "MortarAndConvergenceCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -303,6 +382,23 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Defining condition number utility
+        mpConditionNumberUtility = nullptr; // TODO: Define a factory
+
+        // Set local flags
+        mOptions.Set(MortarAndConvergenceCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        mOptions.Set(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED, false);
+    }
 
     ///@}
     ///@name Protected  Access

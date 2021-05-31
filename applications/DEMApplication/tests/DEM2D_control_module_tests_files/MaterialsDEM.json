@@ -32,7 +32,8 @@
             "CONTACT_TAU_ZERO": 21.952e6,
             "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
             "SHEAR_ENERGY_COEF": 4.0,
-            "LOOSE_MATERIAL_YOUNG_MODULUS": 2.1e9,
+            "YOUNG_MODULUS": 2.1e9,
+            "BONDED_MATERIAL_YOUNG_MODULUS": 2.1e9,
             "FRACTURE_ENERGY": 5.0
         }
     },{
