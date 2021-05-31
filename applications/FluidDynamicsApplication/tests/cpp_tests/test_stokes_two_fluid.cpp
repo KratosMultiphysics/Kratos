@@ -4,18 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Daniel Diez, Ruben Zorrilla
+//  Main authors:    Vincent Divine
 //
 //
 
 // System includes
-#include <set>
-
 // External includes
-
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
@@ -123,24 +120,11 @@ namespace Kratos {
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
+            std::vector<double> theoretical_rhs = {-8.86905,-0.37064,7.71903,-318569,22.639,8.65338,12.1078,2866.56,12.9595,39.2958,29.5256,316699,5.71452,9.57769,30.8809,-996.765};
+
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), -8.86905, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(1), -0.37064, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(2), 7.71903, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(3), -318569, 1.0);
-            KRATOS_CHECK_NEAR(RHS(4), 22.639, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(5), 8.65338, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(6), 12.1078, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(7), 2866.56, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(8), 12.9595, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(9), 39.2958, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(10), 29.5256, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(11), 316699, 1.0);
-            KRATOS_CHECK_NEAR(RHS(12), 5.71452, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(13), 9.57769, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(14), 30.8809, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(15), -996.765, 1e-2);
+            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1.0);
         }
 
         // /** Checks the StokesTwoFluid3D4N element
@@ -169,22 +153,8 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 14.8262, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(1), 27.1782, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(2), 39.1214, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(3), -2.04821e+06, 10.0);
-            KRATOS_CHECK_NEAR(RHS(4), 17.2867, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(5), 29.6168, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(6), 41.549, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(7), 411458, 1.0);
-            KRATOS_CHECK_NEAR(RHS(8), 19.7418, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(9), 32.0938, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(10), 44.015, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(11), 685764, 1.0);
-            KRATOS_CHECK_NEAR(RHS(12), 22.2078, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(13), 34.5488, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(14), 46.492, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(15), 950986, 1.0);
+            std::vector<double> theoretical_rhs = {14.8262,27.1782, 39.1214, -2.04821e+06, 17.2867, 29.6168, 41.549, 411458,19.7418, 32.0938, 44.015, 685764, 22.2078, 34.5488, 46.492, 950986};
+            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 10.0);
         }
 
         // /** Checks the StokesTwoFluid3D4N element
@@ -214,23 +184,8 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 0.039501, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(1), 0.0600744, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(2), -0.328102, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(3), 7026.02, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(4), 0.0117953, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(5), 0.0213953, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(6), -0.377754, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(7), 411.433, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(8), 0.0115203, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(9), 0.0211214, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(10), -0.378029, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(11), 685.739, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(12), 0.0112459, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(13), 0.0208464, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(14), -0.378303, 1e-2);
-            KRATOS_CHECK_NEAR(RHS(15), -8123.29, 1e-2);
+            std::vector<double> theoretical_rhs = {0.039501,0.0600744,-0.328102,7026.02,0.0117953,0.0213953,-0.377754,411.433,0.0115203,0.0211214,-0.378029,685.739,0.0112459,0.0208464,-0.378303,-8123.29}; // namespace Testing
+            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1e-2);
         }
-
-    } // namespace Testing
+    }
 }  // namespace Kratos.
