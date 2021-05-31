@@ -40,6 +40,7 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
+            "ComputeReactionsOnFixedParticlesOption" : false,
             "solver_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {

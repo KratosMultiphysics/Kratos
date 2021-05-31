@@ -1508,15 +1508,17 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
 
     KRATOS_TRY
 
-    ComputeReactions();
-
-    this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = mPartialRepresentativeVolume;
-    double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-
-    //bool is_smaller_than_sphere = false;
-    CorrectRepresentativeVolume(rRepresentative_Volume/*, is_smaller_than_sphere*/);
+    if (this->Is(DEMFlags::COMPUTE_REACTIONS)) {
+        ComputeReactions();
+    }
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+
+        this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = mPartialRepresentativeVolume;
+        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+
+        //bool is_smaller_than_sphere = false;
+        CorrectRepresentativeVolume(rRepresentative_Volume/*, is_smaller_than_sphere*/);
 
         //Divide Stress Tensor by the total volume:
         //const array_1d<double, 3>& reaction_force=this->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
@@ -1745,6 +1747,9 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
     if (r_process_info[PRINT_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::PRINT_STRESS_TENSOR, true);
     else                                            this->Set(DEMFlags::PRINT_STRESS_TENSOR, false);
+
+    if (r_process_info[COMPUTE_REACTIONS_OPTION]) this->Set(DEMFlags::COMPUTE_REACTIONS, true);
+    else                                              this->Set(DEMFlags::COMPUTE_REACTIONS, false);
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
@@ -2019,6 +2024,8 @@ void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, dou
 void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
 
         KRATOS_TRY
+
+        if(mGlobalDamping == 0.0) return;
 
         const array_1d<double, 3> velocity =         this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3> angular_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);

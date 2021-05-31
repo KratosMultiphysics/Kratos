@@ -415,12 +415,14 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::GetRigidBodyElementsForce() {
         KRATOS_TRY
-        CalculateConditionsRHSAndAdd();
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
-        const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
-        ModelPart& fem_model_part = GetFemModelPart();
-        ElementsArrayType& pElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        ElementsArrayType& pElements = GetFemModelPart().GetCommunicator().LocalMesh().Elements();
         const int number_of_rigid_body_elements = pElements.size();
+        if( number_of_rigid_body_elements || r_process_info[COMPUTE_FEM_RESULTS_OPTION] ) {
+            CalculateConditionsRHSAndAdd();
+        }
+
+        const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
 
         //DO NOT PARALLELIZE THIS LOOP, IT IS PARALLELIZED INSIDE
         for (int k = 0; k < number_of_rigid_body_elements; k++) {
@@ -1695,7 +1697,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            std::vector< double > Distance_Array; 
+            std::vector< double > Distance_Array;
             std::vector< array_1d<double, 3> > Normal_Array;
             std::vector< array_1d<double, 4> > Weight_Array;
             std::vector< int > Id_Array;

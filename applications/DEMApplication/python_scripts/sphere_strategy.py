@@ -41,6 +41,11 @@ class ExplicitStrategy():
         else:
             self.compute_stress_tensor_option = DEM_parameters["ComputeStressTensorOption"].GetBool()
 
+        if not "ComputeReactionsInFixedParticles" in DEM_parameters.keys():
+            self.compute_reactions_in_fixed_particles_option = 0
+        else:
+            self.compute_reactions_in_fixed_particles_option = DEM_parameters["ComputeReactionsOnFixedParticlesOption"].GetBool()
+
         if "PostStressStrainOption" in DEM_parameters.keys() and DEM_parameters["PostStressStrainOption"].GetBool():
             self.compute_stress_tensor_option = 1
             self.print_stress_tensor_option = 1
@@ -235,6 +240,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
+        self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_REACTIONS_OPTION, self.compute_reactions_in_fixed_particles_option)
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
         self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, 0.0) # A default value
