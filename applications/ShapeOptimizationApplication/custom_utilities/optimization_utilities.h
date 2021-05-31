@@ -299,13 +299,15 @@ public:
      */
     static void AssembleVector( ModelPart& rModelPart,
         Vector& rVector,
-        const Variable<array_3d> &rVariable)
+        const Variable<array_3d> &rVariable, const bool Append=false)
     {
-        if (rVector.size() != rModelPart.NumberOfNodes()*3){
-            rVector.resize(rModelPart.NumberOfNodes()*3);
-        }
+        Vector back_up_vec = rVector;
+        const int initial_length = rVector.size();
+        const int final_length = Append ? rModelPart.NumberOfNodes()*3 + initial_length : initial_length; 
+        rVector.resize(final_length);
 
-        int i=0;
+        if (Append) subrange(rVector, 0, initial_length) = back_up_vec;
+        int i = initial_length;
         for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
@@ -343,21 +345,30 @@ public:
      */
     static void AssembleMatrix(ModelPart& rModelPart,
         Matrix& rMatrix,
-        const std::vector<Variable<array_3d>*>& rVariables
+        const std::vector<Variable<array_3d>*>& rVariables, const bool Append=false
     )
     {
-        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
-            rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
+        if (Append)
+            KRATOS_ERROR_IF(rMatrix.size2() != rVariables.size()) <<"Cannot append a different number of variables(columns) to the matrix"<<std::endl; 
+
+        const Matrix back_up_matrix = rMatrix;
+        const int initial_size1 = rMatrix.size1();
+        const int initial_size2 = rMatrix.size2()==0 ? rVariables.size() : rMatrix.size2();
+
+        const int final_size1 = rModelPart.NumberOfNodes()*3 + initial_size1;
+
+        if (rMatrix.size1() != final_size1 || rMatrix.size2() !=  initial_size2){
+            rMatrix.resize(final_size1, initial_size2);
         }
 
-        int i=0;
-        for (auto & node_i : rModelPart.Nodes())
+        int i=(int)final_size1/3;
+        for (const auto& node_i : rModelPart.Nodes())
         {
             int j=0;
             for (Variable<array_3d>* p_variable_j : rVariables)
             {
                 const Variable<array_3d>& r_variable_j = *p_variable_j;
-                array_3d& variable_vector = node_i.FastGetSolutionStepValue(r_variable_j);
+                auto& variable_vector = node_i.FastGetSolutionStepValue(r_variable_j);
                 rMatrix(i*3+0, j) = variable_vector[0];
                 rMatrix(i*3+1, j) = variable_vector[1];
                 rMatrix(i*3+2, j) = variable_vector[2];
