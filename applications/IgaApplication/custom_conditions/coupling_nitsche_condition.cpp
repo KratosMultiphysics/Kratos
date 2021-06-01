@@ -332,7 +332,6 @@ namespace Kratos
         KRATOS_TRY
 
         const double stabilization_parameter = GetProperties()[NITSCHE_STABILIZATION_FACTOR];
-        KRATOS_WATCH(stabilization_parameter)
 
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
