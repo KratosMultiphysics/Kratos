@@ -242,15 +242,9 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
     """
     def ModifyInitialProperties(self):
         '''Introduce here the stochasticity in the Mach number and the angle of attack'''
-        Mach = self.sample[1]
+        mach = self.sample[1]
         alpha =  self.sample[2]
-        if Mach < 0.1:
-            Mach = 0.1
-        elif Mach > 0.4:
-            Mach = 0.4
-        if alpha > 0.1:
-            alpha = 0.1
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(Mach)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
         super(SimulationScenario,self).ModifyInitialProperties()
 
