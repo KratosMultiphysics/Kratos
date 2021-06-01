@@ -326,7 +326,8 @@ public:
         const Variable<array_3d> &rVariable)
     {
         KRATOS_ERROR_IF(rVector.size() != rModelPart.NumberOfNodes()*3)
-            << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
+            << "AssignVectorToVariable: Vector size does not mach number of Nodes!\n"<<
+            "Sizes are : "<< rVector.size()<<" and "<<rModelPart.NumberOfNodes()*3 << std::endl;
 
         int i=0;
         for (auto & node_i : rModelPart.Nodes())
@@ -345,23 +346,22 @@ public:
      */
     static void AssembleMatrix(ModelPart& rModelPart,
         Matrix& rMatrix,
-        const std::vector<Variable<array_3d>*>& rVariables, const bool Append=false
+        const std::vector<Variable<array_3d>*>& rVariables, const bool Append=false 
     )
     {
-        if (Append)
-            KRATOS_ERROR_IF(rMatrix.size2() != rVariables.size()) <<"Cannot append a different number of variables(columns) to the matrix"<<std::endl; 
-
         const Matrix back_up_matrix = rMatrix;
-        const int initial_size1 = rMatrix.size1();
-        const int initial_size2 = rMatrix.size2()==0 ? rVariables.size() : rMatrix.size2();
+        int initial_size1 = rMatrix.size1();
+        int initial_size2 = rMatrix.size2()==0 ? rVariables.size() : rMatrix.size2();
+        if (Append)
+            KRATOS_ERROR_IF(initial_size2 != rVariables.size()) <<"Cannot append a different number of variables(columns) to the matrix"<<std::endl; 
 
-        const int final_size1 = rModelPart.NumberOfNodes()*3 + initial_size1;
 
-        if (rMatrix.size1() != final_size1 || rMatrix.size2() !=  initial_size2){
-            rMatrix.resize(final_size1, initial_size2);
-        }
+        int final_size1 = rModelPart.NumberOfNodes()*3 + initial_size1;
+        rMatrix.resize(final_size1, initial_size2);
 
-        int i=(int)final_size1/3;
+        if(Append) subrange(rMatrix, 0,back_up_matrix.size1(), 0,initial_size2) = back_up_matrix;
+
+        int i=(int)initial_size1/3;
         for (const auto& node_i : rModelPart.Nodes())
         {
             int j=0;
