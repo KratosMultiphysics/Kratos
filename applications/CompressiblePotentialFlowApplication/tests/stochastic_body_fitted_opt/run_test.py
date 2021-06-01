@@ -6,6 +6,8 @@ from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os, csv
+import numpy as np
+np.random.seed(2021)
 
 # Read parameters
 with open("stochastic_optimization_parameters.json",'r') as parameter_file:
@@ -44,7 +46,7 @@ with open(optimization_log_filename, 'r') as csvfile:
 
     # Check against specifications
     TestCase().assertEqual(resulting_iteration, 3)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -7.061553, 3)
+    TestCase().assertAlmostEqual(resulting_abs_improvement, -12.5586, 3)
 
 os.chdir(original_directory)
 
