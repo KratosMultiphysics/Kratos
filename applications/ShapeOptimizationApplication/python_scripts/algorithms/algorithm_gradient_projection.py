@@ -162,7 +162,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         for mapper in self.mappers.values():
             mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        
+
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
