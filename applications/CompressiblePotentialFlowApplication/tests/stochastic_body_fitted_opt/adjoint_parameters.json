@@ -30,8 +30,6 @@
             "response_type"     : "adjoint_lift_jump_coordinates",
             "use_kratos"        : true,
             "gradient_mode"     : "semi_analytic",
-            "cvar_beta"         : 0.80,
-            "cvar_t"            : 0.6,
             "step_size"         : 1e-9
         },
         "sensitivity_settings" : {
