@@ -106,6 +106,14 @@ namespace Kratos {
 
     }
 
+    Properties& DEM_D_Linear_viscous_Coulomb::GetPropertiesOfThisContact(SphericParticle* const element, SphericParticle* const neighbour){
+        return element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    }
+
+    Properties& DEM_D_Linear_viscous_Coulomb::GetPropertiesOfThisContact(SphericParticle* const element, Condition* const neighbour){
+        return element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    }
+
     void DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                   double ViscoDampingLocalContactForce[3],
                                                                   SphericParticle* const element1,
@@ -116,12 +124,11 @@ namespace Kratos {
 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
 
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn);
+        const double equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -223,26 +230,17 @@ namespace Kratos {
                                                                          Condition* const wall) {
 
         const double my_mass    = element->GetMass();
-        const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];
 
-    }
-
-    double DEM_D_Linear_viscous_Coulomb::GetTgOfStaticFrictionAngleOfElement(SphericParticle* element){
-        return element->GetTgOfStaticFrictionAngle();
-    }
-
-    double DEM_D_Linear_viscous_Coulomb::GetTgOfDynamicFrictionAngleOfElement(SphericParticle* element){
-        return element->GetTgOfDynamicFrictionAngle();
-    }
-
-    double DEM_D_Linear_viscous_Coulomb::GetFrictionDecayCoefficient(SphericParticle* element){
-        return element->GetFrictionDecayCoefficient();
     }
 
     std::size_t DEM_D_Linear_viscous_Coulomb::GetElementId(SphericParticle* element){

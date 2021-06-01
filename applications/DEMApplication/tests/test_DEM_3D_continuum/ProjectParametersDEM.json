@@ -9,7 +9,10 @@
 "GravityZ"                         : -100.0,
 "solver_settings" :{
     "strategy"                 : "continuum_sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls": false
+    "RemoveBallsInitiallyTouchingWalls": false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
@@ -50,7 +53,7 @@
 
 "GraphExportFreq"                  : 1,
 "VelTrapGraphExportFreq"           : 1,
-"OutputTimeStep"                   : 1,
+"OutputTimeStep"                   : 5e-4,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
 "PostElasticForces"                : true,

@@ -87,10 +87,10 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        
+
         #self.solver.InitializeStrategy()
         self.solver.SetEchoLevel(self.echo_level)
-        
+
         # Initialize GiD  I/O (gid outputs, file_lists)
         self.SetGraphicalOutput()
         self.GraphicalOutputExecuteInitialize()
@@ -101,7 +101,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
         print("=================================================")
 
         self.model_processes.ExecuteBeforeSolutionLoop()
-        
+
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
@@ -159,6 +159,6 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
-        
+
         # if self.PressureLoad:
         #     utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_ID, 0, nodes)

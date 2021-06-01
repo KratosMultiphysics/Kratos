@@ -19,15 +19,17 @@ namespace Kratos {
     void DEM_D_Linear_Custom_Constants::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
         //Normal and Tangent elastic constants
-        mKn = 0.5 * (element1->GetParticleKNormal() + element2->GetParticleKNormal());
-        mKt = 0.5 * (element1->GetParticleKTangential() + element2->GetParticleKTangential());
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        mKn = properties_of_this_contact[K_NORMAL];
+        mKt = properties_of_this_contact[K_TANGENTIAL];
     }
 
     void DEM_D_Linear_Custom_Constants::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
 
         //Normal and Tangent elastic constants
-        mKn = element->GetParticleKNormal();
-        mKt = element->GetParticleKTangential();
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        mKn = properties_of_this_contact[K_NORMAL];
+        mKt = properties_of_this_contact[K_TANGENTIAL];
     }
 
 } // namespace Kratos

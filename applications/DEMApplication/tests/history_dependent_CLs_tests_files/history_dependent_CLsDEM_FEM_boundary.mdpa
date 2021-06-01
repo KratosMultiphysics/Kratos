@@ -1,0 +1,59 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 3
+End Properties
+
+Begin Properties 4
+End Properties
+
+Begin Nodes
+   7   0.7500000000  -0.2500000000   0.0000000000
+   8   0.7500000000   0.2500000000   0.0000000000
+   9   1.2500000000  -0.2500000000   0.0000000000
+  10   1.2500000000   0.2500000000   0.0000000000
+  11   2.7500000000  -0.2500000000   0.0000000000
+  12   2.7500000000   0.2500000000   0.0000000000
+  13   3.2500000000  -0.2500000000   0.0000000000
+  14   3.2500000000   0.2500000000   0.0000000000
+End Nodes
+
+Begin Conditions RigidFace3D4N// GUI group identifier: Cube
+  7          3     7     8    10     9
+  8          4    11    12    14    13
+End Conditions
+
+Begin SubModelPart Surface1
+  Begin SubModelPartData
+    IDENTIFIER Surface1
+  End SubModelPartData
+  Begin SubModelPartNodes
+        7
+        8
+        9
+       10
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+        7
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
+End SubModelPart
+
+Begin SubModelPart Surface2
+  Begin SubModelPartData
+    IDENTIFIER Surface2
+  End SubModelPartData
+  Begin SubModelPartNodes
+       11
+       12
+       13
+       14
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+        8
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
+End SubModelPart

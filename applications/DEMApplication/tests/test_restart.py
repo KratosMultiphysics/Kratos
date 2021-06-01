@@ -2,13 +2,17 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication import DEM_analysis_stage
 
+import os
+
 # Defining a generic Test, that is not actually KratosUnittest
 class DEMRestartTestFactory():
 
     def setUp(self, case_name=""):
         with KratosUnittest.WorkFolderScope(".", __file__):
-            with open('restart_files/' + case_name + 'ProjectParametersDEM.json', 'r') as parameter_file:
+            with open(os.path.join('restart_files', case_name + 'ProjectParametersDEM.json'), 'r') as parameter_file:
                 self.project_parameters_save = Kratos.Parameters(parameter_file.read())
+            with open(os.path.join('restart_files', 'MaterialsDEM.json'), 'r') as materials_file:
+                self.materials_parameters = Kratos.Parameters(materials_file.read())
 
         # Now clone the settings after the common settings are set
         self.project_parameters_load = self.project_parameters_save.Clone()
@@ -20,9 +24,9 @@ class DEMRestartTestFactory():
         with KratosUnittest.WorkFolderScope(".", __file__):
             model_save = Kratos.Model()
             model_load = Kratos.Model()
-            save_analysis = DEM_analysis_stage.DEMAnalysisStage(model_save, self.project_parameters_save)
-            save_analysis.mdpas_folder_path = save_analysis.main_path + '/restart_files'
-            load_analysis = DEM_analysis_stage.DEMAnalysisStage(model_load, self.project_parameters_load)
+            save_analysis = DEM_analysis_stage.DEMAnalysisStage(model_save, self.project_parameters_save, self.materials_parameters)
+            save_analysis.mdpas_folder_path = os.path.join(save_analysis.main_path, 'restart_files')
+            load_analysis = DEM_analysis_stage.DEMAnalysisStage(model_load, self.project_parameters_load, self.materials_parameters)
             self.project_parameters_load["output_processes"].RemoveValue("restart_processes")
             def NullFunction():
                 pass
@@ -64,7 +68,7 @@ class TestRestartBallAndWall(DEMRestartTestFactory, KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-
+    
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
