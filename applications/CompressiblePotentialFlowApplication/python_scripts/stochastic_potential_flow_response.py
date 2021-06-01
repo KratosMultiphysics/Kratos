@@ -263,7 +263,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
     """
     def EvaluateQuantityOfInterest(self):
         qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
-        print("[SCREENING] Lift Coefficient: ",qoi_list[0])
+        Logger.PrintInfo("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
 
         shape_sensitivity = []
         if (self.mapping is not True):
@@ -274,9 +274,9 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         elif (self.mapping is True):
             raise(Exception(("Mapping not contemplated yet for shape sensitivity")))
         qoi_list.append(shape_sensitivity)
-        print("[SCREENING] Total number of QoI:",len(qoi_list))
-        print("[SCREENING] Total number of shape:",len(qoi_list[1]))
-        print("[SCREENING] Total number of exampleshape:",qoi_list[1][0])
+        Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
+        Logger.PrintInfo("StochasticAdjointResponse", "Total number of shape:",len(qoi_list[1]))
+        Logger.PrintInfo("StochasticAdjointResponse", "Total number of exampleshape:",qoi_list[1][0])
         return qoi_list
 
     """
@@ -284,7 +284,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
     input:  self: an instance of the class
     """
     def MappingAndEvaluateQuantityOfInterest(self):
-        print("[SCREENING] Start Mapping")
+        Logger.PrintInfo("StochasticAdjointResponse",  "Start Mapping")
         # map from current model part of interest to reference model part
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
@@ -298,11 +298,11 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
             KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
             KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
         mapper.Map(KratosMultiphysics.SHAPE_SENSITIVITY, KratosMultiphysics.SHAPE_SENSITIVITY)
-        print("[SCREENING] End Mapping")
+        Logger.PrintInfo("StochasticAdjointResponse", "End Mapping")
         # evaluate qoi
-        print("[SCREENING] Start evaluating QoI")
+        Logger.PrintInfo("StochasticAdjointResponse", "Start evaluating QoI")
         qoi_list = self.EvaluateQuantityOfInterest()
-        print("[SCREENING] End evaluating QoI")
+        Logger.PrintInfo("StochasticAdjointResponse", "End evaluating QoI")
         return qoi_list
 
     def _SynchronizeAdjointFromPrimal(self):
