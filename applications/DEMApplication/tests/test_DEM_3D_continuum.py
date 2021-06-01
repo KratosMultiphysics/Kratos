@@ -13,7 +13,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     def Initialize(self):
         super().Initialize()
@@ -27,43 +27,29 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
+
     def CheckValues(self, x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential):
-        tol = 1.0000+1.0e-3
-        #DEM reference values
+        tol = 1.0e-8
+        # DEM reference values
         x_vel_ref = 0.02043790
-        z_vel_ref = -0.8771226
-        x_force_ref = -25240.795
-        z_force_ref = 1963237.70
+        z_vel_ref = -0.8771226364279736
+        x_force_ref = -25240.795347027586
+        z_force_ref = 1963237.7013926834
 
         #FEM reference values
-        dem_pressure_ref = 21558.5
-        z_elastic_ref = -273320
-        shear_ref = 271.471
-        x_tangential_ref = 4524.52
+        dem_pressure_ref = 21558.58493537643
+        z_elastic_ref = -273320.3950453618
+        shear_ref = 271.47172799658506
+        x_tangential_ref = 4524.52879994308
 
-        if not (abs(x_vel_ref) < abs(x_vel*tol) and abs(x_vel_ref) > abs(x_vel/tol)):
-            raise ValueError('Incorrect value for VELOCITY_X: expected value was '+ str(x_vel_ref) + ' but received ' + str(x_vel))
-
-        if not (abs(z_vel_ref) < abs(z_vel*tol) and abs(z_vel_ref) > abs(z_vel/tol)):
-            raise ValueError('Incorrect value for VELOCITY_Z: expected value was '+ str(z_vel_ref) + ' but received ' + str(z_vel))
-
-        if not (abs(x_force_ref) < abs(x_force*tol) and abs(x_force_ref) > abs(x_force/tol)):
-            raise ValueError('Incorrect value for FORCE_X: expected value was '+ str(x_force_ref) + ' but received ' + str(x_force))
-
-        if not (abs(z_force_ref) < abs(z_force*tol) and abs(z_force_ref) > abs(z_force/tol)):
-            raise ValueError('Incorrect value for FORCE_Z: expected value was '+ str(z_force_ref) + ' but received ' + str(z_force))
-
-        if not (abs(dem_pressure_ref) < abs(dem_pressure*tol) and abs(dem_pressure_ref) > abs(dem_pressure/tol)):
-            raise ValueError('Incorrect value for DEMPRESSURE: expected value was '+ str(dem_pressure_ref) + ' but received ' + str(dem_pressure))
-
-        if not (abs(z_elastic_ref) < abs(z_elastic*tol) and abs(z_elastic_ref) > abs(z_elastic/tol)):
-            raise ValueError('Incorrect value for ELASTIC_FORCE_Z: expected value was '+ str(z_elastic_ref) + ' but received ' + str(z_elastic))
-
-        if not (abs(shear_ref) < abs(shear*tol) and abs(shear_ref) > abs(shear/tol)):
-            raise ValueError('Incorrect value for SHEAR: expected value was '+ str(shear_ref) + ' but received ' + str(shear))
-
-        if not (abs(x_tangential_ref) < abs(x_tangential*tol) and abs(x_tangential_ref) > abs(x_tangential/tol)):
-            raise ValueError('Incorrect value for TANGENTIAL_ELASTIC_FORCE_Z: expected value was '+ str(x_tangential_ref) + ' but received ' + str(x_tangential))
+        self.assertAlmostEqual(x_vel, x_vel_ref, delta=tol)
+        self.assertAlmostEqual(z_vel, z_vel_ref, delta=tol)
+        self.assertAlmostEqual(x_force, x_force_ref, delta=tol)
+        self.assertAlmostEqual(z_force, z_force_ref, delta=tol)
+        self.assertAlmostEqual(dem_pressure, dem_pressure_ref, delta=tol)
+        self.assertAlmostEqual(z_elastic, z_elastic_ref, delta=tol)
+        self.assertAlmostEqual(shear, shear_ref, delta=tol)
+        self.assertAlmostEqual(x_tangential, x_tangential_ref, delta=tol)
 
     def Finalize(self):
         for node in self.spheres_model_part.Nodes:
@@ -83,7 +69,6 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
-
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):

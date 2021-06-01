@@ -88,7 +88,6 @@ namespace Kratos {
         CheckIfSubModelPartHasVariable(smp, INLET_STOP_TIME);
         CheckIfSubModelPartHasVariable(smp, ELEMENT_TYPE);
         CheckIfSubModelPartHasVariable(smp, INJECTOR_ELEMENT_TYPE);
-        CheckIfSubModelPartHasVariable(smp, INLET_NUMBER_OF_PARTICLES);
         CheckIfSubModelPartHasVariable(smp, CONTAINS_CLUSTERS);
         CheckIfSubModelPartHasVariable(smp, RIGID_BODY_MOTION);
 
@@ -98,6 +97,12 @@ namespace Kratos {
             CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_START_TIME);
             CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_STOP_TIME);
             CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_PERIOD);
+        }
+
+        if(smp[IMPOSED_MASS_FLOW_OPTION]){
+            CheckIfSubModelPartHasVariable(smp, MASS_FLOW);
+        } else {
+            CheckIfSubModelPartHasVariable(smp, INLET_NUMBER_OF_PARTICLES);
         }
     }
 

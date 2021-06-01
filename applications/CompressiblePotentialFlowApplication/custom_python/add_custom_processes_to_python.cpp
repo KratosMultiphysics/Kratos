@@ -74,8 +74,18 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const std::vector<std::string>&>())
     ;
 
-    py::class_<ComputeWingSectionVariableProcess, ComputeWingSectionVariableProcess::Pointer, Process>
+    py::class_<ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>,
+            ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>::Pointer,
+            Process>
         (m,"ComputeWingSectionVariableProcess")
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&, const std::vector<std::string>& >())
+    ;
+
+    py::class_<ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun>,
+            ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun>::Pointer,
+            Process>
+        (m,"ComputeEmbeddedWingSectionVariableProcess")
         .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
         .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&, const std::vector<std::string>& >())
     ;
