@@ -18,6 +18,13 @@ try:
 except:
     numpy_stl_is_available = False
 
+try:
+    import xmc
+    import numpy as np
+    is_xmc_available = True
+except:
+    is_xmc_available = False
+
 class WorkFolderScope:
     # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
@@ -208,6 +215,9 @@ class PotentialFlowTests(UnitTest.TestCase):
 
     @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
     def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        if not is_xmc_available:
+            self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+
         work_folder = "stochastic_body_fitted_opt"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
