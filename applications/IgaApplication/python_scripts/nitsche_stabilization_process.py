@@ -13,24 +13,9 @@ def Factory(settings, model):
 
 class NitscheStabilizationProcess(KratosMultiphysics.Process):
 
-    """This class is used in order to compute automatically the Nitsche stabilization factor 
-
-    Only the member variables listed below should be accessed directly.
-
-    Public member variables:
-    model -- the container of the different model parts.
-    settings -- Kratos parameters containing the settings.
-    """
+    """This class is used in order to compute automatically the Nitsche stabilization factor"""
 
     def __init__(self, model, params):
-        """ The default constructor of the class
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        model -- the container of the different model parts.
-        params -- Kratos parameters containing solver settings.
-        """
-
         KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
@@ -54,13 +39,13 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         self.params.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         self.model = model
-        self.model_part_condition = self.model[self.params["model_part_condition_name"].GetString()] 
+        self.model_part_condition = self.model[self.params["model_part_condition_name"].GetString()]
 
         # Call the Nitsche stabilization model Part process
         KratosMultiphysics.Process.__init__(self)
         self.process = IGA.NitscheStabilizationModelPartProcess(self.model_part_condition)
         self.process.ExecuteInitialize()
-        
+
         self.model_part = self.model.GetModelPart("IgaModelPart").GetSubModelPart("Nitsche_Stabilization_Coupling_" + self.params["model_part_condition_name"].GetString()[-1])
 
         # Define the eigenvalue size for FEAST solver
@@ -69,12 +54,6 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         self.params["eigen_system_settings"]["number_of_eigenvalues"].SetInt(eigenvalue_nitsche_stabilization_size)
 
     def ExecuteInitializeSolutionStep(self):
-        """ This method is executed before starting the loop
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
         # Get the model parts which divide the problem
         current_process_info = self.model_part.ProcessInfo
 

@@ -1056,17 +1056,13 @@ namespace Kratos
         Matrix dE_cartesian = ZeroMatrix(3, mat_size);
         Matrix T_patch = ZeroMatrix(3, 3);
 
-        array_1d<double, 2> n_contravariant_vector; 
-
         if (rPatch==PatchType::Master)
         {
             T_patch = m_T_vector_master[IntegrationPointIndex];
-            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
         }
         else
         {
             T_patch = m_T_vector_slave[IntegrationPointIndex];
-            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         }
 
         for (IndexType r = 0; r < mat_size; r++)

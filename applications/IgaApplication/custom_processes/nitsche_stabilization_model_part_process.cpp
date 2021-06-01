@@ -39,13 +39,13 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
     const SizeType master_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
     const SizeType slave_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
 
-    for(ModelPart::ConditionsContainerType::iterator i_cond = mrThisModelPart.ConditionsBegin() ; i_cond != mrThisModelPart.ConditionsEnd() ; i_cond++)
+    for(ModelPart::ConditionsContainerType::iterator i_cond = mrThisModelPart.ConditionsBegin() ; i_cond != mrThisModelPart.ConditionsEnd() ; ++i_cond)
 	{
         nitsche_stabilization_model_part.AddCondition(*(i_cond.base()));
     }
     
     SizeType slave_element_start_id = 0; 
-    for(ModelPart::ElementsContainerType::iterator i_elem = r_model_part_root.ElementsBegin() ; i_elem != r_model_part_root.ElementsEnd() ; i_elem++)
+    for(ModelPart::ElementsContainerType::iterator i_elem = r_model_part_root.ElementsBegin() ; i_elem != r_model_part_root.ElementsEnd() ; ++i_elem)
 	{   
         const SizeType nurbs_surface_id = (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
         if(nurbs_surface_id == master_nurbs_surface_id || nurbs_surface_id == slave_nurbs_surface_id)
