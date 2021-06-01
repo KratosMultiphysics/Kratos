@@ -192,6 +192,15 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
             );
 
+        /* @brief This function computes the determinants of jacobian for
+         *         the initial configuration. Required for conservative integration.
+         * @param rGeometry: corresponding geometry
+         * @param rDeterminantOfJacobian: output determinants
+         */
+        void DeterminantOfJacobianInitial(
+            const GeometryType& rGeometry,
+            Vector& rDeterminantOfJacobian);
+
         ///@}
         ///@name Input and output
         ///@{
