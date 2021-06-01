@@ -129,7 +129,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         # Compare actual and estimated improvement using linear information from the previous step
         dfda1 = 0.0
-        for name, design_surface in self.design_surfaces.items():
+        for design_surface in self.design_surfaces.values():
             for node in design_surface.Nodes:
                 # The following variables are not yet updated and therefore contain the information from the previous step
                 s1 = node.GetSolutionStepValue(KSO.SEARCH_DIRECTION)
@@ -180,7 +180,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         self.previous_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        for name, design_surface in self.design_surfaces.items():
+        for design_surface,  in self.design_surfaces.values():
             self.norm_objective_gradient = self.norm_objective_gradient + optimization_utilities.ComputeL2NormOfNodalVariable(design_surface, KSO.DF1DX_MAPPED)
 
         additional_values_to_log = {}
@@ -217,7 +217,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        for name, design_surface in self.design_surfaces.items():
+        for design_surface in self.design_surfaces.values():
             optimization_utilities.AddFirstVariableToSecondVariable(design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
             optimization_utilities.AddFirstVariableToSecondVariable(design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 

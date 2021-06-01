@@ -268,7 +268,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         inf_norm_s = 0.0
         inf_norm_c = 0.0
-        for name, design_surface in self.design_surfaces.items():
+        for design_surface in self.design_surfaces.values():
             inf_norm_s = inf_norm_s + optimization_utilities.ComputeMaxNormOfNodalVariable(design_surface, KSO.SEARCH_DIRECTION)
             inf_norm_c = inf_norm_c + optimization_utilities.ComputeMaxNormOfNodalVariable(design_surface, KSO.CORRECTION)
 
@@ -299,7 +299,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        for name, design_surface in self.design_surfaces.items():
+        for design_surface in self.design_surfaces.values():
             optimization_utilities.AddFirstVariableToSecondVariable(design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
             optimization_utilities.AddFirstVariableToSecondVariable(design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
