@@ -151,7 +151,8 @@ public:
         KRATOS_TRY;
 
         // If required, calculate the SVD of the inverse Jacobian approximation
-        if (!BaseType::IsUsedInBlockNewtonEquations()) {
+        // It is important to check if the residual minimization has been done to avoid throwing errors in the first do nothing steps
+        if (!BaseType::IsUsedInBlockNewtonEquations() && BaseType::IsFirstCorrectionPerformed()) {
             CalculateInverseJacobianSVD();
         }
 
@@ -160,8 +161,11 @@ public:
         BaseType::FinalizeSolutionStep();
 
         // Save the current (last) inverse Jacobian decomposition for the next step
-        mpOldJacQU = mpJacQU;
-        mpOldJacSigmaV = mpJacSigmaV;
+        // Note that the current decomposition is checked in case the current step converges in one iteration with the old Jacobian
+        if (mpJacQU != nullptr && mpJacSigmaV != nullptr) {
+            mpOldJacQU = mpJacQU;
+            mpOldJacSigmaV = mpJacSigmaV;
+        }
 
         // Clear the current step Jacobian decomposition pointers
         mpJacQU = nullptr;
@@ -263,7 +267,8 @@ protected:
             if (mpOldJacQU != nullptr && mpOldJacSigmaV != nullptr) {
                 const auto& r_A = *mpOldJacQU;
                 const auto& r_B = *mpOldJacSigmaV;
-                VectorType B_res(n_dofs);
+                const SizeType n_modes = TDenseSpace::Size2(r_A);
+                VectorType B_res(n_modes);
                 TDenseSpace::Mult(r_B, r_res_vect, B_res);
                 TDenseSpace::Mult(r_A, B_res, rCorrection);
                 TDenseSpace::UnaliasedAdd(rCorrection, -1.0, r_res_vect);
@@ -334,14 +339,15 @@ protected:
 
             QR<double, row_major> qr_util;
             const SizeType n_dofs = BaseType::GetProblemSize();
-            qr_util.compute(n_dofs, mCurrentNumberOfModes, &(y(0,0)));
+            const SizeType n_modes = TDenseSpace::Size2(*mpOmega);
+            qr_util.compute(n_dofs, n_modes, &(y(0,0)));
             qr_util.compute_q();
-            MatrixType Q(n_dofs, mCurrentNumberOfModes);
-            for (SizeType i = 0; i < n_dofs; ++i) { //TODO: This can be parallel
-                for (SizeType j = 0; j < mCurrentNumberOfModes; ++j) {
-                    Q(i,j) = qr_util.Q(i,j);
+            MatrixType Q(n_dofs, n_modes);
+            IndexPartition<SizeType>(n_dofs).for_each([&Q, &qr_util, &n_modes](SizeType I){
+                for (SizeType j = 0; j < n_modes; ++j) {
+                    Q(I,j) = qr_util.Q(I,j);
                 }
-            }
+            });
 
             MatrixType phi;
             MultiplyTransposeLeft(aux_M, Q, phi);
@@ -355,23 +361,33 @@ protected:
             })");
             mpDenseSVD->Compute(phi, s_svd, u_svd, v_svd, svd_settings);
 
-            auto p_aux_Q_U = Kratos::make_shared<MatrixType>(prod(Q, u_svd));
-            auto p_aux_sigma_V = Kratos::make_shared<MatrixType>(v_svd.size2(), v_svd.size1());
+            // Save the decomposition matrices
+            // Note that the added extra modes are discarded in here
+            SizeType n_modes_final = n_modes - mNumberOfExtraModes;
+            auto p_aux_Q_U = Kratos::make_shared<MatrixType>(ZeroMatrix(n_dofs, n_modes_final));
+            auto p_aux_sigma_V = Kratos::make_shared<MatrixType>(n_modes_final, n_dofs);
+            auto& r_aux_Q_U = *p_aux_Q_U;
             auto& r_aux_sigma_V = *p_aux_sigma_V;
-            for (SizeType i = 0; i < r_aux_sigma_V.size1(); ++i) {
-                const double aux_s = s_svd(i);
-                for (SizeType j = 0; j < r_aux_sigma_V.size2(); ++j) {
-                    r_aux_sigma_V(i,j) = aux_s * v_svd(j,i);
+            IndexPartition<SizeType>(n_dofs).for_each([&](SizeType I){
+                for (SizeType j = 0; j < n_modes_final; ++j) {
+                    for (SizeType k = 0; k < n_modes_final; ++k) {
+                        r_aux_Q_U(I,j) += Q(I,k) * u_svd(k,j);
+                    }
+                    r_aux_sigma_V(j,I) = s_svd(j) * v_svd(I,j);
                 }
-            }
+            });
+
             std::swap(mpJacQU, p_aux_Q_U);
             std::swap(mpJacSigmaV, p_aux_sigma_V);
 
+            // Clear the random values matrix
+            if (mLimitModesToIterations) {
+                mpOmega = nullptr;
+            }
+
         } else {
-            // Setting previous step Jacobian decomposition as current one
-            // This is supposed to be used in the first iteration correction
-            mpJacQU = mpOldJacQU;
-            mpJacSigmaV = mpOldJacSigmaV;
+            mpJacQU = nullptr;
+            mpJacSigmaV = nullptr;
         }
     }
 
@@ -410,7 +426,8 @@ private:
     ///@{
 
     SizeType mUserNumberOfModes; // User-defined number of modes to be kept in the Jacobian randomized SVD
-    SizeType mCurrentNumberOfModes; // Current number of modes to be kept in the Jacobian randomized SVD
+    SizeType mNumberOfExtraModes; // Number of extra modes used in the randomization
+    SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD
     bool mLimitModesToIterations = true; // Limits the number of modes to the current iterations
     bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
 
@@ -430,14 +447,21 @@ private:
     {
         // Initialize auxiliary variables
         bool is_number_of_modes_limited = false;
-        mCurrentNumberOfModes = mUserNumberOfModes;
+        mNumberOfExtraModes = 1;
 
         // Check if the user-defined number of modes exceeds the iteration number
-        //TODO: CHECK WITH THE COLUMNS IN CASE WE DID CUTOFF!!!!
-        const SizeType n_it = BaseType::GetConvergenceAcceleratorIteration();
-        if (mLimitModesToIterations && n_it < mCurrentNumberOfModes) {
-            mCurrentNumberOfModes = n_it;
+        // Note that we check it with the current number of observations rather than using the iteration counter
+        // This is important in case some iteration information has been dropped because its linear dependency
+        // Note that we also add in here the extra modes
+        if (mLimitModesToIterations) {
+            const SizeType n_obs = BaseType::GetNumberOfObservations();
+            const SizeType new_modes = n_obs < mUserNumberOfModes ? n_obs + mNumberOfExtraModes : mUserNumberOfModes + mNumberOfExtraModes;
+            if (mCurrentNumberOfModes < new_modes) {
+                mCurrentNumberOfModes = new_modes;
+            }
             is_number_of_modes_limited = true;
+        } else {
+            mCurrentNumberOfModes = mUserNumberOfModes + mNumberOfExtraModes;
         }
 
         // Set the random values matrix pointer
@@ -446,9 +470,12 @@ private:
         std::swap(p_aux_omega, mpOmega);
 
         // Create the random values generator
-        std::random_device rd;  //Will be used to obtain a seed for the random number engine
-        std::mt19937 generator(rd()); //Standard mersenne_twister_engine seeded with rd()
-        std::uniform_real_distribution<> distribution(0.0, 1.0);
+        //TODO: STUDY THIS
+        std::mt19937 generator(1); //Standard mersenne_twister_engine seeded with rd()
+        std::uniform_real_distribution<> distribution(10000.0, 20000.0);
+        // std::random_device rd;  //Will be used to obtain a seed for the random number engine
+        // std::mt19937 generator(rd()); //Standard mersenne_twister_engine seeded with rd()
+        // std::uniform_real_distribution<> distribution(0.0, 1.0);
 
         // Fill the random values matrix
         auto& r_omega_matrix = *mpOmega;
@@ -470,8 +497,8 @@ private:
         Matrix& rSolution)
     {
         const SizeType n_dofs = BaseType::GetProblemSize();
-        KRATOS_ERROR_IF(rRightMatrix.size1() != n_dofs) << "Obtained right multiplication matrix size " << rRightMatrix.size1() << " does not match the problem size " << n_dofs << " expected one." << std::endl;
-        if (rSolution.size1() != n_dofs|| rSolution.size2() != mCurrentNumberOfModes) {
+        KRATOS_ERROR_IF(TDenseSpace::Size1(rRightMatrix) != n_dofs) << "Obtained right multiplication matrix size " << TDenseSpace::Size1(rRightMatrix) << " does not match the problem size " << n_dofs << " expected one." << std::endl;
+        if (TDenseSpace::Size1(rSolution) != n_dofs || TDenseSpace::Size2(rSolution) != mCurrentNumberOfModes) {
             rSolution.resize(n_dofs, mCurrentNumberOfModes);
         }
 
@@ -487,11 +514,11 @@ private:
             if (!BaseType::IsUsedInBlockNewtonEquations()) {
                 // Old Jacobian initialized to minus the identity matrix
                 MatrixType V_M_omega = prod(r_V, M_omega);
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += V_M_omega(i,j);
+                IndexPartition<SizeType>(n_dofs).for_each([&rSolution,&V_M_omega,this](SizeType I){
+                    for (SizeType j = 0; j < mCurrentNumberOfModes; ++j) {
+                        rSolution(I,j) += V_M_omega(I,j);
                     }
-                }
+                });
             }
         } else {
             MatrixType V_M_omega = prod(r_V, M_omega);
@@ -500,17 +527,17 @@ private:
             MatrixType B_V_M_omega = prod(*mpOldJacSigmaV, V_M_omega);
             MatrixType A_B_V_M_omega = prod(*mpOldJacQU, B_V_M_omega);
             if (!BaseType::IsUsedInBlockNewtonEquations()) {
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += A_B_omega(i,j) + V_M_omega(i,j) - A_B_V_M_omega(i,j);
+                IndexPartition<SizeType>(n_dofs).for_each([&rSolution,&A_B_omega,&V_M_omega,&A_B_V_M_omega,this](SizeType I){
+                    for (SizeType j = 0; j < mCurrentNumberOfModes; ++j) {
+                        rSolution(I,j) += A_B_omega(I,j) + V_M_omega(I,j) - A_B_V_M_omega(I,j);
                     }
-                }
+                });
             } else {
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += A_B_omega(i,j) - A_B_V_M_omega(i,j);
+                IndexPartition<SizeType>(n_dofs).for_each([&rSolution,&A_B_omega,&A_B_V_M_omega,this](SizeType I){
+                    for (SizeType j = 0; j < mCurrentNumberOfModes; ++j) {
+                        rSolution(I,j) += A_B_omega(I,j) - A_B_V_M_omega(I,j);
                     }
-                }
+                });
             }
         }
     }
@@ -521,8 +548,8 @@ private:
         Matrix& rSolution)
     {
         const SizeType n_dofs = BaseType::GetProblemSize();
-        KRATOS_ERROR_IF(rLeftMatrix.size1() != n_dofs) << "Obtained left multiplication matrix size " << rLeftMatrix.size1() << " does not match the problem size " << n_dofs << " expected one." << std::endl;
-        if (rSolution.size1() != mCurrentNumberOfModes|| rSolution.size2() != n_dofs) {
+        KRATOS_ERROR_IF(TDenseSpace::Size1(rLeftMatrix) != n_dofs) << "Obtained left multiplication matrix size " << TDenseSpace::Size1(rLeftMatrix) << " does not match the problem size " << n_dofs << " expected one." << std::endl;
+        if (TDenseSpace::Size1(rSolution) != mCurrentNumberOfModes|| TDenseSpace::Size2(rSolution) != n_dofs) {
             rSolution.resize(mCurrentNumberOfModes, n_dofs);
         }
 
@@ -540,11 +567,11 @@ private:
                 // Old Jacobian initialized to minus the identity matrix
                 MatrixType Qtrans_V = prod(Qtrans, r_V);
                 MatrixType Qtrans_V_M = prod(Qtrans_V, rAuxM);
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += Qtrans_V_M(i,j);
+                IndexPartition<SizeType>(n_dofs).for_each([&rSolution,&Qtrans_V_M,this](SizeType J){
+                    for (SizeType i = 0; i < mCurrentNumberOfModes; ++i) {
+                        rSolution(i,J) += Qtrans_V_M(i,J);
                     }
-                }
+                });
             }
         } else {
             MatrixType Qtrans_V = prod(Qtrans, r_V);
@@ -554,17 +581,17 @@ private:
             MatrixType Qtrans_A_B_V = prod(Qtrans_A_B, r_V);
             MatrixType Qtrans_A_B_V_M = prod(Qtrans_A_B_V, rAuxM);
             if (!BaseType::IsUsedInBlockNewtonEquations()) {
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += Qtrans_A_B(i,j) + Qtrans_V_M(i,j) - Qtrans_A_B_V_M(i,j);
+                IndexPartition<SizeType>(n_dofs).for_each([&rSolution,&Qtrans_A_B,&Qtrans_V_M,&Qtrans_A_B_V_M,this](SizeType J){
+                    for (SizeType i = 0; i < mCurrentNumberOfModes; ++i) {
+                        rSolution(i,J) += Qtrans_A_B(i,J) + Qtrans_V_M(i,J) - Qtrans_A_B_V_M(i,J);
                     }
-                }
+                });
             } else {
-                for (SizeType i = 0; i < rSolution.size1(); ++i) { //TODO: DO THIS PARALLEL
-                    for (SizeType j = 0; j < rSolution.size2(); ++j) {
-                        rSolution(i,j) += Qtrans_A_B(i,j) - Qtrans_A_B_V_M(i,j);
+                IndexPartition<SizeType>(n_dofs).for_each([&rSolution,&Qtrans_A_B,&Qtrans_A_B_V_M,this](SizeType J){
+                    for (SizeType i = 0; i < mCurrentNumberOfModes; ++i) {
+                        rSolution(i,J) += Qtrans_A_B(i,J) - Qtrans_A_B_V_M(i,J);
                     }
-                }
+                });
             }
         }
     }
@@ -601,7 +628,7 @@ private:
 
         // Compute ((trans(V)*V)^-1)*trans(V)
         const SizeType n_dofs = BaseType::GetProblemSize();
-        if (rAuxM.size1() != n_data_cols || rAuxM.size2() != n_dofs) {
+        if (TDenseSpace::Size1(rAuxM) != n_data_cols || TDenseSpace::Size2(rAuxM) != n_dofs) {
             rAuxM.resize(n_data_cols, n_dofs);
         }
         noalias(rAuxM) = prod(transV_V_inv, Vtrans);

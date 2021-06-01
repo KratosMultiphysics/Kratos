@@ -440,6 +440,16 @@ protected:
             // If there are already observations use these in the Jacobian update formula
             const auto& r_V = *mpObsMatrixV;
             const auto& r_W = *mpObsMatrixW;
+
+            KRATOS_WATCH(r_W(50,r_W.size2()-1))
+            KRATOS_WATCH(r_W(100,r_W.size2()-1))
+            KRATOS_WATCH(r_V(50,r_V.size2()-1))
+            KRATOS_WATCH(r_V(100,r_V.size2()-1))
+
+            KRATOS_WATCH((*mpJac_n)(100,100))
+            KRATOS_WATCH((*mpJac_n)(100,200))
+            KRATOS_WATCH((*mpJac_n)(100,300))
+
             const std::size_t n_dofs = GetProblemSize();
             const std::size_t data_cols = TDenseSpace::Size2(r_V);
             MatrixType aux1(n_dofs, data_cols);
@@ -471,6 +481,16 @@ protected:
     std::size_t GetConvergenceAcceleratorIteration() const
     {
         return mConvergenceAcceleratorIteration;
+    }
+
+    std::size_t GetNumberOfObservations() const
+    {
+        return TDenseSpace::Size2(*mpObsMatrixV);
+    }
+
+    bool IsFirstCorrectionPerformed() const
+    {
+        return mConvergenceAcceleratorFirstCorrectionPerformed;
     }
 
     /**
