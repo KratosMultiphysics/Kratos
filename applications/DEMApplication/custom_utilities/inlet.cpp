@@ -160,7 +160,9 @@ namespace Kratos {
 
             KRATOS_ERROR_IF(max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) << "The velocity deviation angle must be between 0 and 89.5 degrees for group "<< identifier << std::endl;
 
-            int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();
+            Properties::Pointer p_properties = r_modelpart.pGetProperties(mp[PROPERTIES_ID]);
+            int general_properties_id = p_properties->Id();
+
             PropertiesProxy* p_fast_properties = NULL;
 
             for (unsigned int i = 0; i < mFastProperties.size(); i++) {
@@ -175,8 +177,6 @@ namespace Kratos {
             Element::Pointer dummy_element_pointer;
             std::string& ElementNameString = mp[INJECTOR_ELEMENT_TYPE];
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
-
-            Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
 
             for (int i = 0; i < mesh_size; i++) {
                 Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
@@ -517,7 +517,7 @@ namespace Kratos {
 
                 if(mass_flow) {
                     const double mean_radius = mp[RADIUS];
-                    const double density = mInletModelPart.GetProperties(mp[PROPERTIES_ID])[PARTICLE_DENSITY];
+                    const double density = r_modelpart.GetProperties(mp[PROPERTIES_ID])[PARTICLE_DENSITY];
                     const double estimated_mass_of_a_particle = density * 4.0/3.0 * Globals::Pi * mean_radius * mean_radius * mean_radius;
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
                     const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
@@ -567,7 +567,7 @@ namespace Kratos {
 
 
                 PropertiesProxy* p_fast_properties = NULL;
-                int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();
+                int general_properties_id = r_modelpart.GetProperties(mp[PROPERTIES_ID]).Id();
                 for (unsigned int i = 0; i < mFastProperties.size(); i++) {
                     int fast_properties_id = mFastProperties[i].GetId();
                     if (fast_properties_id == general_properties_id) {
@@ -597,7 +597,7 @@ namespace Kratos {
                 std::string& ElementNameString = mp[ELEMENT_TYPE];
                 const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
 
-                Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
+                Properties::Pointer p_properties = r_modelpart.pGetProperties(mp[PROPERTIES_ID]);
 
                 const double mass_that_should_have_been_inserted_so_far = mass_flow * (current_time - inlet_start_time);
 

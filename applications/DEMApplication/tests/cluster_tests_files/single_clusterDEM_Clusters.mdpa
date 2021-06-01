@@ -1,0 +1,24 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+    14  -0.6207122029  -0.0334263737   0.225
+End Nodes
+
+Begin Elements Cluster3D// GUI group identifier: Body
+    1   1   14
+End Elements
+
+Begin NodalData CHARACTERISTIC_LENGTH
+    14 0 1.0
+End NodalData
+
+Begin NodalData ORIENTATION
+    14 0 [4](1.0, 2.0, 3.0, 4.0)
+End NodalData
+
+

@@ -251,13 +251,8 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     KRATOS_CATCH( "" )
 }
 
-
 double DEMWall::GetYoung() const                    { return GetProperties()[YOUNG_MODULUS];    }
 double DEMWall::GetPoisson() const                  { return GetProperties()[POISSON_RATIO];    }
-double DEMWall::GetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];  }
-double DEMWall::GetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION]; }
-double DEMWall::GetFrictionDecayCoefficient() const { return GetProperties()[FRICTION_DECAY];   }
-
 
 void DEMWall::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {

@@ -70,16 +70,11 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
-
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
         properties = KratosMultiphysics.Properties(0)
         properties_walls = KratosMultiphysics.Properties(0)
-        self.SetHardcodedProperties(properties, properties_walls)
         self.spheres_model_part.AddProperties(properties)
         self.rigid_face_model_part.AddProperties(properties_walls)
-
-        DiscontinuumConstitutiveLaw = getattr(DEM, properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
         translational_scheme = DEM.ForwardEulerScheme()
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
@@ -112,7 +107,6 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
             if node.Id == 1:
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.1)
 
-
         self.rigid_face_model_part.CreateNewNode(3, -5, 5, -1.008)
         self.rigid_face_model_part.CreateNewNode(4, 5, 5, -1.008)
 
@@ -122,37 +116,6 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         condition_name = "RigidFace3D3N"
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [5, 6, 3], self.rigid_face_model_part.GetProperties()[0])
         self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [3, 6, 4], self.rigid_face_model_part.GetProperties()[0])
-
-
-    @classmethod
-    def SetHardcodedProperties(self, properties, properties_walls):
-        properties[DEM.PARTICLE_DENSITY] = 4000.0
-        properties[KratosMultiphysics.YOUNG_MODULUS] = 1.0e9
-        properties[KratosMultiphysics.POISSON_RATIO] = 0.20
-        properties[DEM.STATIC_FRICTION] = 0.5
-        properties[DEM.DYNAMIC_FRICTION] = 0.5
-        properties[DEM.FRICTION_DECAY] = 500.0
-        properties[DEM.PARTICLE_COHESION] = 0.0
-        properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
-        properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
-        properties[DEM.ROLLING_FRICTION] = 0.0
-        properties[DEM.DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_KDEM"
-        properties[DEM.DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
-        properties[DEM.CONTACT_TAU_ZERO] = 0.5e6
-        properties[DEM.CONTACT_SIGMA_MIN] = 1e6
-        properties[DEM.CONTACT_INTERNAL_FRICC] = 1.0
-        properties[DEM.ROTATIONAL_MOMENT_COEFFICIENT] = 0.0
-
-        properties_walls[DEM.STATIC_FRICTION] = 0.0
-        properties_walls[DEM.DYNAMIC_FRICTION] = 0.0
-        properties_walls[DEM.WALL_COHESION] = 0.0
-        properties_walls[DEM.COMPUTE_WEAR] = 0
-        properties_walls[DEM.SEVERITY_OF_WEAR] = 0.001
-        properties_walls[DEM.IMPACT_WEAR_SEVERITY] = 0.001
-        properties_walls[DEM.BRINELL_HARDNESS] = 200.0
-        properties_walls[KratosMultiphysics.YOUNG_MODULUS] = 1.0e20
-        properties_walls[KratosMultiphysics.POISSON_RATIO] = 0.23
-
 
 class TestDEM3DContinuum(KratosUnittest.TestCase):
 

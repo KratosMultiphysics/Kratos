@@ -4,11 +4,13 @@
 
 /* Project includes */
 #include "DEM_Dempack_dev_CL.h"
-//#include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack2D_dev : public DEM_Dempack_dev {
+
+        typedef DEM_Dempack_dev BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack2D_dev);

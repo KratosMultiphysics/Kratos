@@ -22,7 +22,10 @@
 "RemoveBallsInEmbeddedOption"      : true,
 "solver_settings" :{
     "strategy"                 : "sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls": false
+    "RemoveBallsInitiallyTouchingWalls": false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 
 
@@ -40,8 +43,8 @@
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
-"MaxTimeStep"                      : 1.0e-6,
-"FinalTime"                        : 8e-5,
+"MaxTimeStep"                      : 0.5e-8,
+"FinalTime"                        : 2.5e-6,
 "ControlTime"                      : 100,
 "NeighbourSearchFrequency"         : 1,
 "PeriodicDomainOption"             : false,

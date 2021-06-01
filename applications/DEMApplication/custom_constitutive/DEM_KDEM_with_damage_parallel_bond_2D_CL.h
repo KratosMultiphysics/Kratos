@@ -8,7 +8,7 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_with_damage_parallel_bond_2D : public DEM_KDEM_with_damage_parallel_bond {
 
-        //typedef DEM_KDEM_with_damage_parallel_bond BaseClassType;
+        typedef DEM_KDEM_with_damage_parallel_bond BaseClassType;
 
     public:
 
