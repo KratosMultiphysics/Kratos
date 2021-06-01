@@ -43,16 +43,34 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
         nitsche_stabilization_model_part.AddCondition(*(i_cond.base()));
     }
     
+    SizeType slave_element_start_id = 0; 
     for(ModelPart::ElementsContainerType::iterator i_elem = r_model_part_root.ElementsBegin() ; i_elem != r_model_part_root.ElementsEnd() ; i_elem++)
 	{   
         const SizeType nurbs_surface_id = (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
         if(nurbs_surface_id == master_nurbs_surface_id || nurbs_surface_id == slave_nurbs_surface_id)
         {
             nitsche_stabilization_model_part.AddElement(*(i_elem.base()));
+            if(nurbs_surface_id == master_nurbs_surface_id && (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).HasGeometryPart(std::numeric_limits<IndexType>::max()-2) == 0)
+            {
+                ++slave_element_start_id;
+            }
         } 
     }
 
-    // Find the number of DOFs on the current interface boundary
+    Properties::Pointer master_properties = nitsche_stabilization_model_part.ElementsBegin()->pGetProperties();    
+    Properties::Pointer slave_properties = nitsche_stabilization_model_part.pGetElement(slave_element_start_id-1)->pGetProperties();
+    SizeType prop_id = (nitsche_stabilization_model_part.ConditionsBegin()->pGetProperties())->Id(); 
+
+    if(master_properties == slave_properties)
+    {
+        mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+    }
+    else
+    {
+        mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+        mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+    }
+
     Model new_model_master;               
     ModelPart& new_model_part_master = new_model_master.CreateModelPart("new_model"); 
 
