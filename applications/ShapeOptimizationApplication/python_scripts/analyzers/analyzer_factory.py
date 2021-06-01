@@ -12,9 +12,9 @@
 from __future__ import print_function, absolute_import, division
 
 # additional imports
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_internal import KratosInternalAnalyzer
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_empty import EmptyAnalyzer
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_internal import KratosInternalAnalyzer
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_empty import EmptyAnalyzer
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
 import copy
