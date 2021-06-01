@@ -78,7 +78,7 @@ class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        for name, vtk_io in self.vtk_ios.items():
+        for vtk_io in self.vtk_ios.values():
             vtk_io.ExecuteInitialize()
             vtk_io.ExecuteBeforeSolutionLoop()
 
@@ -87,7 +87,7 @@ class DesignLoggerVTK( DesignLogger ):
         OriginalTime = self.optimization_model_part.ProcessInfo[KM.TIME]
         self.optimization_model_part.ProcessInfo[KM.TIME] = optimizationIteration
 
-        for name, vtk_io in self.vtk_ios.items():
+        for vtk_io in self.vtk_ios.values():
             vtk_io.ExecuteInitializeSolutionStep()
             if(vtk_io.IsOutputStep()):
                 vtk_io.PrintOutput()
@@ -97,7 +97,7 @@ class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):
-        for name, vtk_io in self.vtk_ios.items():
+        for vtk_io in self.vtk_ios.values():
             vtk_io.ExecuteFinalize()
 
 # ==============================================================================
