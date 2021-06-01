@@ -29,6 +29,7 @@ NitscheStabilizationModelPartProcess::NitscheStabilizationModelPartProcess(
 
 void NitscheStabilizationModelPartProcess::ExecuteInitialize()
 {
+    // a) Create a new model part for Nitsche stabilization calculation
     std::string model_part_condition_name = mrThisModelPart.Name();
     ModelPart& r_model_part_root = mrThisModelPart.GetRootModelPart();
 
@@ -57,6 +58,7 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
         } 
     }
 
+    // b) Assign properties from master and slave geometries to coupling condition
     Properties::Pointer master_properties = nitsche_stabilization_model_part.ElementsBegin()->pGetProperties();    
     Properties::Pointer slave_properties = nitsche_stabilization_model_part.pGetElement(slave_element_start_id-1)->pGetProperties();
     SizeType prop_id = (nitsche_stabilization_model_part.ConditionsBegin()->pGetProperties())->Id(); 
@@ -71,6 +73,7 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
         mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(slave_properties);
     }
 
+    // c) Find the number of DOFs on the current interface boundary
     Model new_model_master;               
     ModelPart& new_model_part_master = new_model_master.CreateModelPart("new_model"); 
 
