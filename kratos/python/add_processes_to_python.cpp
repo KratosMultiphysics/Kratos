@@ -301,18 +301,11 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
+
     py::class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
-        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
 
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")

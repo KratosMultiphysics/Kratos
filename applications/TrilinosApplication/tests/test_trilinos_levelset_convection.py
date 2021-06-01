@@ -80,11 +80,17 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.CloneTimeStep(40.0)
 
         # Convect the distance field
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "eulerian_error_compensation" : false,
+            "element_type" : "levelset_convection_supg"
+        }""")
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
-            KratosMultiphysics.DISTANCE,
             self.model_part,
-            trilinos_linear_solver).Execute()
+            trilinos_linear_solver,
+            levelset_convection_settings).Execute()
 
         # Check the obtained values
         max_distance = -1.0
@@ -123,9 +129,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         # Fake time advance
         self.model_part.CloneTimeStep(30.0)
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(
-                kratos_comm, self.model_part).Execute()
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.model_part).Execute()
 
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
@@ -134,13 +138,10 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             KratosMultiphysics.NODAL_AREA).Execute()
 
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "DISTANCE",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
+            "element_type" : "levelset_convection_supg"
         }""")
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
@@ -156,6 +157,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
+        kratos_comm = self.model_part.GetCommunicator().GetDataCommunicator()
         min_distance = kratos_comm.MinAll(min_distance)
         max_distance = kratos_comm.MaxAll(max_distance)
 
