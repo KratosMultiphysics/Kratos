@@ -181,11 +181,10 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             return
 
         nabla_f = KM.Vector()
+        N = KM.Matrix()
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vectors and matrices of objective gradient.")
         for design_surface in self.design_surfaces.values():
             optimization_utilities.AssembleVector(design_surface, nabla_f, KSO.DF1DX_MAPPED, True)
-
-            N = KM.Matrix()
             optimization_utilities.AssembleMatrix(design_surface, N, g_a_variables, True)  # TODO check if gradients are 0.0! - in cpp
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
@@ -200,17 +199,27 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             solver,
             s,
             c)
+        s_plus_c = KM.Vector(s+c)
+        eps = 1e-12
 
         if c.norm_inf() != 0.0:
             if c.norm_inf() <= self.max_correction_share * self.step_size:
                 delta = self.step_size - c.norm_inf()
-                s *= delta/s.norm_inf()
+                s_inf_norm = s.norm_inf()
+                if s_inf_norm > eps :
+                    s *= delta/s.norm_inf()
             else:
                 KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                c *= self.max_correction_share * self.step_size / c.norm_inf()
-                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+                c_inf_norm = c.norm_inf()
+                s_inf_norm = s.norm_inf()
+                if c_inf_norm > eps:
+                    c *= self.max_correction_share * self.step_size / c_inf_norm
+                if s_inf_norm > eps:
+                    s *= (1.0 - self.max_correction_share) * self.step_size / s_inf_norm
         else:
-            s *= self.step_size / s.norm_inf()
+            s_inf_norm = s.norm_inf()
+            if s_inf_norm > eps:
+                s *= self.step_size / s_inf_norm
 
         previous_end = 0
         for design_surface in self.design_surfaces.values():
@@ -220,7 +229,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(s[initial_index:final_index]), KSO.SEARCH_DIRECTION)
             optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(c[initial_index:final_index]), KSO.CORRECTION)
-            optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector((s+c)[initial_index:final_index]), KSO.CONTROL_POINT_UPDATE)
+            optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(s_plus_c[initial_index:final_index]), KSO.CONTROL_POINT_UPDATE)
 
     def __GetVector(self, vec_slice):
         vec_list = []
