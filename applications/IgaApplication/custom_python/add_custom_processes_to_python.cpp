@@ -33,7 +33,7 @@ void AddCustomProcessesToPython(
         ;
 
     py::class_<NitscheStabilizationModelPartProcess, NitscheStabilizationModelPartProcess::Pointer, Process>(m, "NitscheStabilizationModelPartProcess")
-        .def(py::init<Model&, Parameters >())
+        .def(py::init<ModelPart& >())
         ;
 
 }

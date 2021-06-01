@@ -54,10 +54,11 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         self.params.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         self.model = model
+        self.model_part_condition = self.model[self.params["model_part_condition_name"].GetString()] 
 
         # Call the Nitsche stabilization model Part process
         KratosMultiphysics.Process.__init__(self)
-        self.process = IGA.NitscheStabilizationModelPartProcess(model, params)
+        self.process = IGA.NitscheStabilizationModelPartProcess(self.model_part_condition)
         self.process.ExecuteInitialize()
         
         self.model_part = self.model.GetModelPart("IgaModelPart").GetSubModelPart("Nitsche_Stabilization_Coupling_" + self.params["model_part_condition_name"].GetString()[-1])
@@ -89,8 +90,6 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_couplings"].GetInt()
 
         # Set the Nitsche stabilization factor
-        self.model_part_condition = self.model[self.params["model_part_condition_name"].GetString()] 
-
         for prop in self.model_part_condition.Properties:
             prop.SetValue(IGA.NITSCHE_STABILIZATION_FACTOR, nitsche_stabilization_factor)
 
