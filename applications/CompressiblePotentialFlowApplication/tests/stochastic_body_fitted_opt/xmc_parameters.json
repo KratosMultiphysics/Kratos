@@ -60,9 +60,8 @@
         "outputBatchSize": 1,
         "parameters": null,
         "printToFile": true,
-        "projectParametersPath": "primal_parameters.json",
-        "refinementParametersPath": "xmc_refinement_parameters.json",
-        "refinementStrategy": "stochastic_adaptive_refinement",
+        "projectParametersPath": ["primal_parameters.json"],
+        "refinementStrategy": "reading_from_file",
         "sizeMultiXMomentEstimator": 12,
         "taskAllAtOnce": true
     },
