@@ -2357,7 +2357,7 @@ Begin SubModelPart Inlet_inlet // Group inlet // Subtree Inlet
         CONTAINS_CLUSTERS 0
         VELOCITY [3] (0.0, 0.0, -1.0)
         MAX_RAND_DEVIATION_ANGLE 0.0
-        INLET_NUMBER_OF_PARTICLES 4e6
+        INLET_NUMBER_OF_PARTICLES 2.25e6
         IMPOSED_MASS_FLOW_OPTION 0
         INLET_START_TIME 0.0
         INLET_STOP_TIME 100.0

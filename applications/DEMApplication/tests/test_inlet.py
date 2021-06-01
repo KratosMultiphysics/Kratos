@@ -74,25 +74,23 @@ class TestDEMInlet(Kratos.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, Kr
             self.centers = 0.5 * (interval_boundaries[1:] + interval_boundaries[:-1])
             interval_widths = interval_boundaries[1:] - interval_boundaries[:-1]
             range_x = np.linspace(interval_boundaries[0], interval_boundaries[-1], num=self.n_bins)
-            parameters = Kratos.Parameters("""{}""")
             breakpoints = Kratos.Vector(list(range_x))
             pdf_values = Kratos.Vector(list(rv.GaussianPDF(np.array(range_x), mu=self.mu, sigma=self.sigma)))
+            parameters = Kratos.Parameters("""{}""")
             parameters.AddVector("breakpoints", breakpoints)
             parameters.AddVector("values", pdf_values)
             expected_rv = rv.PiecewiseLinearRV(parameters)
             self.pdf_expected = np.array([expected_rv.InterpolateHeight(x) for x in self.centers])
 
             self.error = TestDEMInlet.Error(self.empirical_pdf, self.pdf_expected, interval_widths)
-            TestDEMInlet.Say('Probability error:', self.error)
+            TestDEMInlet.Say('Error = ' + '{:.4f}'.format(self.error), '( self.tolerance = ' + '{:.4f}'.format(self.tolerance), ')')
+
         super().FinalizeSolutionStep()
 
     def Finalize(self):
         self.samples = np.array(list(self.samples.values()))
-        TestDEMInlet.Say('samples:', self.samples)
 
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
-
-        TestDEMInlet.Say('Error = ' + '{:.4f}'.format(self.error), '( self.tolerance = ' + '{:.4f}'.format(self.tolerance), ')')
 
         if TestDEMInlet.debug_mode:
             import matplotlib.pyplot as plt
@@ -101,6 +99,7 @@ class TestDEMInlet(Kratos.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, Kr
             plt.plot(self.centers, self.pdf_expected, label='desired')
             plt.legend()
             plt.savefig('piecewise_pdf.pdf')
+
         super().Finalize()
 
 
