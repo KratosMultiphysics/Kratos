@@ -52,11 +52,11 @@ namespace Kratos
             mConstitutiveLawVector_slave.resize(r_number_of_integration_points_slave);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector_master.size(); ++point_number) {
-            mConstitutiveLawVector_master[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector_master[point_number] = GetProperties().GetSubProperties().front()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector_master[point_number]->InitializeMaterial(r_properties, r_geometry_master, row(r_N_master, point_number));
         }
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector_slave.size(); ++point_number) {
-            mConstitutiveLawVector_slave[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector_slave[point_number] = GetProperties().GetSubProperties().back()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector_slave[point_number]->InitializeMaterial(r_properties, r_geometry_slave, row(r_N_slave, point_number));
         }
 
@@ -240,7 +240,7 @@ namespace Kratos
             rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
             mConstitutiveLawVector_master[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-            rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties()[THICKNESS];
+            rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties().GetSubProperties().front()[THICKNESS];
         }
         else
         {
@@ -253,7 +253,7 @@ namespace Kratos
             rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
             mConstitutiveLawVector_slave[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-            rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties()[THICKNESS];
+            rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties().GetSubProperties().back()[THICKNESS];
         }
 
         //Local Cartesian Forces and Moments
@@ -332,7 +332,6 @@ namespace Kratos
         KRATOS_TRY
 
         const double stabilization_parameter = GetProperties()[NITSCHE_STABILIZATION_FACTOR];
-        KRATOS_WATCH(stabilization_parameter)
 
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
@@ -444,9 +443,9 @@ namespace Kratos
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters_master(
-                r_geometry_master, GetProperties(), rCurrentProcessInfo);
+                r_geometry_master, GetProperties().GetSubProperties().front(), rCurrentProcessInfo);
             ConstitutiveLaw::Parameters constitutive_law_parameters_slave(
-                r_geometry_slave, GetProperties(), rCurrentProcessInfo);
+                r_geometry_slave, GetProperties().GetSubProperties().back(), rCurrentProcessInfo);
 
             ConstitutiveVariables constitutive_variables_membrane_master(3);
             ConstitutiveVariables constitutive_variables_membrane_slave(3);
@@ -467,7 +466,8 @@ namespace Kratos
                 PatchType::Slave);
 
             //Prestress component
-            array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+            array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+            array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
             array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
 
             Matrix T_pre_master = ZeroMatrix(3, 3);
@@ -477,13 +477,13 @@ namespace Kratos
             {
                 CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
                 CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
-                transformed_prestress_master = prod(T_pre_master, prestress);
-                transformed_prestress_slave = prod(T_pre_slave, prestress);
+                transformed_prestress_master = prod(T_pre_master, prestress_master);
+                transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
             }
             else //for isotropic prestress case
             {
-                transformed_prestress_master = prestress;
-                transformed_prestress_slave = prestress;
+                transformed_prestress_master = prestress_master;
+                transformed_prestress_slave = prestress_slave;
             }
             
             constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
@@ -826,9 +826,9 @@ namespace Kratos
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters_master(
-                r_geometry_master, GetProperties(), rCurrentProcessInfo);
+                r_geometry_master, GetProperties().GetSubProperties().front(), rCurrentProcessInfo);
             ConstitutiveLaw::Parameters constitutive_law_parameters_slave(
-                r_geometry_slave, GetProperties(), rCurrentProcessInfo);
+                r_geometry_slave, GetProperties().GetSubProperties().back(), rCurrentProcessInfo);
 
             ConstitutiveVariables constitutive_variables_membrane_master(3);
             ConstitutiveVariables constitutive_variables_membrane_slave(3);
@@ -850,7 +850,8 @@ namespace Kratos
                 PatchType::Slave);
 
             //Prestress component
-            array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+            array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+            array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
             array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
 
             Matrix T_pre_master = ZeroMatrix(3, 3);
@@ -860,13 +861,13 @@ namespace Kratos
             {
                 CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
                 CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
-                transformed_prestress_master = prod(T_pre_master, prestress);
-                transformed_prestress_slave = prod(T_pre_slave, prestress);
+                transformed_prestress_master = prod(T_pre_master, prestress_master);
+                transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
             }
             else //for isotropic prestress case
             {
-                transformed_prestress_master = prestress;
-                transformed_prestress_slave = prestress;
+                transformed_prestress_master = prestress_master;
+                transformed_prestress_slave = prestress_slave;
             }
             
             constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
@@ -1055,17 +1056,13 @@ namespace Kratos
         Matrix dE_cartesian = ZeroMatrix(3, mat_size);
         Matrix T_patch = ZeroMatrix(3, 3);
 
-        array_1d<double, 2> n_contravariant_vector; 
-
         if (rPatch==PatchType::Master)
         {
             T_patch = m_T_vector_master[IntegrationPointIndex];
-            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
         }
         else
         {
             T_patch = m_T_vector_slave[IntegrationPointIndex];
-            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         }
 
         for (IndexType r = 0; r < mat_size; r++)

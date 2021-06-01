@@ -21,43 +21,59 @@ namespace Kratos
 {
 
 NitscheStabilizationModelPartProcess::NitscheStabilizationModelPartProcess(
-    Model& rModel,
-    Parameters ThisParameters)
+    ModelPart& rThisModelPart)
     : Process()
-    , mrModel(rModel)
-    , mThisParameters(ThisParameters)
+    , mrThisModelPart(rThisModelPart)
 {
-    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }
 
 void NitscheStabilizationModelPartProcess::ExecuteInitialize()
 {
-    std::string model_part_condition_name = mThisParameters["model_part_condition_name"].GetString();
-    ModelPart& r_model_part_condition = mrModel.GetModelPart(model_part_condition_name);
-    ModelPart& r_model_part_root = r_model_part_condition.GetRootModelPart();
+    // a) Create a new model part for Nitsche stabilization calculation
+    std::string model_part_condition_name = mrThisModelPart.Name();
+    ModelPart& r_model_part_root = mrThisModelPart.GetRootModelPart();
 
-    std::string model_part_name = "Nitsche_Stabilization_Coupling_";
-    model_part_name.push_back(model_part_condition_name.back());
+    std::string model_part_name = "Nitsche_Stabilization_" + model_part_condition_name;
     ModelPart& nitsche_stabilization_model_part = r_model_part_root.CreateSubModelPart(model_part_name);
 
-    const SizeType master_nurbs_surface_id = r_model_part_condition.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
-    const SizeType slave_nurbs_surface_id = r_model_part_condition.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
+    const SizeType master_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(0).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
+    const SizeType slave_nurbs_surface_id = mrThisModelPart.ConditionsBegin()->GetGeometry().GetGeometryPart(1).GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
 
-    for(ModelPart::ConditionsContainerType::iterator i_cond = r_model_part_condition.ConditionsBegin() ; i_cond != r_model_part_condition.ConditionsEnd() ; i_cond++)
+    for(ModelPart::ConditionsContainerType::iterator i_cond = mrThisModelPart.ConditionsBegin() ; i_cond != mrThisModelPart.ConditionsEnd() ; ++i_cond)
 	{
         nitsche_stabilization_model_part.AddCondition(*(i_cond.base()));
     }
     
-    for(ModelPart::ElementsContainerType::iterator i_elem = r_model_part_root.ElementsBegin() ; i_elem != r_model_part_root.ElementsEnd() ; i_elem++)
+    SizeType slave_element_start_id = 0; 
+    for(ModelPart::ElementsContainerType::iterator i_elem = r_model_part_root.ElementsBegin() ; i_elem != r_model_part_root.ElementsEnd() ; ++i_elem)
 	{   
         const SizeType nurbs_surface_id = (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).pGetGeometryPart(std::numeric_limits<IndexType>::max())->Id();
         if(nurbs_surface_id == master_nurbs_surface_id || nurbs_surface_id == slave_nurbs_surface_id)
         {
             nitsche_stabilization_model_part.AddElement(*(i_elem.base()));
+            if(nurbs_surface_id == master_nurbs_surface_id && (*(i_elem.base()))->GetGeometry().GetGeometryParent(0).HasGeometryPart(std::numeric_limits<IndexType>::max()-2) == 0)
+            {
+                ++slave_element_start_id;
+            }
         } 
     }
 
-    // Find the number of DOFs on the current interface boundary
+    // b) Assign properties from master and slave geometries to coupling condition
+    Properties::Pointer master_properties = nitsche_stabilization_model_part.ElementsBegin()->pGetProperties();    
+    Properties::Pointer slave_properties = nitsche_stabilization_model_part.pGetElement(slave_element_start_id-1)->pGetProperties();
+    SizeType prop_id = (nitsche_stabilization_model_part.ConditionsBegin()->pGetProperties())->Id(); 
+
+    if(master_properties == slave_properties)
+    {
+        mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+    }
+    else
+    {
+        mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(master_properties);
+        mrThisModelPart.pGetProperties(prop_id)->AddSubProperties(slave_properties);
+    }
+
+    // c) Find the number of DOFs on the current interface boundary
     Model new_model_master;               
     ModelPart& new_model_part_master = new_model_master.CreateModelPart("new_model"); 
 
@@ -94,25 +110,4 @@ void NitscheStabilizationModelPartProcess::ExecuteInitialize()
     const int number_of_nodes = (new_model_part_master.NumberOfNodes() + new_model_part_slave.NumberOfNodes())* 3;
     nitsche_stabilization_model_part.GetProcessInfo().SetValue(EIGENVALUE_NITSCHE_STABILIZATION_SIZE, number_of_nodes);
 }
-
-const Parameters NitscheStabilizationModelPartProcess::GetDefaultParameters() const
-{
-    const Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_condition_name" : "",
-        "eigen_system_settings" : {
-                "solver_type"           : "feast",
-                "echo_level"            : 0,
-                "tolerance"             : 1e-10,
-                "symmetric"             : true,
-                "e_min"                 : 0.0,
-                "e_max"                 : 1.0e20,
-                "number_of_eigenvalues" : 1,
-                "subspace_size"         : 1
-        },
-        "number_of_couplings" : 1
-    })" );
-    return default_parameters;
-}
-
 } // namespace Kratos

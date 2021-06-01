@@ -17,7 +17,7 @@
 
 // Project includes
 #include "containers/model.h"
-
+#include "includes/model_part.h"
 #include "processes/process.h"
 
 // Application includes
@@ -51,8 +51,7 @@ public:
 
     /// Constructor
     NitscheStabilizationModelPartProcess(
-        Model& rModel,
-        Parameters ThisParameters);
+        ModelPart& rThisModelPart);
 
     /// Destructor.
     ~NitscheStabilizationModelPartProcess() = default;
@@ -62,8 +61,6 @@ public:
     ///@{
 
     void ExecuteInitialize() override;
-
-    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -91,8 +88,7 @@ private:
     ///@{
 
     /// Model part and different settings
-    Model& mrModel;             /// The main model part
-    Parameters mThisParameters; /// The parameters (can be used for general pourposes)
+    ModelPart& mrThisModelPart; /// The model part to compute
 
     ///@}
 
