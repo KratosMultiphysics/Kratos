@@ -36,8 +36,12 @@ class RigidBodySolver(object):
 
         # How many dofs are linear (displacement/force) and how many are angular (rotation/moment)?
         # TODO: For future implementation of a 2D version. It will only be needed to change self.available_dofs
-        self.linear_size = np.ceil(self.system_size/2)
-        self.angular_size = np.floor(self.system_size/2)
+        self.linear_size = int(np.ceil(self.system_size/2))
+        self.angular_size = int(np.floor(self.system_size/2))
+
+        # Note which variable labels are linear/angular for later inpu/output use
+        self.linear_variables = ["DISPLACEMENT", "ROOT_POINT_DISPLACEMENT", "FORCE", "REACTION"]
+        self.angular_variables = ["ROTATION", "ROOT_POINT_ROTATION", "MOMENT", "REACTION_MOMENT"]
 
         # Check that the activated dofs are not repeated and are among the available ones
         self.active_dofs = input_check._CheckActiveDofs(parameters, self.available_dofs)
@@ -376,28 +380,32 @@ class RigidBodySolver(object):
 
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
 
-        # Check that the input's size matches the system's size
-        if len(values) != self.system_size:
-            msg = 'The variable "' + identifier + '" does not have the '
-            msg += 'right size. It has size ' + str(len(values))
-            msg += ' but it should be of size ' + str(self.system_size)
-            raise Exception(msg)
-
         # Check that the selected buffer value is OK
         input_check._CheckBufferId(buffer_idx,identifier)
+        
+        # Check that the input's size is the expected one
+        expected_size = self._ExpectedDataSize(identifier)
+        if len(values) != expected_size:
+            msg = 'The variable "' + identifier + '" does not have the '
+            msg += 'right size. It has size ' + str(len(values))
+            msg += ' but it should be of size ' + str(expected_size)
+            raise Exception(msg)
 
         # Loop through input active DOFs saving the values
         for index, value in enumerate(values):
+            # Increase the index so it fits with the angular terms (if necessary)
+            if identifier in self.angular_variables:
+                value += self.linear_size
             if self.available_dofs[index] in self.active_dofs:
-                if identifier == "DISPLACEMENT":
+                if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
                     self.x[index, buffer_idx] = value
                 elif identifier == "VELOCITY":
                     self.v[index, buffer_idx] = value
                 elif identifier == "ACCELERATION":
                     self.a[index, buffer_idx] = value
-                elif identifier == "FORCE":
+                elif identifier in ["FORCE", "MOMENT", "FORCE_ALL"]:
                     self.external_load[index] = value
-                elif identifier == "ROOT_POINT_DISPLACEMENT":
+                elif identifier in ["ROOT_POINT_DISPLACEMENT", "ROOT_POINT_ROTATION", "ROOT_POINT_DISPLACEMENT_ALL"]:
                     self.external_root_point_displ[index] = value
                 else:
                     raise Exception("Identifier is unknown!")
@@ -409,20 +417,33 @@ class RigidBodySolver(object):
         input_check._CheckBufferId(buffer_idx, identifier)
 
         # Initialize output as a KratosMultiphysics vector
-        output = KratosMultiphysics.Vector(self.system_size)
+        output = KratosMultiphysics.Vector(self._ExpectedDataSize(identifier))
 
         # Save all the values from the active DOFs
         for index, dof in enumerate(self.available_dofs):
             if dof in self.active_dofs:
-                if identifier == "DISPLACEMENT":
+                if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
                     output[index] = self.x[index, buffer_idx]
                 elif identifier == "VELOCITY":
                     output[index] = self.v[index, buffer_idx]
                 elif identifier == "ACCELERATION":
                     output[index] = self.a[index, buffer_idx]
-                elif identifier == "REACTION":
+                elif identifier in ["REACTION", "REACTION_MOMENT", "REACTION_ALL"]:
                     output[index] = self.CalculateReaction(buffer_idx=buffer_idx)[index]
                 else:
                     raise Exception("Identifier is unknown!")
 
         return output
+
+    
+    def _ExpectedDataSize(self, identifier):
+
+        if identifier in self.linear_variables:
+            expected_size = self.linear_size
+        elif identifier in self.angular_variables:
+            expected_size = self.angular_size
+        else:
+            expected_size = self.system_size
+
+        return expected_size
+

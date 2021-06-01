@@ -38,21 +38,29 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         return self._rigid_body_solver.AdvanceInTime(current_time)
 
     def SolveSolutionStep(self):
-        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.ROOT_POINT_DISPLACEMENT_VECTOR], 0)
-        self._rigid_body_solver.SetSolutionStepValue("FORCE",                   self.mp[KMC.FORCE_VECTOR], 0)
+        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.ROOT_POINT_DISPLACEMENT], 0)
+        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_ROTATION",     self.mp[KMC.ROOT_POINT_ROTATION], 0)
+        self._rigid_body_solver.SetSolutionStepValue("FORCE",                   self.mp[KM.FORCE], 0)
+        self._rigid_body_solver.SetSolutionStepValue("MOMENT",                  self.mp[KM.MOMENT], 0)
 
         self._rigid_body_solver.SolveSolutionStep()
 
-        self.mp[KMC.DISPLACEMENT_VECTOR] = self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
-        self.mp[KMC.REACTION_VECTOR]     = self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
+        self.mp[KM.DISPLACEMENT] =    self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        self.mp[KM.ROTATION] =        self._rigid_body_solver.GetSolutionStepValue("ROTATION", 0)
+        self.mp[KM.REACTION] =        self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
+        self.mp[KM.REACTION_MOMENT] = self._rigid_body_solver.GetSolutionStepValue("REACTION_MOMENT", 0)
 
     def Check(self):
         # making sure only a set of vaiables can be used
         admissible_variables = [
-            "ROOT_POINT_DISPLACEMENT_VECTOR",
-            "FORCE_VECTOR",
-            "DISPLACEMENT_VECTOR",
-            "REACTION_VECTOR"
+            "ROOT_POINT_DISPLACEMENT",
+            "ROOT_POINT_ROTATION",
+            "FORCE",
+            "MOMENT",
+            "DISPLACEMENT",
+            "ROTATION",
+            "REACTION",
+            "REACTION_MOMENT"
         ]
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:

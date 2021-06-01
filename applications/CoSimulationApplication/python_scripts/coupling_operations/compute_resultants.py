@@ -69,12 +69,9 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
         force = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumAllDoubles(force)
         moment = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumAllDoubles(moment)
 
-        resultant = force + moment
-
         # here [] is the equivalent of .SetValue()
         force_and_moment_calculator[KMC.RESULTANT_FORCE] = force
         force_and_moment_calculator[KMC.RESULTANT_MOMENT] = moment
-        force_and_moment_calculator[KMC.RESULTANT_FORCE_MOMENT] = resultant
 
     def PrintInfo(self):
         pass
