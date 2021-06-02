@@ -25,7 +25,7 @@
             "xmc.momentEstimator.MultiMomentEstimator"
         ],
         "qoiEstimatorInputDictionary": [
-            {"indexSetDimension": 0,"order": 5,"updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder10Dimension0","centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"},
+            {"indexSetDimension": 0,"order": 5,"updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder10Dimension0","centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper"},
             {"variableDimension": 12,"order": 1, "isEstimationParallel": false}],
         "sampler": "xmc.sampleGenerator.SampleGenerator",
         "eventGroupSize": 5
