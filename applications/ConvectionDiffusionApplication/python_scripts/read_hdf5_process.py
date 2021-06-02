@@ -51,24 +51,25 @@ class ReadHdf5Process(Kratos.Process):
         self.nodal_concentration_error = []
         self.step = []
     def ExecuteFinalizeSolutionStep(self):
-        self.reference_model_part = self.test_HDF5NodalSolutionStepDataIO(self.destination_model_part)
-        self.fluid_variables = []
-        self.projected_variables = []
-        self.fluid_variables += [Kratos.VELOCITY]
-        self.fluid_variables += [Kratos.TEMPERATURE]
-        self.projected_variables += [CD.VELOCITY_PROJECTED]
-        self.projected_variables += [CD.CONCENTRATION_PROJECTED]
-        #Instead of defining variables in convection_diffusion_application:
-        # self.element_name = "Element3D4N"
-        # self.model = KratosMultiphysics.Model()
-        # self.destination_model_part_new = self.model.CreateModelPart("NewDestinationModelPart")
-        # self.destination_model_part_new.AddNodalSolutionStepVariable(CD.VELOCITY_PROJECTED)
-        # self.destination_model_part_new.AddNodalSolutionStepVariable(CD.CONCENTRATION_PROJECTED)
-        # model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
-        # model_part_cloner.GenerateModelPart(self.destination_model_part, self.destination_model_part_new, self.element_name)
-        CDProjectionModule.ProjectionModuleConvectionDiffusion(self.reference_model_part, self.destination_model_part, self.parameters, self.fluid_variables, self.projected_variables, self.domain_size)
-        velocity_error, concentration_error = self.CalculateErrorNorm()
-        WriteMdpaToHdf5.WriteConvergenceNodalErrorToHdf5(self.destination_model_part, velocity_error, concentration_error, self.problem_name)
+        if self.destination_model_part.ProcessInfo[Kratos.STEP] % 10 == 0:
+            self.reference_model_part = self.test_HDF5NodalSolutionStepDataIO(self.destination_model_part)
+            self.fluid_variables = []
+            self.projected_variables = []
+            self.fluid_variables += [Kratos.VELOCITY]
+            self.fluid_variables += [Kratos.TEMPERATURE]
+            self.projected_variables += [CD.VELOCITY_PROJECTED]
+            self.projected_variables += [CD.CONCENTRATION_PROJECTED]
+            #Instead of defining variables in convection_diffusion_application:
+            # self.element_name = "Element3D4N"
+            # self.model = KratosMultiphysics.Model()
+            # self.destination_model_part_new = self.model.CreateModelPart("NewDestinationModelPart")
+            # self.destination_model_part_new.AddNodalSolutionStepVariable(CD.VELOCITY_PROJECTED)
+            # self.destination_model_part_new.AddNodalSolutionStepVariable(CD.CONCENTRATION_PROJECTED)
+            # model_part_cloner = KratosMultiphysics.ConnectivityPreserveModeler()
+            # model_part_cloner.GenerateModelPart(self.destination_model_part, self.destination_model_part_new, self.element_name)
+            CDProjectionModule.ProjectionModuleConvectionDiffusion(self.reference_model_part, self.destination_model_part, self.parameters, self.fluid_variables, self.projected_variables, self.domain_size)
+            velocity_error, concentration_error = self.CalculateErrorNorm()
+            WriteMdpaToHdf5.WriteConvergenceNodalErrorToHdf5(self.destination_model_part, velocity_error, concentration_error, self.problem_name)
     
 
     def ReadModelPartFile(self): 
