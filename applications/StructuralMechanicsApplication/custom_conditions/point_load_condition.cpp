@@ -191,8 +191,6 @@ void PointLoadCondition::CalculateAll(
     {
         noalias(PointLoad) = this->GetValue( POINT_LOAD );
     }
-    std::cout<<"iii"<<std::endl;
-    KRATOS_WATCH(rRightHandSideVector)
     for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
     {
         const unsigned int base = ii*Dimension;
