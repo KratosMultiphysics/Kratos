@@ -32,21 +32,37 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "body_model_part_name": "",
-            "shed_wake_from_trailing_edge": false,
-            "shedded_wake_distance": 12.5,
-            "shedded_wake_element_size": 0.2,
             "wake_stl_file_name" : "",
-            "switch_wake_stl_normal" : false,
-            "wake_normal": [0.0,0.0,1.0],
             "output_wake": false,
             "echo_level": 0,
-            "epsilon": 1e-9,
-            "count_elements_number": false,
-            "write_elements_ids_to_file": false
+            "wake_process_cpp_parameters":    {
+                "tolerance"                     : 1e-9,
+                "wake_normal"                   : [0.0,0.0,1.0],
+                "wake_direction"                : [1.0,0.0,0.0],
+                "switch_wake_normal"            : false,
+                "count_elements_number"         : false,
+                "write_elements_ids_to_file"    : false,
+                "shed_wake_from_trailing_edge"  : false,
+                "shedded_wake_distance"         : 12.5,
+                "shedded_wake_element_size"     : 0.2
+            }
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model = Model
+
+        self.output_wake = settings["output_wake"].GetBool()
+        self.echo_level = settings["echo_level"].GetInt()
+        self.wake_process_cpp_parameters = settings["wake_process_cpp_parameters"]
+
+        self.epsilon = self.wake_process_cpp_parameters["tolerance"].GetDouble()
+        self.shedded_wake_distance = self.wake_process_cpp_parameters["shedded_wake_distance"].GetDouble()
+        self.shedded_wake_element_size = self.wake_process_cpp_parameters["shedded_wake_element_size"].GetDouble()
+
+        # This is a reference value for the wake normal
+        self.wake_normal = self.wake_process_cpp_parameters["wake_normal"].GetVector()
+        if( abs(DotProduct(self.wake_normal,self.wake_normal) - 1) > self.epsilon ):
+            raise Exception('The wake normal should be a unitary vector')
 
         trailing_edge_model_part_name = settings["model_part_name"].GetString()
         if trailing_edge_model_part_name == "":
@@ -55,6 +71,16 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
 
+        self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
+
+        if self.wake_process_cpp_parameters.Has("wake_direction"):
+            self.wake_direction = self.wake_process_cpp_parameters["wake_direction"].GetVector()
+        else:
+            self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY_DIRECTION)
+            self.wake_process_cpp_parameters.AddEmptyValue("wake_direction")
+            self.wake_process_cpp_parameters["wake_direction"].SetVector(self.wake_direction)
+
         body_model_part_name = settings["body_model_part_name"].GetString()
         if body_model_part_name == "":
             err_msg = "Empty model_part_name in DefineWakeProcess3D\n"
@@ -62,7 +88,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.body_model_part = Model[body_model_part_name]
 
-        self.shed_wake_from_trailing_edge = settings["shed_wake_from_trailing_edge"].GetBool()
+        self.shed_wake_from_trailing_edge = self.wake_process_cpp_parameters["shed_wake_from_trailing_edge"].GetBool()
         if self.shed_wake_from_trailing_edge:
             warn_msg = 'Generating the wake automatically from the trailing edge.'
             KratosMultiphysics.Logger.PrintWarning('::[DefineWakeProcess3D]::', warn_msg)
@@ -74,26 +100,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             warn_msg += ' generating the wake automatically from the trailing edge.'
             KratosMultiphysics.Logger.PrintWarning('::[DefineWakeProcess3D]::', warn_msg)
 
-        self.epsilon = settings["epsilon"].GetDouble()
-        self.output_wake = settings["output_wake"].GetBool()
-        self.echo_level = settings["echo_level"].GetInt()
-        self.switch_wake_stl_normal = settings["switch_wake_stl_normal"].GetBool()
-        self.count_elements_number = settings["count_elements_number"].GetBool()
-        self.write_elements_ids_to_file = settings["write_elements_ids_to_file"].GetBool()
-        self.shedded_wake_distance = settings["shedded_wake_distance"].GetDouble()
-        self.shedded_wake_element_size = settings["shedded_wake_element_size"].GetDouble()
-
-        # This is a reference value for the wake normal
-        self.wake_normal = settings["wake_normal"].GetVector()
-        if( abs(DotProduct(self.wake_normal,self.wake_normal) - 1) > self.epsilon ):
-            raise Exception('The wake normal should be a unitary vector')
-
-        self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
-
     def ExecuteInitialize(self):
-        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY_DIRECTION)
-
         # If stl available, read wake from stl and create the wake model part
         start_time = time.time()
         self.__CreateWakeModelPart()
@@ -104,8 +111,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             'DefineWakeProcess3D', 'Executing __CreateWakeModelPart took ', round(exe_time/60, 2), ' min')
 
         start_time = time.time()
-        CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part, self.wake_model_part, self.epsilon, self.wake_normal, self.wake_direction, self.switch_wake_stl_normal,
-                                   self.count_elements_number, self.write_elements_ids_to_file, self.shed_wake_from_trailing_edge, self.shedded_wake_distance, self.shedded_wake_element_size).ExecuteInitialize()
+        CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
+                                   self.wake_model_part, self.wake_process_cpp_parameters).ExecuteInitialize()
         exe_time = time.time() - start_time
         KratosMultiphysics.Logger.PrintInfo(
             'DefineWakeProcess3D', 'Executing Define3DWakeProcess took ', round(exe_time, 2), ' sec')

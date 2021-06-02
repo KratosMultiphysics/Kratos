@@ -13,11 +13,6 @@
 #if !defined(KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED )
 #define  KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED
 
-// Project includes
-#include "includes/model_part.h"
-#include "processes/process.h"
-#include "compressible_potential_flow_application_variables.h"
-
 namespace Kratos
 {
 
@@ -45,15 +40,7 @@ public:
     Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
                         ModelPart& rBodyModelPart,
                         ModelPart& rStlWakeModelPart,
-                        const double Tolerance,
-                        const Vector& rWakeNormal,
-                        const Vector& rWakeDirection,
-                        const bool SwitchWakeDirection,
-                        const bool CountElementsNumber,
-                        const bool WriteElementsIdsToFile,
-                        const bool ShedWakeFromTrailingEdge,
-                        const double SheddedWakeDistance,
-                        const double SheddedWakeElementSize);
+                        Parameters ThisParameters);
 
     /// Copy constructor.
     Define3DWakeProcess(Define3DWakeProcess const& rOther) = delete;
@@ -106,8 +93,8 @@ private:
     ModelPart& mrBodyModelPart;
     ModelPart& mrStlWakeModelPart;
     // Tolerance to avoid nodes laying exactly on the wake
-    const double mTolerance;
-    const Vector& mWakeNormal;
+    double mTolerance;
+    BoundedVector<double, 3> mWakeNormal;
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mSpanDirection;
 
@@ -116,8 +103,8 @@ private:
     bool mWriteElementsIdsToFile;
     bool mShedWakeFromTrailingEdge;
 
-    const double mSheddedWakeDistance;
-    const double mSheddedWakeElementSize;
+    double mSheddedWakeDistance;
+    double mSheddedWakeElementSize;
 
     BoundedVector<double, 3> mWakeNormalOld;
 
@@ -147,7 +134,7 @@ private:
                                            IndexType& rElement_index,
                                            const Properties::Pointer pElemProp) const;
 
-    std::vector<ModelPart::IndexType> CreateWakeSurfaceNodes(
+    std::array<ModelPart::IndexType, 4> CreateWakeSurfaceNodes(
         IndexType& rNode_index,
         const array_1d<double, 3>& rCoordinates1,
         const array_1d<double, 3>& rCoordinates2,
@@ -161,7 +148,7 @@ private:
 
     void CreateWakeSurfaceElements(const double normal_projection,
                                    IndexType& rElement_index,
-                                   const std::vector<ModelPart::IndexType>& rNodes_ids,
+                                   const std::array<ModelPart::IndexType, 4>& rNodes_ids,
                                    const Properties::Pointer pElemProp) const;
 
     void MarkWakeElements() const;

@@ -11,10 +11,14 @@
 //
 
 // Project includes
+#include "includes/model_part.h"
+#include "processes/process.h"
+#include "compressible_potential_flow_application_variables.h"
 #include "define_3d_wake_process.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/potential_flow_utilities.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos {
 
@@ -22,29 +26,37 @@ namespace Kratos {
 Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
                                          ModelPart& rBodyModelPart,
                                          ModelPart& rStlWakeModelPart,
-                                         const double Tolerance,
-                                         const Vector& rWakeNormal,
-                                         const Vector& rWakeDirection,
-                                         const bool SwitchWakeDirection,
-                                         const bool CountElementsNumber,
-                                         const bool WriteElementsIdsToFile,
-                                         const bool ShedWakeFromTrailingEdge,
-                                         const double SheddedWakeDistance,
-                                         const double SheddedWakeElementSize)
+                                         Parameters ThisParameters)
     : Process(),
       mrTrailingEdgeModelPart(rTrailingEdgeModelPart),
       mrBodyModelPart(rBodyModelPart),
-      mrStlWakeModelPart(rStlWakeModelPart),
-      mTolerance(Tolerance),
-      mWakeNormal(rWakeNormal),
-      mWakeDirection(rWakeDirection),
-      mSwitchWakeDirection(SwitchWakeDirection),
-      mCountElementsNumber(CountElementsNumber),
-      mWriteElementsIdsToFile(WriteElementsIdsToFile),
-      mShedWakeFromTrailingEdge(ShedWakeFromTrailingEdge),
-      mSheddedWakeDistance(SheddedWakeDistance),
-      mSheddedWakeElementSize(SheddedWakeElementSize)
+      mrStlWakeModelPart(rStlWakeModelPart)
 {
+    Parameters default_parameters = Parameters(R"(
+    {
+        "tolerance"                     : 1e-9,
+        "wake_normal"                   : [0.0,0.0,1.0],
+        "wake_direction"                : [1.0,0.0,0.0],
+        "switch_wake_normal"            : false,
+        "count_elements_number"         : false,
+        "write_elements_ids_to_file"    : false,
+        "shed_wake_from_trailing_edge"  : false,
+        "shedded_wake_distance"         : 12.5,
+        "shedded_wake_element_size"     : 0.2
+
+    })" );
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    mTolerance = ThisParameters["tolerance"].GetDouble();
+    mWakeNormal = ThisParameters["wake_normal"].GetVector();
+    mWakeDirection = ThisParameters["wake_direction"].GetVector();
+    mSwitchWakeDirection = ThisParameters["switch_wake_normal"].GetBool();
+    mCountElementsNumber = ThisParameters["count_elements_number"].GetBool();
+    mWriteElementsIdsToFile = ThisParameters["write_elements_ids_to_file"].GetBool();
+    mShedWakeFromTrailingEdge = ThisParameters["shed_wake_from_trailing_edge"].GetBool();
+    mSheddedWakeDistance = ThisParameters["shedded_wake_distance"].GetDouble();
+    mSheddedWakeElementSize = ThisParameters["shedded_wake_element_size"].GetDouble();
+
     KRATOS_ERROR_IF(mWakeNormal.size() != 3)
         << "The mWakeNormal should be a vector with 3 components!"
         << std::endl;
@@ -112,9 +124,8 @@ void Define3DWakeProcess::InitializeTrailingEdgeSubModelpart() const
             r_element.Reset(STRUCTURE);
             r_element.Set(TO_ERASE, true);
         }
-        for (auto& r_node :trailing_edge_sub_model_part.Nodes()){
-            r_node.Set(TO_ERASE, true);
-        }
+        auto& r_nodes = trailing_edge_sub_model_part.Nodes();
+        VariableUtils().SetFlag(TO_ERASE, false, r_nodes);
         trailing_edge_sub_model_part.RemoveElements(TO_ERASE);
         trailing_edge_sub_model_part.RemoveNodes(TO_ERASE);
     }
@@ -141,9 +152,8 @@ void Define3DWakeProcess::InitializeWakeSubModelpart() const
             r_element.SetValue(WAKE_ELEMENTAL_DISTANCES, ZeroVector(3));
             r_element.Set(TO_ERASE, true);
         }
-        for (auto& r_node : wake_sub_model_part.Nodes()){
-            r_node.Set(TO_ERASE, true);
-        }
+        auto& r_nodes = wake_sub_model_part.Nodes();
+        VariableUtils().SetFlag(TO_ERASE, false, r_nodes);
         wake_sub_model_part.RemoveElements(TO_ERASE);
         wake_sub_model_part.RemoveNodes(TO_ERASE);
     }
@@ -202,7 +212,6 @@ void Define3DWakeProcess::ComputeWingLowerSurfaceNormals() const
         if(!(projection > 0.0)){
             for (unsigned int j = 0; j < r_geometry.size(); j++) {
                 r_geometry[j].SetLock();
-                // QUESTION: Do we need to initialize the variable UPPER_SURFACE to false?
                 r_geometry[j].SetValue(UPPER_SURFACE, true);
                 r_geometry[j].UnSetLock();
             }
@@ -234,9 +243,8 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
     // If mrTrailingEdgeModelPart doesn't have conditions use the global wake normal
     if(mrTrailingEdgeModelPart.NumberOfConditions() < 1){
         // Use global wake normal
-        for (auto& r_node : mrTrailingEdgeModelPart.Nodes()){
-            r_node.SetValue(WAKE_NORMAL, mWakeNormal);
-        }
+        auto& r_nodes = mrTrailingEdgeModelPart.Nodes();
+        VariableUtils().SetNonHistoricalVariable(WAKE_NORMAL, mWakeNormal, r_nodes);
     }
     else{
         for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()){
@@ -345,7 +353,7 @@ void Define3DWakeProcess::CreateWakeSurfaceNodesAndElements(
     IndexType& rElement_index,
     const Properties::Pointer pElemProp) const
 {
-    const std::vector<ModelPart::IndexType> nodes_ids = CreateWakeSurfaceNodes(
+    const std::array<ModelPart::IndexType, 4> nodes_ids = CreateWakeSurfaceNodes(
         rNode_index, rCoordinates1, rCoordinates2, rCoordinates3, rCoordinates4);
 
     const double normal_projection = ComputeFaceNormalProjectionToWakeNormal(
@@ -354,7 +362,7 @@ void Define3DWakeProcess::CreateWakeSurfaceNodesAndElements(
     CreateWakeSurfaceElements(normal_projection, rElement_index, nodes_ids, pElemProp);
 }
 
-std::vector<ModelPart::IndexType> Define3DWakeProcess::CreateWakeSurfaceNodes(
+std::array<ModelPart::IndexType, 4> Define3DWakeProcess::CreateWakeSurfaceNodes(
     IndexType& rNode_index,
     const array_1d<double, 3>& rCoordinates1,
     const array_1d<double, 3>& rCoordinates2,
@@ -388,20 +396,20 @@ double Define3DWakeProcess::ComputeFaceNormalProjectionToWakeNormal(
 
 void Define3DWakeProcess::CreateWakeSurfaceElements(const double normal_projection,
                                                     IndexType& rElement_index,
-                                                    const std::vector<ModelPart::IndexType>& rNodes_ids,
+                                                    const std::array<ModelPart::IndexType, 4>& rNodes_ids,
                                                     const Properties::Pointer pElemProp) const
 {
     if(normal_projection > 0.0){
-        const std::vector<ModelPart::IndexType> elemNodes1{rNodes_ids[0], rNodes_ids[1], rNodes_ids[2]};
-        const std::vector<ModelPart::IndexType> elemNodes2{rNodes_ids[0], rNodes_ids[3], rNodes_ids[2]};
-        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elemNodes1, pElemProp);
-        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elemNodes2, pElemProp);
+        const std::vector<ModelPart::IndexType> elem_nodes_1{rNodes_ids[0], rNodes_ids[1], rNodes_ids[2]};
+        const std::vector<ModelPart::IndexType> elem_nodes_2{rNodes_ids[0], rNodes_ids[3], rNodes_ids[2]};
+        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_1, pElemProp);
+        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_2, pElemProp);
     }
     else{
-        const std::vector<ModelPart::IndexType> elemNodes1{rNodes_ids[0], rNodes_ids[2], rNodes_ids[1]};
-        const std::vector<ModelPart::IndexType> elemNodes2{rNodes_ids[0], rNodes_ids[2], rNodes_ids[3]};
-        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elemNodes1, pElemProp);
-        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elemNodes2, pElemProp);
+        const std::vector<ModelPart::IndexType> elem_nodes_1{rNodes_ids[0], rNodes_ids[2], rNodes_ids[1]};
+        const std::vector<ModelPart::IndexType> elem_nodes_2{rNodes_ids[0], rNodes_ids[2], rNodes_ids[3]};
+        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_1, pElemProp);
+        mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_2, pElemProp);
     }
 }
 
@@ -417,15 +425,14 @@ void Define3DWakeProcess::MarkWakeElements() const
     std::vector<std::size_t> wake_elements_ordered_ids;
     std::vector<std::size_t> trailing_edge_elements_ordered_ids;
 
+    BuiltinTimer timer;
+
     // TODO: substitute with CalculateDiscontinuousDistanceToSkinProcess
-    const auto start_time(std::chrono::steady_clock::now());
     CalculateDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
     distance_calculator.Execute();
-    const auto end_time = std::chrono::duration_cast<std::chrono::duration<double>>(
-                              std::chrono::steady_clock::now() - start_time)
-                              .count();
-    KRATOS_INFO("MarkWakeElements") << " distance_calculator took " << end_time
-                                    << " [sec]" << std::endl;
+
+    KRATOS_INFO_IF("MarkWakeElements", root_model_part.GetProcessInfo()[ECHO_LEVEL] > 0)
+        << "distance_calculator took " << timer.ElapsedSeconds() << " [sec]" << std::endl;
 
     // This variable allows to inverse the distances computed with the distance
     // process, it is useful if the user makes a mistake and defines the wake
@@ -477,7 +484,6 @@ void Define3DWakeProcess::MarkWakeElements() const
                 r_geometry[j].SetValue(WAKE_DISTANCE, wake_elemental_distances[j]);
                 r_geometry[j].UnSetLock();
             }
-
         }
     });
 
@@ -496,17 +502,15 @@ void Define3DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement,
     // Loop over element nodes
     for (unsigned int i = 0; i < rGeometry.size(); i++)
     {
-        // Elements touching the trailing edge are trailing edge elements
-        rGeometry[i].SetLock();
-        if (rGeometry[i].GetValue(TRAILING_EDGE))
+        #pragma omp critical
         {
-            rElement.SetValue(TRAILING_EDGE, true);
-            #pragma omp critical
+            // Elements touching the trailing edge are trailing edge elements
+            if (rGeometry[i].GetValue(TRAILING_EDGE))
             {
+                rElement.SetValue(TRAILING_EDGE, true);
                 rTrailingEdgeElementsOrderedIds.push_back(rElement.Id());
             }
         }
-        rGeometry[i].UnSetLock();
     }
 }
 
@@ -528,6 +532,8 @@ void Define3DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t
     trailing_edge_sub_model_part.AddElements(rTrailingEdgeElementsOrderedIds);
 
     std::vector<std::size_t> trailing_edge_nodes_ordered_ids;
+    trailing_edge_nodes_ordered_ids.reserve(trailing_edge_sub_model_part.NumberOfElements());
+
     // Add also the nodes of the elements touching the trailing edge
     for (auto& r_elem : trailing_edge_sub_model_part.Elements())
     {
@@ -541,7 +547,7 @@ void Define3DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t
     trailing_edge_sub_model_part.AddNodes(trailing_edge_nodes_ordered_ids);
 }
 
-// This function recomputes the wake distances from the nodes belonging to te
+// This function recomputes the wake distances from the nodes belonging to the
 // elements. These distances are used later to decide which elements are KUTTA,
 // which are WAKE (STRUCTURE), and which are NORMAL
 void Define3DWakeProcess::RecomputeNodalDistancesToWakeOrWingLowerSurface() const
@@ -846,31 +852,27 @@ void Define3DWakeProcess::WriteElementIdsToFile() const
         for (auto& r_element : trailing_edge_sub_model_part.Elements()){
         if(!r_element.GetValue(WAKE)){
             if(r_element.GetValue(KUTTA)){
-                std::ofstream outfile_kutta;
-                outfile_kutta.open("kutta_elements_id.txt", std::ios_base::app);
                 outfile_kutta << r_element.Id();
                 outfile_kutta << "\n";
             }
             else{
-                std::ofstream outfile;
-                outfile.open("normal_elements_id.txt", std::ios_base::app);
                 outfile << r_element.Id();
                 outfile << "\n";
             }
         }
         else{
-            std::ofstream outfile_wake;
-            outfile_wake.open("wake_elements_id.txt", std::ios_base::app);
             outfile_wake << r_element.Id();
             outfile_wake << "\n";
             if(r_element.Is(STRUCTURE)){
-                std::ofstream outfile_structure;
-                outfile_structure.open("structure_elements_id.txt", std::ios_base::app);
                 outfile_structure << r_element.Id();
                 outfile_structure << "\n";
             }
         }
     }
+    outfile_kutta.close();
+    outfile.close();
+    outfile_structure.close();
+    outfile_wake.close();
 
     // Loop over all wake elements
     ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_elements_model_part");
@@ -878,11 +880,9 @@ void Define3DWakeProcess::WriteElementIdsToFile() const
     std::ofstream outfile_all_wake;
     outfile_wake.open("all_wake_elements_id.txt");
     for (auto& r_element : wake_sub_model_part.Elements()){
-        std::ofstream outfile_all_wake;
-        outfile_all_wake.open("all_wake_elements_id.txt", std::ios_base::app);
         outfile_all_wake << r_element.Id();
         outfile_all_wake << "\n";
-
     }
+    outfile_all_wake.close();
 }
 } // namespace Kratos.
