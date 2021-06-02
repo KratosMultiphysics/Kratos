@@ -34,7 +34,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "output_wake": false,
-            "echo_level": 0,
             "wake_process_cpp_parameters":    {
                 "tolerance"                     : 1e-9,
                 "wake_normal"                   : [0.0,0.0,1.0],
@@ -44,7 +43,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 "write_elements_ids_to_file"    : false,
                 "shed_wake_from_trailing_edge"  : false,
                 "shedded_wake_distance"         : 12.5,
-                "shedded_wake_element_size"     : 0.2
+                "shedded_wake_element_size"     : 0.2,
+                "echo_level": 1
             }
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -52,12 +52,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.model = Model
 
         self.output_wake = settings["output_wake"].GetBool()
-        self.echo_level = settings["echo_level"].GetInt()
         self.wake_process_cpp_parameters = settings["wake_process_cpp_parameters"]
 
         self.epsilon = self.wake_process_cpp_parameters["tolerance"].GetDouble()
         self.shedded_wake_distance = self.wake_process_cpp_parameters["shedded_wake_distance"].GetDouble()
         self.shedded_wake_element_size = self.wake_process_cpp_parameters["shedded_wake_element_size"].GetDouble()
+        self.echo_level = self.wake_process_cpp_parameters["echo_level"].GetInt()
 
         # This is a reference value for the wake normal
         self.wake_normal = self.wake_process_cpp_parameters["wake_normal"].GetVector()
@@ -523,4 +523,4 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         else:
             self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
 
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level)
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level-1)

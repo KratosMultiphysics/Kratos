@@ -34,16 +34,17 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "tolerance"                     : 1e-9,
-        "wake_normal"                   : [0.0,0.0,1.0],
-        "wake_direction"                : [1.0,0.0,0.0],
-        "switch_wake_normal"            : false,
-        "count_elements_number"         : false,
-        "write_elements_ids_to_file"    : false,
-        "shed_wake_from_trailing_edge"  : false,
-        "shedded_wake_distance"         : 12.5,
-        "shedded_wake_element_size"     : 0.2
-
+        "tolerance"                            : 1e-9,
+        "wake_normal"                          : [0.0,0.0,1.0],
+        "wake_direction"                       : [1.0,0.0,0.0],
+        "switch_wake_normal"                   : false,
+        "count_elements_number"                : false,
+        "write_elements_ids_to_file"           : false,
+        "shed_wake_from_trailing_edge"         : false,
+        "shedded_wake_distance"                : 12.5,
+        "shedded_wake_element_size"            : 0.2,
+        "decrease_wake_width_at_the_wing_tips" : false,
+        "echo_level": 1
     })" );
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
@@ -56,6 +57,8 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
     mShedWakeFromTrailingEdge = ThisParameters["shed_wake_from_trailing_edge"].GetBool();
     mSheddedWakeDistance = ThisParameters["shedded_wake_distance"].GetDouble();
     mSheddedWakeElementSize = ThisParameters["shedded_wake_element_size"].GetDouble();
+    mDecreaseWakeWidthAtTheWingTips = ThisParameters["decrease_wake_width_at_the_wing_tips"].GetBool();
+    mEchoLevel = ThisParameters["echo_level"].GetInt();
 
     KRATOS_ERROR_IF(mWakeNormal.size() != 3)
         << "The mWakeNormal should be a vector with 3 components!"
@@ -300,16 +303,17 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
         coordinates1 = r_geometry[0].Coordinates();
         coordinates2 = r_geometry[1].Coordinates();
 
-        if(r_geometry[0].GetValue(WING_TIP) != 0){
-            DecreaseWakeWidthAtTheWingTips(coordinates1, coordinates2);
-        }
-        else if(r_geometry[1].GetValue(WING_TIP) != 0){
-            DecreaseWakeWidthAtTheWingTips(coordinates2, coordinates1);
+        if(mDecreaseWakeWidthAtTheWingTips){
+            if(r_geometry[0].GetValue(WING_TIP) != 0){
+                DecreaseWakeWidthAtTheWingTips(coordinates1, coordinates2);
+            }
+            else if(r_geometry[1].GetValue(WING_TIP) != 0){
+                DecreaseWakeWidthAtTheWingTips(coordinates2, coordinates1);
+            }
         }
 
         coordinates3 = coordinates1 + mSheddedWakeElementSize * mWakeDirection;
         coordinates4 = coordinates2 + mSheddedWakeElementSize * mWakeDirection;
-
 
         CreateWakeSurfaceNodesAndElements(node_index, coordinates1, coordinates2, coordinates3,
                                    coordinates4, element_index, pElemProp);
@@ -401,13 +405,13 @@ void Define3DWakeProcess::CreateWakeSurfaceElements(const double normal_projecti
 {
     if(normal_projection > 0.0){
         const std::vector<ModelPart::IndexType> elem_nodes_1{rNodes_ids[0], rNodes_ids[1], rNodes_ids[2]};
-        const std::vector<ModelPart::IndexType> elem_nodes_2{rNodes_ids[0], rNodes_ids[3], rNodes_ids[2]};
+        const std::vector<ModelPart::IndexType> elem_nodes_2{rNodes_ids[1], rNodes_ids[3], rNodes_ids[2]};
         mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_1, pElemProp);
         mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_2, pElemProp);
     }
     else{
         const std::vector<ModelPart::IndexType> elem_nodes_1{rNodes_ids[0], rNodes_ids[2], rNodes_ids[1]};
-        const std::vector<ModelPart::IndexType> elem_nodes_2{rNodes_ids[0], rNodes_ids[2], rNodes_ids[3]};
+        const std::vector<ModelPart::IndexType> elem_nodes_2{rNodes_ids[1], rNodes_ids[2], rNodes_ids[3]};
         mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_1, pElemProp);
         mrStlWakeModelPart.CreateNewElement("Element3D3N", ++rElement_index, elem_nodes_2, pElemProp);
     }
@@ -421,17 +425,12 @@ void Define3DWakeProcess::MarkWakeElements() const
     KRATOS_INFO("MarkWakeElements") << "...Selecting wake elements..." << std::endl;
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
 
-    // Variable to store element ids
-    std::vector<std::size_t> wake_elements_ordered_ids;
-    std::vector<std::size_t> trailing_edge_elements_ordered_ids;
-
     BuiltinTimer timer;
 
-    // TODO: substitute with CalculateDiscontinuousDistanceToSkinProcess
-    CalculateDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
+    CalculateDiscontinuousDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
     distance_calculator.Execute();
 
-    KRATOS_INFO_IF("MarkWakeElements", root_model_part.GetProcessInfo()[ECHO_LEVEL] > 0)
+    KRATOS_INFO_IF("MarkWakeElements", mEchoLevel > 0)
         << "distance_calculator took " << timer.ElapsedSeconds() << " [sec]" << std::endl;
 
     // This variable allows to inverse the distances computed with the distance
@@ -442,6 +441,10 @@ void Define3DWakeProcess::MarkWakeElements() const
         KRATOS_INFO("MarkWakeElements") << " Switching wake element distances!" << std::endl;
         wake_normal_switching_factor = -1.0;
     }
+
+    // Variable to store element ids
+    std::vector<std::size_t> wake_elements_ordered_ids;
+    std::vector<std::size_t> trailing_edge_elements_ordered_ids;
 
     block_for_each(root_model_part.Elements(), [&](Element& rElement)
     {
@@ -878,7 +881,7 @@ void Define3DWakeProcess::WriteElementIdsToFile() const
     ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_elements_model_part");
 
     std::ofstream outfile_all_wake;
-    outfile_wake.open("all_wake_elements_id.txt");
+    outfile_all_wake.open("all_wake_elements_id.txt");
     for (auto& r_element : wake_sub_model_part.Elements()){
         outfile_all_wake << r_element.Id();
         outfile_all_wake << "\n";

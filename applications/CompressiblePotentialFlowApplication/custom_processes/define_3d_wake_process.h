@@ -102,6 +102,8 @@ private:
     bool mCountElementsNumber;
     bool mWriteElementsIdsToFile;
     bool mShedWakeFromTrailingEdge;
+    bool mDecreaseWakeWidthAtTheWingTips;
+    int mEchoLevel;
 
     double mSheddedWakeDistance;
     double mSheddedWakeElementSize;
