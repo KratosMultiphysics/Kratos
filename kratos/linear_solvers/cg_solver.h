@@ -139,6 +139,8 @@ public:
 
         bool is_solved = IterativeSolve(rA,rX,rB);
 
+        KRATOS_WARNING_IF("CG Linear Solver", !is_solved)<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
+
         BaseType::GetPreconditioner()->Finalize(rX);
 
 // 	  GetTimeTable()->Stop(Info());

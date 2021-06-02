@@ -39,9 +39,19 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
+# Membrane
+class MembraneSinglePatchFourPointSailLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_linear_static"
+
+class MembraneSinglePatchFourPointSailNonLinearStatic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_non_linear_static"
+
+class MembraneSinglePatchFourPointSailImplicitDynamic(IgaTestFactory):
+    file_name = "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic"
+
 # 3p Kirchhoff-Love Shell
 class ScordelisRoofShell3pTest(IgaTestFactory):
-    file_name = "scordelis_roof_shell_3p_test/scordelis_roof_shell_3p"
+    file_name = "scordelis_roof_test/scordelis_roof_shell_3p"
 
 class LinearBeamShell3pTest(IgaTestFactory):
     file_name = "linear_beam_shell_3p_test/linear_beam_shell_3p"
@@ -55,6 +65,10 @@ class Shell5pHierarchicLinearScordelisTest(IgaTestFactory):
 
 class Shell5pHierarchicNonLinearThickBeamTest(IgaTestFactory):
     file_name = "nonlinear_beam_thick_p2_nCP22/shell_5p"
+
+# 5p Shell Director
+class ScordelisRoofShell5pTest(IgaTestFactory):
+    file_name = "scordelis_roof_test/scordelis_roof_shell_5p"
 
 if __name__ == '__main__':
     KratosUnittest.main()

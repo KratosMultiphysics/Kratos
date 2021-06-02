@@ -15,6 +15,33 @@
 
 namespace Kratos
 {
+    /* @brief Creates integration points within provided spans according
+     *        to the provided points per span.
+     * @param rIntegrationPoints result integration points.
+     * @param rSpansLocalSpace spans in which integration points are generated.
+     * @param IntegrationPointsPerSpan number of integration points per span.
+     */
+    void IntegrationPointUtilities::CreateIntegrationPoints1D(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpace,
+        const SizeType IntegrationPointsPerSpan)
+    {
+        const SizeType num_spans = rSpansLocalSpace.size() - 1;
+        const SizeType number_of_integration_points = num_spans * IntegrationPointsPerSpan;
+
+        if (rIntegrationPoints.size() != number_of_integration_points)
+            rIntegrationPoints.resize(number_of_integration_points);
+
+        auto integration_point_iterator = rIntegrationPoints.begin();
+        for (IndexType i = 0; i < num_spans; ++i)
+        {
+            IntegrationPointUtilities::IntegrationPoints1D(
+                integration_point_iterator,
+                IntegrationPointsPerSpan,
+                rSpansLocalSpace[i], rSpansLocalSpace[i + 1]);
+        }
+    }
+
     void IntegrationPointUtilities::IntegrationPoints1D(
         typename IntegrationPointsArrayType::iterator& rIntegrationPointsBegin,
         SizeType PointsInU,

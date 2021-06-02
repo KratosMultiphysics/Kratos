@@ -1005,7 +1005,7 @@ public:
      */
     void AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex = 0);
 
-    /** Inserts a list of pointers to nodes
+    /** Inserts a list of pointers to elements
      */
     template<class TIteratorType >
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
@@ -1356,10 +1356,153 @@ public:
         return mGeometries.NumberOfGeometries();
     }
 
+    /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param rGeometryNodeIds The node ids to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const std::vector<IndexType>& rGeometryNodeIds
+        );
+
+    /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param pGeometryNodes The nodes array to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        GeometryType::PointsArrayType pGeometryNodes
+        );
+    
+    /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param pGeometry The pointer to an existing geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        GeometryType::Pointer pGeometry
+        );
+
+    /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param GeometryId of the new geometry added.
+     * @param rGeometryNodeIds The node ids to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const IndexType GeometryId,
+        const std::vector<IndexType>& rGeometryNodeIds
+        );
+
+    /** 
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param GeometryId of the new geometry added.
+     * @param pGeometryNodes The nodes array to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const IndexType GeometryId,
+        GeometryType::PointsArrayType pGeometryNodes
+        );
+
+    /** 
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param GeometryId of the new geometry added.
+     * @param pGeometry The pointer to an existing geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const IndexType GeometryId,
+        GeometryType::Pointer pGeometry
+        );
+
+    /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added, must be registered.
+     * @param rGeometryIdentifierName the identifier id of this geometry. Must be identical.
+     * @param rGeometryNodeIds The node ids to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const std::string& rGeometryIdentifierName,
+        const std::vector<IndexType>& rGeometryNodeIds
+        );
+
+    /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added. Must be registered.
+     * @param rGeometryIdentifierName the identifier id of this geometry. Must be identical.
+     * @param pGeometryNodes The nodes array to create the geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const std::string& rGeometryIdentifierName,
+        GeometryType::PointsArrayType pGeometryNodes
+        );
+    
+        /**
+     * @brief Inserts a geometry in the current model part.
+     * @param rGeometryTypeName The type of the geometry to be added. Must be registered.
+     * @param rGeometryIdentifierName the identifier id of this geometry. Must be identical.
+     * @param pGeometry The pointer to an existing geometry.
+     */
+    GeometryType::Pointer CreateNewGeometry(
+        const std::string& rGeometryTypeName,
+        const std::string& rGeometryIdentifierName,
+        GeometryType::Pointer pGeometry
+        );
 
     /// Adds a geometry to the geometry container.
     void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
+    /// Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+    void AddGeometries(std::vector<IndexType> const& GeometriesIds);
+
+    /// Inserts a list of geometries to a submodelpart provided their iterators
+    template<class TIteratorType >
+    void AddGeometries(TIteratorType GeometryBegin,  TIteratorType GeometriesEnd, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        std::vector<GeometryType::Pointer> aux, aux_root;
+        ModelPart* p_root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = GeometryBegin; it!=GeometriesEnd; it++) {
+            auto it_found = p_root_model_part->Geometries().find(it->Id());
+            if(it_found == p_root_model_part->GeometriesEnd()) { // Geometry does not exist in the top model part
+                aux_root.push_back( it.operator->() );
+                aux.push_back( it.operator->() );
+            } else { // If it does exist verify it is the same geometry
+                if(&(*it_found) != &(*it)) { // Check if the pointee coincides
+                    KRATOS_ERROR << "Attempting to add a new geometry with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
+                } else {
+                    aux.push_back( it.operator->() );
+                }
+            }
+        }
+        
+        // Add to root model part
+        for(auto& p_geom : aux_root) {
+            p_root_model_part->AddGeometry(p_geom);
+        }
+
+        // Add to all of the leaves
+        ModelPart* p_current_part = this;
+        while(p_current_part->IsSubModelPart()) {
+            for(auto& p_geom : aux) {
+                p_current_part->AddGeometry(p_geom);
+            }
+
+            p_current_part = &(p_current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /// Returns the Geometry::Pointer corresponding to the Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {

@@ -21,6 +21,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -572,8 +573,7 @@ void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariabl
 {
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
         double& r_aux_value = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
-        #pragma omp atomic
-        r_aux_value += rThisValue(i_node, 0);
+        AtomicAdd(r_aux_value, rThisValue(i_node, 0));
     }
 }
 
@@ -591,8 +591,7 @@ void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHist
         auto& r_aux_vector = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
         for (IndexType i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
             double& r_aux_value = r_aux_vector[i_dim];
-            #pragma omp atomic
-            r_aux_value += rThisValue(i_node, i_dim);
+            AtomicAdd(r_aux_value, rThisValue(i_node, i_dim));
         }
     }
 }
@@ -609,8 +608,7 @@ void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVari
 {
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
         double& r_aux_value = rThisGeometry[i_node].GetValue(rThisVariable);
-        #pragma omp atomic
-        r_aux_value += rThisValue(i_node, 0);
+        AtomicAdd(r_aux_value, rThisValue(i_node, 0));
     }
 }
 
@@ -628,8 +626,7 @@ void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonH
         auto& aux_vector = rThisGeometry[i_node].GetValue(rThisVariable);
         for (IndexType i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
             double& r_aux_value = aux_vector[i_dim];
-            #pragma omp atomic
-            r_aux_value += rThisValue(i_node, i_dim);
+            AtomicAdd(r_aux_value, rThisValue(i_node, i_dim));
         }
     }
 }

@@ -33,7 +33,8 @@
 #include "custom_utilities/move_mesh_utility.h"
 #include "custom_utilities/stationarity_checker.h"
 #include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
-
+#include "custom_utilities/random_variable.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
 
 namespace Kratos {
 
@@ -178,6 +179,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
         .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const int>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
             ,py::arg("model_part")
@@ -188,6 +190,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
+        .def(py::init<ModelPart&, array_1d<double, 3>, const int>())
         .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
@@ -328,6 +331,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
         .def(py::init<>())
         .def("ComputeAverageZStressFor2D", &AuxiliaryUtilities::ComputeAverageZStressFor2D)
+        .def("UpdateTimeInOneModelPart", &AuxiliaryUtilities::UpdateTimeInOneModelPart)
         ;
 
     py::class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")
@@ -358,6 +362,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
         .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
+        .def("CheckIfVariableIsNullInModelPart", &StationarityChecker::CheckIfVariableIsNullInModelPart)
         ;
 
     py::class_<MultiaxialControlModuleGeneralized2DUtilities, MultiaxialControlModuleGeneralized2DUtilities::Pointer>(m, "MultiaxialControlModuleGeneralized2DUtilities")
@@ -367,7 +372,20 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
         ;
 
+    py::class_<RandomVariable, RandomVariable::Pointer>(m, "RandomVariable")
+        .def(py::init<const Parameters>())
+        ;
+
+    py::class_<PiecewiseLinearRandomVariable, PiecewiseLinearRandomVariable::Pointer, RandomVariable>(m, "PiecewiseLinearRandomVariable")
+        .def(py::init<const Parameters>())
+        .def(py::init<const Parameters, const int>())
+        .def("Sample", &PiecewiseLinearRandomVariable::Sample)
+        .def("ProbabilityDensity", &PiecewiseLinearRandomVariable::ProbabilityDensity)
+        .def("GetMean", &PiecewiseLinearRandomVariable::GetMean)
+        ;
+
     }
+
 
 
 

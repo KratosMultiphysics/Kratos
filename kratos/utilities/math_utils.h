@@ -1866,6 +1866,7 @@ public:
         // Get the square root of the eigenvalues
         SizeType size = eigenvalues_matrix.size1();
         for (SizeType i = 0; i < size; ++i) {
+            KRATOS_ERROR_IF(eigenvalues_matrix(i,i) < 0) << "Eigenvalue " << i << " is negative. Square root matrix cannot be computed" << std::endl;
             eigenvalues_matrix(i,i) = std::sqrt(eigenvalues_matrix(i,i));
         }
 

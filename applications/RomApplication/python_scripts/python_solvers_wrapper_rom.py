@@ -17,27 +17,30 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if solver_settings.Has("time_integration_method"):
         time_integration_method = solver_settings["time_integration_method"].GetString()
     else:
-        time_integration_method = "implicit" # defaulting to implicit time-integration    
+        time_integration_method = "implicit" # defaulting to implicit time-integration
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "transient" or solver_type == "Transient"):
             solver_module_name = "convection_diffusion_transient_rom_solver"
-  
+
         elif (solver_type == "dynamic" or solver_type == "Dynamic"):
             if time_integration_method == "implicit":
-                solver_module_name = "structural_mechanics_implicit_dynamic_rom_solver" 
+                solver_module_name = "structural_mechanics_implicit_dynamic_rom_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"implicit\""
                 raise Exception(err_msg)
 
         elif solver_type == "static" or solver_type == "Static":
-            solver_module_name = "structural_mechanics_static_rom_solver"                       
+            solver_module_name = "structural_mechanics_static_rom_solver"
 
         elif (solver_type == "stationary" or solver_type == "Stationary"):
             solver_module_name = "convection_diffusion_stationary_rom_solver"
-            
+
+        elif (solver_type == "monolithic" or solver_type == "Monolithic"):
+            solver_module_name = "navier_stokes_solver_vmsmonolithic_rom"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"transient\", \"stationary\""

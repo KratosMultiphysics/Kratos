@@ -165,7 +165,9 @@ def GetDefaultInputParameters():
             "fluid_model_type_comment" : " untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)"
         },
 
-        "dem_parameters" : {},
+        "dem_parameters" : {
+            "seed" : 42
+        },
 
         "custom_dem" : {
             "do_solve_dem" : true,

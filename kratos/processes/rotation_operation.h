@@ -169,7 +169,7 @@ public:
 			ModelPart::MeshType& current_mesh = mr_model_part.GetMesh(mesh_id);
 
             block_for_each(current_mesh.Nodes(), [&](Node<3>& rNode){
-                const array_1d<double,3> relative_position = rNode.GetInitialPosition().Coordinates() - reference_point;
+                const array_1d<double,3>& relative_position = rNode.GetInitialPosition().Coordinates() - reference_point;
 				const array_1d<double,3> new_position = prod(rotation_matrix,relative_position) + reference_point ;
 				if (rNode.SolutionStepsDataHas(DISPLACEMENT_X))
 					rNode.FastGetSolutionStepValue(DISPLACEMENT) = new_position - rNode.GetInitialPosition().Coordinates();

@@ -252,12 +252,12 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
 
         return mp
 
-    def _set_up_system_3d4n(self,current_model):
+    def _set_up_system_3d4n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
         mp.SetBufferSize(2)
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-        self._add_variables(mp)
+        self._add_variables(mp,explicit_dynamics)
         self._apply_material_properties(mp)
         self._create_nodes_3d4n(mp)
         self._add_dofs(mp)
@@ -526,6 +526,101 @@ class DynamicPatchTestMembrane(BasePatchTestMembrane):
             mp.CloneTimeStep(time)
             strategy_expl.Solve()
             self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
+
+    def test_membrane_3d3n_dynamic_explicit_energy(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d3n(current_model,explicit_dynamics=True)
+
+        #time integration parameters
+        dt = 0.001
+        time = 0.0
+        end_time = 0.02
+        step = 0
+
+        self._set_and_fill_buffer(mp,3,dt)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
+
+        e_damp = 0.0
+        while(time <= end_time):
+
+            e_strain = 0.0
+            e_kin = 0.0
+            e_ext = 0.0
+
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            strategy_expl.Solve()
+
+
+            for element_i in mp.Elements:
+                e_strain += element_i.Calculate(KratosMultiphysics.STRAIN_ENERGY,mp.ProcessInfo)
+                e_kin    += element_i.Calculate(KratosMultiphysics.KINETIC_ENERGY,mp.ProcessInfo)
+                e_damp += dt*element_i.Calculate(StructuralMechanicsApplication.ENERGY_DAMPING_DISSIPATION,mp.ProcessInfo)
+                # adding external energy due to dead load
+                e_ext   += element_i.Calculate(KratosMultiphysics.EXTERNAL_ENERGY,mp.ProcessInfo)
+
+
+            # total energy should be ca. 0
+            e_total = sum([-e_ext,e_kin,e_strain,e_damp])
+            self.assertLessEqual(abs(e_total), 0.015)
+            # respective energy parts should be > or < 0 after first step
+            if step>1:
+                self.assertGreater(abs(e_ext), 0.0)
+                self.assertGreater(abs(e_damp), 0.0)
+                self.assertGreater(abs(e_kin), 0.0)
+                self.assertGreater(abs(e_strain), 0.0)
+
+
+
+    def test_membrane_3d4n_dynamic_explicit_energy(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_system_3d4n(current_model,explicit_dynamics=True)
+
+        #time integration parameters
+        dt = 0.001
+        time = 0.0
+        end_time = 0.02
+        step = 0
+
+        self._set_and_fill_buffer(mp,3,dt)
+        strategy_expl = _create_dynamic_explicit_strategy(mp,'central_differences')
+
+        e_damp = 0.0
+        while(time <= end_time):
+
+            e_strain = 0.0
+            e_kin = 0.0
+            e_ext = 0.0
+
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            strategy_expl.Solve()
+
+
+            for element_i in mp.Elements:
+                e_strain += element_i.Calculate(KratosMultiphysics.STRAIN_ENERGY,mp.ProcessInfo)
+                e_kin    += element_i.Calculate(KratosMultiphysics.KINETIC_ENERGY,mp.ProcessInfo)
+                e_damp += dt*element_i.Calculate(StructuralMechanicsApplication.ENERGY_DAMPING_DISSIPATION,mp.ProcessInfo)
+                # adding external energy due to dead load
+                e_ext   += element_i.Calculate(KratosMultiphysics.EXTERNAL_ENERGY,mp.ProcessInfo)
+
+
+            # total energy should be ca. 0
+            e_total = sum([-e_ext,e_kin,e_strain,e_damp])
+            self.assertLessEqual(abs(e_total), 0.035)
+            # respective energy parts should be > or < 0 after first step
+            if step>1:
+                self.assertGreater(abs(e_ext), 0.0)
+                self.assertGreater(abs(e_damp), 0.0)
+                self.assertGreater(abs(e_kin), 0.0)
+                self.assertGreater(abs(e_strain), 0.0)
+
 
 def _create_dynamic_explicit_strategy(mp,scheme_name):
     if (scheme_name=='central_differences'):

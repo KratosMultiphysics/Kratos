@@ -1,5 +1,6 @@
 #import python class test
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 #import python packages
 try:
@@ -19,7 +20,7 @@ def synthetic_matrix(degree, rows = 100,repetitions=20):
 
 class TestRandomizedSVD(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_radomized_svd(self):
 
         svd_truncation_tolerance = 1e-5
@@ -30,6 +31,9 @@ class TestRandomizedSVD(KratosUnittest.TestCase):
 
             #check that the difference of the reconstruction is below tolerance
             self.assertLess( np.linalg.norm(Randomized_Reconstruction - TestMatrix), svd_truncation_tolerance*np.linalg.norm(TestMatrix))
+    # Cleaning
+    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+
 
 if __name__=='__main__':
     KratosUnittest.main()

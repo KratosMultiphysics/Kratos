@@ -47,6 +47,7 @@ class SearchBaseProcess(KM.Process):
             "zero_tolerance_factor"       : 1.0,
             "integration_order"           : 2,
             "consider_tessellation"       : false,
+            "normal_check_proportion"     : 0.1,
             "search_parameters" : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
@@ -150,7 +151,9 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         # We check the normals
-        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part)
+        normal_check_parameters = KM.Parameters("""{"length_proportion" : 0.1}""")
+        normal_check_parameters["length_proportion"].SetDouble(self.settings["normal_check_proportion"].GetDouble())
+        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part, normal_check_parameters)
         check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh

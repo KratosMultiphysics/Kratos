@@ -148,6 +148,15 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
         { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
+        { 
+            IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
+            for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
+                IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
+                integration_points[i] = point_tmp;
+            }
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();

@@ -1554,14 +1554,12 @@ void CrBeamElement3D2N::AddExplicitContribution(
 
     BoundedVector<double, msElementSize> damping_residual_contribution = ZeroVector(msElementSize);
     // Calculate damping contribution to residual -->
-    if ((GetProperties().Has(RAYLEIGH_ALPHA) ||
-            GetProperties().Has(RAYLEIGH_BETA)) &&
+    if (StructuralMechanicsElementUtilities::HasRayleighDamping(GetProperties(), rCurrentProcessInfo) &&
             (rDestinationVariable != NODAL_INERTIA)) {
         Vector current_nodal_velocities = ZeroVector(msElementSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
     }
@@ -1596,8 +1594,7 @@ void CrBeamElement3D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_INERTIA) {
         Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_info; // Dummy
-        CalculateMassMatrix(element_mass_matrix, temp_info);
+        CalculateMassMatrix(element_mass_matrix, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {
             double aux_nodal_mass = 0.0;
