@@ -199,27 +199,37 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             solver,
             s,
             c)
-        s_plus_c = KM.Vector(s+c)
-        eps = 1e-12
+        eps = 1e-16
 
-        if c.norm_inf() != 0.0:
+        if c.norm_inf() > eps:
             if c.norm_inf() <= self.max_correction_share * self.step_size:
                 delta = self.step_size - c.norm_inf()
                 s_inf_norm = s.norm_inf()
                 if s_inf_norm > eps :
-                    s *= delta/s.norm_inf()
+                    s *= delta/s_inf_norm
+                else:
+                    s *= delta
             else:
                 KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
                 c_inf_norm = c.norm_inf()
                 s_inf_norm = s.norm_inf()
                 if c_inf_norm > eps:
                     c *= self.max_correction_share * self.step_size / c_inf_norm
+                else:
+                    c *= self.max_correction_share * self.step_size
                 if s_inf_norm > eps:
                     s *= (1.0 - self.max_correction_share) * self.step_size / s_inf_norm
+                else:
+                    s *= (1.0 - self.max_correction_share) * self.step_size
         else:
             s_inf_norm = s.norm_inf()
             if s_inf_norm > eps:
                 s *= self.step_size / s_inf_norm
+            else :
+                s *= self.step_size
+
+        s_plus_c = KM.Vector(s+c)
+
 
         previous_end = 0
         for design_surface in self.design_surfaces.values():
