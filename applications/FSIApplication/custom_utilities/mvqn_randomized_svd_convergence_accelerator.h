@@ -470,12 +470,8 @@ private:
         std::swap(p_aux_omega, mpOmega);
 
         // Create the random values generator
-        //TODO: STUDY THIS
-        std::mt19937 generator(1); //Standard mersenne_twister_engine seeded with rd()
-        std::uniform_real_distribution<> distribution(10000.0, 20000.0);
-        // std::random_device rd;  //Will be used to obtain a seed for the random number engine
-        // std::mt19937 generator(rd()); //Standard mersenne_twister_engine seeded with rd()
-        // std::uniform_real_distribution<> distribution(0.0, 1.0);
+        std::mt19937 generator(1); //Standard mersenne_twister_engine seeded with 1
+        std::uniform_real_distribution<> distribution(0.0, 1.0);
 
         // Fill the random values matrix
         auto& r_omega_matrix = *mpOmega;
