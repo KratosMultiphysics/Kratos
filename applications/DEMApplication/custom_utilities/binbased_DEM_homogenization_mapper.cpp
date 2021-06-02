@@ -46,14 +46,19 @@ template <std::size_t TDim, typename ParticleType>
 void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::ResetHomogenizationVariables(ModelPart& r_homogenization_model_part)
 {
     for (NodeIteratorType node_it = r_homogenization_model_part.NodesBegin(); node_it != r_homogenization_model_part.NodesEnd(); ++node_it){
+        
         if (!mVariables.Is(VOLUME_SOLID_FRACTION, "HomogenizationTimeFiltered")){
             ClearVariable(node_it, VOLUME_SOLID_FRACTION);
+        } 
+
+	    VariablesList& homogenization_variables = mVariables.GetVariablesList("Homogenization");
+
+        for (int j = 0; j < (int)homogenization_variables.size(); ++j){
+        const auto& variable = *homogenization_variables[j];       
+            if (mVariables.Is(variable, "Homogenization") && variable != NODAL_AREA){
+                ClearVariable(node_it, variable);
+            }
         }
- 
-        if (mVariables.Is(VELOCITY_PROJECTED, "Homogenization")){
-            array_1d<double, 3>& particle_velocity = node_it->FastGetSolutionStepValue(VELOCITY_PROJECTED);
-            particle_velocity = ZeroVector(3);
-        }      
     }
 }
 //***************************************************************************************************************
@@ -187,6 +192,9 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::CalculatePorosityProje
 
                 else {
                     porosity_projected = 1.0 - volume_solid_fraction / nodalHomogenizationVolume;
+                }
+                if(porosity_projected < 0){
+                    porosity_projected=0;
                 }
         }
     }

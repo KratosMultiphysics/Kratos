@@ -328,7 +328,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.projected_homogenization_vars += [VOLUME_SOLID_FRACTION]
         self.projected_homogenization_vars += [MASS_SOLID_FRACTION]
         self.projected_homogenization_vars += [VELOCITY_PROJECTED]
-        self.projected_homogenization_vars += [NODAL_AREA]
+        self.projected_homogenization_vars += [KratosMultiphysics.NODAL_AREA]
         self.projected_homogenization_vars += [POROSITY_PROJECTED]
         self.time_filtered_vars = []
         self.time_filtered_vars += [TIME_AVERAGED_ARRAY_3]
@@ -385,6 +385,11 @@ class DEMAnalysisStage(AnalysisStage):
         )
 
         self.projection_module.UpdateDatabase(element_size)
+        
+        # Calculate NODAL_AREA
+        domain_size = self.DEM_parameters["Dimension"].GetInt()
+        nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.homogenization_model_part, domain_size)
+        nodal_area_process.Execute()
 
         return max_node_Id, max_elem_Id, max_cond_Id
 

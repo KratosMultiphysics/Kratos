@@ -1,5 +1,5 @@
 # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import math
 import os
@@ -605,11 +605,12 @@ class Procedures(object):
         pass
 
     def AddHomogenizationVariables(self, model_part, DEM_parameters):
-
+        import KratosMultiphysics
         model_part.AddNodalSolutionStepVariable(VELOCITY_PROJECTED)
         model_part.AddNodalSolutionStepVariable(VOLUME_SOLID_FRACTION)
         model_part.AddNodalSolutionStepVariable(MASS_SOLID_FRACTION)
         model_part.AddNodalSolutionStepVariable(POROSITY_PROJECTED)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, dem_inlet_model_part, rigid_face_model_part):
         pass
