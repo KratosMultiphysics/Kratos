@@ -42,8 +42,12 @@ namespace Kratos {
 
     /// Constructor
 
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed): mInletModelPart(inlet_modelpart)
-    {
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed):
+                        DEM_Inlet(inlet_modelpart, Parameters(R"({"dem_inlets_settings" : {}})"), seed){}
+
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_parameters, const int seed):
+     mInletModelPart(inlet_modelpart), mInletsSettings(Parameters(r_parameters["dem_inlets_settings"]))
+        {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
         mPartialParticleToInsert.resize(number_of_submodelparts);
         mLastInjectionTimes.resize(number_of_submodelparts);
@@ -77,6 +81,7 @@ namespace Kratos {
         mWarningTooSmallInlet = false;
         mWarningTooSmallInletForMassFlow = false;
     }
+
 
     void DEM_Inlet::CheckSubModelPart(ModelPart& smp) {
         CheckIfSubModelPartHasVariable(smp, RADIUS);
@@ -167,6 +172,13 @@ namespace Kratos {
                 mLastInjectionTimes[smp_number] = mp[INLET_START_TIME];
             }
 
+            if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
+                const Parameters& inlet_settings = mInletsSettings[i];
+                mInletsRandomSettings.emplace(mp.Name(), inlet_settings["random_variable_settings"]);
+                const Parameters& rv_settings = mInletsRandomSettings[mp.Name()];
+                mInletsRandomVariables.emplace(mp.Name(), PiecewiseLinearRandomVariable(rv_settings));
+            }
+
             Element::Pointer dummy_element_pointer;
             std::string& ElementNameString = mp[INJECTOR_ELEMENT_TYPE];
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
@@ -180,6 +192,7 @@ namespace Kratos {
                                                                                 dummy_element_pointer,
                                                                                 p_properties,
                                                                                 mp,
+                                                                                mInletsRandomVariables,
                                                                                 r_reference_element,
                                                                                 p_fast_properties,
                                                                                 mBallsModelPartHasSphericity,
@@ -618,6 +631,7 @@ namespace Kratos {
                                                                                     //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
                                                                                     p_properties,
                                                                                     mp,
+                                                                                    mInletsRandomVariables,
                                                                                     r_reference_element,
                                                                                     p_fast_properties,
                                                                                     mBallsModelPartHasSphericity,
