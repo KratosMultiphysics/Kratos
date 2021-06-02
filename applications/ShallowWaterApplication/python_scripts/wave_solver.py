@@ -16,8 +16,6 @@ class WaveSolver(ShallowWaterBaseSolver):
         self.condition_name = "LineCondition"
 
     def AddDofs(self):
-        print(self.main_model_part)
-        print(self.main_model_part.GetNode(1).GetSolutionStepValue(KM.VELOCITY))
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
         KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.main_model_part)
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
