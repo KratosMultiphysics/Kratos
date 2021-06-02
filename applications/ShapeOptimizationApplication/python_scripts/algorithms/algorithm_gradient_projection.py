@@ -169,6 +169,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
         g_a, g_a_variables = self.__getActiveConstraints()
+        nabla_f = KM.Vector()
+        for design_surface in self.design_surfaces.values():
+            optimization_utilities.AssembleVector(design_surface, nabla_f, KSO.DF1DX_MAPPED, True)
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             for design_surface in self.design_surfaces.values():
@@ -180,11 +183,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 optimization_utilities.AssignVectorToVariable(design_surface, s, KSO.CONTROL_POINT_UPDATE)
             return
 
-        nabla_f = KM.Vector()
         N = KM.Matrix()
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vectors and matrices of objective gradient.")
         for design_surface in self.design_surfaces.values():
-            optimization_utilities.AssembleVector(design_surface, nabla_f, KSO.DF1DX_MAPPED, True)
             optimization_utilities.AssembleMatrix(design_surface, N, g_a_variables, True)  # TODO check if gradients are 0.0! - in cpp
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
@@ -229,7 +230,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 s *= self.step_size
 
         s_plus_c = KM.Vector(s+c)
-
 
         previous_end = 0
         for design_surface in self.design_surfaces.values():
