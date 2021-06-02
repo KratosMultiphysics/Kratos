@@ -38,6 +38,7 @@
 #include "custom_strategies/strategies/gear_scheme.h"
 #include "custom_strategies/strategies/runge_kutta_strategy.h"
 #include "custom_strategies/strategies/explicit_euler_strategy.h"
+#include "custom_strategies/strategies/explicit_euler_dg_strategy.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -83,6 +84,15 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         typename ExplicitEulerStrategyType::Pointer,
         BaseSolvingStrategyType>
         (m, "ExplicitEulerStrategy")
+        .def(py::init<ModelPart&, int, bool, bool, bool>())
+        ;
+
+    typedef ExplicitEulerDGStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitEulerDGStrategyType;
+    py::class_<
+        ExplicitEulerDGStrategyType,
+        typename ExplicitEulerDGStrategyType::Pointer,
+        BaseSolvingStrategyType>
+        (m, "ExplicitEulerDGStrategy")
         .def(py::init<ModelPart&, int, bool, bool, bool>())
         ;
 

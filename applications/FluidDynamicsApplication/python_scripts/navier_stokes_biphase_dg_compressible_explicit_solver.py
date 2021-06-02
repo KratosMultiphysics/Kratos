@@ -13,9 +13,9 @@ from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_
 from Kratos import *
 
 def CreateSolver(model, custom_settings):
-    return NavierStokesBiphaseCompressibleExplicitSolver(model, custom_settings)
+    return NavierStokesBiphaseDGCompressibleExplicitSolver(model, custom_settings)
 
-class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolver):
+class NavierStokesBiphaseDGCompressibleExplicitSolver(NavierStokesCompressibleSolver):
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -65,22 +65,22 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesBiphaseCompressibleExplicitSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesBiphaseDGCompressibleExplicitSolver, cls).GetDefaultSettings())
         return default_settings
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(NavierStokesBiphaseCompressibleExplicitSolver,self).__init__(model,custom_settings)
+        super(NavierStokesBiphaseDGCompressibleExplicitSolver,self).__init__(model,custom_settings)
 
 ##        self.element_name = "CompressibleNavierStokes"
-        self.element_name = "CompressibleBiphaseNavierStokesExplicit"
+        self.element_name = "CompressibleBiphaseDGNavierStokesExplicit"
         self.condition_name = "Condition"
         self.min_buffer_size = 2
 
         ## Set the nodal properties flag
         self.element_has_nodal_properties = True
 
-        print("Construction of NavierStokesBiphaseCompressibleExplicitSolver finished.")
+        print("Construction of NavierStokesBiphaseDGCompressibleExplicitSolver finished.")
 
     def AddVariables(self):     ## Che cosa fa questa funzione? Devono esistere da qualche parte le variabili che aggiungo?
         
@@ -144,8 +144,8 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_GAS, KratosFluid.REACTION_DENSITY_GAS, self.main_model_part)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_GAS, KratosFluid.REACTION_DENSITY_GAS, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_SOLID, KratosFluid.REACTION_DENSITY_SOLID, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 
@@ -181,7 +181,7 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
 #            self.settings["reform_dofs_at_each_step"].GetBool(),
 #            self.settings["move_mesh_flag"].GetBool())
 
-        self.solver = KratosFluid.ExplicitEulerStrategy(
+        self.solver = KratosFluid.ExplicitEulerDGStrategy(
             self.GetComputingModelPart(),
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
             self.settings["compute_reactions"].GetBool(),

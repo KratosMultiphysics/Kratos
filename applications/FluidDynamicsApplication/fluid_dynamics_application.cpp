@@ -117,6 +117,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mCompressibleBiphaseNavierStokesExplicit2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressibleBiphaseNavierStokesExplicit3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     
+    mCompressibleBiphaseDGNavierStokesExplicit2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mCompressibleBiphaseDGNavierStokesExplicit3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+
     // Two-Fluid Navier-Stokes symbolic elements
     mTwoFluidNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoFluidNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -187,6 +190,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(GAS_PRESSURE)
     KRATOS_REGISTER_VARIABLE(SOLID_CONCENTRATION)
     KRATOS_REGISTER_VARIABLE(DYNAMIC_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(EXTRA_PRESSURE)
     KRATOS_REGISTER_VARIABLE(MACH)
 
     // Turbulence statistics
@@ -277,6 +281,9 @@ void KratosFluidDynamicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("CompressibleBiphaseNavierStokesExplicit2D3N",mCompressibleBiphaseNavierStokesExplicit2D);
     KRATOS_REGISTER_ELEMENT("CompressibleBiphaseNavierStokesExplicit3D4N",mCompressibleBiphaseNavierStokesExplicit3D);
+
+    KRATOS_REGISTER_ELEMENT("CompressibleBiphaseDGNavierStokesExplicit2D3N",mCompressibleBiphaseDGNavierStokesExplicit2D);
+    KRATOS_REGISTER_ELEMENT("CompressibleBiphaseDGNavierStokesExplicit3D4N",mCompressibleBiphaseDGNavierStokesExplicit3D);
 
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);

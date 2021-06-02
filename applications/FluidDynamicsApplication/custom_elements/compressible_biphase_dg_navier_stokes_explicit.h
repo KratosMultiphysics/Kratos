@@ -11,8 +11,8 @@
 //  Main authors:    Andrea Montanino
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_BIPHASE_NAVIER_STOKES_EXPLICIT)
-#define  KRATOS_COMPRESSIBLE_BIPHASE_NAVIER_STOKES_EXPLICIT
+#if !defined(KRATOS_COMPRESSIBLE_BIPHASE_DG_NAVIER_STOKES_EXPLICIT)
+#define  KRATOS_COMPRESSIBLE_BIPHASE_DG_NAVIER_STOKES_EXPLICIT
 
 // System includes
 
@@ -59,14 +59,14 @@ namespace Kratos
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
 template< unsigned int TDim, unsigned int BlockSize = TDim+3, unsigned int TNumNodes = TDim + 1 >
-class CompressibleBiphaseNavierStokesExplicit : public Element
+class CompressibleBiphaseDGNavierStokesExplicit : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleBiphaseNavierStokesExplicit);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleBiphaseDGNavierStokesExplicit);
     struct ElementDataStruct
     {
         BoundedMatrix<double, TNumNodes, BlockSize> U, Un, Up;
@@ -102,16 +102,16 @@ public:
 
     /// Default constructor.
 
-    CompressibleBiphaseNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry)
+    CompressibleBiphaseDGNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
     {}
 
-    CompressibleBiphaseNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    CompressibleBiphaseDGNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    ~CompressibleBiphaseNavierStokesExplicit() override {};
+    ~CompressibleBiphaseDGNavierStokesExplicit() override {};
 
 
     ///@}
@@ -126,14 +126,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive< CompressibleBiphaseNavierStokesExplicit < TDim,BlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive< CompressibleBiphaseDGNavierStokesExplicit < TDim,BlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive< CompressibleBiphaseNavierStokesExplicit < TDim,BlockSize, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< CompressibleBiphaseDGNavierStokesExplicit < TDim,BlockSize, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -248,7 +248,7 @@ public:
         for (size_t i = 0; i < TNumNodes; ++i)
         {   
             #pragma omp atomic
-            r_geom[i].FastGetSolutionStepValue(DENSITY_RHS) += rRightHandSideVector[BlockSize*i];
+            r_geom[i].FastGetSolutionStepValue(DENSITY_GAS_RHS) += rRightHandSideVector[BlockSize*i];
 
             #pragma omp atomic
             r_geom[i].FastGetSolutionStepValue(DENSITY_SOLID_RHS) += rRightHandSideVector[BlockSize*i + 1];
@@ -298,8 +298,8 @@ public:
             KRATOS_THROW_ERROR(std::invalid_argument,"MOMENTUM Key is 0. Check if the application was correctly registered.","");
         if(TOTAL_ENERGY.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,"TOTAL_ENERGY Key is 0. Check if the application was correctly registered.","");
-        if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
+        if(DENSITY_GAS.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY_GAS Key is 0. Check if the application was correctly registered.","");
         if(DYNAMIC_VISCOSITY.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.","");
         if(KINEMATIC_VISCOSITY.Key() == 0)
@@ -320,8 +320,8 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing MOMENTUM variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing TOTAL_ENERGY variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY_GAS) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_GAS variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY_SOLID) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_SOLID variable on solution step data for node ",this->GetGeometry()[i].Id());
 
@@ -332,8 +332,8 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing MOMENTUM component degree of freedom on node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing TOTAL_ENERGY component degree of freedom on node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].HasDofFor(DENSITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].HasDofFor(DENSITY_GAS) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_GAS component degree of freedom on node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(DENSITY_SOLID) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_SOLID component degree of freedom on node ",this->GetGeometry()[i].Id());
         }
@@ -429,7 +429,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "CompressibleBiphaseNavierStokesExplicit #";
+        return "CompressibleBiphaseDGNavierStokesExplicit #";
     }
 
     /// Print information about this object.
@@ -473,7 +473,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    CompressibleBiphaseNavierStokesExplicit() : Element()
+    CompressibleBiphaseDGNavierStokesExplicit() : Element()
     {
     }
 
@@ -528,9 +528,9 @@ protected:
                 rData.Up(i,k+2)  = momentp[k];
                 rData.f_ext(i,k)   = body_force[k];
             }
-            rData.U(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            rData.Un(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
-            rData.Up(i,0)= (this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_RHS))/mass;
+            rData.U(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_GAS);
+            rData.Un(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_GAS,1);
+            rData.Up(i,0)= (this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_GAS_RHS))/mass;
             
             rData.U(i,1)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_SOLID);
             rData.Un(i,1)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_SOLID,1);
