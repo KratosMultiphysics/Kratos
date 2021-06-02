@@ -52,7 +52,7 @@ class LagrangianShallowWaterSolver(ShallowWaterBaseSolver):
         self.mesh_solver.Predict()
 
     def SolveSolutionStep(self):
-        self.mesh_solver.SolveSolutionStep()
+        return self.mesh_solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self.mesh_solver.FinalizeSolutionStep()

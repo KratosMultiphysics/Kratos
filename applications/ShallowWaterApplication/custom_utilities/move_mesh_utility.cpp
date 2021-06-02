@@ -38,8 +38,8 @@ MoveMeshUtility::MoveMeshUtility(
 
     FillVariablesList(mScalarVariablesToLagrangian, ThisParameters["map_variables_to_lagrangian"]);
     FillVariablesList(mVectorVariablesToLagrangian, ThisParameters["map_variables_to_lagrangian"]);
-    FillVariablesList(mScalarVariablesToEulerian, ThisParameters["map_variables_to_lagrangian"]);
-    FillVariablesList(mVectorVariablesToEulerian, ThisParameters["map_variables_to_lagrangian"]);
+    FillVariablesList(mScalarVariablesToEulerian, ThisParameters["map_variables_to_eulerian"]);
+    FillVariablesList(mVectorVariablesToEulerian, ThisParameters["map_variables_to_eulerian"]);
 }
 
 const Parameters MoveMeshUtility::GetDefaultParameters() const
@@ -114,7 +114,7 @@ bool MoveMeshUtility::MoveNode(
     NodeType& rNode,
     double Dt,
     Vector& rN,
-    Element::Pointer pElement,
+    Element::Pointer& pElement,
     ResultIteratorType& rResultBegin)
 {
     array_1d<double,3>& r_pos = rNode.Coordinates();

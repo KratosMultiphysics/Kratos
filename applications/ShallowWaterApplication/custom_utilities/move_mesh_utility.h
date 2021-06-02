@@ -187,7 +187,7 @@ private:
         NodeType& rNode,
         double Dt,
         Vector& rN,
-        Element::Pointer pElement,
+        Element::Pointer& pElement,
         ResultIteratorType& rResultBegin);
 
     void MapToLagrangian(
