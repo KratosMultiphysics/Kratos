@@ -396,6 +396,7 @@ class RigidBodySolver(object):
             # Increase the index so it fits with the angular terms (if necessary)
             if identifier in self.angular_variables:
                 value += self.linear_size
+            # Save input variables in their corresponding spots
             if self.available_dofs[index] in self.active_dofs:
                 if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
                     self.x[index, buffer_idx] = value
@@ -420,19 +421,22 @@ class RigidBodySolver(object):
         output = KratosMultiphysics.Vector(self._ExpectedDataSize(identifier))
 
         # Save all the values from the active DOFs
-        for index, dof in enumerate(self.available_dofs):
-            if dof in self.active_dofs:
-                if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
-                    output[index] = self.x[index, buffer_idx]
-                elif identifier == "VELOCITY":
-                    output[index] = self.v[index, buffer_idx]
-                elif identifier == "ACCELERATION":
-                    output[index] = self.a[index, buffer_idx]
-                elif identifier in ["REACTION", "REACTION_MOMENT", "REACTION_ALL"]:
-                    output[index] = self.CalculateReaction(buffer_idx=buffer_idx)[index]
-                else:
-                    raise Exception("Identifier is unknown!")
-
+        for index in range(len(output)):
+            out_index = index
+            # Increase the index so it fits with the angular terms (if necessary)
+            if identifier in self.angular_variables:
+                index += self.linear_size
+            # Fill the output with its corresponding values
+            if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
+                output[out_index] = self.x[index, buffer_idx]
+            elif identifier == "VELOCITY":
+                output[out_index] = self.v[index, buffer_idx]
+            elif identifier == "ACCELERATION":
+                output[out_index] = self.a[index, buffer_idx]
+            elif identifier in ["REACTION", "REACTION_MOMENT", "REACTION_ALL"]:
+                output[out_index] = self.CalculateReaction(buffer_idx=buffer_idx)[index]
+            else:
+                raise Exception("Identifier is unknown!")
         return output
 
     
