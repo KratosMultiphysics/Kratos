@@ -21,7 +21,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-
+    @KratosUnittest.skip("This test is very long and should be shortend")
     def test_wave_through_drained_linear_elastic_soil(self):
         """
         Test dynamic calculation on a drained linear elastic soil column. a line load of -1kN is instantly placed
@@ -30,13 +30,13 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'test_1d_wave_prop_drained_soil.gid'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         simulation = test_helper.run_kratos(file_path)
 
         # get effective stress
         efective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        efective_stresses_yy = [integration_point[4] for element in efective_stresses for integration_point in element]
+        efective_stresses_yy = [integration_point[1,1] for element in efective_stresses for integration_point in element]
 
         # get coordinates of the gauss points
         gauss_coordinates = test_helper.get_gauss_coordinates(simulation)
@@ -58,7 +58,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
     @KratosUnittest.skip("unit test skipped as it is not ready")
     def test_wave_through_undrained_linear_elastic_soil(self):
         test_name = 'test_1d_confined_undrained_wave.gid'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
         pass
 

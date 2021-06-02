@@ -29,7 +29,7 @@ Parameters Object {
                             ],
                             "node_output": false,
                             "output_control_type": "step",
-                            "output_frequency": 1,
+                            "output_interval": 1,
                             "plane_output": [],
                             "skin_output": false
                         }

@@ -29,11 +29,23 @@ namespace Kratos
 
 int ParallelUtilities::GetNumThreads()
 {
-    return GetNumberOfThreads();
+#ifdef KRATOS_SMP_OPENMP
+    int nthreads = omp_get_max_threads();
+    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
+    return nthreads;
+#elif defined(KRATOS_SMP_CXX11)
+    int nthreads = GetNumberOfThreads();
+    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
+    return nthreads;
+#else
+    return 1;
+#endif
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
 {
+    KRATOS_ERROR_IF(NumThreads <= 0) << "Attempting to set NumThreads to <= 0. This is not allowed" << std::endl;
+    
 #ifdef KRATOS_SMP_NONE
     // do nothing if is shared memory parallelization is disabled
     return;
@@ -110,13 +122,13 @@ int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
         LockObject lock;
-        lock.SetLock();
+        lock.lock();
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
             mspNumThreads = &num_threads;
         }
-        lock.UnSetLock();
+        lock.unlock();
     }
 
     return *mspNumThreads;

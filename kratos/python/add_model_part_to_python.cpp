@@ -87,6 +87,73 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    std::vector< ModelPart::IndexType >& NodeIdList)
+{
+    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    for (std::size_t i = 0; i < NodeIdList.size(); i++) {
+        pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
+    }
+
+    return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometryNodeList);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    ModelPart::IndexType GeometryId,
+    std::vector< ModelPart::IndexType >& NodeIdList)
+{
+    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    for(std::size_t i = 0; i < NodeIdList.size(); i++) {
+        pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
+    }
+
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometryNodeList);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    const std::string& GeometryIdentifierName,
+    std::vector< ModelPart::IndexType >& NodeIdList)
+{
+    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    for (std::size_t i = 0; i < NodeIdList.size(); i++) {
+        pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
+    }
+
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodeList);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    ModelPart::GeometryType::Pointer pGeometry)
+{
+    return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometry);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    ModelPart::IndexType GeometryId,
+    ModelPart::GeometryType::Pointer pGeometry)
+{
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometry);
+}
+
+Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry6(
+    ModelPart& rModelPart,
+    const std::string& GeometryTypeName,
+    const std::string& GeometryIdentifierName,
+    ModelPart::GeometryType::Pointer pGeometry)
+{
+    return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometry);
+}
+
 Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     if (!KratosComponents<Element>::Has(ElementName)) {
@@ -907,6 +974,12 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry1)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry2)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry3)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry4)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry5)
+        .def("CreateNewGeometry", ModelPartCreateNewGeometry6)
         .def("CreateNewElement", ModelPartCreateNewElement)
         .def("CreateNewElement", [](ModelPart& rModelPart, const std::string& ElementName, ModelPart::IndexType Id,
             ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)

@@ -116,16 +116,10 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting initialization of mapper..." << std::endl;
 
-        CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
-
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
-        ComputeMappingMatrix();
-
         mIsMappingInitialized = true;
+
+        Update();
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
@@ -314,8 +308,10 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
-        InitializeComputationOfMappingMatrix();
-        CreateSearchTreeWithAllNodesInOriginModelPart();
+        CreateListOfNodesInOriginModelPart();
+        InitializeMappingVariables();
+        AssignMappingIds();
+
         ComputeMappingMatrix();
 
         KRATOS_INFO("ShapeOpt") << "Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -463,13 +459,18 @@ private:
     void InitializeMappingVariables()
     {
         const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
+        mValuesOrigin.resize(3);
+        mValuesOrigin[0] = ZeroVector(origin_node_number);
+        mValuesOrigin[1] = ZeroVector(origin_node_number);
+        mValuesOrigin[2] = ZeroVector(origin_node_number);
+
         const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
+        mValuesDestination.resize(3);
+        mValuesDestination[0] = ZeroVector(destination_node_number);
+        mValuesDestination[1] = ZeroVector(destination_node_number);
+        mValuesDestination[2] = ZeroVector(destination_node_number);
 
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
-        mMappingMatrix.clear();
-
-        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
-        mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
     // --------------------------------------------------------------------------
@@ -493,6 +494,9 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
+        InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 

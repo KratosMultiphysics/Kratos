@@ -17,7 +17,7 @@
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-#include <windows.h>
+#include "windows.hpp"
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
@@ -184,12 +184,9 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
 {
    KRATOS_TRY;
    // we need to check if the model is loaded or not
-   if (!mIsUMATLoaded) mIsUMATLoaded = loadUMAT(rMaterialProperties);
+   mIsUMATLoaded = loadUMAT(rMaterialProperties);
 
-   if (!mIsModelInitialized)
-   {
-      ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-   }
+   ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
    KRATOS_CATCH(" ");
 }
@@ -198,26 +195,15 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
 {
    KRATOS_TRY;
    // reset state variables
-   int nStateVariables = GetNumberOfStateVariablesFromUMAT(rMaterialProperties);
+
+   const auto &StateVariables = rMaterialProperties[STATE_VARIABLES];
+   const unsigned int nStateVariables = StateVariables.size();
+
    mStateVariables.resize(nStateVariables);
    mStateVariablesFinalized.resize(nStateVariables);
 
-   for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i)
-   {
-      std::string stateVariableName = "STATE_VARIABLE_" + std::to_string(i+1);
-
-      const Variable<double> &var = KratosComponents< Variable<double> >::Get(stateVariableName);
-
-      if (rMaterialProperties.Has(var) == false)
-      {
-         KRATOS_THROW_ERROR(std::invalid_argument, stateVariableName + 
-                            " is not defined or has an invalid value for property", rMaterialProperties.Id())
-      }
-
-      mStateVariables[i]          = rMaterialProperties[var];
-      mStateVariablesFinalized[i] = rMaterialProperties[var];
-
-   }
+   noalias(mStateVariables)          = StateVariables;
+   noalias(mStateVariablesFinalized) = StateVariables;
 
    KRATOS_CATCH(" ");
 }
@@ -233,12 +219,12 @@ void SmallStrainUMAT3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    ResetStateVariables(rMaterialProperties);
 
    // set stress vectors:
-   std::fill(mStressVector.begin(), mStressVector.end(), 0.0);
-   std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+   noalias(mStressVector)          = ZeroVector(mStressVector.size());
+   noalias(mStressVectorFinalized) = ZeroVector(mStressVectorFinalized.size());
 
    // set strain vectors:
-   std::fill(mDeltaStrainVector.begin(), mDeltaStrainVector.end(), 0.0);
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
+   noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
+   noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
       for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
@@ -248,33 +234,6 @@ void SmallStrainUMAT3DLaw::ResetMaterial(const Properties& rMaterialProperties,
 
    KRATOS_CATCH(" ");
 }
-
-
-int SmallStrainUMAT3DLaw::GetNumberOfStateVariablesFromUMAT(const Properties& rMaterialProperties)
-{
-   KRATOS_TRY;
-
-   if (!mIsUMATLoaded) mIsUMATLoaded = loadUMAT(rMaterialProperties);
-
-   int nStateVariables = rMaterialProperties[NUMBER_OF_UMAT_STATE_VARIABLES];
-   return nStateVariables;
-
-   KRATOS_CATCH(" ");
-}
-
-
-int SmallStrainUMAT3DLaw::GetNumberOfMaterialParametersFromUMAT(const Properties& rMaterialProperties)
-{
-   KRATOS_TRY;
-
-   if (!mIsUMATLoaded) mIsUMATLoaded = loadUMAT(rMaterialProperties);
-
-   int nParameters = rMaterialProperties[NUMBER_OF_UMAT_PARAMETERS];
-   return nParameters;
-
-   KRATOS_CATCH(" ");
-}
-
 
 bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
 {
@@ -570,8 +529,8 @@ void SmallStrainUMAT3DLaw::CallUMAT( ConstitutiveLaw::Parameters &rValues)
    // variable to check if an error happend in the model:
    const auto &MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
    int nProperties = MaterialParameters.size();
-   pUserMod(mStressVector.data(), mStateVariables.data(), (double **)mMatrixD,  &SSE,   &SPD,                          &SCD,
-            NULL,                 NULL,                   NULL,                 NULL,   mStrainVectorFinalized.data(), mDeltaStrainVector.data(),
+   pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double **)mMatrixD,  &SSE,   &SPD,                          &SCD,
+            NULL,                 NULL,                   NULL,                 NULL,   &(mStrainVectorFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
             &time,                &deltaTime,             NULL,                 NULL,   NULL,                          NULL,
             &materialName,        &ndi,                   &nshr,                &ntens, &nStateVariables,              &(MaterialParameters.data()[0]),
             &nProperties,         NULL,                   NULL,                 NULL,   NULL,                          NULL,
@@ -868,7 +827,7 @@ int SmallStrainUMAT3DLaw::GetStateVariableIndex(const Variable<double>& rThisVar
     else if (rThisVariable == STATE_VARIABLE_50)
        index = 50;
 
-   return index;
+   return index -1;
 }
 
 //----------------------------------------------------------------------------------------
@@ -880,21 +839,14 @@ Vector& SmallStrainUMAT3DLaw::GetValue( const Variable<Vector> &rThisVariable, V
       if (rValue.size() != mStateVariablesFinalized.size())
          rValue.resize(mStateVariablesFinalized.size());
 
-      for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i)
-      {
-         rValue[i] = mStateVariablesFinalized[i];
-      }
+      noalias(rValue) = mStateVariablesFinalized;
    }
    else if (rThisVariable == CAUCHY_STRESS_VECTOR)
    {
       if (rValue.size() != mStressVectorFinalized.size())
          rValue.resize(mStressVectorFinalized.size());
 
-      for (unsigned int i=0; i < mStressVectorFinalized.size(); ++i)
-      {
-         rValue[i] = mStressVectorFinalized[i];
-      }
-
+      noalias(rValue) = mStressVectorFinalized;
    }
 
     return rValue;
@@ -906,10 +858,10 @@ double& SmallStrainUMAT3DLaw::GetValue( const Variable<double>& rThisVariable, d
 
    int index = GetStateVariableIndex(rThisVariable);
 
-   if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
-   {
-      rValue = mStateVariablesFinalized[index - 1];
-   }
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+   rValue = mStateVariablesFinalized[index];
 
     return rValue;
 }
@@ -931,11 +883,11 @@ void SmallStrainUMAT3DLaw::SetValue( const Variable<double>& rThisVariable,
                                      const ProcessInfo& rCurrentProcessInfo )
 {
    const int index = GetStateVariableIndex(rThisVariable);
-   
-   if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
-   {
-      mStateVariablesFinalized[index - 1] = rValue;
-   }
+
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+   mStateVariablesFinalized[index] = rValue;
 }
 
 //----------------------------------------------------------------------------------------

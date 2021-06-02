@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
+#include "includes/kratos_parameters.h"
 #include "containers/global_pointers_vector.h"
 
 namespace Kratos
@@ -815,6 +816,8 @@ public:
         const double domain_size = this->GetGeometry().DomainSize();
         KRATOS_ERROR_IF( domain_size < 0.0 ) << "Condition " << this->Id() << " has negative size " << domain_size << std::endl;
 
+        GetGeometry().Check();
+
         return 0;
 
         KRATOS_CATCH("")
@@ -958,6 +961,64 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * {
+        "time_integration"           : [],                                   // NOTE: Options are static, implicit, explicit
+        "framework"                  : "eulerian",                           // NOTE: Options are eulerian, lagrangian, ALE
+        "symmetric_lhs"              : true,                                 // NOTE: Options are true/false
+        "positive_definite_lhs"      : false,                                // NOTE: Options are true/false
+        "output"                     : {                                     // NOTE: Values compatible as output
+                "gauss_point"            : ["INTEGRATION_WEIGTH"],
+                "nodal_historical"       : ["DISPLACEMENT"],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],                     // NOTE: Fill with the required variables
+        "required_dofs"              : ["DISPLACEMENT_X", "DISPLACEMENT_Y"], // NOTE: Fill with the required dofs
+        "flags_used"                 : ["BOUNDARY", "ACTIVE"],               // NOTE: Fill with the flags used
+        "compatible_geometries"      : ["Triangle2D3"],                      // NOTE: Compatible geometries. Options are "Point2D", "Point3D", "Sphere3D1", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle2D3", "Triangle2D6", "Triangle3D3", "Triangle3D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9", "Tetrahedra3D4" , "Tetrahedra3D10" , "Prism3D6" , "Prism3D15" , "Hexahedra3D8" , "Hexahedra3D20" , "Hexahedra3D27"
+        "element_integrates_in_time" : true,                                 // NOTE: Options are true/false
+        "compatible_constitutive_laws": {
+            "type"         : ["PlaneStress","PlaneStrain"],                  // NOTE: List of CL compatible types. Options are "PlaneStress", "PlaneStrain", "3D"
+            "dimension"   : ["2D", "2D"],                                    // NOTE: List of dimensions. Options are "2D", "3D", "2DAxysimm"
+            "strain_size" : [3,3]                                            // NOTE: List of strain sizes
+            },
+        "documentation"              : "This is a condition"                 // NOTE: The documentation of the entity
+        }
+     * @return specifications The required specifications/requirements
+     */
+    virtual const Parameters GetSpecifications() const
+    {
+        const Parameters specifications = Parameters(R"({
+            "time_integration"           : [],
+            "framework"                  : "lagrangian",
+            "symmetric_lhs"              : false,
+            "positive_definite_lhs"      : false,
+            "output"                     : {
+                "gauss_point"            : [],
+                "nodal_historical"       : [],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+            },
+            "required_variables"         : [],
+            "required_dofs"              : [],
+            "flags_used"                 : [],
+            "compatible_geometries"      : [],
+            "element_integrates_in_time" : true,
+            "compatible_constitutive_laws": {
+                "type"        : [],
+                "dimension"   : [],
+                "strain_size" : []
+            },
+            "required_polynomial_degree_of_geometry" : -1,
+            "documentation"   : "This is the base condition"
+
+        })");
+        return specifications;
+    }
 
     /// Turn back information as a string.
 

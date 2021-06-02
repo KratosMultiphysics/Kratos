@@ -37,8 +37,7 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
     rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
@@ -414,11 +413,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, Comp
         p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
     }
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -505,11 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
         }
     }
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, CompressiblePotentialApplicationFastSuite) {

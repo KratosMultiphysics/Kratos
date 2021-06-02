@@ -62,7 +62,7 @@
         "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
-            "solver_type":   "LinearSolversApplication.sparse_lu",
+            "solver_type":   "sparse_lu",
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-2"],
@@ -87,7 +87,7 @@
                         },
                         "file_label":          "step",
                         "output_control_type": "step",
-                        "output_frequency":    1,
+                        "output_interval":    1,
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,

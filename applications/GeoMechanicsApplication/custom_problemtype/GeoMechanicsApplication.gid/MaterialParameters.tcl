@@ -313,13 +313,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 89]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+89}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
@@ -363,13 +367,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 89]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+89}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             }
@@ -693,13 +701,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 89]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+89}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
@@ -744,14 +756,19 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 89]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+89}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
+
             }
         }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
@@ -1064,13 +1081,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 89]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+89}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             } elseif {[lindex [lindex $Groups $i] 3] eq "SmallStrainUMAT2DPlaneStrainLaw"} {
@@ -1114,13 +1135,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 89],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 89]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 89]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+89}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
             }
@@ -1389,13 +1414,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 79],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 79]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 79]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+79}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"DENSITY\"                  :  [lindex [lindex $Groups $i] 8],"
@@ -1439,13 +1468,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 79],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 79]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 79]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+79}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "         \},"
@@ -1726,14 +1759,19 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 }
             }
 
-            puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 77],"
+            set nStateVariables [expr {[lindex [lindex $Groups $i] 77]}]
+            puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-            set nParameters [expr {[lindex [lindex $Groups $i] 77]}]
-            for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                set j [expr {$iParam+1}]
+            for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                set j [expr {$iStateVar+1}]
                 set k [expr {$j+77}]
-                puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                if {$j eq $nStateVariables} {
+                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                } else {
+                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                }
             }
+
 
             puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
             puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
@@ -1892,13 +1930,17 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"NUMBER_OF_UMAT_STATE_VARIABLES\":  [lindex [lindex $Groups $i] 77],"
+                set nStateVariables [expr {[lindex [lindex $Groups $i] 77]}]
+                puts $FileVar "              \"STATE_VARIABLES\"          :  \["
 
-                set nParameters [expr {[lindex [lindex $Groups $i] 77]}]
-                for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                    set j [expr {$iParam+1}]
+                for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                    set j [expr {$iStateVar+1}]
                     set k [expr {$j+77}]
-                    puts $FileVar "              \"STATE_VARIABLE_$j\"              :  [lindex [lindex $Groups $i] $k],"
+                    if {$j eq $nStateVariables} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                    } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                    }
                 }
 
                 puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"

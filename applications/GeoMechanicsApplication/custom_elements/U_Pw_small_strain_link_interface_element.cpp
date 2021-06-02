@@ -96,7 +96,9 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
-            noalias(LocalFluidFlux) = -DynamicViscosityInverse*prod(LocalPermeabilityMatrix,GradPressureTerm);
+            noalias(LocalFluidFlux) =  PORE_PRESSURE_SIGN_FACTOR
+                                     * DynamicViscosityInverse
+                                     * prod(LocalPermeabilityMatrix,GradPressureTerm);
 
             noalias(FluidFlux) = prod(trans(RotationMatrix),LocalFluidFlux);
 
@@ -394,6 +396,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -436,9 +440,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                           RetentionParameters,
                                           GPoint );
 
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = this->CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,

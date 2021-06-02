@@ -132,7 +132,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities
 
         # Identify fixed design areas
         KM.VariableUtils().SetFlag(KM.BOUNDARY, False, self.optimization_model_part.Nodes)
@@ -244,7 +244,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 self.mapper.InverseMap(KSO.DF1DALPHA, KSO.DF1DALPHA_MAPPED)
 
                 # Compute scaling
-                max_norm_objective_gradient = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.DF1DALPHA_MAPPED)
+                max_norm_objective_gradient = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.DF1DALPHA_MAPPED)
 
                 if outer_iteration == 1 and inner_iteration == min(3,self.max_inner_iterations):
                     if self.bead_side == "positive" or self.bead_side == "negative":

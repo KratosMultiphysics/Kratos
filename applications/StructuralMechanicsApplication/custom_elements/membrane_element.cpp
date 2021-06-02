@@ -161,7 +161,7 @@ void MembraneElement::CalculateLeftHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 
 {
-    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
+    TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
 }
 
 //***********************************************************************************
@@ -177,7 +177,7 @@ void MembraneElement::CalculateRightHandSide(
     const SizeType system_size = number_of_nodes * dimension;
 
     Vector internal_forces = ZeroVector(system_size);
-    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod());
+    InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
     rRightHandSideVector.resize(system_size);
     noalias(rRightHandSideVector) = ZeroVector(system_size);
     noalias(rRightHandSideVector) -= internal_forces;
@@ -340,26 +340,24 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
 void MembraneElement::MaterialResponse(Vector& rStress,
     const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
     const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber,
-    Matrix& rTangentModulus)
+    Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo)
 {
     Vector strain_vector = ZeroVector(3);
-    rStress = ZeroVector(3);
+    noalias(rStress) = ZeroVector(3);
     StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
         rCurrentCoVariantMetric,rTransformationMatrix);
 
     // do this to consider the pre-stress influence in the check of the membrane state in the claw
     Vector initial_stress = ZeroVector(3);
     if (Has(MEMBRANE_PRESTRESS)){
-        Matrix stress_input = GetValue(MEMBRANE_PRESTRESS);
-        initial_stress += column(stress_input,rIntegrationPointNumber);
+        const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
+        initial_stress += column(r_stress_input,rIntegrationPointNumber);
     } else {
         AddPreStressPk2(initial_stress,rTransformedBaseVectors);
     }
     rStress += initial_stress;
 
-
-    ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     element_parameters.SetStrainVector(strain_vector);
     element_parameters.SetStressVector(rStress);
     element_parameters.SetConstitutiveMatrix(rTangentModulus);
@@ -514,7 +512,7 @@ void MembraneElement::ContraVariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1];
 }
 
-void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod)
+void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -563,7 +561,8 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+            rCurrentProcessInfo);
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
@@ -643,7 +642,8 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
  }
 
 
-void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod)
+void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -691,7 +691,8 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+            transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+            rCurrentProcessInfo);
 
 
         for (SizeType dof_s=0;dof_s<number_dofs;++dof_s){
@@ -804,7 +805,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             else {
                 Matrix material_tangent_modulus = ZeroMatrix(dimension);
                 MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+                    rCurrentProcessInfo);
 
                 if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
                     Vector principal_stresses = ZeroVector(2);
@@ -865,7 +867,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             Matrix material_tangent_modulus = ZeroMatrix(dimension);
             MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
+                rCurrentProcessInfo);
 
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
@@ -1040,6 +1043,111 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         for (SizeType i=0;i<r_integration_points.size();++i){
             column(rOutput,i) = prestress_matrix[i];
         }
+    }
+}
+
+void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == STRAIN_ENERGY) {
+        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const auto& r_geom = GetGeometry();
+
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);
+
+        array_1d<Vector,2> current_covariant_base_vectors;
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,2> reference_contravariant_base_vectors;
+
+        array_1d<Vector,2> transformed_base_vectors;
+
+        Matrix covariant_metric_current = ZeroMatrix(3);
+        Matrix covariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        double detJ = 0.0;
+        rOutput = 0.0; // total strain energy
+        Vector strain_vector = ZeroVector(3);
+        Vector stress_vector = ZeroVector(3);
+
+
+        ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        element_parameters.SetStressVector(stress_vector);
+
+        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+            // reset gauss point strain
+            double strain_energy_gp = 0.0; // strain energy per gauss point
+
+            // getting information for integration
+            const double integration_weight_i = r_integration_points[point_number].Weight();
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+
+            CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current);
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+            CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
+            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
+
+            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+
+            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
+            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
+            JacobiDeterminante(detJ,reference_covariant_base_vectors);
+
+            StrainGreenLagrange(strain_vector,covariant_metric_reference,covariant_metric_current,inplane_transformation_matrix_material);
+
+            // add strain energy from material law
+            element_parameters.SetStrainVector(strain_vector);
+            mConstitutiveLawVector[point_number]->CalculateValue(element_parameters,STRAIN_ENERGY,strain_energy_gp);
+
+
+            Vector pre_stress_vector = ZeroVector(3);
+            AddPreStressPk2(pre_stress_vector,transformed_base_vectors);
+
+            // add strain energy from pre_stress -> constant
+            strain_energy_gp += inner_prod(strain_vector,pre_stress_vector);
+
+            // integrate over reference domain
+            strain_energy_gp *= detJ*integration_weight_i;
+
+            // sum up the gauss point contributions
+            rOutput += strain_energy_gp;
+        }
+        rOutput *= GetProperties()[THICKNESS];
+    }
+    else if (rVariable == KINETIC_ENERGY) {
+        const auto& r_geom = GetGeometry();
+        const SizeType number_dofs = r_geom.WorkingSpaceDimension()*r_geom.size();
+
+        Matrix mass_matrix = ZeroMatrix(number_dofs,number_dofs);
+        CalculateMassMatrix(mass_matrix,rCurrentProcessInfo);
+        Vector current_nodal_velocities = ZeroVector(number_dofs);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        rOutput = 0.50 * inner_prod(current_nodal_velocities,prod(mass_matrix,current_nodal_velocities));
+    }
+    else if (rVariable == ENERGY_DAMPING_DISSIPATION) {
+        const auto& r_geom = GetGeometry();
+        const SizeType number_dofs = r_geom.WorkingSpaceDimension()*r_geom.size();
+
+        // Attention! this is only the current state and must be integrated over time (*dt)
+        Matrix damping_matrix = ZeroMatrix(number_dofs,number_dofs);
+        CalculateDampingMatrix(damping_matrix,rCurrentProcessInfo);
+        Vector current_nodal_velocities = ZeroVector(number_dofs);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        rOutput = inner_prod(current_nodal_velocities,prod(damping_matrix,current_nodal_velocities));
+    }
+    else if (rVariable == EXTERNAL_ENERGY) {
+        // Dead Load contribution to external energy
+        const auto& r_geom = GetGeometry();
+        const SizeType number_dofs = r_geom.WorkingSpaceDimension()*r_geom.size();
+
+        Vector dead_load_rhs = ZeroVector(number_dofs);
+        CalculateAndAddBodyForce(dead_load_rhs, rCurrentProcessInfo);
+        Vector current_nodal_displacements = ZeroVector(number_dofs);
+        GetValuesVector(current_nodal_displacements, 0);
+        rOutput = inner_prod(dead_load_rhs,current_nodal_displacements);
     }
 }
 

@@ -116,6 +116,12 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     }
     Matrix DtStressContainer(NumGPoints,TDim);
 
+    Vector StressVector;
+    if (TDim > 2)
+        StressVector.resize(VOIGT_SIZE_3D);
+    else
+        StressVector.resize(VOIGT_SIZE_2D_PLANE_STRESS);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -135,8 +141,9 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
         // Compute DtStress
         noalias(Variables.StrainVector) = prod(Variables.B, Variables.VelocityVector);
-        noalias(Variables.StressVector) = prod(Variables.ConstitutiveMatrix, Variables.StrainVector);
-        this->SaveGPDtStress(DtStressContainer, Variables.StressVector, GPoint);
+
+        noalias(StressVector) = prod(Variables.ConstitutiveMatrix, Variables.StrainVector);
+        this->SaveGPDtStress(DtStressContainer, StressVector, GPoint);
     }
 
     this->ExtrapolateGPConstitutiveTensor(ConstitutiveTensorContainer);
@@ -169,6 +176,12 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     //Containers for extrapolation variables
     Matrix DtStressContainer(NumGPoints,TDim);
 
+    Vector StressVector;
+    if (TDim > 2)
+        StressVector.resize(VOIGT_SIZE_3D);
+    else
+        StressVector.resize(VOIGT_SIZE_2D_PLANE_STRESS);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -186,8 +199,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
         // Compute DtStress
         noalias(Variables.StrainVector) = prod(Variables.B, Variables.VelocityVector);
-        noalias(Variables.StressVector) = prod(Variables.ConstitutiveMatrix, Variables.StrainVector);
-        this->SaveGPDtStress(DtStressContainer, Variables.StressVector, GPoint);
+        noalias(StressVector) = prod(Variables.ConstitutiveMatrix, Variables.StrainVector);
+        this->SaveGPDtStress(DtStressContainer, StressVector, GPoint);
     }
 
     this->ExtrapolateGPDtStress(DtStressContainer);
@@ -254,7 +267,7 @@ void UPwSmallStrainFICElement<2,3>::
     // Triangle_2d_3 with GI_GAUSS_2
     
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,3,3> AuxNodalConstitutiveTensor;
     
@@ -285,7 +298,7 @@ void UPwSmallStrainFICElement<2,4>::
     // Quadrilateral_2d_4 with GI_GAUSS_2
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,3> AuxNodalConstitutiveTensor;
 
@@ -307,7 +320,7 @@ void UPwSmallStrainFICElement<3,4>::
     // Tetrahedra_3d_4 with GI_GAUSS_2
     
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,6> AuxNodalConstitutiveTensor;
     
@@ -329,7 +342,7 @@ void UPwSmallStrainFICElement<3,8>::
     // Hexahedra_3d_8 with GI_GAUSS_2
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,8,6> AuxNodalConstitutiveTensor;
 
@@ -350,7 +363,7 @@ void UPwSmallStrainFICElement<2,3>::ExtrapolateGPDtStress(const Matrix& DtStress
     // Triangle_2d_3 with GI_GAUSS_2
 
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,3,2> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
@@ -376,7 +389,7 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPDtStress(const Matrix& DtStress
     // Quadrilateral_2d_4 with GI_GAUSS_2
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,2> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
@@ -393,7 +406,7 @@ void UPwSmallStrainFICElement<3,4>::ExtrapolateGPDtStress(const Matrix& DtStress
     // Tetrahedra_3d_4 with GI_GAUSS_2
     
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,3> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
@@ -410,7 +423,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPDtStress(const Matrix& DtStress
     // Hexahedra_3d_8 with GI_GAUSS_2
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,8,3> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
@@ -453,6 +466,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -489,8 +504,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
         // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
@@ -582,7 +596,7 @@ void UPwSmallStrainFICElement<2,4>::
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,4,8> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);
@@ -652,7 +666,7 @@ void UPwSmallStrainFICElement<3,8>::
     }
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    GeoElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,8,24> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);

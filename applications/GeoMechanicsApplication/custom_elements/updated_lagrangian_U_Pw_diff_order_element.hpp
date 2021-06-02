@@ -91,13 +91,6 @@ public:
     /// Default Constructor
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
 
-    //UpdatedLagrangianUPwDiffOrderElement(IndexType NewId = 0) : SmallStrainUPwDiffOrderElement( NewId ) {}
-
-    /// Constructor using an array of nodes
-    // UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
-    //                                      const NodesArrayType& ThisNodes)
-    //                                      : SmallStrainUPwDiffOrderElement(NewId, ThisNodes) {}
-
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
                                          GeometryType::Pointer pGeometry)

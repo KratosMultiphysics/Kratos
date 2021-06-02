@@ -781,35 +781,35 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     # Surface_Load
     set Groups [GiD_Info conditions Surface_Load groups]
-        if {$IsQuadratic eq 0} {
-            for {set i 0} {$i < [llength $Groups]} {incr i} {
-                set MyConditionList [list]
-                # UPwFaceLoadCondition3D3N
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwFaceLoadCondition3D3N $PropertyDict
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] prism UPwFaceLoadCondition3D3N $PropertyDict
-                # UPwFaceLoadCondition3D4N
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UPwFaceLoadCondition3D4N $PropertyDict
-                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
-            }
-        } elseif {$IsQuadratic eq 1} {
-            for {set i 0} {$i < [llength $Groups]} {incr i} {
-                set MyConditionList [list]
-                # SurfaceLoadDiffOrderCondition3D6N
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadDiffOrderCondition3D6N $PropertyDict
-                # SurfaceLoadDiffOrderCondition3D8N
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceLoadDiffOrderCondition3D8N $PropertyDict
-                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
-            }
-        } else {
-            for {set i 0} {$i < [llength $Groups]} {incr i} {
-                set MyConditionList [list]
-                # SurfaceLoadDiffOrderCondition3D6N
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadDiffOrderCondition3D6N $PropertyDict
-                # SurfaceLoadDiffOrderCondition3D9N
-                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceLoadDiffOrderCondition3D9N $PropertyDict
-                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
-            }
+    if {$IsQuadratic eq 0} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set MyConditionList [list]
+            # UPwFaceLoadCondition3D3N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwFaceLoadCondition3D3N $PropertyDict
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] prism UPwFaceLoadCondition3D3N $PropertyDict
+            # UPwFaceLoadCondition3D4N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UPwFaceLoadCondition3D4N $PropertyDict
+            dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
         }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set MyConditionList [list]
+            # SurfaceLoadDiffOrderCondition3D6N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadDiffOrderCondition3D6N $PropertyDict
+            # SurfaceLoadDiffOrderCondition3D8N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceLoadDiffOrderCondition3D8N $PropertyDict
+            dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+        }
+    } else {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set MyConditionList [list]
+            # SurfaceLoadDiffOrderCondition3D6N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadDiffOrderCondition3D6N $PropertyDict
+            # SurfaceLoadDiffOrderCondition3D9N
+            WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceLoadDiffOrderCondition3D9N $PropertyDict
+            dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+        }
+    }
 
     # Normal_Load
     set Groups [GiD_Info conditions Normal_Load groups]

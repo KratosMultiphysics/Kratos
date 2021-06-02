@@ -155,7 +155,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BoundaryCondition::GetDofList(DofsVectorType& rConditionDofList,
-				     ProcessInfo& rCurrentProcessInfo)
+				     const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -199,7 +199,7 @@ namespace Kratos
   //***********************************************************************************
 
   void BoundaryCondition::EquationIdVector(EquationIdVectorType& rResult,
-					   ProcessInfo& rCurrentProcessInfo)
+					   const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -585,7 +585,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::Initialize()
+  void BoundaryCondition::Initialize( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -596,7 +596,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+  void BoundaryCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -608,7 +608,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+  void BoundaryCondition::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
@@ -775,7 +775,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BoundaryCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+  void BoundaryCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -802,7 +802,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BoundaryCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  void BoundaryCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -828,7 +828,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BoundaryCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+  void BoundaryCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -853,7 +853,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  void BoundaryCondition::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -865,7 +865,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+  void BoundaryCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1003,16 +1003,6 @@ namespace Kratos
   }
 
 
-  //*********************************GET DOUBLE VALUE***********************************
-  //************************************************************************************
-
-  void BoundaryCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-						       std::vector<double>& rValues,
-						       const ProcessInfo& rCurrentProcessInfo )
-  {
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-  }
-
   //************************************************************************************
   //************************************************************************************
 
@@ -1067,7 +1057,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int BoundaryCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int BoundaryCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
 
     // Perform base element checks

@@ -31,7 +31,7 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
         :return:
         """
         test_name = os.path.join('Simple_Dike_Gravity_Loading','line_body_all_stage_new_units_kPa')
-        project_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 2
         stages = test_helper.run_stages(project_path, n_stages)
 
@@ -43,8 +43,8 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
 
         cauchy_stresses_kratos = test_helper.get_cauchy_stress_tensor(stages[-1])
 
-        x_cauchy_stress_kratos = [[gauss_point[0] for gauss_point in element] for element in cauchy_stresses_kratos]
-        y_cauchy_stress_kratos = [[gauss_point[4] for gauss_point in element] for element in cauchy_stresses_kratos]
+        x_cauchy_stress_kratos = [[gauss_point[0,0] for gauss_point in element] for element in cauchy_stresses_kratos]
+        y_cauchy_stress_kratos = [[gauss_point[1,1] for gauss_point in element] for element in cauchy_stresses_kratos]
 
         min_x_cauchy_stress_kratos,max_x_cauchy_stress_kratos = min(min(x_cauchy_stress_kratos)), max(max(x_cauchy_stress_kratos))
         min_y_cauchy_stress_kratos, max_y_cauchy_stress_kratos = min(min(y_cauchy_stress_kratos)), max(max(y_cauchy_stress_kratos))
@@ -69,7 +69,7 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
         :return:
         """
         test_name = os.path.join('Simple_Dike_Gravity_Loading','simple_dike_test_with_gravity_umat.gid')
-        project_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 2
         stages = test_helper.run_stages(project_path, n_stages)
 
@@ -81,8 +81,8 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
 
         cauchy_stresses_kratos = test_helper.get_cauchy_stress_tensor(stages[-1])
 
-        x_cauchy_stress_kratos = [[gauss_point[0] for gauss_point in element] for element in cauchy_stresses_kratos]
-        y_cauchy_stress_kratos = [[gauss_point[4] for gauss_point in element] for element in cauchy_stresses_kratos]
+        x_cauchy_stress_kratos = [[gauss_point[0,0] for gauss_point in element] for element in cauchy_stresses_kratos]
+        y_cauchy_stress_kratos = [[gauss_point[1,1] for gauss_point in element] for element in cauchy_stresses_kratos]
 
         min_x_cauchy_stress_kratos,max_x_cauchy_stress_kratos = min(min(x_cauchy_stress_kratos)), max(max(x_cauchy_stress_kratos))
         min_y_cauchy_stress_kratos, max_y_cauchy_stress_kratos = min(min(y_cauchy_stress_kratos)), max(max(y_cauchy_stress_kratos))
@@ -114,7 +114,7 @@ class KratosGeoMechanicsBenchmarkSet2(KratosUnittest.TestCase):
         """
 
         test_name = r'dike_with_sheetpile_all_stage'
-        project_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages = 3
         stages = test_helper.run_stages(project_path, n_stages)
 

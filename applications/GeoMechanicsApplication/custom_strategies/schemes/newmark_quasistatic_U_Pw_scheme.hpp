@@ -247,9 +247,12 @@ public:
     {
         KRATOS_TRY
 
-        if(rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
+        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
         {
             unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+            SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
+            if (Dim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
 
             const int NNodes = static_cast<int>(rModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
@@ -262,9 +265,9 @@ public:
 
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
+                if (rNodalStress.size1() != StressTensorSize)
+                    rNodalStress.resize(StressTensorSize,StressTensorSize,false);
+                noalias(rNodalStress) = ZeroMatrix(StressTensorSize, StressTensorSize);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
@@ -280,13 +283,13 @@ public:
                 ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
                 const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if (NodalArea>1.0e-20)
+                if (NodalArea > 1.0e-20)
                 {
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                    for(unsigned int i = 0; i<Dim; i++)
+                    for(unsigned int i = 0; i < rNodalStress.size1(); i++)
                     {
-                        for(unsigned int j = 0; j<Dim; j++)
+                        for(unsigned int j = 0; j < rNodalStress.size2(); j++)
                         {
                             rNodalStress(i,j) *= InvNodalArea;
                         }
@@ -296,7 +299,7 @@ public:
                 }
 
                 const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                if (NodalJointArea>1.0e-20)
+                if (NodalJointArea > 1.0e-20)
                 {
                     const double InvNodalJointArea = 1.0/NodalJointArea;
                     double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);

@@ -21,3 +21,7 @@ def CreateAndRunStageInSelectedNumberOfOpenMPThreads(my_obj, model, parameters_f
         KratosMultiphysics.ParallelUtilities.SetNumThreads(int(initial_number_of_threads))
     else:
         KratosMultiphysics.ParallelUtilities.SetNumThreads(multiprocessing.cpu_count())
+
+
+def  GetHardcodedNumberOfThreads():
+    return 1

@@ -46,6 +46,7 @@
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 
 // elements
+#include "custom_elements/transient_one_phase_flow_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
@@ -268,6 +269,19 @@ private:
     ///@{
 
     // elements
+    // transient one-phase flow elements:
+    const TransientOnePhaseFlowElement<2,3> mTransientOnePhaseFlowElement2D3N;
+    const TransientOnePhaseFlowElement<2,4> mTransientOnePhaseFlowElement2D4N;
+    const TransientOnePhaseFlowElement<3,4> mTransientOnePhaseFlowElement3D4N;
+    const TransientOnePhaseFlowElement<3,8> mTransientOnePhaseFlowElement3D8N;
+
+    const TransientOnePhaseFlowElement<2,6> mTransientOnePhaseFlowElement2D6N;
+    const TransientOnePhaseFlowElement<2,8> mTransientOnePhaseFlowElement2D8N;
+    const TransientOnePhaseFlowElement<2,9> mTransientOnePhaseFlowElement2D9N;
+    const TransientOnePhaseFlowElement<3,10> mTransientOnePhaseFlowElement3D10N;
+    const TransientOnePhaseFlowElement<3,20> mTransientOnePhaseFlowElement3D20N;
+    const TransientOnePhaseFlowElement<3,27> mTransientOnePhaseFlowElement3D27N;
+
     // small strain elements:
     const UPwSmallStrainElement<2,3> mUPwSmallStrainElement2D3N;
     const UPwSmallStrainElement<2,4> mUPwSmallStrainElement2D4N;
@@ -280,6 +294,8 @@ private:
     const UPwSmallStrainElement<3,10> mUPwSmallStrainElement3D10N;
     const UPwSmallStrainElement<3,20> mUPwSmallStrainElement3D20N;
     const UPwSmallStrainElement<3,27> mUPwSmallStrainElement3D27N;
+
+
 
     // small strain drained elements:
     const DrainedUPwSmallStrainElement<2,3> mDrainedUPwSmallStrainElement2D3N;

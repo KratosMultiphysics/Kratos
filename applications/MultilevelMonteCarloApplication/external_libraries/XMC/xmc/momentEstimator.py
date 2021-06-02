@@ -4,7 +4,7 @@ from numpy import ceil, log2, zeros, float64
 # Import xmc classes
 from xmc.statisticalEstimator import StatisticalEstimator
 from xmc.tools import dynamicImport
-from xmc.distributedEnvironmentFramework import get_value_from_remote
+from exaqute import get_value_from_remote
 from xmc.methodDefs_momentEstimator.types import *
 from xmc.methodDefs_momentEstimator import (
     hStatistics,

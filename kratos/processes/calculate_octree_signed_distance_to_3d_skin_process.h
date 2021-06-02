@@ -19,10 +19,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -34,6 +34,8 @@
 #include "utilities/timer.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -166,20 +168,20 @@ public:
     {
         return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
     }
-    
+
     static inline bool IsIntersected(const PointerType& rObject, const double& tolerance, const double rLowPoint[], const double rHighPoint[])
     {
         Kratos::Element::GeometryType& geom_1 = rObject->GetGeometry();
-        
+
         Kratos::Point rLowPointTolerance;
         Kratos::Point rHighPointTolerance;
-        
+
         for(std::size_t i = 0; i<3; i++)
         {
             rLowPointTolerance[i]  =  rLowPoint[i] * 1+tolerance;
             rHighPointTolerance[i] =  rHighPoint[i] * 1+tolerance;
         }
-        
+
         return  geom_1.HasIntersection(rLowPointTolerance,rHighPointTolerance);
     }
 
@@ -228,25 +230,25 @@ private:
 }; // Class DistanceSpatialContainersConfigure
 
   ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name Type Definitions
   ///@{
 
- 
-  ///@} 
+
+  ///@}
   ///@name  Enum's
   ///@{
-      
+
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
-      
+
   ///@}
   ///@name Kratos Classes
   ///@{
-  
+
   /// Short class definition.
   /** Detail class definition.
   */
@@ -256,18 +258,18 @@ private:
     public:
       ///@name Type Definitions
       ///@{
-      
+
       /// Pointer definition of CalculateSignedDistanceTo3DSkinProcess
         KRATOS_CLASS_POINTER_DEFINITION(CalculateSignedDistanceTo3DSkinProcess);
-        
+
         typedef DistanceSpatialContainersConfigure ConfigurationType;
         typedef OctreeBinaryCell<ConfigurationType> CellType;
         typedef OctreeBinary<CellType> OctreeType;
 
       ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
+      ///@name Life Cycle
+      ///@{
+
       /// Constructor.
       CalculateSignedDistanceTo3DSkinProcess(ModelPart& rThisModelPart)
 		: mrSkinModelPart(rThisModelPart), mrBodyModelPart(rThisModelPart)
@@ -278,18 +280,18 @@ private:
       virtual ~CalculateSignedDistanceTo3DSkinProcess()
 	{
 	}
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
 
       void operator()()
 	{
 	  Execute();
 	}
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
@@ -331,14 +333,14 @@ private:
           {
               double temp_point[3];
               const Node<3>& r_node = *i_node;
-              
+
               temp_point[0] = r_node[0];
               temp_point[1] = r_node[1];
               temp_point[2] = r_node[2];
-              
+
               mOctree.Insert(temp_point);
           }
-          
+
           mOctree.Constrain2To1();
 
           for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin() ; i_element != mrSkinModelPart.ElementsEnd() ; i_element++)
@@ -360,11 +362,9 @@ private:
           std::vector<OctreeType::cell_type*> all_leaves;
           mOctree.GetAllLeavesVector(all_leaves);
 
-#pragma omp parallel for
-          for (std::size_t i = 0; i < all_leaves.size(); i++)
-          {
-              *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
-          }
+          IndexPartition<std::size_t>(all_leaves.size()).for_each([&](std::size_t Index){
+              *(all_leaves[Index]->pGetDataPointer()) = ConfigurationType::AllocateData();
+          });
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
           for (std::size_t i = 0; i < all_leaves.size(); i++)
@@ -386,24 +386,24 @@ private:
             {
                 CellType::key_type keys[3];
                 pCell->GetKey(i_pos,keys);
-                
+
                 double new_point[3];
-                
+
                 (*(pCell->pGetData()))[i_pos] = new ConfigurationType::CellNodeData;
                 (*(pCell->pGetData()))[i_pos]->Id() = LastId++;
-                
+
                 (*(pCell->pGetData()))[i_pos]->X() = pCell->GetCoordinate(keys[0]);
                 (*(pCell->pGetData()))[i_pos]->Y() = pCell->GetCoordinate(keys[1]);
                 (*(pCell->pGetData()))[i_pos]->Z() = pCell->GetCoordinate(keys[2]);
-                
+
                 mOctreeNodes.push_back((*(pCell->pGetData()))[i_pos]);
-                
+
                 SetNodeInNeighbours(pCell,i_pos,(*(pCell->pGetData()))[i_pos]);
             }
 
         }
       }
-      
+
 //       void GenerateCellNode(CellType* pCell, std::size_t& LastId)
 //       {
 //         for (int i_pos=0; i_pos < 8; i_pos++) // position 8 is for center
@@ -413,19 +413,19 @@ private:
 //             {
 //                 CellType::key_type keys[3];
 //                 pCell->GetKey(i_pos,keys);
-// 
+//
 //                 double new_point[3];
-// 
+//
 //                 new_point[0] = pCell->GetCoordinate(keys[0]);
 //                 new_point[1] = pCell->GetCoordinate(keys[1]);
 //                 new_point[2] = pCell->GetCoordinate(keys[2]);
-//                 
-// 
+//
+//
 //                 (*(pCell->pGetData()))[i_pos] = (mrBodyModelPart.CreateNewNode(++LastId, new_point[0], new_point[1], new_point[2])).get();
-// 
+//
 //                 SetNodeInNeighbours(pCell,i_pos,(*(pCell->pGetData()))[i_pos]);
 //             }
-// 
+//
 //         }
 //       }
 
@@ -433,7 +433,7 @@ private:
       {
             CellType::key_type point_key[3];
             pCell->GetKey(Position, point_key);
-            
+
             for (std::size_t i_direction = 0; i_direction < 8; i_direction++) {
                 CellType::key_type neighbour_key[3];
                 if (pCell->GetNeighbourKey(Position, i_direction, neighbour_key)) {
@@ -447,7 +447,7 @@ private:
                         //std::cout << "ERROR!! Bad Position calculated!!!!!!!!!!! position :" << position << std::endl;
                         continue;
                     }
-                    
+
                     (*neighbour_cell->pGetData())[position] = pNode;
                 }
             }
@@ -459,9 +459,8 @@ private:
           ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
           int nodes_size = nodes.size();
           // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
-#pragma omp parallel for firstprivate(nodes_size)
-          for(int i = 0 ; i < nodes_size ; i++)
-              nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+
+        VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
 
             std::vector<CellType*> leaves;
 
@@ -471,12 +470,11 @@ private:
           for(int i = 0 ; i < leaves_size ; i++)
               CalculateNotEmptyLeavesDistance(leaves[i]);
 
-#pragma omp parallel for firstprivate(nodes_size)
-          for(int i = 0 ; i < nodes_size ; i++)
-          {
-              CalculateNodeDistance(*(nodes[i]));
-          }
-          Timer::Stop("Calculate Distances");
+        IndexPartition<std::size_t>(nodes_size).for_each([&](std::size_t Index){
+            CalculateNodeDistance(*(nodes[Index]));
+        });
+
+        Timer::Stop("Calculate Distances");
 
       }
 
@@ -486,10 +484,8 @@ private:
           ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
-#pragma omp parallel for firstprivate(nodes_size)
-          for(int i = 0 ; i < nodes_size ; i++)
-              nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
 
+        VariableUtils().SetVariable(DISTANCE, 1.00, nodes);
 
             std::vector<CellType*> leaves;
 
@@ -518,25 +514,25 @@ private:
       {
 //           double coords[3] = {rNode.X(), rNode.Y(), rNode.Z()};
 //          // KRATOS_WATCH_3(coords);
-// 
+//
 //              //This function must color the positions in space defined by 'coords'.
 //             //coords is of dimension (3) normalized in (0,1)^3 space
-// 
+//
 //             typedef Element::GeometryType triangle_type;
 //             typedef std::vector<std::pair<double, triangle_type*> > intersections_container_type;
-// 
+//
 //             intersections_container_type intersections;
 //             std::vector<Node<3>*> nodes_array;
-// 
-// 
+//
+//
 //             const double epsilon = 1e-12;
-// 
+//
 //             double distance = 1.0;
-// 
+//
 //             // Creating the ray
 //             double ray[3] = {coords[0], coords[1], coords[2]};
 //             ray[i_direction] = 0; // starting from the lower extreme
-// 
+//
 // //            KRATOS_WATCH_3(ray)
 //             GetIntersectionsAndNodes(ray, i_direction, intersections, nodes_array);
 // //            KRATOS_WATCH(nodes_array.size())
@@ -544,13 +540,13 @@ private:
 //             {
 //                 double coord = nodes_array[i_node]->Coordinates()[i_direction];
 //    //             KRATOS_WATCH(intersections.size());
-// 
+//
 //                 int ray_color= 1;
 //                 std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
 //                 while (i_intersection != intersections.end()) {
 //                     double d = coord - i_intersection->first;
 //                     if (d > epsilon) {
-// 
+//
 //                         ray_color = -ray_color;
 //                         distance = d;
 //                     } else if (d > -epsilon) {//interface
@@ -561,19 +557,19 @@ private:
 //                             distance = -d;
 //                         break;
 //                     }
-// 
+//
 //                     i_intersection++;
 //                 }
-// 
+//
 //                 distance *= ray_color;
-// 
+//
 //                 double& node_distance = nodes_array[i_node]->GetSolutionStepValue(DISTANCE);
 //                 if(fabs(distance) < fabs(node_distance))
 //                     node_distance = distance;
 //                 else if (distance*node_distance < 0.00) // assigning the correct sign
 //                     node_distance = -node_distance;
-// 
-// 
+//
+//
 //             }
      }
 
@@ -709,21 +705,21 @@ private:
     //     //This function passes the ray through the model and gives the hit point to all objects in its way
     //     //ray is of dimension (3) normalized in (0,1)^3 space
     //     // direction can be 0,1,2 which are x,y and z respectively
-    // 
+    //
     //     const double epsilon = 1.00e-12;
-    // 
+    //
     //     // first clearing the intersections points vector
     //     intersections.clear();
-    // 
+    //
     //     OctreeType* octree = &mOctree;
-    // 
+    //
     //     OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])}; //ASK_TOKEN
     //     OctreeType::key_type cell_key[3];
-    // 
+    //
     //     // getting the entrance cell from lower extreme
     //     ray_key[direction] = 0;
     //     OctreeType::cell_type* cell = octree->pGetCell(ray_key);
-    // 
+    //
     //     while (cell) {
     //         std::size_t position = cell->GetLocalPosition(ray_key); // Is this the local position!?!?!?!
     //         OctreeType::key_type node_key[3];
@@ -745,15 +741,15 @@ private:
     //                     KRATOS_WATCH(cell->pGetData()->size())
     //             }
     //         }
-    // 
-    // 
+    //
+    //
     // //        std::cout << ".";
     //       GetCellIntersections(cell, ray, ray_key, direction, intersections);
-    // 
+    //
     //       // Add the cell's middle node if existed
     // //      cell->GetKey(8, cell_key); // 8 is the central position
     // //      ray_key[direction]=cell_key[direction]; // positioning the ray in the middle of cell in its direction
-    // 
+    //
     // //      position = cell->GetLocalPosition(ray_key);
     // //      if(position < 27) // principal nodes
     // //      {
@@ -777,8 +773,8 @@ private:
     // //          KRATOS_WATCH(position);
     // //          KRATOS_WATCH(*cell);
     // //      }
-    // 
-    // 
+    //
+    //
     //       // go to the next cell
     //       if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
     //         ray_key[direction] = cell_key[direction];
@@ -795,9 +791,9 @@ private:
     //       } else
     //         cell = NULL;
     //     }
-    // 
-    // 
-    // 
+    //
+    //
+    //
     //  //   KRATOS_WATCH(rNodesArray.size());
     //     // now eliminating the repeated objects
     //     if (!intersections.empty()) {
@@ -812,7 +808,7 @@ private:
     //             *(++i_intersection) = *i_begin;
     //       }
     //       intersections.resize((++i_intersection) - intersections.begin());
-    // 
+    //
     //     }
       }
 
@@ -821,20 +817,20 @@ private:
     //     //This function passes the ray through the model and gives the hit point to all objects in its way
     //     //ray is of dimension (3) normalized in (0,1)^3 space
     //     // direction can be 0,1,2 which are x,y and z respectively
-    // 
+    //
     //     const double epsilon = 1.00e-12;
-    // 
+    //
     //     // first clearing the intersections points vector
     //     intersections.clear();
-    // 
+    //
     //     OctreeType* octree = &mOctree;
-    // 
+    //
     //     OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])};
     //     OctreeType::key_type cell_key[3];
-    // 
+    //
     //     // getting the entrance cell from lower extreme
     //     OctreeType::cell_type* cell = octree->pGetCell(ray_key);
-    // 
+    //
     //     while (cell) {
     // //        std::cout << ".";
     //       GetCellIntersections(cell, ray, ray_key, direction, intersections);
@@ -854,8 +850,8 @@ private:
     //       } else
     //         cell = NULL;
     //     }
-    // 
-    // 
+    //
+    //
     //     // now eliminating the repeated objects
     //     if (!intersections.empty()) {
     //       //sort
@@ -869,7 +865,7 @@ private:
     //             *(++i_intersection) = *i_begin;
     //       }
     //       intersections.resize((++i_intersection) - intersections.begin());
-    // 
+    //
     //     }
       }
 
@@ -879,33 +875,33 @@ private:
     //       //This function passes the ray through the cell and gives the hit point to all objects in its way
     //       //ray is of dimension (3) normalized in (0,1)^3 space
     //       // direction can be 0,1,2 which are x,y and z respectively
-    // 
+    //
     //       typedef Element::GeometryType triangle_type;
     //       typedef OctreeType::cell_type::object_container_type object_container_type;
-    // 
+    //
     //       object_container_type* objects = (cell->pGetObjects());
-    // 
+    //
     //       // There are no intersection in empty cells
     //       if (objects->empty())
     //         return 0;
-    // 
+    //
     // //      std::cout << "X";
     //       // calculating the two extreme of the ray segment inside the cell
     //       double ray_point1[3] = {ray[0], ray[1], ray[2]};
     //       double ray_point2[3] = {ray[0], ray[1], ray[2]};
     //       ray_point1[direction] = cell->GetCoordinate(ray_key[direction]);
     //       ray_point2[direction] = ray_point1[direction] + cell->GetSize();
-    // 
+    //
     //       for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++) {
     //         double intersection[3]={0.00,0.00,0.00};
-    // 
+    //
     //         int is_intersected = IntersectionTriangleSegment((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection); // This intersection has to be optimized for axis aligned rays
-    // 
+    //
     //         if (is_intersected == 1) // There is an intersection but not coplanar
     //           intersections.push_back(std::pair<double, Element::GeometryType*>(intersection[direction], &((*i_object)->GetGeometry())));
     //         //else if(is_intersected == 2) // coplanar case
     //       }
-    // 
+    //
     //       return 0;
       }
 
@@ -924,9 +920,9 @@ private:
         // get triangle edge vectors and plane normal
         u = rGeometry[1] - rGeometry[0];
         v = rGeometry[2] - rGeometry[0];
-        
+
         MathUtils<double>::CrossProduct(n, u, v);             // cross product
-        
+
         if (norm_2(n) == 0)            // triangle is degenerate
             return -1;                 // do not deal with this case
 
@@ -986,15 +982,15 @@ private:
 
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
@@ -1003,7 +999,7 @@ private:
 	{
 	  return "CalculateSignedDistanceTo3DSkinProcess";
 	}
-      
+
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const
 	{
@@ -1014,7 +1010,7 @@ private:
       virtual void PrintData(std::ostream& rOStream) const
 	{
 	}
-      
+
         void PrintGiDMesh(std::ostream & rOStream) const {
             std::vector<CellType*> leaves;
 
@@ -1030,27 +1026,27 @@ private:
             {
                 rOStream << (*i_node)->Id() << "  " << (*i_node)->X() << "  " << (*i_node)->Y() << "  " << (*i_node)->Z() << std::endl;
             }
-            
+
             std::cout << "Nodes written..." << std::endl;
             rOStream << "end coordinates" << std::endl;
             rOStream << "Elements" << std::endl;
             rOStream << "# element n1 n2 n3 n4 n5 n6 n7 n8" << std::endl;
 
-            for (std::size_t i = 0; i < leaves.size(); i++) 
+            for (std::size_t i = 0; i < leaves.size(); i++)
             {
                 if ((leaves[i]->pGetData()))
-                { 
+                {
                     DistanceSpatialContainersConfigure::data_type& nodes = (*(leaves[i]->pGetData()));
 
 //                     std::cout << "Leave - Level: "  << nodes[0]->Id() << " " << nodes[1]->Id() << " " << nodes[2]->Id() << " etc... " << std::endl;
-                    
+
                     rOStream << i + 1;
                     for(int j = 0 ; j < 8 ; j++)
                         rOStream << "  " << nodes[j]->Id();
                     rOStream << std::endl;
                 }
             }
-            
+
             rOStream << "end elements" << std::endl;
 
         }
@@ -1073,119 +1069,119 @@ private:
             rOStream << "End Values" << std::endl;
 
         }
-            
-      ///@}      
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+      ///@name Protected static Member Variables
+      ///@{
+
+
       ///@}
-      
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
       ModelPart& mrSkinModelPart;
       ModelPart& mrBodyModelPart;
-      
+
       DistanceSpatialContainersConfigure::data_type mOctreeNodes;
 
-      OctreeType mOctree;  
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
+      OctreeType mOctree;
 
-        
-      ///@} 
+      ///@}
+      ///@name Private Operators
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       CalculateSignedDistanceTo3DSkinProcess& operator=(CalculateSignedDistanceTo3DSkinProcess const& rOther);
 
       /// Copy constructor.
       //CalculateSignedDistanceTo3DSkinProcess(CalculateSignedDistanceTo3DSkinProcess const& rOther);
 
-        
-      ///@}    
-        
+
+      ///@}
+
     }; // Class CalculateSignedDistanceTo3DSkinProcess
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
+  inline std::istream& operator >> (std::istream& rIStream,
 				    CalculateSignedDistanceTo3DSkinProcess& rThis);
 
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
+  inline std::ostream& operator << (std::ostream& rOStream,
 				    const CalculateSignedDistanceTo3DSkinProcess& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -1194,11 +1190,11 @@ private:
 
       return rOStream;
     }
-  ///@} 
-  
-  
+  ///@}
+
+
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_DISTANCE_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_CALCULATE_DISTANCE_PROCESS_H_INCLUDED  defined
 
 

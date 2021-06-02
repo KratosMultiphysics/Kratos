@@ -15,15 +15,15 @@
 // External includes
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
+#include <algorithm>
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-#include <windows.h>
+#include "windows.hpp"
 #endif
 
 #ifdef KRATOS_COMPILED_IN_LINUX
 #include <dlfcn.h>
 #endif
-
 
 namespace Kratos
 {
@@ -230,8 +230,18 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
       KRATOS_THROW_ERROR(std::runtime_error, "cannot load the specified UDSM ", rMaterialProperties[UDSM_NAME]);
    }
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
+   const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
+   const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
+   if ( nUmatParametersSize != nParametersUDSM)
+   {
+      KRATOS_THROW_ERROR(std::runtime_error, "Number of parameters is wrong."
+                                             " The UDSM gives " + std::to_string(nParametersUDSM)
+                                             + " while size of UMAT_PARAMETERS is " + std::to_string(nUmatParametersSize),
+                                             rMaterialProperties[UDSM_NAME]);
+   }
 
+
+   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
    return 0;
    KRATOS_CATCH("");
 }
@@ -245,13 +255,10 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    KRATOS_TRY;
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::InitializeMaterial()") << std::endl;
 
-   // we need to check if the model is loaded or not
-   if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
+   // loading the model
+   mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
-   if (!mIsModelInitialized)
-   {
-      ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-   }
+   ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::InitializeMaterial()") << std::endl;
 
@@ -266,11 +273,12 @@ void SmallStrainUDSM3DLaw::ResetStateVariables(const Properties& rMaterialProper
 
    // reset state variables
    int nStateVariables = GetNumberOfStateVariablesFromUDSM(rMaterialProperties);
+   nStateVariables = std::max(nStateVariables, 1);
    mStateVariables.resize(nStateVariables);
-   std::fill(mStateVariables.begin(), mStateVariables.end(), 0.0);
+   noalias(mStateVariables) = ZeroVector(nStateVariables);
 
    mStateVariablesFinalized.resize(nStateVariables);
-   std::fill(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(), 0.0);
+   noalias(mStateVariablesFinalized) = ZeroVector(nStateVariables);
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::ResetStateVariables()") << std::endl;
 
@@ -290,16 +298,20 @@ void SmallStrainUDSM3DLaw::ResetMaterial(const Properties& rMaterialProperties,
    ResetStateVariables(rMaterialProperties);
 
    // set stress vectors:
-   std::fill(mStressVector.begin(), mStressVector.end(), 0.0);
-   std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
+   noalias(mStressVector)          = ZeroVector(mStressVector.size());
+   noalias(mStressVectorFinalized) = ZeroVector(mStressVectorFinalized.size());
 
    // set strain vectors:
-   std::fill(mDeltaStrainVector.begin(), mDeltaStrainVector.end(), 0.0);
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
+   noalias(mDeltaStrainVector)     = ZeroVector(mDeltaStrainVector.size());
+   noalias(mStrainVectorFinalized) = ZeroVector(mStrainVectorFinalized.size());
 
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
       for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
          mMatrixD[i][j] = 0.0;
+
+   // state variables
+   noalias(mStateVariables)         = ZeroVector(mStateVariables.size());
+   noalias(mStateVariablesFinalized)= ZeroVector(mStateVariablesFinalized.size());
 
    mIsModelInitialized = false;
 
@@ -317,7 +329,55 @@ void SmallStrainUDSM3DLaw::SetAttributes(const Properties& rMaterialProperties)
    if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
 
    int IDTask = ATTRIBUTES;
-   CallUDSM(&IDTask, rMaterialProperties);
+
+   // process data
+   double deltaTime = 0.0;
+   double time      = 0.0;
+   int    iStep     = 0;
+   int    iteration = 0;
+
+   // number of the model in the shared libaray (DLL)
+   int modelNumber = rMaterialProperties[UDSM_NUMBER];
+
+   // not needed:
+   double bulkWater = 0.0;
+   double excessPorePressurePrevious = 0.0;
+   double excessPorePressureCurrent = 0.0;
+   double X(0.0), Y(0.0), Z(0.0);
+   int iElement = 0;
+   int integrationNumber = 0;
+   int iPlastic = 0;
+   int isUndr = 0;
+   int nStateVariables = 0;
+
+   // variable to check if an error happend in the model:
+   int iAbort = 0;
+   int nSizeProjectDirectory = mProjectDirectory.size();
+   std::vector<double> StateVariablesFinalized;
+   std::vector<double> StateVariables;
+
+   const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
+   pUserMod(&IDTask, &modelNumber, &isUndr,
+            &iStep, &iteration, &iElement, &integrationNumber,
+            &X, &Y, &Z,
+            &time, &deltaTime,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            StateVariablesFinalized.data(),
+            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
+            &nStateVariables, 
+            &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
+            &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
+            mProjectDirectory.data(), &nSizeProjectDirectory, 
+            &iAbort);
+
+   if (iAbort != 0)
+   {
+      // KRATOS_INFO("GetNumberOfStateVariablesFromUDSM, iAbort !=0")<< std::endl;
+      KRATOS_THROW_ERROR(std::runtime_error, 
+                         "the specified UDSM returns an error while call UDSM with IDTASK" + std::to_string(IDTask) + ". UDSM",
+                         rMaterialProperties[UDSM_NAME]);
+   }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetAttributes()") << std::endl;
 
@@ -357,16 +417,18 @@ int SmallStrainUDSM3DLaw::GetNumberOfStateVariablesFromUDSM(const Properties& rM
    // variable to check if an error happend in the model:
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
+   std::vector<double> StateVariablesFinalized;
+   std::vector<double> StateVariables;
 
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(&IDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-            mStateVariablesFinalized.data(),
-            mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            StateVariablesFinalized.data(),
+            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, StateVariables.data(), &iPlastic,
             &nStateVariables, 
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -806,10 +868,10 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-            mStateVariablesFinalized.data(),
-            mDeltaStrainVector.data(), (double **) mMatrixD, &bulkWater,
-            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            &(mStateVariablesFinalized.data()[0]),
+            &(mDeltaStrainVector.data()[0]), (double **) mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
             &nStateVariables, 
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -867,16 +929,16 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, const Properties& rMaterialProp
    // variable to check if an error happend in the model:
    int iAbort = 0;
    int nSizeProjectDirectory = mProjectDirectory.size();
-
+   
    const auto &MaterialParameters = rMaterialProperties[UMAT_PARAMETERS];
    pUserMod(IDTask, &modelNumber, &isUndr,
             &iStep, &iteration, &iElement, &integrationNumber,
             &X, &Y, &Z,
             &time, &deltaTime,
-            &(MaterialParameters.data()[0]), mStressVectorFinalized.data(), &excessPorePressurePrevious, 
-            mStateVariablesFinalized.data(),
-            mDeltaStrainVector.data(), (double **)mMatrixD, &bulkWater,
-            mStressVector.data(), &excessPorePressureCurrent, mStateVariables.data(), &iPlastic,
+            &(MaterialParameters.data()[0]), &(mStressVectorFinalized.data()[0]), &excessPorePressurePrevious, 
+            &(mStateVariablesFinalized.data()[0]),
+            &(mDeltaStrainVector.data()[0]), (double **)mMatrixD, &bulkWater,
+            &(mStressVector.data()[0]), &excessPorePressureCurrent, &(mStateVariables.data()[0]), &iPlastic,
             &nStateVariables,
             &mAttributes[IS_NON_SYMMETRIC], &mAttributes[IS_STRESS_DEPENDENT],
             &mAttributes[IS_TIME_DEPENDENT], &mAttributes[USE_TANGENT_MATRIX],
@@ -1226,7 +1288,7 @@ int SmallStrainUDSM3DLaw::GetStateVariableIndex(const Variable<double>& rThisVar
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetStateVariableIndex()") << std::endl;
 
-   return index;
+   return index - 1;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1239,21 +1301,14 @@ Vector& SmallStrainUDSM3DLaw::GetValue( const Variable<Vector> &rThisVariable, V
       if (rValue.size() != mStateVariablesFinalized.size())
          rValue.resize(mStateVariablesFinalized.size());
 
-      for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i)
-      {
-         rValue[i] = mStateVariablesFinalized[i];
-      }
+      noalias(rValue) = mStateVariablesFinalized;
    }
    else if (rThisVariable == CAUCHY_STRESS_VECTOR)
    {
       if (rValue.size() != mStressVectorFinalized.size())
          rValue.resize(mStressVectorFinalized.size());
 
-      for (unsigned int i=0; i < mStressVectorFinalized.size(); ++i)
-      {
-         rValue[i] = mStressVectorFinalized[i];
-      }
-
+      noalias(rValue) = mStressVectorFinalized;
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetValue()") << std::endl;
@@ -1266,12 +1321,12 @@ double& SmallStrainUDSM3DLaw::GetValue( const Variable<double>& rThisVariable, d
 {
    // KRATOS_INFO("01-SmallStrainUDSM3DLaw::GetValue()") << std::endl;
 
-   int index = GetStateVariableIndex(rThisVariable);
+   const int index = GetStateVariableIndex(rThisVariable);
 
-   if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
-   {
-      rValue = mStateVariablesFinalized[index - 1];
-   }
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+   rValue = mStateVariablesFinalized[index];
 
    // KRATOS_INFO("11-SmallStrainUDSM3DLaw::GetValue()") << std::endl;
 
@@ -1301,11 +1356,11 @@ void SmallStrainUDSM3DLaw::SetValue( const Variable<double>& rThisVariable,
    // KRATOS_INFO("01-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 
    const int index = GetStateVariableIndex(rThisVariable);
-   
-   if (index > 0 && static_cast<int>(mStateVariablesFinalized.size()) >= index )
-   {
-      mStateVariablesFinalized[index - 1] = rValue;
-   }
+
+   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+   mStateVariablesFinalized[index] = rValue;
 
    // KRATOS_INFO("11-SmallStrainUDSM3DLaw::SetValue()") << std::endl;
 

@@ -56,6 +56,20 @@ typedef Node<3> NodeType;
 KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     KratosApplication("GeoMechanicsApplication"),
 
+    // transient one-phase flow elements:
+    mTransientOnePhaseFlowElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mTransientOnePhaseFlowElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientOnePhaseFlowElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientOnePhaseFlowElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    mTransientOnePhaseFlowElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mTransientOnePhaseFlowElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mTransientOnePhaseFlowElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mTransientOnePhaseFlowElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mTransientOnePhaseFlowElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mTransientOnePhaseFlowElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
+
     // small strain elements
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
@@ -192,6 +206,19 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     //Register Elements
+    // transient one-phase flow elements:
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D3N", mTransientOnePhaseFlowElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D4N", mTransientOnePhaseFlowElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D4N", mTransientOnePhaseFlowElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D8N", mTransientOnePhaseFlowElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D6N", mTransientOnePhaseFlowElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D8N", mTransientOnePhaseFlowElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D9N", mTransientOnePhaseFlowElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D10N", mTransientOnePhaseFlowElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D20N", mTransientOnePhaseFlowElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D27N", mTransientOnePhaseFlowElement3D27N )
+
     // Small strain elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D4N", mUPwSmallStrainElement2D4N )
@@ -340,6 +367,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DT_WATER_PRESSURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_FLUID_FLUX )
 
+    KRATOS_REGISTER_VARIABLE( HYDRAULIC_HEAD )
+
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_FLUID )
@@ -393,6 +422,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
+
+    KRATOS_REGISTER_VARIABLE( BIOT_COEFFICIENT )
 
     KRATOS_REGISTER_VARIABLE( RESET_DISPLACEMENTS )
     KRATOS_REGISTER_VARIABLE( CONSIDER_GEOMETRIC_STIFFNESS )

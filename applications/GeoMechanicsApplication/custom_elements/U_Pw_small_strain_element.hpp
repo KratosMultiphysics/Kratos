@@ -213,8 +213,8 @@ protected:
                        const bool CalculateStiffnessMatrixFlag,
                        const bool CalculateResidualVectorFlag ) override;
 
-    void InitializeElementVariables( ElementVariables &rVariables,
-                                     const ProcessInfo &CurrentProcessInfo );
+    virtual void InitializeElementVariables( ElementVariables &rVariables,
+                                             const ProcessInfo &CurrentProcessInfo );
 
     void SetConstitutiveParameters(ElementVariables &rVariables,
                                    ConstitutiveLaw::Parameters &rConstitutiveParameters);
@@ -225,7 +225,7 @@ protected:
     virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables &rVariables,
-                                     const double &BulkModulus );
+                                     const bool &hasBiotCoefficient=false );
 
     void CalculateBMatrix( Matrix &rB,
                            const Matrix &GradNpT );
@@ -237,9 +237,9 @@ protected:
 
     void CalculateAndAddCouplingMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
     virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
@@ -249,31 +249,37 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
-    void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
     void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
     void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
     void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
     void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
 
-    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
+    double CalculateBiotCoefficient( const ElementVariables &rVariables,
+                                     const bool &hasBiotCoefficient) const;
 
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
     virtual void CalculateStrain( ElementVariables &rVariables );
 
-    void InitializeNodalVariables( ElementVariables &rVariables );
+    void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
+    void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
+
     void InitializeProperties( ElementVariables &rVariables );
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
                                      const unsigned int &GPoint );
+
+    void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

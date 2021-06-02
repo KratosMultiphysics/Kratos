@@ -455,14 +455,17 @@ proc WriteLineConditions {FileVar ConditionId ConditionDict Groups CondName Prop
         upvar $ConditionId MyConditionId
         upvar $ConditionDict MyConditionDict
 
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set MyConditionList [list]
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] faces]
             puts $MyFileVar "Begin Conditions $CondName"
+
             for {set j 0} {$j < [llength [lindex $Entities 1]]} {incr j} {
                 incr MyConditionId
                 lappend MyConditionList $MyConditionId
                 set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
+
                 for {set k 0} {$k < [llength $ElementGroup]} {incr k} {
                     if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
                         set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
@@ -1488,26 +1491,34 @@ proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
             puts $MyFileVar "  End SubModelPartNodes"
 
             puts $MyFileVar "  Begin SubModelPartElements"
-            dict for {k AnchorList} $AnchorElementDict {
-                set model_part_affected 0
+            if {[dict size $affected_elements] > 0} {
+                dict for {k AnchorList} $AnchorElementDict {
+                    set model_part_affected 0
+                    # Elements
+                    set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
 
-                # Elements
-                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
-                        
-                for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    # check if excavation is applied on Anchor or truss
-                    if {[lindex $Entities $j] in $affected_elements} {
-                        if {[lindex $Entities $j] in [lindex $AnchorList 4]} {
-                            set model_part_affected 1
+                    for {set j 0} {$j < [llength $Entities]} {incr j} {
+                        # check if excavation is applied on Anchor or truss
+                        if {[lindex $Entities $j] in $affected_elements} {
+                            if {[lindex $Entities $j] in [lindex $AnchorList 4]} {
+                                set model_part_affected 1
+                            }
+                        # write elements only when excavation is not applied on Anchor or truss
+                        } elseif {!([lindex $Entities $j] in $added_entities)} {
+                            puts $MyFileVar "    [lindex $Entities $j]"
+                            lappend added_entities  [lindex $Entities $j]
                         }
-                    # write elements only when excavation is not applied on Anchor or truss
-                    } elseif {!([lindex $Entities $j] in $added_entities)} {
-                        puts $MyFileVar "    [lindex $Entities $j]"
-                        lappend added_entities  [lindex $Entities $j]
+                    }
+                    puts $MyFileVar "    $model_part_affected"
+                    if {$model_part_affected} {
+                        puts $MyFileVar "    [lindex $AnchorList 0]"
                     }
                 }
-                if {$model_part_affected} {
-                    puts $MyFileVar "    [lindex $AnchorList 0]"
+            } else {
+                # Elements
+                set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
+                for {set j 0} {$j < [llength $Entities]} {incr j} {
+                    puts $MyFileVar "    [lindex $Entities $j]"
                 }
             }
             puts $MyFileVar "  End SubModelPartElements"

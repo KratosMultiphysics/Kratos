@@ -22,7 +22,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_triangle_3n(self):
         test_name = 'test_triangle_3n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 1, 5]
@@ -31,7 +31,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_triangle_6n(self):
         test_name = 'test_triangle_6n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 2, 4, 9, 15]
@@ -40,7 +40,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_triangle_3n_fic(self):
         test_name = 'test_triangle_3n_fic'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 1, 5]
@@ -49,7 +49,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_triangle_6n_fic(self):
         test_name = 'test_triangle_6n_fic'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 2, 4, 9, 15]
@@ -58,7 +58,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_quad_4n(self):
         test_name = 'test_quad_4n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 1, 5]
@@ -67,7 +67,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_quad_8n(self):
         test_name = 'test_quad_8n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 2, 4, 8, 12]
@@ -76,7 +76,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_tetra_4n(self):
         test_name = 'test_tetra_4n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 2, 9, 3, 6, 13, 8, 14, 20]
@@ -85,7 +85,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def test_tetra_10n(self):
         test_name = 'test_tetra_10n'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         top_node_nbrs = [0, 3, 9, 28, 53,
@@ -109,18 +109,18 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         :return:
         """
         total_stresses = test_helper.get_total_stress_tensor(simulation)
-        total_stresses_xx = [integration_point[0] for element in total_stresses for integration_point in element]
+        total_stresses_xx = [integration_point[0,0] for element in total_stresses for integration_point in element]
         if n_dim >= 2:
-            total_stresses_yy = [integration_point[4] for element in total_stresses for integration_point in element]
+            total_stresses_yy = [integration_point[1,1] for element in total_stresses for integration_point in element]
         if n_dim >= 3:
-            total_stresses_zz = [integration_point[8] for element in total_stresses for integration_point in element]
+            total_stresses_zz = [integration_point[2,2] for element in total_stresses for integration_point in element]
 
         efective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        efective_stresses_xx = [integration_point[0] for element in efective_stresses for integration_point in element]
+        efective_stresses_xx = [integration_point[0,0] for element in efective_stresses for integration_point in element]
         if n_dim >= 2:
-            efective_stresses_yy = [integration_point[4] for element in efective_stresses for integration_point in element]
+            efective_stresses_yy = [integration_point[1,1] for element in efective_stresses for integration_point in element]
         if n_dim >= 3:
-            efective_stresses_zz = [integration_point[8] for element in efective_stresses for integration_point in element]
+            efective_stresses_zz = [integration_point[2,2] for element in efective_stresses for integration_point in element]
 
         displacements = test_helper.get_displacement(simulation)
         x_displacements = [displacement[0] for displacement in displacements]
@@ -130,15 +130,15 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
             z_displacements = [displacement[2] for displacement in displacements]
 
         green_lagrange_strains = test_helper.get_green_lagrange_strain_tensor(simulation)
-        green_lagrange_strains_xx = [integration_point[0] for element in green_lagrange_strains for integration_point in
+        green_lagrange_strains_xx = [integration_point[0,0] for element in green_lagrange_strains for integration_point in
                                      element]
         if n_dim == 2:
-            green_lagrange_strains_yy = [integration_point[3] for element in green_lagrange_strains for integration_point in
+            green_lagrange_strains_yy = [integration_point[1,1] for element in green_lagrange_strains for integration_point in
                                          element]
         elif n_dim == 3:
-            green_lagrange_strains_yy = [integration_point[4] for element in green_lagrange_strains for integration_point in
+            green_lagrange_strains_yy = [integration_point[1,1] for element in green_lagrange_strains for integration_point in
                                          element]
-            green_lagrange_strains_zz = [integration_point[8] for element in green_lagrange_strains for integration_point in
+            green_lagrange_strains_zz = [integration_point[2,2] for element in green_lagrange_strains for integration_point in
                                          element]
 
         # Assert integration point information

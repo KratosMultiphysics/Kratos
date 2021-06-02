@@ -85,7 +85,6 @@ public:
         if (mConsiderGapClosure)
         {
             const int nelements = mr_model_part.GetMesh(0).Elements().size();
-            const int nnodes = mr_model_part.GetMesh(0).Nodes().size();
 
             if (nelements > 0)
             {

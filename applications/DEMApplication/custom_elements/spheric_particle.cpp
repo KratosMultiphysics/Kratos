@@ -2086,6 +2086,7 @@ double SphericParticle::GetRollingFrictionWithWalls()                           
 double SphericParticle::GetPoisson()                                                      { return GetFastProperties()->GetPoisson();                  }
 double SphericParticle::GetTgOfStaticFrictionAngle()                                      { return GetFastProperties()->GetTgOfStaticFrictionAngle();  }
 double SphericParticle::GetTgOfDynamicFrictionAngle()                                     { return GetFastProperties()->GetTgOfDynamicFrictionAngle(); }
+double SphericParticle::GetFrictionDecayCoefficient()                                     { return GetFastProperties()->GetFrictionDecayCoefficient(); }
 double SphericParticle::GetCoefficientOfRestitution()                                     { return GetFastProperties()->GetCoefficientOfRestitution(); }
 double SphericParticle::GetLnOfRestitCoeff()                                              { return GetFastProperties()->GetLnOfRestitCoeff();          }
 double SphericParticle::GetDensity()                                                      { return GetFastProperties()->GetDensity();                  }
@@ -2105,6 +2106,7 @@ void   SphericParticle::SetRollingFrictionWithWallsFromProperties(double* rollin
 void   SphericParticle::SetPoissonFromProperties(double* poisson)                                      { GetFastProperties()->SetPoissonFromProperties( poisson);                                        }
 void   SphericParticle::SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle)  { GetFastProperties()->SetTgOfStaticFrictionAngleFromProperties( tg_of_static_friction_angle);    }
 void   SphericParticle::SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle){ GetFastProperties()->SetTgOfDynamicFrictionAngleFromProperties( tg_of_dynamic_friction_angle);}
+void   SphericParticle::SetFrictionDecayCoefficientFromProperties(double* friction_decay_coefficient)  { GetFastProperties()->SetFrictionDecayCoefficientFromProperties( friction_decay_coefficient);}
 void   SphericParticle::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)  { GetFastProperties()->SetCoefficientOfRestitutionFromProperties( coefficient_of_restitution);    }
 void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)                   { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);                     }
 void   SphericParticle::SetDensityFromProperties(double* density)                                      { GetFastProperties()->SetDensityFromProperties( density);                                        }
@@ -2133,6 +2135,7 @@ double SphericParticle::SlowGetRollingFrictionWithWalls() const { return GetProp
 double SphericParticle::SlowGetPoisson() const                  { return GetProperties()[POISSON_RATIO];               }
 double SphericParticle::SlowGetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];             }
 double SphericParticle::SlowGetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION];            }
+double SphericParticle::SlowGetFrictionDecayCoefficient() const { return GetProperties()[FRICTION_DECAY];              }
 double SphericParticle::SlowGetCoefficientOfRestitution() const { return GetProperties()[COEFFICIENT_OF_RESTITUTION];  }
 double SphericParticle::SlowGetDensity() const                  { return GetProperties()[PARTICLE_DENSITY];            }
 int    SphericParticle::SlowGetParticleMaterial() const         { return GetProperties()[PARTICLE_MATERIAL];           }

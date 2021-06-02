@@ -929,11 +929,7 @@ class MainCoupledFemDem_Solution:
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
-        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
-                                                                   self.DEM_Solution.time,
-                                                                   self.DEM_Solution.solver.dt,
-                                                                   self.DEM_Solution.step,
-                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+        self.DEM_Solution.UpdateTimeInModelParts()
 
 #TransferFEMSkinToDEM============================================================================================================================
     def TransferFEMSkinToDEM(self):
@@ -969,6 +965,7 @@ class MainCoupledFemDem_Solution:
         self.created_props_id = max_id_properties + 1
         props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
+        props[KratosDEM.FRICTION_DECAY] = 500
         props[KratosDEM.WALL_COHESION] = 0.0
         props[KratosDEM.COMPUTE_WEAR] = False
         props[KratosDEM.SEVERITY_OF_WEAR] = 0.001

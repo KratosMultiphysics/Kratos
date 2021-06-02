@@ -87,6 +87,7 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -282,7 +283,7 @@ protected:
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
 
     void InitializeBiotCoefficients( InterfaceElementVariables &rVariables,
-                                     const double &BulkModulus );
+                                     const bool &hasBiotCoefficient=false );
 
     void CalculateRetentionResponse( InterfaceElementVariables& rVariables,
                                      RetentionLaw::Parameters& rRetentionParameters,

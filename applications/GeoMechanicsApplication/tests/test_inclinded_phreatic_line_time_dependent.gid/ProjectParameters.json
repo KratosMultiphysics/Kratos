@@ -92,7 +92,7 @@
                         },
                         "file_label":          "step",
                         "output_control_type": "step",
-                        "output_frequency":    1,
+                        "output_interval":    1,
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,
@@ -157,7 +157,6 @@
             "out_of_plane_direction":    2,
             "first_reference_coordinate" :    [0.0,0.5,0.0],
             "second_reference_coordinate":    [1.0,0.0,0.0],
-            "pressure_tension_cut_off":      0.0,
             "specific_weight":      10000.0
         }
     }],

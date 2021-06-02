@@ -115,29 +115,32 @@ public:
         int NCons = static_cast<int>(mr_model_part.Conditions().size());
         ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
 
+        SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
+        if (mDimension == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
+
         #pragma omp parallel for
         for (int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
             Condition::GeometryType& rGeom = itCond->GetGeometry();
 
-            Matrix NodalStressMatrix(mDimension,mDimension);
+            Matrix NodalStressMatrix(StressTensorSize, StressTensorSize);
             noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
                                                 + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
-            Vector PrincipalStresses(mDimension);
-            if (mDimension == 2)
-            {
-                PrincipalStresses[0] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) +
-                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
-                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
-                PrincipalStresses[1] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) -
-                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
-                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
-            }
-            else
-            {
+            Vector PrincipalStresses(StressTensorSize);
+            // if (mDimension == 2)
+            // {
+            //     PrincipalStresses[0] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) +
+            //                         sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
+            //                                 NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
+            //     PrincipalStresses[1] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) -
+            //                         sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
+            //                                 NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
+            // }
+            // else
+            // {
                 noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStressMatrix);
-            }
+            // }
 
             // Check whether the principal stress S1 at the node is higher than the prescribed limit to activate the joints
             if (PrincipalStresses[0] >= mStressLimit)

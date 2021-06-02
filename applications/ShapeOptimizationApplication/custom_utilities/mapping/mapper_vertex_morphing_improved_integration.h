@@ -90,13 +90,17 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override
     {
-        if (mIsMappingInitialized == false)
-        {
-            SetIntegrationMethod();
-            FindNeighbourConditions();
-        }
+        SetIntegrationMethod();
+        FindNeighbourConditions();
 
         MapperVertexMorphing::Initialize();
+    }
+
+    void Update() override
+    {
+        FindNeighbourConditions();
+
+        MapperVertexMorphing::Update();
     }
     // --------------------------------------------------------------------------
 

@@ -479,16 +479,26 @@ void SmallStrainUPwDiffOrderElement::
                                               Variables.detJ0,
                                               IntegrationPoints[PointNumber].Weight());
 
-        //Adding contribution to Mass matrix
-        noalias(M) += Density*outer_prod(Variables.Nu,Variables.Nu)*Variables.IntegrationCoefficient;
 
+        //Setting the shape function matrix
+        SizeType Index = 0;
+        for (SizeType i = 0; i < NumUNodes; ++i)
+        {
+            for (SizeType iDim = 0; iDim < Dim; ++iDim)
+            {
+                Nu(iDim,Index++) = Variables.Nu(i);
+            }
+        }
+
+        //Adding contribution to Mass matrix
+        noalias(M) += Density*prod(trans(Nu),Nu) * Variables.IntegrationCoefficient;
     }
 
     //Distribute mass block matrix into the elemental matrix
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    const SizeType ElementSize = BlockElementSize + NumPNodes;
 
-    if ( rMassMatrix.size1() != ElementSize )
+    if ( rMassMatrix.size1() != ElementSize || rMassMatrix.size2() != ElementSize)
         rMassMatrix.resize( ElementSize, ElementSize, false );
     noalias( rMassMatrix ) = ZeroMatrix( ElementSize, ElementSize );
 
@@ -499,9 +509,9 @@ void SmallStrainUPwDiffOrderElement::
         for (SizeType j = 0; j < NumUNodes; j++)
         {
             SizeType Index_j = j * Dim;
-            for (unsigned int idim = 0; idim < Dim; ++idim)
+            for (SizeType idim = 0; idim < Dim; ++idim)
             {
-                for (unsigned int jdim = 0; jdim < Dim; ++jdim)
+                for (SizeType jdim = 0; jdim < Dim; ++jdim)
                 {
                     rMassMatrix(Index_i+idim,  Index_j+jdim) += M(Index_i+idim,  Index_j+jdim);
                 }
@@ -595,6 +605,50 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_CATCH( "" )
 }
 
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    GetFirstDerivativesVector( Vector& rValues, int Step ) const
+{
+    KRATOS_TRY
+    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector()") << std::endl;
+
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    if ( rValues.size() != ElementSize )
+        rValues.resize( ElementSize, false );
+
+    SizeType Index = 0;
+
+    if ( Dim > 2 )
+    {
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+        }
+    }
+    else
+    {
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        }
+    }
+
+    for ( SizeType i = 0; i < NumPNodes; i++ )
+        rValues[Index++] = 0.0;
+
+    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector()") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
@@ -613,12 +667,23 @@ void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues
 
     SizeType Index = 0;
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
+    if ( Dim > 2 )
     {
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
-        if ( Dim > 2 )
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+        }
+    }
+    else
+    {
+        for ( SizeType i = 0; i < NumUNodes; i++ )
+        {
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[Index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+        }
+
     }
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
@@ -1056,11 +1121,14 @@ void SmallStrainUPwDiffOrderElement::
                 mRetentionLawVector[PointNumber]->CalculateRelativePermeability(RetentionParameters);
 
             Vector GradPressureTerm(Dim);
-            noalias(GradPressureTerm)  =   prod(trans(Variables.DNp_DX), Variables.PressureVector);
-            noalias(GradPressureTerm) += - GetProperties()[DENSITY_WATER]*BodyAcceleration;
+            noalias(GradPressureTerm)  =  prod(trans(Variables.DNp_DX), Variables.PressureVector);
+            noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR 
+                                        * GetProperties()[DENSITY_WATER]
+                                        * BodyAcceleration;
 
             Vector AuxFluidFlux = ZeroVector(Dim);
-            AuxFluidFlux = - Variables.DynamicViscosityInverse
+            AuxFluidFlux =   PORE_PRESSURE_SIGN_FACTOR 
+                           * Variables.DynamicViscosityInverse
                            * RelativePermeability
                            * prod(Variables.IntrinsicPermeability, GradPressureTerm );
 
@@ -1173,6 +1241,8 @@ void SmallStrainUPwDiffOrderElement::
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
 
+        const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
         //Loop over integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
@@ -1190,8 +1260,7 @@ void SmallStrainUPwDiffOrderElement::
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
             UpdateStressVector(Variables, PointNumber);
 
-            const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-            Variables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+            Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
@@ -1339,6 +1408,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAll") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
+    const PropertiesType& Prop = this->GetProperties();
 
     //Definition of variables
     ElementVariables Variables;
@@ -1360,6 +1430,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1378,9 +1450,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
 
         CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
-        // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
@@ -1437,10 +1507,6 @@ void SmallStrainUPwDiffOrderElement::
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         UpdateStressVector(Variables, PointNumber);
 
-        // // calculate Bulk modulus from stiffness matrix
-        // const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        // this->InitializeBiotCoefficients(Variables, BulkModulus);
-
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
                                                Variables.detJ0,
@@ -1455,7 +1521,8 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-double SmallStrainUPwDiffOrderElement::CalculateBulkModulus(const Matrix &ConstitutiveMatrix)
+double SmallStrainUPwDiffOrderElement::
+    CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBulkModulus") << std::endl;
@@ -1603,16 +1670,43 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables( ElementVariables&
 
 }
 
+//----------------------------------------------------------------------------------------
+double SmallStrainUPwDiffOrderElement::
+    CalculateBiotCoefficient( const ElementVariables& rVariables,
+                              const bool &hasBiotCoefficient) const
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
+
+    const PropertiesType& Prop = this->GetProperties();
+
+    //Properties variables
+    if (hasBiotCoefficient) {
+        return Prop[BIOT_COEFFICIENT];
+    }
+    else {
+        // calculate Bulk modulus from stiffness matrix
+        const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
+        return 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    }
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
+    KRATOS_CATCH( "" )
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients( ElementVariables& rVariables,
-                                                                const double &BulkModulus )
+void SmallStrainUPwDiffOrderElement::
+    InitializeBiotCoefficients( ElementVariables &rVariables,
+                                const bool &hasBiotCoefficient )
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
 
     const PropertiesType& Prop = this->GetProperties();
 
-    rVariables.BiotCoefficient = 1.0 - BulkModulus / Prop[BULK_MODULUS_SOLID];
+    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables, hasBiotCoefficient);
+
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY])
                                    / Prop[BULK_MODULUS_SOLID] 
                                    + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];

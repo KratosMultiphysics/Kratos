@@ -351,11 +351,11 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
    protected:
       ///@name Protected member Variables
       ///@{
-      std::array<double, VOIGT_SIZE_3D> mStressVector;
-      std::array<double, VOIGT_SIZE_3D> mStressVectorFinalized;
+      array_1d<double, VOIGT_SIZE_3D> mStressVector;
+      array_1d<double, VOIGT_SIZE_3D> mStressVectorFinalized;
 
-      std::array<double, VOIGT_SIZE_3D> mDeltaStrainVector;
-      std::array<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
+      array_1d<double, VOIGT_SIZE_3D> mDeltaStrainVector;
+      array_1d<double, VOIGT_SIZE_3D> mStrainVectorFinalized;
 
       double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D];
 
@@ -381,13 +381,6 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
       void CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix);
       void CalculateStress(ConstitutiveLaw::Parameters &rValues, Vector& rStressVector);
-
-      // Get number of StateVariables
-      int GetNumberOfStateVariables() {return mStateVariables.size();}
-
-      // Get StateVariables 
-      const std::vector<double> &GetStateVariables() {return mStateVariables;}
-      const std::vector<double> &GetStateVariablesFilalized() {return mStateVariablesFinalized;}
 
       int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
@@ -418,8 +411,8 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
       std::vector<int> mProjectDirectory;
 
-      std::vector<double> mStateVariables;
-      std::vector<double> mStateVariablesFinalized;
+      Vector mStateVariables;
+      Vector mStateVariablesFinalized;
 
 
       ///@}
@@ -446,13 +439,6 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
       // Set state variables to the initial values
       void ResetStateVariables(const Properties& rMaterialProperties);
-
-      // set number of StateVariables
-      void SetNumberOfStateVariables(const Properties& rMaterialProperties);
-      int GetNumberOfStateVariablesFromUMAT(const Properties& rMaterialProperties);
-
-      // get number of MaterialParameters
-      int GetNumberOfMaterialParametersFromUMAT(const Properties& rMaterialProperties);
 
 
       ///@}

@@ -34,7 +34,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         :return:
         """
         test_name = 'Biaxialshearstresswithlinearelasticmodel'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
 
         simulation = test_helper.run_kratos(file_path)
 
@@ -43,7 +43,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         # check strain_tensor on all gauss points
         for i in range(len(strain_tensor)):
             for j in range(len(strain_tensor[i])):
-                self.assertAlmostEqual(-0.00125, strain_tensor[i][j][-3])
+                self.assertAlmostEqual(-0.00125, strain_tensor[i][j][0,1])
 
     # todo
     @KratosUnittest.skip("unit test skipped as it is not ready")
@@ -56,7 +56,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         import math
         #
         test_name = 'smoothrigidfootingonelasticsoil_2'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
 
         simulation = test_helper.run_kratos(file_path)
 
@@ -122,6 +122,8 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         cauchy_stress_tensor[min_distance_idxs]
 
 
+    # todo
+    @KratosUnittest.skip("test should be checked")
     def test_benchmark1_4(self):
         """
         test 1D consolidation on elastic soil.
@@ -135,7 +137,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
 
         # get the parameter file names for all stages
         test_name = '1D-Consolidation_all_stages'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
         parameter_file_names = [os.path.join(file_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
                                 range(n_stages)]
 
@@ -185,7 +187,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
 
         # Calculate
         test_name = 'test_tunnel'
-        file_path = test_helper.get_file_path(os.path.join('..', 'test_examples', test_name + '.gid'))
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         # get results

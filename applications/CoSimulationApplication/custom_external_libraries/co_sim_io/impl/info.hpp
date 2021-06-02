@@ -112,9 +112,18 @@ public:
     const TDataType& Get(const std::string& I_Key) const
     {
         CO_SIM_IO_ERROR_IF_NOT(Has(I_Key)) << "Trying to get \"" << I_Key << "\" which does not exist!" << std::endl;
-        const auto& r_val = mOptions.at(I_Key);
-        CO_SIM_IO_ERROR_IF(r_val->GetDataTypeName() != Internals::Name(TDataType())) << "Wrong DataType! Trying to get \"" << I_Key << "\" which is of type \"" << r_val->GetDataTypeName() << "\" with \"" << Internals::Name(TDataType()) << "\"!" << std::endl;
-        return *static_cast<const TDataType*>(r_val->GetData());
+        return GetExistingKey<TDataType>(I_Key);
+    }
+
+    template<typename TDataType>
+    const TDataType& Get(const std::string& I_Key, const TDataType& I_Default) const
+    {
+        if (Has(I_Key)) {
+            return GetExistingKey<TDataType>(I_Key);
+        } else {
+            // this does NOT insert the value! (same behavior as in python)
+            return I_Default;
+        }
     }
 
     bool Has(const std::string& I_Key) const
@@ -213,6 +222,14 @@ public:
 
 private:
     std::map<std::string, std::shared_ptr<Internals::InfoDataBase>> mOptions;
+
+    template<typename TDataType>
+    const TDataType& GetExistingKey(const std::string& I_Key) const
+    {
+        const auto& r_val = mOptions.at(I_Key);
+        CO_SIM_IO_ERROR_IF(r_val->GetDataTypeName() != Internals::Name(TDataType())) << "Wrong DataType! Trying to get \"" << I_Key << "\" which is of type \"" << r_val->GetDataTypeName() << "\" with \"" << Internals::Name(TDataType()) << "\"!" << std::endl;
+        return *static_cast<const TDataType*>(r_val->GetData());
+    }
 };
 
 /// output stream function

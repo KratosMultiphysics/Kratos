@@ -96,7 +96,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -201,35 +201,33 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
-        gp_utilities = self.optimization_utilities
-
         g_a, g_a_variables = self.__getActiveConstraints()
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
         s = KM.Vector()
-        gp_utilities.AssembleVector(nabla_f, KSO.DF1DX_MAPPED)
+        self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
 
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             s = nabla_f * (-1.0)
             s *= self.step_size / s.norm_inf()
-            gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
-            gp_utilities.AssignVectorToVariable([0.0]*len(s), KSO.CORRECTION)
-            gp_utilities.AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, [0.0]*len(s), KSO.CORRECTION)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
             return
 
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        gp_utilities.AssembleMatrix(N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
         KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
         c = KM.Vector()
-        gp_utilities.CalculateProjectedSearchDirectionAndCorrection(
+        self.optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
             nabla_f,
             N,
             g_a,
@@ -248,9 +246,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         else:
             s *= self.step_size / s.norm_inf()
 
-        gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
-        gp_utilities.AssignVectorToVariable(c, KSO.CORRECTION)
-        gp_utilities.AssignVectorToVariable(s+c, KSO.CONTROL_POINT_UPDATE)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, c, KSO.CORRECTION)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, s+c, KSO.CONTROL_POINT_UPDATE)
 
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
@@ -282,8 +280,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.SEARCH_DIRECTION)
-        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.CORRECTION)
+        additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
+        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
@@ -307,7 +305,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
 # ==============================================================================

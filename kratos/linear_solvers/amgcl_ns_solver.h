@@ -462,8 +462,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-//#undef MPI_COMM_WORLD
-
 }  // namespace Kratos.
 
 

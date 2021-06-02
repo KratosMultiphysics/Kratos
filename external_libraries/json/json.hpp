@@ -27,6 +27,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#if defined(__INTEL_COMPILER)
+#pragma GCC system_header
+#endif
+
 #ifndef INCLUDE_NLOHMANN_JSON_HPP_
 #define INCLUDE_NLOHMANN_JSON_HPP_
 
@@ -2109,7 +2113,7 @@ JSON_HEDLEY_DIAGNOSTIC_POP
 #endif
 
 // disable float-equal warnings on GCC/clang
-#if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
+#if (defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)) && !defined(__INTEL_COMPILER)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
@@ -25361,7 +25365,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 
 // restore GCC/clang diagnostic settings
-#if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
+#if (defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)) && !defined(__INTEL_COMPILER)
     #pragma GCC diagnostic pop
 #endif
 #if defined(__clang__)

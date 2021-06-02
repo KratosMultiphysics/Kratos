@@ -92,6 +92,7 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     void CalculateDampingMatrix( MatrixType& rDampingMatrix,
@@ -234,7 +235,7 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients( ElementVariables& rVariables, const double &BulkModulus );
+    void InitializeBiotCoefficients( ElementVariables& rVariables, const bool &hasBiotCoefficient=false );
 
     virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
 
@@ -278,7 +279,9 @@ protected:
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
+    double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
+    double CalculateBiotCoefficient( const ElementVariables &rVariables,
+                                     const bool &hasBiotCoefficient) const;
 
     void CalculateBMatrix( Matrix& rB,
                            const Matrix& DNu_DX );

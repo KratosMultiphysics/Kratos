@@ -28,6 +28,10 @@ try:
     from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response_function_factory as convdiff_response_factory
 except ImportError:
     convdiff_response_factory = None
+try:
+    from KratosMultiphysics.CompressiblePotentialFlowApplication import potential_flow_response_function_factory as potential_flow_response_factory
+except ImportError:
+    potential_flow_response_factory = None
 
 import time as timer
 
@@ -113,8 +117,17 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         response_functions = {}
 
-        sho_response_functions = ["plane_based_packaging", "mesh_based_packaging", "surface_normal_shape_change"]
+        sho_response_functions = [
+            "plane_based_packaging",
+            "mesh_based_packaging",
+            "surface_normal_shape_change",
+            "face_angle",
+            "airfoil_angle_of_attack",
+            "airfoil_chord_length",
+            "airfoil_perimeter"
+        ]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
+        cps_response_functions = ["adjoint_lift_potential_jump"]
         convdiff_response_functions = ["point_temperature"]
 
         for (response_id, response_settings) in specified_responses:
@@ -131,6 +144,10 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                 if convdiff_response_factory is None:
                     raise RuntimeError("ShapeOpt: {} response function requires ConvectionDiffusionApplication.".format(response_type))
                 response_functions[response_id] = convdiff_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            elif response_type in cps_response_functions:
+                if potential_flow_response_factory is None:
+                    raise RuntimeError("ShapeOpt: {} response function requires CompressiblePotentialFlowApplication.".format(response_type))
+                response_functions[response_id] = potential_flow_response_factory.CreateResponseFunction(response_id, response_settings, model)
             elif response_type in sho_response_functions:
                 response_functions[response_id] = sho_response_factory.CreateResponseFunction(response_id, response_settings, model)
             else:
