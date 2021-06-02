@@ -167,22 +167,28 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         criterion = xmc.multiCriterion.MultiCriterion(**multiCriterionInputDictionary)
 
         # ErrorEstimator
-        statErrorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
+        errorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
 
         # HierarchyOptimiser
         hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**parameters["hierarchyOptimiserInputDictionary"])
 
         # EstimationAssembler
+        assemblers = []
         if "expectationAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
             expectationAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["expectationAssembler"])
+            assemblers.append(expectationAssembler)
+        if "discretizationErrorAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+            discretizationErrorAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["discretizationErrorAssembler"])
+            assemblers.append(discretizationErrorAssembler)
         if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
             varianceAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["varianceAssembler"])
+            assemblers.append(varianceAssembler)
 
         # MonteCarloSampler
         monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
         monteCarloSamplerInputDictionary["indexConstructorDictionary"] = monteCarloIndexInputDictionary
-        monteCarloSamplerInputDictionary["assemblers"] =  [expectationAssembler,varianceAssembler]
-        monteCarloSamplerInputDictionary["errorEstimators"] = [statErrorEstimator]
+        monteCarloSamplerInputDictionary["assemblers"] = assemblers
+        monteCarloSamplerInputDictionary["errorEstimators"] = [errorEstimator]
         mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDictionary)
 
         # XMCAlgorithm
