@@ -73,16 +73,24 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self._RunXMC()
 
+        # TODO: here we should retrieve the risk measure we want to use for optimization
+        #       at the moment we are using the expected value estimation
+        risk_measure = "expected_value"
+        if risk_measure == "expected_value":
+            order = 1 ; is_central = False
+        elif risk_measure == "variance":
+            order = 2 ; is_central = True
+
         # save lift coefficient
-        for qoi_counter in range (0,1):
-            for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
-                self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
-                sample_counter = self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter
-                S1 = float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].powerSums[0][0]))
-                S2 = float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].powerSums[1][0]))
-                h1 = float(get_value_from_remote(mdccm.computeCentralMomentsOrderOneDimensionZero(S1,sample_counter)))
-                h2 = float(get_value_from_remote(mdccm.computeCentralMomentsOrderTwoDimensionZero(S1,S2,sample_counter)))
-                self._value = h1
+        qoi_counter = 0
+        estimator_container = [] # here we append contribution for each index/level
+        for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
+            self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
+            estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central))))
+
+        # linearly sum estimators: this summation operation is valid for expected value and central moments
+        # we refer to equation 4 of Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
+        self._value = sum(estimator_container)
 
         # save shape sensitivity
         qoi_counter = 1
@@ -90,13 +98,11 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         for node in self.adjoint_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
             shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
             for idim in range(3):
-                self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
-                sample_counter = self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter
-                S1 = float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._powerSums["1"][member]))
-                S2 = float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._powerSums["2"][member]))
-                h1 = float(get_value_from_remote(mdccm.computeCentralMomentsOrderOneDimensionZero(S1,sample_counter)))
-                h2 = float(get_value_from_remote(mdccm.computeCentralMomentsOrderTwoDimensionZero(S1,S2,sample_counter)))
-                shape_sensitivity[idim] = h1
+                estimator_container = [] # here we append contribution for each index/level
+                for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
+                    self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
+                    estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].multiValue(order=order, component = member, isCentral=is_central))))
+                shape_sensitivity[idim] = sum(estimator_container) # sum raw/central moment estimations on different indeces/levels
                 member += 1
 
             node.SetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
@@ -161,22 +167,28 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         criterion = xmc.multiCriterion.MultiCriterion(**multiCriterionInputDictionary)
 
         # ErrorEstimator
-        statErrorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
+        errorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
 
         # HierarchyOptimiser
         hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**parameters["hierarchyOptimiserInputDictionary"])
 
         # EstimationAssembler
+        assemblers = []
         if "expectationAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
             expectationAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["expectationAssembler"])
+            assemblers.append(expectationAssembler)
+        if "discretizationErrorAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+            discretizationErrorAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["discretizationErrorAssembler"])
+            assemblers.append(discretizationErrorAssembler)
         if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
             varianceAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["varianceAssembler"])
+            assemblers.append(varianceAssembler)
 
         # MonteCarloSampler
         monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
         monteCarloSamplerInputDictionary["indexConstructorDictionary"] = monteCarloIndexInputDictionary
-        monteCarloSamplerInputDictionary["assemblers"] =  [expectationAssembler,varianceAssembler]
-        monteCarloSamplerInputDictionary["errorEstimators"] = [statErrorEstimator]
+        monteCarloSamplerInputDictionary["assemblers"] = assemblers
+        monteCarloSamplerInputDictionary["errorEstimators"] = [errorEstimator]
         mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDictionary)
 
         # XMCAlgorithm
