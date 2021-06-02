@@ -77,7 +77,7 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     MarkWakeElements();
 
-    RecomputeComputeNodalDistancesToWakeOrWingLowerSurface();
+    RecomputeNodalDistancesToWakeOrWingLowerSurface();
 
     MarkKuttaElements();
 
@@ -535,7 +535,7 @@ void Define3DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t
 // This function recomputes the wake distances from the nodes belonging to te
 // elements. These distances are used later to decide which elements are KUTTA,
 // which are WAKE (STRUCTURE), and which are NORMAL
-void Define3DWakeProcess::RecomputeComputeNodalDistancesToWakeOrWingLowerSurface()
+void Define3DWakeProcess::RecomputeNodalDistancesToWakeOrWingLowerSurface()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
@@ -557,6 +557,7 @@ void Define3DWakeProcess::RecomputeComputeNodalDistancesToWakeOrWingLowerSurface
         }
         // For the rest of the nodes the distance is recomputed:
         else{
+            // TODO: improve the distance calculation.
             // Find closest trailing edge node
             NodeType::Pointer p_closest_te_node = *mrTrailingEdgeModelPart.NodesBegin().base();
             FindClosestTrailingEdgeNode(p_closest_te_node, r_node);

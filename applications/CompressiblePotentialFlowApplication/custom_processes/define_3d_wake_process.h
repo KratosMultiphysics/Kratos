@@ -178,7 +178,7 @@ private:
     void FindClosestTrailingEdgeNode(NodeType::Pointer& pClosest_te_node,
                                      const array_1d<double, 3>& rPoint) const;
 
-    void RecomputeComputeNodalDistancesToWakeOrWingLowerSurface();
+    void RecomputeNodalDistancesToWakeOrWingLowerSurface();
 
     void RecomputeDistance(NodeType::Pointer& pClosest_te_node,
                            NodeType& rNode) const;
