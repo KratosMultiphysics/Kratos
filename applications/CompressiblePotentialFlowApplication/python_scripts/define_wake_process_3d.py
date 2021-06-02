@@ -226,8 +226,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             for _ in range(number_of_elements_in_wake_direction):
                 vertex1 = vertex3
                 vertex2 = vertex4
-                vertex3 = vertex1 + size * self.wake_direction
-                vertex4 = vertex2 + size * self.wake_direction
+                vertex3 = vertex1 + self.shedded_wake_element_size * self.wake_direction
+                vertex4 = vertex2 + self.shedded_wake_element_size * self.wake_direction
 
                 node1 = self.__AddNodeToWakeModelPart(vertex1[0], vertex1[1], vertex1[2] + z)
                 node2 = self.__AddNodeToWakeModelPart(vertex2[0], vertex2[1], vertex2[2] + z)

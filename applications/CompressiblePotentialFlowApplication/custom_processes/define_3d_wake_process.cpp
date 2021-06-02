@@ -282,10 +282,10 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
     IndexType node_index = 0;
     IndexType element_index = 0;
 
-    array_1d<double,3> coordinates1 = ZeroVector(3);
-    array_1d<double,3> coordinates2 = ZeroVector(3);
-    array_1d<double,3> coordinates3 = ZeroVector(3);
-    array_1d<double,3> coordinates4 = ZeroVector(3);
+    array_1d<double,3> coordinates1;
+    array_1d<double,3> coordinates2;
+    array_1d<double,3> coordinates3;
+    array_1d<double,3> coordinates4;
 
     for (auto& r_cond : mrTrailingEdgeModelPart.Conditions()) {
         auto& r_geometry = r_cond.GetGeometry();
