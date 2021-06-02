@@ -273,7 +273,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 // of the wake surface in the wake direction. Note that the element size in span
 // direction is predetermined by the size of the conditions constituting the
 // trailing edge.
-void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge()
+void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
 {
     const Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
     const double number_of_elements = mSheddedWakeDistance / mSheddedWakeElementSize;
@@ -318,8 +318,10 @@ void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge()
     }
 }
 
+
+// This function decreases the wake width, avoiding cutting elements outside of the wake.
 void Define3DWakeProcess::DecreaseWakeWidthAtTheWingTips(array_1d<double, 3>& rPoint1,
-                                                         const array_1d<double, 3>& rPoint2)
+                                                         const array_1d<double, 3>& rPoint2) const
 {
     const auto& te_edge = rPoint1 - rPoint2;
     const double projection = inner_prod(te_edge, mSpanDirection);
@@ -405,7 +407,7 @@ void Define3DWakeProcess::CreateWakeSurfaceElements(const double normal_projecti
 
 // This function checks which elements are cut by the wake and marks them as
 // wake elements
-void Define3DWakeProcess::MarkWakeElements()
+void Define3DWakeProcess::MarkWakeElements() const
 {
     KRATOS_TRY;
     KRATOS_INFO("MarkWakeElements") << "...Selecting wake elements..." << std::endl;
@@ -413,6 +415,7 @@ void Define3DWakeProcess::MarkWakeElements()
 
     // Variable to store element ids
     std::vector<std::size_t> wake_elements_ordered_ids;
+    std::vector<std::size_t> trailing_edge_elements_ordered_ids;
 
     // TODO: substitute with CalculateDiscontinuousDistanceToSkinProcess
     const auto start_time(std::chrono::steady_clock::now());
@@ -437,7 +440,7 @@ void Define3DWakeProcess::MarkWakeElements()
     {
         // Check if the element is touching the trailing edge
         auto& r_geometry = rElement.GetGeometry();
-        CheckIfTrailingEdgeElement(rElement, r_geometry);
+        CheckIfTrailingEdgeElement(rElement, r_geometry, trailing_edge_elements_ordered_ids);
 
         // Mark wake elements, save their ids, save the elemental distances in
         // the element and in the nodes, and save wake nodes ids
@@ -460,7 +463,7 @@ void Define3DWakeProcess::MarkWakeElements()
             // Save elemental distances in the nodes
             for (unsigned int j = 0; j < wake_elemental_distances.size(); j++)
             {
-                if (std::abs(wake_elemental_distances[j] < mTolerance))
+                if (std::abs(wake_elemental_distances[j]) < mTolerance)
                 {
                     if (wake_elemental_distances[j] < 0.0)
                     {
@@ -479,24 +482,28 @@ void Define3DWakeProcess::MarkWakeElements()
     });
 
     // Add the trailing edge elements to the trailing_edge_sub_model_part
-    AddTrailingEdgeAndWakeElements(wake_elements_ordered_ids);
+    AddTrailingEdgeAndWakeElements(wake_elements_ordered_ids, trailing_edge_elements_ordered_ids);
 
     KRATOS_INFO("MarkWakeElements") << "...Selecting wake elements finished..." << std::endl;
     KRATOS_CATCH("");
 }
 
 // This function checks if the element is touching the trailing edge
-void Define3DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement, Geometry<NodeType>& rGeometry)
+void Define3DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement,
+                                                     Geometry<NodeType>& rGeometry,
+                                                     std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const
 {
     // Loop over element nodes
-    for (unsigned int i = 0; i < rGeometry.size(); i++) {
+    for (unsigned int i = 0; i < rGeometry.size(); i++)
+    {
         // Elements touching the trailing edge are trailing edge elements
         rGeometry[i].SetLock();
-        if (rGeometry[i].GetValue(TRAILING_EDGE)) {
+        if (rGeometry[i].GetValue(TRAILING_EDGE))
+        {
             rElement.SetValue(TRAILING_EDGE, true);
             #pragma omp critical
             {
-                mTrailingEdgeElementsOrderedIds.push_back(rElement.Id());
+                rTrailingEdgeElementsOrderedIds.push_back(rElement.Id());
             }
         }
         rGeometry[i].UnSetLock();
@@ -505,7 +512,8 @@ void Define3DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement, Geometry
 
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
-void Define3DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds)
+void Define3DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds,
+                                                         std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
 
@@ -513,29 +521,30 @@ void Define3DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t
               rWakeElementsOrderedIds.end());
     root_model_part.GetSubModelPart("wake_elements_model_part").AddElements(rWakeElementsOrderedIds);
 
-    std::sort(mTrailingEdgeElementsOrderedIds.begin(),
-              mTrailingEdgeElementsOrderedIds.end());
+    std::sort(rTrailingEdgeElementsOrderedIds.begin(),
+              rTrailingEdgeElementsOrderedIds.end());
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_elements_model_part");
-    trailing_edge_sub_model_part.AddElements(mTrailingEdgeElementsOrderedIds);
+    trailing_edge_sub_model_part.AddElements(rTrailingEdgeElementsOrderedIds);
 
+    std::vector<std::size_t> trailing_edge_nodes_ordered_ids;
     // Add also the nodes of the elements touching the trailing edge
     for (auto& r_elem : trailing_edge_sub_model_part.Elements())
     {
         for (auto& r_node : r_elem.GetGeometry()){
-            mTrailingEdgeElementsNodesOrderedIds.push_back(r_node.Id());
+            trailing_edge_nodes_ordered_ids.push_back(r_node.Id());
         }
     }
 
-    std::sort(mTrailingEdgeElementsNodesOrderedIds.begin(),
-              mTrailingEdgeElementsNodesOrderedIds.end());
-    trailing_edge_sub_model_part.AddNodes(mTrailingEdgeElementsNodesOrderedIds);
+    std::sort(trailing_edge_nodes_ordered_ids.begin(),
+              trailing_edge_nodes_ordered_ids.end());
+    trailing_edge_sub_model_part.AddNodes(trailing_edge_nodes_ordered_ids);
 }
 
 // This function recomputes the wake distances from the nodes belonging to te
 // elements. These distances are used later to decide which elements are KUTTA,
 // which are WAKE (STRUCTURE), and which are NORMAL
-void Define3DWakeProcess::RecomputeNodalDistancesToWakeOrWingLowerSurface()
+void Define3DWakeProcess::RecomputeNodalDistancesToWakeOrWingLowerSurface() const
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
     ModelPart& trailing_edge_sub_model_part =
@@ -622,7 +631,7 @@ void Define3DWakeProcess::RecomputeDistance(NodeType::Pointer& pClosest_te_node,
 
 // This function selects the kutta elements. Kutta elements are touching the
 // trailing edge from below
-void Define3DWakeProcess::MarkKuttaElements()
+void Define3DWakeProcess::MarkKuttaElements() const
 {
     KRATOS_INFO("MarkKuttaElements") << "...Selecting kutta elements..." << std::endl;
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();

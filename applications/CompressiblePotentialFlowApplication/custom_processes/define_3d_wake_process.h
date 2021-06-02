@@ -119,11 +119,6 @@ private:
     const double mSheddedWakeDistance;
     const double mSheddedWakeElementSize;
 
-    // Vector to store the trailing edge elements ids
-    std::vector<std::size_t> mTrailingEdgeElementsOrderedIds;
-    std::vector<std::size_t> mTrailingEdgeElementsNodesOrderedIds;
-
-    NodeType* mpTrailingEdgeNode;
     BoundedVector<double, 3> mWakeNormalOld;
 
     ///@}
@@ -139,10 +134,10 @@ private:
 
     void ComputeAndSaveLocalWakeNormal() const;
 
-    void ShedWakeSurfaceFromTheTrailingEdge();
+    void ShedWakeSurfaceFromTheTrailingEdge() const;
 
     void DecreaseWakeWidthAtTheWingTips(array_1d<double, 3>& rPoint1,
-                                        const array_1d<double, 3>& rPoint2);
+                                        const array_1d<double, 3>& rPoint2) const;
 
     void CreateWakeSurfaceNodesAndElements(IndexType& rNode_index,
                                            const array_1d<double, 3>& rCoordinates1,
@@ -169,21 +164,24 @@ private:
                                    const std::vector<ModelPart::IndexType>& rNodes_ids,
                                    const Properties::Pointer pElemProp) const;
 
-    void MarkWakeElements();
+    void MarkWakeElements() const;
 
-    void CheckIfTrailingEdgeElement(Element& rElement, Geometry<NodeType>& rGeometry);
+    void CheckIfTrailingEdgeElement(Element& rElement,
+                                    Geometry<NodeType>& rGeometry,
+                                    std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const;
 
-    void AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds);
+    void AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds,
+                                        std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const;
 
     void FindClosestTrailingEdgeNode(NodeType::Pointer& pClosest_te_node,
                                      const array_1d<double, 3>& rPoint) const;
 
-    void RecomputeNodalDistancesToWakeOrWingLowerSurface();
+    void RecomputeNodalDistancesToWakeOrWingLowerSurface() const;
 
     void RecomputeDistance(NodeType::Pointer& pClosest_te_node,
                            NodeType& rNode) const;
 
-    void MarkKuttaElements();
+    void MarkKuttaElements() const;
 
     unsigned int CountNumberOfTrailindEdgeNodesInElement(const Geometry<NodeType>& rGeometry) const;
 
@@ -198,7 +196,7 @@ private:
                            const unsigned int number_of_nodes_with_negative_distance,
                            const unsigned int number_of_nodes_with_positive_distance) const;
 
-        void SaveLocalWakeNormalInElements() const;
+    void SaveLocalWakeNormalInElements() const;
 
     void AddWakeNodesToWakeModelPart() const;
 
