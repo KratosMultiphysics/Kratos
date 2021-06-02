@@ -258,6 +258,12 @@ public:
             }
         }
 
+        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
+        {
+            if (mEmbeddedEdgesArray[i]->Id() == Index)
+                return mEmbeddedEdgesArray[i];
+        }
+
         KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
             << this->Id() << std::endl;
     }
@@ -289,6 +295,12 @@ public:
                 if (mInnerLoopArray[i][j]->Id() == Index)
                     return true;
             }
+        }
+
+        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
+        {
+            if (mEmbeddedEdgesArray[i]->Id() == Index)
+                return true;
         }
 
         return false;
