@@ -6,10 +6,7 @@ from xmc.tools import dynamicImport, splitOneListIntoTwo
 from xmc.methodDefs_xmcAlgorithm import checkInitialisation, updateTolerance
 
 # Import ExaQUte API
-from exaqute import get_value_from_remote, init
-
-# Initialise ExaQUte API; should only be executed once.
-init()
+from exaqute import get_value_from_remote
 
 
 class XMCAlgorithm:

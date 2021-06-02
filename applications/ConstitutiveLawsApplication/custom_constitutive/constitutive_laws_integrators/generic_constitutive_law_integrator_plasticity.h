@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -165,7 +165,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         array_1d<double, VoigtSize>& rGflux,
         double& rPlasticDissipation,
         array_1d<double, VoigtSize>& rPlasticStrainIncrement,
-        const Matrix& rConstitutiveMatrix,
+        Matrix& rConstitutiveMatrix,
         Vector& rPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength
@@ -175,10 +175,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         bool is_converged = false;
-        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
+        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS)
+            ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
+        Matrix tangent_tensor = ZeroMatrix(6,6);
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
@@ -193,6 +195,7 @@ class GenericConstitutiveLawIntegratorPlasticity
             F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                         rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
+            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
 
             if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -200,6 +203,7 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
+        rConstitutiveMatrix = tangent_tensor;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
 
     }
@@ -254,6 +258,26 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         return rUniaxialStress - rThreshold;
     }
+
+    /**
+     * @brief This method calculates the analytical tangent tensor
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the deviatoric part of the stress vector
+     * @param rFFluxVector The derivative of the yield surface
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateTangentMatrix(
+        Matrix& rTangent,
+        const Matrix& rElasticMatrix,
+        const array_1d<double, VoigtSize>& rFFluxVector,
+        const array_1d<double, VoigtSize>& rGFluxVector,
+        const double Denominator
+        )
+    {
+        rTangent = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
+    }
+
 
     /**
      * @brief This method calculates the derivative of the yield surface

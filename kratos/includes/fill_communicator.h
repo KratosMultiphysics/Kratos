@@ -66,6 +66,10 @@ public:
     /// Constructor.
     FillCommunicator(ModelPart& rModelPart);
 
+    FillCommunicator(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataComm);
+
     /// Copy constructor.
     FillCommunicator(FillCommunicator const& rOther) = delete;
 
@@ -142,6 +146,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    const DataCommunicator& mrDataComm;
 
     ///@}
     ///@name Protected Operators

@@ -19,6 +19,8 @@ from xmc.momentEstimator import (
     MultiCombinedMomentEstimator,
 )
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
+
+# Import exaqute for parallel tests
 from exaqute import (
     task,
     get_value_from_remote,
@@ -490,7 +492,7 @@ class TestMultiMomentEstimator(unittest.TestCase):
                 else:
                     self.assertTrue(estimator._isEstimationParallel)
 
-    def parallel_test_isParallel(self):
+    def pycompss_quake_test_isParallel(self):
         """
         Tests the parallel behaviours of estimation and update of MultiMomentEstimator,
         declared by its attributes _isUpdateParallel and _isEstimationParallel. This

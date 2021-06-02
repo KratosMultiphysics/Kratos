@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -99,15 +99,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AssociativePlasticDamageModel);
 
     struct PlasticDamageParameters {
-        BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedMatrixType TangentTensor          = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize);
-        BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize);
-        BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize);
-        BoundedVectorType StrainVector           = ZeroVector(VoigtSize);
-        BoundedVectorType StressVector           = ZeroVector(VoigtSize);
+        BoundedMatrixType ComplianceMatrixIncrement { ZeroMatrix(VoigtSize,VoigtSize) } ;
+        BoundedMatrixType ComplianceMatrix       { ZeroMatrix(VoigtSize,VoigtSize) };
+        BoundedMatrixType ConstitutiveMatrix     {  ZeroMatrix(VoigtSize,VoigtSize) };
+        BoundedMatrixType TangentTensor          {  ZeroMatrix(VoigtSize,VoigtSize) };
+        BoundedVectorType PlasticFlow            {  ZeroVector(VoigtSize) };
+        BoundedVectorType PlasticStrain          {  ZeroVector(VoigtSize)};
+        BoundedVectorType PlasticStrainIncrement {  ZeroVector(VoigtSize)};
+        BoundedVectorType StrainVector           {  ZeroVector(VoigtSize)};
+        BoundedVectorType StressVector           {  ZeroVector(VoigtSize)};
         double NonLinearIndicator          = 0.0; // F
         double PlasticConsistencyIncrement = 0.0; // Lambda dot
         double UniaxialStress              = 0.0;

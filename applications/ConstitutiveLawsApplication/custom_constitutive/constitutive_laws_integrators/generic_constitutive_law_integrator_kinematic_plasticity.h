@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -197,6 +197,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         BoundedArrayType delta_sigma;
         double plastic_consistency_factor_increment, threshold_indicator;
         BoundedArrayType kin_hard_stress_vector;
+        Matrix tangent_tensor = ZeroMatrix(6,6);
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
@@ -212,6 +213,9 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
                                         rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
+
+            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDenominator);
+
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
@@ -220,6 +224,26 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         }
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorKinematicPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
+
+    /**
+     * @brief This method calculates the analytical tangent tensor
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the deviatoric part of the stress vector
+     * @param rFFluxVector The derivative of the yield surface
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateTangentMatrix(
+        Matrix& rTangent,
+        const Matrix& rElasticMatrix,
+        const array_1d<double, VoigtSize>& rFFluxVector,
+        const array_1d<double, VoigtSize>& rGFluxVector,
+        const double Denominator
+        )
+    {
+        rTangent = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
+    }
+
 
     /**
      * @brief This method calculates all the plastic parameters required for the integration of the PredictiveStressVector

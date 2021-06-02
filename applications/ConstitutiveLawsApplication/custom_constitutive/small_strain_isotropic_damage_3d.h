@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -45,13 +45,14 @@ namespace Kratos
 /**
  * @class SmallStrainIsotropicDamage3D
  * @ingroup StructuralMechanicsApplication
- * @brief Defines a damage with hardening/softening constitutive law in 3D
+ * @brief Defines a damage with hardening constitutive law in 3D
  * @details This material law is defined by the parameters:
  * - YOUNG_MODULUS
  * - POISSON_RATIO
- * - YIELD_STRESS
- * - INFINITY_YIELD_STRESS
- * - HARDENING_MODULI_VECTOR: List of hardening modules (only two branches considered)
+ * - HARDEDNING_CURVE: Type of hardening model: 0 exponential, 1 multilinear
+ * - STRESS_LIMITS: list of stress values in which the corresponding hardening
+ *   parameter is valid
+ * - HARDENING_PARAMETERS: List of hardening modules (max three branches considered)
  * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi

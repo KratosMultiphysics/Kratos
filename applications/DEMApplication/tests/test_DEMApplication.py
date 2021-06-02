@@ -16,10 +16,15 @@ import test_DEM_3D_restitution
 import test_DEM_2D_restitution
 import test_DEM_3D_continuum
 import test_DEM_2D_inlet
+import test_DEM_3D_inlet
 import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
 import test_forces_and_moments
+import test_history_dependent_CLs
+import test_clusters
+import test_DEM_schemes
+import test_random_variable
 
 def AssembleTestSuites():
 
@@ -40,7 +45,6 @@ def AssembleTestSuites():
     #smallSuite.addTest(test_guis.TestGUIs("test_GUIs_2"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle1"))
-    smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
     smallSuite.addTest(test_wall_creator_destructor.TestWallCreatorDestructor("test_CreateWallTriangle"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
@@ -51,6 +55,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
+    smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
@@ -61,6 +66,13 @@ def AssembleTestSuites():
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
+    smallSuite.addTest(test_history_dependent_CLs.TestHistoryDependentCLs("test_HistoryDependentCLs"))
+    smallSuite.addTest(test_clusters.TestClusters("test_clusters_1"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_ForwardEuler"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Taylor"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
+    smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
+    smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

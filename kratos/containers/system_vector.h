@@ -69,19 +69,25 @@ public:
     ///@{
 
     SystemVector(const SparseGraph<IndexType>& rGraph){
+        mpComm = rGraph.pGetComm();
         mData.resize(rGraph.Size(),false);
     }
 
     SystemVector(const SparseContiguousRowGraph<IndexType>& rGraph){
+        mpComm = rGraph.pGetComm();
         mData.resize(rGraph.Size(),false);
     }
 
-    SystemVector(IndexType size){
+    SystemVector(IndexType size, DataCommunicator& rComm=ParallelEnvironment::GetDataCommunicator("Serial")){
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial system_vector with a distributed communicator" << std::endl;
+        mpComm = &rComm;
         mData.resize(size,false);
     }
 
     /// Copy constructor.
     explicit SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
+        mpComm = rOtherVector.mpComm;
         mData.resize(rOtherVector.size(),false);
 
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
@@ -91,6 +97,16 @@ public:
 
     /// Destructor.
     virtual ~SystemVector(){}
+
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
+    }
 
     ///@}
     ///@name Operators
@@ -281,6 +297,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    const DataCommunicator* mpComm;
     DenseVector<TDataType> mData;
 
     ///@}

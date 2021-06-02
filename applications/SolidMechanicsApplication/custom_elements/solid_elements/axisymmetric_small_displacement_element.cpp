@@ -429,7 +429,7 @@ void AxisymmetricSmallDisplacementElement::CalculateInfinitesimalStrain(const Ma
 //************************************************************************************
 //************************************************************************************
 
-int AxisymmetricSmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int AxisymmetricSmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -457,5 +457,3 @@ void AxisymmetricSmallDisplacementElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

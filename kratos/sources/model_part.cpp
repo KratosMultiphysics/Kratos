@@ -1858,34 +1858,39 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 void ModelPart::AddGeometry(
     typename GeometryType::Pointer pNewGeometry)
 {
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->AddGeometry(pNewGeometry);
+    if (IsSubModelPart()) {
+        if (!mpParentModelPart->HasGeometry(pNewGeometry->Id())) {
+            mpParentModelPart->AddGeometry(pNewGeometry);
+        }
     }
     /// Check if geometry id already used, is done within the geometry container.
     mGeometries.AddGeometry(pNewGeometry);
 }
 
-/// Inserts a list of geometries to a submodelpart provided their Ids. Does nothing if applied to the top model part.
-void ModelPart::AddGeometries(std::vector<IndexType> const& GeometryIds)
+/** Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+ */
+void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
 {
     KRATOS_TRY
     if(IsSubModelPart()) { // Does nothing if we are on the top model part
-        // Obtain from the root model part the corresponding list of nodes
-        ModelPart* root_model_part = &this->GetRootModelPart();
-        ModelPart::GeometryContainerType aux;
-        for(IndexType i=0; i<GeometryIds.size(); i++) {
-            auto it = root_model_part->Geometries().find(GeometryIds[i]);
-            if(it!=root_model_part->GeometriesEnd())
-                aux.AddGeometry(it.base()->second);
-            else
-                KRATOS_ERROR << "The geometry with Id " << GeometryIds[i] << " does not exist in the root model part";
+        // Obtain from the root model part the corresponding list of geomnetries
+        ModelPart* p_root_model_part = &this->GetRootModelPart();
+        std::vector<GeometryType::Pointer> aux;
+        aux.reserve(GeometriesIds.size());
+        for(auto& r_id : GeometriesIds) {
+            auto it_found = p_root_model_part->Geometries().find(r_id);
+            if(it_found != p_root_model_part->GeometriesEnd()) {
+                aux.push_back( it_found.operator->() );
+            } else {
+                KRATOS_ERROR << "The geometry with Id " << r_id << " does not exist in the root model part" << std::endl;
+            }
         }
 
         ModelPart* p_current_part = this;
         while(p_current_part->IsSubModelPart()) {
-            for(auto it = aux.GeometriesBegin(); it!=aux.GeometriesEnd(); it++)
-                p_current_part->AddGeometry(it.base()->second);
+            for(auto& p_geom : aux) {
+                p_current_part->AddGeometry(p_geom);
+            }
 
             p_current_part = &(p_current_part->GetParentModelPart());
         }

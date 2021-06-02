@@ -1,12 +1,12 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
 SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp # This is because its dependency on python.h
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp # kratos_version is excluded because I separated it to another CU so you didn't have to recompile the whole core every time the version changed, just relink it. In order to not pollute with more .dll / .so a separate .o is created and then using during the linking of KratosCore.dll
 )
 FOREACH(subFolder ${ListFolders})
@@ -32,7 +32,6 @@ ENDFOREACH(subFolder ${ListFolders})
 
 ## Kratos python interface code
 FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
-LIST(APPEND KRATOS_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp)
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -63,7 +62,7 @@ target_compile_definitions(KratosVersion PRIVATE
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
-target_link_libraries(KratosCore PUBLIC gidpost triangle)
+target_link_libraries(KratosCore PUBLIC gidpost triangle tinyexpr)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

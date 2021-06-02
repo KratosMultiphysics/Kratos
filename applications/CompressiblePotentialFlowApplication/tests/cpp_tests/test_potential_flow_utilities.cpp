@@ -56,7 +56,7 @@ void AssignFreeStreamValues(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
     rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialAp
 
     const double reference_max_velocity_squared = 232356.0;
 
-    // Max local Mach number = sqrt(3.0), from MACH_SQUARED_LIMIT
+    // Max local Mach number = sqrt(3.0), from MACH_LIMIT
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(r_current_process_info);
 
@@ -279,7 +279,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
     const double mach_derivative = PotentialFlowUtilities::ComputeDerivativeLocalMachSquaredWRTVelocitySquared<2, 3>(velocity,
                 local_mach_squared, r_current_process_info);
 
-    const double reference_derivative = 2.0657955895264163348e-05;
+    const double reference_derivative = 2.0657955895264170124e-05;
 
     KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
@@ -612,7 +612,9 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupe
     const double density_derivative_accel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(
         current_velocity, local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, 6.3365379876068035e-07, 1e-15);
+    const double reference = 6.33653798760679499e-07;
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, reference, 1e-13);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating from the utilities
