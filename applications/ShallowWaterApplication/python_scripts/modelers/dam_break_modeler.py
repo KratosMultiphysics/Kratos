@@ -13,5 +13,5 @@ class DamBreakModeler(KM.Modeler):
         self.process = DamBreakBenchmark(model, settings)
 
     def PrepareGeometryModel(self):
-        self.process.Check()
         self.process.ExecuteInitialize()
+        self.process.Check()

@@ -13,5 +13,5 @@ class PlanarSurfaceInParabolaModeler(KM.Modeler):
         self.process = PlanarSurfaceInParabolaBenchmark(model, settings)
 
     def PrepareGeometryModel(self):
-        self.process.Check()
         self.process.ExecuteInitialize()
+        self.process.Check()
