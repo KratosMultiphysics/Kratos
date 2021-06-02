@@ -71,6 +71,7 @@ class CadJsonInput : public IO
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -222,6 +223,8 @@ private:
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+
             rModelPart.AddGeometry(p_brep_surface);
         }
         else
@@ -343,6 +346,21 @@ private:
         return std::make_tuple(outer_loops, inner_loops);
     }
 
+    static void ReadAndAddEmbeddedEdges(
+            typename BrepSurfaceType::Pointer pBrepSurface,
+            const Parameters rParameters,
+            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+    {
+        if (rParameters.Has("embedded_edges")) {
+            BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
+                rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
+
+            pBrepSurface->AddEmbeddedEdges(embedded_edges);
+        }
+    }
+
     ///@}
     ///@name Read in Nurbs Geometries
     ///@{
@@ -389,6 +407,55 @@ private:
     }
 
     static void ReadBrepEdgeBrepCurveOnSurface(
+        const Parameters & rParameters,
+        ModelPart & rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 3))
+            << "Reading BrepEdge \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+
+        KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters["topology"][0]))
+            << "Missing 'brep_id' or 'brep_name' in topology" << std::endl;
+
+        KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
+            << "Getting trim: \"" << rParameters["topology"][0]["trim_index"].GetInt()
+            << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0])
+            << "\"." << std::endl;
+
+        GeometryPointerType p_geometry = GetGeometry(rParameters["topology"][0], rModelPart);
+        GeometryPointerType p_brep_trim =
+            p_geometry->pGetGeometryPart(rParameters["topology"][0]["trim_index"].GetInt());
+
+        auto p_brep_curve_on_surface
+            = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
+        KRATOS_ERROR_IF(p_brep_curve_on_surface == nullptr)
+            << "dynamic_cast from Geometry to BrepCurveOnSurface not successfull. Brep Id: "
+            << GetIdOrName(rParameters["topology"][0]) << " and trim index: "
+            << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
+
+        bool relative_direction = true;
+        if (rParameters["topology"][0].Has("relative_direction")) {
+            relative_direction = rParameters["topology"][0]["relative_direction"].GetBool();
+        }
+        else {
+            KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
+                << "For trim: \"" << rParameters["topology"][0]["trim_index"].GetInt()
+                << "\" from geometry: \"" << GetIdOrName(rParameters["topology"][0])
+                << "\", no relative_direction is provided in the input." << std::endl;
+        }
+
+        auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
+
+        auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
+        auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
+
+        SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
+
+        rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
+    }
+
+    static void ReadEmbeddedEdgeBrepCurveOnSurface(
         const Parameters & rParameters,
         ModelPart & rModelPart,
         SizeType EchoLevel = 0)
