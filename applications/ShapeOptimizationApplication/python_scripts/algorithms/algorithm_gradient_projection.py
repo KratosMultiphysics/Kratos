@@ -242,9 +242,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(s_plus_c[initial_index:final_index]), KSO.CONTROL_POINT_UPDATE)
 
     def __GetVector(self, vec_slice):
-        vec_list = []
-        for i in vec_slice:
-            vec_list.append(i)
+        return KM.Vector([i for i in vec_slice])
 
         return KM.Vector(vec_list)
 
