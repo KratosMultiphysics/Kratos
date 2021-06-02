@@ -60,7 +60,7 @@ namespace Kratos
 * @author Pooyan Dadvand
 * @author Riccardo Rossi
 */
-class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer
+class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer final
 {
 public:
     ///@name Type Definitions
@@ -185,7 +185,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VariablesListDataValueContainer()
+    ~VariablesListDataValueContainer()
     {
         Clear();
     }
@@ -764,19 +764,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return std::string("variables list data value container");
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "variables list data value container";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         if(!mpVariablesList)
             rOStream << "No varaibles list is assigned yet." << std::endl;
