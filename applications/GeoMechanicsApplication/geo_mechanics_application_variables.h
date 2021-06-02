@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "custom_phase_laws/univariate_phase_law.h"
 #include "structural_mechanics_application_variables.h"
 #include "geo_mechanics_application_constants.h"
 
@@ -200,12 +199,6 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, double,      POROSITY )
     KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, bool,        FIX_POROSITY )
     KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, bool,        FIX_POROSITY )
-
-    KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, UnivariatePhaseLaw::Pointer,        SWCC_LAW )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, UnivariatePhaseLaw::Pointer,        GAS_LAW )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, UnivariatePhaseLaw::Pointer,        WATER_LAW )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, UnivariatePhaseLaw::Pointer,        RELATIVE_PERMEABILITY_WATER_LAW )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( GEO_MECHANICS_APPLICATION, UnivariatePhaseLaw::Pointer,        RELATIVE_PERMEABILITY_AIR_LAW )
 
 }
 
