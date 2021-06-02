@@ -60,6 +60,7 @@ public:
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -291,6 +292,12 @@ public:
         }
 
         return false;
+    }
+
+    /// @brief Used to add the embedded edges to the brep surface.
+    void AddEmbeddedEdges(BrepCurveOnSurfaceArrayType EmbeddedEdges)
+    {
+        mEmbeddedEdgesArray = EmbeddedEdges;
     }
 
     ///@}
@@ -542,6 +549,8 @@ private:
 
     BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
+
+    BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
