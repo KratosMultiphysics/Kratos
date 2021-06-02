@@ -113,12 +113,11 @@ namespace Kratos {
 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
 
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * mKn);
+        const double equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -213,6 +212,8 @@ namespace Kratos {
                                                                             double& AuxElasticShearForce,
                                                                             double& MaximumAdmisibleShearForce) {
 
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
 
@@ -224,21 +225,10 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        const double my_tg_of_static_friction_angle        = element->GetTgOfStaticFrictionAngle();
-        const double neighbour_tg_of_static_friction_angle = neighbour->GetProperties()[STATIC_FRICTION];
-        const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
-        const double my_tg_of_dynamic_friction_angle        = element->GetTgOfDynamicFrictionAngle();
-        const double neighbour_tg_of_dynamic_friction_angle = neighbour->GetProperties()[DYNAMIC_FRICTION];
-        const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
-
-        const double my_friction_decay_coefficient          = element->GetFrictionDecayCoefficient();
-        const double neighbour_friction_decay_coefficient   = neighbour->GetProperties()[FRICTION_DECAY];
-        double equiv_friction_decay_coefficient             = 0.5 * (my_friction_decay_coefficient + neighbour_friction_decay_coefficient);
-
-        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element->Id()<<std::endl;
-        }
+        const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
+        const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
+        const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
         const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
         double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
@@ -298,9 +288,12 @@ namespace Kratos {
                                                                 Condition* const wall) {
 
         const double my_mass    = element->GetMass();
-        const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];

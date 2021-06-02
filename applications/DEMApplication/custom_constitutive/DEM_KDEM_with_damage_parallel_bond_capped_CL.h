@@ -25,7 +25,7 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        double GetContactSigmaMax(SphericContinuumParticle* element); // override;
+        double GetContactSigmaMax(); // override;
 
     private:
 

@@ -72,8 +72,8 @@ private:
     /// Assignment operator.
     PiecewiseLinearRandomVariable & operator=(PiecewiseLinearRandomVariable const& rOther);
 
-    double mRelativeClosenessTolerance;
-    double mMean;
+    double mRelativeClosenessTolerance = 0.0;
+    double mMean = 0.0 ;
     bool mMeanHasAlreadyBeenCalculated=false;
     std::vector<double> mPDFValues;
     std::vector<double> mPDFBreakpoints;

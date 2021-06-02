@@ -140,6 +140,7 @@ namespace Kratos {
             std::vector<double> areas(mPDFBreakpoints.size() - 1);
 
             // Compute the mean by weighing the centroid coordinate of every trapezoid by its area
+            mMean = 0.0;
             for (std::size_t i = 0; i < areas.size(); ++i) {
                 const double& x1 = mPDFBreakpoints[i];
                 const double& x2 = mPDFBreakpoints[i + 1];

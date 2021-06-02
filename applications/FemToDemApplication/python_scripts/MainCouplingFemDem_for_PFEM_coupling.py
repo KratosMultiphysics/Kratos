@@ -20,8 +20,15 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
 #============================================================================================================================
     def __init__(self, Model, path = ""):
         # Initialize solutions
+
+        if path == "":
+            DEMProjectParametersFile = open("ProjectParametersDEM.json", 'r')
+        else:
+            DEMProjectParametersFile = open(os.path.join(path, "ProjectParametersDEM.json"), 'r')
+        DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
+
         self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model, path)
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -87,7 +94,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
-        
+
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -147,5 +154,5 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
-        
+
         self.FindNeighboursIfNecessary()

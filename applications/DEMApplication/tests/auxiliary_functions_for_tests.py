@@ -22,6 +22,16 @@ def CreateAndRunStageInSelectedNumberOfOpenMPThreads(my_obj, model, parameters_f
     else:
         KratosMultiphysics.ParallelUtilities.SetNumThreads(multiprocessing.cpu_count())
 
+class controlledExecutionScope:
+    def __init__(self, scope):
+        self.currentPath = os.getcwd()
+        self.scope = scope
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.currentPath)
 
 def  GetHardcodedNumberOfThreads():
     return 1
