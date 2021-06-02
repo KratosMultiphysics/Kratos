@@ -28,7 +28,7 @@
 namespace Kratos {
 
 namespace {
-    std::mutex GlobalLockInitializerMutex;
+    std::once_flag flag_once;
 }
 
 
@@ -50,7 +50,7 @@ int ParallelUtilities::GetNumThreads()
 void ParallelUtilities::SetNumThreads(const int NumThreads)
 {
     KRATOS_ERROR_IF(NumThreads <= 0) << "Attempting to set NumThreads to <= 0. This is not allowed" << std::endl;
-    
+
 #ifdef KRATOS_SMP_NONE
     // do nothing if is shared memory parallelization is disabled
     return;
@@ -126,11 +126,10 @@ int ParallelUtilities::InitializeNumberOfThreads()
 LockObject& ParallelUtilities::GetGlobalLock()
 {
     if (!mspGlobalLock) {
-        const std::lock_guard<std::mutex> scope_lock(GlobalLockInitializerMutex);
-        if (!mspGlobalLock) {
+        std::call_once(flag_once, [](){
             static LockObject global_lock;
             mspGlobalLock = &global_lock;
-        }
+        });
     }
 
     return *mspGlobalLock;
@@ -138,14 +137,12 @@ LockObject& ParallelUtilities::GetGlobalLock()
 int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
-        GetGlobalLock().SetLock();
-        // const std::lock_guard<LockObject> scope_lock(GetGlobalLock());
+        const std::lock_guard<LockObject> scope_lock(GetGlobalLock());
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
             mspNumThreads = &num_threads;
         }
-        GetGlobalLock().UnSetLock();
     }
 
     return *mspNumThreads;
