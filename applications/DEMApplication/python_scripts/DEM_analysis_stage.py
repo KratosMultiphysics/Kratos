@@ -330,7 +330,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def ReadMaterialsFile(self):
         adapted_to_current_os_relative_path = pathlib.Path(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
-        materials_file_abs_path = os.path.join(self.main_path, adapted_to_current_os_relative_path)
+        materials_file_abs_path = os.path.join(self.main_path, str(adapted_to_current_os_relative_path))
         with open(materials_file_abs_path, 'r') as materials_file:
             self.DEM_material_parameters = Parameters(materials_file.read())
 
