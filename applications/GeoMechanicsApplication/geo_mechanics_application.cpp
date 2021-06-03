@@ -83,6 +83,18 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwSmallStrainElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mUPwSmallStrainElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
 
+    mUPaPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mUPaPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mUPaPwSmallStrainElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mUPaPwSmallStrainElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    mUPaPwSmallStrainElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mUPaPwSmallStrainElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mUPaPwSmallStrainElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPaPwSmallStrainElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mUPaPwSmallStrainElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mUPaPwSmallStrainElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
     // drained small strain elements
     mDrainedUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
     mDrainedUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
@@ -231,6 +243,18 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D10N", mUPwSmallStrainElement3D10N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D20N", mUPwSmallStrainElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D27N", mUPwSmallStrainElement3D27N )
+
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement2D3N", mUPaPwSmallStrainElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement2D4N", mUPaPwSmallStrainElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement3D4N", mUPaPwSmallStrainElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement3D8N", mUPaPwSmallStrainElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement2D6N", mUPaPwSmallStrainElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement2D8N", mUPaPwSmallStrainElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement2D9N", mUPaPwSmallStrainElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement3D10N", mUPaPwSmallStrainElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement3D20N", mUPaPwSmallStrainElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "UPaPwSmallStrainElement3D27N", mUPaPwSmallStrainElement3D27N )
 
     // Drained small strain elements
     KRATOS_REGISTER_ELEMENT( "DrainedUPwSmallStrainElement2D3N", mDrainedUPwSmallStrainElement2D3N )

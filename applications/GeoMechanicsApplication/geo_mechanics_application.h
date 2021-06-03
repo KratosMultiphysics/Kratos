@@ -51,6 +51,7 @@
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_elements/U_Pa_Pw_small_strain_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
@@ -295,7 +296,16 @@ private:
     const UPwSmallStrainElement<3,20> mUPwSmallStrainElement3D20N;
     const UPwSmallStrainElement<3,27> mUPwSmallStrainElement3D27N;
 
-
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement2D3N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement2D4N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement2D6N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement2D8N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement2D9N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement3D4N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement3D10N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement3D8N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement3D20N;
+    const UPaPwSmallStrainElement mUPaPwSmallStrainElement3D27N;
 
     // small strain drained elements:
     const DrainedUPwSmallStrainElement<2,3> mDrainedUPwSmallStrainElement2D3N;
