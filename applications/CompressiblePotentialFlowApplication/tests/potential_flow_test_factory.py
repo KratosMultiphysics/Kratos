@@ -206,14 +206,14 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7312296375421161, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008607693464186337, 0.0, 1e-9)
 
-    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication")
     def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
         work_folder = "body_fitted_opt"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             __import__(work_folder+".run_test")
 
-    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication")
     def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
         if not is_xmc_available:
             self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
