@@ -40,6 +40,11 @@ public:
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace> MotherType;
+    using MotherType::mDeltaTime;
+    using MotherType::mBeta;
+    using MotherType::mGamma;
+    using MotherType::mTheta;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
