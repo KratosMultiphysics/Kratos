@@ -50,7 +50,7 @@
 
 "GraphExportFreq"                  : 1,
 "VelTrapGraphExportFreq"           : 1,
-"OutputTimeStep"                   : 1,
+"OutputTimeStep"                   : 1.0e-3,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
 "PostElasticForces"                : true,
