@@ -139,7 +139,6 @@ public:
   {
     ModelPart &rModelPart = BaseType::GetModelPart();
     ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-    Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
     for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
          i != rModelPart.NodesEnd(); ++i)
@@ -154,7 +153,7 @@ public:
       /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
       if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
       {
-        this->UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+        this->UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity);
       }
       else if ((i)->Is(RIGID))
       {

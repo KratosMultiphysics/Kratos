@@ -1040,7 +1040,7 @@ namespace Kratos
       //vector containing the localization in the system of the different
       //terms
       Element::EquationIdVectorType EquationId;
-      const double start_build = OpenMPUtils::GetCurrentTime();
+      // const double start_build = OpenMPUtils::GetCurrentTime();
 
 // assemble all elements
 #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
@@ -1094,8 +1094,8 @@ namespace Kratos
           }
         }
       }
-      const double stop_build = OpenMPUtils::GetCurrentTime();
-      KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
+      // const double stop_build = OpenMPUtils::GetCurrentTime();
+      // KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
 
       KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 

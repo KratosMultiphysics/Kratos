@@ -734,7 +734,7 @@ public:
 
     ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-    unsigned int nthreads = OpenMPUtils::GetNumThreads();
+    unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
     //        typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
     //         typedef std::unordered_set < NodeType::DofType::Pointer,

@@ -179,8 +179,6 @@ namespace Kratos
 
       if (DELTA_TIME.Key() == 0)
         KRATOS_THROW_ERROR(std::runtime_error, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
-      if (BDF_COEFFICIENTS.Key() == 0)
-        KRATOS_THROW_ERROR(std::runtime_error, "BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.", "");
 
       ModelPart &rModelPart = BaseType::GetModelPart();
 
@@ -222,7 +220,6 @@ namespace Kratos
     bool SolveSolutionStep() override
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
-      this->SetTimeCoefficients(rModelPart.GetProcessInfo());
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -532,7 +529,6 @@ namespace Kratos
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
@@ -547,7 +543,7 @@ namespace Kratos
         /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
         if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
         {
-          UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+          UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity);
         }
         else if ((i)->Is(RIGID))
         {
@@ -600,7 +596,6 @@ namespace Kratos
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
@@ -615,7 +610,7 @@ namespace Kratos
         /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
         if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
         {
-          UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+          UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity);
         }
         else if ((i)->Is(RIGID))
         {
@@ -644,10 +639,12 @@ namespace Kratos
     inline void UpdateAccelerations(array_1d<double, 3> &CurrentAcceleration,
                                     const array_1d<double, 3> &CurrentVelocity,
                                     array_1d<double, 3> &PreviousAcceleration,
-                                    const array_1d<double, 3> &PreviousVelocity,
-                                    Vector &BDFcoeffs)
+                                    const array_1d<double, 3> &PreviousVelocity)
     {
-      noalias(CurrentAcceleration) = -BDFcoeffs[1] * (CurrentVelocity - PreviousVelocity) - PreviousAcceleration;
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double Dt = rCurrentProcessInfo[DELTA_TIME];
+      noalias(CurrentAcceleration) = 2.0 * (CurrentVelocity - PreviousVelocity) / Dt - PreviousAcceleration;
     }
 
     virtual void CalculateDisplacementsAndPorosity()
@@ -776,42 +773,8 @@ namespace Kratos
 
     /// Calculate the coefficients for time iteration.
     /**
-     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
+     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
-    void SetTimeCoefficients(ProcessInfo &rCurrentProcessInfo)
-    {
-      KRATOS_TRY;
-
-      if (mTimeOrder == 2)
-      {
-        //calculate the BDF coefficients
-        double Dt = rCurrentProcessInfo[DELTA_TIME];
-        double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
-        double Rho = OldDt / Dt;
-        double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
-
-        Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        BDFcoeffs.resize(3, false);
-
-        BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);        //coefficient for step n+1 (3/2Dt if Dt is constant)
-        BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-        BDFcoeffs[2] = TimeCoeff;                                  //coefficient for step n-1 (1/2Dt if Dt is constant)
-      }
-      else if (mTimeOrder == 1)
-      {
-        double Dt = rCurrentProcessInfo[DELTA_TIME];
-        double TimeCoeff = 1.0 / Dt;
-
-        Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        BDFcoeffs.resize(2, false);
-
-        BDFcoeffs[0] = TimeCoeff;  //coefficient for step n+1 (1/Dt)
-        BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
-      }
-
-      KRATOS_CATCH("");
-    }
 
     bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
     {

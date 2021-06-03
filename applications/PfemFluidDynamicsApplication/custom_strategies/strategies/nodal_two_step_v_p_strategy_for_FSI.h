@@ -202,7 +202,6 @@ namespace Kratos
 		{
 			// Initialize BDF2 coefficients
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			this->SetTimeCoefficients(rModelPart.GetProcessInfo());
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
