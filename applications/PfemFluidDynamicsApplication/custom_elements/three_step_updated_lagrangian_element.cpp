@@ -1,7 +1,7 @@
 //
 //   Project Name:        KratosFluidDynamicsApplication $
 //   Last modified by:    $Author:               AFranci $
-//   Date:                $Date:              April 2018 $
+//   Date:                $Date:               June 2021 $
 //   Revision:            $Revision:                 0.0 $
 //
 //   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
@@ -13,35 +13,35 @@
 // External includes
 
 // Project includes
-#include "custom_elements/two_step_updated_lagrangian_element.h"
+#include "custom_elements/three_step_updated_lagrangian_element.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
 {
 
   /*
-   * public TwoStepUpdatedLagrangianElement<TDim> functions
+   * public ThreeStepUpdatedLagrangianElement<TDim> functions
    */
   // template <unsigned int TDim>
-  // TwoStepUpdatedLagrangianElement<TDim>::TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const &rOther)
+  // ThreeStepUpdatedLagrangianElement<TDim>::ThreeStepUpdatedLagrangianElement(ThreeStepUpdatedLagrangianElement const &rOther)
   // {
   //   KRATOS_TRY;
   //   KRATOS_CATCH("");
   // }
 
   template <unsigned int TDim>
-  Element::Pointer TwoStepUpdatedLagrangianElement<TDim>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
+  Element::Pointer ThreeStepUpdatedLagrangianElement<TDim>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
   {
     KRATOS_TRY;
 
-    TwoStepUpdatedLagrangianElement NewElement(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
-    return Element::Pointer(new TwoStepUpdatedLagrangianElement(NewElement));
+    ThreeStepUpdatedLagrangianElement NewElement(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+    return Element::Pointer(new ThreeStepUpdatedLagrangianElement(NewElement));
 
     KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::EquationIdVector(EquationIdVectorType &rResult,
+  void ThreeStepUpdatedLagrangianElement<TDim>::EquationIdVector(EquationIdVectorType &rResult,
                                                                const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -57,6 +57,11 @@ namespace Kratos
       this->PressureEquationIdVector(rResult, rCurrentProcessInfo);
       break;
     }
+    case 6:
+    {
+      this->VelocityEquationIdVector(rResult, rCurrentProcessInfo);
+      break;
+    }
     default:
     {
       KRATOS_THROW_ERROR(std::logic_error, "Unexpected value for FRACTIONAL_STEP index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
@@ -67,7 +72,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::GetDofList(DofsVectorType &rElementalDofList,
+  void ThreeStepUpdatedLagrangianElement<TDim>::GetDofList(DofsVectorType &rElementalDofList,
                                                          const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
@@ -83,6 +88,11 @@ namespace Kratos
       this->GetPressureDofList(rElementalDofList, rCurrentProcessInfo);
       break;
     }
+    case 6:
+    {
+      this->GetVelocityDofList(rElementalDofList, rCurrentProcessInfo);
+      break;
+    }
     default:
     {
       KRATOS_THROW_ERROR(std::logic_error, "Unexpected value for FRACTIONAL_STEP index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
@@ -93,7 +103,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  bool TwoStepUpdatedLagrangianElement<TDim>::CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
+  bool ThreeStepUpdatedLagrangianElement<TDim>::CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
                                                                    const ProcessInfo &rCurrentProcessInfo,
                                                                    const ShapeFunctionDerivativesType &rDN_DX,
                                                                    unsigned int g)
@@ -106,7 +116,7 @@ namespace Kratos
   }
 
   template <>
-  bool TwoStepUpdatedLagrangianElement<2>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
+  bool ThreeStepUpdatedLagrangianElement<2>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
                                                                   const ProcessInfo &rCurrentProcessInfo,
                                                                   const ShapeFunctionDerivativesType &rDN_DX,
                                                                   const double theta)
@@ -214,7 +224,7 @@ namespace Kratos
   }
 
   template <>
-  bool TwoStepUpdatedLagrangianElement<3>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
+  bool ThreeStepUpdatedLagrangianElement<3>::CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
                                                                   const ProcessInfo &rCurrentProcessInfo,
                                                                   const ShapeFunctionDerivativesType &rDN_DX,
                                                                   const double theta)
@@ -367,7 +377,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  bool TwoStepUpdatedLagrangianElement<TDim>::CalcStrainRate(ElementalVariables &rElementalVariables,
+  bool ThreeStepUpdatedLagrangianElement<TDim>::CalcStrainRate(ElementalVariables &rElementalVariables,
                                                              const ProcessInfo &rCurrentProcessInfo,
                                                              const ShapeFunctionDerivativesType &rDN_DX,
                                                              const double theta)
@@ -430,7 +440,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::ComputeLumpedMassMatrix(Matrix &rMassMatrix,
+  void ThreeStepUpdatedLagrangianElement<TDim>::ComputeLumpedMassMatrix(Matrix &rMassMatrix,
                                                                       const double Weight,
                                                                       double &MeanValue)
   {
@@ -485,7 +495,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::ComputeMassMatrix(Matrix &rMassMatrix,
+  void ThreeStepUpdatedLagrangianElement<TDim>::ComputeMassMatrix(Matrix &rMassMatrix,
                                                                 const ShapeFunctionsType &rN,
                                                                 const double Weight,
                                                                 double &MeanValue)
@@ -517,7 +527,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector &rRHSVector,
+  void ThreeStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector &rRHSVector,
                                                                 const double Density,
                                                                 const ShapeFunctionsType &rN,
                                                                 const double Weight)
@@ -575,7 +585,7 @@ namespace Kratos
   }
 
   template <>
-  void TwoStepUpdatedLagrangianElement<2>::AddInternalForces(Vector &rRHSVector,
+  void ThreeStepUpdatedLagrangianElement<2>::AddInternalForces(Vector &rRHSVector,
                                                              const ShapeFunctionDerivativesType &rDN_DX,
                                                              ElementalVariables &rElementalVariables,
                                                              const double Weight)
@@ -602,7 +612,7 @@ namespace Kratos
   }
 
   template <>
-  void TwoStepUpdatedLagrangianElement<3>::AddInternalForces(Vector &rRHSVector,
+  void ThreeStepUpdatedLagrangianElement<3>::AddInternalForces(Vector &rRHSVector,
                                                              const ShapeFunctionDerivativesType &rDN_DX,
                                                              ElementalVariables &rElementalVariables,
                                                              const double Weight)
@@ -638,7 +648,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrix(Matrix &BulkMatrix,
+  void ThreeStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrix(Matrix &BulkMatrix,
                                                                 const ShapeFunctionsType &rN,
                                                                 const double Weight)
   {
@@ -656,7 +666,7 @@ namespace Kratos
   }
 
   template <>
-  void TwoStepUpdatedLagrangianElement<2>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
+  void ThreeStepUpdatedLagrangianElement<2>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
                                                                        const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -674,7 +684,7 @@ namespace Kratos
   }
 
   template <>
-  void TwoStepUpdatedLagrangianElement<3>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
+  void ThreeStepUpdatedLagrangianElement<3>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
                                                                        const double Weight)
   {
     std::cout << "TO IMPLEMENT AND CHECK " << std::endl;
@@ -693,7 +703,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrixLump(Matrix &BulkMatrix,
+  void ThreeStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrixLump(Matrix &BulkMatrix,
                                                                     const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -718,7 +728,7 @@ namespace Kratos
    * Template class definition (this should allow us to compile the desired template instantiations)
    */
 
-  template class TwoStepUpdatedLagrangianElement<2>;
-  template class TwoStepUpdatedLagrangianElement<3>;
+  template class ThreeStepUpdatedLagrangianElement<2>;
+  template class ThreeStepUpdatedLagrangianElement<3>;
 
 } // namespace Kratos

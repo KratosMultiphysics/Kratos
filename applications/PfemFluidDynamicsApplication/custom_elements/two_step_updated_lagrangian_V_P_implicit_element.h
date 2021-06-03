@@ -385,14 +385,14 @@ namespace Kratos
                                     const double Weight);
 
     virtual void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
-                                       const double Weight){};
+                                       const double Weight) override {};
 
     virtual void ComputeBulkMatrixConsistent(MatrixType &BulkMatrix,
-                                             const double Weight){};
+                                             const double Weight) override {};
 
     virtual void ComputeBulkMatrix(MatrixType &BulkMatrix,
                                    const ShapeFunctionsType &rN,
-                                   const double Weight){};
+                                   const double Weight) override {};
 
     /* virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
     /* 						   const double Weight){}; */

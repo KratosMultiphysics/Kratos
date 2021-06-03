@@ -44,7 +44,9 @@
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
+#include "custom_elements/updated_lagrangian_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
+#include "custom_elements/three_step_updated_lagrangian_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -298,6 +300,14 @@ private:
   const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D;
   const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic;
 
+  /// 2D v-p  element
+  const UpdatedLagrangianElement<2> mUpdatedLagrangianElement2D;
+  const UpdatedLagrangianElement<2> mUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D v-p  element
+  const UpdatedLagrangianElement<3> mUpdatedLagrangianElement3D;
+  const UpdatedLagrangianElement<3> mUpdatedLagrangianElement3Dquadratic;
+
   /// 2D two step v-p  element
   const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2D;
   const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2Dquadratic;
@@ -305,6 +315,14 @@ private:
   /// 3D two step v-p  element
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3D;
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3Dquadratic;
+
+  /// 2D three step v-p  element
+  const ThreeStepUpdatedLagrangianElement<2> mThreeStepUpdatedLagrangianElement2D;
+  const ThreeStepUpdatedLagrangianElement<2> mThreeStepUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D three step v-p  element
+  const ThreeStepUpdatedLagrangianElement<3> mThreeStepUpdatedLagrangianElement3D;
+  const ThreeStepUpdatedLagrangianElement<3> mThreeStepUpdatedLagrangianElement3Dquadratic;
 
   // Fluid constitutive laws
   const Bingham2DLaw mBingham2DLaw;

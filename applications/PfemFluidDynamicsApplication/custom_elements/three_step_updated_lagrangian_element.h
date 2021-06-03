@@ -1,13 +1,13 @@
 //
 //   Project Name:        KratosFluidDynamicsApplication $
 //   Last modified by:    $Author:               AFranci $
-//   Date:                $Date:              April 2018 $
+//   Date:                $Date:               June 2021 $
 //   Revision:            $Revision:                 0.0 $
 //
 //
 
-#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
-#define KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_THREE_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
+#define KRATOS_THREE_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -61,7 +61,7 @@ namespace Kratos
    */
 
   template <unsigned int TDim>
-  class TwoStepUpdatedLagrangianElement : public UpdatedLagrangianElement<TDim>
+  class ThreeStepUpdatedLagrangianElement : public UpdatedLagrangianElement<TDim>
   {
 
   protected:
@@ -101,8 +101,8 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TwoStepUpdatedLagrangianElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianElement);
+    /// Pointer definition of ThreeStepUpdatedLagrangianElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThreeStepUpdatedLagrangianElement);
 
     typedef UpdatedLagrangianElement<TDim> BaseType;
 
@@ -160,7 +160,7 @@ namespace Kratos
     /**
        * @param NewId Index number of the new element (optional)
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId = 0) : BaseType(NewId)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 
@@ -169,7 +169,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param ThisNodes An array containing the nodes of the new element
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, const NodesArrayType &ThisNodes) : BaseType(NewId, ThisNodes)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId, const NodesArrayType &ThisNodes) : BaseType(NewId, ThisNodes)
     {
     }
 
@@ -178,7 +178,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
     }
 
@@ -188,16 +188,16 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /// copy constructor
 
-    TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const &rOther) : BaseType(rOther){};
+    ThreeStepUpdatedLagrangianElement(ThreeStepUpdatedLagrangianElement const &rOther) : BaseType(rOther){};
 
     /// Destructor.
-    virtual ~TwoStepUpdatedLagrangianElement()
+    virtual ~ThreeStepUpdatedLagrangianElement()
     {
     }
 
@@ -211,7 +211,7 @@ namespace Kratos
 
     /// Create a new element of this type
     /**
-       * Returns a pointer to a new TwoStepUpdatedLagrangianElement element, created using given input
+       * Returns a pointer to a new ThreeStepUpdatedLagrangianElement element, created using given input
        * @param NewId: the ID of the new element
        * @param ThisNodes: the nodes of the new element
        * @param pProperties: the properties assigned to the new element
@@ -220,7 +220,7 @@ namespace Kratos
     Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-      return Element::Pointer(new TwoStepUpdatedLagrangianElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+      return Element::Pointer(new ThreeStepUpdatedLagrangianElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
@@ -241,7 +241,7 @@ namespace Kratos
                                const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
+      KRATOS_THROW_ERROR(std::logic_error, "ThreeStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
       KRATOS_CATCH("");
     }
 
@@ -302,7 +302,7 @@ namespace Kratos
     std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "TwoStepUpdatedLagrangianElement #" << this->Id();
+      buffer << "ThreeStepUpdatedLagrangianElement #" << this->Id();
       return buffer.str();
     }
 
@@ -476,14 +476,14 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    TwoStepUpdatedLagrangianElement &operator=(TwoStepUpdatedLagrangianElement const &rOther);
+    ThreeStepUpdatedLagrangianElement &operator=(ThreeStepUpdatedLagrangianElement const &rOther);
 
     /* /// Copy constructor. */
-    /* TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const& rOther); */
+    /* ThreeStepUpdatedLagrangianElement(ThreeStepUpdatedLagrangianElement const& rOther); */
 
     ///@}
 
-  }; // Class TwoStepUpdatedLagrangianElement
+  }; // Class ThreeStepUpdatedLagrangianElement
 
   ///@}
 
@@ -497,7 +497,7 @@ namespace Kratos
   /// input stream function
   template <unsigned int TDim>
   inline std::istream &operator>>(std::istream &rIStream,
-                                  TwoStepUpdatedLagrangianElement<TDim> &rThis)
+                                  ThreeStepUpdatedLagrangianElement<TDim> &rThis)
   {
     return rIStream;
   }
@@ -505,7 +505,7 @@ namespace Kratos
   /// output stream function
   template <unsigned int TDim>
   inline std::ostream &operator<<(std::ostream &rOStream,
-                                  const TwoStepUpdatedLagrangianElement<TDim> &rThis)
+                                  const ThreeStepUpdatedLagrangianElement<TDim> &rThis)
   {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -516,4 +516,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT  defined
+#endif // KRATOS_THREE_STEP_UPDATED_LAGRANGIAN_ELEMENT  defined
