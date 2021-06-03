@@ -1404,7 +1404,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TwoStepUpdatedLagrangianVPFluidElement3D// GUI group identifier: Parts Auto1
+Begin Elements TwoStepUpdatedLagrangianVPFluidFicElement3D// GUI group identifier: Parts Auto1
         1          0  1046   996  1016   927 
         2          0   996  1016   927   943 
         3          0  1046   996   927  1045 
