@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //
+//  Main authors:    Miguel Maso Sotomayor
+//
 
 
 #ifndef KRATOS_MDPA_IO_MODELER_H_INCLUDED
