@@ -51,8 +51,11 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
 
         for variable in self.variables:
             figure, ax = plt.subplots()
-            getattr(ax,self.axis)(input,target[:,self.variables.index(variable)],'.',label='Ground Truth') 
-            getattr(ax,self.axis)(input,predictions[:,self.variables.index(variable)],'.',label='Prediction')
+            getattr(ax,self.axis)(input,target[:,self.variables.index(variable)],'.',label='Ground Truth')
+            if isinstance(predictions[0],(list, tuple, np.ndarray)): 
+                getattr(ax,self.axis)(input,predictions[:,self.variables.index(variable)],'.',label='Prediction')
+            else:
+                getattr(ax,self.axis)(input,predictions[:],'.',label='Prediction')
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
             ax.legend()

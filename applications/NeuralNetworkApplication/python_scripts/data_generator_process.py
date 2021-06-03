@@ -36,10 +36,12 @@ class DataGeneratorProcess(KM.Process):
             "interval"                 : [0, 1e30],
             "write_output_file"        : true,
             "input_variables"          : [""],
+            "input_sources"            : [""],
             "input_model_part"         : "",
             "output_variables"         : [""],
+            "output_sources"            : [""],
             "output_format"            : "ascii",
-            "perturbate"               : false,
+            "perturbate_variables"     : [""],
             "random_distribution"      : [""],
             "random_parameters"        : [],
             "print_format"             : ".8f",
@@ -63,9 +65,12 @@ class DataGeneratorProcess(KM.Process):
                                     settings['interval'].PrettyPrintJsonString())
 
         self.write_output_file = settings["write_output_file"].GetBool()
-        self.perturbate = settings["perturbate"].GetBool()
+        perturbate_names = settings["perturbate_variables"]
+        perturbate_variable_names = [ perturbate_names[i].GetString() for i in range( perturbate_names.size() ) ]
+        self.perturbate_variables = [ KM.KratosGlobals.GetVariable( var ) for var in perturbate_variable_names ]
         input_dist_names = settings["random_distribution"]
         self.random_distribution = [ input_dist_names[i].GetString() for i in range( input_dist_names.size() ) ]
+        
 
         # getting the list of distribution parameters for each variable
         random_parameters_matrix = settings["random_parameters"].GetMatrix()
@@ -94,36 +99,46 @@ class DataGeneratorProcess(KM.Process):
         # retrieving the input variables
         input_var_names = settings["input_variables"]
         variable_names = [ input_var_names[i].GetString() for i in range( input_var_names.size() ) ]
+        input_sources_names = settings["input_sources"]
+        self.input_sources = [ input_sources_names[i].GetString() for i in range( input_sources_names.size() ) ]
         self.input_variables = [ KM.KratosGlobals.GetVariable( var ) for var in variable_names ]
         if len(self.input_variables) == 0:
             raise Exception('No variables specified for input!')
-        # validate types of variables
-        for var in self.input_variables:
-            if type(var) == KM.DoubleVariable:
-                continue
-            elif type(var) == KM.Array1DVariable3:
-                continue
-            else:
-                err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
-                err_msg += 'It can only be double, component or array3d!'
-                raise Exception(err_msg)
+        if not (len(self.input_variables) == len(self.input_sources)):
+            raise Exception('The number of input variables and sources are different.')
+        self.dict_input = dict(zip(self.input_variables, self.input_sources))
+        # # validate types of variables
+        # for var in self.input_variables:
+        #     if type(var) == KM.DoubleVariable:
+        #         continue
+        #     elif type(var) == KM.Array1DVariable3:
+        #         continue
+        #     else:
+        #         err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
+        #         err_msg += 'It can only be double, component or array3d!'
+        #         raise Exception(err_msg)
 
         # retrieving the output variables
         output_var_names = settings["output_variables"]
         variable_names = [ output_var_names[i].GetString() for i in range( output_var_names.size() ) ]
+        output_sources_names = settings["output_sources"]
+        self.output_sources = [ output_sources_names[i].GetString() for i in range( output_sources_names.size() ) ]
         self.output_variables = [ KM.KratosGlobals.GetVariable( var ) for var in variable_names ]
         if len(self.output_variables) == 0:
             raise Exception('No variables specified for output!')
+        if not (len(self.output_variables) == len(self.output_sources)):
+            raise Exception('The number of output variables and sources are different.')
+        self.dict_output = dict(zip(self.output_variables, self.output_sources))
         # validate types of variables
-        for var in self.output_variables:
-            if type(var) == KM.DoubleVariable:
-                continue
-            elif type(var) == KM.Array1DVariable3:
-                continue
-            else:
-                err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
-                err_msg += 'It can only be double, component or array3d!'
-                raise Exception(err_msg)
+        # for var in self.output_variables:
+        #     if type(var) == KM.DoubleVariable:
+        #         continue
+        #     elif type(var) == KM.Array1DVariable3:
+        #         continue
+        #     else:
+        #         err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
+        #         err_msg += 'It can only be double, component or array3d!'
+        #         raise Exception(err_msg)
 
         # Output file names handling
         if (self.write_output_file):
@@ -199,19 +214,62 @@ class DataGeneratorProcess(KM.Process):
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             input_value_list=[]
             # Perturbation of the load conditions
-            for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
-                if self.perturbate :
-                    factor = getattr(np.random, dist)(*params)
-                    for condition in self.input_model_part.GetConditions():
-                        input_value = op.imul(condition.GetValue(var),(0.0+factor))
-                        for node in condition.GetNodes():
-                            node.SetSolutionStepValue(var,input_value)
-                            input_value_list.append(input_value+condition.GetValue(var))
+            # for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
+            #     if self.perturbate :
+            #         factor = getattr(np.random, dist)(*params)
+            #         for condition in self.input_model_part.GetConditions():
+            #             input_value = op.imul(condition.GetValue(var),(0.0+factor))
+            #             for node in condition.GetNodes():
+            #                 node.SetSolutionStepValue(var,input_value)
+            #                 input_value_list.append(input_value+condition.GetValue(var))
+            #     else:
+            #         for condition in self.input_model_part.GetConditions():
+            #             for node in condition.GetNodes():
+            #                 input_value_list.append(condition.GetValue(var))
+            for variable, source in self.dict_input.items():
+                if variable in self.perturbate_variables:
+                    index = self.perturbate_variables.index(variable)
+                    dist = self.random_distribution[index]
+                    rnd_parameters = self.random_parameters[index]
+                    factor = getattr(np.random, dist)(*rnd_parameters)
+                    # Process related variables (e.g. TIME, STEP)
+                    if source == 'process':
+                        raise Exception("Process variables cannot be perturbated.")
+                    # Node properties (e.g. position)
+                    elif source == 'node':
+                        print("Warning: The node properties are being perturbated.")
+                        for node in self.input_model_part.Nodes:
+                            input_value = op.imul(getattr(node,variable.Name()))
+                            node.SetValue(variable, input_value)
+                            input_value_list.append(getattr(node,variable.Name()))
+                    # Node step values (e.g. variables like displacement)
+                    elif source == "solution_step":
+                        for node in self.input_model_part.Nodes:
+                            input_value = op.imul(node.GetSolutionStepValue(variable), (1.0+factor))
+                            node.SetSolutionStepValue(variable, input_value)
+                            input_value_list.append(node.GetSolutionStepValue(variable,0))
+                    # Condition values
+                    elif source == "condition":
+                        for condition in self.input_model_part.GetConditions():
+                            input_value = op.imul(condition.GetValue(variable), (1.0+factor))
+                            condition.SetValue(variable, input_value)
+                            input_value_list.append(condition.GetValue(variable))
                 else:
-                    for condition in self.input_model_part.GetConditions():
-                        for node in condition.GetNodes():
-                            input_value_list.append(condition.GetValue(var))
-
+                    # Process related variables (e.g. TIME, STEP)
+                    if source == 'process':
+                        input_value_list.append(self.input_model_part.ProcessInfo[variable])
+                    # Node properties (e.g. position)
+                    elif source == 'node':
+                        for node in self.input_model_part.Nodes:
+                            input_value_list.append(getattr(node,variable.Name()))
+                    # Node step values (e.g. variables like displacement)
+                    elif source == "solution_step":
+                        for node in self.input_model_part.Nodes:
+                            input_value_list.append(node.GetSolutionStepValue(variable,0))
+                    # Condition values
+                    elif source == "condition":
+                        for condition in self.input_model_part.GetConditions():
+                            input_value_list.append(condition.GetValue(variable))
 
             # Writing input file
             if (self.write_output_file):
@@ -229,9 +287,24 @@ class DataGeneratorProcess(KM.Process):
         current_step = self.model_part.ProcessInfo[KM.STEP]
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             output_value =[]
-            for node in self.model_part.GetCommunicator().LocalMesh().Nodes:
-                for var in self.output_variables:
-                    output_value.append(node.GetSolutionStepValue(var, 0))
+
+            for variable, source in self.dict_output.items():
+                # Process related variables (e.g. TIME, STEP)
+                if source == 'process':
+                    output_value.append(self.model_part.ProcessInfo[variable])
+                # Node properties (e.g. position)
+                elif source == 'node':
+                    for node in self.model_part.Nodes:
+                        output_value.append(getattr(node,variable.Name()))
+                # Node step values (e.g. variables like displacement)
+                elif source == "solution_step":
+                    for node in self.model_part.Nodes:
+                        output_value.append(node.GetSolutionStepValue(variable,0))
+                # Condition values
+                elif source == "condition":
+                    for condition in self.model_part.GetConditions():
+                        output_value.append(condition.GetValue(variable,0))
+
             if (self.write_output_file):
                 if self.output_format == "ascii":
                     self.training_output_file.write(' '.join(str(v) for v in output_value) + '\n')
@@ -239,3 +312,5 @@ class DataGeneratorProcess(KM.Process):
                     self.hdf5_output_parameters["prefix"].SetString("/"+str(current_step)+"/OutputData")
                     nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(self.hdf5_output_parameters, self.hdf5_file_training_output)
                     nodal_io.WriteNodalResults(self.model_part,1)
+
+

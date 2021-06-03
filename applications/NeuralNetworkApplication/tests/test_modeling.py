@@ -17,7 +17,6 @@ class TestInitialLayers(KratosUnittest.TestCase):
         layer = layer_process.Initialize()
         self.assertEqual(layer.shape.as_list(), [None, 1])
 
-
     def test_Input(self):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._execute_initialization_layer_test(layer = 'input')
@@ -56,11 +55,6 @@ class TestBlockLayers(KratosUnittest.TestCase):
         self.assertEqual(model.output_shape, (None, architecture[-1]))
     def test_BlockDenseLayer(self):
         self._execute_block_layer_test(layer = 'block_dense', architecture = [16,4,2])
-
-class TestModeling(KratosUnittest.TestCase):
-
-    def test_Modeling(self):
-        self._execute_modeling_test()
 
 if __name__ == '__main__':
     KratosUnittest.main()

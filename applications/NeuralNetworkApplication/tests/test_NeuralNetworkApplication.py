@@ -26,19 +26,18 @@ from test_normalizing import TestNormalizing
 from test_modeling import TestInitialLayers
 from test_modeling import TestInnerLayers
 from test_modeling import TestBlockLayers
-from test_modeling import TestModeling
-from test_loading_model import TestLoadingModel
+# from test_loading_model import TestLoadingModel
 
 # Tests for training
-from test_training_parameters import TestOptimizer
-from test_training_parameters import TestLossFunction
-from test_training_parameters import TestMetrics
-from test_training_parameters import TestCallbacks
-from test_training import TestTraining
+# from test_training_parameters import TestOptimizer
+# from test_training_parameters import TestLossFunction
+# from test_training_parameters import TestMetrics
+# from test_training_parameters import TestCallbacks
+# from test_training import TestTraining
 
 # Test for postprocessing
-from test_saving import TestSaving
-from test_testing import TestTesting
+# from test_saving import TestSaving
+# from test_testing import TestTesting
 
 # Tests for output
 # from test_plotters import TestHistoryPlotter
@@ -46,9 +45,9 @@ from test_testing import TestTesting
 
 # Tests for tuning 
 
-from test_tuning import TestLoadingHypermodel
-from test_tuning import TestBuildingHypermodel
-from test_tuning import TestTuning
+# from test_tuning import TestLoadingHypermodel
+# from test_tuning import TestBuildingHypermodel
+# from test_tuning import TestTuning
 
 
 def AssembleTestSuites():
@@ -84,21 +83,21 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestInitialLayers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestInnerLayers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBlockLayers]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingModel]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModeling]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingModel]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModeling]))
     # Training
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizer]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMetrics]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLossFunction]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCallbacks]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestOptimizer]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMetrics]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLossFunction]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCallbacks]))
     # Postprocessing
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSaving]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSaving]))
     # Plotters
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHistoryPlotter]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPredictionPlotter]))
     # Tuning
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingHypermodel]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBuildingHypermodel]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestLoadingHypermodel]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBuildingHypermodel]))
 
     # Create a test suit with the selected tests
 
@@ -111,14 +110,16 @@ def AssembleTestSuites():
     # Modeling
 
     # Training
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTraining]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTraining]))
     # Postprocessing
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTesting]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTesting]))
     # Plotters
  
     # Tuning
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTuning]))
+    # nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTuning]))
 
+    validationSuite = suites['validation']
+    validationSuite.addTest(nightSuite)
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
