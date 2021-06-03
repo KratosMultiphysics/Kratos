@@ -47,17 +47,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             primal_parameters.AddString("design_surface_sub_model_part_name", self.design_surface_sub_model_part_name)
         open(self.response_settings["primal_settings"].GetString(), 'w').write(primal_parameters.PrettyPrintJsonString())
 
-        # Store model
+        # Store current design
         self.current_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
-
-        # Create the adjoint solver
-        adjoint_parameters = _CheckParameters(self._GetAdjointParameters())
-        adjoint_model = KratosMultiphysics.Model()
-        self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
-        self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
-
-    def Initialize(self):
-        self.adjoint_analysis.Initialize()
 
     def InitializeSolutionStep(self):
         self.current_model_part.RemoveSubModelPart("fluid_computational_model_part")
@@ -87,7 +78,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # save shape sensitivity
         qoi_counter = 1
         member = 0
-        for node in self.adjoint_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+        for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
             shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
             for idim in range(3):
                 estimator_container = [] # here we append contribution for each index/level
@@ -97,7 +88,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 shape_sensitivity[idim] = sum(estimator_container) # sum raw/central moment estimations on different indeces/levels
                 member += 1
 
-            node.SetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+            node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
 
     def CalculateValue(self):
         pass
@@ -112,7 +103,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         if variable != KratosMultiphysics.SHAPE_SENSITIVITY:
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
 
-        gradient = {node.Id : node.GetSolutionStepValue(variable) for node in self.adjoint_model_part.Nodes}
+        gradient = {node.Id : node.GetValue(variable) for node in self.current_model_part.Nodes}
 
         return gradient
 
