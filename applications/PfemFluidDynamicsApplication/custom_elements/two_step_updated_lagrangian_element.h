@@ -376,8 +376,8 @@ namespace Kratos
     void GetPressureDofList(DofsVectorType &rElementalDofList,
                             const ProcessInfo &rCurrentProcessInfo) const;
 
-    void CalcMeanVelocity(double &meanVelocity,
-                          const int Step);
+    void CalcMeanVelocityNorm(double &meanVelocity,
+                              const int Step);
 
     void CalcMeanPressure(double &meanPressure,
                           const int Step);

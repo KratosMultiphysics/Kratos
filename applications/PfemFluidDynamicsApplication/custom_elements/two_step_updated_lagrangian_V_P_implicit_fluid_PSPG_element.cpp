@@ -416,17 +416,14 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType j = 0; j < NumNodes; ++j)
     {
-
-      double acc_X = this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X,0);
-      double acc_Y = this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y,0);
       // double acc_X = (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,1)) / TimeStep;
       // double acc_Y = (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,1)) / TimeStep;
 
-      RHSi += Tau * Density * (rDN_DX(i, 0) * rN[j] * acc_X + rDN_DX(i, 1) * rN[j] * acc_Y);
-
+      RHSi += rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0) + rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      //RHSi += Tau * Density * (rDN_DX(i, 0) + rDN_DX(i, 1)) * rN[j] * (acc_X + acc_Y) ;
       // RHSi +=  rN[i] *(rDN_DX(j, 0)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) + rDN_DX(j, 1)*this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0));
     }
-    rRightHandSideVector[i] += +Weight * RHSi;
+    rRightHandSideVector[i] += Weight * Tau * Density * RHSi;
   }
 
   template <>

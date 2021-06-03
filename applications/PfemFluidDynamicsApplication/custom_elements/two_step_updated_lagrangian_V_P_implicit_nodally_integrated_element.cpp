@@ -1282,7 +1282,7 @@ namespace Kratos
     }
 
     double MeanVelocity = 0;
-    this->CalcMeanVelocity(MeanVelocity, 0);
+    this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
     if (MeanVelocity == 0)
