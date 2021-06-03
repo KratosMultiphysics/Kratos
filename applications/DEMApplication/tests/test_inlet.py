@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
 import random_variable_tests_files.random_variable as rv
 
-debug_mode = True
+debug_mode = False
 
 class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
 
