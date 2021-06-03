@@ -52,8 +52,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self.primal_analysis = potential_flow_analysis.PotentialFlowAnalysis(model, primal_parameters)
 
-        self.primal_data_transfer_with_python = self.response_settings["primal_data_transfer_with_python"].GetBool()
-
         # Create the adjoint solver
         adjoint_parameters = _CheckParameters(self._GetAdjointParameters())
         adjoint_model = KratosMultiphysics.Model()
