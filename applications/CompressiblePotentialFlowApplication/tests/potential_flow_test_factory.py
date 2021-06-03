@@ -20,6 +20,7 @@ except:
 
 try:
     import xmc
+    import exaqute
     import numpy as np
     is_xmc_available = True
 except:

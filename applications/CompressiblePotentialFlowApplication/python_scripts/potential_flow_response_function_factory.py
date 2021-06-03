@@ -3,6 +3,7 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication import potential_fl
 
 try:
     import xmc
+    import exaqute
     import numpy as np
     from KratosMultiphysics.CompressiblePotentialFlowApplication import stochastic_potential_flow_response
     is_xmc_available = True
