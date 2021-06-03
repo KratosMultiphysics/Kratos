@@ -173,7 +173,10 @@ namespace Kratos {
             }
 
             if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
-                const Parameters& inlet_settings = mInletsSettings[i];
+                if (!mInletsSettings.Has(mp.Name())){
+                    KRATOS_ERROR << "dem_inlet_settings does not contain settings for the inlet" << mp.Name() << ". Please, provide them.";
+                }
+                const Parameters& inlet_settings = mInletsSettings[mp.Name()];
                 mInletsRandomSettings.emplace(mp.Name(), inlet_settings["random_variable_settings"]);
                 const Parameters& rv_settings = mInletsRandomSettings[mp.Name()];
                 mInletsRandomVariables.emplace(mp.Name(), PiecewiseLinearRandomVariable(rv_settings));
