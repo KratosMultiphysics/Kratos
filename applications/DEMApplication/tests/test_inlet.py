@@ -2,15 +2,14 @@ import os
 import numpy as np
 import KratosMultiphysics as Kratos
 from Kratos import Logger
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.DEMApplication.DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
 import random_variable_tests_files.random_variable as rv
 
 debug_mode = True
 
-class TestDEMInletAnalysis(Kratos.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
 
     @staticmethod
     def Say(*args):

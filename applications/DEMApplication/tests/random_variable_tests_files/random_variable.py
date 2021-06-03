@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 import KratosMultiphysics
 
 
@@ -11,7 +10,7 @@ class RandomVariable:
 	def __init__(self, parameters):
 		pass
 
-	def Sample(self,  n_to_pick=1):
+	def Sample(self):
 		return 0.0
 
 class PiecewiseLinearRV(RandomVariable):
@@ -24,6 +23,7 @@ class PiecewiseLinearRV(RandomVariable):
 		self.areas = np.zeros(len(self.heights) - 1)
 		self.trapezoid_indices = range(len(self.areas))
 		self.Normalize()
+		self.Sample()
 		super().__init__(parameters)
 
 	def InterpolateHeight(self, x):
@@ -56,33 +56,37 @@ class PiecewiseLinearRV(RandomVariable):
 		H = self.boundaries[i_trapezoid + 1] - x0
 		B1 = self.heights[i_trapezoid]
 		B2 = self.heights[i_trapezoid + 1]
-		x_within = self.SampleWithinTrapezoid(H, B1, B2)
+		x_within = self.__class__.SampleWithinTrapezoid(H, B1, B2)
 		return x0 + x_within
 
 	def SampleTrapezoidChoice(self, n_to_pick=1):
 		draw = np.random.choice(len(self.areas), n_to_pick, p=self.discrete_probabilities)
 		return draw
 
-	def SampleWithinTrapezoid(self, H, B1, B2):
+	@staticmethod
+	def SampleWithinTrapezoid(H, B1, B2):
 		if B1 == 0:
-			x = self.SamplePositiveSlopingStandardTriangle()
+			x = PiecewiseLinearRV.SamplePositiveSlopingStandardTriangle()
 		else:
 			beta = B2/B1
 			b = 2.0 / (1 + beta)
-			x = self.SampleXWithinStandardTrapezoid(b)
+			x = PiecewiseLinearRV.SampleXWithinStandardTrapezoid(b)
 		return H * x
 
-	def SampleXWithinStandardTrapezoid(self, b):
+	@staticmethod
+	def SampleXWithinStandardTrapezoid(b):
 		alpha = random.uniform(0, 1)
 		if alpha < b/2:
-			y = self.SampleNegativeSlopingStandardTriangle()
+			y = PiecewiseLinearRV.SampleNegativeSlopingStandardTriangle()
 		else:
-			y = self.SamplePositiveSlopingStandardTriangle()
+			y = PiecewiseLinearRV.SamplePositiveSlopingStandardTriangle()
 		return y
 
-	def SamplePositiveSlopingStandardTriangle(self):
+	@staticmethod
+	def SamplePositiveSlopingStandardTriangle():
 		return np.sqrt(random.uniform(0, 1))
 
-	def SampleNegativeSlopingStandardTriangle(self):
-		return 1.0 - self.SamplePositiveSlopingStandardTriangle()
+	@staticmethod
+	def SampleNegativeSlopingStandardTriangle():
+		return 1.0 - PiecewiseLinearRV.SamplePositiveSlopingStandardTriangle()
 
