@@ -480,7 +480,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
+    virtual inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
     {
         KRATOS_TRY
 

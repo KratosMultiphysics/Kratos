@@ -30,6 +30,8 @@
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 
+#include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -56,6 +58,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >        NewmarkQuasistaticUPwSchemeType;
     typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
     typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >            NewmarkDynamicUPwSchemeType;
+    typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
@@ -70,6 +73,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     .def(init<  double, double, double >());
     class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkDynamicUPwScheme")
+    .def(init<  double, double, double >());
+
+    class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticPwScheme")
     .def(init<  double, double, double >());
 
     class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
