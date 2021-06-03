@@ -220,6 +220,9 @@ namespace Kratos
 
     double totalVolume = 0;
     bool computeElement = false;
+
+    MatrixType DynamicStabilizationMatrix = ZeroMatrix(NumNodes, NumNodes);
+
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; ++g)
     {
@@ -232,19 +235,42 @@ namespace Kratos
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
 
-        double StabLaplacianWeight = Tau * GaussWeight;
-        this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabLaplacianWeight);
+        double StabilizedWeight = Tau * GaussWeight;
+        this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
+
+        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+        this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
 
         for (SizeType i = 0; i < NumNodes; ++i)
         {
           // RHS contribution
           // Velocity divergence
-          
           rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
 
-          this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
+          // this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
 
           this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, TimeStep, rDN_DX, N, i);
+
+          double laplacianRHSi = 0;
+          double bodyForceStabilizedRHSi = 0;
+          array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+          for (SizeType d = 0; d < TDim; ++d)
+          {
+            laplacianRHSi += StabilizedWeight * rDN_DX(i, d) * OldPressureGradient[d];
+
+            bodyForceStabilizedRHSi += StabilizedWeight * rDN_DX(i, d) * (Density * VolumeAcceleration[d]);
+          }
+          rRightHandSideVector[i] += -laplacianRHSi - bodyForceStabilizedRHSi;
+
+          // for (SizeType j = 0; j < NumNodes; ++j)
+          // {
+          //   double Tij = 0.0;
+          //   for (SizeType d = 0; d < TDim; ++d)
+          //   {
+          //     Tij += rDN_DX(i, d) * N[j];
+          //   }
+          //   DynamicStabilizationMatrix(i, j) += StabilizedWeight * Density * Tij;
+          // }
         }
       }
     }
@@ -255,8 +281,14 @@ namespace Kratos
       VectorType PressureValues = ZeroVector(NumNodes);
       VectorType PressureValuesForRHS = ZeroVector(NumNodes);
       this->GetPressureValues(PressureValuesForRHS, 0);
+
+      VectorType AccelerationValues = ZeroVector(NumNodes);
+      this->GetAccelerationValues(AccelerationValues, 0);
+
+      // noalias(rRightHandSideVector) += prod(DynamicStabilizationMatrix, AccelerationValues);
+
       //the LHS matrix up to now just contains the laplacian term and the bound term
-      noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
+      // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
 
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
@@ -320,12 +352,33 @@ namespace Kratos
     }
 
     double MeanVelocity = 0;
-    this->CalcMeanVelocity(MeanVelocity, 0);
+    this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
-    // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
-    // Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
+    // // Tau Fic
+    //Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
 
-    Tau = DeltaTime / Density;
+    // // Tau Tezduyar first proposal
+    // double timeScale = 0.5 * (ElemSize / (2 * MeanVelocity) + DeltaTime);
+    // double Reynolds = MeanVelocity * ElemSize * Density / (2.0 * Viscosity);
+    // double ReynoldsFactor = 1.0;
+    // if (Reynolds < 3)
+    // {
+    //   ReynoldsFactor = (ElemSize * ReynoldsFactor / (2 * MeanVelocity)) / 3.0;
+    // }
+    // Tau = timeScale * ReynoldsFactor / Density;
+
+    // // Tau Tezduyar second proposal
+    // double timeStepTerm = 2.0 / DeltaTime;
+    // double timeScaleTerm = 2.0 * MeanVelocity / ElemSize;
+    // double viscousTerm = 3.0 * (4 * Viscosity / (Density * pow(ElemSize, 2)));
+    // // std::cout << "timeStepTerm= "<<timeStepTerm<< " timeScaleTerm= "<<timeScaleTerm<< " viscousTerm= "<<viscousTerm << std::endl;
+    // double alternativeTau = pow(timeStepTerm, 2) + pow(timeScaleTerm, 2) + pow(viscousTerm, 2);
+    // Tau = 1.0 / (std::sqrt(alternativeTau) * Density);
+
+    // // Simplest Tau
+    Tau =  DeltaTime / Density;
+
+    // std::cout << "Tau= " << Tau << std::endl;
 
     const double tolerance = 1.0e-13;
     if (MeanVelocity < tolerance)

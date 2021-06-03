@@ -844,6 +844,7 @@ namespace Kratos
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
     rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    MatrixType LaplacianMatrix = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
       rRightHandSideVector.resize(NumNodes);
@@ -873,6 +874,8 @@ namespace Kratos
     {
       DeviatoricCoeff = maxViscousValueForStabilization;
     }
+
+    VectorType NewRhsLaplacian = ZeroVector(NumNodes);
 
     double Tau = 0;
     this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
@@ -911,7 +914,11 @@ namespace Kratos
         this->ComputeBoundRHSVectorComplete(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev, rElementalVariables.SpatialDefRate);
 
         double StabLaplacianWeight = Tau * GaussWeight;
-        this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabLaplacianWeight);
+        this->ComputeStabLaplacianMatrix(LaplacianMatrix, rDN_DX, StabLaplacianWeight);
+
+        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+        this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+        // KRATOS_WATCH(OldPressureGradient);
 
         for (SizeType i = 0; i < NumNodes; ++i)
         {
@@ -919,6 +926,13 @@ namespace Kratos
           // Velocity divergence
           rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
           this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
+          double laplacianRHSi = 0;
+          for (SizeType d = 0; d < TDim; ++d)
+          {
+            laplacianRHSi += StabLaplacianWeight * rDN_DX(i, d) * OldPressureGradient[d];
+          }
+          rRightHandSideVector[i] += -laplacianRHSi;
+          //NewRhsLaplacian[i] += -laplacianRHSi;
         }
       }
     }
@@ -931,6 +945,18 @@ namespace Kratos
       this->GetPressureValues(PressureValuesForRHS, 0);
       //the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
+      rLeftHandSideMatrix += LaplacianMatrix;
+     // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
+
+      // VectorType RhsLaplacian = ZeroVector(NumNodes);
+
+      // RhsLaplacian = -prod(LaplacianMatrix, PressureValuesForRHS);
+
+      // VectorType differenceRhsLaplacian = ZeroVector(NumNodes);
+      // differenceRhsLaplacian = RhsLaplacian - NewRhsLaplacian;
+      // // KRATOS_WATCH(RhsLaplacian);
+      // // KRATOS_WATCH(NewRhsLaplacian);
+      // KRATOS_WATCH(differenceRhsLaplacian);
 
       this->GetPressureValues(PressureValues, 1);
       noalias(PressureValuesForRHS) += -PressureValues;
