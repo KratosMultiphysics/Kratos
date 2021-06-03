@@ -304,14 +304,12 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def SetParallelSize(self, num_threads):
         """This function sets the number of threads
         """
-        parallel = KratosMultiphysics.OpenMPUtils()
-        parallel.SetNumThreads(int(num_threads))
+        KratosMultiphysics.ParallelUtilities.SetNumThreads(int(num_threads))
 
     def GetParallelSize(self):
         """This function returns the number of threads
         """
-        parallel = KratosMultiphysics.OpenMPUtils()
-        return parallel.GetNumThreads()
+        KratosMultiphysics.ParallelUtilities.GetNumThreads()
 
     def StartTimeMeasuring(self):
         """This function starts time calculation
