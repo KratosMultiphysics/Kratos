@@ -140,7 +140,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TwoStepUpdatedLagrangianVPFluidFicElement2D// GUI group identifier: Fluid
+Begin Elements TwoStepUpdatedLagrangianVPFluidElement2D// GUI group identifier: Fluid
         1          0    79    64    82 
         2          0    64    49    56 
         3          0    49    35    43 

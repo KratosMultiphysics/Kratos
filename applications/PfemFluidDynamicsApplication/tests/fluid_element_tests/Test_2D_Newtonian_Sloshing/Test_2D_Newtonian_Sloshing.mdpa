@@ -1550,7 +1550,7 @@ Begin Nodes
  1542   0.0000000000   0.0000000000   0.0000000000
 End Nodes
 
-Begin Elements TwoStepUpdatedLagrangianVPFluidFicElement2D// GUI group identifier: Parts Auto1
+Begin Elements TwoStepUpdatedLagrangianVPFluidElement2D// GUI group identifier: Parts Auto1
         1          0         99         89        120
         2          0         39         41         58
         3          0        194        214        236
