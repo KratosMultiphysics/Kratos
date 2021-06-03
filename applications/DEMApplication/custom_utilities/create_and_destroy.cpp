@@ -510,7 +510,6 @@ namespace Kratos {
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(cluster_id);
-        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
 
         #pragma omp critical
         {
@@ -552,7 +551,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(-1);
-        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
 
         #pragma omp critical
         {
@@ -1474,7 +1472,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         analytic_sample_element->SetDefaultRadiiHierarchy(nodelist[0].FastGetSolutionStepValue(RADIUS));
         analytic_sample_element->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         analytic_sample_element->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
-        analytic_sample_element->CreateDiscontinuumConstitutiveLaws(spheres_model_part.GetProcessInfo());
 
         for (int i_neigh = 0; i_neigh < int(regular_sample_element->mNeighbourElements.size()); ++i_neigh){
             analytic_sample_element->mNeighbourElements.push_back(regular_sample_element->mNeighbourElements[i_neigh]);
