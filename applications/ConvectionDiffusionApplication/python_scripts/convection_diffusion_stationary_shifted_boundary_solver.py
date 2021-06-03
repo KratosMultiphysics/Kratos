@@ -38,17 +38,22 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
     def Initialize(self):
         # Correct the level set
         #TODO: Use the FluidDynamicsApplication process
-        tol = 1.0e-4
+        # tol = 1.0e-10
+        # for node in self.GetComputingModelPart().Nodes:
+        #     dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+        #     if abs(dist) < tol:
+        #         print("Node {} dist {}".format(node.Id, dist))
+        #         if dist < 0.0:
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol)
+        #         else:
+        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
+
+        # Avoid zeros with positive epsilon
+        tol = 1.0e-12
         for node in self.GetComputingModelPart().Nodes:
             dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             if abs(dist) < tol:
-                if dist < 0.0:
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol)
-                else:
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
-
-        # Find the required problem subdomains
-        self.__SetInterfaceFlags()
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
 
         # Calculate the required neighbours
         nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
@@ -73,56 +78,6 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
 
         # Initialize base solver strategy
         super().Initialize()
-
-    def __SetInterfaceFlags(self):
-        # Initialize the required flags to false
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, False, self.GetComputingModelPart().Nodes)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, False, self.GetComputingModelPart().Nodes)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, False, self.GetComputingModelPart().Elements)
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, False, self.GetComputingModelPart().Elements)
-
-        # Mark the first layer of positive distance nodes as BOUNDARY
-        for element in self.GetComputingModelPart().Elements:
-            geometry = element.GetGeometry()
-            if self.__IsSplit(geometry):
-                element.Set(KratosMultiphysics.BOUNDARY, True)
-                for node in geometry:
-                    dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                    if not dist < 0.0:
-                        node.Set(KratosMultiphysics.BOUNDARY, True)
-
-        # Mark the first layer of positive distance elements and their nodes as INTERFACE
-        for element in self.GetComputingModelPart().Elements:
-            geometry = element.GetGeometry()
-            if self.__IsPositive(geometry):
-                # Check if one of the nodes is BOUNDARY
-                is_surrogate = False
-                for node in geometry:
-                    if node.Is(KratosMultiphysics.BOUNDARY):
-                        is_surrogate = True
-                        break
-                # If BOUNDARY, mark the element and all the nodes as INTERFACE
-                if is_surrogate:
-                    element.Set(KratosMultiphysics.INTERFACE, True)
-                    for node in geometry:
-                        node.Set(KratosMultiphysics.INTERFACE, True)
-
-    def __IsSplit(self, geometry):
-        n_neg = 0
-        n_pos = 0
-        for node in geometry:
-            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
-                n_neg += 1
-            else:
-                n_pos += 1
-        return (n_neg != 0 and n_pos != 0)
-
-    def __IsPositive(self, geometry):
-        n_pos = 0
-        for node in geometry:
-            if not node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
-                n_pos += 1
-        return n_pos == len(geometry)
 
     def _get_element_condition_replace_settings(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

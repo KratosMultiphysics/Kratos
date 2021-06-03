@@ -115,13 +115,15 @@ public:
 
     void Execute()
     {
+        // Set the required interface flags
+        SetInterfaceFlags();
+
         // Set the modified shape functions factory
         // Note that unique geometry in the mesh is assumed
         const auto& r_begin_geom = mpModelPart->ElementsBegin()->GetGeometry();
         auto p_mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_begin_geom);
 
         // Get the MLS shape functions function
-        const double mls_kernel_rad = 0.2;
         auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
 
         // Get the element size calculation function
@@ -142,8 +144,7 @@ public:
                 // Set the meshless cloud of point support for the MLS
                 Matrix cloud_nodes_coordinates;
                 PointerVector<NodeType> cloud_nodes;
-                // std::vector<NodeType::Pointer> cloud_nodes;
-                SetSplitElementSupportCloud(*p_geom, cloud_nodes, cloud_nodes_coordinates);
+                SetSplitElementSupportCloud(rElement, cloud_nodes, cloud_nodes_coordinates);
 
                 // Set up the distances vector
                 const auto& r_geom = *p_geom;
@@ -192,18 +193,12 @@ public:
                     // Calculate the MLS shape functions and gradients and save in the database
                     Vector N_container;
                     Matrix DN_DX_container;
+                    const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, i_g_coords);
                     p_mls_sh_func(cloud_nodes_coordinates, i_g_coords, mls_kernel_rad, N_container, DN_DX_container);
                     //FIXME: Find variables for these
                     p_cond->SetValue(BDF_COEFFICIENTS, N_container);
                     p_cond->SetValue(LOCAL_AXES_MATRIX, DN_DX_container);
                 }
-
-                // Deactivate the split element to avoid assembling it
-                // Note that the split elements BC is applied by means of the extension operators
-                rElement.Set(ACTIVE, false);
-            } else if (IsNegative(*p_geom)) {
-                // Deactivate the negative element to avoid assembling it
-                rElement.Set(ACTIVE, false);
             }
         }
     }
@@ -291,6 +286,71 @@ private:
     ///@name Private Operations
     ///@{
 
+    void SetInterfaceFlags()
+    {
+        // Initialize flags to false
+        block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
+            rNode.Set(ACTIVE, false);
+            rNode.Set(BOUNDARY, false);
+            rNode.Set(INTERFACE, false);
+        });
+        block_for_each(mpModelPart->Elements(), [](Element& rElement){
+            rElement.Set(ACTIVE, false);
+            rElement.Set(BOUNDARY, false);
+            rElement.Set(INTERFACE, false);
+        });
+
+        // Find active regions
+        for (auto& rElement : mpModelPart->Elements()) {
+            auto& r_geom = rElement.GetGeometry();
+            if (IsSplit(r_geom)) {
+                // Mark the intersected elements as BOUNDARY
+                // The intersected elements are also flagged as non ACTIVE to avoid assembling them
+                // Note that the split elements BC is applied by means of the extension operators
+                rElement.Set(ACTIVE, false);
+                rElement.Set(BOUNDARY, true);
+                // Mark the positive intersected nodes as BOUNDARY
+                for (auto& rNode : r_geom) {
+                    if (!(rNode.FastGetSolutionStepValue(DISTANCE) < 0.0)) {
+                        rNode.Set(BOUNDARY, true);
+                    }
+                }
+            } else if (IsNegative(r_geom)) {
+                // Mark the negative element as non ACTIVE to avoid assembling it
+                rElement.Set(ACTIVE, false);
+            } else {
+                // Mark the positive element as ACTIVE to assemble it
+                rElement.Set(ACTIVE, true);
+                // Mark the active element nodes as ACTIVE
+                for (auto& rNode : r_geom) {
+                    rNode.Set(ACTIVE, true);
+                }
+            }
+        }
+
+        // Find the surrogate boundary
+        // Note that we rely on the fact that the neighbours are sorted according to the faces
+        for (auto& rElement : mpModelPart->Elements()) {
+            if (rElement.Is(BOUNDARY)) {
+                const auto& r_geom = rElement.GetGeometry();
+                const std::size_t n_faces = r_geom.FacesNumber();
+                auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+                for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+                    // The neighbour corresponding to the current face is ACTIVE means that the current face is surrogate boundary
+                    // Flag the current neighbour owning the surrogate face as INTERFACE as well as its nodes, which will form the MLS cloud
+                    auto& r_neigh_elem = r_neigh_elems[i_face];
+                    if (r_neigh_elem.Is(ACTIVE)) {
+                        r_neigh_elem.Set(INTERFACE, true);
+                        auto& r_neigh_geom = r_neigh_elem.GetGeometry();
+                        for (auto& rNode : r_neigh_geom) {
+                            rNode.Set(INTERFACE, true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     bool IsSplit(const GeometryType& rGeometry)
     {
         std::size_t n_neg = 0;
@@ -371,17 +431,18 @@ private:
     }
 
     void SetSplitElementSupportCloud(
-        const GeometryType& rSplitGeometry,
+        const Element& rSplitElement,
         PointerVector<NodeType>& rCloudNodes,
         Matrix& rCloudCoordinates)
     {
         // Find the positive side support cloud of nodes
         // Note that we use an unordered_set to ensure that these are unique
-        const std::size_t n_nodes = rSplitGeometry.PointsNumber();
+        const auto& r_split_geom = rSplitElement.GetGeometry();
+        const std::size_t n_nodes = r_split_geom.PointsNumber();
         NodesCloudSetType aux_set;
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            auto p_node = rSplitGeometry(i_node);
-            if (!(p_node->FastGetSolutionStepValue(DISTANCE) < 0.0)) {
+            auto p_node = r_split_geom(i_node);
+            if (p_node->Is(INTERFACE)) {
                 // Add current positive node to map
                 aux_set.insert(p_node);
 
@@ -390,12 +451,33 @@ private:
                 const std::size_t n_neigh = r_pos_node_neigh.size();
                 for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
                     auto& r_neigh = r_pos_node_neigh[i_neigh];
-                    if (!(r_neigh.FastGetSolutionStepValue(DISTANCE) < 0.0)) {
+                    if (r_neigh.Is(INTERFACE)) {
                         NodeType::Pointer p_neigh = &r_neigh;
                         aux_set.insert(p_neigh);
                     }
                 }
             }
+        }
+
+        // Check that the current nodes are enough to perform the MLS calculation (3 in 2D and 4 in 3D)
+        // If not sufficient, add the nodal neighbours of the current nodes to the cloud of points
+        const std::size_t n_cloud_nodes_temp = aux_set.size();
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        KRATOS_ERROR_IF(n_cloud_nodes_temp == 0) << "Degenerated case with no neighbours. Check if the element " << rSplitElement.Id() << " is intersected and isolated." << std::endl;
+        if (n_cloud_nodes_temp < n_dim + 1) {
+            NodesCloudSetType aux_extra_set(aux_set);
+            for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+                auto& r_it_set_neighs = (*it_set)->GetValue(NEIGHBOUR_NODES);
+                const std::size_t n_neigh = r_it_set_neighs.size();
+                for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
+                    auto& r_neigh = r_it_set_neighs[i_neigh];
+                    if (r_neigh.Is(ACTIVE)) {
+                        NodeType::Pointer p_neigh = &r_neigh;
+                        aux_extra_set.insert(p_neigh);
+                    }
+                }
+            }
+            aux_set = aux_extra_set;
         }
 
         // Sort the obtained nodes by id
@@ -416,6 +498,17 @@ private:
             rCloudCoordinates(i_node, 1) = aux_coord[1];
             rCloudCoordinates(i_node, 2) = aux_coord[2];
         }
+    }
+
+    double CalculateKernelRadius(
+        const Matrix& rCloudCoordinates,
+        const array_1d<double,3>& rOrigin)
+    {
+        const std::size_t n_nodes = rCloudCoordinates.size1();
+        const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
+            return std::pow(rCloudCoordinates(I,0) - rOrigin(0),2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1),2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2),2);
+        });
+        return std::sqrt(squared_rad);
     }
 
     ///@}
