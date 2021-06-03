@@ -1,6 +1,6 @@
 {
     "XMCAlgorithmInputDictionary": {
-	    "checkInitialisation": "xmc.methodDefs_xmcAlgorithm.checkInitialisation.checkInitialisationMC",
+        "checkInitialisation": "xmc.methodDefs_xmcAlgorithm.checkInitialisation.checkInitialisationMC",
         "errorsForStoppingCriterion": [0],
         "estimatorsForHierarchy": [[0,[1,true,true]]],
         "predictorsForHierarchy": [],
