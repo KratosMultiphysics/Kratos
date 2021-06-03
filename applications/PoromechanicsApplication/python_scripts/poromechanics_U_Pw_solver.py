@@ -40,7 +40,7 @@ class UPwSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "poromechanics_U_Pw_solver",
             "model_part_name": "PorousModelPart",
@@ -101,7 +101,7 @@ class UPwSolver(PythonSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
@@ -137,7 +137,7 @@ class UPwSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_EFFECTIVE_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Variables added correctly.")
@@ -452,7 +452,6 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -463,7 +462,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
@@ -488,7 +486,6 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
-                                                                               self.linear_solver,
                                                                                self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -499,7 +496,6 @@ class UPwSolver(PythonSolver):
             else:
                 solving_strategy = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                        self.scheme,
-                                                                       self.linear_solver,
                                                                        self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,

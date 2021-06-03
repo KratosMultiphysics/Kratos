@@ -180,7 +180,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         mpSolutionStrategy->SetEchoLevel(0);
         mpSolutionStrategy->Check();
     }
@@ -535,7 +535,7 @@ private:
     {
         KRATOS_TRY;
 
-        ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
 
         //first of all set to zero the nodal variables to be updated nodally
         for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();

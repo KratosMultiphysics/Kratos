@@ -22,7 +22,6 @@
 #include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "fsi_application.h"
-//#include "custom_conditions/coupling_face2D.h"
 
 
 namespace Kratos

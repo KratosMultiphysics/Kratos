@@ -24,6 +24,7 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/constraint_utilities.h"
 #include "input_output/logger.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -97,7 +98,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedEliminationBuilderAndSolverWithConstraints);
 
     /// Definition of the base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BuilderAndSolverBaseType;
+
+    /// Definition of the base class
     typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    /// The definition of the current class
+    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     // The size_t types
     typedef std::size_t SizeType;
@@ -149,6 +156,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
@@ -156,17 +170,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
-            "check_constraint_relation"            : true,
-            "reset_relation_matrix_each_iteration" : true
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
-        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -187,6 +193,19 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      */
     ~ResidualBasedEliminationBuilderAndSolverWithConstraints() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BuilderAndSolverBaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -354,6 +373,34 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "elimination_builder_and_solver_with_constraints",
+            "check_constraint_relation"            : true,
+            "reset_relation_matrix_each_iteration" : true
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver_with_constraints";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -504,21 +551,22 @@ protected:
         "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         // We solve the system of equations
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
+        const double start_solve = timer.ElapsedSeconds();
         Timer::Start("Solve");
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        const double stop_solve = timer.ElapsedSeconds();
 
         // We compute the effective constant vector
         ComputeEffectiveConstant(pScheme, rModelPart, rDx);
 
         // We reconstruct the Unknowns vector and the residual
-        const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        const double start_reconstruct_slaves = timer.ElapsedSeconds();
         ReconstructSlaveSolutionAfterSolve(pScheme, rModelPart, rA, rDx, rb);
 
-        const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        const double stop_reconstruct_slaves = timer.ElapsedSeconds();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
         // Some verbosity
@@ -618,7 +666,7 @@ protected:
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set, dof_temp_slave_set;
@@ -633,7 +681,7 @@ protected:
                 auto it_elem = r_elements_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -645,7 +693,7 @@ protected:
                 auto it_cond = r_conditions_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -816,7 +864,7 @@ protected:
         #pragma omp parallel firstprivate(ids, second_ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
             std::vector<IndexSetType> temp_indexes(equation_size);
@@ -835,7 +883,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
                 auto it_elem = el_begin + i_elem;
-                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -859,7 +907,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
-                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_cond, ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
@@ -1000,7 +1048,7 @@ protected:
         }
 
         // The process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
@@ -1110,7 +1158,7 @@ protected:
             BuildWithoutConstraints(pScheme, rModelPart, rA, rb);
 
         // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1160,10 +1208,9 @@ protected:
         auxiliar_A_matrix.resize(0, 0, false);
         T_transpose_matrix.resize(0, 0, false);
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "Finished parallel building with constraints" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1184,7 +1231,7 @@ protected:
         KRATOS_TRY
 
         // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1227,10 +1274,9 @@ protected:
         // Final multiplication
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() >= 1) << "Constraint relation build time and multiplication: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "Finished parallel building with constraints" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1479,6 +1525,17 @@ protected:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
+        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1526,7 +1583,7 @@ private:
         /// First we detect the master fixed DoFs ///
 
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Vector containing the localization in the system of the different terms
         DofsVectorType slave_dof_list, master_dof_list;
@@ -1787,7 +1844,7 @@ private:
         )
     {
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting the array of elements
         ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -1818,13 +1875,10 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it_elem.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*(it_elem.base()));
                 }
             }
 
@@ -1841,13 +1895,10 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it_cond.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*(it_cond.base()));
                 }
             }
         }
@@ -1867,7 +1918,7 @@ private:
         )
     {
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting the array of elements
         ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -1897,7 +1948,7 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it_elem.base()), rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
@@ -1917,7 +1968,7 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it_cond.base()), rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
@@ -1975,8 +2026,7 @@ private:
                     double& r_b_value = rb[i_global];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         } else {
@@ -1991,15 +2041,13 @@ private:
                     double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 } else if (it_dof->IsFree()) {  // Free dof not in the MPC
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& r_b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    r_b_value += rhs_value;
+                    AtomicAdd(r_b_value, rhs_value);
                 }
             }
         }
@@ -2125,7 +2173,7 @@ private:
         }
 
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Initialize the constant vector
         double aux_constant_value = 0.0;
@@ -2173,8 +2221,7 @@ private:
                                 if (std::abs(constant_value) > 0.0) {
                                     auxiliar_temp_constant_equations_ids.insert(i_global);
                                     double& r_value = rConstantVector[i_global];
-                                    #pragma omp atomic
-                                    r_value += constant_value;
+                                    AtomicAdd(r_value, constant_value);
                                 }
                             }
                         }
@@ -2183,8 +2230,7 @@ private:
                             const IndexType i_global = slave_equation_id[i];
                             if (i_global < BaseType::mEquationSystemSize) {
                                 const double constant_value = constant_vector[i];
-                                #pragma omp atomic
-                                aux_constant_value += std::abs(constant_value);
+                                AtomicAdd(aux_constant_value, std::abs(constant_value));
                             }
                         }
                     }

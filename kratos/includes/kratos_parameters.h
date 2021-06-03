@@ -315,6 +315,12 @@ public:
      */
     Parameters(const std::string& rJsonString);
 
+    /**
+     * @brief File constructor. It takes a file stream as input, which parses into a nlohmann::json class
+     * @param rStringStream The stream to the JSON file
+     */
+    Parameters(std::ifstream& rStringStream);
+
     /// Copy constructor.
     Parameters(Parameters const& rOther);
 
@@ -373,7 +379,10 @@ public:
     ///@name Operations
     ///@{
 
-    //generates a clone of the current document
+    /**
+     * @brief Generates a clone of the current document
+     * @return A clone of the given Parameters
+     */
     Parameters Clone();
 
     /**
@@ -591,6 +600,72 @@ public:
      * @param Value The matrix value
      */
     void SetMatrix(const Matrix& rValue);
+
+    /**
+     * @brief This method adds a new double Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The double value
+     */
+    void AddDouble(
+        const std::string& rEntry,
+        const double Value
+        );
+
+    /**
+     * @brief This method adds a new integer Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The integer value
+     */
+    void AddInt(
+        const std::string& rEntry,
+        const int Value
+        );
+
+    /**
+     * @brief This method adds a new bool Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The bool value
+     */
+    void AddBool(
+        const std::string& rEntry,
+        const bool Value
+        );
+
+    /**
+     * @brief This method adds a new string Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rValue The string value
+     */
+    void AddString(
+        const std::string& rEntry,
+        const std::string& rValue
+        );
+
+    /**
+     * @brief This method adds a new vector Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rValue The vector value
+     */
+    void AddVector(
+        const std::string& rEntry,
+        const Vector& rValue
+        );
+
+    /**
+     * @brief This method adds a new matrix Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The matrix value
+     */
+    void AddMatrix(
+        const std::string& rEntry,
+        const Matrix& rValue
+        );
+        
+    /**
+     * @brief This method sets the string array contained in the current Parameter
+     * @param Value The string array
+     */
+    void SetStringArray(const std::vector<std::string>& rValue);
 
     /**
      * @brief This returns the begin iterator

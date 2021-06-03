@@ -194,8 +194,8 @@ public:
 
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int number_of_points = TDim+1;
 
@@ -307,7 +307,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override
+                          const ProcessInfo& rCurrentProcessInfo) const override
     {
 
         unsigned int number_of_nodes = TDim+1;
@@ -324,7 +324,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo) override
+                    const ProcessInfo& rCurrentProcessInfo) const override
     {
         unsigned int number_of_nodes = TDim+1;
 
@@ -354,7 +354,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
 {
         KRATOS_TRY
 
@@ -364,10 +364,6 @@ public:
 
         if(this->GetGeometry().size() != TDim+1)
             KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-        // Check that all required variables have been registered
-        if(DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
 
         // Checks on nodes
 
@@ -385,12 +381,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Initialize() override
-    {
-    }
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "should not enter here" << std::endl;
         if (rRightHandSideVector.size() != 0)

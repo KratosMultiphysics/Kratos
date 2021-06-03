@@ -70,7 +70,7 @@ class MonolithicSolver(object):
                 "max_iteration": 10
             },
             "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
+                "solver_type": "ExternalSolversApplication.super_lu",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
@@ -86,7 +86,7 @@ class MonolithicSolver(object):
             default_settings.AddValue("linear_solver_settings",custom_settings["linear_solver_settings"])
 
         # Check and fix supplied settings compatibility (experimental)
-        from json_settings_utility import JsonSettingsUtility
+        from KratosMultiphysics.SolidMechanicsApplication.json_settings_utility import JsonSettingsUtility
         JsonSettingsUtility.CheckAndFixNotMatchingSettings(custom_settings,default_settings)
 
         # Overwrite the default settings with user-provided parameters
@@ -131,7 +131,7 @@ class MonolithicSolver(object):
 
     def GetVariables(self):
 
-        import schemes_factory
+        import KratosMultiphysics.SolidMechanicsApplication.schemes_factory as schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
         return Schemes.GetVariables()
 
@@ -321,7 +321,7 @@ class MonolithicSolver(object):
             self.main_model_part.CloneTimeStep(time)
 
     def _create_solution_scheme(self):
-        import schemes_factory
+        import KratosMultiphysics.SolidMechanicsApplication.schemes_factory as schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
         solution_scheme = Schemes.GetSolutionScheme()
         solution_scheme.SetProcessVector(self._get_scheme_custom_processes())
@@ -331,7 +331,7 @@ class MonolithicSolver(object):
         criterion_parameters = self.settings["convergence_criterion_settings"]
         criterion_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
         # Construction of the class convergence_criterion
-        import convergence_criteria_factory
+        import  KratosMultiphysics.SolidMechanicsApplication.convergence_criteria_factory as convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.ConvergenceCriterion(criterion_parameters,self.settings["dofs"])
         return convergence_criterion.GetConvergenceCriterion()
 
@@ -355,7 +355,7 @@ class MonolithicSolver(object):
 
 
     def _get_dofs(self):
-        import schemes_factory
+        import KratosMultiphysics.SolidMechanicsApplication.schemes_factory as schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
         return Schemes.GetDofsAndReactions()
 
@@ -378,7 +378,7 @@ class MonolithicSolver(object):
     def _get_time_integration_methods(self):
 
         # set solution scheme
-        import schemes_factory
+        import KratosMultiphysics.SolidMechanicsApplication.schemes_factory as schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
 
         # set integration method dictionary for scalars
@@ -438,7 +438,7 @@ class MonolithicSolver(object):
             scalar_integration_methods_container.Set(dof,method)
 
 
-        component_integration_methods_container = KratosSolid.ComponentTimeIntegrationMethods()
+        component_integration_methods_container = KratosSolid.ScalarTimeIntegrationMethods()
         for dof, method in component_integration_methods.items():
             method.SetParameters(self.process_info) #set same parameters to all methods from process_info values
             component_integration_methods_container.Set(dof,method)

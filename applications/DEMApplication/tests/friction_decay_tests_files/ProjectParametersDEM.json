@@ -1,0 +1,88 @@
+{
+"Dimension"                        : 3,
+"PeriodicDomainOption"             : false,
+"BoundingBoxOption"                : true,
+"AutomaticBoundingBoxOption"       : false,
+"BoundingBoxEnlargementFactor"     : 1.0,
+"BoundingBoxStartTime"             : 0.0,
+"BoundingBoxStopTime"              : 1000.0,
+"BoundingBoxMaxX"                  : 10,
+"BoundingBoxMaxY"                  : 10,
+"BoundingBoxMaxZ"                  : 10,
+"BoundingBoxMinX"                  : -10,
+"BoundingBoxMinY"                  : -10,
+"BoundingBoxMinZ"                  : -10,
+
+"dem_inlet_option"                 : false,
+"GravityX"                         : 0.0,
+"GravityY"                         : 0.0,
+"GravityZ"                         : -9.81,
+
+"EnergyCalculationOption"          : false,
+"VelocityTrapOption"               : false,
+"RotationOption"                   : false,
+"CleanIndentationsOption"          : false,
+"solver_settings" : {
+    "strategy"                 : "sphere_strategy",
+    "RemoveBallsInitiallyTouchingWalls"          : false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
+},
+
+"RemoveBallsInEmbeddedOption"      : true,
+
+"DeltaOption"                      : "Absolute",
+"SearchTolerance"                  : 0.0,
+"AmplifiedSearchRadiusExtension"   : 0.0,
+"ModelDataInfo"                    : false,
+"VirtualMassCoefficient"           : 1.0,
+"RollingFrictionOption"            : false,
+"GlobalDamping"                    : 0.0,
+"ContactMeshOption"                : false,
+"OutputFileType"                   : "Binary",
+"Multifile"                        : "multiple_files",
+"ElementType"                      : "SphericPartDEMElement3D",
+
+"TranslationalIntegrationScheme"   : "Symplectic_Euler",
+"RotationalIntegrationScheme"      : "Direct_Integration",
+"AutomaticTimestep"                : false,
+"DeltaTimeSafetyFactor"            : 1.0,
+"MaxTimeStep"                      : 1e-4,
+"FinalTime"                        : 0.075,
+"ControlTime"                      : 4.0,
+"NeighbourSearchFrequency"         : 50,
+
+"GraphExportFreq"                  : 1e-3,
+"VelTrapGraphExportFreq"           : 1e-3,
+"OutputTimeStep"                   : 1e-2,
+"PostBoundingBox"                  : false,
+"PostDisplacement"                 : false,
+"PostVelocity"                     : true,
+"PostTotalForces"                  : true,
+"PostRigidElementForces"           : true,
+"PostRadius"                       : false,
+"PostAngularVelocity"              : false,
+"PostParticleMoment"               : false,
+"PostEulerAngles"                  : false,
+"PostRollingResistanceMoment"      : false,
+"PostCharacteristicLength"         : false,
+
+"PostElasticForces"                : false,
+"PostContactForces"                : true,
+"PostTangentialElasticForces"      : false,
+"PostShearStress"                  : false,
+"PostPressure"                     : false,
+
+"PostNonDimensionalVolumeWear"     : false,
+"PostNodalArea"                    : false,
+
+"PostLocalContactForce"            : false,
+"PostRHS"                          : false,
+"PostDampForces"                   : false,
+"PostAppliedForces"                : false,
+"PostGroupId"                      : false,
+"PostExportId"                     : false,
+
+"problem_name" : "friction_decay_test"
+}

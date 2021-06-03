@@ -11,7 +11,7 @@ def Factory(settings, Model):
 
 class CalculateNodalAreaProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
-        super(CalculateNodalAreaProcess, self).__init__()
+        super().__init__()
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name" : "FluidModelPart.Parts_fluid",

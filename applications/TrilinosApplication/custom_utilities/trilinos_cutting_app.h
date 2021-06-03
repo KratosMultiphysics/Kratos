@@ -369,7 +369,7 @@ public:
         //NOW WE MUST COPY THE CONDITIONS
         int triangle_ID = number_of_old_conditions + conditions_before;
         vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");         //condition type
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
 
         for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
@@ -1063,7 +1063,7 @@ public:
                     pnode->X0() = weight * (it_node1->X0()) + (1.0 - weight) * it_node2->X0();
                     pnode->Y0() = weight * (it_node1->Y0()) + (1.0 - weight) * it_node2->Y0();
                     pnode->Z0() = weight * (it_node1->Z0()) + (1.0 - weight) * it_node2->Z0();
-                    pnode->FastGetSolutionStepValue(PARTITION_INDEX) =  double(partition_new_nodes[i]) ;
+                    pnode->FastGetSolutionStepValue(PARTITION_INDEX) = partition_new_nodes[i];
                     new_model_part.Nodes().push_back(pnode);
                 }
 
@@ -1128,7 +1128,7 @@ public:
         ElementsArrayType::iterator it_begin_old = rElements_old.ptr_begin();
         ElementsArrayType::iterator it_end_old = rElements_old.ptr_end();
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number);
 
         int triangle_id_int = 0; //counter for the new elements generated
@@ -1382,7 +1382,7 @@ public:
             double* node1_data = it->GetValue(FATHER_NODES)[1].SolutionStepData().Data(0);
             double weight = it->GetValue(WEIGHT_FATHER_NODES);
             double* step_data = (it)->SolutionStepData().Data(0);
-            double partition_index= it->FastGetSolutionStepValue(PARTITION_INDEX);
+            int partition_index= it->FastGetSolutionStepValue(PARTITION_INDEX);
 
             //now we only have to copy the information from node_data to step_data
             for (int j = 0; j < step_data_size; j++) //looping all the variables and interpolating using weight

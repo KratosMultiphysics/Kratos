@@ -59,7 +59,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 
-Follows the universal I-deas file convetion so that results can be imported in SIEMENS NX: 
+Follows the universal I-deas file convetion so that results can be imported in SIEMENS NX:
 https://docs.plm.automation.siemens.com/tdoc/nx/10/nx_help/#uid:index_advanced:xid602249:id625716:id625821
 
 */
@@ -81,7 +81,7 @@ public:
           mrNodalResults( NodalResults )
     {
         if(WriteConditionsFlag.compare("WriteElementsOnly")==0 || WriteConditionsFlag.compare("WriteConditionsOnly")==0 )
-            mWriteConditionsFlag = WriteConditionsFlag;        
+            mWriteConditionsFlag = WriteConditionsFlag;
         else
             KRATOS_ERROR << "Wrong value specified for \"WriteConditionsFlag\" in UniversalFileIO. Options are: \"WriteElementsOnly\" or \"WriteConditionsOnly\"" << std::endl;
     }
@@ -112,8 +112,8 @@ public:
     {
         InitializeOutputFile();
         WriteUnits();
-        WriteNodes(); 
-        WriteElements();  
+        WriteNodes();
+        WriteElements();
     }
 
     // --------------------------------------------------------------------------
@@ -121,8 +121,8 @@ public:
     {
         std::ofstream outputFile;
         outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::trunc );
-        outputFile.close();     
-    }    
+        outputFile.close();
+    }
     // --------------------------------------------------------------------------
     void WriteUnits()
     {
@@ -146,8 +146,8 @@ public:
         outputFile << std::setw(25) << temperatureOffset << "\n";
         outputFile << std::setw(6) << "-1" << "\n";
 
-        outputFile.close();     
-    }   
+        outputFile.close();
+    }
 
     // --------------------------------------------------------------------------
     void WriteNodes()
@@ -175,7 +175,7 @@ public:
         }
         outputFile << std::setw(6) << "-1" << "\n";
 
-        outputFile.close();     
+        outputFile.close();
     }
 
     // --------------------------------------------------------------------------
@@ -191,15 +191,15 @@ public:
     void WriteAllElementsButNoConditions()
     {
         std::ofstream outputFile;
-        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );        
-        
+        outputFile.open(mOutputFilenameWithExtension, std::ios::out | std::ios::app );
+
         const int dataSetNumberForElements = 2412;
         const int physicalPropertyTableNumber = 1;
         const int materialPropertyTableNumber = 1;
         const int color = 0;
 
         outputFile << std::setw(6) << "-1" << "\n";
-        outputFile << std::setw(6) << dataSetNumberForElements << "\n";        
+        outputFile << std::setw(6) << dataSetNumberForElements << "\n";
 
         for (auto & element_i : mrOutputModelPart.Elements())
         {
@@ -210,16 +210,16 @@ public:
             if( element_geometry.size()==3 && element_geometry.Dimension()==2 )
             {
                 const int feDescriptorId = 41; // Plane Stress Linear Triangle
-                const int numberOfNodes = 3; 
+                const int numberOfNodes = 3;
                 outputFile << std::setw(10) << element_label;
                 outputFile << std::setw(10) << feDescriptorId;
                 outputFile << std::setw(10) << physicalPropertyTableNumber;
                 outputFile << std::setw(10) << materialPropertyTableNumber ;
                 outputFile << std::setw(10) << color;
                 outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << element_geometry[0].Id(); 
-                outputFile << std::setw(10) << element_geometry[1].Id(); 
-                outputFile << std::setw(10) << element_geometry[2].Id() << "\n";                
+                outputFile << std::setw(10) << element_geometry[0].Id();
+                outputFile << std::setw(10) << element_geometry[1].Id();
+                outputFile << std::setw(10) << element_geometry[2].Id() << "\n";
             }
             // Write quads
             else if( element_geometry.size()==4 && element_geometry.Dimension()==2 )
@@ -227,15 +227,15 @@ public:
                 const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
                 const int numberOfNodes = 4;
                 outputFile << std::setw(10) << element_label;
-                outputFile << std::setw(10) << feDescriptorId; 
-                outputFile << std::setw(10) << physicalPropertyTableNumber; 
+                outputFile << std::setw(10) << feDescriptorId;
+                outputFile << std::setw(10) << physicalPropertyTableNumber;
                 outputFile << std::setw(10) << materialPropertyTableNumber;
                 outputFile << std::setw(10) << color;
                 outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << element_geometry[0].Id(); 
+                outputFile << std::setw(10) << element_geometry[0].Id();
                 outputFile << std::setw(10) << element_geometry[1].Id();
                 outputFile << std::setw(10) << element_geometry[2].Id();
-                outputFile << std::setw(10) << element_geometry[3].Id() << "\n";                     
+                outputFile << std::setw(10) << element_geometry[3].Id() << "\n";
             }
             // Write tetrahedras
             else if( element_geometry.size()==4 && element_geometry.Dimension()==3 )
@@ -243,24 +243,24 @@ public:
                 const int feDescriptorId = 111; // Solid linear tetrahedron
                 const int numberOfNodes = 4;
                 outputFile << std::setw(10) << element_label;
-                outputFile << std::setw(10) << feDescriptorId; 
-                outputFile << std::setw(10) << physicalPropertyTableNumber; 
+                outputFile << std::setw(10) << feDescriptorId;
+                outputFile << std::setw(10) << physicalPropertyTableNumber;
                 outputFile << std::setw(10) << materialPropertyTableNumber;
                 outputFile << std::setw(10) << color;
                 outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << element_geometry[0].Id(); 
+                outputFile << std::setw(10) << element_geometry[0].Id();
                 outputFile << std::setw(10) << element_geometry[1].Id();
                 outputFile << std::setw(10) << element_geometry[2].Id();
-                outputFile << std::setw(10) << element_geometry[3].Id() << "\n";                     
-            }             
-            else 
+                outputFile << std::setw(10) << element_geometry[3].Id() << "\n";
+            }
+            else
                 KRATOS_ERROR << "Design surface contains elements with geometries for which no UNV-output is implemented!" << std::endl;
         }
 
         outputFile << std::setw(6) << "-1" << "\n";
-        outputFile.close();           
+        outputFile.close();
     }
-    
+
     // --------------------------------------------------------------------------
     void WriteConditionsAsDummyElements()
     {
@@ -283,38 +283,38 @@ public:
             if( condition_geometry.size()==3 )
             {
                 const int feDescriptorId = 41; // Plane Stress Linear Triangle
-                const int numberOfNodes = 3; 
+                const int numberOfNodes = 3;
                 outputFile << std::setw(10) << element_label;
                 outputFile << std::setw(10) << feDescriptorId;
                 outputFile << std::setw(10) << physicalPropertyTableNumber;
                 outputFile << std::setw(10) << materialPropertyTableNumber ;
                 outputFile << std::setw(10) << color;
                 outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << condition_geometry[0].Id(); 
-                outputFile << std::setw(10) << condition_geometry[1].Id(); 
-                outputFile << std::setw(10) << condition_geometry[2].Id() << "\n";                
+                outputFile << std::setw(10) << condition_geometry[0].Id();
+                outputFile << std::setw(10) << condition_geometry[1].Id();
+                outputFile << std::setw(10) << condition_geometry[2].Id() << "\n";
             }
             else if( condition_geometry.size()==4 )
             {
                 const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
                 const int numberOfNodes = 4;
                 outputFile << std::setw(10) << element_label;
-                outputFile << std::setw(10) << feDescriptorId; 
-                outputFile << std::setw(10) << physicalPropertyTableNumber; 
+                outputFile << std::setw(10) << feDescriptorId;
+                outputFile << std::setw(10) << physicalPropertyTableNumber;
                 outputFile << std::setw(10) << materialPropertyTableNumber;
                 outputFile << std::setw(10) << color;
                 outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << condition_geometry[0].Id(); 
+                outputFile << std::setw(10) << condition_geometry[0].Id();
                 outputFile << std::setw(10) << condition_geometry[1].Id();
                 outputFile << std::setw(10) << condition_geometry[2].Id();
-                outputFile << std::setw(10) << condition_geometry[3].Id() << "\n";                     
-            } 
-            else 
+                outputFile << std::setw(10) << condition_geometry[3].Id() << "\n";
+            }
+            else
                 KRATOS_ERROR << "Design surface contains conditions with geometries for which no UNV-output is implemented!" << std::endl;
         }
 
         outputFile << std::setw(6) << "-1" << "\n";
-        outputFile.close();                   
+        outputFile.close();
     }
 
     // --------------------------------------------------------------------------
@@ -334,7 +334,7 @@ public:
 
         const int modelType = 1; // Structural
         const int analysisType = 4; // Transient analysis
-        const int resultType = 95; // Unknown 3DOF Vector  
+        const int resultType = 95; // Unknown 3DOF Vector
         const int displacementResultType = 8; // Displacement
         const int dataType = 4; // Double precision floating point
         const int numberOfDataValuesForTheDataComponent = 3;
@@ -349,7 +349,7 @@ public:
         const int frequencyNumber = 0;
 
         const int creationOption = 0;
-        const int numberRetained = 0; 
+        const int numberRetained = 0;
 
         const double givenTime = 0.0;
         const double frequency = 0.0;
@@ -362,7 +362,7 @@ public:
         const double realPartOfModalA = 0.0;
         const double realPartOfMass = 0.0;
         const double imaginaryPartOfModalA = 0.0;
-        const double imaginaryPartOfMass = 0.0;   
+        const double imaginaryPartOfMass = 0.0;
 
         // Loop over all nodal result variables
         for(unsigned int entry = 0; entry<mrNodalResults.size(); entry++)
@@ -385,10 +385,10 @@ public:
             outputFile << "NONE" << "\n";
             outputFile << "EXPRESSION_NAME_KEY " << expressionNameKey << "\n";
             outputFile << "NONE" << "\n";
-            outputFile << "NONE" << "\n";    
+            outputFile << "NONE" << "\n";
 
-            outputFile << std::setw(10) << modelType; 
-            outputFile << std::setw(10) << analysisType; 
+            outputFile << std::setw(10) << modelType;
+            outputFile << std::setw(10) << analysisType;
             outputFile << std::setw(10) << dataCharacteristic;
             if (nodalResultName.compare("SHAPE_CHANGE") == 0 || nodalResultName.compare("MESH_CHANGE") == 0)
                 outputFile << std::setw(10) << displacementResultType;
@@ -397,8 +397,8 @@ public:
             outputFile << std::setw(10) << dataType;
             outputFile << std::setw(10) << numberOfDataValuesForTheDataComponent << "\n";
 
-            outputFile << std::setw(10) << DesignSetId; 
-            outputFile << std::setw(10) << iterationNumber; 
+            outputFile << std::setw(10) << DesignSetId;
+            outputFile << std::setw(10) << iterationNumber;
             outputFile << std::setw(10) << solutionSetId;
             outputFile << std::setw(10) << boundaryCondition;
             outputFile << std::setw(10) << loadSet;
@@ -409,43 +409,43 @@ public:
             outputFile << std::setw(10) << creationOption;
             outputFile << std::setw(10) << numberRetained << "\n";
 
-            outputFile << std::setw(13) << givenTime; 
-            outputFile << std::setw(13) << frequency; 
+            outputFile << std::setw(13) << givenTime;
+            outputFile << std::setw(13) << frequency;
             outputFile << std::setw(13) << eigenvalue;
             outputFile << std::setw(13) << modalMass;
             outputFile << std::setw(13) << viscousDampingRation;
-            outputFile << std::setw(13) << hystereticDampingRatio << "\n";      
+            outputFile << std::setw(13) << hystereticDampingRatio << "\n";
 
-            outputFile << std::setw(13) << realPartEigenvalue; 
-            outputFile << std::setw(13) << imaginaryPartEigenvalue; 
+            outputFile << std::setw(13) << realPartEigenvalue;
+            outputFile << std::setw(13) << imaginaryPartEigenvalue;
             outputFile << std::setw(13) << realPartOfModalA;
             outputFile << std::setw(13) << realPartOfMass;
             outputFile << std::setw(13) << imaginaryPartOfModalA;
-            outputFile << std::setw(13) << imaginaryPartOfMass << "\n";    
+            outputFile << std::setw(13) << imaginaryPartOfMass << "\n";
 
             for (auto & node_i : mrOutputModelPart.Nodes())
             {
-                outputFile << std::setw(10) << node_i.Id() << "\n"; 
+                outputFile << std::setw(10) << node_i.Id() << "\n";
                 if(dataCharacteristic==1)
                 {
-                    Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
+                    const Variable<double>& nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
                     double& nodalResult = node_i.FastGetSolutionStepValue(nodalResultVariable);
-                    outputFile << std::setw(13) << nodalResult << "\n"; 
+                    outputFile << std::setw(13) << nodalResult << "\n";
                 }
                 else if(dataCharacteristic==2)
                 {
-                    Variable< array_1d<double,3>> nodalResultVariable = KratosComponents<Variable< array_1d<double,3>>>::Get(nodalResultName);
+                    const Variable< array_1d<double,3>>& nodalResultVariable = KratosComponents<Variable< array_1d<double,3>>>::Get(nodalResultName);
                     array_1d<double,3>& nodalResult = node_i.FastGetSolutionStepValue(nodalResultVariable);
                     outputFile << std::setw(13) << nodalResult[0];
                     outputFile << std::setw(13) << nodalResult[1];
-                    outputFile << std::setw(13) << nodalResult[2] << "\n"; 
+                    outputFile << std::setw(13) << nodalResult[2] << "\n";
                 }
             }
             outputFile << std::setw(6) << "-1" << "\n";
         }
 
-        outputFile.close(); 
-    }  
+        outputFile.close();
+    }
 
     // ==============================================================================
 
@@ -537,10 +537,10 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mrOutputModelPart;    
+    ModelPart& mrOutputModelPart;
     std::string mOutputFilenameWithExtension;
-    Parameters mrNodalResults; 
-    std::string mWriteConditionsFlag;  
+    Parameters mrNodalResults;
+    std::string mWriteConditionsFlag;
 
     ///@}
     ///@name Private Operators

@@ -20,13 +20,9 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
-#include "custom_strategies/strategies/explicit_two_step_v_p_strategy.hpp"
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy_for_FSI.h"
 #include "custom_strategies/strategies/two_step_v_p_DEM_coupling_strategy.h"
-
-//schemes
-#include "custom_strategies/schemes/first_order_forward_euler_scheme.hpp"
 
 // builder_and_solvers
 
@@ -56,12 +52,10 @@ void AddCustomStrategiesToPython(pybind11::module &m)
   typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
   typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
   //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
-  typedef FirstOrderForwardEulerScheme<SparseSpaceType, LocalSpaceType> FirstOrderForwardEulerSchemeType;
 
   //custom strategy types
   typedef TwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPStrategyType;
   typedef TwoStepVPDEMcouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPDEMcouplingStrategyType;
-  typedef ExplicitTwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitStrategyType;
   typedef NodalTwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyType;
   typedef NodalTwoStepVPStrategyForFSI<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyForFSIType;
   typedef GaussSeidelLinearStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> GaussSeidelLinearStrategyType;
@@ -79,12 +73,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
   py::class_<TwoStepVPDEMcouplingStrategyType, TwoStepVPDEMcouplingStrategyType::Pointer, TwoStepVPStrategyType>(m, "TwoStepVPDEMcouplingStrategy")
       .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
-  py::class_<ExplicitStrategyType, ExplicitStrategyType::Pointer, BaseSolvingStrategyType>(m, "ExplicitStrategyType")
-      .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool>())
-      .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool>())
-      .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
-      .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag);
-
   py::class_<NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "NodalTwoStepVPStrategy")
       .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>())
       .def("CalculateAccelerations", &NodalTwoStepVPStrategyType::CalculateAccelerations)
@@ -98,10 +86,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
       .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
       .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver);
 
-  // Explicit scheme: Central differences
-  py::class_<FirstOrderForwardEulerSchemeType, FirstOrderForwardEulerSchemeType::Pointer, BaseSchemeType>(m, "FirstOrderForwardEulerSchemeType")
-      .def(py::init<const double, const double, const double, const bool>())
-      .def("Initialize", &FirstOrderForwardEulerScheme<SparseSpaceType, LocalSpaceType>::Initialize);
 }
 
 } // namespace Python.

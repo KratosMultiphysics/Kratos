@@ -147,8 +147,13 @@ public:
             }
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >(
+                rModelPart,
+                pScheme,
+                pBuildAndSolver,
+                CalculateReactions,
+                ReformDofSet,
+                CalculateNormDxFlag));
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
@@ -158,8 +163,13 @@ public:
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >(
+                rModelPart,
+                pScheme,
+                pBuildAndSolver,
+                CalculateReactions,
+                ReformDofSet,
+                CalculateNormDxFlag));
         }
         else
         {

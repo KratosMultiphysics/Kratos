@@ -2,32 +2,18 @@ import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
+import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-    omp_utils = KratosMultiphysics.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
+class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
@@ -36,37 +22,28 @@ class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.rigid_face_model_part.Nodes:
-            dem_pressure = node.GetSolutionStepValue(DEM_PRESSURE)
-            contact_force = node.GetSolutionStepValue(CONTACT_FORCES_Y)
+            dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+            contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
             if node.Id == 13:
-                if time > 0.3:
+                if self.time > 0.3:
                     expected_value = 45126
-                    self.CheckPressure(dem_pressure, expected_value, tolerance)
+                    self.assertAlmostEqual(dem_pressure, expected_value, delta=tolerance)
                     expected_value = -23141
-                    self.CheckContactF(contact_force, expected_value, tolerance)
+                    self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
             if node.Id == 22:
-                if time > 0.3:
+                if self.time > 0.3:
                     expected_value = 26712
-                    self.CheckPressure(dem_pressure, expected_value, tolerance)
+                    self.assertAlmostEqual(dem_pressure, expected_value, delta=tolerance)
                     expected_value = -13698
-                    self.CheckContactF(contact_force, expected_value, tolerance)
-
-
-    @classmethod
-    def CheckPressure(self, dem_pressure, expected_value, tolerance):
-        if expected_value > dem_pressure*tolerance or expected_value < dem_pressure/tolerance:
-            raise ValueError('Incorrect value for DEM_PRESSURE: expected value was '+ str(expected_value) + ' but received ' + str(dem_pressure))
-
-    @classmethod
-    def CheckContactF(self, contact_force, expected_value, tolerance):
-        if abs(expected_value) > abs(contact_force*tolerance) or abs(expected_value) < abs(contact_force/tolerance):
-            raise ValueError('Incorrect value for CONTACT_FORCES_X: expected value was '+ str(expected_value) + ' but received ' + str(contact_force))
+                    self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
 
     def Finalize(self):
-        super(DEM2D_ContactTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 
 
@@ -80,13 +57,7 @@ class TestDEM2DContact(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_contact_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM2D_ContactTestSolution, model, parameters_file_name)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("DEM2D_contact_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ContactTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

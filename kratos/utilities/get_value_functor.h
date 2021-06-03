@@ -80,7 +80,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    typename TVariableType::Type operator()(GlobalPointer< Node<3> >& gp)
+    typename TVariableType::Type operator()(GlobalPointer< Node<3> >& gp) const
     {
         return gp->GetValue(mrVariable);
     }

@@ -19,6 +19,7 @@
 #include "add_data_communicator_to_python.h"
 #include "includes/define_python.h"
 #include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos {
 
@@ -133,7 +134,12 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
     .def("IsDistributed", &DataCommunicator::IsDistributed)
-    .def_static("GetDefault", &DataCommunicator::GetDefault, py::return_value_policy::reference)
+    .def("IsDefinedOnThisRank", &DataCommunicator::IsDefinedOnThisRank)
+    .def("IsNullOnThisRank", &DataCommunicator::IsNullOnThisRank)
+    .def_static("GetDefault", []() -> DataCommunicator& {
+        KRATOS_WARNING("DataCommunicator") << "This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)" << std::endl;
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }, py::return_value_policy::reference)
     .def("__str__", PrintObject<DataCommunicator>);
 }
 

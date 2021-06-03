@@ -13,6 +13,7 @@ from test_hdf5_xdmf import TestTryOpenH5File
 from test_hdf5_xdmf import TestCreateXdmfSpatialGrid
 from test_hdf5_xdmf import TestXdmfNodalResults
 from test_hdf5_xdmf import TestXdmfElementResults
+from test_hdf5_xdmf import TestXdmfConditionResults
 from test_hdf5_xdmf import TestXdmfResults
 from test_hdf5_xdmf import TestTimeLabel
 from test_hdf5_xdmf import TestFindMatchingFiles
@@ -31,6 +32,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfSpatialGrid]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfNodalResults]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfElementResults]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfConditionResults]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfResults]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTimeLabel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFindMatchingFiles]))

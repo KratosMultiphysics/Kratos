@@ -78,10 +78,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    template class StaticStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double >;
     template class StaticStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3> >;
     template class StaticStepRotationMethod< Variable<double>, double >;
 
 }  // namespace Kratos.
-
-

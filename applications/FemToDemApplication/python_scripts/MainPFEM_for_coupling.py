@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import time as timer
@@ -8,6 +7,10 @@ from importlib import import_module
 
 def Wait():
     input("Alejandro -> Press Something")
+
+def KratosPrintInfo(message):
+    KratosMultiphysics.Logger.Print(message, label="")
+    KratosMultiphysics.Logger.Flush()
 
 #============================================================================================================================
 class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamicsAnalysis):
@@ -30,7 +33,12 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         parameters["problem_data"]["problem_name"].SetString("PFEM" + problem_name)
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
 
+        folders = problem_name.split("/")
+        if len(folders) > 1:
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(problem_name)
+
         self.FEM_model_part = FEM_model_part
+
         super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
 
 #============================================================================================================================
@@ -62,3 +70,32 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         return solver
         
 #============================================================================================================================
+
+    def FinalizeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
+        """
+        self.clock_time = self.StartTimeMeasuring();
+        self._GetSolver().FinalizeSolutionStep()
+        self.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.model_processes.ExecuteFinalizeSolutionStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalizeSolutionStep()
+        self.model_processes.ExecuteBeforeOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        # self.GraphicalOutputPrintOutput()
+
+        # processes to be executed after witting the output
+        self.model_processes.ExecuteAfterOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterOutputStep()
+
+        self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);

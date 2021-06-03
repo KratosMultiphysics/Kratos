@@ -1,8 +1,11 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
 
 
 class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
@@ -33,21 +36,22 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
     def _apply_material_properties(self,mp,dim):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
-        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 5.5)
+        mp.GetProperties()[1].SetValue(ConstitutiveLawsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 5.5)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
 
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         if(dim == 2):
-            cl = StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
+            cl = ConstitutiveLawsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
         else:
-            cl = StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
+            cl = ConstitutiveLawsApplication.SmallStrainJ2Plasticity3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _define_movement(self,dim):
@@ -97,7 +101,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         if (linear):
             strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                             scheme,
-                                                                            linear_solver,
                                                                             builder_and_solver,
                                                                             compute_reactions,
                                                                             reform_step_dofs,
@@ -107,7 +110,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         else:
             strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                             scheme,
-                                                                            linear_solver,
                                                                             convergence_criterion,
                                                                             builder_and_solver,
                                                                             max_iters,

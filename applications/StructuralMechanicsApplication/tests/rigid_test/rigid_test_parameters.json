@@ -47,6 +47,7 @@
         "Parameters"    : {
             "model_part_name" : "Structure.LOAD_PointLoad_Auto1",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "value"           : [1.0e6,0.0,0.0],
             "interval"        : [0.0,"End"]
         }

@@ -615,7 +615,7 @@ void ConvDiffChangeOfPhase2D::InitializeSolutionStep(ProcessInfo& CurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void ConvDiffChangeOfPhase2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)

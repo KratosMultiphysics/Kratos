@@ -58,7 +58,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         if self.print_output:
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.MESH_DISPLACEMENT, "Blade_" + self.mapper_type + "_Fluid_mapped_disp")
 
-        mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_fluid, KM.MESH_DISPLACEMENT, GetFilePath(self.__GetFileName("balde_map_disp")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_fluid, KM.MESH_DISPLACEMENT, GetFilePath(self._GetFileName("balde_map_disp")))
 
     def test_map_forces(self):
         SetReactions(self.model_part_fluid)
@@ -72,7 +72,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         if self.print_output:
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force")
 
-        mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self.__GetFileName("balde_map_force")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self._GetFileName("balde_map_force")))
 
     def test_map_forces_conservative(self):
         SetReactions(self.model_part_fluid)
@@ -91,7 +91,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         if self.print_output:
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force_conserv")
 
-        mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self.__GetFileName("balde_map_force_conserv")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self._GetFileName("balde_map_force_conserv")))
 
         self.__CheckValuesSum(self.model_part_fluid.GetSubModelPart("suction_side_tri"), self.model_part_structure.GetSubModelPart("suction_side_quad"), KM.REACTION, KM.FORCE)
 
@@ -103,7 +103,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         self.assertAlmostEqual(val_1[1], -val_2[1])
         self.assertAlmostEqual(val_1[2], -val_2[2])
 
-    def __GetFileName(self, file_appendix):
+    def _GetFileName(self, file_appendix):
         return os.path.join("result_files", self.mapper_type, file_appendix)
 
 def SetDisplacements(model_part_structure):

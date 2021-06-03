@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-  class MembraneElement
+  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MembraneElement
     : public Element
   {
   public:
@@ -49,12 +49,6 @@ namespace Kratos
     enum class ConfigurationType {
       Current,
       Reference
-    };
-
-    enum class WrinklingType {
-      Taut,
-      Slack,
-      Wrinkle
     };
 
     // Name Operations
@@ -87,72 +81,78 @@ namespace Kratos
 
     void EquationIdVector(
       EquationIdVectorType& rResult,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
       DofsVectorType& ElementalDofList,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo) override;
+      MatrixType& rLeftHandSideMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void GetValuesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetFirstDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetSecondDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateOnIntegrationPoints(
       const Variable<array_1d<double, 3>>& rVariable,
       std::vector<array_1d<double, 3>>& rOutput,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
-      const Variable<array_1d<double, 3>>& rVariable,
-      std::vector<array_1d<double, 3>>& rOutput,
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateConsistentMassMatrix(MatrixType& rMassMatrix,
+      const ProcessInfo& rCurrentProcessInfo) const;
 
-    void CalculateLumpedMassVector(VectorType& rMassVector);
+    void CalculateLumpedMassVector(
+      VectorType& rMassVector,
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void AddExplicitContribution(
       const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-      Variable<array_1d<double, 3>>& rDestinationVariable,
+      const Variable<array_1d<double, 3>>& rDestinationVariable,
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddExplicitContribution(
       const VectorType& rRHSVector,
       const Variable<VectorType>& rRHSVariable,
-      Variable<double >& rDestinationVariable,
+      const Variable<double >& rDestinationVariable,
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(const Variable<double>& rVariable,
+     double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
   private:
      /**
@@ -162,7 +162,7 @@ namespace Kratos
      * @param Configuration Reference/Current
      */
     void CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration);
+     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const;
 
       /**
      * @brief Calculates the covariant metric
@@ -214,7 +214,7 @@ namespace Kratos
      * @param rDetJacobi The determinant of the Jacobian
      * @param rReferenceBaseVectors Reference base vectors
      */
-    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors);
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const;
 
 
       /**
@@ -253,21 +253,6 @@ namespace Kratos
     void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
        const Matrix& rTransformationMatrix);
 
-
-      /**
-     * @brief Calculates the material tangent modulus
-     * @param rTangentModulus The modulus
-     * @param rReferenceContraVariantMetric reference contra variant metric
-     * @param rReferenceCoVariantMetric reference covariant metric
-     * @param rCurrentCoVariantMetric current covariant metric
-     * @param rTransformationMatrix local coordinate system transformation
-     * @param rIntegrationPointNumber current integration point number
-     */
-    void MaterialTangentModulus(Matrix& rTangentModulus,const Matrix& rReferenceContraVariantMetric,
-      const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric, const Matrix& rTransformationMatrix,
-      const SizeType& rIntegrationPointNumber);
-
-
       /**
      * @brief Calculates the piola-kirchhoff-2 stress
      * @param rStress The stress
@@ -278,9 +263,10 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      * @param rIntegrationPointNumber current integration point number
      */
-    void StressPk2(Vector& rStress,
+    void MaterialResponse(Vector& rStress,
       const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber);
+      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
+      Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -306,7 +292,7 @@ namespace Kratos
      * @param rInternalForces The internal forces
      * @param ThisMethod numerical integration method
      */
-    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod);
+    void InternalForces(Vector& rInternalForces,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -314,7 +300,7 @@ namespace Kratos
      * @param rStiffnessMatrix The stiffness matrix
      * @param ThisMethod numerical integration method
      */
-    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod);
+    void TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const IntegrationMethod& ThisMethod,const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -387,17 +373,6 @@ namespace Kratos
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
 
-      /**
-     * @brief Checks for taunt/slack/wrinkles
-     * @param rWrinklingState the current wrinkling state
-     * @param rStress the stress
-     * @param rStrain the strain
-     */
-    void CheckWrinklingState(WrinklingType& rWrinklingState, const Vector& rStress, const Vector& rStrain);
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
         std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -405,10 +380,12 @@ namespace Kratos
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector);
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
+
+    void ReferenceLumpingFactors(Vector& rResult) const;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    double mReferenceArea = 0.0;
+    double CalculateReferenceArea() const;
 
     ///@}
     ///@name Serialization

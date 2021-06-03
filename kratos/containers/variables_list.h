@@ -29,7 +29,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_components.h"
 #include "containers/variable.h"
 
 #ifdef KRATOS_DEBUG
@@ -47,7 +46,7 @@ namespace Kratos
 	/** This class works tightly with VariablesListDataValueContainer and provides the
 	the positions of variables for that containers
 	*/
-	class VariablesList
+	class KRATOS_API(KRATOS_CORE) VariablesList
 	{
 	public:
 		///@name Type Definitions
@@ -144,7 +143,7 @@ namespace Kratos
 		template<class TDataType>
 		IndexType operator()(Variable<TDataType> const& ThisVariable) const
 		{
-			return GetPosition(ThisVariable.Key());
+			return GetPosition(ThisVariable.SourceKey());
 		}
 
 		const VariableData* operator[](IndexType Index) const
@@ -264,15 +263,21 @@ namespace Kratos
 
 		void Add(VariableData const& ThisVariable)
 		{
-			if (ThisVariable.Key() == 0)
+			if (ThisVariable.SourceKey() == 0)
 				KRATOS_THROW_ERROR(std::logic_error,
 					"Adding uninitialize variable to this variable list. Check if all variables are registered before kernel initialization", "");
+					
 
 			if (Has(ThisVariable))
 				return;
 
+			if(ThisVariable.IsComponent()){
+				Add(ThisVariable.GetSourceVariable());
+				return;
+			}
+
 			mVariables.push_back(&ThisVariable);
-			SetPosition(ThisVariable.Key(), mDataSize);
+			SetPosition(ThisVariable.SourceKey(), mDataSize);
 			const SizeType block_size = sizeof(BlockType);
 			mDataSize += static_cast<SizeType>(((block_size - 1) + ThisVariable.Size()) / block_size);
 		}
@@ -339,12 +344,12 @@ namespace Kratos
 		template<class TDataType>
 		IndexType Index(Variable<TDataType> const& ThisVariable) const
 		{
-			return GetPosition(ThisVariable.Key());
+			return GetPosition(ThisVariable.SourceKey());
 		}
 
 		IndexType Index(const VariableData* pThisVariable) const
 		{
-			return GetPosition(pThisVariable->Key());
+			return GetPosition(pThisVariable->SourceKey());
 		}
 
 
@@ -369,13 +374,17 @@ namespace Kratos
 
 		bool Has(const VariableData& rThisVariable) const
 		{
+			if(rThisVariable.IsComponent()){
+				return Has(rThisVariable.GetSourceVariable());
+			}
+
 			if (mPositions.empty())
 				return false;
 
-			if (rThisVariable.Key() == 0)
+			if (rThisVariable.SourceKey() == 0)
 				return false;
 
-			return mKeys[GetHashIndex(rThisVariable.Key(), mKeys.size(), mHashFunctionIndex)] == rThisVariable.Key();
+			return mKeys[GetHashIndex(rThisVariable.SourceKey(), mKeys.size(), mHashFunctionIndex)] == rThisVariable.SourceKey();
 		}
 
 		bool IsEmpty() const
@@ -490,9 +499,9 @@ namespace Kratos
 				size_is_ok = true;
 
 					for (auto i_variable = mVariables.begin(); i_variable != mVariables.end(); i_variable++)
-						if (new_positions[GetHashIndex((*i_variable)->Key(), new_size, new_hash_function_index)] > mDataSize) {
-							new_positions[GetHashIndex((*i_variable)->Key(), new_size, new_hash_function_index)] = mPositions[GetHashIndex((*i_variable)->Key(), mPositions.size(), mHashFunctionIndex)];
-							new_keys[GetHashIndex((*i_variable)->Key(), new_size, new_hash_function_index)] = (*i_variable)->Key();
+						if (new_positions[GetHashIndex((*i_variable)->SourceKey(), new_size, new_hash_function_index)] > mDataSize) {
+							new_positions[GetHashIndex((*i_variable)->SourceKey(), new_size, new_hash_function_index)] = mPositions[GetHashIndex((*i_variable)->SourceKey(), mPositions.size(), mHashFunctionIndex)];
+							new_keys[GetHashIndex((*i_variable)->SourceKey(), new_size, new_hash_function_index)] = (*i_variable)->SourceKey();
 						}
 						else {
 							size_is_ok = false;
@@ -514,60 +523,9 @@ namespace Kratos
 		friend class Serializer;
 
 
-		virtual void save(Serializer& rSerializer) const
-		{
-			std::size_t size = mVariables.size();
-			rSerializer.save("Size", size);
-			for (std::size_t i = 0; i < size; i++)
-			{
-				rSerializer.save("VariableName", mVariables[i]->Name());
-			}
+		virtual void save(Serializer& rSerializer) const;
 
-			std::size_t dof_size = mDofVariables.size();
-			rSerializer.save("DofSize", dof_size);
-			for (std::size_t i = 0; i < dof_size; i++)
-			{
-				rSerializer.save("DofVariableName", mDofVariables[i]->Name());
-				if(mDofReactions[i] == nullptr){
-					rSerializer.save("HasReaction", false);
-				}
-				else{
-					rSerializer.save("HasReaction", true);
-					rSerializer.save("DofReactionName", mDofReactions[i]->Name());
-				}
-			}
-		}
-
-		virtual void load(Serializer& rSerializer)
-		{
-			std::size_t size;
-			rSerializer.load("Size", size);
-			std::string name;
-			for (std::size_t i = 0; i < size; i++)
-			{
-				rSerializer.load("VariableName", name);
-				Add(*KratosComponents<VariableData>::pGet(name));
-			}
-			rSerializer.load("DofSize", size);
-			for (std::size_t i = 0; i < size; i++)
-			{
-				rSerializer.load("DofVariableName", name);
-				bool has_reaction;
-				rSerializer.load("HasReaction", has_reaction);
-				
-				if(has_reaction){
-					std::string reaction_name;
-					rSerializer.load("DofReactionName", reaction_name);
-					AddDof(KratosComponents<VariableData>::pGet(name), KratosComponents<VariableData>::pGet(reaction_name));
-
-				}
-				else{
-            		AddDof(KratosComponents<VariableData>::pGet(name), nullptr);
-				}
-
-			}
-
-		}
+		virtual void load(Serializer& rSerializer);
 
 	}; // Class VariablesList
 	   ///@}

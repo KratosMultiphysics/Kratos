@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "utilities/atomic_utilities.h"
 
 /* Custom includes */
 #include "includes/mortar_classes.h"
@@ -218,8 +219,9 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(DISCONTINOUS_INTERFACE);              /// If interface is discontinous
     KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_IS_HISTORICAL);                /// If the origin variables is historical
     KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_IS_HISTORICAL);           /// If the destination variables is historical
-    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If  the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
-    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If  the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(CONSIDER_TESELLATION);                /// If we consider the tesellation in the mortar integration
 
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
@@ -237,8 +239,6 @@ public:
     typedef Triangle3D3<PointType>                    TriangleType;
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
     /// Linear solver
     typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
@@ -247,8 +247,6 @@ public:
     typedef typename SparseSpaceType::VectorType                 VectorType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
 
     /// Index type definition
     typedef std::size_t                                          IndexType;
@@ -390,6 +388,11 @@ public:
         // Execute the process
         Execute();
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -753,8 +756,7 @@ private:
                     } else {
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                             double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
-                            #pragma omp atomic
-                            r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
+                            AtomicAdd(r_nodal_area, rThisMortarOperators.DOperator(i_node, i_node));
                         }
                         // In case of discontinous interface we add contribution to near nodes
                         if (mOptions.Is(DISCONTINOUS_INTERFACE)) {
@@ -782,8 +784,7 @@ private:
                                             const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
 
                                             double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
-                                            #pragma omp atomic
-                                            r_nodal_area += contribution_coeff * nodal_area_contribution;
+                                            AtomicAdd(r_nodal_area, contribution_coeff * nodal_area_contribution);
                                         }
                                     }
                                 }
@@ -943,11 +944,6 @@ private:
      * @note Note that this needs to be done if such modelpart has changed its number of nodes or geometrical objects. This needs to be done even though the mapping instance is deleted since such information is saved in the destination nodes and geometrical objects.
      */
     void UpdateInterface();
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Private  Access

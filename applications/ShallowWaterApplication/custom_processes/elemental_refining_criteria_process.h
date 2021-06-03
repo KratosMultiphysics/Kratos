@@ -23,6 +23,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
 
 
@@ -59,6 +60,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+
     /// Pointer definition of ElementalRefiningCriteriaProcess
     KRATOS_CLASS_POINTER_DEFINITION(ElementalRefiningCriteriaProcess);
 
@@ -69,11 +72,11 @@ public:
     /// Constructor
     ElementalRefiningCriteriaProcess(
         ModelPart& rThisModelPart,
-        Variable<double> ThisVariable,
+        const Variable<double>& rThisVariable,
         double Threshold,
         bool OnlyRefineWetDomain
     ) : mrModelPart(rThisModelPart)
-      , mVariable(ThisVariable)
+      , mpVariable(&rThisVariable)
       , mThreshold(Threshold)
       , mOnlyRefineWetDomain(OnlyRefineWetDomain)
     {}
@@ -93,7 +96,7 @@ public:
     })");
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mVariable = KratosComponents< Variable<double> >::Get(ThisParameters["error_variable"].GetString());
+    mpVariable = &KratosComponents< Variable<double> >::Get(ThisParameters["error_variable"].GetString());
     mThreshold = ThisParameters["variable_threshold"].GetDouble();
     mOnlyRefineWetDomain = ThisParameters["only_refine_wet_domain"].GetBool();
 
@@ -175,32 +178,20 @@ protected:
 
     void EvaluateCondition()
     {
-        const int num_nodes = static_cast<int>(mrModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
-
         // Reset the flag
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; i++)
-        {
-            auto node = nodes_begin + i;
-            node->Set(TO_REFINE, false);
-        }
-
-        const int num_elements = static_cast<int>(mrModelPart.Elements().size());
-        ModelPart::ElementsContainerType::iterator elements_begin = mrModelPart.ElementsBegin();
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            rNode.Set(TO_REFINE, false);
+        });
 
         // Evaluate the condition
-        #pragma omp parallel for
-        for(int i = 0; i < num_elements; i++)
-        {
-            auto elem = elements_begin + i;
-            if (elem->GetValue(RESIDUAL_NORM) > mThreshold)
+        block_for_each(mrModelPart.Elements(), [&](Element& rElem){
+            if (rElem.GetValue(*mpVariable) > mThreshold)
             {
                 bool active_elem = true;
                 if (mOnlyRefineWetDomain)
                 {
                     bool element_is_wet = false;
-                    for (Node<3>& node : elem->GetGeometry())
+                    for (NodeType& node : rElem.GetGeometry())
                     {
                         if (node.FastGetSolutionStepValue(HEIGHT) > 0.0)
                             element_is_wet = true;
@@ -209,7 +200,7 @@ protected:
                 }
                 if (active_elem)
                 {
-                    for (Node<3>& node : elem->GetGeometry())
+                    for (NodeType& node : rElem.GetGeometry())
                     {
                         node.SetLock();
                         node.Set(TO_REFINE, true);
@@ -217,7 +208,7 @@ protected:
                     }
                 }
             }
-        }
+        });
     }
 
     ///@}
@@ -247,7 +238,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Variable<double> mVariable = RESIDUAL_NORM;
+    const Variable<double>* mpVariable;
     double mThreshold;
     bool mOnlyRefineWetDomain;
 

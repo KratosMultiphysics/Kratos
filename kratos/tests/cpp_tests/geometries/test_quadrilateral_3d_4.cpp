@@ -274,6 +274,28 @@ namespace Testing
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
     }
 
+    /** Checks the ProjectionPoint test for a given point respect to the quadrilateral
+    * Checks the ProjectionPoint test for a given point respect to the quadrilateral
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ProjectionPoint, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateFlatQuadrilateral3D4<NodeType>();
+
+        Point point(0.25,0.35,0.2);
+
+        Geometry<Point>::CoordinatesArrayType global_coords;
+        Geometry<Point>::CoordinatesArrayType local_coords;
+
+        geom->ProjectionPoint(point.Coordinates(), global_coords, local_coords);
+
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[0], 0.25, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(global_coords[1], 0.35, 1.0e-4);
+        KRATOS_CHECK_NEAR(global_coords[2], 0.0, 1.0e-4);
+
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[0], -0.5, 1.0e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], -0.3, 1.0e-4);
+        KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
+    }
+
 //     /** Checks if the volume of the quadrilateral is calculated correctly.
 //     * Checks if the volume of the quadrilateral is calculated correctly.
 //     * For quadrilateral 2D3 'volume()' call defaults to 'area()'

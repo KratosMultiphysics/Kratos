@@ -10,7 +10,7 @@ import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 def Norm(vector):
     return np.sqrt(sum(v**2 for v in vector))
 
-class SandProductionPostProcessTool(object):
+class SandProductionPostProcessTool():
     def __init__(self, fem_model_part, dem_model_part, test_number):
 
         if not test_number:

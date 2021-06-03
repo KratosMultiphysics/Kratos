@@ -96,7 +96,7 @@ public:
      */
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
-        const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
+        const Variable<array_1d<double,3>>& rVariableGradient = DISTANCE_GRADIENT,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
@@ -111,6 +111,11 @@ public:
     {
         Execute();
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Operations

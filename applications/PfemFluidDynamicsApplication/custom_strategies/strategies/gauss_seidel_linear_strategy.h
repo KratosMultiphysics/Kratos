@@ -341,7 +341,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    TSystemMatrixType &GetSystemMatrix()
+    TSystemMatrixType &GetSystemMatrix() override
     {
         TSystemMatrixType &mA = *mpA;
 

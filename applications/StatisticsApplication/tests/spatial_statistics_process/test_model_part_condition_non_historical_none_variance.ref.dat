@@ -1,0 +1,17 @@
+# Spatial statistics process output
+# Kratos version               : not_given
+# Timestamp                    : not_specified
+# Method Name                  : variance
+# Norm type                    : none
+# Container type               : condition_non_historical
+# Modelpart name               : test_model_part
+# Output control variable name : STEP
+# ----------------------------------------------------------------------
+# Headers:
+# OutputControlVariableValue PRESSURE_Mean PRESSURE_Variance VELOCITY_X_Mean VELOCITY_Y_Mean VELOCITY_Z_Mean VELOCITY_X_Variance VELOCITY_Y_Variance VELOCITY_Z_Variance
+2 16.5 47.25 33.0 33.0 33.0 189.0 189.0 189.0
+4 27.5 131.25 55.0 55.0 55.0 525.0 525.0 525.0
+6 38.5 257.25 77.0 77.0 77.0 1029.0 1029.0 1029.0
+8 49.5 425.25 99.0 99.0 99.0 1701.0 1701.0 1701.0
+10 60.5 635.25 121.0 121.0 121.0 2541.0 2541.0 2541.0
+# End of file

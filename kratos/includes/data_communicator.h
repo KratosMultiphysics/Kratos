@@ -339,7 +339,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @see ParallelEnvironment.
      *  @return a unique pointer to the new DataCommunicator.
      */
-    virtual DataCommunicator::UniquePointer Clone() const
+    static DataCommunicator::UniquePointer Create()
     {
         return Kratos::make_unique<DataCommunicator>();
     }
@@ -612,6 +612,24 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return false;
     }
 
+    /// Check whether this DataCommunicator involves the current rank.
+    /** In MPI, if the rank is not involved in communication, the communicator
+     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     */
+    virtual bool IsDefinedOnThisRank() const
+    {
+        return true;
+    }
+
+    /// Check whether this DataCommunicator is MPI_COMM_NULL.
+    /** In MPI, if the rank is not involved in communication, the communicator
+     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     */
+    virtual bool IsNullOnThisRank() const
+    {
+        return false;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -619,6 +637,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     /// Convenience function to retireve the current default DataCommunicator.
     /** @return A reference to the DataCommunicator instance registered as default in ParallelEnvironment.
      */
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)")
     static DataCommunicator& GetDefault();
 
     ///@}

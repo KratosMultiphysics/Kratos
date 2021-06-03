@@ -42,7 +42,10 @@ public:
     ///@{
 
     /// Constructor
-    ApplyFarFieldProcess(ModelPart& rModelPart, const double ReferencePotential, const bool InitializeFlowField);
+    ApplyFarFieldProcess(ModelPart& rModelPart,
+                         const double ReferencePotential,
+                         const bool InitializeFlowField,
+                         const bool PerturbationField);
 
     /// Copy constructor.
     ApplyFarFieldProcess(ApplyFarFieldProcess const& rOther) = delete;
@@ -98,6 +101,7 @@ private:
     NodeType::Pointer mpReferenceNode;
     const double mReferencePotential = 1.0;
     const bool mInitializeFlowField;
+    const bool mPerturbationField;
     const array_1d<double,3> mFreeStreamVelocity;
     ///@}
     ///@name Private Operators

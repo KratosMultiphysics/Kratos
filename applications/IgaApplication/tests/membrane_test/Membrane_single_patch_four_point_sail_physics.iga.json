@@ -1,0 +1,71 @@
+{
+    "element_condition_list": [{
+            "brep_ids": [2],
+            "geometry_type": "GeometrySurface",
+            "iga_model_part": "StructuralAnalysis",
+            "parameters": {
+                "type": "element",
+                "name": "IgaMembraneElement",
+                "shape_function_derivatives_order": 3
+            }
+        }, {
+            "brep_ids": [2],
+            "geometry_type": "GeometrySurface",
+            "iga_model_part": "Load_5",
+            "parameters": {
+                "type": "condition",
+                "name": "LoadCondition",
+                "shape_function_derivatives_order": 2
+            }
+        }, {
+            "brep_ids": [3, 5],
+            "geometry_type": "SurfaceEdge",
+            "iga_model_part": "Edge1",
+            "parameters": {
+                "type": "element",
+                "name": "TrussEmbeddedEdgeElement",
+                "shape_function_derivatives_order": 2
+            }
+        }, {
+            "brep_ids": [4, 6],
+            "geometry_type": "SurfaceEdge",
+            "iga_model_part": "Edge2",
+            "parameters": {
+                "type": "element",
+                "name": "TrussEmbeddedEdgeElement",
+                "shape_function_derivatives_order": 2
+            }
+        }, {
+            "brep_ids": [2],
+            "geometry_type": "GeometrySurfaceNodes",
+            "iga_model_part": "Support_1",
+            "parameters": {
+                "local_parameters": [0, 0]
+            }
+        },
+        {
+            "brep_ids": [2],
+            "geometry_type": "GeometrySurfaceNodes",
+            "iga_model_part": "Support_2",
+            "parameters": {
+                "local_parameters": [1, 0]
+            }
+        },
+        {
+            "brep_ids": [2],
+            "geometry_type": "GeometrySurfaceNodes",
+            "iga_model_part": "Support_3",
+            "parameters": {
+                "local_parameters": [0, 1]
+            }
+        },
+        {
+            "brep_ids": [2],
+            "geometry_type": "GeometrySurfaceNodes",
+            "iga_model_part": "Support_4",
+            "parameters": {
+                "local_parameters": [1, 1]
+            }
+        }
+    ]
+}

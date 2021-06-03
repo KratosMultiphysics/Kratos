@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_conditions/point_contact_condition.h"
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 

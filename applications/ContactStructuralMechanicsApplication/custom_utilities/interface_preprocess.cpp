@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -114,7 +115,7 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
     if (!(p_prop_old->Has(YOUNG_MODULUS))) {
         // Store new properties in a map
         const std::size_t number_properties = mrMainModelPart.NumberOfProperties();
-        Properties::Pointer p_prop_new = mrMainModelPart.CreateNewProperties(number_properties + 1);
+        Properties::Pointer p_new_prop = mrMainModelPart.CreateNewProperties(number_properties + 1);
 
         GeometryType& this_geometry_cond = rInterfacePart.Conditions().begin()->GetGeometry();
         const std::size_t number_of_nodes = this_geometry_cond.size();
@@ -134,9 +135,11 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
                 Properties::Pointer p_prop = r_elem.pGetProperties();
 
                 // Now we copy (an remove) the properties we have interest
-                CopyProperties(p_prop, p_prop_new, FRICTION_COEFFICIENT);
-                CopyProperties(p_prop, p_prop_new, THICKNESS, false);
-                CopyProperties(p_prop, p_prop_new, YOUNG_MODULUS);
+                if (mrMainModelPart.Is(SLIP) && p_prop->Has(FRICTION_COEFFICIENT)) { // Only in frictional contact cases
+                    CopyProperties(p_prop, p_new_prop, FRICTION_COEFFICIENT);
+                }
+                CopyProperties(p_prop, p_new_prop, THICKNESS, false);
+                CopyProperties(p_prop, p_new_prop, YOUNG_MODULUS);
 
                 counter++;
                 break;
@@ -150,7 +153,7 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
             #pragma omp parallel for
             for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
                 auto it_cond = conditions_array.begin() + i;
-                it_cond->SetProperties(p_prop_new);
+                it_cond->SetProperties(p_new_prop);
             }
         } else {
             KRATOS_ERROR << "It was not possible to add a property" << std::endl;
@@ -247,7 +250,10 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
         new_properties.insert({i_prop, p_new_prop});
 
         // Now we copy (an remove) the properties we have interest
-        CopyProperties(p_original_prop, p_new_prop, FRICTION_COEFFICIENT);
+        if (p_original_prop->Has(FRICTION_COEFFICIENT)) {
+            KRATOS_WARNING("InterfacePreprocessCondition") << "WARNING:: Friction coefficient as property is deprecated, please define by condition pairs. Properties ID: " << p_original_prop->Id() << std::endl;
+            CopyProperties(p_original_prop, p_new_prop, FRICTION_COEFFICIENT);
+        }
         CopyProperties(p_original_prop, p_new_prop, THICKNESS, false);
         CopyProperties(p_original_prop, p_new_prop, YOUNG_MODULUS);
     }
@@ -370,7 +376,7 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
             if (rEdgeGeometry[it_node].Is(INTERFACE)) ++count;
     }
 
-    const std::string condition_name = (number_of_points == 2 || SimplestGeometry) ? "Condition2D2N" : "Condition2D3N";
+    const std::string condition_name = (number_of_points == 2 || SimplestGeometry) ? "LineCondition2D2N" : "LineCondition2D3N";
 
     Condition const& r_condition =  KratosComponents<Condition>::Get(condition_name);
 

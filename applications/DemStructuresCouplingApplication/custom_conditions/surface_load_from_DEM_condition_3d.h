@@ -104,6 +104,17 @@ public:
         ) const override;
 
     /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
+
+    /**
      * returns the used integration method.
      */
     GeometryData::IntegrationMethod GetIntegrationMethod() override;

@@ -1,18 +1,6 @@
-#
-#   KRATOS _______
-#         / ____(_)___ ____  ____
-#        / __/ / / __ `/ _ \/ __ \
-#       / /___/ / /_/ /  __/ / / /
-#      /_____/_/\__, /\___/_/ /_/ SolversApplication
-#              /____/
-#
-#   Author: Thomas Oberbichler
-#
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
-import KratosMultiphysics as KM
-from KratosEigenSolversApplication import *
-application = KratosEigenSolversApplication()
-application_name = "KratosEigenSolversApplication"
-application_folder = "EigenSolversApplication"
+IssueDeprecationWarning('EigenSolversApplication', 'please use the "LinearSolversApplication" instead')
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+from KratosMultiphysics.LinearSolversApplication import *
+from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory

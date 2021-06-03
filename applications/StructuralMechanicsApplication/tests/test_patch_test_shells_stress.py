@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -8,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
     def setUp(self):
         pass
-        
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -101,7 +100,6 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -194,7 +192,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
+                                element_name,
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
@@ -215,7 +213,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
+                                element_name,
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
@@ -236,7 +234,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
+                                element_name,
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
@@ -257,7 +255,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
+                                element_name,
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,

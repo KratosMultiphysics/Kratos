@@ -25,7 +25,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
 #include "containers/variables_list.h"
 #include "includes/global_variables.h"
 
@@ -88,7 +87,7 @@ public:
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(nullptr)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -112,7 +111,7 @@ public:
         : mQueueSize(rOther.mQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(rOther.mpVariablesList)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -139,7 +138,7 @@ public:
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -163,7 +162,7 @@ public:
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(pVariablesList)
     {
-        if(!mpVariablesList) 
+        if(!mpVariablesList)
             return;
 
         // Allcating memory
@@ -225,30 +224,6 @@ public:
         return GetValue(rThisVariable, QueueIndex);
     }
 
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
 //       template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
 // 	{
 // 	  return GetValue(rThisVariable, 0);
@@ -267,16 +242,6 @@ public:
     template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
-    }
-
-    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
-    }
-
-    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
     }
 
     /// Assignment operator.
@@ -337,7 +302,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return *(TDataType*)Position(rThisVariable);
+        return *(reinterpret_cast<TDataType*>(Position(rThisVariable)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
@@ -345,7 +310,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return *(TDataType*)Position(rThisVariable, QueueIndex);
+        return *(reinterpret_cast<TDataType*>(Position(rThisVariable, QueueIndex)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
@@ -353,7 +318,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return *(const TDataType*)Position(rThisVariable);
+        return *(reinterpret_cast<const TDataType*>(Position(rThisVariable)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
@@ -361,50 +326,25 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return *(const TDataType*)Position(rThisVariable, QueueIndex);
-    }
-
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+        return *(reinterpret_cast<const TDataType*>(Position(rThisVariable, QueueIndex)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
     {
-        return *(TDataType*)Position(rThisVariable);
+        return *(reinterpret_cast<TDataType*>(Position(rThisVariable)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable)
     {
-        return (TDataType*)Position(rThisVariable);
+        return (reinterpret_cast<TDataType*>(Position(rThisVariable)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
-        return *(TDataType*)Position(rThisVariable, QueueIndex);
+        return *(reinterpret_cast<TDataType*>(Position(rThisVariable, QueueIndex)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
@@ -413,7 +353,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
-        return *(TDataType*)(Position(QueueIndex) + ThisPosition);
+        return *(reinterpret_cast<TDataType*>(Position(QueueIndex) + ThisPosition) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
@@ -421,65 +361,39 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return *(TDataType*)(mpCurrentPosition + ThisPosition);
+        return *(reinterpret_cast<TDataType*>(mpCurrentPosition + ThisPosition) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
     {
-        return *(const TDataType*)Position(rThisVariable);
+        return *(reinterpret_cast<const TDataType*>(Position(rThisVariable)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     const TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable) const
     {
-        return (const TDataType*)Position(rThisVariable);
+        return (reinterpret_cast<const TDataType*>(Position(rThisVariable)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
-        return *(const TDataType*)Position(rThisVariable, QueueIndex);
+        return *(reinterpret_cast<const TDataType*>(Position(rThisVariable, QueueIndex)) + rThisVariable.GetComponentIndex());
     }
 
     template<class TDataType>
     const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition) const
     {
-        return *(TDataType*)(Position(QueueIndex) + ThisPosition);
+        return *(reinterpret_cast<const TDataType*>(Position(QueueIndex) + ThisPosition) + rThisVariable.GetComponentIndex());
     }
 
 
     template<class TDataType>
     const TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition) const
     {
-        return *(TDataType*)(mpCurrentPosition + ThisPosition);
+        return *(reinterpret_cast<TDataType*>(mpCurrentPosition + ThisPosition) + rThisVariable.GetComponentIndex());
     }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-    }
-
-    template<class TAdaptorType>
-    const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-    {
-        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-    }
-
 
     SizeType Size() const
     {
@@ -510,16 +424,6 @@ public:
     template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue, SizeType QueueIndex)
     {
         GetValue(rThisVariable, QueueIndex) = rValue;
-    }
-
-    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
-    {
-        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
-    }
-
-    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue, SizeType QueueIndex)
-    {
-        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex)) = rValue;
     }
 
 //       template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
@@ -555,6 +459,16 @@ public:
     const VariablesList::Pointer pGetVariablesList() const
     {
         return mpVariablesList;
+    }
+
+    VariablesList& GetVariablesList()
+    {
+        return *mpVariablesList;
+    }
+
+    const VariablesList& GetVariablesList() const
+    {
+        return *mpVariablesList;
     }
 
 
@@ -837,19 +751,11 @@ public:
         return mpVariablesList->Has(rThisVariable);
     }
 
-    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        if(!mpVariablesList)
-            return false;
-            
-        return mpVariablesList->Has(rThisVariable.GetSourceVariable());
-    }
-
     bool IsEmpty()
     {
         if(!mpVariablesList)
             return true;
-            
+
         return mpVariablesList->IsEmpty();
     }
 
@@ -874,7 +780,7 @@ public:
     {
         if(!mpVariablesList)
             rOStream << "No varaibles list is assigned yet." << std::endl;
-            
+
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
                 i_variable != mpVariablesList->end() ; i_variable++)
         {
@@ -1021,14 +927,14 @@ private:
     inline SizeType LocalOffset(VariableData const & rThisVariable) const
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
-        return mpVariablesList->Index(rThisVariable);
+        return mpVariablesList->Index(rThisVariable.SourceKey());
     }
 
     inline BlockType* Position(VariableData const & rThisVariable) const
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
+        return mpCurrentPosition + mpVariablesList->Index(rThisVariable.SourceKey());
     }
 
     inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
@@ -1036,7 +942,7 @@ private:
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((ThisIndex + 1) > mQueueSize) << "Trying to access data from step " << ThisIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
-        return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
+        return Position(ThisIndex) + mpVariablesList->Index(rThisVariable.SourceKey());
     }
 
     inline BlockType* Position() const

@@ -97,6 +97,7 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
+        Kratos_Brep,
         Kratos_generic_family
     };
 
@@ -126,9 +127,10 @@ public:
         Kratos_Line3D3,
         Kratos_Point2D,
         Kratos_Point3D,
-        Kratos_Sphere3D1
+        Kratos_Sphere3D1,
+        Kratos_Brep_Surface,
+        Kratos_Brep_Curve
     };
-
 
     ///@}
     ///@name Type Definitions
@@ -266,11 +268,10 @@ public:
         const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainer<IntegrationMethod>(
                 ThisDefaultMethod,
                 ThisIntegrationPoints,
                 ThisShapeFunctionsValues,
-                ThisShapeFunctionsLocalGradients))
+                ThisShapeFunctionsLocalGradients)
     {
     }
 
@@ -278,48 +279,32 @@ public:
     * Constructor which has a precomputed shape function container.
     * @param pThisGeometryDimension pointer to the dimensional data
     * @param ThisGeometryShapeFunctionContainer including the evaluated
-    *        values for the shape functions, it's derivatives and the 
+    *        values for the shape functions, it's derivatives and the
     *        integration points.
     */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
-        GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainer<IntegrationMethod>(
-                ThisGeometryShapeFunctionContainer))
+                ThisGeometryShapeFunctionContainer)
     {
     }
 
-    /*
-    * Copy constructor.
-    * Construct this geometry data as a copy of given geometry data.
-    */
+    /// Copy constructor.
     GeometryData( const GeometryData& rOther )
         : mpGeometryDimension( rOther.mpGeometryDimension)
         , mGeometryShapeFunctionContainer( rOther.mGeometryShapeFunctionContainer)
     {
     }
 
-
-
-    /// Destructor. Do nothing!!!
+    /// Destructor.
     virtual ~GeometryData() {}
-
 
     ///@}
     ///@name Operators
     ///@{
 
-    /** Assignment operator.
-
-    @note This operator don't copy the points and this
-    geometry shares points with given source geometry. It's
-    obvious that any change to this geometry's point affect
-    source geometry's points too.
-
-    @see Clone
-    @see ClonePoints
-    */
+    /// Assignment operator.
     GeometryData& operator=( const GeometryData& rOther )
     {
         mpGeometryDimension = rOther.mpGeometryDimension;
@@ -335,6 +320,17 @@ public:
     void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
     {
         mpGeometryDimension = pGeometryDimension;
+    }
+
+    ///@}
+    ///@name Geometry Shape Function Container
+    ///@{
+
+    /// SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer.
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<IntegrationMethod>& rGeometryShapeFunctionContainer)
+    {
+        mGeometryShapeFunctionContainer = rGeometryShapeFunctionContainer;
     }
 
     ///@}
@@ -565,9 +561,13 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex,  IntegrationMethod ThisMethod ) const
+    double ShapeFunctionValue(
+        IndexType IntegrationPointIndex,
+        IndexType ShapeFunctionIndex,
+        IntegrationMethod ThisMethod ) const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionValue( IntegrationPointIndex, ShapeFunctionIndex, ThisMethod );
+        return mGeometryShapeFunctionContainer.ShapeFunctionValue(
+            IntegrationPointIndex, ShapeFunctionIndex, ThisMethod );
     }
 
     /** This method gives all shape functions gradients evaluated in all
@@ -687,9 +687,13 @@ public:
     * @return the shape function or derivative value related to the input parameters
     *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
-    const Matrix& ShapeFunctionDerivatives(IndexType DerivativeOrderIndex, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
     }
 
     ///@}
@@ -785,5 +789,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined
-
-

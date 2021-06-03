@@ -41,7 +41,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL)) << "Missing NORMAL variable on solution step data" << std::endl;
-        VariableUtils().SetVectorVar(NORMAL, ZeroVector(3), mrModelPart.Nodes());
+        VariableUtils().SetVariable(NORMAL, ZeroVector(3), mrModelPart.Nodes());
     }
 
     // Begin by orienting all of the elements in the volume
@@ -111,7 +111,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
             // Loop over the faces
             for(IndexType outer_node_index=0; outer_node_index< r_geometry.size(); outer_node_index++) {
-                IndexType localindex_node_on_face = -1;
+                IndexType localindex_node_on_face = 0;
                 // We put in "aux" the indices of all of the nodes which do not
                 // coincide with the face_index we are currently considering telling in other words:
                 // face_index will contain the local_index of the node which is NOT on the face
