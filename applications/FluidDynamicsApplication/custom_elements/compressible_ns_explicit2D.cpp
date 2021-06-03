@@ -10,7 +10,7 @@
 //  Main authors:    Andrea Montanino
 //
 
-#include "custom_elements/compressible_navier_stokes_explicit.h"
+#include "custom_elements/compressible_ns_explicit.h"
 
 namespace Kratos {
 
@@ -99,7 +99,7 @@ void LocalMassMatrix(array_1d<double,12>& LumpedMassMatrix,const array_1d<double
 
 
 template<>
-void CompressibleNavierStokesExplicit<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void CompressibleNSExplicit<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -108,7 +108,7 @@ void CompressibleNavierStokesExplicit<2>::EquationIdVector(EquationIdVectorType&
 
 
 template<>
-void CompressibleNavierStokesExplicit<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void CompressibleNSExplicit<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -116,7 +116,7 @@ void CompressibleNavierStokesExplicit<2>::GetDofList(DofsVectorType& ElementalDo
 }
 
 template<>
-void CompressibleNavierStokesExplicit<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,12,12>& lhs, const ElementDataStruct& data)
+void CompressibleNSExplicit<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,12,12>& lhs, const ElementDataStruct& data)
 {   
     
 }
@@ -124,7 +124,7 @@ void CompressibleNavierStokesExplicit<2>::ComputeGaussPointLHSContribution(Bound
 
 
 template<>
-void CompressibleNavierStokesExplicit<2>::ComputeGaussPointRHSContribution(array_1d<double,12>& rhs, const ElementDataStruct& data)
+void CompressibleNSExplicit<2>::ComputeGaussPointRHSContribution(array_1d<double,12>& rhs, const ElementDataStruct& data)
 {
     const unsigned  int nodesElement = 3;
     const unsigned  int SpaceDimension = 2;

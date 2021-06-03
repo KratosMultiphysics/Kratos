@@ -10,12 +10,12 @@
 //  Main authors:    Elisa Magliozzi
 //
 
-#include "custom_elements/compressible_navier_stokes_explicit.h"
+#include "custom_elements/compressible_ns_explicit.h"
 
 namespace Kratos {
 
 template<>
-void CompressibleNavierStokesExplicit<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void CompressibleNSExplicit<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -40,7 +40,7 @@ void CompressibleNavierStokesExplicit<3>::EquationIdVector(EquationIdVectorType&
 }
 
 template<>
-void CompressibleNavierStokesExplicit<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void CompressibleNSExplicit<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -65,7 +65,7 @@ void CompressibleNavierStokesExplicit<3>::GetDofList(DofsVectorType& ElementalDo
 }
 
 template<>
-void CompressibleNavierStokesExplicit<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,20,20>& lhs, const ElementDataStruct& data)
+void CompressibleNSExplicit<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,20,20>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -4096,7 +4096,7 @@ const double clhs3569 =             (1.0L/2.0L)*N[3]*clhs203*gamma*tau2;
 
 
 template<>
-void CompressibleNavierStokesExplicit<3>::ComputeGaussPointRHSContribution(array_1d<double,20>& rhs, const ElementDataStruct& data)
+void CompressibleNSExplicit<3>::ComputeGaussPointRHSContribution(array_1d<double,20>& rhs, const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;

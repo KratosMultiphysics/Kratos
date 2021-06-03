@@ -40,8 +40,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes3D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes2D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit2D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit3D.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_ns_explicit2D.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_ns_explicit3D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_biphase_navier_stokes_explicit2D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_biphase_navier_stokes_explicit3D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_biphase_dg_navier_stokes_explicit2D.cpp

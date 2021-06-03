@@ -11,8 +11,8 @@
 //  Main authors:    Andrea Montanino
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT)
-#define  KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT
+#if !defined(KRATOS_COMPRESSIBLE_NS_EXPLICIT)
+#define  KRATOS_COMPRESSIBLE_NS_EXPLICIT
 
 // System includes
 
@@ -59,14 +59,14 @@ namespace Kratos
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
 template< unsigned int TDim, unsigned int BlockSize = TDim+2, unsigned int TNumNodes = TDim + 1 >
-class CompressibleNavierStokesExplicit : public Element
+class CompressibleNSExplicit : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokesExplicit);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNSExplicit);
     struct ElementDataStruct
     {
         BoundedMatrix<double, TNumNodes, BlockSize> U, Un, Up;
@@ -100,16 +100,16 @@ public:
 
     /// Default constructor.
 
-    CompressibleNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry)
+    CompressibleNSExplicit(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
     {}
 
-    CompressibleNavierStokesExplicit(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    CompressibleNSExplicit(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    ~CompressibleNavierStokesExplicit() override {};
+    ~CompressibleNSExplicit() override {};
 
 
     ///@}
@@ -124,14 +124,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim,BlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive< CompressibleNSExplicit < TDim,BlockSize, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim,BlockSize, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< CompressibleNSExplicit < TDim,BlockSize, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -402,7 +402,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "CompressibleNavierStokesExplicit #";
+        return "CompressibleNSExplicit #";
     }
 
     /// Print information about this object.
@@ -446,7 +446,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    CompressibleNavierStokesExplicit() : Element()
+    CompressibleNSExplicit() : Element()
     {
     }
 
