@@ -49,7 +49,7 @@ namespace Kratos {
 
         /// Constructor:
         DEM_Inlet(ModelPart& inlet_modelpart, const int seed=42);
-        DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_parameters, const int seed=42);
+        DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}

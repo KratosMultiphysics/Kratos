@@ -43,10 +43,10 @@ namespace Kratos {
     /// Constructor
 
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const int seed):
-                        DEM_Inlet(inlet_modelpart, Parameters(R"({"dem_inlets_settings" : {}})"), seed){}
+                        DEM_Inlet(inlet_modelpart, Parameters(R"({}})"), seed){}
 
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_parameters, const int seed):
-     mInletModelPart(inlet_modelpart), mInletsSettings(Parameters(r_parameters["dem_inlets_settings"]))
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed):
+     mInletModelPart(inlet_modelpart), mInletsSettings(Parameters(r_inlet_settings))
         {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
         mPartialParticleToInsert.resize(number_of_submodelparts);
