@@ -550,7 +550,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             # Note that right now only inlets of a single type are possible.
             # This should be generalized.
             if self.project_parameters["type_of_inlet"].GetString() == 'VelocityImposed':
-                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
+                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.project_parameters['dem_parameters'], self.seed)
             elif self.project_parameters["type_of_inlet"].GetString() == 'ForceImposed':
                 self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector(), self.seed)
 
