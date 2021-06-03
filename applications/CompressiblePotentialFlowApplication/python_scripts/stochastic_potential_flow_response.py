@@ -232,11 +232,10 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.adjoint_analysis.RunSolutionLoop()
         self.adjoint_analysis.Finalize()
 
-    """
-    function introducing the stochasticity in the right hand side
-    input:  self: an instance of the class
-    """
     def ModifyInitialProperties(self):
+        """
+        Method introducing the stochasticity in the right hand side.
+        """
         '''Introduce here the stochasticity in the Mach number and the angle of attack'''
         mach = self.sample[1]
         alpha =  self.sample[2]
@@ -245,11 +244,10 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         super(SimulationScenario,self).ModifyInitialProperties()
 
 
-    """
-    function evaluating the QoI of the problem: lift coefficient
-    input:  self: an instance of the class
-    """
     def EvaluateQuantityOfInterest(self):
+        """
+        Method evaluating the QoI of the problem: lift coefficient.
+        """
         qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
         Logger.PrintInfo("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
 
