@@ -574,47 +574,6 @@ public:
         pX->resize(0, false);
     }
 
-//     template<class TOtherMatrixType>
-//     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
-//     {
-//         rA.resize(m, false);
-//         //            std::fill(rA.begin(), rA.end(), TDataType());
-// #ifndef _OPENMP
-//         std::fill(rA.begin(), rA.end(), TDataType());
-// #else
-//         DataType* vals = rA.value_data().begin();
-//         #pragma omp parallel for firstprivate(m)
-//         for(int i=0; i<static_cast<int>(m); ++i)
-//             vals[i] = TDataType();
-// #endif
-//     }
-
-//     inline static void ResizeData(compressed_matrix<TDataType>& rA, SizeType m)
-//     {
-//         rA.value_data().resize(m);
-// #ifndef _OPENMP
-//         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
-// #else
-//         TDataType* vals = rA.value_data().begin();
-//         #pragma omp parallel for firstprivate(m)
-//         for(int i=0; i<static_cast<int>(m); ++i)
-//             vals[i] = TDataType();
-// #endif
-//     }
-
-//     inline static void ResizeData(VectorType& rX, SizeType m)
-//     {
-//         rX.resize(m, false);
-// #ifndef _OPENMP
-//         std::fill(rX.begin(), rX.end(), TDataType());
-// #else
-//         const int size = rX.size();
-//         #pragma omp parallel for firstprivate(size)
-//         for(int i=0; i<size; ++i)
-//             rX[i] = TDataType();
-// #endif
-//     }
-
     template<class TOtherMatrixType>
     inline static void SetToZero(TOtherMatrixType& rA)
     {
@@ -678,15 +637,6 @@ public:
             }
         }
     }
-
-
-    //        static void GatherLocalValues(Vector& global_indices, )
-    //		{
-    //		axpy_prod(rA, rX, rY, true);
-    //		}
-
-
-
 
     ///@}
     ///@name Access
