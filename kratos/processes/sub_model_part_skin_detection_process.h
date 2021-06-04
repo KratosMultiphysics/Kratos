@@ -48,10 +48,10 @@ KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
 class FaceSelector
 {
 public:
-KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
-virtual ~FaceSelector() = default;
-virtual void Prepare(ModelPart& rMainModelPart) const = 0;
-virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
+    KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
+    virtual ~FaceSelector() = default;
+    virtual void Prepare(ModelPart& rMainModelPart) const = 0;
+    virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
 };
 
 /**
@@ -62,14 +62,14 @@ virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
  */
 class SelectIfAllNodesOnSubModelPart: public FaceSelector
 {
-std::string mName;
+    std::string mName;
+
 public:
-SelectIfAllNodesOnSubModelPart(const std::string& rName): mName(rName) {}
+    SelectIfAllNodesOnSubModelPart(const std::string& rName): mName(rName) {}
 
-void Prepare(ModelPart& rMainModelPart) const override;
+    void Prepare(ModelPart& rMainModelPart) const override;
 
-bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
-
+    bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
 };
 
 /**
@@ -80,14 +80,14 @@ bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override
  */
 class SelectIfOneNodeNotOnSubModelPart: public FaceSelector
 {
-std::vector<std::string> mNames;
+    std::vector<std::string> mNames;
+
 public:
-SelectIfOneNodeNotOnSubModelPart(const std::vector<std::string>& rNames): mNames(rNames) {}
+    SelectIfOneNodeNotOnSubModelPart(const std::vector<std::string>& rNames): mNames(rNames) {}
 
-void Prepare(ModelPart& rMainModelPart) const override;
+    void Prepare(ModelPart& rMainModelPart) const override;
 
-bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
-
+    bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
 };
 
 public:
