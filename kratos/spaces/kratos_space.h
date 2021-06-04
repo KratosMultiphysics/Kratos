@@ -365,26 +365,6 @@ public:
         rX.SetValue(A);
     }
 
-    // static void Resize(MatrixType& rA, SizeType m, SizeType n)
-    // {
-    //     rA.resize(m, n, false);
-    // }
-
-    // static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
-    // {
-    //     pA->resize(m, n, false);
-    // }
-
-    // static void Resize(VectorType& rX, SizeType n)
-    // {
-    //     rX.resize(n, false);
-    // }
-
-    // static void Resize(VectorPointerType& pX, SizeType n)
-    // {
-    //     pX->resize(n, false);
-    // }
-
     static void Clear(MatrixPointerType& pA)
     {
         pA->Clear();
