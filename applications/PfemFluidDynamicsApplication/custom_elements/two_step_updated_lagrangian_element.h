@@ -363,21 +363,6 @@ namespace Kratos
     virtual void ComputeBulkMatrixRHS(MatrixType &BulkMatrix,
                                       const double Weight) override{};
 
-    bool CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
-                              const ProcessInfo &rCurrentProcessInfo,
-                              const ShapeFunctionDerivativesType &rDN_DX,
-                              unsigned int g) override;
-
-    bool CalcStrainRate(ElementalVariables &rElementalVariables,
-                        const ProcessInfo &rCurrentProcessInfo,
-                        const ShapeFunctionDerivativesType &rDN_DX,
-                        const double theta) override;
-
-    bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
-                                const ProcessInfo &rCurrentProcessInfo,
-                                const ShapeFunctionDerivativesType &rDN_DX,
-                                const double theta) override;
-
     virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
                                                   unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
                                                   double &DeviatoricCoeff, double &VolumetricCoeff) override{};

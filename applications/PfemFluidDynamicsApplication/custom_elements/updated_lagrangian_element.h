@@ -469,20 +469,20 @@ namespace Kratos
     virtual void ComputeBulkMatrixRHS(MatrixType &BulkMatrix,
                                       const double Weight){};
 
-    virtual bool CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
-                                      const ProcessInfo &rCurrentProcessInfo,
-                                      const ShapeFunctionDerivativesType &rDN_DX,
-                                      unsigned int g) { return false; };
+    bool CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
+                              const ProcessInfo &rCurrentProcessInfo,
+                              const ShapeFunctionDerivativesType &rDN_DX,
+                              unsigned int g);
 
-    virtual bool CalcStrainRate(ElementalVariables &rElementalVariables,
+    bool CalcStrainRate(ElementalVariables &rElementalVariables,
+                        const ProcessInfo &rCurrentProcessInfo,
+                        const ShapeFunctionDerivativesType &rDN_DX,
+                        const double theta);
+
+    bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
                                 const ProcessInfo &rCurrentProcessInfo,
                                 const ShapeFunctionDerivativesType &rDN_DX,
-                                const double theta) { return false; };
-
-    virtual bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
-                                        const ProcessInfo &rCurrentProcessInfo,
-                                        const ShapeFunctionDerivativesType &rDN_DX,
-                                        const double theta) { return false; };
+                                const double theta);
 
     void CalcVelDefGrad(const ShapeFunctionDerivativesType &rDN_DX,
                         MatrixType &FgradVel,
