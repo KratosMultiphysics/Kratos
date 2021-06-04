@@ -181,6 +181,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                                             return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
                                         })
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
+        .def_static("AssembleBufferVector", &OptimizationUtilities::AssembleBufferVector)
+        .def_static("AssembleBufferMatrix", &OptimizationUtilities::AssembleBufferMatrix)
+        .def_static("CalculateRelaxedProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateRelaxedProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================

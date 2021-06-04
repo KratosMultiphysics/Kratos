@@ -400,6 +400,89 @@ public:
 
         c = - prod(N, Vector(prod(NTN_inv, g_a)));
     }
+    
+    // ==============================================================================
+    // For running relaxed gradient projection
+    // ==============================================================================
+    static void AssembleBufferVector( Vector& rVector,
+        const std::vector<double>& rVariables)
+    {
+    	size_t VectorSize = rVariables.size();
+        if (rVector.size() != VectorSize){
+            rVector.resize(VectorSize);
+        }
+
+
+        for (int i=0;i < VectorSize;i++)
+        {
+            rVector[i] = rVariables[i];
+        }
+    }
+    static void AssembleBufferMatrix( Matrix& rMatrix,
+        const std::vector<double>& rVariables)
+    {
+    	size_t VectorSize = rVariables.size();
+        if ((rMatrix.size1() != VectorSize || rMatrix.size2() !=  VectorSize)){
+            rMatrix.resize(VectorSize, VectorSize);
+        }
+
+        
+        for (int i=0; i < VectorSize; i++)
+        {
+            
+            for (int j=0;j < VectorSize; j++)
+            {
+            	if(i == j)
+            	{
+            	    rMatrix(i,j) = rVariables[i];	
+            	}
+            	else
+            	{
+            	    rMatrix(i,j) = 0.0;
+            	}
+            }
+        }
+    }
+    
+    static void CalculateRelaxedProjectedSearchDirectionAndCorrection(
+        Vector& rObjectiveGradient,
+        Matrix& rConstraintGradients,
+        Vector& rConstraintValues,
+        Matrix& rRelaxationCoefficients,
+        Vector& rCorrectionCoefficients,
+        LinearSolver<DenseSpace, DenseSpace>& rSolver,
+        Vector& rProjectedSearchDirection
+        )
+    {
+        // local variable naming according to https://msulaiman.org/onewebmedia/GradProj_2.pdf
+        Vector& nabla_f = rObjectiveGradient;
+        Matrix& N = rConstraintGradients;
+        Vector& g_a = rConstraintValues;
+        Vector& s = rProjectedSearchDirection;
+        Matrix& omega_r = rRelaxationCoefficients;
+        Vector& omega_c = rCorrectionCoefficients;
+	
+	printf("dof: %d \n",N.size1());
+	printf("n Constraint: %d \n",N.size2());
+	printf("relax 1: %f \n",omega_r(0,0));
+	printf("relax 1: %f \n",omega_r(1,1));
+	printf("relax 1: %f \n",omega_r(2,2));
+	printf("relax off: %f \n",omega_r(1,2));
+	printf("corection 1: %f \n",omega_c[0]);
+	printf("corection 1: %f \n",omega_c[1]);
+	printf("corection 1: %f \n",omega_c[2]);
+
+	
+	
+        Matrix NTN = prod(trans(N), N);
+        Matrix I = IdentityMatrix(N.size2());
+        Matrix NTN_inv(NTN.size1(), NTN.size2());
+
+        rSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
+
+        s = - (nabla_f - prod(N, Vector(prod(omega_r, Vector(prod(NTN_inv, Vector(prod(trans(N), nabla_f)))))))) - prod(N, omega_c);
+
+    }
     // ==============================================================================
 
     ///@}
