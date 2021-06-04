@@ -19,16 +19,6 @@
 namespace Kratos
 {
 
-  /*
-   * public ThreeStepUpdatedLagrangianElement<TDim> functions
-   */
-  // template <unsigned int TDim>
-  // ThreeStepUpdatedLagrangianElement<TDim>::ThreeStepUpdatedLagrangianElement(ThreeStepUpdatedLagrangianElement const &rOther)
-  // {
-  //   KRATOS_TRY;
-  //   KRATOS_CATCH("");
-  // }
-
   template <unsigned int TDim>
   Element::Pointer ThreeStepUpdatedLagrangianElement<TDim>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
   {
