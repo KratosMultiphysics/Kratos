@@ -10,7 +10,6 @@
 #
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
-set( ENV{MKLROOT} "/opt/intel/oneapi/mkl/2021.2.0" )
 message( "**** configuring KratosLinearSolversApplication ****" )
 
 ################### PYBIND11
