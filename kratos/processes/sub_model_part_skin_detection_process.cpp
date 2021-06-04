@@ -71,7 +71,6 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
             settings["selection_settings"]["sub_model_part_name"].GetString()
         );
    } else if (settings["selection_criteria"].GetString() == "node_not_on_sub_model_part") {
-    {
         KRATOS_ERROR_IF_NOT(settings["selection_settings"].Has("sub_model_part_names"))
         << "When using \"selection_criteria\" == \"node_not_on_sub_model_part\","
         << " SubModelPartSkinDetectionProcess requires the name of the target SubModelParts,"
@@ -160,4 +159,3 @@ template class SubModelPartSkinDetectionProcess<2>;
 template class SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.
-
