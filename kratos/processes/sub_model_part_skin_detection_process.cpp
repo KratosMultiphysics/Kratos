@@ -70,8 +70,7 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
         mpFaceSelector = Kratos::make_shared<SelectIfAllNodesOnSubModelPart>(
             settings["selection_settings"]["sub_model_part_name"].GetString()
         );
-    }
-    else if (settings["selection_criteria"].GetString() == "node_not_on_sub_model_part")
+   } else if (settings["selection_criteria"].GetString() == "node_not_on_sub_model_part") {
     {
         KRATOS_ERROR_IF_NOT(settings["selection_settings"].Has("sub_model_part_names"))
         << "When using \"selection_criteria\" == \"node_not_on_sub_model_part\","
@@ -80,9 +79,7 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
         mpFaceSelector = Kratos::make_shared<SelectIfOneNodeNotOnSubModelPart>(
             settings["selection_settings"]["sub_model_part_names"].GetStringArray()
         );
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "Unsupported \"selection_criteria\" \"" << settings["selection_criteria"].GetString() << "\"." << std::endl;
     }
 
@@ -163,5 +160,4 @@ template class SubModelPartSkinDetectionProcess<2>;
 template class SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.
-
 
