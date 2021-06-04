@@ -60,7 +60,11 @@ bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override
 
 };
 
-// Select faces where almost one node does not belong to given SubModelPart.
+/**
+ * @class SelectIfOneNodeNotOnSubModelPart
+ * @brief Select faces where almost one node does not belong to the given SubModelParts.
+ * @see FaceSelector
+ */
 class SelectIfOneNodeNotOnSubModelPart: public FaceSelector
 {
 std::vector<std::string> mNames;
