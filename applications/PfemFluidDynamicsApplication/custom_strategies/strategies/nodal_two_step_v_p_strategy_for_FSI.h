@@ -35,8 +35,6 @@
 
 #include "nodal_two_step_v_p_strategy.h"
 
-#include "nodal_two_step_v_p_strategy_for_FSI.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <iostream>

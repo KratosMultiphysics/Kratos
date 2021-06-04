@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef KRATOS_THREE_STEP_V_P_STRATEGY_H
-#define KRATOS_THREE_STEP_V_P_STRATEGY_H
+#ifndef KRATOS_V_P_STRATEGY_H
+#define KRATOS_V_P_STRATEGY_H
 
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -21,7 +21,6 @@
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-/* #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h" */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -64,21 +63,16 @@ namespace Kratos
   template <class TSparseSpace,
             class TDenseSpace,
             class TLinearSolver>
-  class ThreeStepVPStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+  class VPStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
   {
   public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(ThreeStepVPStrategy);
-
-    /// Counted pointer of ThreeStepVPStrategy
-    //typedef boost::shared_ptr< ThreeStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(VPStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -98,29 +92,28 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    ThreeStepVPStrategy(ModelPart &rModelPart,
-                        SolverSettingsType &rSolverConfig) : BaseType(rModelPart)
+    VPStrategy(ModelPart &rModelPart,
+               SolverSettingsType &rSolverConfig) : BaseType(rModelPart)
     {
-      std::cout << "ThreeStepVPStrategy InitializeStrategy" << std::endl;
+      std::cout << "VPStrategy INITIALIZE STRATEGY" << std::endl;
       InitializeStrategy(rSolverConfig);
     }
 
-    ThreeStepVPStrategy(ModelPart &rModelPart,
-                        /*SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& rSolverConfig,*/
-                        typename TLinearSolver::Pointer pVelocityLinearSolver,
-                        typename TLinearSolver::Pointer pPressureLinearSolver,
-                        bool ReformDofSet = true,
-                        double VelTol = 0.0001,
-                        double PresTol = 0.0001,
-                        int MaxPressureIterations = 1, // Only for predictor-corrector
-                        unsigned int TimeOrder = 2,
-                        unsigned int DomainSize = 2) : BaseType(rModelPart), // Move Mesh flag, pass as input?
-                                                       mVelocityTolerance(VelTol),
-                                                       mPressureTolerance(PresTol),
-                                                       mMaxPressureIter(MaxPressureIterations),
-                                                       mDomainSize(DomainSize),
-                                                       mTimeOrder(TimeOrder),
-                                                       mReformDofSet(ReformDofSet)
+    VPStrategy(ModelPart &rModelPart,
+               typename TLinearSolver::Pointer pVelocityLinearSolver,
+               typename TLinearSolver::Pointer pPressureLinearSolver,
+               bool ReformDofSet = true,
+               double VelTol = 0.0001,
+               double PresTol = 0.0001,
+               int MaxPressureIterations = 1, // Only for predictor-corrector
+               unsigned int TimeOrder = 2,
+               unsigned int DomainSize = 2) : BaseType(rModelPart), // Move Mesh flag, pass as input?
+                                              mVelocityTolerance(VelTol),
+                                              mPressureTolerance(PresTol),
+                                              mMaxPressureIter(MaxPressureIterations),
+                                              mDomainSize(DomainSize),
+                                              mTimeOrder(TimeOrder),
+                                              mReformDofSet(ReformDofSet)
     {
       KRATOS_TRY;
 
@@ -167,7 +160,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~ThreeStepVPStrategy() {}
+    virtual ~VPStrategy() {}
 
     int Check() override
     {
@@ -188,15 +181,6 @@ namespace Kratos
       if (mTimeOrder == 1 && rModelPart.GetBufferSize() < 2)
         KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ", rModelPart.GetBufferSize());
 
-      // const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
-      // for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
-      // {
-      //   ierr = itEl->Check(rCurrentProcessInfo);
-      //   if (ierr != 0)
-      //     break;
-      // }
-
       const auto &r_current_process_info = rModelPart.GetProcessInfo();
       for (const auto &r_element : rModelPart.Elements())
       {
@@ -207,103 +191,19 @@ namespace Kratos
         }
       }
 
-      /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
-      /* { */
-      /*     ierr = itCond->Check(rCurrentProcessInfo); */
-      /*     if (ierr != 0) break; */
-      /* } */
-
       return ierr;
 
       KRATOS_CATCH("");
     }
 
-    bool SolveSolutionStep() override
+    virtual bool SolveSolutionStep() override
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
-      unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
-      bool converged = false;
-
-      unsigned int maxNonLinearIterations = mMaxPressureIter;
-
-      KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
-
-      if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
-      {
-        maxNonLinearIterations *= 2;
-      }
-      if (currentTime < 10 * timeInterval)
-      {
-        if (BaseType::GetEchoLevel() > 1)
-          std::cout << "within the first 10 time steps, I consider the given iteration number x3" << std::endl;
-        maxNonLinearIterations *= 3;
-      }
-      if (currentTime < 20 * timeInterval && currentTime >= 10 * timeInterval)
-      {
-        if (BaseType::GetEchoLevel() > 1)
-          std::cout << "within the second 10 time steps, I consider the given iteration number x2" << std::endl;
-        maxNonLinearIterations *= 2;
-      }
-      bool momentumConverged = true;
-      bool continuityConverged = false;
-      bool fixedTimeStep = false;
-
-      double pressureNorm = 0;
-      double velocityNorm = 0;
-
-      this->SetBlockedFlag();
-
-      for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
-      {
-        momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
-
-        this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
-
-        if (fixedTimeStep == false)
-        {
-          continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
-        }
-        if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
-        {
-          this->UpdateStressStrain();
-        }
-
-        if ((continuityConverged && momentumConverged) && it > 2)
-        {
-          rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
-          rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
-          converged = true;
-
-          KRATOS_INFO("ThreeStepVPStrategy") << "V-P strategy converged in " << it + 1 << " iterations." << std::endl;
-
-          break;
-        }
-        if (fixedTimeStep == true)
-        {
-          break;
-        }
-      }
-
-      if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-        std::cout << "Convergence tolerance not reached." << std::endl;
-
-      if (mReformDofSet)
-        this->Clear();
-
-      return converged;
+      return false;
     }
 
-    void FinalizeSolutionStep() override
-    {
-    }
+    virtual void FinalizeSolutionStep() override {}
 
-    void InitializeSolutionStep() override
-    {
-    }
+    virtual void InitializeSolutionStep() override {}
 
     void UpdateTopology(ModelPart &rModelPart, unsigned int echoLevel)
     {
@@ -311,13 +211,10 @@ namespace Kratos
 
       this->CalculateDisplacementsAndPorosity();
       BaseType::MoveMesh();
-      /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
-      /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
-
       KRATOS_CATCH("");
     }
 
-    void SetBlockedFlag()
+    void SetBlockedAndIsolatedFlags()
     {
       KRATOS_TRY;
 
@@ -364,7 +261,6 @@ namespace Kratos
             }
           }
 
-          // if (dimension == 3 && (freeSurfaceNodes == numNodes || (freeSurfaceNodes + rigidNodes) == numNodes))
           if (dimension == 3)
           {
             double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
@@ -414,11 +310,6 @@ namespace Kratos
               (itElem)->Set(BLOCKED, true);
               // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
             }
-            // else if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999)
-            // {
-            //   (itElem)->Set(BLOCKED, true);
-            //   // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
-            // }
           }
 
           if (freeSurfaceNodes == numNodes && rigidNodes == 0 && isolatedNodes >= (numNodes - 1))
@@ -632,41 +523,15 @@ namespace Kratos
       }
     }
 
-    void UpdateStressStrain()
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    virtual void UpdateStressStrain() {}
 
-#pragma omp parallel
-      {
-        ModelPart::ElementIterator ElemBegin;
-        ModelPart::ElementIterator ElemEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
-        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-        {
-          /* itElem-> InitializeElementStrainStressState(); */
-          itElem->InitializeSolutionStep(rCurrentProcessInfo);
-        }
-      }
-
-      /* this->CalculateAccelerations(); */
-      /* this->CalculatePressureVelocity(); */
-      /* this->CalculatePressureAcceleration(); */
-
-      this->CalculateTemporalVariables();
-    }
-
-    void Clear() override
-    {
-      mpMomentumStrategy->Clear();
-      mpPressureStrategy->Clear();
-    }
+    virtual void Clear() override {}
 
     ///@}
     ///@name Access
     ///@{
 
-    void SetEchoLevel(int Level) override
+    virtual void SetEchoLevel(int Level) override
     {
       BaseType::SetEchoLevel(Level);
       int StrategyLevel = Level > 0 ? Level - 1 : 0;
@@ -686,14 +551,14 @@ namespace Kratos
     std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "ThreeStepVPStrategy";
+      buffer << "VPStrategy";
       return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const override
     {
-      rOStream << "ThreeStepVPStrategy";
+      rOStream << "VPStrategy";
     }
 
     /// Print object's data.
@@ -732,98 +597,14 @@ namespace Kratos
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
 
-    bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
+    virtual bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
-      bool ConvergedMomentum = false;
-      double NormDv = 0;
-      fixedTimeStep = false;
-      // build momentum system and solve for fractional step velocity increment
-      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
-
-      if (it == 0)
-      {
-        mpMomentumStrategy->InitializeSolutionStep();
-      }
-
-      NormDv = mpMomentumStrategy->Solve();
-
-      if (BaseType::GetEchoLevel() > 1 && Rank == 0)
-        std::cout << "-------------- s o l v e d ! ------------------" << std::endl;
-
-      if (it == 0)
-      {
-        velocityNorm = this->ComputeVelocityNorm();
-      }
-
-      double DvErrorNorm = NormDv / velocityNorm;
-      unsigned int iterationForCheck = 2;
-      // Check convergence
-      if (it == maxIt - 1)
-      {
-        KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
-        ConvergedMomentum = this->FixTimeStepMomentum(DvErrorNorm, fixedTimeStep);
-      }
-      else if (it > iterationForCheck)
-      {
-        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-        ConvergedMomentum = this->CheckMomentumConvergence(DvErrorNorm, fixedTimeStep);
-      }
-      else
-      {
-        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-      }
-
-      if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
-        std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
-
-      return ConvergedMomentum;
+      return false;
     }
 
-    bool SolveContinuityIteration(unsigned int it, unsigned int maxIt, double &NormP)
+    virtual bool SolveContinuityIteration(unsigned int it, unsigned int maxIt, double &NormP)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
-      bool ConvergedContinuity = false;
-      bool fixedTimeStep = false;
-      double NormDp = 0;
-
-      // 2. Pressure solution
-      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
-
-      if (it == 0)
-      {
-        mpPressureStrategy->InitializeSolutionStep();
-      }
-      NormDp = mpPressureStrategy->Solve();
-
-      if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-        std::cout << "The norm of pressure is: " << NormDp << std::endl;
-
-      if (it == 0)
-      {
-        NormP = this->ComputePressureNorm();
-      }
-
-      double DpErrorNorm = NormDp / (NormP);
-
-      // Check convergence
-      if (it == (maxIt - 1))
-      {
-        KRATOS_INFO("Iteration") << it << "  Final Pressure error: " << DpErrorNorm << std::endl;
-        ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm, fixedTimeStep);
-      }
-      else
-      {
-        KRATOS_INFO("Iteration") << it << "  Pressure error: " << DpErrorNorm << std::endl;
-        ConvergedContinuity = this->CheckContinuityConvergence(DpErrorNorm, fixedTimeStep);
-      }
-
-      if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
-        std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
-
-      return ConvergedContinuity;
+      return false;
     }
 
     void ComputeErrorL2Norm()
@@ -1120,108 +901,14 @@ namespace Kratos
       return NormV;
     }
 
-    bool CheckVelocityConvergence(const double NormDv, double &errorNormDv)
+    virtual bool CheckVelocityConvergence(const double NormDv, double &errorNormDv)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-
-      double NormV = 0.00;
-      errorNormDv = 0;
-
-#pragma omp parallel reduction(+ \
-                               : NormV)
-      {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          const array_1d<double, 3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
-
-          double NormVelNode = 0;
-
-          for (unsigned int d = 0; d < 3; ++d)
-          {
-            NormVelNode += Vel[d] * Vel[d];
-            NormV += Vel[d] * Vel[d];
-          }
-        }
-      }
-
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
-
-      NormV = sqrt(NormV);
-
-      if (NormV == 0.0)
-        NormV = 1.00;
-
-      errorNormDv = NormDv / NormV;
-
-      if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-      {
-        std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
-        std::cout << "The norm of velocity is: " << NormV << std::endl;
-        std::cout << "Velocity error: " << errorNormDv << "mVelocityTolerance: " << mVelocityTolerance << std::endl;
-      }
-      /* else{ */
-      /*   std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl; */
-      /* } */
-
-      if (errorNormDv < mVelocityTolerance)
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+      return false;
     }
 
-    bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double &NormP)
+    virtual bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double &NormP)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-
-      NormP = 0.00;
-      errorNormDp = 0;
-
-#pragma omp parallel reduction(+ \
-                               : NormP)
-      {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-          NormP += Pr * Pr;
-        }
-      }
-
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
-
-      NormP = sqrt(NormP);
-
-      if (NormP == 0.0)
-        NormP = 1.00;
-
-      errorNormDp = NormDp / (NormP);
-
-      if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-      {
-        std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
-        std::cout << "         The norm of pressure is: " << NormP << std::endl;
-        std::cout << "         Pressure error: " << errorNormDp << std::endl;
-      }
-
-      /* else{ */
-      /*     std::cout<<"         Pressure error: "<<errorNormDp <<" presTol: "<<mPressureTolerance << std::endl; */
-      /* } */
-
-      if (errorNormDp < mPressureTolerance)
-      {
-        return true;
-      }
-      else
-        return false;
+      return false;
     }
 
     double ComputePressureNorm()
@@ -1253,158 +940,24 @@ namespace Kratos
       return NormP;
     }
 
-    bool FixTimeStepMomentum(const double DvErrorNorm, bool &fixedTimeStep)
+    virtual bool FixTimeStepMomentum(const double DvErrorNorm, bool &fixedTimeStep)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance = 0.005;
-      bool converged = false;
-
-      if (currentTime < 10 * timeInterval)
-      {
-        minTolerance = 10;
-      }
-
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
-          DvErrorNorm != 0 &&
-          (DvErrorNorm != 1 || currentTime > timeInterval))
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-        std::cout << "NOT GOOD CONVERGENCE!!! I'll reduce the next time interval" << DvErrorNorm << std::endl;
-        minTolerance = 0.05;
-        if (DvErrorNorm > minTolerance)
-        {
-          std::cout << "BAD CONVERGENCE!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << DvErrorNorm << std::endl;
-          fixedTimeStep = true;
-#pragma omp parallel
-          {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-              itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-              itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-              itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            }
-          }
-        }
-      }
-      else
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
-        if (DvErrorNorm < mVelocityTolerance)
-        {
-          converged = true;
-        }
-      }
-      return converged;
+      return false;
     }
 
-    bool CheckMomentumConvergence(const double DvErrorNorm, bool &fixedTimeStep)
+    virtual bool CheckMomentumConvergence(const double DvErrorNorm, bool &fixedTimeStep)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance = 0.99999;
-      bool converged = false;
-
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
-          DvErrorNorm != 0 &&
-          (DvErrorNorm != 1 || currentTime > timeInterval))
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-        std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.9999" << std::endl;
-        std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
-        fixedTimeStep = true;
-#pragma omp parallel
-        {
-          ModelPart::NodeIterator NodeBegin;
-          ModelPart::NodeIterator NodeEnd;
-          OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-          for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-          {
-            itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-            itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-            itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-          }
-        }
-      }
-      else
-      {
-        rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
-        if (DvErrorNorm < mVelocityTolerance)
-        {
-          converged = true;
-        }
-      }
-      return converged;
+      return false;
     }
 
-    bool FixTimeStepContinuity(const double DvErrorNorm, bool &fixedTimeStep)
+    virtual bool FixTimeStepContinuity(const double DvErrorNorm, bool &fixedTimeStep)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double minTolerance = 0.01;
-      bool converged = false;
-      if (currentTime < 10 * timeInterval)
-      {
-        minTolerance = 10;
-      }
-
-      if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
-          DvErrorNorm != 0 &&
-          (DvErrorNorm != 1 || currentTime > timeInterval))
-      {
-        fixedTimeStep = true;
-        // rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
-        if (DvErrorNorm > 0.9999)
-        {
-          rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-          std::cout << "           BAD PRESSURE CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.1" << std::endl;
-          std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
-          fixedTimeStep = true;
-#pragma omp parallel
-          {
-            ModelPart::NodeIterator NodeBegin;
-            ModelPart::NodeIterator NodeEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-            {
-              itNode->FastGetSolutionStepValue(VELOCITY, 0) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-              itNode->FastGetSolutionStepValue(PRESSURE, 0) = itNode->FastGetSolutionStepValue(PRESSURE, 1);
-              itNode->FastGetSolutionStepValue(ACCELERATION, 0) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-            }
-          }
-        }
-      }
-      else if (DvErrorNorm < mPressureTolerance)
-      {
-        converged = true;
-        fixedTimeStep = false;
-      }
-      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
-      return converged;
+      return false;
     }
 
-    bool CheckContinuityConvergence(const double DvErrorNorm, bool &fixedTimeStep)
+    virtual bool CheckContinuityConvergence(const double DvErrorNorm, bool &fixedTimeStep)
     {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      bool converged = false;
-
-      if (DvErrorNorm < mPressureTolerance)
-      {
-        converged = true;
-        fixedTimeStep = false;
-      }
-      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
-      return converged;
+      return false;
     }
 
     ///@}
@@ -1466,7 +1019,6 @@ namespace Kratos
     virtual void InitializeStrategy(SolverSettingsType &rSolverConfig)
     {
       KRATOS_TRY;
-
       KRATOS_CATCH("");
     }
 
@@ -1483,14 +1035,14 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    ThreeStepVPStrategy &operator=(ThreeStepVPStrategy const &rOther) {}
+    VPStrategy &operator=(VPStrategy const &rOther) {}
 
     /// Copy constructor.
-    ThreeStepVPStrategy(ThreeStepVPStrategy const &rOther) {}
+    VPStrategy(VPStrategy const &rOther) {}
 
     ///@}
 
-  }; /// Class ThreeStepVPStrategy
+  }; /// Class VPStrategy
 
   ///@}
   ///@name Type Definitions
@@ -1502,4 +1054,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_THREE_STEP_V_P_STRATEGY_H
+#endif // KRATOS_V_P_STRATEGY_H

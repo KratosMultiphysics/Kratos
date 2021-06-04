@@ -18,6 +18,7 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/v_p_strategy.h"
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/three_step_v_p_strategy.h"
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
@@ -56,6 +57,7 @@ namespace Kratos
 
             //custom strategy types
             typedef ThreeStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ThreeStepVPStrategyType;
+            typedef VPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> VPStrategyType;
             typedef TwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPStrategyType;
             typedef TwoStepVPDEMcouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> TwoStepVPDEMcouplingStrategyType;
             typedef NodalTwoStepVPStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> NodalTwoStepVPStrategyType;
@@ -65,11 +67,15 @@ namespace Kratos
             //*************************SHCHEME CLASSES****************************
             //********************************************************************
 
+            py::class_<VPStrategyType, VPStrategyType::Pointer, BaseSolvingStrategyType>(m, "VPStrategy")
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>())
+                .def("CalculateAccelerations", &VPStrategyType::CalculateAccelerations)
+                .def("CalculateDisplacements", &VPStrategyType::CalculateDisplacementsAndPorosity)
+                // .def("InitializeStressStrain",&VPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
+                ;
+
             py::class_<TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "TwoStepVPStrategy")
                 .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>())
-                .def("CalculateAccelerations", &TwoStepVPStrategyType::CalculateAccelerations)
-                .def("CalculateDisplacements", &TwoStepVPStrategyType::CalculateDisplacementsAndPorosity)
-                // .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
                 ;
 
             py::class_<ThreeStepVPStrategyType, ThreeStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "ThreeStepVPStrategy")
