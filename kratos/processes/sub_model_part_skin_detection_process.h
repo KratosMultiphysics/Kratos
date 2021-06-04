@@ -28,16 +28,23 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Create a SubModelPart covering a part of the outside skin of the computation domain where a condition is met.
-/** For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
-*/
+/**
+ * @class SubModelPartSkinDetectionProcess
+ * @brief Create a SubModelPart covering a part of the outside skin of the computation domain where a condition is met.
+ * @details For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
+ * @author Jordi Cotela
+ */
 template<SizeType TDim>
 class KRATOS_API(KRATOS_CORE) SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
 {
 
 KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
 
-// Internal class used to select which faces to create.
+/**
+ * @class FaceSelector
+ * @brief Internal class used to select which faces to create.
+ * @author Jordi Cotela
+ */
 class FaceSelector
 {
 public:
@@ -47,7 +54,12 @@ virtual void Prepare(ModelPart& rMainModelPart) const = 0;
 virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
 };
 
-// Select faces where all nodes belong to given SubModelPart.
+/**
+ * @class SelectIfOneNodeNotOnSubModelPart
+ * @brief Select faces where all nodes belong to given SubModelPart.
+ * @see FaceSelector
+ * @author Jordi Cotela
+ */
 class SelectIfAllNodesOnSubModelPart: public FaceSelector
 {
 std::string mName;
@@ -64,6 +76,7 @@ bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override
  * @class SelectIfOneNodeNotOnSubModelPart
  * @brief Select faces where almost one node does not belong to the given SubModelParts.
  * @see FaceSelector
+ * @author Miguel Maso
  */
 class SelectIfOneNodeNotOnSubModelPart: public FaceSelector
 {
