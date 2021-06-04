@@ -61,7 +61,6 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 "block_builder": false,
                 "component_wise": false,
                 "predictor_corrector": true,
-                "time_order": 2,
                 "maximum_velocity_iterations": 1,
                 "maximum_pressure_iterations": 7,
                 "velocity_tolerance": 1e-5,

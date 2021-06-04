@@ -107,13 +107,11 @@ namespace Kratos
                       double VelTol = 0.0001,
                       double PresTol = 0.0001,
                       int MaxPressureIterations = 1, // Only for predictor-corrector
-                      unsigned int TimeOrder = 2,
-                      unsigned int DomainSize = 2) : BaseType(rModelPart, pVelocityLinearSolver, pPressureLinearSolver, MaxPressureIterations, DomainSize, TimeOrder, ReformDofSet),
+                      unsigned int DomainSize = 2) : BaseType(rModelPart, pVelocityLinearSolver, pPressureLinearSolver, ReformDofSet, DomainSize),
                                                      mVelocityTolerance(VelTol),
                                                      mPressureTolerance(PresTol),
                                                      mMaxPressureIter(MaxPressureIterations),
                                                      mDomainSize(DomainSize),
-                                                     mTimeOrder(TimeOrder),
                                                      mReformDofSet(ReformDofSet)
     {
       KRATOS_TRY;
@@ -176,11 +174,6 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::runtime_error, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
 
       ModelPart &rModelPart = BaseType::GetModelPart();
-
-      if (mTimeOrder == 2 && rModelPart.GetBufferSize() < 3)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (BDF2), needed 3, got ", rModelPart.GetBufferSize());
-      if (mTimeOrder == 1 && rModelPart.GetBufferSize() < 2)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ", rModelPart.GetBufferSize());
 
       const auto &r_current_process_info = rModelPart.GetProcessInfo();
       for (const auto &r_element : rModelPart.Elements())
@@ -755,8 +748,6 @@ namespace Kratos
 
     unsigned int mDomainSize;
 
-    unsigned int mTimeOrder;
-
     bool mReformDofSet;
 
     // Fractional step index.
@@ -785,8 +776,6 @@ namespace Kratos
     virtual void InitializeStrategy(SolverSettingsType &rSolverConfig) override
     {
       KRATOS_TRY;
-
-      mTimeOrder = rSolverConfig.GetTimeOrder();
 
       // Check that input parameters are reasonable and sufficient.
       this->Check();

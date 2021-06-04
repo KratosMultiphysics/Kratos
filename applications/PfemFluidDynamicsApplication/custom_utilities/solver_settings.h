@@ -80,11 +80,9 @@ public:
     /// Constructor.
     TwoStepVPSolverSettings(ModelPart &rModelPart,
                             const unsigned int ThisDomainSize,
-                            const unsigned int ThisTimeOrder,
                             const bool ReformDofSet) : mStrategies(),
                                                        mrModelPart(rModelPart),
                                                        mDomainSize(ThisDomainSize),
-                                                       mTimeOrder(ThisTimeOrder),
                                                        mEchoLevel(1),
                                                        mReformDofSet(ReformDofSet)
     {
@@ -124,11 +122,6 @@ public:
     virtual unsigned int GetDomainSize() const
     {
         return mDomainSize;
-    }
-
-    virtual unsigned int GetTimeOrder() const
-    {
-        return mTimeOrder;
     }
 
     virtual bool FindStrategy(StrategyLabel const &rStrategyLabel,
@@ -268,8 +261,6 @@ private:
     ModelPart &mrModelPart;
 
     unsigned int mDomainSize;
-
-    unsigned int mTimeOrder;
 
     unsigned int mEchoLevel;
 

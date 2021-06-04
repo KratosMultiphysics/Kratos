@@ -113,7 +113,6 @@ namespace Kratos
 		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mPressureTolerance;
 		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mMaxPressureIter;
 		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mDomainSize;
-		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mTimeOrder;
 		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mReformDofSet;
 		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mpMomentumStrategy;
 		using NodalTwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::mpPressureStrategy;
@@ -139,7 +138,6 @@ namespace Kratos
 									 double VelTol = 0.0001,
 									 double PresTol = 0.0001,
 									 int MaxPressureIterations = 1, // Only for predictor-corrector
-									 unsigned int TimeOrder = 2,
 									 unsigned int DomainSize = 2) : BaseType(rModelPart,
 																			 pVelocityLinearSolver,
 																			 pPressureLinearSolver,
@@ -147,7 +145,6 @@ namespace Kratos
 																			 VelTol,
 																			 PresTol,
 																			 MaxPressureIterations,
-																			 TimeOrder,
 																			 DomainSize)
 		{
 

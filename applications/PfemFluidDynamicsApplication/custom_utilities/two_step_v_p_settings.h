@@ -82,8 +82,7 @@ public:
     /// Constructor.
     TwoStepVPSettings(ModelPart &rModelPart,
                       const unsigned int ThisDomainSize,
-                      const unsigned int ThisTimeOrder,
-                      const bool ReformDofSet) : BaseType(rModelPart, ThisDomainSize, ThisTimeOrder, ReformDofSet)
+                      const bool ReformDofSet) : BaseType(rModelPart, ThisDomainSize, ReformDofSet)
     {
     }
 

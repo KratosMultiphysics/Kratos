@@ -68,7 +68,6 @@ class PfemFluidSolver(PythonSolver):
             "block_builder": false,
             "component_wise": false,
             "predictor_corrector": true,
-            "time_order": 2,
             "maximum_velocity_iterations": 1,
             "maximum_pressure_iterations": 7,
             "velocity_tolerance": 1e-5,
@@ -131,7 +130,6 @@ class PfemFluidSolver(PythonSolver):
                                                               self.settings["velocity_tolerance"].GetDouble(),
                                                               self.settings["pressure_tolerance"].GetDouble(),
                                                               self.settings["maximum_pressure_iterations"].GetInt(),
-                                                              self.settings["time_order"].GetInt(),
                                                               self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         echo_level = self.settings["echo_level"].GetInt()

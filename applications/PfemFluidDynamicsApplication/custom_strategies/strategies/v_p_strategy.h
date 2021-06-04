@@ -12,7 +12,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
-#include "includes/cfd_variables.h"
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -20,14 +19,7 @@
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
 #include "custom_utilities/solver_settings.h"
-
-#include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -72,20 +64,6 @@ namespace Kratos
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef typename BaseType::TDataType TDataType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
-
     typedef TwoStepVPSolverSettings<TSparseSpace, TDenseSpace, TLinearSolver> SolverSettingsType;
 
     ///@}
@@ -103,97 +81,18 @@ namespace Kratos
                typename TLinearSolver::Pointer pVelocityLinearSolver,
                typename TLinearSolver::Pointer pPressureLinearSolver,
                bool ReformDofSet = true,
-               double VelTol = 0.0001,
-               double PresTol = 0.0001,
-               int MaxPressureIterations = 1, // Only for predictor-corrector
-               unsigned int TimeOrder = 2,
-               unsigned int DomainSize = 2) : BaseType(rModelPart), // Move Mesh flag, pass as input?
-                                              mVelocityTolerance(VelTol),
-                                              mPressureTolerance(PresTol),
-                                              mMaxPressureIter(MaxPressureIterations),
-                                              mDomainSize(DomainSize),
-                                              mTimeOrder(TimeOrder),
-                                              mReformDofSet(ReformDofSet)
+               unsigned int DomainSize = 2) : BaseType(rModelPart)
     {
       KRATOS_TRY;
-
-      BaseType::SetEchoLevel(1);
-
-      // Check that input parameters are reasonable and sufficient.
-      this->Check();
-
-      bool CalculateNormDxFlag = true;
-
-      bool ReformDofAtEachIteration = false; // DofSet modifiaction is managed by the fractional step strategy, auxiliary strategies should not modify the DofSet directly.
-
-      // Additional Typedefs
-      typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-      typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
-      //initializing fractional velocity solution step
-      typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
-      typename SchemeType::Pointer pScheme;
-
-      typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
-      pScheme.swap(Temp);
-
-      //CONSTRUCTION OF VELOCITY
-      BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pVelocityLinearSolver));
-      /* BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver)); */
-
-      this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
-
-      this->mpMomentumStrategy->SetEchoLevel(BaseType::GetEchoLevel());
-
-      vel_build->SetCalculateReactionsFlag(false);
-
-      /* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE)); */
-      BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pPressureLinearSolver));
-
-      this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
-
-      this->mpPressureStrategy->SetEchoLevel(BaseType::GetEchoLevel());
-
-      pressure_build->SetCalculateReactionsFlag(false);
-
       KRATOS_CATCH("");
     }
 
     /// Destructor.
     virtual ~VPStrategy() {}
 
-    int Check() override
+    virtual int Check() override
     {
-      KRATOS_TRY;
-
-      // Check elements and conditions in the model part
-      int ierr = BaseType::Check();
-      if (ierr != 0)
-        return ierr;
-
-      if (DELTA_TIME.Key() == 0)
-        KRATOS_THROW_ERROR(std::runtime_error, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
-
-      ModelPart &rModelPart = BaseType::GetModelPart();
-
-      if (mTimeOrder == 2 && rModelPart.GetBufferSize() < 3)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (BDF2), needed 3, got ", rModelPart.GetBufferSize());
-      if (mTimeOrder == 1 && rModelPart.GetBufferSize() < 2)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ", rModelPart.GetBufferSize());
-
-      const auto &r_current_process_info = rModelPart.GetProcessInfo();
-      for (const auto &r_element : rModelPart.Elements())
-      {
-        ierr = r_element.Check(r_current_process_info);
-        if (ierr != 0)
-        {
-          break;
-        }
-      }
-
-      return ierr;
-
-      KRATOS_CATCH("");
+      return false;
     }
 
     virtual bool SolveSolutionStep() override
@@ -534,9 +433,6 @@ namespace Kratos
     virtual void SetEchoLevel(int Level) override
     {
       BaseType::SetEchoLevel(Level);
-      int StrategyLevel = Level > 0 ? Level - 1 : 0;
-      mpMomentumStrategy->SetEchoLevel(StrategyLevel);
-      mpPressureStrategy->SetEchoLevel(StrategyLevel);
     }
 
     ///@}
@@ -981,18 +877,6 @@ namespace Kratos
     ///@name Member Variables
     ///@{
 
-    double mVelocityTolerance;
-
-    double mPressureTolerance;
-
-    unsigned int mMaxPressureIter;
-
-    unsigned int mDomainSize;
-
-    unsigned int mTimeOrder;
-
-    bool mReformDofSet;
-
     // Fractional step index.
     /*  1 : Momentum step (calculate fractional step velocity)
       * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
@@ -1001,12 +885,6 @@ namespace Kratos
       * 6 : End of step velocity
       */
     //    unsigned int mStepId;
-
-    /// Scheme for the solution of the momentum equation
-    StrategyPointerType mpMomentumStrategy;
-
-    /// Scheme for the solution of the mass equation
-    StrategyPointerType mpPressureStrategy;
 
     ///@}
     ///@name Private Operators
