@@ -10,6 +10,7 @@
 #
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
+
 message( "**** configuring KratosLinearSolversApplication ****" )
 
 ################### PYBIND11
