@@ -206,37 +206,7 @@ namespace Kratos
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-      { // it must be checked once at the begining only
-        // Build RHS
-        // double posX=this->GetGeometry()[i].X();
-        // double posY=this->GetGeometry()[i].Y();
-
-        // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;
-
-        // double posY=(this->GetGeometry()[0].Y() + this->GetGeometry()[1].Y() + this->GetGeometry()[2].Y())/3.0;
-
-        // double coeffX =(12.0-24.0*posY)*pow(posX,4);
-
-        // coeffX += (-24.0+48.0*posY)*pow(posX,3);
-
-        // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
-
-        // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
-
-        // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
-
-        // double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
-
-        // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
-
-        // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
-
-        // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
-
-        // rRHSVector[FirstRow] += Weight * Density * rN[i] * VolumeAcceleration[0]*coeffX;
-
-        // rRHSVector[FirstRow+1] += Weight * Density * rN[i] * VolumeAcceleration[1]*coeffY;
-
+      {
         for (SizeType d = 0; d < TDim; ++d)
         {
           // Volume Acceleration
@@ -261,8 +231,6 @@ namespace Kratos
     {
       const double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
       const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
-      // lagDNXi=rDN_DX(i,0);
-      // lagDNYi=rDN_DX(i,1);
 
       rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
                                          lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[2]);
@@ -290,9 +258,6 @@ namespace Kratos
       double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 0);
       double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 1);
       double lagDNZi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 2);
-      // lagDNXi=rDN_DX(i,0);
-      // lagDNYi=rDN_DX(i,1);
-      // lagDNZi=rDN_DX(i,2);
 
       rRHSVector[FirstRow] += -Weight * (lagDNXi * rElementalVariables.UpdatedTotalCauchyStress[0] +
                                          lagDNYi * rElementalVariables.UpdatedTotalCauchyStress[3] +
