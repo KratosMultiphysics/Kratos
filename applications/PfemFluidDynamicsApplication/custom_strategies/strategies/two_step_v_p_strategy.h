@@ -21,7 +21,6 @@
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-/* #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h" */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -71,14 +70,9 @@ namespace Kratos
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPStrategy);
 
-    /// Counted pointer of TwoStepVPStrategy
-    //typedef boost::shared_ptr< TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
-
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -105,7 +99,6 @@ namespace Kratos
     }
 
     TwoStepVPStrategy(ModelPart &rModelPart,
-                      /*SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& rSolverConfig,*/
                       typename TLinearSolver::Pointer pVelocityLinearSolver,
                       typename TLinearSolver::Pointer pPressureLinearSolver,
                       bool ReformDofSet = true,
@@ -187,15 +180,6 @@ namespace Kratos
       if (mTimeOrder == 1 && rModelPart.GetBufferSize() < 2)
         KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ", rModelPart.GetBufferSize());
 
-      // const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
-      // for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
-      // {
-      //   ierr = itEl->Check(rCurrentProcessInfo);
-      //   if (ierr != 0)
-      //     break;
-      // }
-
       const auto &r_current_process_info = rModelPart.GetProcessInfo();
       for (const auto &r_element : rModelPart.Elements())
       {
@@ -205,12 +189,6 @@ namespace Kratos
           break;
         }
       }
-
-      /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
-      /* { */
-      /*     ierr = itCond->Check(rCurrentProcessInfo); */
-      /*     if (ierr != 0) break; */
-      /* } */
 
       return ierr;
 
@@ -254,7 +232,7 @@ namespace Kratos
       double pressureNorm = 0;
       double velocityNorm = 0;
 
-      this->SetBlockedFlag();
+      this->SetBlockedAndIsolatedFlags();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
@@ -316,7 +294,7 @@ namespace Kratos
       KRATOS_CATCH("");
     }
 
-    void SetBlockedFlag()
+    void SetBlockedAndIsolatedFlags()
     {
       KRATOS_TRY;
 
@@ -363,7 +341,6 @@ namespace Kratos
             }
           }
 
-          // if (dimension == 3 && (freeSurfaceNodes == numNodes || (freeSurfaceNodes + rigidNodes) == numNodes))
           if (dimension == 3)
           {
             double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
@@ -413,62 +390,12 @@ namespace Kratos
               (itElem)->Set(BLOCKED, true);
               // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
             }
-            // else if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999)
-            // {
-            //   (itElem)->Set(BLOCKED, true);
-            //   // std::cout << "in the strategy BLOCKED ELEMENT: " << (itElem)->Id() << std::endl;
-            // }
           }
 
           if (freeSurfaceNodes == numNodes && rigidNodes == 0 && isolatedNodes >= (numNodes - 1))
           {
             (itElem)->Set(ISOLATED, true);
             (itElem)->Set(BLOCKED, false);
-          }
-        }
-      }
-      KRATOS_CATCH("");
-    }
-
-    void UnactiveSliverElements()
-    {
-      KRATOS_TRY;
-
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-      MesherUtilities MesherUtils;
-      double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
-      double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
-      double ElementalVolume = 0;
-
-#pragma omp parallel
-      {
-        ModelPart::ElementIterator ElemBegin;
-        ModelPart::ElementIterator ElemEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
-        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-        {
-          unsigned int numNodes = itElem->GetGeometry().size();
-          if (numNodes == (dimension + 1))
-          {
-            if (dimension == 2)
-            {
-              ElementalVolume = (itElem)->GetGeometry().Area();
-            }
-            else if (dimension == 3)
-            {
-              ElementalVolume = (itElem)->GetGeometry().Volume();
-            }
-
-            if (ElementalVolume < CriticalVolume)
-            {
-              // std::cout << "sliver element: it has Volume: " << ElementalVolume << " vs CriticalVolume(meanVol/1000): " << CriticalVolume<< std::endl;
-              (itElem)->Set(ACTIVE, false);
-            }
-            else
-            {
-              (itElem)->Set(ACTIVE, true);
-            }
           }
         }
       }
