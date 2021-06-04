@@ -1313,8 +1313,8 @@ namespace Kratos
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      double Dt = rCurrentProcessInfo[DELTA_TIME];
-      noalias(CurrentAcceleration) = 2.0 * (CurrentVelocity - PreviousVelocity) / Dt - PreviousAcceleration;
+			double Dt = rCurrentProcessInfo[DELTA_TIME];
+			noalias(CurrentAcceleration) = 2.0 * (CurrentVelocity - PreviousVelocity) / Dt - PreviousAcceleration;
 		}
 
 		void CalculateDisplacements()

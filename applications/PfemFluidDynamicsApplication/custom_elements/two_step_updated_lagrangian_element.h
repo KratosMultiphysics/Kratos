@@ -71,31 +71,31 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    typedef struct
-    {
-      unsigned int voigtsize;
-      // strain state
-      double DetFgrad;
-      double DetFgradVel;
-      double DeviatoricInvariant;
-      double EquivalentStrainRate;
-      double VolumetricDefRate;
-      Vector SpatialDefRate;
-      Vector MDGreenLagrangeMaterial;
-      Matrix Fgrad;
-      Matrix InvFgrad;
-      Matrix FgradVel;
-      Matrix InvFgradVel;
-      Matrix SpatialVelocityGrad;
-      Matrix ConstitutiveMatrix;
-      // Stress state
-      double MeanPressure;
-      Vector CurrentTotalCauchyStress;
-      Vector UpdatedTotalCauchyStress;
-      Vector CurrentDeviatoricCauchyStress;
-      Vector UpdatedDeviatoricCauchyStress;
+    // typedef struct
+    // {
+    //   unsigned int voigtsize;
+    //   // strain state
+    //   double DetFgrad;
+    //   double DetFgradVel;
+    //   double DeviatoricInvariant;
+    //   double EquivalentStrainRate;
+    //   double VolumetricDefRate;
+    //   Vector SpatialDefRate;
+    //   Vector MDGreenLagrangeMaterial;
+    //   Matrix Fgrad;
+    //   Matrix InvFgrad;
+    //   Matrix FgradVel;
+    //   Matrix InvFgradVel;
+    //   Matrix SpatialVelocityGrad;
+    //   Matrix ConstitutiveMatrix;
+    //   // Stress state
+    //   double MeanPressure;
+    //   Vector CurrentTotalCauchyStress;
+    //   Vector UpdatedTotalCauchyStress;
+    //   Vector CurrentDeviatoricCauchyStress;
+    //   Vector UpdatedDeviatoricCauchyStress;
 
-    } ElementalVariables;
+    // } ElementalVariables;
 
   public:
     ///@name Type Definitions
@@ -142,13 +142,18 @@ namespace Kratos
 
     /* typedef Element::PropertiesType::Pointer PropertiesType::Pointer; */
 
-    typedef Element::PropertiesType PropertiesType;
-
     /// Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
 
     /// Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    //typedef Element::PropertiesType PropertiesType;
+    typedef typename BaseType::PropertiesType PropertiesType;
+
+    typedef typename BaseType::PropertiesType::Pointer pPropertiesType;
+
+    typedef typename BaseType::ElementalVariables ElementalVariables;
 
     ///@}
     ///@name Life Cycle
@@ -188,7 +193,7 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties)
+    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
@@ -218,7 +223,7 @@ namespace Kratos
        * @return a Pointer to the new element
        */
     Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+                            pPropertiesType pProperties) const override
     {
       return Element::Pointer(new TwoStepUpdatedLagrangianElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -269,7 +274,7 @@ namespace Kratos
 
     virtual void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo) override{};
 
-    virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables){};
+    virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables) override{};
 
     ///@}
     ///@name Access
@@ -383,7 +388,7 @@ namespace Kratos
     void AddInternalForces(Vector &rRHSVector,
                            const ShapeFunctionDerivativesType &rDN_DX,
                            ElementalVariables &rElementalVariables,
-                           const double Weight);
+                           const double Weight) override;
 
     void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
                                const double Weight) override;
@@ -401,21 +406,21 @@ namespace Kratos
     bool CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
                               const ProcessInfo &rCurrentProcessInfo,
                               const ShapeFunctionDerivativesType &rDN_DX,
-                              unsigned int g);
+                              unsigned int g) override;
 
     bool CalcStrainRate(ElementalVariables &rElementalVariables,
                         const ProcessInfo &rCurrentProcessInfo,
                         const ShapeFunctionDerivativesType &rDN_DX,
-                        const double theta);
+                        const double theta) override;
 
     bool CalcCompleteStrainRate(ElementalVariables &rElementalVariables,
                                 const ProcessInfo &rCurrentProcessInfo,
                                 const ShapeFunctionDerivativesType &rDN_DX,
-                                const double theta);
+                                const double theta) override;
 
     virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
                                                   unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                                  double &DeviatoricCoeff, double &VolumetricCoeff){};
+                                                  double &DeviatoricCoeff, double &VolumetricCoeff) override{};
 
     ///@}
     ///@name Protected  Access
