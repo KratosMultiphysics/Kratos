@@ -302,47 +302,16 @@ public:
         rX.PutScalar(A);
     }
 
-    // static void Resize(MatrixType& rA, SizeType m, SizeType n)
-    // {
-    //     KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Matrix", "")
-
-    // }
-
-    // static void Resize(VectorType& rX, SizeType n)
-    // {
-    //     KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
-    // }
-
     static void Resize(VectorPointerType& pX, SizeType n)
     {
-//         if(pX != NULL)
-//             KRATOS_ERROR << "trying to resize a null pointer" ;
+
         int global_elems = n;
         Epetra_Map Map(global_elems, 0, pX->Comm());
         VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
         pX.swap(pNewEmptyX);
     }
 
-    // 	static void Clear(MatrixType& rA)
-    // 	{
-    // 		int global_elems = 0;
-    // 		Epetra_Map Map(global_elems,0,rA.Comm() );
-    // 		TMatrixType temp(::Copy,Map,0);
-    //
-    // // 		int global_elems = 0;
-    // // 		Epetra_Map my_map(global_elems,0,rA.Comm() );
-    // // 		Epetra_FECrsGraph Agraph(Copy, my_map, 0);
-    // // 		Agraph.GlobalAssemble();
-    // //    		TMatrixType temp(Copy,Agraph);
-    //
-    // // int NumGlobalElements = 10;
-    // //  Epetra_Map Map(NumGlobalElements,0,rA.Comm() );
-    // //
-    // //   // create a diagonal FE crs matrix (one nonzero per row)
-    // //   Epetra_FECrsMatrix temp(Copy,Map,1);
-    //
-    //   		rA = temp;
-    // 	}
+
 
     static void Clear(MatrixPointerType& pA)
     {
