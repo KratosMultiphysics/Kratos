@@ -321,7 +321,9 @@ namespace Kratos
   protected:
     ///@name Protected static Member Variables
     ///@{
-
+    double mMaterialDeviatoricCoefficient = 0;
+    double mMaterialVolumetricCoefficient = 0;
+    double mMaterialDensity = 0;
     ///@}
     ///@name Protected member Variables
     ///@{

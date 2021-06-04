@@ -18,18 +18,16 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
-#include "includes/element.h"
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "includes/constitutive_law.h"
 
-#include "custom_elements/updated_lagrangian_element.h"
 #include "pfem_fluid_dynamics_application_variables.h"
 
+#include "custom_elements/updated_lagrangian_element.h"
+
 #include "includes/model_part.h"
-/* #include "includes/node.h" */
 
 namespace Kratos
 {
@@ -63,40 +61,6 @@ namespace Kratos
   template <unsigned int TDim>
   class ThreeStepUpdatedLagrangianElement : public UpdatedLagrangianElement<TDim>
   {
-
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    // typedef struct
-    // {
-    //   unsigned int voigtsize;
-    //   // strain state
-    //   double DetFgrad;
-    //   double DetFgradVel;
-    //   double DeviatoricInvariant;
-    //   double EquivalentStrainRate;
-    //   double VolumetricDefRate;
-    //   Vector SpatialDefRate;
-    //   Vector MDGreenLagrangeMaterial;
-    //   Matrix Fgrad;
-    //   Matrix InvFgrad;
-    //   Matrix FgradVel;
-    //   Matrix InvFgradVel;
-    //   Matrix SpatialVelocityGrad;
-    //   Matrix ConstitutiveMatrix;
-    //   // Stress state
-    //   double MeanPressure;
-    //   Vector CurrentTotalCauchyStress;
-    //   Vector UpdatedTotalCauchyStress;
-    //   Vector CurrentDeviatoricCauchyStress;
-    //   Vector UpdatedDeviatoricCauchyStress;
-
-    // } ElementalVariables;
-
   public:
     ///@name Type Definitions
     ///@{
@@ -320,9 +284,6 @@ namespace Kratos
 
     ///@}
   protected:
-    double mMaterialDeviatoricCoefficient = 0;
-    double mMaterialVolumetricCoefficient = 0;
-    double mMaterialDensity = 0;
 
     ///@name Protected static Member Variables
     ///@{
