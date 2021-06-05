@@ -237,9 +237,18 @@ protected:
 
     void CalculateAndAddCouplingMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
 
-    virtual void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix,
+                                                      ElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
+    virtual void CalculateCompressibilityMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                                const ElementVariables &rVariables) const;
+
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType &rLeftHandSideMatrix,
+                                                   ElementVariables &rVariables);
+
+    virtual void CalculatePermeabilityMatrix(BoundedMatrix<double,TNumNodes,TDim> &PDimMatrix,
+                                             BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                             const ElementVariables &rVariables) const;
 
     virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
@@ -249,11 +258,28 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables &rVariables);
 
-    virtual void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector,
+                                                    ElementVariables &rVariables);
 
-    virtual void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateCompressibilityFlow(BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                              array_1d<double,TNumNodes> &PVector,
+                                              const ElementVariables &rVariables) const;
 
-    virtual void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector,
+                                                 ElementVariables &rVariables);
+
+    virtual void CalculatePermeabilityFlow(BoundedMatrix<double,TNumNodes,TDim> &PDimMatrix,
+                                           BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
+                                           array_1d<double,TNumNodes> &PVector,
+                                           const ElementVariables &rVariables) const;
+
+
+    virtual void CalculateAndAddFluidBodyFlow(VectorType &rRightHandSideVector,
+                                              ElementVariables &rVariables);
+    virtual void CalculateFluidBodyFlow(BoundedMatrix<double,TNumNodes,TDim> &PDimMatrix,
+                                        array_1d<double,TNumNodes> &PVector,
+                                        const ElementVariables &rVariables) const;
+
 
     void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
     void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
@@ -271,6 +297,7 @@ protected:
 
     void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
     void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
+    void InitializeNodalVolumeAccelerationVariables( ElementVariables &rVariables );
 
     void InitializeProperties( ElementVariables &rVariables );
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );

@@ -552,7 +552,8 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
         this->CalculateKinematics(Variables, GPoint);
 
         //Compute Nu and BodyAcceleration
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
+        GeoElementUtilities::
+            CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::
             InterpolateVariableWithComponents<TDim, TNumNodes>( Variables.BodyAcceleration,
                                                                 Variables.NContainer,
@@ -596,6 +597,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 
     //Nodal Variables
     this->InitializeNodalPorePressureVariables( rVariables );
+    this->InitializeNodalVolumeAccelerationVariables( rVariables );
 
     //Variables computed at each GP
     noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -654,11 +656,7 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
-                                  * rVariables.DtPressureCoefficient
-                                  * rVariables.BiotModulusInverse
-                                  * outer_prod(rVariables.Np, rVariables.Np)
-                                  * rVariables.IntegrationCoefficient;
+    this->CalculateCompressibilityMatrix(rVariables.PMatrix, rVariables);
 
     //Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::
@@ -673,18 +671,15 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void TransientOnePhaseFlowElement<TDim,TNumNodes>::
-    CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+    CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                      ElementVariables& rVariables)
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
 
-    noalias(rVariables.PDimMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
-                                     * prod(rVariables.GradNpT, rVariables.PermeabilityMatrix);
-
-    noalias(rVariables.PMatrix) =  rVariables.DynamicViscosityInverse
-                                 * rVariables.RelativePermeability
-                                 * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT))
-                                 * rVariables.IntegrationCoefficient;
+    this->CalculatePermeabilityMatrix(rVariables.PDimMatrix,
+                                      rVariables.PMatrix,
+                                      rVariables);
 
     //Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix, rVariables.PMatrix);
@@ -723,15 +718,10 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddPermeabilityFlow()") << std::endl;
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.PermeabilityMatrix);
-
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR
-                                  * rVariables.DynamicViscosityInverse
-                                  * rVariables.RelativePermeability
-                                  * prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))
-                                  * rVariables.IntegrationCoefficient;
-
-    noalias(rVariables.PVector) = - prod(rVariables.PMatrix, rVariables.PressureVector);
+    this->CalculatePermeabilityFlow(rVariables.PDimMatrix,
+                                    rVariables.PMatrix,
+                                    rVariables.PVector,
+                                    rVariables);
 
     //Distribute permeability block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
@@ -749,13 +739,9 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddFluidBodyFlow()") << std::endl;
 
-    noalias(rVariables.PDimMatrix) =  prod(rVariables.GradNpT,rVariables.PermeabilityMatrix)
-                                    * rVariables.IntegrationCoefficient;
-
-    noalias(rVariables.PVector) =  rVariables.DynamicViscosityInverse
-                                 * rVariables.FluidDensity
-                                 * rVariables.RelativePermeability
-                                 * prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
+    this->CalculateFluidBodyFlow(rVariables.PDimMatrix,
+                                 rVariables.PVector,
+                                 rVariables);
 
     //Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,rVariables.PVector);
@@ -773,12 +759,9 @@ void TransientOnePhaseFlowElement<TDim,TNumNodes>::
     KRATOS_TRY;
     // KRATOS_INFO("0-TransientOnePhaseFlowElement::CalculateAndAddCompressibilityFlow()") << std::endl;
 
-    noalias(rVariables.PMatrix) = - PORE_PRESSURE_SIGN_FACTOR 
-                                  * rVariables.BiotModulusInverse
-                                  * outer_prod(rVariables.Np,rVariables.Np)
-                                  * rVariables.IntegrationCoefficient;
-
-    noalias(rVariables.PVector) = - prod(rVariables.PMatrix, rVariables.DtPressureVector);
+    this->CalculateCompressibilityFlow(rVariables.PMatrix,
+                                       rVariables.PVector,
+                                       rVariables);
 
     //Distribute compressibility block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
