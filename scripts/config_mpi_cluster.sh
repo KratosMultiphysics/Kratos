@@ -27,14 +27,14 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/opt/share/sw/python/3.9.5/bin/python3"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication
-#add_app ${KRATOS_APP_DIR}/TopologyOptimizationApplication
+add_app ${KRATOS_APP_DIR}/TopologyOptimizationApplication
 #add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
 # Clean
@@ -51,4 +51,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j12
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
