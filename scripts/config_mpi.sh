@@ -19,6 +19,9 @@ add_app () {
 export CC=mpicc
 export CXX=mpiCC
 
+# Set MKLROOT
+export MKLROOT=/opt/intel/oneapi/mkl/2021.2.0
+
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
