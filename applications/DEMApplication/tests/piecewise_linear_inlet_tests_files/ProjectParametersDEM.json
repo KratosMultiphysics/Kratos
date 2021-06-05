@@ -1,18 +1,30 @@
 {
     "Dimension"                      : 3,
     "PeriodicDomainOption"           : false,
-    "BoundingBoxOption"              : false,
+    "BoundingBoxOption"              : true,
     "AutomaticBoundingBoxOption"     : false,
     "BoundingBoxEnlargementFactor"   : 1.1,
     "BoundingBoxStartTime"           : 0.0,
     "BoundingBoxStopTime"            : 1000.0,
-    "BoundingBoxMaxX"                : 10,
-    "BoundingBoxMaxY"                : 10,
-    "BoundingBoxMaxZ"                : 10,
-    "BoundingBoxMinX"                : -10,
-    "BoundingBoxMinY"                : -10,
-    "BoundingBoxMinZ"                : -10,
-    "dem_inlet_option"               : false,
+    "BoundingBoxMaxX"                : 0.2,
+    "BoundingBoxMaxY"                : 0.2,
+    "BoundingBoxMaxZ"                : 0.01,
+    "BoundingBoxMinX"                : -0.2,
+    "BoundingBoxMinY"                : -0.2,
+    "BoundingBoxMinZ"                : -0.0005,
+    "dem_inlet_option"               : true,
+    "dem_inlets_settings" : {
+        "Inlet_inlet": {
+            "inlet_name" : "Inlet_inlet",
+            "random_variable_settings" : {
+                "pdf_breakpoints" : [0.001, 0.002, 0.003, 0.004, 0.005],
+                "pdf_values" : [1, 3, 4, 2, 1],
+                "do_use_seed" : false,
+                "seed" : 1,
+                "relative_closeness_tolerance" : 1e-6
+            }
+        }
+    },
     "GravityX"                       : 0.0,
     "GravityY"                       : 0.0,
     "GravityZ"                       : -9.81,
@@ -21,15 +33,7 @@
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
         "strategy"                          : "sphere_strategy",
-        "model_import_settings"           : {
-            "input_type"     : "mdpa",
-            "serializer_trace"             : "no_trace",
-            "input_filenames" : ["SpheresPart","RigidFacePart"],
-            "restart_load_file_label" : "0.03001"
-        },
-        "material_import_settings"           : {
-            "materials_filename" : "ball_and_wall_MaterialsDEM.json"
-        }
+	"do_search_neighbours"		    : false
     },
     "VirtualMassCoefficient"         : 1.0,
     "RollingFrictionOption"          : false,
@@ -40,8 +44,10 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-    "MaxTimeStep"                    : 1e-5,
-    "FinalTime"                      : 0.03005,
+    "MaxTimeStep"                    : 0.001,
+    "FinalTime"                      : 0.05,
+    "NeighbourSearchFrequency"       : 1,
+    "SearchTolerance"                : 0.0005,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
     "OutputTimeStep"                 : 0.01,
@@ -51,35 +57,17 @@
     "PostRadius"                     : true,
     "PostVelocity"                   : true,
     "PostAngularVelocity"            : false,
-    "PostElasticForces"              : true,
-    "PostContactForces"              : true,
+    "PostElasticForces"              : false,
+    "PostContactForces"              : false,
     "PostRigidElementForces"         : false,
     "PostStressStrainOption"         : false,
     "PostTangentialElasticForces"    : false,
-    "PostTotalForces"                : true,
+    "PostTotalForces"                : false,
     "PostPressure"                   : false,
     "PostShearStress"                : false,
     "PostNonDimensionalVolumeWear"   : false,
     "PostParticleMoment"             : false,
     "PostEulerAngles"                : false,
     "PostRollingResistanceMoment"    : false,
-    "do_print_results_option"        : false,
-    "problem_name"                   : "ball_and_wall",
-
-    "output_processes" : {
-        "restart_processes" : [
-            {
-            "python_module"   : "DEMApplication.DEM_save_restart_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "DEMSaveRestartProcess",
-            "Parameters"            : {
-                "model_part_names" : ["SpheresPart","RigidFacePart"],
-                "echo_level"                   : 0,
-                "serializer_trace"             : "no_trace",
-                "restart_save_frequency"       : 0.01,
-                "restart_control_type"         : "time",
-                "save_restart_files_in_folder" : true
-            }
-        }]
-    }
+    "problem_name"                   : "piecewise_linear_inlet"
 }

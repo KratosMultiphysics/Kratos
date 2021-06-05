@@ -17,6 +17,7 @@ import test_DEM_2D_restitution
 import test_DEM_3D_continuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
+import test_inlet
 import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
@@ -56,6 +57,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
+    smallSuite.addTest(test_inlet.TestDEMInlet("test_piecewise_linear_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
