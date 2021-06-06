@@ -103,7 +103,6 @@ public:
 
     enum KratosGeometryType
     {
-        Kratos_generic_type,
         Kratos_Hexahedra3D20,
         Kratos_Hexahedra3D27,
         Kratos_Hexahedra3D8,
@@ -129,7 +128,8 @@ public:
         Kratos_Point3D,
         Kratos_Sphere3D1,
         Kratos_Brep_Surface,
-        Kratos_Brep_Curve
+        Kratos_Brep_Curve,
+        Kratos_generic_type
     };
 
     ///@}
