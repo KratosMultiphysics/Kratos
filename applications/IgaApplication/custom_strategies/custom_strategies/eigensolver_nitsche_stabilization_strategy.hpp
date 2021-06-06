@@ -167,37 +167,21 @@ public:
 
     SparseMatrixType& GetStiffnessMatrix()
     {
-//         if (mpStiffnessMatrix == nullptr)
-//         {
-//             KRATOS_ERROR << "CHEK YOUR Stiffness MATRIX PLEASE IS INITIALIZED" << std::endl;
-//         }
         return *mpStiffnessMatrix;
     }
 
     SparseMatrixType& GetStabilizationMatrix()
     {
-//         if (mpStabilizationMatrix == nullptr)
-//         {
-//             KRATOS_ERROR << "CHEK YOUR Q MATRIX PLEASE IS INITIALIZED" << std::endl;
-//         }
         return *mpStabilizationMatrix;
     }
 
     SparseMatrixPointerType& pGetStiffnessMatrix()
     {
-//         if (mpStiffnessMatrix == nullptr)
-//         {
-//             KRATOS_ERROR << "CHEK YOUR Stiffness MATRIX PLEASE IS INITIALIZED" << std::endl;
-//         }
         return mpStiffnessMatrix;
     }
 
     SparseMatrixPointerType& pGetStabilizationMatrix()
     {
-//         if (mpStabilizationMatrix == nullptr)
-//         {
-//             KRATOS_ERROR << "CHEK YOUR Q MATRIX PLEASE IS INITIALIZED" << std::endl;
-//         }
         return mpStabilizationMatrix;
     }
 
@@ -372,10 +356,12 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Solve all the required operations that should be done (for each step).
+     * Solve for eigenvalues for the Nitsche stabilization factor.
+     */
     bool SolveSolutionStep() override
     {
-        KRATOS_TRY;
-
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         SchemePointerType& pScheme = this->pGetScheme();
@@ -387,6 +373,7 @@ public:
         SparseSpaceType::Resize(b,SparseSpaceType::Size1(rStiffnessMatrix));
         SparseSpaceType::Set(b,0.0);
 
+        // Get the global stiffness matrix of the respective model part, linked with the Nitsche stabilization scheme.
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
@@ -394,7 +381,8 @@ public:
         if (BaseType::GetEchoLevel() == 4) {
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
         }
-        
+
+        // Get the global stabilization matrix of the respective model part, linked with the Nitsche stabilization scheme.
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStabilizationMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStabilizationMatrix,b);
@@ -403,7 +391,7 @@ public:
             TSparseSpace::WriteMatrixMarketMatrix("StabilizationMatrix.mm", rStabilizationMatrix, false);
         }
 
-        // Obtain the stifness and stabilization matrices on the current interface boundary
+        // Obtain the stifness and stabilization matrices on the current interface boundary:
         // 1. find the DOFs on the current interface boundary
         Model reduced_model_master;               
         ModelPart& reduced_model_part_master = reduced_model_master.CreateModelPart("new_model"); 
@@ -568,48 +556,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
     ///@}
 
