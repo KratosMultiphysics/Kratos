@@ -454,6 +454,36 @@ Matrix UpdatedLagrangian::ReferenceConfigurationDeformationGradient(const IndexT
 /***********************************************************************************/
 
 void UpdatedLagrangian::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const bool f_computed = mF0Computed;
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
+    BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const bool f_computed = mF0Computed;
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
+    BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -471,6 +501,51 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
         BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
         if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const bool f_computed = mF0Computed;
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
+    BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 6>>& rVariable,
+    std::vector<array_1d<double, 6>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const bool f_computed = mF0Computed;
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
+    BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const bool f_computed = mF0Computed;
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
+    BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
 }
 
 /***********************************************************************************/
