@@ -466,7 +466,10 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
             rValues[point_number] = mDetF0[point_number];
     } else {
+        const bool f_computed = mF0Computed;
+        if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
         BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
     }
 }
 
@@ -486,7 +489,10 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
             rValues[point_number] = mF0[point_number];
     } else {
+        const bool f_computed = mF0Computed;
+        if (rCurrentProcessInfo[STEP] > 1) mF0Computed = false;
         BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        if (rCurrentProcessInfo[STEP] > 1) mF0Computed = f_computed;
     }
 }
 
