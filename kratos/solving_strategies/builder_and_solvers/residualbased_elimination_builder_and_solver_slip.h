@@ -750,10 +750,11 @@ protected:
         }
 
         //calculate the total size of the system
-        int total_size = 0.0;
-        #pragma omp parallel for reduction(+:total_size)
-        for (int i = 0; i < number_of_threads; i++)
-            total_size += local_sizes[i];
+        int total_size = 0;
+
+        total_size = IndexPartition<std::size_t>(number_of_threads).for_each<SumReduction<int>>([&](std::size_t Index){
+            return local_sizes[Index];
+        });
 
         A.reserve(total_size, false);
 
