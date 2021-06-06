@@ -961,15 +961,41 @@ public:
 
         PointLocalCoordinates( rResult, point_projected );
 
-        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
-            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
-                if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) ) {
-                    return true;
+        if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        if ( (rPointLocalCoordinates[0] >= (0.0-Tolerance)) && (rPointLocalCoordinates[0] <= (1.0+Tolerance)) )
+        {
+            if ( (rPointLocalCoordinates[1] >= (0.0-Tolerance)) && (rPointLocalCoordinates[1] <= (1.0+Tolerance)) )
+            {
+                if ( (rPointLocalCoordinates[0] + rPointLocalCoordinates[1]) <= (1.0+Tolerance) )
+                {
+                    return 1;
                 }
             }
         }
 
-        return false;
+        return 0;
     }
 
     /**

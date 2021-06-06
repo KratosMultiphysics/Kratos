@@ -1071,36 +1071,38 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
-     * local point for the given global point
-     * @param rPoint The point to be checked if is inside o note in global coordinates
-     * @param rResult The local coordinates of the point
-     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-     * @return True if the point is inside, false otherwise
-     */
-    bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
+    * @brief Checks if given point in local space coordinates of this geometry
+    *        is inside the geometry boundaries.
+    * @param rPointLocalCoordinates the point on the geometry,
+    *        which shall be checked if it lays within
+    *        the boundaries.
+    * @param Tolerance the tolerance to the boundary.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        this->PointLocalCoordinates( rResult, rPoint );
-
-        if( rResult[0] >= 0.0-Tolerance )
+        if( rPointLocalCoordinates[0] >= 0.0-Tolerance )
         {
-            if( rResult[1] >= 0.0-Tolerance )
+            if( rPointLocalCoordinates[1] >= 0.0-Tolerance )
             {
-                if( rResult[2] >= 0.0-Tolerance )
+                if( rPointLocalCoordinates[2] >= 0.0-Tolerance )
                 {
-                    if( (rResult[0] + rResult[1] + rResult[2]) <= (1.0+Tolerance))
+                    if( (rPointLocalCoordinates[0] + rPointLocalCoordinates[1]
+                       + rPointLocalCoordinates[2]) <= (1.0+Tolerance))
                     {
-                        return true;
+                        return 1;
                     }
                 }
             }
         }
 
-        return false;
+        return 0;
     }
 
     ///@}
@@ -1488,7 +1490,7 @@ public:
 
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
-        if(IsInside(rLowPoint,local_coordinates))
+        if(this->IsInside(rLowPoint,local_coordinates))
             return true;
 
         return false;
