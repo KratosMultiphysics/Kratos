@@ -283,7 +283,7 @@ public:
      * @return default integration method of the used Geometry
      * this method is: OPTIONAL ( is recommended to reimplement it in the derived class )
      */
-    virtual IntegrationMethod GetIntegrationMethod()
+    virtual IntegrationMethod GetIntegrationMethod() const
     {
         return pGetGeometry()->GetDefaultIntegrationMethod();
     }
@@ -575,6 +575,7 @@ public:
             rMassMatrix.resize(0, 0, false);
         }
     }
+
     /**
      * this is called during the assembling process in order
      * to calculate the condition damping matrix
