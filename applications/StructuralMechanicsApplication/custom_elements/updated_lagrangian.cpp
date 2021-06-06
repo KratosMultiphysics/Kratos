@@ -431,7 +431,7 @@ void UpdatedLagrangian::CalculateB(
 
 double UpdatedLagrangian::ReferenceConfigurationDeformationGradientDeterminant(const IndexType PointNumber) const
 {
-    if (mF0Computed == false)
+    if (!mF0Computed)
         return mDetF0[PointNumber];
 
     return 1.0;
@@ -442,7 +442,7 @@ double UpdatedLagrangian::ReferenceConfigurationDeformationGradientDeterminant(c
 
 Matrix UpdatedLagrangian::ReferenceConfigurationDeformationGradient(const IndexType PointNumber) const
 {
-    if (mF0Computed == false)
+    if (!mF0Computed)
         return mF0[PointNumber];
 
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
