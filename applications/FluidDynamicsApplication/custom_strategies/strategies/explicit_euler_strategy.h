@@ -179,7 +179,20 @@ public:
         }
         
         // Initialize the first step
-        SetVariablesToZero(DENSITY_RK4, DENSITY_SOLID_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
+        // SetVariablesToZero(DENSITY_RK4, DENSITY_SOLID_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
+
+        auto& r_model_part = BaseType::GetModelPart();
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node = r_model_part.NodesBegin() + i;
+            it_node->FastGetSolutionStepValue(DENSITY_RK4) = 0.0;
+            it_node->FastGetSolutionStepValue(DENSITY_SOLID_RK4) = 0.0;
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RK4)  = 0.0;
+            it_node->FastGetSolutionStepValue(MOMENTUM_RK4) = ZeroVector(3);
+        }
+
         int step = 0;
         
         // Compute the slope
@@ -670,7 +683,17 @@ private:
         const int n_elements = static_cast<int>(r_model_part.NumberOfElements());
         const int n_conditions = static_cast<int>(r_model_part.NumberOfConditions());
 
-        SetVariablesToZero(DENSITY_RHS, DENSITY_SOLID_RHS, MOMENTUM_RHS, TOTAL_ENERGY_RHS);
+        // SetVariablesToZero(DENSITY_RHS, DENSITY_SOLID_RHS, MOMENTUM_RHS, TOTAL_ENERGY_RHS);
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+        {
+            auto it_node = r_model_part.NodesBegin() + i;
+            it_node->FastGetSolutionStepValue(DENSITY_RHS) = 0.0;
+            it_node->FastGetSolutionStepValue(DENSITY_SOLID_RHS) = 0.0;
+            it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS)  = 0.0;
+            it_node->FastGetSolutionStepValue(MOMENTUM_RHS) = ZeroVector(3);
+        }
 
         #pragma omp parallel firstprivate(n_elements, n_conditions)
         {
@@ -940,7 +963,7 @@ private:
             auto it_node = r_model_part.NodesBegin() + i;
             it_node->FastGetSolutionStepValue(rScalarVar) = 0.0;
             it_node->FastGetSolutionStepValue(rScalarVar2) = 0.0;
-            it_node->FastGetSolutionStepValue(rVectorVar)  = rVectorVar.Zero();
+            it_node->FastGetSolutionStepValue(rVectorVar)  = ZeroVector(3);
             it_node->FastGetSolutionStepValue(rScalarVar1) = 0.0;
         }
     }

@@ -20,12 +20,6 @@
 #include "add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 
-// Linear solvers
-#include "linear_solvers/linear_solver.h"
-
-// Strategies
-#include "custom_strategies/strategies/runge_kutta_strategy.h"
-
 // Schemes
 #include "custom_strategies/shallow_water_residual_based_bdf_scheme.h"
 #include "custom_strategies/flux_corrected_shallow_water_scheme.h"
@@ -42,21 +36,6 @@ namespace Python
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-    // Linear solvers
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-    // Strategies
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseStrategyType;
-
-    typedef RungeKuttaStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> RungeKuttaStrategyType;
-    py::class_<
-        RungeKuttaStrategyType,
-        typename RungeKuttaStrategyType::Pointer,
-        BaseStrategyType>
-        (m, "RungeKuttaStrategy")
-        .def(py::init<ModelPart&, int, bool, bool, bool>())
-        ;
 
     // Schemes
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;

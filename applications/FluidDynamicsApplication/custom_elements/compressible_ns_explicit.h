@@ -138,8 +138,8 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
-    {
+                              ProcessInfo& rCurrentProcessInfo) 
+                                  {
         KRATOS_TRY
         constexpr unsigned int MatrixSize = TNumNodes*(BlockSize);
 
@@ -197,7 +197,7 @@ public:
 
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                ProcessInfo& rCurrentProcessInfo) 
     {
         KRATOS_TRY
         constexpr unsigned int MatrixSize = TNumNodes*(BlockSize);
@@ -281,7 +281,7 @@ public:
      * @return 0 if no errors were found.
      */
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) 
     {
         KRATOS_TRY
 
@@ -431,8 +431,8 @@ protected:
     ///@{
 
     // Symbolic function implementing the element
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) ;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) ;
 
 //    double ShockCapturingViscosity(const ElementDataStruct& data);
 //    double ShockCapturingConductivity(const ElementDataStruct& data);
