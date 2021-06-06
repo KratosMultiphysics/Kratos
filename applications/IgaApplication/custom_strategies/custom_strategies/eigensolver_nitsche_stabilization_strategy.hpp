@@ -90,13 +90,10 @@ public:
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+            mpScheme(pScheme), mpBuilderAndSolver(pBuilderAndSolver)
     {
         KRATOS_TRY
-
-        mpScheme = pScheme;
-
-        mpBuilderAndSolver = pBuilderAndSolver;
 
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -502,7 +499,6 @@ public:
         rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenvalues;
 
         return true;
-        KRATOS_CATCH("")
     }
 
     void FinalizeSolutionStep() override

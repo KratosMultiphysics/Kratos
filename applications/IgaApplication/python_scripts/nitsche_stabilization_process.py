@@ -12,10 +12,10 @@ def Factory(settings, model):
     return NitscheStabilizationProcess(model, settings["Parameters"])
 
 class NitscheStabilizationProcess(KratosMultiphysics.Process):
-
     """This class is used in order to compute automatically the Nitsche stabilization factor"""
 
     def __init__(self, model, params):
+        """ The default constructor of the class"""
         KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
