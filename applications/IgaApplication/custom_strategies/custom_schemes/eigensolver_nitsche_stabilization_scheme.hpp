@@ -36,7 +36,6 @@ namespace Kratos
 ///@{
 
 ///@}
-
 ///@name  Enum's
 ///@{
 
@@ -77,13 +76,13 @@ public:
     ~EigensolverNitscheStabilizationScheme() override {}
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * This function is overrided from the scheme.h and is called in the builder and solver.
+     * It "asks" the matrix needed to the element for stiffness matrices in Nitsche stabilization eigenvalue problems.
+     */
     void CalculateSystemContributions(
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -104,6 +103,10 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * This function is overrided from the scheme.h and is called in the builder and solver.
+     * It "asks" the matrix needed to the condition for stabilization matrices in Nitsche stabilization eigenvalue problems.
+     */
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
