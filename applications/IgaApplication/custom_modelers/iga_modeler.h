@@ -22,7 +22,7 @@
 #include "modeler/modeler.h"
 #include "includes/properties.h"
 #include "includes/define.h"
-
+#include "geometries/brep_surface.h"
 
 namespace Kratos
 {
