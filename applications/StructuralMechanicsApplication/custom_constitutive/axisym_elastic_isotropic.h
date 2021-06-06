@@ -163,7 +163,7 @@ private:
      */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::StrainVectorType& rStrainVector
+        ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
     ) override;
 
     ///@}

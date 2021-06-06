@@ -51,12 +51,15 @@ namespace Testing
         Triangle2D3<Node<3>> geometry = Triangle2D3<Node<3>>(p_node_1, p_node_2, p_node_3);
 
         // Compute RHS and LHS
-        Vector strain_vect(3);
+        ConstitutiveLaw::VoigtSizeVectorType strain_vect;
+        strain_vect.resize(3);
         strain_vect[0] = 1.0;
         strain_vect[1] = 1.0;
         strain_vect[2] = 1.0;
-        Vector stress_vect(3);
-        Matrix constitutive_tensor;
+        ConstitutiveLaw::VoigtSizeVectorType stress_vect;
+        stress_vect.resize(3);
+        ConstitutiveLaw::VoigtSizeMatrixType constitutive_tensor;
+        constitutive_tensor.resize(3,3);
 
         Flags cl_options;
         cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
@@ -101,15 +104,15 @@ namespace Testing
         Tetrahedra3D4<Node<3>> geometry = Tetrahedra3D4<Node<3>>(p_node_1, p_node_2, p_node_3, p_node_4);
 
         // Compute RHS and LHS
-        Vector strain_vect(6);
+        ConstitutiveLaw::VoigtSizeVectorType strain_vect;
         strain_vect[0] = 1.0;
         strain_vect[1] = 1.0;
         strain_vect[2] = 1.0;
         strain_vect[3] = 1.0;
         strain_vect[4] = 1.0;
         strain_vect[5] = 1.0;
-        Vector stress_vect(6);
-        Matrix constitutive_tensor;
+        ConstitutiveLaw::VoigtSizeVectorType stress_vect;
+        ConstitutiveLaw::VoigtSizeMatrixType constitutive_tensor;
 
         Flags cl_options;
         cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);

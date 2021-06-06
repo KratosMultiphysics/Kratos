@@ -85,7 +85,9 @@ double& TrussConstitutiveLaw::CalculateValue(
 {
     if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
     else if (rThisVariable == STRAIN_ENERGY){
-        Vector current_strain = ZeroVector(1);
+        ConstitutiveLaw::VoigtSizeVectorType current_strain;
+        current_strain.resize(1, false);
+        noalias(current_strain) = ZeroVector(1);
         rParameterValues.GetStrainVector(current_strain);
         rValue = 0.50 * rParameterValues.GetMaterialProperties()[YOUNG_MODULUS] * current_strain[0] * current_strain[0];
     }
@@ -138,7 +140,7 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
 //************************************************************************************
 void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
-    Vector& stress_vector = rValues.GetStressVector();
+    ConstitutiveLaw::VoigtSizeVectorType& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
     stress_vector[0] = this->CalculateStressElastic(rValues);
 }
@@ -148,7 +150,9 @@ void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 double TrussConstitutiveLaw::CalculateStressElastic(
     ConstitutiveLaw::Parameters& rParameterValues)
 {
-    Vector current_strain = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType current_strain;
+    current_strain.resize(1, false);
+    noalias(current_strain) = ZeroVector(1);
     rParameterValues.GetStrainVector(current_strain);
     double tangent_modulus(0.0);
     CalculateValue(rParameterValues,TANGENT_MODULUS,tangent_modulus);

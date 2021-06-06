@@ -472,17 +472,17 @@ public:
     double DeterminantF;
     double DeterminantF0;
 
-    Vector StrainVector_2D;
-    Vector StressVector_2D;
-    Matrix ConstitutiveMatrix_2D;
-    Matrix DeformationGradientF_2D;
-    Matrix DeformationGradientF0_2D;
+    ConstitutiveLaw::VoigtSizeVectorType StrainVector_2D(3);
+    ConstitutiveLaw::VoigtSizeVectorType StressVector_2D(3);
+    ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix_2D(3,3);
+    ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF_2D(2,2);
+    ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF0_2D(2,2);
 
-    Vector StrainVector_3D;
-    Vector StressVector_3D;
-    Matrix ConstitutiveMatrix_3D;
-    Matrix DeformationGradientF_3D;
-    Matrix DeformationGradientF0_3D;
+    ConstitutiveLaw::VoigtSizeVectorType StrainVector_3D(6);
+    ConstitutiveLaw::VoigtSizeVectorType StressVector_3D(6);
+    ConstitutiveLaw::VoigtSizeMatrixType ConstitutiveMatrix_3D(6,6);
+    ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF_3D(3,3);
+    ConstitutiveLaw::DeformationGradientMatrixType DeformationGradientF0_3D(3,3);
 
     double GYZ;
     double GXZ;

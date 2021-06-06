@@ -451,18 +451,18 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
         ShellUtilities::JacobianOperator jacOp;
 
         // Instantiate all strain-displacement matrices.
-        Matrix B(8, 24, 0.0);
-        Vector Bdrilling(24, 0.0);
+        BoundedMatrix<double, 8,24> B(8, 24, 0.0);
+        BoundedVector<double,24> Bdrilling(24, 0.0);
 
         // Instantiate all section tangent matrices.
-        Matrix D(8, 8, 0.0);
+        BoundedMatrix<double,8,8> D(8, 8, 0.0);
 
         // Instantiate strain and stress-resultant vectors
-        Vector generalizedStrains(8);
-        Vector generalizedStresses(8);
+        BoundedVector<double,8> generalizedStrains(8);
+        BoundedVector<double,8> generalizedStresses(8);
 
         // Get the current displacements in global coordinate system
-        Vector globalDisplacements(24);
+        BoundedVector<double,24> globalDisplacements(24);
         this->GetValuesVector(globalDisplacements, 0);
 
         // Get the current displacements in local coordinate system
@@ -475,8 +475,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
         EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
 
         // Just to store the rotation matrix for visualization purposes
-        Matrix R(8, 8);
-        Matrix aux33(3, 3);
+        BoundedMatrix<double,8,8> R(8, 8);
+        BoundedMatrix<double,3,3> aux33(3, 3);
 
         // Initialize parameters for the cross section calculation
         ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
@@ -1419,17 +1419,17 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
 
     // Instantiate all strain-displacement matrices.
 
-    Matrix B(8, 24, 0.0);
+    BoundedMatrix<double 8,24> B(8, 24, 0.0);
     Vector Bdrilling(24, 0.0);
 
     // Instantiate all section tangent matrices.
 
-    Matrix D(8, 8, 0.0);
+    BoundedMatrix<double 8,8> D(8, 8, 0.0);
 
     // Instantiate strain and stress-resultant vectors
 
-    Vector generalizedStrains(8);
-    Vector generalizedStresses(8);
+    BoundedVector<double,8> generalizedStrains(8);
+    BoundedVector<double,8> generalizedStresses(8);
     std::vector<VectorType> rlaminateStrains;
     std::vector<VectorType> rlaminateStresses;
 

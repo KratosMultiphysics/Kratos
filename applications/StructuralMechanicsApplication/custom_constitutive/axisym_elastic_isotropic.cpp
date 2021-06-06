@@ -108,7 +108,7 @@ void AxisymElasticIsotropic::CalculateElasticMatrix(VoigtSizeMatrixType& C, Cons
 
 void AxisymElasticIsotropic::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
-    ConstitutiveLaw::StrainVectorType& rStrainVector
+    ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
 )
 {
     //1.-Compute total deformation gradient

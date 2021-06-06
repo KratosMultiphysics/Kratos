@@ -485,8 +485,11 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variab
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<boost::numeric::ublas::bounded_vector<double, 6>> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<boost::numeric::ublas::bounded_matrix<double, 6, 6>> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<boost::numeric::ublas::bounded_matrix<double, 3, 3>> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
@@ -518,7 +521,10 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variabl
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<array_1d<double, 9> > const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Quaternion<double> > const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_vector<double, 6>> const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_matrix<double, 6, 6>> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_matrix<double, 3, 3>> const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<std::string> const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Flags const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent);

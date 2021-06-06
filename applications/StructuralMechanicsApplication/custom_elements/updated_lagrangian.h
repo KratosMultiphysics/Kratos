@@ -182,8 +182,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable,
-        std::vector< Matrix >& rOutput,
+        const Variable<ConstitutiveLaw::DeformationGradientMatrixType >& rVariable,
+        std::vector< ConstitutiveLaw::DeformationGradientMatrixType >& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -206,8 +206,8 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void SetValuesOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        const std::vector<Matrix>& rValues,
+        const Variable<ConstitutiveLaw::DeformationGradientMatrixType>& rVariable,
+        const std::vector<ConstitutiveLaw::DeformationGradientMatrixType>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 

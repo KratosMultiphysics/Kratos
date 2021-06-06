@@ -27,7 +27,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
     KRATOS_TRY
 
     if (rVariable == ADJOINT_STRAIN) {
-        std::vector<Vector> strain_vector;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> strain_vector;
         this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
         if (rOutput.size() != strain_vector.size()) {
             rOutput.resize(strain_vector.size());

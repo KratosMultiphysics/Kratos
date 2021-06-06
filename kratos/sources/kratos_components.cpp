@@ -83,6 +83,21 @@ void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisCom
     KratosComponents<Variable<Vector> >::Add(Name, ThisComponent);
 }
 
+void AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_vector<double, 6>> const& ThisComponent)
+{
+    KratosComponents<Variable<boost::numeric::ublas::bounded_vector<double, 6>> >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_matrix<double, 6, 6>> const& ThisComponent)
+{
+    KratosComponents<Variable<boost::numeric::ublas::bounded_matrix<double, 6, 6>> >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<boost::numeric::ublas::bounded_matrix<double, 3, 3>> const& ThisComponent)
+{
+    KratosComponents<Variable<boost::numeric::ublas::bounded_matrix<double, 3, 3>> >::Add(Name, ThisComponent);
+}
+
 void AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent)
 {
     KratosComponents<Variable<Matrix> >::Add(Name, ThisComponent);
@@ -138,6 +153,9 @@ template class KratosComponents<Variable<array_1d<double, 6> > >;
 template class KratosComponents<Variable<array_1d<double, 9> > >;
 template class KratosComponents<Variable<Quaternion<double> > >;
 template class KratosComponents<Variable<Vector> >;
+template class KratosComponents<Variable<BoundedVector6> >;
+template class KratosComponents<Variable<BoundedMatrix6> >;
+template class KratosComponents<Variable<BoundedMatrix3> >;
 template class KratosComponents<Variable<Matrix> >;
 template class KratosComponents<Variable<std::string> >;
 template class KratosComponents<Variable<Flags> >;

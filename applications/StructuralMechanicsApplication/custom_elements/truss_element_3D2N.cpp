@@ -344,7 +344,7 @@ void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOut
         column(rOutput,2) = base_3;
     }
     if (rVariable == MEMBRANE_PRESTRESS) {
-        std::vector< Vector > prestress_matrix;
+        std::vector< ConstitutiveLaw::VoigtSizeVectorType > prestress_matrix;
         CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
         const int manual_integraton_points_size(1);
         rOutput = ZeroMatrix(3,manual_integraton_points_size);
@@ -364,7 +364,8 @@ void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOut
 
         // material strain energy
         double strain_energy(0.00);
-        Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+        ConstitutiveLaw::VoigtSizeVectorType strain_vector; strain_vector.resize(mpConstitutiveLaw->GetStrainSize());
+        noalias(strain_vector) = ZeroVector(mpConstitutiveLaw->GetStrainSize());
         strain_vector[0] = CalculateGreenLagrangeStrain();
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Values.SetStrainVector(strain_vector);
@@ -405,10 +406,9 @@ void TrussElement3D2N::Calculate(const Variable<double>& rVariable, double& rOut
     }
 }
 
-
-
 void TrussElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rOutput,
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -433,7 +433,8 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 }
 
 void TrussElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -443,11 +444,14 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         rOutput.resize(integration_points.size());
     }
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-        Vector strain = ZeroVector(msDimension);
+        ConstitutiveLaw::VoigtSizeVectorType strain;
+        if (strain.size() != msDimension) strain.resize(msDimension, false);
+        noalias(strain) = ZeroVector(msDimension);
+
         strain[0] = CalculateGreenLagrangeStrain();
         strain[1] = 0.00;
         strain[2] = 0.00;
-        rOutput[0] = strain;
+        noalias(rOutput[0]) = strain;
     }
 
     if ((rVariable == CAUCHY_STRESS_VECTOR) || (rVariable == PK2_STRESS_VECTOR)) {
@@ -461,15 +465,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
         }
 
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
+        ConstitutiveLaw::VoigtSizeVectorType temp_strain;
+        ConstitutiveLaw::VoigtSizeVectorType temp_stress;
+        temp_strain.resize(1, false);
+        temp_stress.resize(1, false);
+
         temp_strain[0] = CalculateGreenLagrangeStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
         mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
 
-        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double l  = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
         const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
         temp_stress[0] += prestress;
@@ -497,7 +504,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     }
 
     if (rVariable == FORCE) {
-        std::vector<Vector> array_output;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> array_output;
         CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,array_output,rCurrentProcessInfo);
 
         array_1d<double, 3> temp_internal_stresses = ZeroVector(3);
@@ -584,8 +591,11 @@ void TrussElement3D2N::UpdateInternalForces(
     }
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_strain; temp_strain.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_stress; temp_stress.resize(1, false);
+    noalias(temp_stress) = ZeroVector(1);
+
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
@@ -944,8 +954,12 @@ void TrussElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessIn
 {
     KRATOS_TRY;
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+
+    ConstitutiveLaw::VoigtSizeVectorType temp_strain; temp_strain.resize(1, false);
+    noalias(temp_strain) = ZeroVector(1);
+    ConstitutiveLaw::VoigtSizeVectorType temp_stress; temp_stress.resize(1, false);
+    noalias(temp_stress) = ZeroVector(1);
+
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
@@ -1013,8 +1027,12 @@ void TrussElement3D2N::CalculateLumpedMassVector(
 double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+    SizeType voigt_size = mpConstitutiveLaw->GetStrainSize();
     double tangent_modulus(0.00);
-    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+    ConstitutiveLaw::VoigtSizeVectorType strain_vector;
+    if (strain_vector.size() != voigt_size) strain_vector.resize(voigt_size, false);
+
+    noalias(strain_vector) = ZeroVector(mpConstitutiveLaw->GetStrainSize());
     strain_vector[0] = CalculateGreenLagrangeStrain();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);

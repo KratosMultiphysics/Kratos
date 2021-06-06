@@ -115,13 +115,13 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
 
-    // ConstitutiveLaw::StrainVectorType& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<StrainVectorType>& rThisVariable,
-    //     ConstitutiveLaw::StrainVectorType& rValue) override;
+    // ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<VoigtSizeVectorType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeVectorType& rValue) override;
 
-    // ConstitutiveLaw::StressVectorType& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-    //     const Variable<StressVectorType>& rThisVariable,
-    //     ConstitutiveLaw::StressVectorType& rValue) override;
+    // ConstitutiveLaw::VoigtSizeVectorType& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<VoigtSizeVectorType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeVectorType& rValue) override;
 
     array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 3 > >& rVariable,

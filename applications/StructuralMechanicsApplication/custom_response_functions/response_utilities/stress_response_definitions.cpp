@@ -195,7 +195,7 @@ void StressCalculation::CalculateStressOnGPTruss(Element& rElement,
         }
         case TracedStressType::PK2:
         {
-            std::vector<Vector> stress_vector;
+            std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector;
             rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
             for(IndexType i = 0; i < GP_num ; ++i)
                 rOutput(i) = stress_vector[i][0];

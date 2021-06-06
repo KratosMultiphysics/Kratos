@@ -270,7 +270,8 @@ void MembraneElement::GetSecondDerivativesVector(
 }
 
 template <class T>
-void MembraneElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+void MembraneElement::InPlaneTransformationMatrix(ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix,
+    const array_1d<Vector,2>& rTransformedBaseVectors,
     const T& rLocalReferenceBaseVectors)
 {
     const double e_g_11 = inner_prod(rTransformedBaseVectors[0],rLocalReferenceBaseVectors[0]);
@@ -289,23 +290,26 @@ void MembraneElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix,
     rTransformationMatrix(2,2) = (e_g_11*e_g_22) + (e_g_12*e_g_21);
 }
 
-void MembraneElement::TransformStrains(Vector& rStrains,
-  Vector& rReferenceStrains, const Matrix& rTransformationMatrix)
+void MembraneElement::TransformStrains(ConstitutiveLaw::VoigtSizeVectorType& rStrains,
+  ConstitutiveLaw::VoigtSizeVectorType& rReferenceStrains, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
     // use contravariant basevectors here
     // transform base vecs needs only G3 which is equal for co and contra if it is orthogonal
     // tranform strains needs contra-variant !
-    rStrains = ZeroVector(3);
-    rReferenceStrains[2]/=2.0; // extract E12 from voigt strain vector
+    rStrains.resize(3, false);
+    noalias(rStrains) = ZeroVector(3);
+    rReferenceStrains[2] /= 2.0; // extract E12 from voigt strain vector
     noalias(rStrains) = prod(rTransformationMatrix,rReferenceStrains);
-    rStrains[2]*=2.0; // include E12 and E21 for voigt strain vector
+    rStrains[2] *= 2.0; // include E12 and E21 for voigt strain vector
 }
 
-void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
+void MembraneElement::AddPreStressPk2(ConstitutiveLaw::VoigtSizeVectorType& rStress, const array_1d<Vector,2>& rTransformedBaseVectors){
 
-    Vector pre_stress = ZeroVector(3);
+    ConstitutiveLaw::VoigtSizeVectorType pre_stress;
+    pre_stress.resize(3, false);
+    noalias(pre_stress) = ZeroVector(3);
     if (GetProperties().Has(PRESTRESS_VECTOR)){
-        pre_stress = GetProperties()(PRESTRESS_VECTOR);
+        noalias(pre_stress) = GetProperties()(PRESTRESS_VECTOR);
 
         if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)){
 
@@ -313,9 +317,10 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
             local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
             local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
 
-            Matrix transformation_matrix = ZeroMatrix(3);
+            ConstitutiveLaw::DeformationGradientMatrixType transformation_matrix;
+            transformation_matrix.clear();
             InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
-            pre_stress = prod(transformation_matrix,pre_stress);
+            noalias(pre_stress) = prod(transformation_matrix,pre_stress);
 
         } else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
 
@@ -329,26 +334,37 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
             MathUtils<double>::CrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
             local_prestress_axis[1] /= MathUtils<double>::Norm(local_prestress_axis[1]);
 
-            Matrix transformation_matrix = ZeroMatrix(3);
+            ConstitutiveLaw::DeformationGradientMatrixType transformation_matrix;
+            transformation_matrix.clear();
             InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
-            pre_stress = prod(transformation_matrix,pre_stress);
+            noalias(pre_stress) = prod(transformation_matrix,pre_stress);
         }
     }
     noalias(rStress) += pre_stress;
 }
 
-void MembraneElement::MaterialResponse(Vector& rStress,
-    const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-    const array_1d<Vector,2>& rTransformedBaseVectors,const Matrix& rTransformationMatrix,const SizeType& rIntegrationPointNumber,
-    Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo)
+void MembraneElement::MaterialResponse(ConstitutiveLaw::VoigtSizeVectorType& rStress,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceContraVariantMetric,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceCoVariantMetric,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rCurrentCoVariantMetric,
+    const array_1d<Vector,2>& rTransformedBaseVectors,const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix,
+    const SizeType& rIntegrationPointNumber,ConstitutiveLaw::VoigtSizeMatrixType& rTangentModulus,const ProcessInfo& rCurrentProcessInfo)
 {
-    Vector strain_vector = ZeroVector(3);
+    ConstitutiveLaw::VoigtSizeVectorType strain_vector;
+    strain_vector.resize(3, false);
+    noalias(strain_vector) = ZeroVector(3);
+
+    if (rStress.size() != 3) rStress.resize(3, false);
     noalias(rStress) = ZeroVector(3);
+
     StrainGreenLagrange(strain_vector,rReferenceCoVariantMetric,
         rCurrentCoVariantMetric,rTransformationMatrix);
 
     // do this to consider the pre-stress influence in the check of the membrane state in the claw
-    Vector initial_stress = ZeroVector(3);
+    ConstitutiveLaw::VoigtSizeVectorType initial_stress;
+    initial_stress.resize(3, false);
+    noalias(initial_stress) = ZeroVector(3);
+
     if (Has(MEMBRANE_PRESTRESS)){
         const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
         initial_stress += column(r_stress_input,rIntegrationPointNumber);
@@ -371,34 +387,55 @@ void MembraneElement::MaterialResponse(Vector& rStress,
     rStress += initial_stress;
 }
 
-void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-    const Matrix& rTransformationMatrix)
+void MembraneElement::StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceCoVariantMetric,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rCurrentCoVariantMetric,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
-    Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix,3);
+    ConstitutiveLaw::DeformationGradientMatrixType strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
+    ConstitutiveLaw::VoigtSizeVectorType reference_strain;
+    reference_strain.resize(3, false);
+    noalias(reference_strain) = MathUtils<double>::StrainTensorToVector(strain_matrix,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-    const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
+void MembraneElement::DerivativeStrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
+    const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+    const array_1d<Vector,2> rCurrentCovariantBaseVectors,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
-    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    ConstitutiveLaw::DeformationGradientMatrixType current_covariant_metric_derivative;
+    current_covariant_metric_derivative.resize(2, 2, false);
+    noalias(current_covariant_metric_derivative) = ZeroMatrix(2);
+
     DerivativeCurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,rCurrentCovariantBaseVectors);
-    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
+    ConstitutiveLaw::DeformationGradientMatrixType strain_matrix_derivative;
+    strain_matrix_derivative.resize(2, 2, false);
+
+    noalias(strain_matrix_derivative) = 0.50 * current_covariant_metric_derivative;
+    ConstitutiveLaw::VoigtSizeVectorType reference_strain;
+    reference_strain.resize(3, false);
+    noalias(reference_strain) = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
-void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
+void MembraneElement::Derivative2StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
  const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
- const Matrix& rTransformationMatrix)
+ const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
 {
-    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    ConstitutiveLaw::DeformationGradientMatrixType current_covariant_metric_derivative;
+    current_covariant_metric_derivative.resize(2,2,false);
+    noalias(current_covariant_metric_derivative) = ZeroMatrix(2);
     Derivative2CurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,DofS);
 
-    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
+    ConstitutiveLaw::DeformationGradientMatrixType strain_matrix_derivative;
+    strain_matrix_derivative.resize(2,2,false);
 
-    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
+    noalias(strain_matrix_derivative) = 0.50 * current_covariant_metric_derivative;
+
+    ConstitutiveLaw::VoigtSizeVectorType reference_strain;
+    reference_strain.resize(3, false);
+    noalias(reference_strain) = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -410,26 +447,29 @@ void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vect
     KRATOS_ERROR_IF(rDetJacobi<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
 }
 
-void MembraneElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
+void MembraneElement::DerivativeCurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
     array_1d<Vector,2> derivative_covariant_base_vectors;
     DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors,rShapeFunctionGradientValues,DofR);
 
 
     for (SizeType i=0;i<2;++i){
         for (SizeType j=0;j<2;++j){
-            rMetric(i,j) = inner_prod(derivative_covariant_base_vectors[i],rCurrentCovariantBaseVectors[j]);
+            rMetric(i,j)  = inner_prod(derivative_covariant_base_vectors[i],rCurrentCovariantBaseVectors[j]);
             rMetric(i,j) += inner_prod(derivative_covariant_base_vectors[j],rCurrentCovariantBaseVectors[i]);
         }
     }
 }
 
-void MembraneElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
+void MembraneElement::Derivative2CurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
+
     array_1d<Vector,2> derivative_covariant_base_vectors_dur;
     DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dur,rShapeFunctionGradientValues,DofR);
     array_1d<Vector,2> derivative_covariant_base_vectors_dus;
@@ -481,9 +521,11 @@ void MembraneElement::CovariantBaseVectors(array_1d<Vector,2>& rBaseVectors,
     rBaseVectors[1] = g2;
 }
 
-void MembraneElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
+void MembraneElement::CovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
+
     for (SizeType i=0;i<2;++i){
         for (SizeType j=0;j<2;++j){
             rMetric(i,j) = inner_prod(rBaseVectorCovariant[i],rBaseVectorCovariant[j]);
@@ -491,9 +533,11 @@ void MembraneElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& 
     }
 }
 
-void MembraneElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric)
+void MembraneElement::ContravariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const Matrix& rCovariantMetric)
 {
-    rMetric = ZeroMatrix(2);
+    rMetric.resize(2,2, false);
+    noalias(rMetric) = ZeroMatrix(2);
+
     rMetric(0,0) = rCovariantMetric(1,1);
     rMetric(1,1) = rCovariantMetric(0,0);
     rMetric(0,1) = -1.0*rCovariantMetric(1,0);
@@ -531,13 +575,17 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
     array_1d<Vector,2> transformed_base_vectors;
 
-    Matrix covariant_metric_current = ZeroMatrix(3);
-    Matrix covariant_metric_reference = ZeroMatrix(3);
-    Matrix contravariant_metric_reference = ZeroMatrix(3);
-    Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
     double detJ = 0.0;
-    Vector stress = ZeroVector(3);
-    Vector derivative_strain = ZeroVector(3);
+    ConstitutiveLaw::VoigtSizeVectorType stress;
+    stress.resize(3, false);
+    noalias(stress) = ZeroVector(3);
+    ConstitutiveLaw::VoigtSizeVectorType derivative_strain;
+    derivative_strain.resize(3, false);
+    noalias(derivative_strain) = ZeroVector(3);
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
@@ -557,9 +605,10 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
         InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
 
-
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
-        Matrix material_tangent_modulus = ZeroMatrix(dimension);
+        ConstitutiveLaw::VoigtSizeMatrixType material_tangent_modulus;
+        material_tangent_modulus.resize(3,3,false);
+        noalias(material_tangent_modulus) = ZeroMatrix(dimension);
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
             transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
             rCurrentProcessInfo);
@@ -610,17 +659,24 @@ void MembraneElement::ReferenceLumpingFactors(Vector& rResult) const
 
 
 void MembraneElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
-    const Matrix& rMaterialTangentModulus,const SizeType& rPositionI,
+    const ConstitutiveLaw::VoigtSizeMatrixType& rMaterialTangentModulus,const SizeType& rPositionI,
     const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-    const array_1d<Vector,2>& rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
+    const array_1d<Vector,2>& rCurrentCovariantBaseVectors,
+    const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix)
  {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    Vector strain_derivative = ZeroVector(dimension);
+    ConstitutiveLaw::VoigtSizeVectorType strain_derivative;
+    if (strain_derivative.size() != dimension) strain_derivative.resize(dimension);
+
+    noalias(strain_derivative) = ZeroVector(dimension);
     DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionI,
         rCurrentCovariantBaseVectors,rTransformationMatrix);
 
-    Vector stress_derivative = prod(rMaterialTangentModulus,strain_derivative);
+    ConstitutiveLaw::VoigtSizeVectorType stress_derivative;
+    if (stress_derivative.size() != dimension) stress_derivative.resize(dimension);
+
+    noalias(stress_derivative) = prod(rMaterialTangentModulus,strain_derivative);
 
     DerivativeStrainGreenLagrange(strain_derivative,rShapeFunctionGradientValues,rPositionJ,
         rCurrentCovariantBaseVectors,rTransformationMatrix);
@@ -635,7 +691,10 @@ void MembraneElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
  {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    Vector strain_derivative_2 = ZeroVector(dimension);
+    ConstitutiveLaw::VoigtSizeVectorType strain_derivative_2;
+    if (strain_derivative_2.size() != dimension) strain_derivative_2.resize(dimension);
+
+    noalias(strain_derivative_2) = ZeroVector(dimension);
     Derivative2StrainGreenLagrange(strain_derivative_2,rShapeFunctionGradientValues,rPositionI,rPositionJ,
         rTransformationMatrix);
     rEntryIJ += inner_prod(rStressVector,strain_derivative_2);
@@ -661,13 +720,16 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
     array_1d<Vector,2> reference_contravariant_base_vectors;
     array_1d<Vector,2> transformed_base_vectors;
 
-    Matrix covariant_metric_current = ZeroMatrix(3);
-    Matrix covariant_metric_reference = ZeroMatrix(3);
-    Matrix contravariant_metric_reference = ZeroMatrix(3);
-    Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+    ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
     double detJ = 0.0;
     double temp_stiffness_entry;
-    Vector stress = ZeroVector(3);
+
+    ConstitutiveLaw::VoigtSizeVectorType stress;
+    stress.resize(3, false);
+    noalias(stress) = ZeroVector(3);
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
@@ -689,7 +751,10 @@ void MembraneElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix,const Integr
 
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
 
-        Matrix material_tangent_modulus = ZeroMatrix(dimension);
+        ConstitutiveLaw::VoigtSizeMatrixType material_tangent_modulus;
+        material_tangent_modulus.resize(dimension, dimension, false);
+        noalias(material_tangent_modulus) = ZeroMatrix(dimension);
+
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
             transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
             rCurrentProcessInfo);
@@ -741,8 +806,8 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     }
 }
 
-void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                        std::vector< Vector >& rOutput,
+void MembraneElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeVectorType >& rVariable,
+                        std::vector< ConstitutiveLaw::VoigtSizeVectorType >& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
 {
     // element with two nodes can only represent results at one node
@@ -760,17 +825,19 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
 
     if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-        Vector stress = ZeroVector(3);
+        ConstitutiveLaw::VoigtSizeVectorType stress; stress.resize(3, false);
+        noalias(stress) = ZeroVector(3);
+
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
         array_1d<Vector,2> reference_contravariant_base_vectors;
 
         array_1d<Vector,2> transformed_base_vectors;
 
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
 
@@ -796,14 +863,17 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
 
             if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-                    Vector strain_vector = ZeroVector(3);
+                    ConstitutiveLaw::VoigtSizeVectorType strain_vector; strain_vector.resize(3, false);
+                    noalias(strain_vector) = ZeroVector(3);
+
                     StrainGreenLagrange(strain_vector,covariant_metric_reference,
                     covariant_metric_current,inplane_transformation_matrix_material);
                     strain_vector[2] /= 2.0;
                     noalias(rOutput[point_number]) = strain_vector;
             }
             else {
-                Matrix material_tangent_modulus = ZeroMatrix(dimension);
+                ConstitutiveLaw::VoigtSizeMatrixType material_tangent_modulus; material_tangent_modulus.resize(dimension, dimension, false);
+                noalias(material_tangent_modulus) = ZeroMatrix(dimension);
                 MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
                     transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
                     rCurrentProcessInfo);
@@ -827,19 +897,21 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
 
-        Vector stress = ZeroVector(3);
+        ConstitutiveLaw::VoigtSizeVectorType stress; stress.resize(3, false);
+        noalias(stress) = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
         array_1d<Vector,2> reference_contravariant_base_vectors;
 
         array_1d<Vector,2> transformed_base_vectors;
 
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
 
-        Matrix deformation_gradient = ZeroMatrix(2);
+        ConstitutiveLaw::DeformationGradientMatrixType deformation_gradient; deformation_gradient.resize(2,2,false);
+        noalias(deformation_gradient) = ZeroMatrix(2);
         double det_deformation_gradient = 0.0;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
@@ -865,7 +937,9 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
 
-            Matrix material_tangent_modulus = ZeroMatrix(dimension);
+            ConstitutiveLaw::VoigtSizeMatrixType material_tangent_modulus; material_tangent_modulus.resize(dimension, dimension, false);
+            noalias(material_tangent_modulus) = ZeroMatrix(dimension);
+
             MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
                 transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
                 rCurrentProcessInfo);
@@ -873,10 +947,10 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
 
-            Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
-            Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
-            Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
-            Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
+            ConstitutiveLaw::DeformationGradientMatrixType stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
+            ConstitutiveLaw::DeformationGradientMatrixType temp_stress_matrix = prod(deformation_gradient,stress_matrix);
+            ConstitutiveLaw::DeformationGradientMatrixType temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
+            ConstitutiveLaw::DeformationGradientMatrixType cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
             stress = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
 
 
@@ -897,11 +971,12 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 }
 
 
-void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+void MembraneElement::DeformationGradient(ConstitutiveLaw::DeformationGradientMatrixType& rDeformationGradient, double& rDetDeformationGradient,
      const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
 {
-    rDeformationGradient = ZeroMatrix(2);
-    for (SizeType i=0;i<2;++i){
+    rDeformationGradient.resize(2,2,false);
+    noalias(rDeformationGradient) = ZeroMatrix(2);
+    for (SizeType i = 0; i < 2; ++i){
         rDeformationGradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
     }
     rDetDeformationGradient = (rDeformationGradient(0,0)*rDeformationGradient(1,1)) - (rDeformationGradient(0,1)*rDeformationGradient(1,0));
@@ -1033,7 +1108,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
         column(rOutput,2) = base_3;
     }
     else if (rVariable == MEMBRANE_PRESTRESS) {
-        std::vector< Vector > prestress_matrix;
+        std::vector< ConstitutiveLaw::VoigtSizeVectorType > prestress_matrix;
         CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,prestress_matrix,rCurrentProcessInfo);
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetGeometry().GetDefaultIntegrationMethod());
 
@@ -1061,15 +1136,17 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
 
         array_1d<Vector,2> transformed_base_vectors;
 
-        Matrix covariant_metric_current = ZeroMatrix(3);
-        Matrix covariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_current = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType covariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType contravariant_metric_reference = ZeroMatrix(3);
+        ConstitutiveLaw::DeformationGradientMatrixType inplane_transformation_matrix_material = ZeroMatrix(3);
         double detJ = 0.0;
         rOutput = 0.0; // total strain energy
-        Vector strain_vector = ZeroVector(3);
-        Vector stress_vector = ZeroVector(3);
 
+        ConstitutiveLaw::VoigtSizeVectorType strain_vector; strain_vector.resize(3,false);
+        noalias(strain_vector) = ZeroVector(3);
+        ConstitutiveLaw::VoigtSizeVectorType stress_vector; stress_vector.resize(3,false);
+        noalias(stress_vector) = ZeroVector(3);
 
         ConstitutiveLaw::Parameters element_parameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -1103,7 +1180,8 @@ void MembraneElement::Calculate(const Variable<double>& rVariable, double& rOutp
             mConstitutiveLawVector[point_number]->CalculateValue(element_parameters,STRAIN_ENERGY,strain_energy_gp);
 
 
-            Vector pre_stress_vector = ZeroVector(3);
+            ConstitutiveLaw::VoigtSizeVectorType pre_stress_vector; pre_stress_vector.resize(3, false);
+            noalias(pre_stress_vector) = ZeroVector(3);
             AddPreStressPk2(pre_stress_vector,transformed_base_vectors);
 
             // add strain energy from pre_stress -> constant

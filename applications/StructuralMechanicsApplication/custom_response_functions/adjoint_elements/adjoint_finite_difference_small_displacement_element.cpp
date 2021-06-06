@@ -50,7 +50,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
     // Build vector of variables containing the DOF-variables of the primal problem
     std::vector<const Variable<double>*> primal_solution_variable_list {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
 
-    std::vector<Matrix> stress_tensor;
+    std::vector<ConstitutiveLaw::DeformationGradientMatrixType> stress_tensor;
     this->mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_tensor, rCurrentProcessInfo);
 
     const unsigned int number_integration_points = stress_tensor.size();
@@ -60,7 +60,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
 
     for(IndexType k = 0; k < number_integration_points; ++k)
     {
-        Matrix & PK2_k = stress_tensor[k];
+        ConstitutiveLaw::DeformationGradientMatrixType & PK2_k = stress_tensor[k];
         double radicant = 0.0;
         radicant += PK2_k(0,0)*PK2_k(0,0) + PK2_k(1,1)*PK2_k(1,1) + PK2_k(2,2)*PK2_k(2,2);
         radicant -= PK2_k(0,0)*PK2_k(1,1) + PK2_k(0,0)*PK2_k(2,2) + PK2_k(1,1)*PK2_k(2,2);
@@ -86,7 +86,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
     rOutput.resize(num_dofs, number_integration_points, false);
     rOutput.clear();
 
-    std::vector<Matrix> partial_stress_derivatives;
+    std::vector<ConstitutiveLaw::DeformationGradientMatrixType> partial_stress_derivatives;
 
     for (IndexType i = 0; i < num_nodes; ++i)
     {
@@ -100,7 +100,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
             for(IndexType k = 0; k < number_integration_points; ++k)
             {
                 double sensitivity_entry_k = 0.0;
-                Matrix & PK2_k = stress_tensor[k];
+                ConstitutiveLaw::DeformationGradientMatrixType & PK2_k = stress_tensor[k];
 
                 sensitivity_entry_k += 2*PK2_k(0,0)*partial_stress_derivatives[k](0,0);
                 sensitivity_entry_k += 2*PK2_k(1,1)*partial_stress_derivatives[k](1,1);

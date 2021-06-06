@@ -96,7 +96,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+        const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable, std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
 private:

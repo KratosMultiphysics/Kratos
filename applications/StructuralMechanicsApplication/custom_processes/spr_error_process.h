@@ -177,7 +177,7 @@ protected:
     ///@{
 
     ModelPart& mThisModelPart;                                  /// The model part to compute
-    Variable<Vector>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
+    Variable<ConstitutiveLaw::VoigtSizeVectorType>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
     SizeType mEchoLevel;                                        /// The echo level
 
     ///@}

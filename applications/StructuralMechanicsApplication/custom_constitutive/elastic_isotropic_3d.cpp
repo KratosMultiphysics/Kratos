@@ -60,18 +60,18 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     KRATOS_TRY;
 
     Flags & r_constitutive_law_options = rValues.GetOptions();
-    ConstitutiveLaw::StrainVectorType& r_strain_vector = rValues.GetStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& r_strain_vector = rValues.GetStrainVector();
 
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         //Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
         CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
-    AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
+    AddInitialStrainVectorContribution<VoigtSizeVectorType>(r_strain_vector);
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
-        ConstitutiveLaw::StressVectorType& r_stress_vector = rValues.GetStressVector();
+        ConstitutiveLaw::VoigtSizeVectorType& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
-        AddInitialStressVectorContribution<StressVectorType>(r_stress_vector);
+        AddInitialStressVectorContribution<VoigtSizeVectorType>(r_stress_vector);
     }
 
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
@@ -184,8 +184,8 @@ void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Para
 double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
     Flags & r_constitutive_law_options = rParameterValues.GetOptions();
-    ConstitutiveLaw::StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
-    ConstitutiveLaw::StressVectorType& r_stress_vector = rParameterValues.GetStressVector();
+    ConstitutiveLaw::VoigtSizeVectorType& r_strain_vector = rParameterValues.GetStrainVector();
+    ConstitutiveLaw::VoigtSizeVectorType& r_stress_vector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
 
@@ -203,10 +203,10 @@ double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParamet
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector& ElasticIsotropic3D::CalculateValue(
+ConstitutiveLaw::VoigtSizeVectorType& ElasticIsotropic3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rThisVariable,
+    ConstitutiveLaw::VoigtSizeVectorType& rValue
     )
 {
     if (rThisVariable == STRAIN ||
@@ -225,7 +225,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
-            rValue.resize(GetStrainSize());
+            rValue.resize(GetStrainSize(), false);
         }
         noalias(rValue) = rParameterValues.GetStrainVector();
 
@@ -250,7 +250,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
         if (rValue.size() != GetStrainSize()) {
-            rValue.resize(GetStrainSize());
+            rValue.resize(GetStrainSize(), false);
         }
         noalias(rValue) = rParameterValues.GetStressVector();
 
@@ -260,25 +260,24 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
-	    if (rValue.size() != GetStrainSize()) {
-	        rValue.resize(GetStrainSize());
-	    }
-	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
+            if (rValue.size() != GetStrainSize()) {
+                rValue.resize(GetStrainSize(), false);
+            }
+            noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
             noalias(rValue) = ZeroVector(0);
         }
     }
-
     return( rValue );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& ElasticIsotropic3D::CalculateValue(
+ConstitutiveLaw::VoigtSizeMatrixType& ElasticIsotropic3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
+    const Variable<ConstitutiveLaw::VoigtSizeMatrixType>& rThisVariable,
+    ConstitutiveLaw::VoigtSizeMatrixType& rValue
     )
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX ||
@@ -328,7 +327,6 @@ int ElasticIsotropic3D::Check(
     const double nu = rMaterialProperties[POISSON_RATIO];
     KRATOS_ERROR_IF((nu_upper_bound - nu) < tolerance) << "POISSON_RATIO is above the upper bound 0.5." << std::endl;
     KRATOS_ERROR_IF((nu - nu_lower_bound) < tolerance) << "POISSON_RATIO is below the lower bound -1.0." << std::endl;
-
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is negative." << std::endl;
 
     return 0;
@@ -382,8 +380,8 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
 /***********************************************************************************/
 
 void ElasticIsotropic3D::CalculatePK2Stress(
-    const Vector& rStrainVector,
-    ConstitutiveLaw::StressVectorType& rStressVector,
+    const ConstitutiveLaw::VoigtSizeVectorType& rStrainVector,
+    ConstitutiveLaw::VoigtSizeVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -409,7 +407,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
 
 void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
-    ConstitutiveLaw::StrainVectorType& rStrainVector
+    ConstitutiveLaw::VoigtSizeVectorType& rStrainVector
     )
 {
     const SizeType space_dimension = this->WorkingSpaceDimension();
@@ -421,7 +419,7 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
 
     ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
     for(unsigned int i=0; i<space_dimension; ++i)
-      E_tensor(i,i) -= 1.0;
+        E_tensor(i,i) -= 1.0;
     E_tensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);

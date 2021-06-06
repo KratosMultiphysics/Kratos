@@ -169,7 +169,7 @@ namespace Kratos
      * @param rMetric The metric to be calculated
      * @param rBaseVectorCovariant Covariant base vectors
      */
-    void CovariantMetric(Matrix& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
+    void CovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const array_1d<Vector,2>& rBaseVectorCovariant);
 
      /**
      * @brief Calculates the contra variant base vectors
@@ -185,7 +185,7 @@ namespace Kratos
      * @param rMetric The metric to be calculated
      * @param rCovariantMetric Covariant metric
      */
-    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
+    void ContravariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,const Matrix& rCovariantMetric);
 
 
       /**
@@ -205,7 +205,7 @@ namespace Kratos
      * @param DofR current degree of freedom 1
      * @param DofS current degree of freedom 2
      */
-    void Derivative2CurrentCovariantMetric(Matrix& rMetric,
+    void Derivative2CurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS);
 
 
@@ -225,9 +225,9 @@ namespace Kratos
      * @param DofS current degree of freedom 2
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void Derivative2StrainGreenLagrange(Vector& rStrain,
+    void Derivative2StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
-      const Matrix& rTransformationMatrix);
+      const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
 
@@ -239,8 +239,8 @@ namespace Kratos
      * @param rCurrentCovariantBaseVectors current covariant base vectors
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix);
+    void DerivativeStrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+      const array_1d<Vector,2> rCurrentCovariantBaseVectors, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
       /**
@@ -250,8 +250,8 @@ namespace Kratos
      * @param rCurrentCoVariantMetric current covariant metric
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-       const Matrix& rTransformationMatrix);
+    void StrainGreenLagrange(ConstitutiveLaw::VoigtSizeVectorType& rStrain, const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceCoVariantMetric,const ConstitutiveLaw::DeformationGradientMatrixType& rCurrentCoVariantMetric,
+       const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
       /**
      * @brief Calculates the piola-kirchhoff-2 stress
@@ -263,10 +263,13 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      * @param rIntegrationPointNumber current integration point number
      */
-    void MaterialResponse(Vector& rStress,
-      const Matrix& rReferenceContraVariantMetric,const Matrix& rReferenceCoVariantMetric,const Matrix& rCurrentCoVariantMetric,
-      const array_1d<Vector,2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
-      Matrix& rTangentModulus,const ProcessInfo& rCurrentProcessInfo);
+    void MaterialResponse(ConstitutiveLaw::VoigtSizeVectorType& rStress,
+      const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceContraVariantMetric,
+      const ConstitutiveLaw::DeformationGradientMatrixType& rReferenceCoVariantMetric,
+      const ConstitutiveLaw::DeformationGradientMatrixType& rCurrentCoVariantMetric,
+      const array_1d<Vector,2>& rTransformedBaseVectors, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix,
+      const SizeType& rIntegrationPointNumber, ConstitutiveLaw::VoigtSizeMatrixType& rTangentModulus,
+      const ProcessInfo& rCurrentProcessInfo);
 
 
       /**
@@ -274,7 +277,7 @@ namespace Kratos
      * @param rStress The stress
      * @param rTransformedBaseVectors local coordinate system
      */
-    void AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
+    void AddPreStressPk2(ConstitutiveLaw::VoigtSizeVectorType& rStress, const array_1d<Vector,2>& rTransformedBaseVectors);
 
       /**
      * @brief Calculates 1st derivative of the current covariant metric
@@ -283,7 +286,7 @@ namespace Kratos
      * @param DofR current degree of freedom 1
      * @param rCurrentCovariantBaseVectors current covariant base vectors
      */
-    void DerivativeCurrentCovariantMetric(Matrix& rMetric,
+    void DerivativeCurrentCovariantMetric(ConstitutiveLaw::DeformationGradientMatrixType& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
 
@@ -330,9 +333,9 @@ namespace Kratos
      * @param rTransformationMatrix local coordinate system transformation
      */
     void MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
-      const Matrix& rMaterialTangentModulus,
+      const ConstitutiveLaw::VoigtSizeMatrixType& rMaterialTangentModulus,
       const SizeType& rPositionI, const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
-      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const Matrix& rTransformationMatrix);
+      const array_1d<Vector,2>& rCurrentCovariantBaseVectors,const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
 
@@ -342,7 +345,7 @@ namespace Kratos
      * @param rReferenceStrains the strains in the reference coordinate system
      * @param rTransformationMatrix local coordinate system transformation
      */
-    void TransformStrains(Vector& rStrains, Vector& rReferenceStrains, const Matrix& rTransformationMatrix);
+    void TransformStrains(ConstitutiveLaw::VoigtSizeVectorType& rStrains, ConstitutiveLaw::VoigtSizeVectorType& rReferenceStrains, const ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix);
 
 
       /**
@@ -361,7 +364,7 @@ namespace Kratos
      * @param rLocalReferenceBaseVectors the base coordinate system
      */
     template <class T>
-    void InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
+    void InPlaneTransformationMatrix(ConstitutiveLaw::DeformationGradientMatrixType& rTransformationMatrix, const array_1d<Vector,2>& rTransformedBaseVectors,
       const T& rLocalReferenceBaseVectors);
 
 
@@ -373,10 +376,10 @@ namespace Kratos
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
 
-    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::VoigtSizeVectorType >& rVariable,
+        std::vector< ConstitutiveLaw::VoigtSizeVectorType >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+    void DeformationGradient(ConstitutiveLaw::DeformationGradientMatrixType& rDeformationGradient, double& rDetDeformationGradient,
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
 

@@ -29,7 +29,8 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
 {
     ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mpStressVariable = &const_cast<Variable<Vector>&>(KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString()));
+    mpStressVariable = &const_cast<Variable<ConstitutiveLaw::VoigtSizeVectorType>&>
+        (KratosComponents<Variable<ConstitutiveLaw::VoigtSizeVectorType>>::Get(ThisParameters["stress_vector_variable"].GetString()));
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
 
@@ -210,7 +211,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     )
 {
     // Triangle and tetrahedra have only one GP by default
-    std::vector<Vector> stress_vector(1);
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
 
     // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size

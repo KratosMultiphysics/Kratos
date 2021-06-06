@@ -952,8 +952,8 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeVectorType>& rVariable,
+    std::vector<ConstitutiveLaw::VoigtSizeVectorType>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1084,7 +1084,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
     }
 
     if ( rOutput.size() != 6 ) {
-        std::vector<Vector> rOutput_aux;
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> rOutput_aux;
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
@@ -1105,55 +1105,17 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
-    const Variable<Matrix >& rVariable,
-    std::vector< Matrix >& rOutput,
+    const Variable<ConstitutiveLaw::VoigtSizeMatrixType >& rVariable,
+    std::vector< ConstitutiveLaw::VoigtSizeMatrixType >& rOutput,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
-
     const IndexType integration_point_number = GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
 
     if ( rOutput.size() != integration_point_number )
         rOutput.resize( integration_point_number );
 
-    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
-        std::vector<Vector> stress_vector;
-        if( rVariable == CAUCHY_STRESS_TENSOR )
-            this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
-        else
-            this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
-
-        // Loop integration points
-        if ( rOutput.size() != stress_vector.size() )
-            rOutput.resize( stress_vector.size() );
-
-        for ( IndexType point_number = 0; point_number < rOutput.size(); ++point_number ) {
-            if (rOutput[point_number].size2() != 3)
-                rOutput[point_number].resize(3, 3, false);
-            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
-        }
-    }
-    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR || rVariable == HENCKY_STRAIN_TENSOR) {
-        std::vector<Vector> StrainVector;
-        if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-            CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
-        else if ( rVariable == ALMANSI_STRAIN_TENSOR )
-            CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
-        else if ( rVariable == HENCKY_STRAIN_TENSOR )
-            CalculateOnIntegrationPoints( HENCKY_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
-
-        // Loop integration points
-        if ( rOutput.size() != StrainVector.size() )
-            rOutput.resize( StrainVector.size() );
-
-        for ( IndexType point_number = 0; point_number < rOutput.size(); ++point_number ) {
-            if (rOutput[point_number].size2() != 3)
-                rOutput[point_number].resize(3, 3, false);
-
-            rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(StrainVector[point_number]);
-        }
-    } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
+    if ( rVariable == CONSTITUTIVE_MATRIX ) {
         // Create and initialize element variables:
         GeneralVariables general_variables;
         this->InitializeGeneralVariables(general_variables);
@@ -1197,6 +1159,61 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             }
             rOutput[point_number] = general_variables.ConstitutiveMatrix;
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::DeformationGradientMatrixType >& rVariable,
+    std::vector< ConstitutiveLaw::DeformationGradientMatrixType >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    const IndexType integration_point_number = GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
+
+    if ( rOutput.size() != integration_point_number )
+        rOutput.resize( integration_point_number );
+
+    if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> stress_vector;
+        if( rVariable == CAUCHY_STRESS_TENSOR )
+            this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
+        else
+            this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
+
+        // Loop integration points
+        if ( rOutput.size() != stress_vector.size() )
+            rOutput.resize( stress_vector.size() );
+
+        for ( IndexType point_number = 0; point_number < rOutput.size(); ++point_number ) {
+            if (rOutput[point_number].size2() != 3)
+                rOutput[point_number].resize(3, 3, false);
+            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+        }
+    }
+    else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR || rVariable == HENCKY_STRAIN_TENSOR) {
+        std::vector<ConstitutiveLaw::VoigtSizeVectorType> StrainVector;
+        if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+            CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+        else if ( rVariable == ALMANSI_STRAIN_TENSOR )
+            CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+        else if ( rVariable == HENCKY_STRAIN_TENSOR )
+            CalculateOnIntegrationPoints( HENCKY_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        // Loop integration points
+        if ( rOutput.size() != StrainVector.size() )
+            rOutput.resize( StrainVector.size() );
+
+        for ( IndexType point_number = 0; point_number < rOutput.size(); ++point_number ) {
+            if (rOutput[point_number].size2() != 3)
+                rOutput[point_number].resize(3, 3, false);
+
+            rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(StrainVector[point_number]);
+        }
     } else if ( rVariable == DEFORMATION_GRADIENT ) {
         // Create and initialize element variables:
         GeneralVariables general_variables;
@@ -1234,7 +1251,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
     }
 
     if ( rOutput.size() != 6 ) {
-        std::vector<Matrix> rOutput_aux;
+        std::vector<ConstitutiveLaw::DeformationGradientMatrixType> rOutput_aux;
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
@@ -3834,8 +3851,8 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     }
 
     // Compute R
-    Matrix R(3, 3);
-    Matrix U(3, 3);
+    ConstitutiveLaw::DeformationGradientMatrixType R;
+    ConstitutiveLaw::DeformationGradientMatrixType U;
     ConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
 
     /* Calculate F_bar */

@@ -199,7 +199,9 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
 
     //elemental data
-    Matrix stress = ScalarMatrix(2,2, 1.00);
+    ConstitutiveLaw::DeformationGradientMatrixType stress;
+    stress.resize(2,2);
+    noalias(stress) = ScalarMatrix(2,2, 1.00);
     main_model_part.GetMesh().GetElement(1).SetValue(CAUCHY_STRESS_TENSOR,stress);
     bool is_restarted = true;
     main_model_part.GetMesh().GetElement(1).SetValue(IS_RESTARTED,is_restarted);
