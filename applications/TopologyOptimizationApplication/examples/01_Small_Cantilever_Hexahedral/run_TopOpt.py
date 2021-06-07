@@ -24,7 +24,7 @@ solver = import_module(mod).CreateSolver(current_model, ProjectParameters["solve
 solver.AddVariables()
 solver.ImportModelPart()
 solver.AddDofs()
-model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 200.0e9)
+model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1)
 model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.4)
 model_part.GetProperties()[1].SetValue(km.DENSITY, 1.0)
 
@@ -73,25 +73,10 @@ def solve_structure(opt_itr):
     gid_output.ExecuteInitializeSolutionStep() 
 
     #solve problem
-    linear_solver = km.SkylineLUFactorizationSolver()
-    builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
-    scheme = km.ResidualBasedIncrementalUpdateStaticScheme()
-    compute_reactions = True
-    reform_step_dofs = True
-    calculate_norm_dx = False
-    move_mesh_flag = True
-
-    strategy = km.ResidualBasedLinearStrategy(
-        model_part,
-        scheme,
-        builder_and_solver,
-        compute_reactions,
-        reform_step_dofs,
-        calculate_norm_dx,
-        move_mesh_flag)
-
-    strategy.Solve()
-
+    solver.InitializeSolutionStep()
+    solver.SolveSolutionStep()
+    solver.FinalizeSolutionStep()
+    
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
     gid_output.ExecuteFinalizeSolutionStep()
