@@ -48,7 +48,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 1.0
         delta_time = mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
-        step =-buffer_size
+        step =-buffer_size + 1
         time = time - delta_time * buffer_size
         mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
         for i in range(0, buffer_size):
