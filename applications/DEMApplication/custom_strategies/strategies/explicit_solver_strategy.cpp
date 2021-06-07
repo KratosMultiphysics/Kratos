@@ -429,9 +429,11 @@ namespace Kratos {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
-            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
-            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
-            rigid_body_element.GetRigidBodyElementsForce(gravity);
+            if (rigid_body_element.GetGeometry()[0].Is(DEMFlags::COMPUTE_REACTIONS)) {
+                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
+                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
+                rigid_body_element.GetRigidBodyElementsForce(gravity);
+            }
 
         } // loop over rigid body elements
 
