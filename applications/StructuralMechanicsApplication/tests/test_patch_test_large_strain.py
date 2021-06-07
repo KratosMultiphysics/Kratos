@@ -757,32 +757,41 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         mp.CreateNewElement("UpdatedLagrangianElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
         mp.CreateNewElement("UpdatedLagrangianElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
 
-        A,b = self._define_movement(dim)
-
-        self._set_buffer(mp)
+        dt = self._set_buffer(mp)
 
         self._ResetDisplacementAndPosition(mp)
-        self._apply_BCs(bcs,A,b)
-        self._solve(mp, builder_and_type, linearize_on_old_iteration)
-        self._check_results(mp,A,b)
-        self._check_outputs(mp,A,dim)
-        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
-        #self.__post_process(mp)
+
+        step = mp.ProcessInfo[KratosMultiphysics.STEP]
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        end_time = 1.0
+        while time <= end_time:
+            A,b = self._define_movement(dim, step * 0.05)
+            self._apply_BCs(bcs,A,b)
+            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            self._check_results(mp,A,b)
+            self._check_outputs(mp,A,dim, 5.0e-3)
+            self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
+            #self.__post_process(mp)
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
 
     def test_UL_2D_triangle_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,13 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
 
     def test_UL_2D_triangle_linearized_on_old_iteration(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = True
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[2, 2])
 
     def test_UL_2D_triangle_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,13 )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
 
     def _UL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2
