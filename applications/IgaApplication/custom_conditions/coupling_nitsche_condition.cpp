@@ -23,46 +23,6 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
-    void CouplingNitscheCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        InitializeMaterial();
-
-        KRATOS_CATCH("")
-    }
-
-    void CouplingNitscheCondition::InitializeMaterial()
-    {
-        KRATOS_TRY
-
-        const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
-        const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
-        const Properties& r_properties = GetProperties();
-        const auto& r_N_master = r_geometry_master.ShapeFunctionsValues();
-        const auto& r_N_slave = r_geometry_slave.ShapeFunctionsValues();
-
-        const SizeType r_number_of_integration_points_master = r_geometry_master.IntegrationPointsNumber();
-        const SizeType r_number_of_integration_points_slave = r_geometry_slave.IntegrationPointsNumber();
-
-        //Constitutive Law initialisation
-        if (mConstitutiveLawVector_master.size() != r_number_of_integration_points_master)
-            mConstitutiveLawVector_master.resize(r_number_of_integration_points_master);
-        if (mConstitutiveLawVector_slave.size() != r_number_of_integration_points_slave)
-            mConstitutiveLawVector_slave.resize(r_number_of_integration_points_slave);
-
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector_master.size(); ++point_number) {
-            mConstitutiveLawVector_master[point_number] = GetProperties().GetSubProperties().front()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector_master[point_number]->InitializeMaterial(r_properties, r_geometry_master, row(r_N_master, point_number));
-        }
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector_slave.size(); ++point_number) {
-            mConstitutiveLawVector_slave[point_number] = GetProperties().GetSubProperties().back()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector_slave[point_number]->InitializeMaterial(r_properties, r_geometry_slave, row(r_N_slave, point_number));
-        }
-
-        KRATOS_CATCH("");
-    }
-
     void CouplingNitscheCondition::CalculateKinematics(
         IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables,
@@ -239,7 +199,10 @@ namespace Kratos
             rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector);    //this is an ouput parameter
             rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
-            mConstitutiveLawVector_master[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+            ConstitutiveLaw::Pointer constitutive_law_master = GetProperties().GetSubProperties().front()[CONSTITUTIVE_LAW];
+            constitutive_law_master->InitializeMaterial(GetProperties(), GetGeometry().GetGeometryPart(0), row(GetGeometry().GetGeometryPart(0).ShapeFunctionsValues(), IntegrationPointIndex));
+
+            constitutive_law_master->CalculateMaterialResponse(rValues, ThisStressMeasure);
             rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties().GetSubProperties().front()[THICKNESS];
         }
         else
@@ -252,7 +215,10 @@ namespace Kratos
             rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector);    //this is an ouput parameter
             rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
-            mConstitutiveLawVector_slave[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+            ConstitutiveLaw::Pointer constitutive_law_slave = GetProperties().GetSubProperties().back()[CONSTITUTIVE_LAW];
+            constitutive_law_slave->InitializeMaterial(GetProperties(), GetGeometry().GetGeometryPart(1), row(GetGeometry().GetGeometryPart(1).ShapeFunctionsValues(), IntegrationPointIndex));
+
+            constitutive_law_slave->CalculateMaterialResponse(rValues, ThisStressMeasure);
             rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties().GetSubProperties().back()[THICKNESS];
         }
 

@@ -276,8 +276,6 @@ public:
     ///@name Base Class Operations
     ///@{
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     void GetValuesVector(
         Vector& rValues,
         int Step = 0) const override;
@@ -344,16 +342,9 @@ private:
     std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base_master;
     std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base_slave;
 
-    /// The vector containing the constitutive laws for all integration points.
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector_master;
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector_slave;
-
     // The normal to the boundary vector
     std::vector<array_1d<double, 2>> m_n_contravariant_vector_master;
     std::vector<array_1d<double, 2>> m_n_contravariant_vector_slave;
-
-    /// Initialize Operations
-    void InitializeMaterial();
 
     void CalculateKinematics(
         IndexType IntegrationPointIndex,
@@ -454,8 +445,6 @@ private:
         rSerializer.save("T_vector_slave", m_T_vector_slave);
         rSerializer.save("reference_contravariant_base_master", m_reference_contravariant_base_master);
         rSerializer.save("reference_contravariant_base_slave", m_reference_contravariant_base_slave);
-        rSerializer.save("constitutive_law_vector_master", mConstitutiveLawVector_master);
-        rSerializer.save("constitutive_law_vector_slave", mConstitutiveLawVector_slave);
     }
 
     virtual void load(Serializer& rSerializer) override
@@ -469,8 +458,6 @@ private:
         rSerializer.load("T_vector_slave", m_T_vector_slave);
         rSerializer.load("reference_contravariant_base_master", m_reference_contravariant_base_master);
         rSerializer.load("reference_contravariant_base_slave", m_reference_contravariant_base_slave);
-        rSerializer.load("constitutive_law_vector_master", mConstitutiveLawVector_master);
-        rSerializer.load("constitutive_law_vector_slave", mConstitutiveLawVector_slave);
     }
 
     ///@}
