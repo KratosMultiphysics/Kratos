@@ -1746,7 +1746,7 @@ private:
             }
         }
 
-        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+        block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
             const IndexType equation_id = rDof.EquationId();
             if (equation_id < BuilderAndSolverBaseType::mEquationSystemSize ) {
                 residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
@@ -2107,7 +2107,7 @@ private:
 
             IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
                 auto it_dof = it_dof_begin + Index;
-                if (Index < BaseType::mEquationSystemSize) {
+                if (Index < BuilderAndSolverBaseType::mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
@@ -2277,7 +2277,7 @@ private:
 
             TSystemVectorType u(BaseType::mEquationSystemSize);
 
-            block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
                 const IndexType equation_id = rDof.EquationId();
                 if (equation_id < BuilderAndSolverBaseType::mEquationSystemSize ) {
                     u[equation_id] = rDof.GetSolutionStepValue() + Dx[equation_id];
