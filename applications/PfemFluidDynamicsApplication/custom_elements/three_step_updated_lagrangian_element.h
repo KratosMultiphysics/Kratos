@@ -201,7 +201,38 @@ namespace Kratos
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
-                              const ProcessInfo &rCurrentProcessInfo) override{};
+                              const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateFirstVelocitySystem(MatrixType &rLeftHandSideMatrix,
+                                      VectorType &rRightHandSideVector,
+                                      const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateLocalPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                      VectorType &rRightHandSideVector,
+                                      const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateLastVelocitySystem(MatrixType &rLeftHandSideMatrix,
+                                     VectorType &rRightHandSideVector,
+                                     const ProcessInfo &rCurrentProcessInfo);
+
+    void AddMomentumMassTerm(Matrix &rMassMatrix,
+                             const ShapeFunctionsType &rN,
+                             const double Weight);
+
+    void AddMomentumSystemTerms(Matrix &rLHSMatrix,
+                                Vector &rRHSVector,
+                                const double Density,
+                                const array_1d<double, 3> &rBodyForce,
+                                const double OldPressure,
+                                const ShapeFunctionsType &rN,
+                                const ShapeFunctionDerivativesType &rDN_DX,
+                                const double Weight);
+
+    void AddViscousTerm(MatrixType &rDampingMatrix,
+                        const ShapeFunctionDerivativesType &rShapeDeriv,
+                        const double Weight);
+
+    double ElementSize();
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                                const ProcessInfo &rCurrentProcessInfo) override
@@ -235,7 +266,7 @@ namespace Kratos
 
     virtual void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo) override{};
 
-    virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables) override {};
+    virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables) override{};
 
     ///@}
     ///@name Access
@@ -284,7 +315,6 @@ namespace Kratos
 
     ///@}
   protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -329,11 +359,6 @@ namespace Kratos
     void CalculateMassMatrix(Matrix &rMassMatrix,
                              const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void ComputeMassMatrix(Matrix &rMassMatrix,
-                           const ShapeFunctionsType &rN,
-                           const double Weight,
-                           double &MeanValue) override;
-
     void ComputeLumpedMassMatrix(Matrix &rMassMatrix,
                                  const double Weight,
                                  double &MeanValue) override;
@@ -343,27 +368,9 @@ namespace Kratos
                            const ShapeFunctionsType &rN,
                            const double Weight) override;
 
-    void AddInternalForces(Vector &rRHSVector,
-                           const ShapeFunctionDerivativesType &rDN_DX,
-                           ElementalVariables &rElementalVariables,
-                           const double Weight) override;
-
-    void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
-                               const double Weight) override;
-
-    void ComputeBulkMatrixConsistent(MatrixType &BulkMatrix,
-                                     const double Weight) override;
-
-    void ComputeBulkMatrix(MatrixType &BulkMatrix,
-                           const ShapeFunctionsType &rN,
-                           const double Weight) override;
-
-    virtual void ComputeBulkMatrixRHS(MatrixType &BulkMatrix,
-                                      const double Weight) override{};
-
     virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
                                                   unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                                  double &DeviatoricCoeff, double &VolumetricCoeff) override {};
+                                                  double &DeviatoricCoeff, double &VolumetricCoeff) override{};
 
     ///@}
     ///@name Protected  Access
