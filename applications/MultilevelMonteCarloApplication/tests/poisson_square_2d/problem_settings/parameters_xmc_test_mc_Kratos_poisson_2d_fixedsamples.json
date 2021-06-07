@@ -37,11 +37,10 @@
         "qoiPredictor": []
     },
     "randomGeneratorInputDictionary": {
-        "parameters": [0.25,1e-4],
-        "generator": "xmc.methodDefs_randomGeneratorWrapper.generator.returnStandardNormal"
+        "events": [[0.23],[0.24],[0.25],[0.26],[0.27]]
     },
     "samplerInputDictionary": {
-        "randomGenerator": "xmc.randomGeneratorWrapper.RandomGeneratorWrapper",
+        "randomGenerator": "xmc.randomGeneratorWrapper.EventDatabase",
         "solverWrapper": "xmc.classDefs_solverWrapper.KratosSolverWrapper.KratosSolverWrapper",
         "solverWrapperIndices": null
     },

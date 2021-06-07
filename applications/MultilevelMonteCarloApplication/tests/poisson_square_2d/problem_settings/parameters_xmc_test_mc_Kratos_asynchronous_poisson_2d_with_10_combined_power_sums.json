@@ -58,7 +58,7 @@
     },
     "solverWrapperInputDictionary": {
         "adaptiveRefinementJumpToFinestLevel": false,
-        "analysisStage": "applications.MultilevelMonteCarloApplication.tests.poisson_square_2d.simulation_definition.SimulationScenario",
+        "analysisStage": "tests.poisson_square_2d.simulation_definition.SimulationScenario",
         "asynchronous": true,
         "fakeRandomVariable": [2,6],
         "index": [],
