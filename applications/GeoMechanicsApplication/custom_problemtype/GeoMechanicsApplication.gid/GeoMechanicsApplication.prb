@@ -5,16 +5,16 @@ QUESTION: Domain_Size#CB#(2,3)
 VALUE: 2
 QUESTION: Start_Time
 VALUE: 0.0
-HELP: Units in IS: s
+HELP: Units in IS. It should be consistent with material parameters.
 QUESTION: End_Time
 VALUE: 1.0
-HELP: Units in IS: s
+HELP: Units in IS: It should be consistent with material parameters.
 QUESTION: Delta_Time
 VALUE: 0.25
-HELP: Units in IS: s
+HELP: Units in IS: It should be consistent with material parameters.
 QUESTION: Max_Delta_Time_Factor
 VALUE: 1000
-HELP: Determines the max allowed Delta Time by multiplying the initial Delta Time by this factor; Units in IS: - 
+HELP: Determines the max allowed Delta Time by multiplying the initial Delta Time by this factor. 
 QUESTION: Echo_Level
 VALUE: 1
 HELP: Echo level for logs on the screen.
