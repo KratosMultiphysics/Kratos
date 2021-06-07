@@ -56,6 +56,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             time = time + delta_time
             mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             mp.CloneTimeStep(time)
+        return delta_time
 
     def _ResetDisplacementAndPosition(self,mp):
         zero = KratosMultiphysics.Vector(3)
