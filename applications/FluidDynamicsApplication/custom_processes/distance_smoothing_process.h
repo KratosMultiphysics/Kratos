@@ -90,9 +90,10 @@ public:
     ///@{
 
     /// Constructor.
+    // Set AllConditionsAsBoundary = false if distance gradient should be imposed only on the conditiones priorly marked as CONTACT.
     DistanceSmoothingProcess(
         ModelPart& rModelPart,
-        typename TLinearSolver::Pointer p_linear_solver,
+        typename TLinearSolver::Pointer pLinearSolver,
         const bool AllConditionsAsBoundary = true)
         : Process(),
         mrModelPart(rModelPart),
@@ -104,7 +105,7 @@ public:
         // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
         CreateAuxModelPart();
 
-        auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(p_linear_solver);
+        auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
 
         CreateSolutionStrategy(p_builder_solver);
     }
@@ -112,7 +113,7 @@ public:
     /// Constructor.
     DistanceSmoothingProcess(
         ModelPart& rModelPart,
-        typename TLinearSolver::Pointer p_linear_solver,
+        typename TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver,
         const bool AllConditionsAsBoundary = true)
         : Process(),
@@ -134,7 +135,8 @@ public:
         Parameters Parameters)
         : DistanceSmoothingProcess(
         rModelPart,
-        LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(Parameters["linear_solver_settings"])
+        LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(Parameters["linear_solver_settings"]),
+        Parameters["all_conditions_as_boundaries"].GetBool()
     ){}
 
     /// Constructor with Kratos model
@@ -174,9 +176,6 @@ public:
 
         mp_solving_strategy->Solve();
 
-        auto &r_communicator = r_smoothing_model_part.GetCommunicator();
-        r_communicator.SynchronizeCurrentDataToMin(DISTANCE);
-
         block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
                 rNode.SetValue( DISTANCE, rNode.FastGetSolutionStepValue(DISTANCE)
                     - rNode.FastGetSolutionStepValue(DISTANCE, 1) ); // Corrected distance difference
@@ -185,7 +184,9 @@ public:
         auto& r_data_comm = r_smoothing_model_part.GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
 
-        for (int i_node = 0; i_node < static_cast<int>(r_smoothing_model_part.NumberOfNodes()); ++i_node){
+        const unsigned int num_nodes = r_smoothing_model_part.NumberOfNodes();
+
+        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node){
             auto it_node = r_smoothing_model_part.NodesBegin() + i_node;
             auto& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
@@ -219,6 +220,7 @@ public:
             }
         );
 
+        auto &r_communicator = r_smoothing_model_part.GetCommunicator();
         r_communicator.GetDataCommunicator().Barrier();
 
         block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
@@ -228,15 +230,16 @@ public:
             double dist_diff_avg = 0.0;
 
             GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
+            array_1d<double,3> dx;
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
-                const auto x_j = coordinate_proxy.Get(global_pointer);
 
                 if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
 
-                    const Vector dx = x_i - x_j;
+                    const auto x_j = coordinate_proxy.Get(global_pointer);
+                    dx = x_i - x_j;
 
                     const double distance_ij = norm_2(dx);
 
@@ -345,19 +348,19 @@ private:
         // Generate a linear solver strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
 
-        ModelPart& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
+        auto& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
-        const bool CalculateReactions = false;
-        const bool ReformDofAtEachIteration = false;
-        const bool CalculateNormDxFlag = false;
+        const bool calculate_reactions = false;
+        const bool reform_dof_at_each_iteration = false;
+        const bool calculate_norm_dx_flag = false;
 
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_smoothing_model_part,
             p_scheme,
             pBuilderAndSolver,
-            CalculateReactions,
-            ReformDofAtEachIteration,
-            CalculateNormDxFlag);
+            calculate_reactions,
+            reform_dof_at_each_iteration,
+            calculate_norm_dx_flag);
 
         mp_solving_strategy->Initialize();
         mp_solving_strategy->SetEchoLevel(0);
@@ -379,9 +382,9 @@ private:
         VariableUtils().AddDof<Variable<double> >(DISTANCE, mrModelPart);
 
         // Generate AuxModelPart
-        ModelPart& r_smoothing_model_part = mrModel.CreateModelPart( mAuxModelPartName );
+        auto& r_smoothing_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
-        Element::Pointer p_smoothing_element = Kratos::make_intrusive<DistanceSmoothingElement<TDim>>();
+        auto p_smoothing_element = Kratos::make_intrusive<DistanceSmoothingElement<TDim>>();
 
         r_smoothing_model_part.GetNodalSolutionStepVariablesList() = mrModelPart.GetNodalSolutionStepVariablesList();
 
@@ -394,17 +397,14 @@ private:
         FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_smoothing_model_part);
         nodal_neighbour_process_new.Execute();
 
-        const unsigned int num_dim = TDim;
-        const unsigned int num_neighbouring_elements = num_dim + 1;
+        const unsigned int num_neighbouring_elements = TDim + 1;
 
-        FindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part, num_dim, num_neighbouring_elements);
+        FindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part, TDim, num_neighbouring_elements);
         neighbour_elements_finder_new.Execute();
 
         if (mAllConditionsAsBoundary)
         {
-            block_for_each(r_smoothing_model_part.Conditions(), [&](Condition& rCondition){
-                rCondition.Set(CONTACT, true);
-            });
+            VariableUtils().SetFlag(CONTACT, true, r_smoothing_model_part.Conditions());
         }
 
         mAuxModelPartIsInitialized = true;
