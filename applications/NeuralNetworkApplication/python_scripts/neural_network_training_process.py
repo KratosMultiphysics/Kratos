@@ -35,50 +35,23 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
     def ExecuteBeforeTraining(self):
         # Input
         
-        # Data loading for h5
-        if self.input_file.endswith('.h5'):
-            self.test_input = DataLoadingUtilities.ImportH5(self.input_file, "InputData")
-        # Data loading for dat
-        elif self.input_file.endswith('.dat'):
-            self.test_input = DataLoadingUtilities.ImportAscii(self.input_file)
-        # Exception for non-supported formats
-        else:
-            raise Exception("Input data format not supported. Supported formats are .dat and .h5")
+        self.test_input = DataLoadingUtilities.ImportDataFromFile(self.input_file,"InputData")
 
         # Output
         
-        # Data loading for h5
-        if self.output_file.endswith('.h5'):
-            self.test_output = DataLoadingUtilities.ImportH5(self.output_file,"OutputData")
-  
-        # Data loading for dat
-        elif self.output_file.endswith('.dat'):
-            self.test_output = DataLoadingUtilities.ImportAscii(self.output_file)
-        # Exception for non-supported formats
-        else:
-            raise Exception("Output data format not supported. Supported formats are .dat and .h5")
+        self.test_output = DataLoadingUtilities.ImportDataFromFile(self.output_file,"OutputData")
+    
 
         # Validation files
         
         if self.validation:
-            # Data loading for h5
-            if self.val_input_file.endswith('.h5'):
-                self.val_input = DataLoadingUtilities.ImportH5(self.val_input_file, "InputData")
-            # Data loading for dat
-            elif self.val_input_file.endswith('.dat'):
-                self.val_input = DataLoadingUtilities.ImportAscii(self.val_input_file)
-            # Exception for non-supported formats
-            else:
-                raise Exception("Input validation data format not supported. Supported formats are .dat and .h5")
-            # Data loading for h5
-            if self.val_output_file.endswith('.h5'):
-                self.val_output = DataLoadingUtilities.ImportH5(self.val_output_file, "OutputData")
-            # Data loading for dat
-            elif self.val_output_file.endswith('.dat'):
-                self.val_output = DataLoadingUtilities.ImportAscii(self.val_output_file)
-            # Exception for non-supported formats
-            else:
-                raise Exception("Output validation data format not supported. Supported formats are .dat and .h5")
+            # Input
+        
+            self.val_test_input = DataLoadingUtilities.ImportDataFromFile(self.val_input_file,"InputData")
+
+            # Output
+            
+            self.val_test_output = DataLoadingUtilities.ImportDataFromFile(self.val_output_file,"OutputData")
 
         
 

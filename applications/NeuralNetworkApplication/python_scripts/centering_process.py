@@ -57,6 +57,24 @@ class CenteringProcess(PreprocessingProcess):
                 data_out = data_out - mean_out
                 output_log.update({"centering" : mean_out.tolist()})
 
+        # Centering from the minimum
+        if self.center == "min":
+            if self.objective == "input":
+                min = data_in.min(axis = 0)
+                data_in = data_in - min
+                input_log.update({"centering" : min.tolist()})
+            if self.objective == "output":
+                min = data_out.min(axis = 0)
+                data_out = data_out - min
+                output_log.update({"centering" : min.tolist()})
+            if self.objective == "all":
+                min = data_in.min(axis = 0)
+                data_in = data_in - min
+                input_log.update({"centering" : min.tolist()})
+                min = data_out.min(axis = 0)
+                data_out = data_out - min
+                output_log.update({"centering" : min.tolist()})
+
         # Centering from file log
         if self.center == "file":
             if self.objective == "input":

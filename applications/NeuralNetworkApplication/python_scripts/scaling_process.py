@@ -37,7 +37,7 @@ class ScalingProcess(PreprocessingProcess):
                     print("No logging.")
                     input_log = {}
                     output_log = {}
-        # Scaling from the mean
+        # Scaling from the standard deviation
         if self.scale == "std":
             if self.objective == "input":
                 std_in = np.std(data_in, axis = 0)
@@ -54,6 +54,24 @@ class ScalingProcess(PreprocessingProcess):
                 std_out = np.std(data_out, axis = 0)
                 data_out = data_out / std_out
                 output_log.update({"scaling" : std_out.tolist()})
+
+        # Scaling from the min-max
+        if self.scale == "minmax":
+            if self.objective == "input":
+                range = data_in.max(axis = 0) - data_in.min(axis = 0)
+                data_in = data_in/ range
+                input_log.update({"scaling" : range.tolist()})
+            if self.objective == "output":
+                range = data_out.max(axis = 0) - data_out.min(axis = 0)
+                data_out = data_out/ range
+                output_log.update({"scaling" : range.tolist()})
+            if self.objective == "all":
+                range = data_in.max(axis = 0) - data_in.min(axis = 0)
+                data_in = data_in/ range
+                input_log.update({"scaling" : range.tolist()})
+                range = data_out.max(axis = 0) - data_out.min(axis = 0)
+                data_out = data_out/ range
+                output_log.update({"scaling" : range.tolist()})
 
         # Scaling from file log
         if self.scale == "file":

@@ -11,6 +11,9 @@ def ImportDataFromFile(external_file,category):
     # Data loading for dat
     elif external_file.endswith('.dat'):
         data = ImportAscii(external_file)
+    # Data loading for npy
+    elif external_file.endswith('.npy'):
+        data = ImportNpy(external_file)
     # Exception for non-supported formats
     else:
         raise Exception(category + " data format not supported. Supported formats are .dat and .h5")
@@ -51,6 +54,10 @@ def ImportAscii(external_file):
         raw_splits.append(raw_splits_line)
     raw_splits = np.array(raw_splits)
     return raw_splits
+
+def ImportNpy(external_file):
+    "Import the data from a npy file."
+    return np.load(external_file)
 
 def ImportDictionaryFromText(external_file):
     "Import the data from a text file to a dictionary"
