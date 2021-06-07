@@ -2107,7 +2107,7 @@ private:
 
             IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
                 auto it_dof = it_dof_begin + Index;
-                if (Index < BaseType::mEquationSystemSize) {
+                if (Index < this->mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
