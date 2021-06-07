@@ -1748,7 +1748,7 @@ private:
 
         block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
             const IndexType equation_id = rDof.EquationId();
-            if (equation_id < BuilderAndSolverBaseType::mEquationSystemSize ) {
+            if (equation_id < BaseType::mEquationSystemSize ) {
                 residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
             }
         });
