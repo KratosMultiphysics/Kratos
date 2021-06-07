@@ -230,22 +230,48 @@ namespace Kratos
                                                                        const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
     SizeType FirstRow = 0;
 
+ 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
-
       // Build RHS
-      for (SizeType d = 0; d < TDim; ++d)
-      {
-        // Body force
-        double RHSi = Density * rN[i] * rBodyForce[d];
-        // Pressure gradient (integrated by parts)
-        RHSi += rDN_DX(i, d) * OldPressure;
 
-        rRHSVector[FirstRow + d] += Weight * RHSi;
+        for (SizeType d = 0; d < TDim; ++d)
+        {
+          // Body force
+          double RHSi = Density * rN[i] * rBodyForce[d];
+          // Pressure gradient (integrated by parts)
+          RHSi += rDN_DX(i, d) * OldPressure;
+          rRHSVector[FirstRow + d] += Weight * RHSi;
+        }
+      FirstRow += TDim;
+    }
+  }
+
+
+  template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector &rRHSVector,
+                                                                  const double Density,
+                                                                  const ShapeFunctionsType &rN,
+                                                                  const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    SizeType FirstRow = 0;
+
+    array_1d<double, 3> VolumeAcceleration(3, 0.0);
+    this->EvaluateInPoint(VolumeAcceleration, VOLUME_ACCELERATION, rN);
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+      if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
+      {
+        for (SizeType d = 0; d < TDim; ++d)
+        {
+          // Volume Acceleration
+          rRHSVector[FirstRow + d] += Weight * Density * rN[i] * VolumeAcceleration[d];
+        }
       }
+      FirstRow += TDim;
     }
   }
 
