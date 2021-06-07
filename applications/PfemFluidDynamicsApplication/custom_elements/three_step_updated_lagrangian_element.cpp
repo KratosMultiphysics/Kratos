@@ -232,7 +232,6 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     SizeType FirstRow = 0;
-    SizeType FirstCol = 0;
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
