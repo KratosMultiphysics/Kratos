@@ -73,24 +73,10 @@ def solve_structure(opt_itr):
     gid_output.ExecuteInitializeSolutionStep() 
 
     #solve problem
-    linear_solver = km.SkylineLUFactorizationSolver()
-    builder_and_solver = km.ResidualBasedBlockBuilderAndSolver(linear_solver)
-    scheme = km.ResidualBasedIncrementalUpdateStaticScheme()
-    compute_reactions = True
-    reform_step_dofs = True
-    calculate_norm_dx = False
-    move_mesh_flag = True
-
-    strategy = km.ResidualBasedLinearStrategy(
-        model_part,
-        scheme,
-        builder_and_solver,
-        compute_reactions,
-        reform_step_dofs,
-        calculate_norm_dx,
-        move_mesh_flag)
-
-    strategy.Solve()
+    #solve problem
+    solver.InitializeSolutionStep()
+    solver.SolveSolutionStep()
+    solver.FinalizeSolutionStep()
 
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
