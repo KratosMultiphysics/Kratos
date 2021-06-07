@@ -129,10 +129,6 @@ void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessI
 
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-    // Displacements vector
-    Vector displacements;
-    GetValuesVector(displacements);
-
     // Reading integration points
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         // Compute element kinematics B, F, DN_DX ...
