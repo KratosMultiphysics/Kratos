@@ -36,11 +36,7 @@
         "max_iteration": 100,
         "solver_type": "static",
         "linear_solver_settings": {
-            "solver_type": "amgcl",
-            "max_iteration": 500,
-            "tolerance": 1E-09,
-            "scaling": false,
-            "verbosity": 1
+            "solver_type": "LinearSolversApplication.sparse_qr"
         },
         "auxiliary_variables_list": [],
         "auxiliary_dofs_list": [],
