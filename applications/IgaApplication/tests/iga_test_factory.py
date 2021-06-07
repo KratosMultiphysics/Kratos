@@ -86,5 +86,8 @@ class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
 class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
 
+class TwoPatchRefinedCouplingNitscheMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_nitsche_membrane"
+
 if __name__ == '__main__':
     KratosUnittest.main()

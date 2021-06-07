@@ -27,6 +27,7 @@ from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCoup
 from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCouplingNitscheShell3pTest
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
+from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPatchRefinedCouplingNitscheMembraneTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -64,7 +65,8 @@ def AssembleTestSuites():
         TwoPatchCouplingLagrangeShell3pTest,
         TwoPatchCouplingNitscheShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest
+        TwoPatchRefinedCouplingLagrangeMembraneTest,
+        TwoPatchRefinedCouplingNitscheMembraneTest
         ]))
 
     nightSuite = suites['nightly']
