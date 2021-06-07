@@ -120,27 +120,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template< class TElementData >
-void AlternativeDVMSDEMCoupled<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-
-    if (rValues.size() != LocalSize)
-        rValues.resize(LocalSize,false);
-
-    unsigned int Index = 0;
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        const auto& r_fluid_fraction = r_geometry[i].FastGetSolutionStepValue(FLUID_FRACTION);
-        const array_1d<double,3>& r_velocities = r_geometry[i].FastGetSolutionStepValue(VELOCITY,Step);
-
-        for (unsigned int d = 0; d < Dim; d++)
-            rValues[Index++] = r_fluid_fraction * r_velocities[d];
-        rValues[Index++] = r_geometry[i].FastGetSolutionStepValue(PRESSURE,Step);
-    }
-}
-
 template <class TElementData>
 void AlternativeDVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -240,7 +219,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
             }
-            rResidual[d] += density * ( rData.N[i] * (r_body_forces(i,d)) -  fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i]*r_velocities(i,d)) -  fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -284,6 +263,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
 {
     auto& LHS = rData.LHS;
     LHS.clear();
+
+    BoundedMatrix<double,LocalSize,LocalSize> v_stress = ZeroMatrix(LocalSize,LocalSize);
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
@@ -342,50 +323,60 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
             for (unsigned int d = 0; d < Dim; d++) {
                 // Stabilization: u*grad(v) * TauOne * u*grad(u) - vh * TauOne/Dt u*grad(u)
                 // The last term comes from vh*d(u_ss)/dt
-                double AA = AGradN[i] * std::pow(fluid_fraction, 2) * tau_one(d,d) * AGradN[j];
+                double AA = tau_one(d,d) * AGradN[i] * std::pow(fluid_fraction, 2) * AGradN[j];
 
                 double A = tau_one(d,d) * density * std::pow(fluid_fraction, 2) * rData.N[i]/dt * AGradN[j];
 
-                LHS(row+d,col+d) += rData.Weight * (V + AA - A);
+                double GBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * rData.N[i] / dt * rData.DN_DX(j,d) * fluid_fraction_gradient[d];
+                double AGBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,d) * fluid_fraction_gradient[d]);
+                double GBetaADiag = 2.0 /3.0 * kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[d] * rData.DN_DX(i,d);
+
+                LHS(row+d,col+d) += rData.Weight * (V + AA - A + GBetaDiag - AGBetaDiag + GBetaADiag);
                 // Galerkin pressure term: Div(v) * p
-                double P = rData.DN_DX(i,d) * rData.N[j];
+                double P = fluid_fraction * rData.DN_DX(i,d) * rData.N[j];
 
                 double QD = fluid_fraction * rData.DN_DX(j,d) * rData.N[i];
 
-                double U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
+                double GP = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
+
+                double GD = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
 
                 /* q-p stabilization block */
                 // Stabilization: Grad(q) * TauOne * Grad(p)
-                G += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
+                G += tau_one(d,d) * fluid_fraction * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
                 /* v-u block */
                 // Stabilization: Div(v) * TauTwo * Div(u)
                 double GR = 0.0;
                 double RSigmaG = 0.0;
                 double GG = 0.0;
                 double DG = 0.0;
-                double GA = tau_one(d,d) * AGradN[j] * fluid_fraction * rData.DN_DX(i,d);
+                double GGBeta = 0.0;
+                double GDBeta = 0.0;
+                double GA = tau_one(d,d) * fluid_fraction * fluid_fraction * rData.DN_DX(i,d) * AGradN[j];
                 // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
+                double AG = fluid_fraction * fluid_fraction * tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
                 // From vh*d(u_ss)/dt: vh * TauOne/Dt * Grad(p)
-                double VP = tau_one(d,d) * density * rData.N[i] / dt * rData.DN_DX(j,d);
+                double VP = tau_one(d,d) * density * rData.N[i] / dt * rData.DN_DX(j,d) * fluid_fraction * fluid_fraction;
                 for (unsigned int e = 0; e < Dim; e++){
+                    double GBetaGDiag = tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * rData.DN_DX(i,d) * (rData.DN_DX(j,e) * fluid_fraction_gradient[e]);
+                    GGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * (rData.DN_DX(i,e) * rData.DN_DX(j,e) * fluid_fraction_gradient[d]);
+                    GGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * (rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.DN_DX(j,e));
+                    GDBeta += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[e] * rData.DN_DX(i,e) * rData.DN_DX(j,d);
                     double RSigma = rData.N[i] * sigma(d,e) * rData.N[j];
                     double VSigma = tau_one(d,d) * fluid_fraction * density/dt * rData.N[i] * rData.N[j] * sigma(d,e);
                     double ASigma = tau_one(d,d) * AGradN[i] * sigma(d,e) * rData.N[j] * fluid_fraction;
                     double ADBeta = 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
                     double RRSigma = tau_one(d,d) * sigma(d,e) * rData.N[i] * sigma(e,d) * rData.N[j];
                     double RSigmaA = tau_one(d,d) * fluid_fraction * sigma(d,e) * rData.N[i] * AGradN[j];
-                    //double DDV = 2.0 / 3.0 * fluid_fraction * kin_viscosity * rData.DN_DX(i,d) * rData.DN_DX(j,e);
-                    double DD = fluid_fraction * tau_two * rData.DN_DX(i,d) * rData.DN_DX(j,e);
-                    double DU = fluid_fraction_gradient[e] * tau_two * rData.DN_DX(i,d) * rData.N[j];
+                    double DD = tau_two * fluid_fraction * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,e);
+                    double DU = tau_two * fluid_fraction * fluid_fraction_gradient[e] * rData.DN_DX(i,d) * rData.N[j];
                     double DBeta = 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * rData.N[i] / dt * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
-                    double DBetaA = 2.0 /3.0 * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[e] * rData.DN_DX(i,d);
+                    double DBetaA = 2.0 /3.0 * kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[e] * rData.DN_DX(i,d);
                     double GU = tau_two * rData.N[j] * rData.N[i] * fluid_fraction_gradient[d] * fluid_fraction_gradient[e];
-                    double GD = tau_two * rData.N[i] * fluid_fraction_gradient[d] * rData.DN_DX(i,e);
+                    double GD = tau_two * fluid_fraction * rData.N[i] * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
                     double GBeta = tau_one(d,d) * fluid_fraction * kin_viscosity * rData.N[i] / dt * (rData.DN_DX(j,d) * fluid_fraction_gradient[e]);
                     double AGBeta = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,d) * fluid_fraction_gradient[e]);
                     double GBetaA = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[j] * rData.DN_DX(i,e) * fluid_fraction_gradient[d];
-                    double GS = fluid_fraction * kin_viscosity * rData.DN_DX(i,e) * rData.DN_DX(j,d);
                     double GBetaG = 0.0;
                     double GBetaD = 0.0;
                     double GBetaSigma = 0.0;
@@ -394,70 +385,38 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
                     double DBetaSigma = 0.0;
                     double RGBeta = 0.0;
                     double RDBeta = 0.0;
-                    double GGBeta = 0.0;
-                    double GDBeta = 0.0;
-                    if (d == e){
-                        for (unsigned int f = 0; f < Dim; f++){
-                            GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(i,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e]);
-                            GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
-                            DBetaD += 4.0 / 9.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[f] * fluid_fraction_gradient[f] * rData.DN_DX(i,d) * rData.DN_DX(j,e);
-                            DBetaSigma += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.DN_DX(i,d) * rData.N[j] * fluid_fraction_gradient[f] * sigma(f,e);
-                            RDBeta += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.N[i] * sigma(d,f) * fluid_fraction_gradient[f] * rData.DN_DX(j,e);
-                            GGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * (rData.DN_DX(i,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e]);
-                            GDBeta += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[f] * rData.DN_DX(i,f) * rData.DN_DX(j,e);
-                            GG += tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[d] * rData.DN_DX(i,f) * rData.DN_DX(j,f);
-                            DG += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[f] * rData.DN_DX(i,d) * rData.DN_DX(j,f);
-                            for (unsigned int g = 0; g < Dim; g++){
-                                GS += fluid_fraction * kin_viscosity * rData.DN_DX(j,g) * rData.DN_DX(i,g);
-                                GBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * rData.N[i] / dt * rData.DN_DX(j,g) * fluid_fraction_gradient[g];
-                                GBetaA += tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[j] * rData.DN_DX(i,g) * fluid_fraction_gradient[g];
-                                GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[g] * rData.DN_DX(i,g) * (rData.DN_DX(j,d) * fluid_fraction_gradient[e]);
-                                GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[g] * rData.DN_DX(i,g)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
-                                GBetaSigma += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[g] * rData.DN_DX(i,f) * sigma(f,e) + fluid_fraction_gradient[g] * rData.DN_DX(i,g) * sigma(d,f));
-                                DBetaG += 4.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * rData.DN_DX(i,d) * fluid_fraction_gradient[g] * rData.DN_DX(j,g) * fluid_fraction_gradient[e];
-                                GGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * (rData.DN_DX(i,e) * fluid_fraction_gradient[g] * rData.DN_DX(j,g));
-                                GG += tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[g] * rData.DN_DX(i,g) * rData.DN_DX(j,d);
-                                for(unsigned int h = 0; h < Dim; h++){
-                                    AGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,h) * fluid_fraction_gradient[h]);
-                                    GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(i,d) * fluid_fraction_gradient[h] * rData.DN_DX(j,h));
-                                    GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[g] * rData.DN_DX(i,g) * (rData.DN_DX(j,h) * fluid_fraction_gradient[h]);
-                                    RGBeta += tau_one(d,d) * kin_viscosity * (rData.N[d] * sigma(d,f) * rData.DN_DX(i,f) * fluid_fraction_gradient[e] + rData.N[d] * fluid_fraction_gradient[h] * rData.DN_DX(i,h) * sigma(d,e));
-                                    }
-                            }
-                        }
-                    }else{
-                        for (unsigned int f = 0; f < Dim; f++){
-                            GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(i,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e]);
-                            GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
-                            DBetaD += (4.0 /9.0) * tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[f] * fluid_fraction_gradient[f] * rData.DN_DX(i,d) * rData.DN_DX(j,e);
-                            RDBeta += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.N[i] * sigma(d,f) * fluid_fraction_gradient[f] * rData.DN_DX(j,e);
-                            GGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * (rData.DN_DX(i,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e]);
-                            GDBeta += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[f] * rData.DN_DX(i,f) * rData.DN_DX(j,e);
-                            GG += tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[d] * rData.DN_DX(i,f) * rData.DN_DX(j,f);
-                            DG += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[f] * rData.DN_DX(i,d) * rData.DN_DX(j,f);
-                            for (unsigned int g = 0; g < Dim; g++){
-                                GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[g] * rData.DN_DX(i,g) * (rData.DN_DX(j,d) * fluid_fraction_gradient[e]);
-                                GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[g] * rData.DN_DX(i,g)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
-                                GBetaSigma += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[g] * rData.DN_DX(i,f) * sigma(f,e) + fluid_fraction_gradient[g] * rData.DN_DX(i,g) * sigma(d,f));
-                                DBetaG += 4.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * rData.DN_DX(i,d) * fluid_fraction_gradient[g] * rData.DN_DX(j,g) * fluid_fraction_gradient[e];
-                                DBetaSigma += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.DN_DX(i,d) * rData.N[j] * fluid_fraction_gradient[f] * sigma(f,e);
-                                GGBeta += tau_one(d,d) * fluid_fraction * kin_viscosity * (rData.DN_DX(i,e) * fluid_fraction_gradient[g] * rData.DN_DX(j,g));
-                                GG += tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[g] * rData.DN_DX(i,g) * rData.DN_DX(j,d);
-                                for(unsigned int h = 0; h < Dim; h++){
-                                    GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(i,d) * fluid_fraction_gradient[h] * rData.DN_DX(j,h));
-                                    RGBeta += tau_one(d,d) * kin_viscosity * (rData.N[d] * sigma(d,f) * rData.DN_DX(i,f) * fluid_fraction_gradient[e] + rData.N[d] * fluid_fraction_gradient[h] * rData.DN_DX(i,h) * sigma(d,e));
-                                    }
-                            }
+                    GG += tau_one(d,d) * fluid_fraction * kin_viscosity * (fluid_fraction_gradient[d] * rData.DN_DX(i,e) * rData.DN_DX(j,e) + fluid_fraction_gradient[e] * rData.DN_DX(i,e) * rData.DN_DX(j,d));
+                    DG += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * rData.DN_DX(j,e);
+                    for (unsigned int f = 0; f < Dim; f++){
+                        GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(i,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e]);
+                        GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(j,f) * rData.DN_DX(i,e) * fluid_fraction_gradient[f]);
+                        GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[f] * rData.DN_DX(i,f) * (rData.DN_DX(j,d) * fluid_fraction_gradient[e]);
+                        GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
+                        GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
+                        DBetaG += 4.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * rData.DN_DX(i,d) * fluid_fraction_gradient[f] * rData.DN_DX(j,f) * fluid_fraction_gradient[e];
+                        DBetaD += 4.0 / 9.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[f] * fluid_fraction_gradient[f] * rData.DN_DX(i,d) * rData.DN_DX(j,e);
+                        DBetaSigma += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.DN_DX(i,d) * rData.N[j] * fluid_fraction_gradient[f] * sigma(f,e);
+                        RDBeta += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.N[i] * sigma(d,f) * fluid_fraction_gradient[f] * rData.DN_DX(j,e);
+                        for (unsigned int g = 0; g < Dim; g++){
+                            GBetaSigma += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[g] * rData.DN_DX(i,f) * sigma(f,e) + fluid_fraction_gradient[g] * rData.DN_DX(i,g) * sigma(d,f));
+                            for(unsigned int h = 0; h < Dim; h++){
+                                RGBeta += tau_one(d,d) * kin_viscosity * (rData.N[d] * sigma(d,f) * rData.DN_DX(i,f) * fluid_fraction_gradient[e] + rData.N[d] * fluid_fraction_gradient[h] * rData.DN_DX(i,h) * sigma(d,e));
+                                }
                         }
                     }
+
+                    //v_stress(row+d,col+e) += rData.Weight * (GS - DDV);
                     GR += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * sigma(d,e) * rData.N[j];
                     RSigmaG += tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.DN_DX(j,e);
-                    LHS(row+d,col+e) += rData.Weight * (/*GS +*/ DD /*- DDV */+ DU - DBeta + GU + GD + GBeta + GBetaA - GBetaG + GBetaD + GBetaSigma - DBetaA + DBetaG - DBetaD - AGBeta - ADBeta - DBetaSigma + RGBeta - RDBeta - GGBeta + GDBeta + RSigma - VSigma + ASigma - RRSigma - RSigmaA);
+                    LHS(row+d,col+e) += rData.Weight * (GBeta - DBeta + DD + DU + GU + GD + GBetaA - GBetaG + GBetaD + GBetaSigma - DBetaA + DBetaG - DBetaD - AGBeta + ADBeta - DBetaSigma + RGBeta - RDBeta  + RSigma - VSigma + ASigma - RRSigma - RSigmaA);
+                    if (d == e){
+                        LHS(row+d,col+e) -= rData.Weight * (GBetaGDiag);
+                    }
                 }
 
-                LHS(row+Dim,col+d) += rData.Weight * (GA + U + QD + GR);
+                LHS(row+Dim,col+d) += rData.Weight * (GA + QD + GR - GGBeta + GDBeta + GD);
 
-                LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P - RSigmaG + GG - DG);
+                LHS(row+d,col+Dim) += rData.Weight * (AG - VP - P - GP - RSigmaG + GG - DG);
 
             }
 
@@ -470,30 +429,31 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
         for (unsigned int d = 0; d < Dim; ++d)
         {
             // v*BodyForce + v * du_ss/dt
-            double VF = rData.N[i] * (body_force[d] + OldUssTerm[d]);
+            double VF = rData.N[i] * (body_force[d] + fluid_fraction * OldUssTerm[d]);
             // ( a * Grad(v) ) * TauOne * (Density * BodyForce - Projection)
             // vh * TauOne/Dt * f (from vh*d(uss)/dt
-            double VI = tau_one(d,d) * density * rData.N[i] / dt * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
-            double AF = tau_one(d,d) * AGradN[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+            double VI = tau_one(d,d) * density * fluid_fraction * rData.N[i] / dt * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+            double AF = tau_one(d,d) * fluid_fraction * AGradN[i] * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
             double RSigmaF = 0.0;
             double GBetaF = 0.0;
             double DBetaF = 0.0;
             for (unsigned int e = 0; e < Dim; ++e){
                 RSigmaF += tau_one(d,d) * sigma(d,e) * rData.N[i] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
-                DBetaF = 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
-                GBetaF += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[d] * rData.DN_DX(i,e)) * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+                DBetaF += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.DN_DX(i,d) * fluid_fraction_gradient[e] * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
+                GBetaF += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[d] * rData.DN_DX(i,e)) * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
                 for (unsigned int f = 0; f < Dim; ++f){
-                    GBetaF += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+                    GBetaF += tau_one(d,d) * kin_viscosity * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * (body_force[e] - MomentumProj[e] + OldUssTerm[e]);
                 }
             }
             // Grad(q) * TauOne * (Density * BodyForce - Projection)
             QAlphaF += tau_one(d,d) * rData.DN_DX(i,d) * fluid_fraction * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+            double VPhi = tau_two * rData.N[i] * fluid_fraction_gradient[d] * (mass_source - fluid_fraction_rate - MassProj);
             // OSS pressure subscale projection
-            double DPhi = rData.DN_DX(i,d) * tau_two * (mass_source - fluid_fraction_rate - MassProj);
-            rLocalRHS[row+d] += rData.Weight * (VF - VI + AF + DPhi - RSigmaF + GBetaF - DBetaF);
+            double DPhi = rData.DN_DX(i,d) * tau_two * fluid_fraction * (mass_source - fluid_fraction_rate - MassProj);
+            rLocalRHS[row+d] += rData.Weight * (VF - VI + AF + DPhi - RSigmaF + GBetaF - DBetaF + VPhi) /*- v_stress(row+d,row+d)*/;
         }
         double Q = rData.N[i] * (mass_source - fluid_fraction_rate);
-        rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q); // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q) /*- v_stress(row+0,row+1)*/; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
@@ -507,7 +467,38 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
      */
     this->AddViscousTerm(rData,LHS,rLocalRHS);
 
-    noalias(rLocalLHS) += LHS;
+    noalias(rLocalLHS) += LHS /*+ v_stress*/;
+}
+
+template< class TElementData >
+void AlternativeDVMSDEMCoupled<TElementData>::AddMassLHS(
+    TElementData& rData,
+    MatrixType &rMassMatrix)
+{
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        unsigned int row = i*BlockSize;
+        for (unsigned int j = 0; j < NumNodes; j++)
+        {
+            unsigned int col = j*BlockSize;
+            const double Mij = rData.Weight * density * fluid_fraction * rData.N[i] * rData.N[j];
+            for (unsigned int d = 0; d < Dim; d++)
+                rMassMatrix(row+d,col+d) += Mij;
+        }
+    }
+
+    /* Note on OSS and full projection: Riccardo says that adding the terms provided by
+     * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
+     * could help reduce the non-linearity of the coupling between projection and u,p
+     * However, leaving them on gives a lot of trouble whith the Bossak scheme:
+     * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
+     * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
+     */
+    if ( rData.UseOSS != 1.0 )
+        this->AddMassStabilization(rData,rMassMatrix);
 }
 
 template<class TElementData>
@@ -577,25 +568,20 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddMassStabilization(
             for (unsigned int d = 0; d < Dim; d++)
             {
                 // grad(q) * TauOne * du/dt
-                double UGAlpha = tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.N[j];
+                double UGAlpha = tau_one(d,d) * fluid_fraction * fluid_fraction * rData.DN_DX(i,d) * rData.N[j];
                 // u*grad(v) * TauOne * du/dt
                 // v * TauOne/dt * du/dt (from v*d(uss)/dt)
-                double AU = tau_one(d,d) * AGradN[i] * rData.N[j];
-                double IU = tau_one(d,d) * std::pow(fluid_fraction,2) * rData.N[i]/dt * rData.N[j];
+                double AU = tau_one(d,d) * fluid_fraction * fluid_fraction * AGradN[i] * rData.N[j];
+                double IU = tau_one(d,d) * std::pow(fluid_fraction, 2) * rData.N[i]/dt * rData.N[j];
+                double GBetaUDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * (fluid_fraction_gradient[d] * rData.DN_DX(i,d)) * rData.N[j];
                 for (unsigned int e = 0; e < Dim; ++e){
                     double RSigmaU = tau_one(d,d) * sigma(d,e) * rData.N[i] * rData.N[j];
                     double DBetaU = 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * kin_viscosity * rData.DN_DX(i,d) * rData.N[j] * fluid_fraction_gradient[e];
                     double GBetaU = tau_one(d,d) * fluid_fraction * kin_viscosity * (fluid_fraction_gradient[d] * rData.DN_DX(i,e)) * rData.N[j];
-                    if (d == e){
-                        for (unsigned int f = 0; f < Dim; ++f){
-                            for (unsigned int g = 0; g < Dim; ++g){
-                                GBetaU += tau_one(d,d) * fluid_fraction * kin_viscosity * (fluid_fraction_gradient[g] * rData.DN_DX(i,g)) * rData.N[j];
-                            }
-                        }
-                    }
+
                     rMassMatrix(row+d, col+e) += W * (GBetaU - RSigmaU - DBetaU);
                 }
-                rMassMatrix(row+d,col+d) += W * (AU - IU);
+                rMassMatrix(row+d,col+d) += W * (AU - IU + GBetaUDiag);
                 rMassMatrix(row+Dim,col+d) += W * UGAlpha;
             }
         }
@@ -616,10 +602,10 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddViscousTerm(
     BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
     // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
-    strain_matrix *= fluid_fraction * rData.Weight;
+    strain_matrix *= rData.Weight;
 
-    noalias(rLHS) += prod(trans(strain_matrix),shear_stress_matrix);
-    noalias(rRHS) -= prod(trans(strain_matrix),rData.ShearStress);
+    noalias(rLHS) += prod(trans(strain_matrix), fluid_fraction * shear_stress_matrix);
+    noalias(rRHS) -= prod(trans(strain_matrix), fluid_fraction * rData.ShearStress);
 }
 
 template< class TElementData >

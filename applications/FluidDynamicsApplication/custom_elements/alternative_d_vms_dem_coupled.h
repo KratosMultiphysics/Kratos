@@ -173,8 +173,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
-
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
@@ -242,6 +240,10 @@ protected:
         VectorType& rLocalRHS) override;
 
     // Implementation details of AlternativeDVMSDEMCoupled /////////////////////////////////////////
+
+    void AddMassLHS(
+        TElementData& rData,
+        MatrixType& rMassMatrix) override;
 
     void AddMassStabilization(
         TElementData& rData,
