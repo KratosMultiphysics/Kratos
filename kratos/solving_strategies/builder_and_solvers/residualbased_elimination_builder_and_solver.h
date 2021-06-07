@@ -700,28 +700,27 @@ public:
             dofs_aux_list[i].reserve(nelements);
         }
 
-        #pragma omp parallel for firstprivate(nelements, elemental_dof_list)
-        for (int i = 0; i < static_cast<int>(nelements); ++i) {
-            auto it_elem = r_elements_array.begin() + i;
+        IndexPartition<std::size_t>(nelements).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
+            auto it_elem = r_elements_array.begin() + Index;
             const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
             // Gets list of Dof involved on every element
-            pScheme->GetDofList(*it_elem, elemental_dof_list, r_current_process_info);
+            pScheme->GetDofList(*it_elem, tls_elemental_dof_list, r_current_process_info);
 
-            dofs_aux_list[this_thread_id].insert(elemental_dof_list.begin(), elemental_dof_list.end());
-        }
+            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
+        });
 
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
         const int nconditions = static_cast<int>(r_conditions_array.size());
-        #pragma omp parallel for firstprivate(nconditions, elemental_dof_list)
-        for (int i = 0; i < nconditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+
+        IndexPartition<std::size_t>(nconditions).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
+            auto it_cond = r_conditions_array.begin() + Index;
             const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
             // Gets list of Dof involved on every element
-            pScheme->GetDofList(*it_cond, elemental_dof_list, r_current_process_info);
-            dofs_aux_list[this_thread_id].insert(elemental_dof_list.begin(), elemental_dof_list.end());
-        }
+            pScheme->GetDofList(*it_cond, tls_elemental_dof_list, r_current_process_info);
+            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
+        });
 
         // Here we do a reduction in a tree so to have everything on thread 0
         SizeType old_max = nthreads;
