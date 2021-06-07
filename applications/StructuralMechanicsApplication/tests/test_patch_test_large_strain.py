@@ -184,7 +184,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             self.assertAlmostEqual(d[1], u[1])
             self.assertAlmostEqual(d[2], u[2])
 
-    def _check_outputs(self,mp,A,dim):
+    def _check_outputs(self,mp,A,dim, tolerance = 1.0e-4):
 
         E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
@@ -232,7 +232,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertTrue((abs((reference_strain[i] - strain[i])/strain[i]) < 1.0e-4))
+                    check = abs((reference_strain[i] - strain[i])/strain[i])
+                    #print(reference_strain, "\t", strain, "\t", check)
+                    self.assertLess(check, tolerance)
 
         #finally compute stress
         if(dim == 2):
@@ -261,7 +263,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertTrue((abs((reference_stress[i] - stress[i])/stress[i]) < 1.0e-4))
+                    check = abs((reference_stress[i] - stress[i])/stress[i])
+                    #print(reference_stress, "\t", stress, "\t", check)
+                    self.assertLess(check, tolerance)
 
     def _compare_TL_UL_2D_triangle(self, builder_and_type, linearize_on_old_iteration):
         dim = 2
