@@ -91,32 +91,32 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
-    def _define_movement(self,dim):
+    def _define_movement(self,dim, coeff = 1.0):
         if(dim == 2):
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
-            A[0,0] =   0.10;  A[0,1] = 0.12; A[0,2] = 0.0
-            A[1,0] = - 0.05;  A[1,1] = 0.07; A[1,2] = 0.0
-            A[2,0] =   0.00;  A[2,1] = 0.0;  A[2,2] = 0.0
+            A[0,0] = coeff *   0.10;  A[0,1] = coeff * 0.12; A[0,2] = coeff * 0.0
+            A[1,0] = coeff * - 0.05;  A[1,1] = coeff * 0.07; A[1,2] = coeff * 0.0
+            A[2,0] = coeff *   0.00;  A[2,1] = coeff * 0.0;  A[2,2] = coeff * 0.0
 
             b = KratosMultiphysics.Vector(3)
-            b[0] =  0.05
-            b[1] = -0.02
-            b[2] =  0.00
+            b[0] = coeff *  0.05
+            b[1] = coeff * -0.02
+            b[2] = coeff *  0.00
 
         else:
             #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
             #so that the displcement is linear and the exact F = I + A
             A = KratosMultiphysics.Matrix(3,3)
-            A[0,0] =   0.10; A[0,1] = 0.12; A[0,2] = 0.0
-            A[1,0] = - 0.05; A[1,1] = 0.07; A[1,2] = 0.1
-            A[2,0] = - 0.02; A[2,1] = 0.0;  A[2,2] = -0.3
+            A[0,0] = coeff *   0.10; A[0,1] = coeff * 0.12; A[0,2] = coeff *  0.0
+            A[1,0] = coeff * - 0.05; A[1,1] = coeff * 0.07; A[1,2] = coeff *  0.1
+            A[2,0] = coeff * - 0.02; A[2,1] = coeff * 0.0;  A[2,2] = coeff * -0.3
 
             b = KratosMultiphysics.Vector(3)
-            b[0] =  0.05
-            b[1] = -0.02
-            b[2] =  0.07
+            b[0] = coeff *   0.05
+            b[1] = coeff * - 0.02
+            b[2] = coeff *   0.07
 
         return A,b
 
