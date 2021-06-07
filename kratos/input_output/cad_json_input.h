@@ -356,10 +356,12 @@ private:
             SizeType EchoLevel = 0)
     {
         if (rParameters.Has("embedded_edges")) {
-            BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
-                rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
+            if (rParameters["embedded_edges"].size() > 0) {
+                BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
+                    rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
 
-            pBrepSurface->AddEmbeddedEdges(embedded_edges);
+                pBrepSurface->AddEmbeddedEdges(embedded_edges);
+            }
         }
     }
 
