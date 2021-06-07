@@ -1109,10 +1109,9 @@ protected:
 
         std::vector<std::unordered_set<IndexType> > indices(equation_size);
 
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
-            indices[iii].reserve(40);
-        }
+        block_for_each(indices, [](std::unordered_set<IndexType>& rIndices){
+            rIndices.reserve(40);
+        });
 
         Element::EquationIdVectorType ids(3, 0);
 
