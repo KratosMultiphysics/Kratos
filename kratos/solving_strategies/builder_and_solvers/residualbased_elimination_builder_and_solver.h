@@ -726,13 +726,12 @@ public:
         SizeType old_max = nthreads;
         SizeType new_max = ceil(0.5*static_cast<double>(old_max));
         while (new_max >= 1 && new_max != old_max) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                if (i + new_max < old_max) {
-                    dofs_aux_list[i].insert(dofs_aux_list[i + new_max].begin(), dofs_aux_list[i + new_max].end());
-                    dofs_aux_list[i + new_max].clear();
+            IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
+                if (Index + new_max < old_max) {
+                    dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
+                    dofs_aux_list[Index + new_max].clear();
                 }
-            }
+            });
 
             old_max = new_max;
             new_max = ceil(0.5*static_cast<double>(old_max));
@@ -1198,19 +1197,18 @@ protected:
         for (IndexType i = 0; i < rA.size1(); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
-            const IndexType row_begin = Arow_indices[i];
-            const IndexType row_end = Arow_indices[i + 1];
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Arow_indices[Index];
+            const IndexType row_end = Arow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 ++k;
             }
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-        }
+        });
 
         rA.set_filled(indices.size() + 1, nnz);
 
