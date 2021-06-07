@@ -764,37 +764,54 @@ namespace Kratos
     double ComputeVelocityNorm()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
 
       double NormV = 0.00;
 
-#pragma omp parallel reduction(+ \
-                               : NormV)
+#pragma omp parallel for reduction(+ \
+                                   : NormV)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < 3; ++d)
         {
-          const array_1d<double, 3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
-
-          double NormVelNode = 0;
-
-          for (unsigned int d = 0; d < 3; ++d)
-          {
-            NormVelNode += Vel[d] * Vel[d];
-            NormV += Vel[d] * Vel[d];
-          }
+          NormV += r_vel[d] * r_vel[d];
         }
       }
-
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
-
+      NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
       NormV = sqrt(NormV);
 
-      if (NormV == 0.0)
+      const double zero_tol = 1.0e-12;
+      if (NormV < zero_tol)
         NormV = 1.00;
 
       return NormV;
+    }
+
+    double ComputePressureNorm()
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
+
+      double NormP = 0.00;
+
+#pragma omp parallel for reduction(+ \
+                                   : NormP)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
+        NormP += Pr * Pr;
+      }
+      NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
+      NormP = sqrt(NormP);
+
+      const double zero_tol = 1.0e-12;
+      if (NormP < zero_tol)
+        NormP = 1.00;
+
+      return NormP;
     }
 
     virtual bool CheckVelocityConvergence(const double NormDv, double &errorNormDv)
@@ -805,35 +822,6 @@ namespace Kratos
     virtual bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double &NormP)
     {
       return false;
-    }
-
-    double ComputePressureNorm()
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
-
-      double NormP = 0.00;
-
-#pragma omp parallel reduction(+ \
-                               : NormP)
-      {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-          NormP += Pr * Pr;
-        }
-      }
-
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
-
-      NormP = sqrt(NormP);
-
-      if (NormP == 0.0)
-        NormP = 1.00;
-
-      return NormP;
     }
 
     virtual bool FixTimeStepMomentum(const double DvErrorNorm, bool &fixedTimeStep)

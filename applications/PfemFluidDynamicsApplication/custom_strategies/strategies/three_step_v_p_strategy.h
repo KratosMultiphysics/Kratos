@@ -95,12 +95,6 @@ namespace Kratos
     ///@{
 
     ThreeStepVPStrategy(ModelPart &rModelPart,
-                      SolverSettingsType &rSolverConfig) : BaseType(rModelPart)
-    {
-      VPStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeStrategy(rSolverConfig);
-    }
-
-    ThreeStepVPStrategy(ModelPart &rModelPart,
                       typename TLinearSolver::Pointer pVelocityLinearSolver,
                       typename TLinearSolver::Pointer pPressureLinearSolver,
                       bool ReformDofSet = true,
@@ -202,7 +196,7 @@ namespace Kratos
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
-      KRATOS_INFO("\nSolution with three_step_vp_strategy at t=") << currentTime << "s" << std::endl;
+      KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
       if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
       {
@@ -471,38 +465,27 @@ namespace Kratos
     bool CheckVelocityConvergence(const double NormDv, double &errorNormDv) override
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
 
       double NormV = 0.00;
       errorNormDv = 0;
 
-#pragma omp parallel reduction(+ \
-                               : NormV)
+#pragma omp parallel for reduction(+ \
+                                   : NormV)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < 3; ++d)
         {
-          const array_1d<double, 3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
-
-          double NormVelNode = 0;
-
-          for (unsigned int d = 0; d < 3; ++d)
-          {
-            NormVelNode += Vel[d] * Vel[d];
-            NormV += Vel[d] * Vel[d];
-          }
+          NormV += r_vel[d] * r_vel[d];
         }
       }
-
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
-
+      NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
       NormV = sqrt(NormV);
 
-      if (NormV == 0.0)
-        NormV = 1.00;
-
-      errorNormDv = NormDv / NormV;
+      const double zero_tol = 1.0e-12;
+      errorNormDv = (NormV < zero_tol) ? NormDv : NormDv / NormV;
 
       if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
       {
@@ -524,31 +507,24 @@ namespace Kratos
     bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double &NormP) override
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
 
       NormP = 0.00;
       errorNormDp = 0;
 
-#pragma omp parallel reduction(+ \
-                               : NormP)
+#pragma omp parallel for reduction(+ \
+                                   : NormP)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-          NormP += Pr * Pr;
-        }
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
+        NormP += Pr * Pr;
       }
-
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
-
+      NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
       NormP = sqrt(NormP);
 
-      if (NormP == 0.0)
-        NormP = 1.00;
-
-      errorNormDp = NormDp / (NormP);
+      const double zero_tol = 1.0e-12;
+      errorNormDp = (NormP < zero_tol) ? NormDp : NormDp / NormP;
 
       if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
       {
@@ -772,52 +748,6 @@ namespace Kratos
     ///@}
     ///@name Private Operations
     ///@{
-
-    virtual void InitializeStrategy(SolverSettingsType &rSolverConfig) override
-    {
-      KRATOS_TRY;
-
-      // Check that input parameters are reasonable and sufficient.
-      this->Check();
-
-      //ModelPart& rModelPart = this->GetModelPart();
-
-      mDomainSize = rSolverConfig.GetDomainSize();
-
-      mReformDofSet = rSolverConfig.GetReformDofSet();
-
-      BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
-
-      // Initialize strategies for each step
-      bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity, this->mpMomentumStrategy);
-
-      if (HaveVelStrategy)
-      {
-        rSolverConfig.FindTolerance(SolverSettingsType::Velocity, mVelocityTolerance);
-        /* rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter); */
-      }
-      else
-      {
-        KRATOS_THROW_ERROR(std::runtime_error, "ThreeStepVPStrategy error: No Velocity strategy defined in FractionalStepSettings", "");
-      }
-
-      bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure, mpPressureStrategy);
-
-      if (HavePressStrategy)
-      {
-        rSolverConfig.FindTolerance(SolverSettingsType::Pressure, mPressureTolerance);
-        rSolverConfig.FindMaxIter(SolverSettingsType::Pressure, mMaxPressureIter);
-      }
-      else
-      {
-        KRATOS_THROW_ERROR(std::runtime_error, "ThreeStepVPStrategy error: No Pressure strategy defined in FractionalStepSettings", "");
-      }
-
-      // Check input parameters
-      this->Check();
-
-      KRATOS_CATCH("");
-    }
 
     ///@}
     ///@name Private  Access
