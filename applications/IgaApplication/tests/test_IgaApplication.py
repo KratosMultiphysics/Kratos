@@ -24,6 +24,7 @@ from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTes
 # Coupling tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
 from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
+from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCouplingNitscheShell3pTest
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
 
@@ -61,6 +62,7 @@ def AssembleTestSuites():
         # Coupling tests
         TwoPatchCouplingPenaltyShell3pTest,
         TwoPatchCouplingLagrangeShell3pTest,
+        TwoPatchCouplingNitscheShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
         TwoPatchRefinedCouplingLagrangeMembraneTest
         ]))
