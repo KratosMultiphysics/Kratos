@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -395,15 +396,15 @@ private:
         TDataType reference_disp_norm = TDataType();
         TDataType dof_value;
 
-        #pragma omp parallel for reduction(+:reference_disp_norm)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            if(it_dof->IsFree()) {
-                dof_value = it_dof->GetSolutionStepValue();
+        reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, [&](Dof<TDataType>& rDof){
+            TDataType local_reference_disp_norm = TDataType();
+            if(rDof.IsFree()) {
+                dof_value = rDof.GetSolutionStepValue();
                 reference_disp_norm += dof_value * dof_value;
             }
-        }
+            return local_reference_disp_norm;
+        });
+
         mReferenceDispNorm = std::sqrt(reference_disp_norm);
     }
 
@@ -425,20 +426,24 @@ private:
         SizeType dof_num = 0;
 
         // Loop over Dofs
-        #pragma omp parallel for reduction(+:final_correction_norm,dof_num)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
+        using MultipleReduction = CombinedReduction<
+            SumReduction<TDataType>,
+            SumReduction<SizeType>>;
 
+        std::tie(final_correction_norm, dof_num) = block_for_each<MultipleReduction>(rDofSet, [&](Dof<double>& rDof){
             IndexType dof_id;
             TDataType variation_dof_value;
+            TDataType local_final_correction_norm = TDataType();
+            SizeType local_dof_num = 0;
 
-            if (it_dof->IsFree()) {
-                dof_id = it_dof->EquationId();
+            if (rDof.IsFree()) {
+                dof_id = rDof.EquationId();
                 variation_dof_value = Dx[dof_id];
-                final_correction_norm += std::pow(variation_dof_value, 2);
-                dof_num++;
+                local_final_correction_norm += std::pow(variation_dof_value, 2);
+                local_dof_num++;
             }
-        }
+            return std::make_tuple(local_final_correction_norm, local_dof_num);
+        });
 
         rDofNum = dof_num;
         return std::sqrt(final_correction_norm);
