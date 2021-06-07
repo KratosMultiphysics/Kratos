@@ -139,7 +139,12 @@ namespace Kratos {
 
             if (central_node.Is(DEMFlags::FIXED_VEL_X) && central_node.Is(DEMFlags::FIXED_VEL_Y) && central_node.Is(DEMFlags::FIXED_VEL_Z) && central_node.Is(DEMFlags::FIXED_ANG_VEL_X) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Y) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Z)) {
                 if (rigid_body_element_sub_model_part.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT)) {
-                    central_node.Set(DEMFlags::COMPUTE_REACTIONS, rigid_body_element_sub_model_part[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT]);
+                    if (rigid_body_element_sub_model_part[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT]== 1) {
+                        central_node.Set(DEMFlags::COMPUTE_REACTIONS, true);
+                    }
+                    else {
+                        central_node.Set(DEMFlags::COMPUTE_REACTIONS, false);
+                    }
                 }
                 else {
                     central_node.Set(DEMFlags::COMPUTE_REACTIONS, false);
