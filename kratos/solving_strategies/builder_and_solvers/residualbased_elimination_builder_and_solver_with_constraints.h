@@ -2144,7 +2144,7 @@ private:
 
         // Filling constant vector
         if (ComputeConstantVector) {
-            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&rConstantVector](std::size_t Index){
+            IndexPartition<std::size_t>(BuilderAndSolverBaseType::mEquationSystemSize).for_each([&rConstantVector](std::size_t Index){
                 rConstantVector[Index] = 0.0;
             });
         }
