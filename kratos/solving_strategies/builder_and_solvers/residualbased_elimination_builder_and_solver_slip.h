@@ -750,9 +750,7 @@ protected:
         }
 
         //calculate the total size of the system
-        int total_size = 0;
-
-        total_size = IndexPartition<std::size_t>(number_of_threads).for_each<SumReduction<int>>([&](std::size_t Index){
+        std::size_t total_size = IndexPartition<std::size_t>(number_of_threads).for_each<SumReduction<int>>([&](std::size_t Index){
             return local_sizes[Index];
         });
 
