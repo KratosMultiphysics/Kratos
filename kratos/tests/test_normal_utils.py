@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import os
 import math
 
@@ -104,6 +102,10 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
+        cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
+        cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCES_VECTOR)
+        cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX)
         cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 

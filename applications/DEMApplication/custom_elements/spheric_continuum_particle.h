@@ -86,9 +86,9 @@ namespace Kratos
             return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
         }
 
-        void SetInitialSphereContacts(const ProcessInfo& r_process_info);
+        virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info);
         void SetInitialFemContacts();
-        void CreateContinuumConstitutiveLaws();
+        virtual void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
         void GetStressTensorFromNeighbourStep1();
         void GetStressTensorFromNeighbourStep2();
@@ -98,6 +98,7 @@ namespace Kratos
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         virtual void UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info);
+        virtual void ReorderFEMneighbours();
         virtual void ComputeForceWithNeighbourFinalOperations();
 
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
@@ -155,7 +156,7 @@ namespace Kratos
                                                 const ProcessInfo& r_process_info,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
-                                                double& RollingResistance) override final;
+                                                double& RollingResistance) override;
 
         virtual void ComputeRollingResistance(double& RollingResistance,
                                             const double& NormalLocalContactForce,

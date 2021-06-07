@@ -1,3 +1,5 @@
+import warnings
+
 def checkInitialisationMC(XMCAlgorithm):
     """
     Method checking all attributes of different classes are correctly set to run Monte Carlo algorithm (both standard and asynchronous).
@@ -5,8 +7,8 @@ def checkInitialisationMC(XMCAlgorithm):
 
     solverWrapperDictionary = XMCAlgorithm.monteCarloSampler.indexConstructorDictionary[
             "samplerInputDictionary"]["solverWrapperInputDictionary"]
-    positionMaxNumberIterationsCriterion=XMCAlgorithm.positionMaxNumberIterationsCriterion
-    tolerances=XMCAlgorithm.stoppingCriterion.tolerances()
+    positionMaxNumberIterationsCriterion = XMCAlgorithm.positionMaxNumberIterationsCriterion
+    tolerances = XMCAlgorithm.stoppingCriterion.tolerances()
     # perform checks
     checkInitialisationSolverWrapper(solverWrapperDictionary)
     if ("asynchronous" in solverWrapperDictionary):
@@ -39,22 +41,25 @@ def checkInitialisationSolverWrapper(solverWrapperDictionary):
     Method checking solver wrapper keys are correctly set. A required key is outputBatchSize, which is needed to organize the quantities of interest into sublists (of future objects). For this reason, outputBatchSize must be smaller than or equal to the total number of quantities of interest. It is required if areSamplesSplit() is true.
     """
 
-    sql = 1 ; ncq = 0 ; nq = 1 # default values
+    obs = 1 # default value assigned in the solver wrapper
+
     if "outputBatchSize" in solverWrapperDictionary:
-        sql = solverWrapperDictionary["outputBatchSize"]
+        obs = solverWrapperDictionary["outputBatchSize"]
     else:
         warnings.warn("outputBatchSize not defined in solverWrapper dictionary. The default value of 1 will be considered.")
-    if "numberCombinedQoi" in solverWrapperDictionary:
-        ncq = solverWrapperDictionary["numberCombinedQoi"]
-    else:
-        warnings.warn("numberCombinedQoi not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberQoI" in solverWrapperDictionary:
-        nq = solverWrapperDictionary["numberQoI"]
-    else:
-        warnings.warn("numberQoI not defined in solverWrapper dictionary. The default value of 1 will be considered.")
 
-    if (sql > (nq+ncq)):
-        raise Exception ("solverWrapperDictionary: outputBatchSize exceeding maximum dimension. Set a value <= numberQoI + numberCombinedQoI.")
+    if "qoiEstimator" in solverWrapperDictionary:
+        numqoi = len(solverWrapperDictionary["qoiEstimator"])
+        qoi_estimator = solverWrapperDictionary["qoiEstimator"]
+    else:
+        raise Exception("qoiEstimator not defined in solverWrapper dictionary. This entry is required by the SolverWrapper.")
+
+    if "xmc.momentEstimator.MultiMomentEstimator" in qoi_estimator or "xmc.momentEstimator.MultiCombinedMomentEstimator" in qoi_estimator:
+        if not "sizeMultiXMomentEstimator" in solverWrapperDictionary:
+            raise Exception("solverWrapperDictionary does not contain the key sizeMultiXMomentEstimator. The use of MultiMomentEstimator and MultiCombinedMomentEstimator requires to specify the dimension of such multi-dimensional quantities of interest in the solverWrapperDictionary.")
+
+    if obs > (numqoi):
+        raise Exception ("solverWrapper: outputBatchSize exceeding maximum dimension. Set a value <= number of estimators, namely len(qoiEstimator).")
 
 def checkMaxNumberIterationsCriterion(positionMaxNumberIterationsCriterion,tolerances):
     """

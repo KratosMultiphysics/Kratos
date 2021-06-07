@@ -18,7 +18,7 @@
 // Project includes
 #include "coupling_geometry_mapper.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mapper_define.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
@@ -32,10 +32,13 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
+    const IndexType slave_index = (mIsDestinationIsSlave) ? 1 : 0;
+    const IndexType master_index = 1 - slave_index;
+
     const auto& r_geometry_master = (mIsProjection)
-        ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
-        : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
-    const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
+        ? mpGeom->GetGeometryPart(master_index) // set to master  - get projected 'mass' matrix
+        : mpGeom->GetGeometryPart(slave_index); // set to slave - get consistent slave 'mass' matrix
+    const auto& r_geometry_slave = mpGeom->GetGeometryPart(slave_index);
 
     const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true
@@ -58,30 +61,37 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     r_geometry_slave.DeterminantOfJacobian(det_jacobian);
     KRATOS_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
+    const double weight = r_geometry_slave.IntegrationPoints()[0].Weight();
 
     if (is_dual_mortar) {
         rLocalMappingMatrix.clear();
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
-                    * det_jacobian[integration_point_itr];
-                KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                    << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                    * det_jacobian[integration_point_itr] * weight;
+                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
         }
     }
     else {
+        KRATOS_DEBUG_ERROR_IF(sf_values_slave.size1() != sf_values_master.size1())
+            << "Coupling Geometry Mapper | origin and destination shape functions have different first sizes!"
+            << "\nOrigin shape functions =\n\t" << sf_values_master
+            << "\nDestination shape functions =\n\t" << sf_values_slave << std::endl;
         for (IndexType integration_point_itr = 0; integration_point_itr < sf_values_slave.size1(); ++integration_point_itr) {
             for (IndexType i = 0; i < sf_values_slave.size2(); ++i) {
+
+                KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                    << "DESTINATION SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+
                 for (IndexType j = 0; j < sf_values_master.size2(); ++j) {
                     rLocalMappingMatrix(i, j) = sf_values_slave(integration_point_itr, i)
                         * sf_values_master(integration_point_itr, j)
-                        * det_jacobian[integration_point_itr];
+                        * det_jacobian[integration_point_itr] * weight;
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
+                        << "ORIGIN SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
                 }
             }
         }
@@ -124,6 +134,7 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
         mMapperSettings(JsonParameters)
 {
     JsonParameters.ValidateAndAssignDefaults(GetMapperDefaultSettings());
+    const bool destination_is_slave = mMapperSettings["destination_is_slave"].GetBool();
 
     mpModeler = (ModelerFactory::Create(
         mMapperSettings["modeler_name"].GetString(),
@@ -132,17 +143,21 @@ CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CouplingGeometryMapper(
 
     // adds destination model part
     mpModeler->GenerateNodes(rModelPartDestination);
-
     mpModeler->SetupGeometryModel();
     mpModeler->PrepareGeometryModel();
 
     // here use whatever ModelPart(s) was created by the Modeler
     mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
-    mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
-    mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
 
-    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
-    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+    mpCouplingInterfaceMaster = (destination_is_slave)
+        ? mpCouplingMP->pGetSubModelPart("interface_origin")
+        : mpCouplingMP->pGetSubModelPart("interface_destination");
+    mpCouplingInterfaceSlave = (destination_is_slave)
+        ? mpCouplingMP->pGetSubModelPart("interface_destination")
+        : mpCouplingMP->pGetSubModelPart("interface_origin");
+
+    mpInterfaceVectorContainerMaster = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceMaster);
+    mpInterfaceVectorContainerSlave = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceSlave);
 
     this->CreateLinearSolver();
     this->InitializeInterface();
@@ -155,8 +170,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // compose local element mappings
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
-    CouplingGeometryLocalSystem ref_projector_local_system(nullptr, true, dual_mortar);
-    CouplingGeometryLocalSystem ref_slave_local_system(nullptr, false, dual_mortar);
+    const bool direct_map_to_destination = mMapperSettings["destination_is_slave"].GetBool();
+    CouplingGeometryLocalSystem ref_projector_local_system(nullptr, true, dual_mortar, direct_map_to_destination);
+    CouplingGeometryLocalSystem ref_slave_local_system(nullptr, false, dual_mortar, direct_map_to_destination);
 
     MapperUtilities::CreateMapperLocalSystemsFromGeometries(ref_projector_local_system,
                              mpCouplingMP->GetCommunicator(),
@@ -169,26 +185,26 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     AssignInterfaceEquationIds(); // Has to be done every time in case of overlapping interfaces!
 
     // assemble projector interface mass matrix - interface_matrix_projector
-    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
-    const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
+    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceSlave->NumberOfNodes();
+    const std::size_t num_nodes_interface_master = mpCouplingInterfaceMaster->NumberOfNodes();
     mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
 
     // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
-    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixSlave,
-        mpInterfaceVectorContainerDestination->pGetVector(),
-        mpInterfaceVectorContainerDestination->pGetVector(),
-        mpInterfaceVectorContainerDestination->GetModelPart(),
-        mpInterfaceVectorContainerDestination->GetModelPart(),
+        mpInterfaceVectorContainerSlave->pGetVector(),
+        mpInterfaceVectorContainerSlave->pGetVector(),
+        mpInterfaceVectorContainerSlave->GetModelPart(),
+        mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsSlave,
         0); // The echo-level is no longer neeed here, refactor in separate PR
 
-    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixProjector,
-        mpInterfaceVectorContainerOrigin->pGetVector(),
-        mpInterfaceVectorContainerDestination->pGetVector(),
-        mpInterfaceVectorContainerOrigin->GetModelPart(),
-        mpInterfaceVectorContainerDestination->GetModelPart(),
+        mpInterfaceVectorContainerMaster->pGetVector(),
+        mpInterfaceVectorContainerSlave->pGetVector(),
+        mpInterfaceVectorContainerMaster->GetModelPart(),
+        mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsProjector,
         0); // The echo-level is no longer neeed here, refactor in separate PR
 
@@ -218,14 +234,15 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         SparseMatrixMultiplicationUtility::MatrixMultiplication(*mpMappingMatrixSlave, *mpMappingMatrixProjector, *mpMappingMatrix);
     }
     else {
-        MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
+        MappingMatrixUtilities<TSparseSpace, TDenseSpace>::InitializeSystemVector(mpTempVector, mpInterfaceVectorContainerSlave->GetModelPart().NumberOfNodes());
         if (precompute_mapping_matrix)  CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
     }
 
     // Check row sum of pre-computed mapping matrices only
     if (precompute_mapping_matrix || dual_mortar) {
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
-        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true);
+        const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
+        MappingMatrixUtilities<TSparseSpace, TDenseSpace>::CheckRowSum(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
     }
 }
 
@@ -238,23 +255,23 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
-    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
+    mpInterfaceVectorContainerMaster->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
     if (dual_mortar || precompute_mapping_matrix) {
         TSparseSpace::Mult(
             *mpMappingMatrix,
-            mpInterfaceVectorContainerOrigin->GetVector(),
-            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+            mpInterfaceVectorContainerMaster->GetVector(),
+            mpInterfaceVectorContainerSlave->GetVector()); // rQd = rMdo * rQo
     } else {
         TSparseSpace::Mult(
             *mpMappingMatrixProjector,
-            mpInterfaceVectorContainerOrigin->GetVector(),
+            mpInterfaceVectorContainerMaster->GetVector(),
             *mpTempVector); // rQd = rMdo * rQo
 
-        mpLinearSolver->Solve(*mpMappingMatrixSlave, mpInterfaceVectorContainerDestination->GetVector(), *mpTempVector);
+        mpLinearSolver->Solve(*mpMappingMatrixSlave, mpInterfaceVectorContainerSlave->GetVector(), *mpTempVector);
     }
 
-    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+    mpInterfaceVectorContainerSlave->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -266,23 +283,23 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
-    mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
+    mpInterfaceVectorContainerSlave->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
     if (dual_mortar || precompute_mapping_matrix) {
         TSparseSpace::TransposeMult(
             *mpMappingMatrix,
-            mpInterfaceVectorContainerDestination->GetVector(),
-            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+            mpInterfaceVectorContainerSlave->GetVector(),
+            mpInterfaceVectorContainerMaster->GetVector()); // rQo = rMdo^T * rQd
     } else {
-        mpLinearSolver->Solve(*mpMappingMatrixSlave, *mpTempVector, mpInterfaceVectorContainerDestination->GetVector());
+        mpLinearSolver->Solve(*mpMappingMatrixSlave, *mpTempVector, mpInterfaceVectorContainerSlave->GetVector());
 
         TSparseSpace::TransposeMult(
             *mpMappingMatrixProjector,
             *mpTempVector,
-            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+            mpInterfaceVectorContainerMaster->GetVector()); // rQo = rMdo^T * rQd
     }
 
-    mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
+    mpInterfaceVectorContainerMaster->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }
 
 template<class TSparseSpace, class TDenseSpace>

@@ -202,17 +202,17 @@ public:
     
 
     /// Check input to ensure that it makes sense.
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -222,7 +222,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                                  const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -230,10 +230,10 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+                            const ProcessInfo& CurrentProcessInfo) const override;
 
     /// Returns the values of the unknowns for each node
-    void GetValuesVector(Vector& Values, int Step = 0) override;
+    void GetValuesVector(Vector& Values, int Step = 0) const override;
 
     ///@}
     ///@name Conditional Data
@@ -301,10 +301,10 @@ protected:
     ///@{
 
     void GetVelocityDofList(DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) const ;
 
     void GetPressureDofList(DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) const ;
 
 
 

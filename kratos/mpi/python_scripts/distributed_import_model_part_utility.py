@@ -10,7 +10,11 @@ class DistributedImportModelPartUtility:
     def __init__(self, main_model_part, settings):
         self.main_model_part = main_model_part
         self.settings = settings
-        self.comm = KratosMultiphysics.DataCommunicator.GetDefault()
+        if settings["model_import_settings"].Has("data_communicator_name"):
+            data_comm_name = settings["model_import_settings"]["data_communicator_name"].GetString()
+        else:
+            data_comm_name = "World"
+        self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(data_comm_name)
 
     def ExecutePartitioningAndReading(self):
         warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
@@ -32,7 +36,8 @@ class DistributedImportModelPartUtility:
                 "skip_timer"                                 : true,
                 "ignore_variables_not_in_solution_step_data" : false,
                 "perform_partitioning"                       : true,
-                "partition_in_memory"                        : false
+                "partition_in_memory"                        : false,
+                "sub_model_part_list"                        : []
             }""")
 
             # cannot validate as this might contain other settings too
@@ -69,7 +74,11 @@ class DistributedImportModelPartUtility:
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
                     if self.comm.Rank() == 0:
-                        partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                        if model_part_import_settings["sub_model_part_list"].size() > 0:
+                            no_reorder_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
+                            partitioner = KratosMetis.MetisDivideSubModelPartsHeterogeneousInputProcess(no_reorder_model_part_io, model_part_import_settings, number_of_partitions , domain_size, verbosity, sync_conditions)
+                        else:
+                            partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
 
                         KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.")
@@ -77,7 +86,7 @@ class DistributedImportModelPartUtility:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
 
-                    partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                    partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, self.comm , domain_size, verbosity, sync_conditions)
                     partitioner.Execute()
                     serial_model_part_io.ReadModelPart(self.main_model_part)
 
@@ -126,7 +135,7 @@ class DistributedImportModelPartUtility:
 
     def CreateCommunicators(self):
         ## Construct and execute the Parallel fill communicator (also sets the MPICommunicator)
-        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart(), self.comm)
         ParallelFillCommunicator.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "MPI communicators constructed.")

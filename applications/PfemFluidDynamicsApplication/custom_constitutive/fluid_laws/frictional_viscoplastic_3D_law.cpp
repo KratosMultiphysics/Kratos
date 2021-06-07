@@ -62,16 +62,15 @@ namespace Kratos
         Vector &r_stress_vector = rValues.GetStressVector();
 
         const double dynamic_viscosity = this->GetEffectiveDynamicViscosity(rValues);
-        const double friction_angle = r_properties[FRICTION_ANGLE];
+        const double friction_angle = r_properties[INTERNAL_FRICTION_ANGLE];
         const double cohesion = r_properties[COHESION];
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity = 0;
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
-        const GeometryType &r_geometry = rValues.GetElementGeometry();
 
-        const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
+        const double theta_momentum = this->GetThetaMomentumForPressureIntegration();
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
 
         if (mean_pressure > 0.0) // cutoff for tractions
@@ -122,22 +121,16 @@ namespace Kratos
                                            const ProcessInfo &rCurrentProcessInfo)
     {
 
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
-        KRATOS_CHECK_VARIABLE_KEY(COHESION);
-        KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
-        KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
-
         if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
         {
             KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for FrictionalViscoplastic3DLaw: "
                          << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
         }
 
-        if (rMaterialProperties[FRICTION_ANGLE] < 0.0)
+        if (rMaterialProperties[INTERNAL_FRICTION_ANGLE] < 0.0)
         {
-            KRATOS_ERROR << "Incorrect or missing FRICTION_ANGLE provided in process info for FrictionalViscoplastic3DLaw: "
-                         << rMaterialProperties[FRICTION_ANGLE] << std::endl;
+            KRATOS_ERROR << "Incorrect or missing INTERNAL_FRICTION_ANGLE provided in process info for FrictionalViscoplastic3DLaw: "
+                         << rMaterialProperties[INTERNAL_FRICTION_ANGLE] << std::endl;
         }
 
         if (rMaterialProperties[COHESION] < 0.0)
@@ -178,7 +171,7 @@ namespace Kratos
 
     double FrictionalViscoplastic3DLaw::GetEffectiveFrictionAngle(ConstitutiveLaw::Parameters &rParameters) const
     {
-        return rParameters.GetMaterialProperties()[FRICTION_ANGLE];
+        return rParameters.GetMaterialProperties()[INTERNAL_FRICTION_ANGLE];
     }
 
     double FrictionalViscoplastic3DLaw::GetEffectiveCohesion(ConstitutiveLaw::Parameters &rParameters) const

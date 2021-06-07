@@ -22,7 +22,7 @@
 #include "custom_python/add_custom_io_to_python.h"
 
 #ifdef INCLUDE_MMG
-    #include "custom_io/mmg_io.h"
+    #include "custom_io/mmg/mmg_io.h"
 #endif
 
 namespace Kratos

@@ -1067,8 +1067,6 @@ namespace Kratos
 #else
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
           }
         }
 
@@ -1093,9 +1091,6 @@ namespace Kratos
 #else
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
           }
         }
       }
@@ -1199,13 +1194,13 @@ namespace Kratos
       }
 
       // #pragma omp parallel for firstprivate(nelements, ElementalDofList)
-      for (int i = 0; i < static_cast<int>(nelements); i++)
+      for (int i = 0; i < static_cast<int>(nelements); ++i)
       {
-        typename ElementsArrayType::iterator it = pElements.begin() + i;
-        const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+        auto it_elem = pElements.begin() + i;
+        const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-        // gets list of Dof involved on every element
-        pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+        // Gets list of Dof involved on every element
+        pScheme->GetDofList(*it_elem, ElementalDofList, CurrentProcessInfo);
 
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
@@ -1213,15 +1208,16 @@ namespace Kratos
       ConditionsArrayType &pConditions = rModelPart.Conditions();
       const int nconditions = static_cast<int>(pConditions.size());
 #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-      for (int i = 0; i < nconditions; i++)
+      for (int i = 0; i < nconditions; ++i)
       {
-        typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-        const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+        auto it_cond = pConditions.begin() + i;
+        const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
-        // gets list of Dof involved on every element
-        pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+        // Gets list of Dof involved on every element
+        pScheme->GetDofList(*it_cond, ElementalDofList, CurrentProcessInfo);
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
+
 
       //here we do a reduction in a tree so to have everything on thread 0
       unsigned int old_max = nthreads;
@@ -1817,7 +1813,7 @@ namespace Kratos
       for (int iii = 0; iii < nconditions; iii++)
       {
         typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
-        pScheme->Condition_EquationId(*(i_condition.base()), ids, CurrentProcessInfo);
+        pScheme->EquationId(*i_condition, ids, CurrentProcessInfo);
         for (std::size_t i = 0; i < ids.size(); i++)
         {
           if (ids[i] < BaseType::mEquationSystemSize)
@@ -1837,7 +1833,7 @@ namespace Kratos
           }
         }
       }
-
+      
       //count the row sizes
       unsigned int nnz = 0;
       for (unsigned int i = 0; i < indices.size(); i++)

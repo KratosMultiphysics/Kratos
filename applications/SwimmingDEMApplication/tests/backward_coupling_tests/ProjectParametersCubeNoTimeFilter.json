@@ -39,7 +39,8 @@
             "min_fluid_fraction"                         : 0.2,
             "fluid_fraction_grad_type"                   : 0,
             "calculate_diffusivity_option"               : false,
-            "viscosity_modification_type"                : 0
+            "viscosity_modification_type"                : 0,
+            "averaging_time_interval"                    : 10
         }
     },
     "custom_dem"              : {
@@ -144,7 +145,10 @@
         "CleanIndentationsOption"        : false,
         "solver_settings"                : {
             "RemoveBallsInitiallyTouchingWalls" : false,
-            "strategy"                          : "swimming_sphere_strategy"
+            "strategy"                          : "swimming_sphere_strategy",
+            "material_import_settings"           : {
+                "materials_filename" : "backward_coupling_tests/MaterialsDEM.json"
+            }
         },
         "VirtualMassCoefficient"         : 1.0,
         "RollingFrictionOption"          : false,

@@ -58,8 +58,6 @@ int NewtonianTemperatureDependent2DLaw::Check(
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-
     // If the viscosity is not table provided, check its value
     if (!rMaterialProperties.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
         KRATOS_ERROR << "TEMPERATURE - DYNAMICS_VISCOSITY table is missing in NewtonianTemperatureDependent2DLaw" << std::endl;

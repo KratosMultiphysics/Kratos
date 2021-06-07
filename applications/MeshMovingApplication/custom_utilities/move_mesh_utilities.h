@@ -36,6 +36,12 @@ void KRATOS_API(MESH_MOVING_APPLICATION) MoveMesh(ModelPart::NodesContainerType 
 KRATOS_API(MESH_MOVING_APPLICATION) ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
+KRATOS_API(MESH_MOVING_APPLICATION) void InitializeMeshPartWithElements(
+    ModelPart& rDestinationModelPart,
+    ModelPart& rOriginModelPart,
+    Properties::Pointer pProperties,
+    const std::string& rElementName);
+
 void KRATOS_API(MESH_MOVING_APPLICATION) SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose);
 

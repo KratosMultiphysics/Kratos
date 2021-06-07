@@ -157,7 +157,7 @@ public:
     /// Call at teh begining of each step, ita decides if element is cutted or no!
     /**
       */
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override
     {
 // 	for (unsigned int jj = 0; jj < 4; jj++){
 // 	      this->GetGeometry()[jj].FastGetSolutionStepValue(WET_VOLUME ) = 0.0;
@@ -168,7 +168,7 @@ public:
     /// Call at teh begining of each iteration, ita decides if element is cutted or no!
     /**
       */
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 	  // Calculate this element's geometric parameters
 	  double Area;
@@ -220,7 +220,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
 //         this->IsCutted();
         unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -260,7 +260,7 @@ public:
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
       	if( this->is_cutted == 1)
 	{
@@ -345,7 +345,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0)
@@ -443,7 +443,7 @@ public:
      */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0){
@@ -690,7 +690,7 @@ public:
     }
 
     /// Implementation of FinalizeNonLinearIteration to compute enriched pressure.
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
 //       this->IsCutted();
       if( this->is_cutted == 0)
@@ -743,7 +743,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-    void GetFirstDerivativesVector(Vector& values, int Step) override
+    void GetFirstDerivativesVector(Vector& values, int Step) const override
     {
 // 	this->IsCutted();
 	if( this->is_cutted == 0)
@@ -772,7 +772,7 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
 
-      void GetSecondDerivativesVector(Vector& values, int Step) override
+      void GetSecondDerivativesVector(Vector& values, int Step) const override
       {
 // 	this->IsCutted();
 	if( this->is_cutted == 0)
@@ -967,11 +967,14 @@ public:
     }
 
 /**
- * @see DPGVMS::GetValueOnIntegrationPoints
+ * @see DPGVMS::CalculateOnIntegrationPoints
  */
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override
-      {
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
 
 	  if (rVariable == PRESSUREAUX)
 	  {
@@ -1018,39 +1021,7 @@ public:
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if (ErrorCode != 0) return ErrorCode;
-        // Check that all required variables have been registered
-        if (DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.", "");
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (MESH_VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "MESH_VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "ACCELERATION Key is 0. Check if the application was correctly registered.", "");
-        if (PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check if the application was correctly registered.", "");
-        if (DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY Key is 0. Check if the application was correctly registered.", "");
-        if (VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VISCOSITY Key is 0. Check if the application was correctly registered.", "");
-        if (OSS_SWITCH.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "OSS_SWITCH Key is 0. Check if the application was correctly registered.", "");
-        if (DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DYNAMIC_TAU Key is 0. Check if the application was correctly registered.", "");
-        if (DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check if the application was correctly registered.", "");
-        if (ADVPROJ.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "ADVPROJ Key is 0. Check if the application was correctly registered.", "");
-        if (DIVPROJ.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DIVPROJ Key is 0. Check if the application was correctly registered.", "");
-        if (NODAL_AREA.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "NODAL_AREA Key is 0. Check if the application was correctly registered.", "");
-        if (C_SMAGORINSKY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "C_SMAGORINSKY Key is 0. Check if the application was correctly registered.", "");
-        if (ERROR_RATIO.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "ERROR_RATIO Key is 0. Check if the application was correctly registered.", "");
-        // Additional variables, only required to print results:
-        // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
+
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for (unsigned int i = 0; i<this->GetGeometry().size(); ++i)

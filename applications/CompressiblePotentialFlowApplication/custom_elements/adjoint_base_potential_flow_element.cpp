@@ -12,6 +12,7 @@
 //
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
+#include "incompressible_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
@@ -264,7 +265,8 @@ namespace Kratos
 
         KRATOS_TRY
 
-        int Check = mpPrimalElement -> Check(rCurrentProcessInfo);
+        const auto& const_elem_ref = *mpPrimalElement;
+        int Check = const_elem_ref.Check(rCurrentProcessInfo);
 
         if (Check != 0)
         {
@@ -359,8 +361,9 @@ namespace Kratos
     // Template class instantiation
 
     template class AdjointBasePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
-

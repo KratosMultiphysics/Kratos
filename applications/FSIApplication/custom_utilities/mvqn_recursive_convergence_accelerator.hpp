@@ -434,10 +434,11 @@ public:
     {
         Parameters mvqn_recursive_default_parameters(R"(
         {
-            "solver_type"     : "MVQN_recursive",
-            "w_0"             : 0.825,
-            "buffer_size"     : 10,
-            "abs_cut_off_tol" : 1e-8
+            "solver_type"            : "MVQN_recursive",
+            "w_0"                    : 0.825,
+            "buffer_size"            : 10,
+            "abs_cut_off_tol"        : 1e-8,
+            "interface_block_newton" : false
         }
         )");
 

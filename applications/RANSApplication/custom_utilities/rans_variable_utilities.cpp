@@ -304,6 +304,43 @@ std::tuple<double, double> CalculateTransientVariableConvergence(
     KRATOS_CATCH("");
 }
 
+void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
+{
+    KRATOS_TRY
+
+    block_for_each(rElements, [](ModelPart::ElementType& rElement){
+        if (!rElement.Has(CONSTITUTIVE_LAW)) {
+            const auto& r_properties = rElement.GetProperties();
+            KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+                << "In initialization of entity " << rElement.Info()
+                << ": No CONSTITUTIVE_LAW defined for property "
+                << r_properties.Id() << "." << std::endl;
+
+            const auto rans_cl_name = r_properties[CONSTITUTIVE_LAW]->Info();
+
+            KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
+                << "Incompatible constitutive law is used. Please use constitutive "
+                "laws which starts with \"Rans*\" [ Constitutive law "
+                "name = "
+                << rans_cl_name << " ].\n";
+
+            // get the fluid constitutive law here because, turbulence models need the mu of fluid
+            auto p_constitutive_law =
+                KratosComponents<ConstitutiveLaw>::Get(rans_cl_name.substr(4)).Clone();
+
+            const auto& r_geometry = rElement.GetGeometry();
+            const auto& r_shape_functions =
+                r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+            p_constitutive_law->InitializeMaterial(r_properties, r_geometry,
+                                                row(r_shape_functions, 0));
+
+            rElement.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template KRATOS_API(RANS_APPLICATION) void AssignConditionVariableValuesToNodes<double>(
     ModelPart&, const Variable<double>&, const Flags&, const bool);

@@ -31,6 +31,7 @@
 #include "custom_elements/data_containers/k_omega/omega_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 
 // Include base h
@@ -72,7 +73,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData element_data(r_geometry);
+    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -167,7 +168,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData element_data(r_geometry);
+    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -246,7 +247,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         primal_variable.GetTimeDerivative().GetTimeDerivative();
 
     const auto& r_geometry = this->GetGeometry();
-    TConvectionDiffusionReactionData element_data(r_geometry);
+    TConvectionDiffusionReactionData element_data(r_geometry, this->GetProperties(), rCurrentProcessInfo);
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -291,7 +292,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         const double velocity_dot_variable_gradient =
             inner_prod(velocity, variable_gradient);
 
-        RansCalculationUtilities::EvaluateInPoint(
+        FluidCalculationUtilities::EvaluateInPoint(
             r_geometry, gauss_shape_functions,
             std::tie(variable_value, primal_variable),
             std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
@@ -342,8 +343,6 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
             }
         }
     }
-
-    element_data.UpdateElementDataValueContainer(*this);
 
     KRATOS_CATCH("");
 }

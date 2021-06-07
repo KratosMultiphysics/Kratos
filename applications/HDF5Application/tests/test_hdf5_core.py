@@ -7,7 +7,7 @@ from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import call, patch, MagicMock
 
 
 def _SurrogateModelPart():
@@ -103,47 +103,44 @@ class TestFileIO(KratosUnittest.TestCase):
         with self.assertRaisesRegex(ValueError, r'"io_type" has invalid value "abcdefg"'):
             file_io._GetIO('abcdefg')
 
-    def test_FilenameGetter_WithFileExtension(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetter_WithFileExtension(self, mock_class):
         settings = self._FilenameGetterSettings(file_name='kratos.h5')
         obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(), 'kratos.h5')
+        model_part = _SurrogateModelPart()
+        obj.Get(model_part)
+        mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':''})
 
-    def test_FilenameGetter_WithoutFileExtension(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetter_WithoutFileExtension(self, mock_class):
         settings = self._FilenameGetterSettings(file_name='kratos')
         obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(), 'kratos.h5')
+        model_part = _SurrogateModelPart()
+        obj.Get(model_part)
+        mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':''})
 
-    def test_FilenameGetter_TimeFormat(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetter_TimeFormat(self, mock_class):
         settings = self._FilenameGetterSettings(time_format='0.4f')
         obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()), 'kratos.h5')
+        model_part = _SurrogateModelPart()
+        obj.Get(model_part)
+        mock_class.assert_called_once_with(model_part, 'kratos.h5', {'<time>':'0.4f'})
 
-    def test_FilenameGetter_NonTerminalTime(self):
-        settings = self._FilenameGetterSettings(file_name='kratos-<time>.h5')
-        obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()),
-                         'kratos-1.23456789.h5')
-
-    def test_FilenameGetter_FormattedNonTerminalTime(self):
-        settings = self._FilenameGetterSettings(
-            file_name='kratos-<time>.h5', time_format='0.2f')
-        obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()), 'kratos-1.23.h5')
-
-    def test_FilenameGetter_NonTerminalIdentifier(self):
-        settings = self._FilenameGetterSettings(
-            file_name='<model_part_name>-<time>.h5', time_format='0.2f')
-        obj = file_io._FilenameGetter(settings)
-        self.assertEqual(obj.Get(_SurrogateModelPart()), 'model_part-1.23.h5')
-
-    def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         settings = self._FilenameGetterSettings()
         with patch('os.makedirs', autospec=True) as p:
             obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
             obj.Get(_SurrogateModelPart())
             self.assertEqual(p.call_count, 0)
 
-    def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
         patcher1 = patch('os.path.exists', autospec=True)
         patcher2 = patch('os.makedirs', autospec=True)
@@ -157,7 +154,10 @@ class TestFileIO(KratosUnittest.TestCase):
         patcher1.stop()
         patcher2.stop()
 
-    def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self):
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
         patcher1 = patch('os.path.exists', autospec=True)
         patcher2 = patch('os.makedirs', autospec=True)
@@ -170,6 +170,53 @@ class TestFileIO(KratosUnittest.TestCase):
         makedirs.assert_called_once_with('/foo')
         patcher1.stop()
         patcher2.stop()
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FileIOMaxFilesToKeepExclusiveNoDeletion(self, mock_class):
+        mock_class_instance = mock_class.return_value
+        mock_class_instance.GetSortedFileNamesList.return_value = ['file_1', 'file_2', 'file_3', 'file_4', 'file_5']
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        settings['file_access_mode'] = 'exclusive'
+        settings['max_files_to_keep'] = 4
+        obj = file_io._FilenameGetter(settings)
+        with patch("os.path.isdir", autospec=True) as mock_dir:
+            mock_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_count, 0)
+            self.assertEqual(mock_dir.call_args_list, [])
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FileIOMaxFilesToKeepTruncateNoDeletion(self, mock_class):
+        mock_class_instance = mock_class.return_value
+        mock_class_instance.GetSortedFileNamesList.return_value = ['file_1', 'file_2', 'file_3']
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        settings['file_access_mode'] = 'truncate'
+        settings['max_files_to_keep'] = 4
+        obj = file_io._FilenameGetter(settings)
+        with patch("pathlib.Path.parents", autospec=True) as mock_path:
+            mock_is_dir = mock_path.__getitem__().is_dir
+            mock_is_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_count, 0)
+            self.assertEqual(mock_is_dir.call_count, 1)
+
+    @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
+    def test_FileIOMaxFilesToKeepTruncateDeletion(self, mock_class):
+        mock_class_instance = mock_class.return_value
+        mock_class_instance.GetSortedFileNamesList.return_value = ['file_1', 'file_2', 'file_3', 'file_4', 'file_5']
+        settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
+        settings['file_access_mode'] = 'truncate'
+        settings['max_files_to_keep'] = 4
+        obj = file_io._FilenameGetter(settings)
+        with patch("pathlib.Path.parents", autospec=True) as mock_path:
+            mock_is_dir = mock_path.__getitem__().is_dir
+            mock_is_dir.return_value = True
+            with patch("KratosMultiphysics.kratos_utilities.DeleteFileIfExisting", autospec=True) as p:
+                obj.Get(_SurrogateModelPart())
+                self.assertEqual(p.call_args_list, [call('file_2'), call('file_3')])
+            self.assertEqual(mock_is_dir.call_count, 1)
 
     def test_Create_Settings(self):
         settings = ParametersWrapper()
@@ -550,7 +597,10 @@ class TestControllers(KratosUnittest.TestCase):
         with self.assertRaisesRegex(ValueError, r'"controller_type" has invalid value "abcdefg"'):
             controllers.Create(MagicMock(), MagicMock(), settings)
 
-    def test_DefaultController(self):
+    @patch('KratosMultiphysics.FileNameDataCollector', autospec=True)
+    def test_DefaultController(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         model_part = _SurrogateModelPart()
         io_settings = ParametersWrapper()
         controller_settings = ParametersWrapper()
@@ -638,7 +688,10 @@ class TestControllers(KratosUnittest.TestCase):
             io.Get.assert_called_with(model_part)
             self.assertEqual(io.Get.call_count, 5)
 
-    def test_TemporalController_OperationCall(self):
+    @patch('KratosMultiphysics.FileNameDataCollector', autospec=True)
+    def test_TemporalController_OperationCall(self, mock_class):
+        mock_instance = mock_class.return_value
+        mock_instance.GetFileName.return_value = 'kratos.h5'
         model_part = _SurrogateModelPart()
         controller_settings = ParametersWrapper()
         controller_settings['controller_type'] = 'temporal_controller'

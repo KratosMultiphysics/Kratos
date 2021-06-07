@@ -88,11 +88,33 @@ public:
      */
     static double MinimumElementSize(const Geometry<Node<3> >& rGeometry);
 
+    /// Minimum element size derivative based on the geometry
+    /** @param DerivativeNodeIndex NodeIndex for which the derivative is obtained
+     *  @param DerivativeDirectionIndex DirectionIndex for which the derivative is obtained
+     *  @param rGeometry The geometry of calling element
+     *  @return The derivative w.r.t. DerivativeNodeIndex and DerivativeDirectionIndex
+     */
+    static double MinimumElementSizeDerivative(
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex,
+        const Geometry<Node<3> >& rGeometry);
+
     /// Average element size based on the geometry.
     /** @param rGeometry The geometry of calling element.
      *  @return The computed size.
      */
     static double AverageElementSize(const Geometry<Node<3> >& rGeometry);
+
+    /// Average element size derivative based on the geometry
+    /** @param DerivativeNodeIndex NodeIndex for which the derivative is obtained
+     *  @param DerivativeDirectionIndex DirectionIndex for which the derivative is obtained
+     *  @param rGeometry The geometry of calling element
+     *  @return The derivative w.r.t. DerivativeNodeIndex and DerivativeDirectionIndex
+     */
+    static double AverageElementSizeDerivative(
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex,
+        const Geometry<Node<3> >& rGeometry);
 
     /// Projected element size in the direction of the velocity vector.
     /** @param rGeometry The geometry of calling element.
@@ -113,6 +135,67 @@ public:
      *  @return The computed size.
      */
     static double GradientsElementSize(const BoundedMatrix<double, 4, 3>& rDN_DX);
+
+    ///@}
+
+private:
+    ///@name Private Operations
+    ///@{
+
+    static inline double HsqDerivative2D(
+        const double Vx,
+        const double VxDerivative,
+        const double Nx,
+        const double NxDerivative,
+        const double Vy,
+        const double VyDerivative,
+        const double Ny,
+        const double NyDerivative)
+    {
+        return 2 * (Vx * Nx + Vy * Ny) *
+                   (VxDerivative * Nx + Vx * NxDerivative + VyDerivative * Ny +
+                    Vy * NyDerivative) / (Nx * Nx + Ny * Ny) -
+               std::pow((Vx * Nx + Vy * Ny) / (Nx * Nx + Ny * Ny), 2) *
+                   (2 * Nx * NxDerivative + 2 * Ny * NyDerivative);
+    }
+
+    static inline double HsqDerivative3D(
+        const double Vx,
+        const double VxDerivative,
+        const double Nx,
+        const double NxDerivative,
+        const double Vy,
+        const double VyDerivative,
+        const double Ny,
+        const double NyDerivative,
+        const double Vz,
+        const double VzDerivative,
+        const double Nz,
+        const double NzDerivative)
+    {
+        return 2 * (Vx * Nx + Vy * Ny + Vz * Nz) *
+                   (VxDerivative * Nx + Vx * NxDerivative + VyDerivative * Ny +
+                    Vy * NyDerivative + VzDerivative * Nz + Vz * NzDerivative) / (Nx * Nx + Ny * Ny + Nz * Nz) -
+               std::pow((Vx * Nx + Vy * Ny + Vz * Nz) / (Nx * Nx + Ny * Ny + Nz * Nz), 2) *
+                   (2 * Nx * NxDerivative + 2 * Ny * NyDerivative + 2 * Nz * NzDerivative);
+    }
+
+    static inline double NormSquareDerivative(
+        const array_1d<double, 3>& rValue,
+        const array_1d<double, 3>& rValueDerivative)
+    {
+        return 2 * inner_prod(rValue, rValueDerivative);
+    }
+
+    static inline double EdgeLengthDerivative(
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex,
+        const unsigned int NodeIndexA,
+        const unsigned int NodeIndexB,
+        const unsigned int EdgeDirection)
+    {
+        return ((DerivativeNodeIndex == NodeIndexA) - (DerivativeNodeIndex == NodeIndexB)) * (DerivativeDirectionIndex == EdgeDirection);
+    }
 
     ///@}
 

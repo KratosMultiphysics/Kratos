@@ -7,23 +7,23 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_solver
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionTransientSolver(model, custom_settings)
 
-class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
+class ConvectionDiffusionTransientSolver(convection_diffusion_solver.ConvectionDiffusionSolver):
     """The transient class for convection-diffusion solvers.
 
     Public member variables:
     transient_settings -- settings for the implicit dynamic solvers.
 
-    See convection_diffusion_base_solver.py for more information.
+    See convection_diffusion_solver.py for more information.
     """
 
     def __init__(self, model, custom_settings):
-        # Construct the base solver and validate the remaining settings in the base class
-        super(ConvectionDiffusionTransientSolver, self).__init__(model, custom_settings)
+        # Construct the base solver and validate the settings in base class
+        super().__init__(model, custom_settings)
 
         # Overwrite the base solver minimum buffer size
         self.min_buffer_size = 2
@@ -32,18 +32,15 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
 
     @classmethod
     def GetDefaultParameters(cls):
-
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+        this_defaults = KratosMultiphysics.Parameters(r"""{
+            "time_integration_method" : "implicit",
             "transient_parameters" : {
                 "dynamic_tau": 1.0,
                 "theta"    : 0.5
             }
-        }
-        """)
-
-        default_settings.AddMissingParameters(super().GetDefaultParameters())
-        return default_settings
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
 
     #### Private functions ####
     def _create_solution_scheme(self):

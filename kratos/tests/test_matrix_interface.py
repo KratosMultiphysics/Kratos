@@ -1,10 +1,17 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 import math
 
 class TestMatrixInterface(KratosUnittest.TestCase):
+
+    def test_len(self):
+        # creation
+        A = KM.Matrix(9, 8)
+        self.assertEqual(72, len(A))
+
+        # after resizing
+        A.Resize(5, 1)
+        self.assertEqual(5, len(A))
 
     def test_copy(self):
         A = KM.Matrix(2,3)

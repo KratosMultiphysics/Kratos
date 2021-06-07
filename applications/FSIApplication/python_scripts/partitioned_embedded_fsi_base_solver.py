@@ -9,47 +9,25 @@ from KratosMultiphysics.FSIApplication import convergence_accelerator_factory   
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
+
+# Import base class
+from KratosMultiphysics.FSIApplication.partitioned_fsi_base_solver import PartitionedFSIBaseSolver
 
 def CreateSolver(model, project_parameters):
     return PartitionedEmbeddedFSIBaseSolver(model, project_parameters)
 
-class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
+class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
 
     def __init__(self, model, project_parameters):
-        # TODO: Remove this as soon as the MPCs are implemented in MPI
-        # This has to be done prior to the defaults check to avoid the structural solver to throw an error in MPI
-        if not project_parameters["structure_solver_settings"].Has("multi_point_constraints_used"):
-            project_parameters["structure_solver_settings"].AddEmptyValue("multi_point_constraints_used")
-            project_parameters["structure_solver_settings"]["multi_point_constraints_used"].SetBool(False)
-
-        # Call the base Python solver constructor
+        # Call the base solver constructor
         super().__init__(model, project_parameters)
 
-        # Auxiliar variables
-        self.parallel_type = self.settings["parallel_type"].GetString()
-        coupling_settings = self.settings["coupling_settings"]
-        self.max_nl_it = coupling_settings["nl_max_it"].GetInt()
-        self.nl_tol = coupling_settings["nl_tol"].GetDouble()
-        self.structure_interface_submodelpart_name = coupling_settings["structure_interfaces_list"][0].GetString()
-
-        # Construct the structure solver
-        self.structure_solver = python_solvers_wrapper_structural.CreateSolverByParameters(self.model, self.settings["structure_solver_settings"], self.parallel_type)
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Structure solver construction finished')
-
-        # Construct the fluid solver
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"], self.parallel_type)
-        self.level_set_type = self.settings["fluid_solver_settings"]["formulation"]["level_set_type"].GetString()
-
-        # First call to create the embedded intersections model part
-        self.__GetEmbedddedSkinUtilityModelPart()
-
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid solver construction finished')
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Partitioned embedded FSI base solver construction finished')
 
     @classmethod
@@ -82,35 +60,28 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
-    def ValidateSettings(self):
-        default_settings = self.GetDefaultParameters()
-
-        ## Base class settings validation
-        super().ValidateSettings()
-
-        ## Validate coupling settings
-        self.settings["coupling_settings"].ValidateAndAssignDefaults(default_settings["coupling_settings"])
-
-    def GetMinimumBufferSize(self):
-        buffer_fluid = self.fluid_solver.GetMinimumBufferSize()
-        buffer_structure = self.structure_solver.GetMinimumBufferSize()
-        return max(buffer_structure,buffer_fluid)
-
+    #TODO: Use the base solver one once we use the fluid ALE solver
     def AddVariables(self):
         # Fluid and structure solvers variables addition
         self.fluid_solver.AddVariables()
         self.structure_solver.AddVariables()
 
+    #TODO: Use the base solver one once we use the fluid ALE solver
     def ImportModelPart(self):
         # Fluid and structure solvers ImportModelPart() call
         self.fluid_solver.ImportModelPart()
         self.structure_solver.ImportModelPart()
 
+    #TODO: Use the base solver one once we use the fluid ALE solver
     def PrepareModelPart(self):
         # Fluid and structure solvers PrepareModelPart() call
         self.fluid_solver.PrepareModelPart()
         self.structure_solver.PrepareModelPart()
 
+        # Perform all the operations required to set up the coupling interfaces
+        self._InitializeCouplingInterfaces()
+
+    #TODO: Use the base solver one once we use the fluid ALE solver
     def AddDofs(self):
         # Add DOFs structure
         self.structure_solver.AddDofs()
@@ -118,17 +89,9 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.fluid_solver.AddDofs()
 
     def Initialize(self):
-        # Get the domain size
-        self.domain_size = self.__GetDomainSize()
-
         # Coupling utility initialization
-        # The __GetConvergenceAccelerator is supposed to construct the convergence accelerator in here
-        self.__GetConvergenceAccelerator().Initialize()
-
-        # FSI interface coupling interfaces initialization
-        # The __GetFSICouplingInterfaceStructure is supposed to construct the FSI coupling structure interface in here
-        self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart()
-        self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart()
+        # The _GetConvergenceAccelerator is supposed to construct the convergence accelerator in here
+        self._GetConvergenceAccelerator().Initialize()
 
         # Python structure solver initialization
         self.structure_solver.Initialize()
@@ -139,13 +102,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Compute the fluid domain NODAL_AREA values
         # Required by the parallel distance calculator if the distance has to be extended
         if (self.level_set_type == "continuous"):
-            KratosMultiphysics.CalculateNodalAreaProcess(self.GetFluidComputingModelPart(), self.domain_size).Execute()
-
-        # Initialize the Dirichlet-Neumann interface
-        self.__InitializeFSIInterfaces()
-
-        # Initialize the iteration value vector
-        self.__InitializeIterationValueVector()
+            KratosMultiphysics.CalculateNodalAreaProcess(self.GetFluidComputingModelPart(), self._GetDomainSize()).Execute()
 
         # Initialize the distance field
         update_distance_process = True
@@ -156,28 +113,18 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Initialize the embedded skin utility
         self.__GetEmbeddedSkinUtility()
 
+        with open("FSI_iterations.txt",'w') as f:
+            f.write("{}\t{}\t{}\n".format("Step","It.", "err_u"))
+            f.close()
+
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', "Finished initialization.")
 
-    def AdvanceInTime(self, current_time):
-        fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
-        structure_new_time = self.structure_solver.AdvanceInTime(current_time)
-
-        self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
-        self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(structure_new_time)
-
-        if abs(fluid_new_time - structure_new_time) > 1e-12:
-            err_msg =  'Fluid new time is: ' + str(fluid_new_time) + '\n'
-            err_msg += 'Structure new time is: ' + str(structure_new_time) + '\n'
-            err_msg += 'No substepping has been implemented yet. Fluid and structure time step must coincide.'
-            raise Exception(err_msg)
-
-        return fluid_new_time
-
+    #TODO: Use the base one once the body fitted uses the fluid ALE solver
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
         self.fluid_solver.InitializeSolutionStep()
         self.structure_solver.InitializeSolutionStep()
-        self.__GetConvergenceAccelerator().InitializeSolutionStep()
+        self._GetConvergenceAccelerator().InitializeSolutionStep()
 
     def Predict(self):
         # Structure solver prediction. It is important to firstly perform the structure
@@ -190,137 +137,60 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Update the level set position with the structure prediction
         self.__UpdateLevelSet()
 
-        # Correct the updated level set
-        self.fluid_solver.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
-        # Restore the fluid node fixity to its original status
-        self.fluid_solver.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
-
-    def GetComputingModelPart(self):
-        err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
-        err_msg += 'Specify the domain of interest by calling:\n'
-        err_msg += '\t- GetFluidComputingModelPart()\n'
-        err_msg += '\t- GetStructureComputingModelPart()\n'
-        raise Exception(err_msg)
-
-    def GetFluidComputingModelPart(self):
-        return self.fluid_solver.GetComputingModelPart()
-
-    def GetStructureComputingModelPart(self):
-        return self.structure_solver.GetComputingModelPart()
-
-    def GetStructureSkinModelPart(self):
-        return self.model.GetModelPart(self.__GetStructureInterfaceModelPartName())
-
-    def GetStructureSkinElementBasedModelPart(self):
-        # Create an auxiliar model part to save the element based skin
-        element_based_skin_model_part_name = self.__GetStructureInterfaceModelPartName() + "ElementBased"
-        if self.model.HasModelPart(element_based_skin_model_part_name):
-            self.model.DeleteModelPart(element_based_skin_model_part_name)
-        self.element_based_skin_model_part = self.model.CreateModelPart(element_based_skin_model_part_name)
-
-        # Copy the skin model part conditions to an auxiliar model part elements.
-        # This is required for the computation of the distance function, which
-        # takes the elements of the second modelpart as skin. If this operation
-        # is not performed, no elements are found, yielding a wrong level set.
-        self.__GetPartitionedFSIUtilities().CopySkinToElements(
-            self.GetStructureSkinModelPart(),
-            self.element_based_skin_model_part)
-
-        return self.element_based_skin_model_part
-
-    def GetStructureIntersectionsModelPart(self):
-        if not hasattr(self, '_embedded_intersections_model_part'):
-            embedded_intersections_root_part = self.model.CreateModelPart("EmbeddedIntersectionsModelPart")
-            self._embedded_intersections_model_part = embedded_intersections_root_part.CreateSubModelPart("SkinEmbeddedIntersectionsModelPart")
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
-        return self._embedded_intersections_model_part
-
-    def SolveSolutionStep(self):
-        ## Non-linear coupling iteration ##
-        nl_it = 0
-        while (nl_it < self.max_nl_it and self.fluid_solver._TimeBufferIsInitialized()):
-            nl_it += 1
-            KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tFSI non-linear iteration = ' + str(nl_it))
-
-            self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
-            self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
-
-            self.__GetConvergenceAccelerator().InitializeNonLinearIteration()
-
-            # Map the RELAXED_DISP from the structure FSI coupling interface to fluid FSI coupling interface
-            # This RELAXED_DISP is intended to be used to update the skin position before the level set update
-            # Note that we take advance of the fact that the coupling interfaces coincide in the embedded case
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-                KratosMultiphysics.RELAXED_DISPLACEMENT,
-                KratosMultiphysics.DISPLACEMENT,
-                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                0)
-
-            # Update the fluid FSI coupling interface position
-            self.__GetFSICouplingInterfaceFluid().UpdatePosition()
-
-            # Update the EMBEDDED_VELOCITY and solve the fluid problem
-            self.__SolveFluid()
-
-            # Transfer the fluid load to the structure FSI coupling
-            self.__TransferFluidLoad()
-
-            # Transfer fluid from the structure FSI coupling interface to father model part
-            if (self.level_set_type == "continuous"):
-                self.__GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-            elif (self.level_set_type == "discontinuous"):
-                self.__GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-                self.__GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-            else:
-                err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
-                raise Exception(err_msg)
-
-            # Solve the structure problem
-            self.__SolveStructure()
-
-            # Compute the residual and perform the update
-            dis_residual_norm = self.__GetFSICouplingInterfaceStructure().Update()
-
-            # End the FSI non-linear iteration
-            self.__GetConvergenceAccelerator().FinalizeNonLinearIteration()
-
-            # Check convergence
-            is_converged = self.__CheckFSIConvergence(dis_residual_norm)
-            if (is_converged):
-                return True
-
-        return False
-
+    #TODO: Use the base solver one once we use the fluid ALE solver for the fluid
     def FinalizeSolutionStep(self):
         # Finalize solution step
         self.fluid_solver.FinalizeSolutionStep()
         self.structure_solver.FinalizeSolutionStep()
-        self.__GetConvergenceAccelerator().FinalizeSolutionStep()
+        self._GetConvergenceAccelerator().FinalizeSolutionStep()
 
-    def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
-        self.fluid_solver.SetEchoLevel(self, fluid_echo_level)
-        self.structure_solver.SetEchoLevel(self, structure_echo_level)
-
-    def Clear(self):
-        self.fluid_solver.Clear()
-        self.structure_solver.Clear()
-
-    def Check(self):
-        self.fluid_solver.Check()
-        self.structure_solver.Check()
+    #TODO: Use the base solver one once we use the fluid ALE solver for the fluid
+    def Finalize(self):
+        self.fluid_solver.Finalize()
+        self.structure_solver.Finalize()
+        self._GetConvergenceAccelerator().Finalize()
 
     #######################################################################
     ##############          PRIVATE METHODS SECTION          ##############
     #######################################################################
+
+    def _AuxiliaryInitOperations(self):
+        # Auxiliar variables
+        self.parallel_type = self.settings["parallel_type"].GetString()
+        coupling_settings = self.settings["coupling_settings"]
+        self.max_nl_it = coupling_settings["nl_max_it"].GetInt()
+        self.nl_tol = coupling_settings["nl_tol"].GetDouble()
+        self.structure_interface_submodelpart_name = coupling_settings["structure_interfaces_list"][0].GetString()
+
+        # Construct the structure solver
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolverByParameters(self.model, self.settings["structure_solver_settings"], self.parallel_type)
+        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Structure solver construction finished')
+
+        # Construct the fluid solver
+        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"], self.parallel_type)
+        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid solver construction finished')
+        self.level_set_type = self.settings["fluid_solver_settings"]["formulation"]["level_set_type"].GetString()
+
+        # First call to create the embedded intersections model part
+        self.__GetEmbedddedSkinUtilityModelPart()
+
+    def _AdvanceInTimeCouplingInterfaces(self, new_time):
+        # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
+        # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+
+    def _InitializeCouplingInterfaces(self):
+        # FSI interface coupling interfaces initialization
+        # The getter methods are to construct the FSI coupling structure interface in here
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart()
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart()
+
+        # Set the INTERFACE flag to the structure skin
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, self._GetStructureInterfaceSubmodelPart().Nodes)
 
     def __GetDistanceToSkinProcess(self, update_distance_process = False):
         if update_distance_process:
@@ -331,29 +201,29 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Set the distance computation process
         if (self.level_set_type == "continuous"):
             raycasting_relative_tolerance = 1.0e-10
-            if self.domain_size == 2:
+            if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                     raycasting_relative_tolerance)
-            elif self.domain_size == 3:
+            elif self._GetDomainSize() == 3:
                 return KratosMultiphysics.CalculateDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                     raycasting_relative_tolerance)
             else:
-                raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+                raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         elif (self.level_set_type == "discontinuous"):
-            if self.domain_size == 2:
+            if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
-            elif self.domain_size == 3:
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
+            elif self._GetDomainSize() == 3:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
-                    self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
+                    self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
             else:
-                raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+                raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         else:
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
@@ -364,12 +234,12 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         return self._parallel_distance_calculator
 
     def __CreateParallelDistanceCalculator(self):
-        if self.domain_size == 2:
+        if self._GetDomainSize() == 2:
             return KratosMultiphysics.ParallelDistanceCalculator2D()
-        elif self.domain_size == 3:
+        elif self._GetDomainSize() == 3:
             return KratosMultiphysics.ParallelDistanceCalculator3D()
         else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+            raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 
     def __GetEmbeddedSkinUtility(self):
         if not hasattr(self, '_embedded_skin_utility'):
@@ -377,18 +247,18 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         return self._embedded_skin_utility
 
     def __CreateEmbeddedSkinUtility(self):
-        if self.domain_size == 2:
+        if self._GetDomainSize() == 2:
             return KratosMultiphysics.EmbeddedSkinUtility2D(
                 self.GetFluidComputingModelPart(),
                 self.__GetEmbedddedSkinUtilityModelPart(),
                 self.level_set_type)
-        elif self.domain_size == 3:
+        elif self._GetDomainSize() == 3:
             return KratosMultiphysics.EmbeddedSkinUtility3D(
                 self.GetFluidComputingModelPart(),
                 self.__GetEmbedddedSkinUtilityModelPart(),
                 self.level_set_type)
         else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+            raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 
     def __GetEmbedddedSkinUtilityModelPart(self):
         if not hasattr(self, '_embedded_skin_utility_model_part'):
@@ -408,27 +278,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
         return embedded_skin_utility_skin_model_part
-
-    def __GetStructureInterfaceModelPartName(self):
-        str_int_list = self.settings["coupling_settings"]["structure_interfaces_list"]
-        if (str_int_list.size() != 1):
-            raise Exception("FSI embedded solver structure skin must be contained in a unique model part")
-        return str_int_list[0].GetString()
-
-    def __InitializeIterationValueVector(self):
-        # Note that the embedded FSI problem is defined in terms of the structure interface
-        # Initialize the iteration value for the residual computation
-        str_int_res_size = self.__GetPartitionedFSIUtilities().GetInterfaceResidualSize(self.__GetStructureInterfaceSubmodelPart())
-        self.iteration_value = KratosMultiphysics.Vector(str_int_res_size)
-        for i in range(0,str_int_res_size):
-            self.iteration_value[i] = 0.0
-
-    def __InitializeFSIInterfaces(self):
-        # Initialize Neumann structure interface
-        str_interface_submodelpart = self.model.GetModelPart(self.__GetStructureInterfaceModelPartName())
-
-        # Set the INTERFACE flag to the structure skin
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, str_interface_submodelpart.Nodes)
 
     def __UpdateLevelSet(self):
         # Recompute the distance field with the obtained solution
@@ -452,28 +301,31 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             max_layers,
             max_distance)
 
-    def __SolveFluid(self):
+    def _MapStructureInterfaceDisplacement(self):
+        # Map the RELAXED_DISP from the structure FSI coupling interface to fluid FSI coupling interface
+        # Note that we take advance of the fact that the coupling interfaces coincide in the embedded case
+        # Then update the fluid FSI coupling interface position
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
+            KratosMultiphysics.RELAXED_DISPLACEMENT,
+            KratosMultiphysics.DISPLACEMENT,
+            self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+            self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+            0)
+        self._GetFSICouplingInterfaceFluid().UpdatePosition(KratosMultiphysics.DISPLACEMENT)
+
+    def _SolveFluid(self):
         # Update the current iteration level-set position
         self.__UpdateLevelSet()
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations and the level set correction
 
-    def __TransferFluidLoad(self):
+    def _CalculateFluidInterfaceTraction(self):
         if (self.level_set_type == "continuous"):
             # Interpolate the pressure to the fluid FSI coupling interface
-            self.__GetPartitionedFSIUtilities().EmbeddedPressureToPositiveFacePressureInterpolator(
+            self._GetPartitionedFSIUtilities().EmbeddedPressureToPositiveFacePressureInterpolator(
                 self.GetFluidComputingModelPart(),
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
-
-            # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
-            # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-                KratosMultiphysics.PRESSURE,
-                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
-                0)
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart())
 
         elif (self.level_set_type == "discontinuous"):
             # Generate the intersections skin to map from
@@ -485,13 +337,40 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self.__GetEmbeddedSkinUtility().InterpolateDiscontinuousMeshVariableToSkin(
                 KratosMultiphysics.PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE, "negative")
 
+        else:
+            err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
+            raise Exception(err_msg)
+
+    def _MapFluidInterfaceTraction(self):
+        if (self.level_set_type == "continuous"):
+            # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
+            # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
+                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                0)
+
+            # Convert the pressure scalar load to a traction vector one
+            swap_traction_sign = True
+            self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+                self._GetTractionVariable(),
+                swap_traction_sign)
+
+        elif (self.level_set_type == "discontinuous"):
+            # Map the POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the auxiliary embedded skin model part,
+            # which is created from the elemental level set intersections, to the fluid FSI coupling interface
+            # Note that the mapper instance is created each time as the embedded skin mesh potentially changes at each iteration
             mapper_params = KratosMultiphysics.Parameters("""{
                 "mapper_type": "nearest_element",
                 "echo_level" : 0
             }""")
             mapper = KratosMapping.MapperFactory.CreateMapper(
                 self.__GetEmbedddedSkinUtilityModelPart(),
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 mapper_params)
             mapper.Map(KratosMultiphysics.POSITIVE_FACE_PRESSURE, KratosMultiphysics.POSITIVE_FACE_PRESSURE)
             mapper.Map(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
@@ -500,81 +379,71 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             # Note that in here we take advantage of the fact that the coupling interfaces coincide in the embedded case
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
                 KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
                 KratosMultiphysics.NEGATIVE_FACE_PRESSURE,
-                self.__GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                self.__GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
+
+            # Convert the pressure scalar load to a traction vector one
+            swap_traction_sign = True
+            self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
+                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+                KratosMultiphysics.NEGATIVE_FACE_PRESSURE,
+                self._GetTractionVariable(),
+                swap_traction_sign)
+
         else:
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
 
-    def __SolveStructure(self):
+    #TODO: Use the base solver one once the body-fitted does not require to do the traction to point load conversion
+    def _SolveStructure(self):
         # Solve the structure problem
         self.structure_solver.SolveSolutionStep()
 
-    def __CheckFSIConvergence(self, residual_norm):
-        interface_dofs = self.__GetPartitionedFSIUtilities().GetInterfaceResidualSize(self.__GetStructureInterfaceSubmodelPart())
-        normalised_residual = residual_norm/sqrt(interface_dofs)
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\t|res|/sqrt(nDOFS) = ' + str(normalised_residual))
-        return normalised_residual < self.nl_tol
-
-    # This method returns the convergence accelerator.
-    # If it is not created yet, it calls the __CreateConvergenceAccelerator first
-    def __GetConvergenceAccelerator(self):
-        if not hasattr(self, '_convergence_accelerator'):
-            self._convergence_accelerator = self.__CreateConvergenceAccelerator()
-        return self._convergence_accelerator
-
-    # This method constructs the convergence accelerator coupling utility
-    def __CreateConvergenceAccelerator(self):
-        convergence_accelerator = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["coupling_settings"]["coupling_strategy_settings"])
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Coupling strategy construction finished')
-        return convergence_accelerator
-
-    def __GetFSICouplingInterfaceStructure(self):
-        if not hasattr(self, '_fsi_coupling_interface_structure'):
-            self._fsi_coupling_interface_structure = self.__CreateFSICouplingInterfaceStructure()
-        return self._fsi_coupling_interface_structure
-
-    def __CreateFSICouplingInterfaceStructure(self):
+    def _CreateFSICouplingInterfaceStructure(self):
         # Set auxiliary settings
         if (self.level_set_type == "continuous"):
             aux_settings = KratosMultiphysics.Parameters(
             """{
                 "model_part_name": "FSICouplingInterfaceStructure",
                 "parent_model_part_name": "",
-                "input_variable_list": ["POSITIVE_FACE_PRESSURE"],
-                "output_variable_list": ["DISPLACEMENT"]
+                "input_variable_list": [],
+                "output_variable_list": ["DISPLACEMENT"],
+                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE","NORMAL"]
             }""")
         elif (self.level_set_type == "discontinuous"):
             aux_settings = KratosMultiphysics.Parameters(
             """{
                 "model_part_name": "FSICouplingInterfaceStructure",
                 "parent_model_part_name": "",
-                "input_variable_list": ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE"],
-                "output_variable_list": ["DISPLACEMENT"]
+                "input_variable_list": [],
+                "output_variable_list": ["DISPLACEMENT"],
+                "auxiliary_variable_list": ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","NORMAL"]
             }""")
         else:
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
 
         aux_settings["parent_model_part_name"].SetString(self.structure_interface_submodelpart_name)
+        aux_settings["input_variable_list"].Append(self._GetTractionVariable().Name())
 
         # Construct the FSI coupling interface
         fsi_coupling_interface_structure = fsi_coupling_interface.FSICouplingInterface(
             self.model,
             aux_settings,
-            self.__GetConvergenceAccelerator())
+            self._GetConvergenceAccelerator())
 
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Structure FSI coupling interface created')
 
         return fsi_coupling_interface_structure
 
-    def __GetFSICouplingInterfaceFluid(self):
+    def _GetFSICouplingInterfaceFluid(self):
         if not hasattr(self, '_fsi_coupling_interface_fluid'):
             self._fsi_coupling_interface_fluid = self.__CreateFSICouplingInterfaceFluid()
         return self._fsi_coupling_interface_fluid
@@ -589,7 +458,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
                 "model_part_name": "FSICouplingInterfaceFluid",
                 "parent_model_part_name": "",
                 "input_variable_list": ["DISPLACEMENT"],
-                "output_variable_list": ["PRESSURE"]
+                "output_variable_list": ["POSITIVE_FACE_PRESSURE"]
             }""")
         elif (self.level_set_type == "discontinuous"):
             aux_settings = KratosMultiphysics.Parameters(
@@ -614,28 +483,22 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         return fsi_coupling_interface_fluid
 
-    def __GetStructureInterfaceSubmodelPart(self):
-        # Returns the structure interface submodelpart that will be used in the residual minimization
-        return self.model.GetModelPart(self.structure_interface_submodelpart_name)
+    @classmethod
+    def _GetFSICouplingInterfaceFluidPositive(self):
+        err_msg = 'Embedded partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluidPositive\' method.\n'
+        err_msg += 'Use \'_GetFSICouplingInterfaceFluid\' method as the fluid coupling interface is unique.'
+        raise Exception(err_msg)
 
-    def __GetDomainSize(self):
-        fluid_domain_size = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        structure_domain_size = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+    @classmethod
+    def _GetFSICouplingInterfaceFluidNegative(self):
+        err_msg = 'Embedded partitioned FSI solver does not implement the \'_GetFSICouplingInterfaceFluidNegative\' method.\n'
+        err_msg += 'Use \'_GetFSICouplingInterfaceFluid\' method as the fluid coupling interface is unique.'
+        raise Exception(err_msg)
 
-        if fluid_domain_size !=structure_domain_size:
-            raise("ERROR: Solid domain size and fluid domain size are not equal!")
-
-        return fluid_domain_size
-
-    def __GetPartitionedFSIUtilities(self):
-        if not hasattr(self, '_partitioned_fsi_utilities'):
-            self._partitioned_fsi_utilities = self.__CreatePartitionedFSIUtilities()
-        return self._partitioned_fsi_utilities
-
-    def __CreatePartitionedFSIUtilities(self):
-        if self.domain_size == 2:
-            return KratosFSI.PartitionedFSIUtilitiesArray2D()
-        elif self.domain_size == 3:
-            return KratosFSI.PartitionedFSIUtilitiesArray3D()
+    def _GetTractionVariable(self):
+        if self._GetDomainSize() == 2:
+            return KratosStructural.LINE_LOAD
+        elif self._GetDomainSize() == 3:
+            return KratosStructural.SURFACE_LOAD
         else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+            raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))

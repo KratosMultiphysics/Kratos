@@ -463,7 +463,7 @@ namespace Kratos
 
         // Check that the moved virtual mesh has no negative Jacobian elements
 #ifdef KRATOS_DEBUG
-        for (const auto it_elem : mrVirtualModelPart.ElementsArray()) {
+        for (const auto& it_elem : mrVirtualModelPart.ElementsArray()) {
             KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
         }
 #endif

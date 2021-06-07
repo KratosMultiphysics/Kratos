@@ -24,7 +24,7 @@
 // Core applications
 #include "topology_optimization_application.h"
 
-#include "custom_elements/small_displacement_simp_element.hpp"
+#include "custom_elements/small_displacement_simp_element.h"
 #include "includes/variables.h"
 
 // Project includes

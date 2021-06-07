@@ -132,11 +132,6 @@ public:
         mpPrimalCondition->ResetConstitutiveLaw();
     }
 
-    void CleanMemory() override
-    {
-        mpPrimalCondition->CleanMemory();
-    }
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);

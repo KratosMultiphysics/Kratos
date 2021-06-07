@@ -27,7 +27,7 @@ class TestCouplingGeometryMapper(KratosUnittest.TestCase):
         SetConstantVariable(self.interface_model_part_destination,KM.FORCE,reference_force)
         self.mapper.InverseMap(KM.FORCE, KM.FORCE,KratosMapping.Mapper.USE_TRANSPOSE)
         mapped_results = GetInterfaceResult(self.interface_model_part_origin,KM.FORCE)
-        reference_result = [0.2501913843336516, 0.2501913843336516, 0.2501913843336516, 1.292449164738119, 1.292449164738119, 1.292449164738119, 0.7004426959773076, 0.7004426959773076, 0.7004426959773076, 0.8902247629970814, 0.8902247629970814, 0.8902247629970814, 0.9474688054530651, 0.9474688054530651, 0.9474688054530651, 0.919223186500775, 0.919223186500775, 0.919223186500775]
+        reference_result = [0.2380991480071958, 0.2380991480071958, 0.2380991480071958, 1.3120351229689677, 1.3120351229689677, 1.3120351229689677, 0.6908309106360845, 0.6908309106360845, 0.6908309106360845, 0.9063686826513201, 0.9063686826513201, 0.9063686826513201, 0.9261336708771284, 0.9261336708771284, 0.9261336708771284, 0.9265324648593039, 0.9265324648593039, 0.9265324648593039]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
 
 
@@ -59,6 +59,37 @@ class TestDualMortarCouplingGeometryMapper(KratosUnittest.TestCase):
         self.mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
         mapped_results = GetInterfaceResult(self.interface_model_part_destination,KM.DISPLACEMENT)
         reference_result = [1.0, 1.0, 1.0, 0.9999999999999999, 0.9999999999999999, 0.9999999999999999, 1.0000000000000004, 1.0000000000000004, 1.0000000000000004, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0000000000000004, 1.0000000000000004, 1.0000000000000004]
+        self.assertVectorAlmostEqual(mapped_results,reference_result)
+
+class TestSlaveOriginCouplingGeometryMapper(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.mapper_parameters = KM.Parameters("""{
+            "mapper_type": "coupling_geometry",
+            "echo_level" : 0,
+            "precompute_mapping_matrix" : false,
+			"dual_mortar": false,
+			"consistency_scaling" : true,
+            "destination_is_slave" : false,
+			"modeler_name" : "MappingGeometriesModeler",
+            "modeler_parameters":{
+						"origin_model_part_name" : "origin",
+						"destination_model_part_name" : "destination",
+						"is_interface_sub_model_parts_specified" : true,
+						"origin_interface_sub_model_part_name" : "origin.line_tri",
+						"destination_interface_sub_model_part_name" : "destination.line_quad"
+					}
+        }""")
+
+        SetupModelParts(self)
+        CreateMapper(self)
+
+    def test_slave_origin_mortar(self):
+        reference_displacement = 1.0
+        SetConstantVariable(self.interface_model_part_destination,KM.DISPLACEMENT,reference_displacement)
+        self.mapper.Map(KM.DISPLACEMENT, KM.DISPLACEMENT)
+        mapped_results = GetInterfaceResult(self.interface_model_part_origin,KM.DISPLACEMENT)
+        reference_result = [0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0000000000000002, 1.0000000000000002, 1.0000000000000002, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
 
 

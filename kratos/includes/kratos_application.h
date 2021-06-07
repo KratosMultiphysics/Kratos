@@ -25,6 +25,7 @@
 #include "elements/mesh_element.h"
 #include "elements/distance_calculation_element_simplex.h"
 #include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
 #include "conditions/mesh_condition.h"
 #include "includes/periodic_condition.h"
@@ -64,6 +65,7 @@
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
+#include "modeler/cad_tessellation_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -132,7 +134,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
     void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
-    void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
     void RegisterMappingVariables();              //TODO: move to application
@@ -457,10 +458,13 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
+    const LevelSetConvectionElementSimplexAlgebraicStabilization<2,3> mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N;
+    const LevelSetConvectionElementSimplexAlgebraicStabilization<3,4> mLevelSetConvectionElementSimplexAlgebraicStabilization3D4N;
 
     // Modeler
     const Modeler mModeler;
     const CadIoModeler mCadIoModeler;
+    const CadTessellationModeler mCadTessellationModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;

@@ -22,7 +22,7 @@
 #include <pybind11/pybind11.h>   
 #include <boost/numeric/ublas/storage.hpp>
 
-#include "../custom_elements/small_displacement_simp_element.hpp"
+#include "../custom_elements/small_displacement_simp_element.h"
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"

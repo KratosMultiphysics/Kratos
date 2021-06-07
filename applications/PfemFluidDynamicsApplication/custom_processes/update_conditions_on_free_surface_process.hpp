@@ -99,7 +99,6 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 		KRATOS_TRY
 
 		this->ClearAllConditions();
-
 		this->UpdateConditionsAfterRemesh();
 
 		KRATOS_CATCH("")
@@ -157,43 +156,57 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 		}
 		ModelPart& r_computing_model_part = mrModelPart.GetSubModelPart(computing_model_part_name);
 
-		// Property to be used in the generation
-		Properties::Pointer p_property = mrModelPart.GetParentModelPart().pGetProperties(0);
+		// Starting free surface condition ID number
+		unsigned int condition_id = r_computing_model_part.NumberOfConditions();
 
-		unsigned int condition_id = 0;
-		for (unsigned int i = 0; i < mListOfSubModelParts.size(); i++) {
-
-			// Sub model part to be updated
+		// Loop over free surface sub model parts
+		for (unsigned int i = 0; i < mListOfSubModelParts.size(); i++)
+		{
+			// Free surface sub model part to be updated
 			ModelPart& r_sub_model_part = mrModelPart.GetSubModelPart(mListOfSubModelParts[i]);
 
-			// Condition type to be used in the generation
+			// Remove nodes from sub model part
+			VariableUtils().SetFlag(TO_ERASE, true, r_sub_model_part.Nodes());
+			r_sub_model_part.RemoveNodes(TO_ERASE);
+			VariableUtils().SetFlag(TO_ERASE, false, mrModelPart.Nodes()); // this is suspicious
+
+			// Condition type to be created
 			const Condition& r_reference_condition = KratosComponents<Condition>::Get(mListOfReferenceConditions[i]);
 
-			if ((i == 0)) {
+			// Property to be used in the creation of conditions (assuming r_sub_model_part has only one property)
+			Properties::Pointer p_property = mrModelPart.GetParentModelPart().pGetProperties(0);
+			for (auto i_prop(r_sub_model_part.PropertiesBegin()); i_prop != r_sub_model_part.PropertiesEnd(); ++i_prop) {
+				if (!i_prop->IsEmpty()) {
+					const int prop_id = i_prop->Id();
+					p_property = r_sub_model_part.GetParentModelPart().pGetProperties(prop_id);
+				}
+			}
+
+			// For the first sub model part we need to find the boundaries and creating the "skin"
+			if ((i == 0))
+			{
 				BuiltinTimer time_elapsed;
 
-				// For the first sub model part we need to find the boundaries and creating the "skin"
-				for (auto i_elem(r_computing_model_part.ElementsBegin()); i_elem != r_computing_model_part.ElementsEnd(); ++i_elem) {
+				// Loop over all elements
+				for (auto i_elem(r_computing_model_part.ElementsBegin()); i_elem != r_computing_model_part.ElementsEnd(); ++i_elem)
+				{
 					Geometry<Node<3>>& r_geometry = i_elem->GetGeometry();
-
 					DenseMatrix<unsigned int> lpofa; // connectivities of points defining faces
 					DenseVector<unsigned int> lnofa; // number of points defining faces
-
-					ElementWeakPtrVectorType& number_of_neighbour_elements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
-
 					r_geometry.NodesInFaces(lpofa);
 					r_geometry.NumberNodesInFaces(lnofa);
+					ElementWeakPtrVectorType& number_of_neighbour_elements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
 					// Loop over neighbour elements of an element
 					unsigned int iface = 0;
-					for (auto& i_nelem : number_of_neighbour_elements) {
+					for (auto& i_nelem : number_of_neighbour_elements)
+					{
 						unsigned int number_of_nodes_in_face = lnofa[iface];
-						if (i_nelem.Id() == i_elem->Id()) {
 
+						if (i_nelem.Id() == i_elem->Id())
+						{
+							// Get face nodes
 							Condition::NodesArrayType face_nodes;
-
-							Condition::GeometryType::Pointer ConditionVertices;
-
 							face_nodes.reserve(number_of_nodes_in_face);
 							unsigned int number_of_rigid_nodes = 0;
 							for (unsigned int j = 1; j <= number_of_nodes_in_face; ++j) {
@@ -203,12 +216,23 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 								}
 							}
 
-							if (number_of_rigid_nodes != number_of_nodes_in_face) {
-
-								Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, face_nodes, p_property);
-
+							// Check if it is a free surface
+							if (number_of_rigid_nodes != number_of_nodes_in_face)
+							{
+								// Create new condition on free surface
+								Condition::Pointer p_condition = r_reference_condition.Create(condition_id++, face_nodes, p_property);
 								mrModelPart.Conditions().push_back(p_condition);
 								r_sub_model_part.Conditions().push_back(p_condition);
+
+								// Add nodes to free surface
+								for (unsigned int j = 1; j <= number_of_nodes_in_face; ++j) {
+									bool add = true;
+									for (auto i_node(r_sub_model_part.NodesBegin()); i_node != r_sub_model_part.NodesEnd(); ++i_node)
+										if (i_node->Id() == r_geometry(lpofa(j, iface))->Id())
+											add = false;
+									if (add)
+										r_sub_model_part.Nodes().push_back(r_geometry(lpofa(j, iface)));
+								}
 							}
 						}
 						iface += 1;
@@ -216,24 +240,32 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 				}
 				KRATOS_INFO_IF("UpdateConditionsAfterRemeshProcess ", mEchoLevel > 0)
 				    << " SubModelPart: " << mListOfSubModelParts[i] << " Rebuild time: " << time_elapsed.ElapsedSeconds() << std::endl;
+			}
 
-			} else {
+			// For the other sub model parts we clone the nodes/conditions from the first sub model part
+			else
+			{
 				BuiltinTimer time_elapsed;
-				// For the other sub model parts we clone the conditions from the first sub model part
+
+				// Get first free surface sub model part
 				ModelPart& r_origin_part = mrModelPart.GetSubModelPart(mListOfSubModelParts[0]);
 
+				// Copy nodes from first free surface sub model part
+				r_sub_model_part.AddNodes(r_origin_part.NodesBegin(), r_origin_part.NodesEnd());
+
+				// Initialize vector of new conditions
 				ModelPart::ConditionsContainerType temp_conditions;
 				temp_conditions.reserve(r_origin_part.NumberOfConditions());
 
-				for (auto i_cond = r_origin_part.ConditionsBegin(); i_cond != r_origin_part.ConditionsEnd(); ++i_cond) {
-					Properties::Pointer properties = i_cond->pGetProperties();
-
-					// Reuse the geometry of the old element (to save memory)
-					Condition::Pointer p_condition = r_reference_condition.Create(++condition_id, i_cond->pGetGeometry(), properties);
-
+				// Loop over conditions created for first free surface sub model part
+				for (auto i_cond = r_origin_part.ConditionsBegin(); i_cond != r_origin_part.ConditionsEnd(); ++i_cond)
+				{
+					// Create condition (reuse the geometry of the old element to save memory)
+					Condition::Pointer p_condition = r_reference_condition.Create(condition_id++, i_cond->pGetGeometry(), p_property);
 					temp_conditions.push_back(p_condition);
 				}
 
+				// Add conditions
 				r_sub_model_part.AddConditions(temp_conditions.begin(), temp_conditions.end());
 				mrModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
 
@@ -245,10 +277,13 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 	}
 
 	void ClearAllConditions() const {
-
-		VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Conditions());
-
-		mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+		// Remove conditions only from free surface submodel parts
+		for (unsigned int i = 0; i < mListOfSubModelParts.size(); i++)
+		{
+			ModelPart& r_sub_model_part = mrModelPart.GetSubModelPart(mListOfSubModelParts[i]);
+			VariableUtils().SetFlag(TO_ERASE, true, r_sub_model_part.Conditions());
+			r_sub_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+		}
 	}
 
 	///@}

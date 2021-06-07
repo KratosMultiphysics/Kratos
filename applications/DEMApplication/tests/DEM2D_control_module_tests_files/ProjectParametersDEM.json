@@ -20,7 +20,10 @@
     "CleanIndentationsOption"             : false,
     "solver_settings"                     : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "continuum_sphere_strategy"
+        "strategy"                          : "continuum_sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
     },
     "DeltaOption"                         : "Absolute",
     "SearchTolerance"                     : 0.0001,
@@ -58,9 +61,11 @@
         "MeasuringSurface"    : 0.00806117
     },
     "processes"        : {
-        "constraints_process_list" : []
+        "constraints_process_list" : [],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
     },
-    "ImposeZStrainIn2DOption"             : true,       
+    "ImposeZStrainIn2DOption"             : true,
     "ZStrainValue"                        : "0.0",
     "ImposeZStrainIn2DWithControlModule" : true,
     "OutputTimeStep"                      : 1.0e-6,

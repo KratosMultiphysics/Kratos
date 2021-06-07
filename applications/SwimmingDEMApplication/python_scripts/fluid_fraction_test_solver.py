@@ -2,8 +2,7 @@ import KratosMultiphysics as Kratos
 import swimming_DEM_solver
 
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
-import L2_error_projection_utility as error_projector
-
+import L2_error_calculator_utility as L2_error_calculator
 class FluidFractionTestSolver(BaseSolver):
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
         """The default constructor of the class
@@ -38,12 +37,12 @@ class FluidFractionTestSolver(BaseSolver):
             node.SetSolutionStepValue(Kratos.VELOCITY_Z, 0.0)
             node.Fix(Kratos.VELOCITY_Z)
 
-    def ConstructL2ErrorProjector(self):
-        self.L2_error_projector = error_projector.L2ErrorProjectionUtility(self.fluid_solver.main_model_part)
+    def ConstructL2ErrorCalculator(self):
+        self.L2_error_calculator = L2_error_calculator.L2ErrorCalculatorUtility(self.fluid_solver.main_model_part, self.project_parameters)
 
-    def ProjectL2Error(self):
-        self.velocity_error_projected, self.pressure_error_projected, self.error_model_part = self.L2_error_projector.ProjectL2()
-        return self.velocity_error_projected, self.pressure_error_projected, self.error_model_part
+    def CalculateL2Error(self):
+        self.velocity_error_norm, self.pressure_error_norm, self.error_model_part = self.L2_error_calculator.CalculateL2()
+        return self.velocity_error_norm, self.pressure_error_norm, self.error_model_part
 
     def SolveDEM(self):
         super(FluidFractionTestSolver, self).SolveDEM()

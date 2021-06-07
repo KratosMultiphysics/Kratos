@@ -9,6 +9,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <random>
 
 // External includes
 
@@ -28,6 +29,7 @@
 #include "includes/condition.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
+#include "../custom_utilities/piecewise_linear_random_variable.h"
 #include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
@@ -46,7 +48,8 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Inlet);
 
         /// Constructor:
-        DEM_Inlet(ModelPart& inlet_modelpart);
+        DEM_Inlet(ModelPart& inlet_modelpart, const int seed=42);
+        DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
@@ -96,7 +99,9 @@ namespace Kratos {
         std::vector<int> mNumberOfParticlesInjected;
         std::map<int, std::string> mOriginInletSubmodelPartIndexes;
         double mTotalMassInjected;
+        //int mSeed;
         std::vector<double> mMassInjected;
+        std::mt19937 mGenerator;
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle
         // and for allowing a new one to be injected. admissible_indentation_ratio_for_release should be smaller
         // (more strict), since we want to make sure that the particle is taken far enough to avoid interferences
@@ -113,6 +118,9 @@ namespace Kratos {
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
         std::vector<ModelPart*> mListOfSubModelParts;
+        std::map<std::string, PiecewiseLinearRandomVariable> mInletsRandomVariables;
+        std::map<std::string, Parameters> mInletsRandomSettings;
+        Parameters mInletsSettings;
     };
 }// namespace Kratos.
 

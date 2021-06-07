@@ -25,7 +25,6 @@ class TestScalingOperation(KratosUnittest.TestCase):
             "variable_name"   : "PRESSURE"
         }""")
         self.interface_data = CouplingInterfaceData(data_settings, self.model)
-        self.interface_data.Initialize()
 
         self.solver_wrappers = {"dummy_solver" : DummySolverWrapper({"data_4_testing" : self.interface_data})}
 

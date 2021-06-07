@@ -28,8 +28,18 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "improved_integration"       : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
-        "in_plane_morphing"                   : false,
-        "in_plane_morphing_settings"          : {}
+        "in_plane_morphing"          : false,
+        "in_plane_morphing_settings" : {},
+        "plane_symmetry"             : false,
+        "plane_symmetry_settings"    : {
+            "point" : [0.0, 0.0, 0.0],
+            "normal": [0.0, 0.0, 0.0]
+        },
+        "revolution"                 : false,
+        "revolution_settings"        : {
+            "point" : [0.0, 0.0, 0.0],
+            "normal": [0.0, 0.0, 0.0]
+        }
     }""")
 
     mapper_settings.ValidateAndAssignDefaults(default_settings)
@@ -44,8 +54,15 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         else:
             return KSO.MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
     else:
+        if mapper_settings["revolution"].GetBool() and mapper_settings["plane_symmetry"].GetBool():
+            raise RuntimeError("revolution and plane_symmetry can not be combined!")
+
         if mapper_settings["improved_integration"].GetBool():
             return KSO.MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
+        elif mapper_settings["plane_symmetry"].GetBool():
+            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
+        elif mapper_settings["revolution"].GetBool():
+            return KSO.MapperVertexMorphingSymmetric(origin_model_part, destination_model_part, mapper_settings)
         else:
             return KSO.MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
 

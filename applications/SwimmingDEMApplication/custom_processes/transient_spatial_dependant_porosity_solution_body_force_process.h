@@ -65,6 +65,7 @@ public:
     ///@name Life Cycle
     ///@{
 
+    TransientSpatialDependantPorositySolutionBodyForceProcess();
     /// Constructor.
     TransientSpatialDependantPorositySolutionBodyForceProcess(
         ModelPart& rModelPart,
@@ -73,6 +74,7 @@ public:
         const double DeltaAlpha,
         const double Length,
         const double SqueezeAmplitude,
+        const double NSafety,
         const double X1Origin,
         const double X2Origin);
 
@@ -90,6 +92,20 @@ public:
     ~TransientSpatialDependantPorositySolutionBodyForceProcess() override {}
 
     ///@}
+
+    ModelPart&                                       mrModelPart;
+    double                                              mDensity;
+    double                                            mViscosity;
+    double                                           mDeltaAlpha;
+    double                                               mLength;
+    double                                   mMaxSqueezeFraction;
+    double                                                mOmega;
+    double                                     mSqueezeAmplitude;
+    double                                              mNSafety;
+    double                                             mX1Origin;
+    double                                             mX2Origin;
+    ///@}
+
     ///@name Operators
     ///@{
 
@@ -106,6 +122,20 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+
+    const Parameters GetDefaultParameters() const override;
+
+    void SetInitialBodyForceAndPorosityField();
+
+    void SetBodyForceAndPorosityField();
+
+    bool IsInsideEllipticalSupport(
+        const double x1,
+        const double x2,
+        const double c,
+        const double R);
 
     ///@}
     ///@name Access
@@ -148,30 +178,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&                                       mrModelPart;
-    double                                              mDensity;
-    double                                            mViscosity;
-    double                                           mDeltaAlpha;
-    double                                               mLength;
-    double                                   mMaxSqueezeFraction;
-    double                                                mOmega;
-    double                                     mSqueezeAmplitude;
-    double                                             mX1Origin;
-    double                                             mX2Origin;
-    ///@}
     ///@name Protected Operators
     ///@{
 
     ///@}
     ///@name Private Operations
     ///@{
-    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
-
-    const Parameters GetDefaultParameters() const override;
-
-    void SetInitialBodyForceAndPorosityField();
-
-    void SetBodyForceAndPorosityField();
 
     ///@}
     ///@name Private  Access
@@ -188,14 +200,10 @@ private:
     ///@{
 
     /// Default constructor.
-    TransientSpatialDependantPorositySolutionBodyForceProcess() = delete;
 
     /// Assignment operator.
-    TransientSpatialDependantPorositySolutionBodyForceProcess& operator=(TransientSpatialDependantPorositySolutionBodyForceProcess const& rOther) = delete;
 
     /// Copy constructor.
-    TransientSpatialDependantPorositySolutionBodyForceProcess(TransientSpatialDependantPorositySolutionBodyForceProcess const& rOther) = delete;
-
     ///@}
 
 }; // Class TransientSpatialDependantPorositySolutionBodyForceProcess

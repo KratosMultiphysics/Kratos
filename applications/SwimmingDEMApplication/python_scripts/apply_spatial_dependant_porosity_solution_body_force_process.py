@@ -44,7 +44,6 @@ class ApplySpatialDependantPorositySolutionBodyForceProcess(KratosMultiphysics.P
     def ExecuteBeforeSolutionLoop(self):
         self.ApplySpatialDependantPorositySolutionBodyForceProcess.ExecuteBeforeSolutionLoop()
 
-
     def ExecuteInitializeSolutionStep(self):
         self.ApplySpatialDependantPorositySolutionBodyForceProcess.ExecuteInitializeSolutionStep()
 
