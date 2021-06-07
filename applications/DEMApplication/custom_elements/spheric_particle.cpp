@@ -1538,13 +1538,12 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
         ComputeReactions();
     }
 
-    auto& central_node = GetGeometry()[0];
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
-    central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = mPartialRepresentativeVolume;
-    double& rRepresentative_Volume = central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+        auto& central_node = GetGeometry()[0];
 
-    //bool is_smaller_than_sphere = false;
-    CorrectRepresentativeVolume(rRepresentative_Volume/*, is_smaller_than_sphere*/);
+        central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = mPartialRepresentativeVolume;
+        double& rRepresentative_Volume = central_node.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
 
         //bool is_smaller_than_sphere = false;
         CorrectRepresentativeVolume(rRepresentative_Volume/*, is_smaller_than_sphere*/);
